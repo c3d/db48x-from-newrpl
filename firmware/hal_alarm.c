@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 // SOFTWARE ALARM MANAGEMENT - HIGHER LEVEL API
 
 #include <newrpl.h>
@@ -46,18 +45,19 @@ void halInitAlarm(UBINT hot_start, BINT reset)
 */
 void halTriggerAlarm()
 {
-    if (halFlags & HAL_SKIPNEXTALARM) {
+    if(halFlags & HAL_SKIPNEXTALARM) {
         halFlags &= ~HAL_SKIPNEXTALARM;
         rplSkipNextAlarm();
         return;
     }
 
-    if (rplTriggerAlarm())
+    if(rplTriggerAlarm())
         halSetNotification(N_ALARM, 0xf);
     else
         halSetNotification(N_ALARM, 0x0);
 
-    halScreen.DirtyFlag |= STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+    halScreen.DirtyFlag |=
+            STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
 
     return;
 }

@@ -7,8 +7,7 @@
 
 #include <ggl.h>
 
-
-void ggl_scrollup(gglsurface *dest,int width, int height, int npixelsup)
+void ggl_scrollup(gglsurface * dest, int width, int height, int npixelsup)
 {
 
 // SCROLLS A RECTANGULAR REGION UP npixelsup
@@ -17,15 +16,13 @@ void ggl_scrollup(gglsurface *dest,int width, int height, int npixelsup)
 
 // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-gglsurface srf;
+    gglsurface srf;
 
-srf.addr=dest->addr;
-srf.width=dest->width;
-srf.x=dest->x;
-srf.y=dest->y+npixelsup;
+    srf.addr = dest->addr;
+    srf.width = dest->width;
+    srf.x = dest->x;
+    srf.y = dest->y + npixelsup;
 
-ggl_bitblt(dest,&srf,width,height-npixelsup);
+    ggl_bitblt(dest, &srf, width, height - npixelsup);
 
 }
-
-

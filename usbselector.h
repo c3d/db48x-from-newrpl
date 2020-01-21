@@ -5,49 +5,45 @@
 #include <QThread>
 #include <QList>
 
-namespace Ui {
-class USBSelector;
+namespace Ui
+{
+    class USBSelector;
 }
 
-class FWThread : public QThread
+class FWThread:public QThread
 {
-    Q_OBJECT
-public:
+  Q_OBJECT public:
     void run();
 
-    FWThread(QObject *parent);
-    ~FWThread();
+        FWThread(QObject * parent);
+       ~FWThread();
 
-signals:
-    void FirmwareUpdateError(QString message);
-
+        signals: void FirmwareUpdateError(QString message);
 
 };
 
 #define MAX_DIALOG_DEVICES 50
 
-class USBSelector : public QDialog
+class USBSelector:public QDialog
 {
-    Q_OBJECT
-    QString SelectedDevicePath;
+    Q_OBJECT QString SelectedDevicePath;
     QString SelectedDeviceName;
     int numberoftries;
     bool norefresh;
     FWThread update_thread;
     QByteArray filedata;
 
-    virtual void closeEvent(QCloseEvent *event);
+    virtual void closeEvent(QCloseEvent * event);
 
-public:
+  public:
     void RefreshList();
-    QString& getSelectedDevicePath();
-    QString& getSelectedDeviceName();
+        QString & getSelectedDevicePath();
+        QString & getSelectedDeviceName();
 
-    explicit USBSelector(QWidget *parent = 0);
-    ~USBSelector();
+    explicit USBSelector(QWidget * parent = 0);
+       ~USBSelector();
 
-private slots:
-    void on_USBtreeWidget_itemSelectionChanged();
+    private slots: void on_USBtreeWidget_itemSelectionChanged();
 
     void on_USBSelector_accepted();
 
@@ -63,10 +59,8 @@ private slots:
 
     virtual void reject();
 
-
-
-private:
-    Ui::USBSelector *ui;
+  private:
+        Ui::USBSelector * ui;
 
 };
 

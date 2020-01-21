@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef UTF8LIB_H
 #define UTF8LIB_H
 
@@ -30,56 +29,47 @@
 #define FONT_OFFSET(val) (((val)&0xFFF))
 #define RANGE_LEN(val) (((val)>>12)&0xfffff)
 
-
-
 #define MAX_UNICODE_CHARACTER_LEN 32
 
 // SOME USEFUL UNICODDE CODE POINTS
 #define THIN_SPACE  0x2009
 
-
-
 // ********************   USER ACCESSIBLE API FOR UTF-8 STRING MANIPULATION *****************************
-
-
 
 // ALL STRINGS ARE PROVIDED AS A POINTER TO THE START AND A
 // POINTER TO THE END OF STRING (IMMEDIATELY *AFTER* THE LAST BYTE)
 // STRINGS MAY CONTAIN THE NULL CHARACTER AND DON'T NEED TO BE NULL-TERMINATED
 
 // DECODE A SINGLE CODE POINT FROM THE GIVEN STRING TO A 32-BIT INTEGER
-int utf82cp(char * ptr,char *end);
+int utf82cp(char *ptr, char *end);
 
 // SKIP A SINGLE CODE POINT IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8skip(char *ptr,char * end);
+char *utf8skip(char *ptr, char *end);
 
 // SKIP A COMPLETE CHARACTER (SINGLE OR MULTIPLE CODE POINTS) IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8skipst(char *ptr,char *end);
+char *utf8skipst(char *ptr, char *end);
 
 // SKIP BYTES UNTIL A STARTER CODEPOINT IS FOUND
 // USED TO ALIGN ARBITRARY POINTERS INTO THE UTF8 SEQUENCE
-char *utf8findst(char *ptr,char *end);
-
+char *utf8findst(char *ptr, char *end);
 
 // SKIP N CODE POINTS IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8nskip(char *ptr,char *end,int n);
+char *utf8nskip(char *ptr, char *end, int n);
 
 // SKIP N CHARACTERS (SINGLE OR MULTIPLE CODE POINTS) IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8nskipst(char *ptr,char *end,int n);
+char *utf8nskipst(char *ptr, char *end, int n);
 
 // REVERSE SKIP A SINGLE CODE POINT IN A UTF-8 ENCODED STRING
 // RETURNS THE DECREASED POINTER, OR PTR AT THE START OF STRING
-char *utf8rskip(char *ptr,char *start);
+char *utf8rskip(char *ptr, char *start);
 
 // REVERSE SKIP A COMPLETE CHARACTER (SINGLE OR MULTIPLE CODE POINTS) IN A UTF-8 ENCODED STRING
 // RETURNS THE DECREASED POINTER, OR PTR AT THE START OF STRING
-char *utf8rskipst(char *ptr,char *start);
-
-
+char *utf8rskipst(char *ptr, char *start);
 
 // ENCODE A UNICODE CODE POINT INTO A LITTLE ENDIAN SEQUENCE OF 4 BYTES, PACKED IN AN INT
 // LSB IS ALWAYS USED, AND CONTAINS THE FIRST BYTE
@@ -89,11 +79,10 @@ unsigned int cp2utf8(int codepoint);
 
 // UTF-8 COMPLIANT FORM OF strncmp.
 // len IS IN UNICODE CODE POINTS, NOT BYTES
-int utf8ncmp(const char *s1,const char *s2,int len);
+int utf8ncmp(const char *s1, const char *s2, int len);
 
 // UTF-8 COMPLIANT FORM OF strcmp.
-int utf8cmp(const char *s1,const char *s2);
-
+int utf8cmp(const char *s1, const char *s2);
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A NULL-TERMINATED STRING
@@ -101,12 +90,10 @@ int utf8len(char *string);
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A STRING GIVEN BY START AND END
-int utf8nlen(char *string,char *end);
+int utf8nlen(char *string, char *end);
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A STRING GIVEN BY START AND END
 int utf8nlenst(char *string, char *end);
-
-
 
 // ********************   INTERNAL API FOR UNICODE NORMALIZATION  *****************************
 
@@ -118,16 +105,16 @@ extern unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 // EXTRACT THE PROPERTIES WITH THE CCLASS(), NFC_QC() AND NFC_EX() MACROS
 unsigned char getCPInfo(unsigned int cp);
 
-
 // STORE THE DECOMPOSITION OF A SINGLE CODE POINT INTO UP TO 3 CODE POINTS
 // *dec1==-1 --> NO DECOMPOSITION AVAILABLE
 // *dec2 or *dec3 == -1 --> CODEPOINT NOT USED/NEEDED
-void quickDecomp(unsigned int cp,unsigned int *dec1,unsigned int *dec2,unsigned int *dec3);
+void quickDecomp(unsigned int cp, unsigned int *dec1, unsigned int *dec2,
+        unsigned int *dec3);
 
 // FULLY (RECURSIVE) DECOMPOSE AND APPEND CHARACTER TO THE NORMALIZATION BUFFER
 // BUFFER POSITION SPECIFIED BY lastchar
 // RETURNS THE UPDATED POSITION
-int appendDecomp(unsigned int cp,int lastchar);
+int appendDecomp(unsigned int cp, int lastchar);
 
 // SORT COMBINING CHARACTERS BASED ON COMBINING CLASS
 // WORKS INSIDE THE BUFFER
@@ -138,24 +125,8 @@ void bubbleSort(int lastch);
 // lastch IS THE NUMBER OF CODEPOINTS IN THE BUFFER
 int quickCompose(int lastch);
 
-
 // READ A UNICODE CHARACTER (POSSIBLY MULTIPLE CODEPOINTS), CONVERT TO NFC AND LEAVE AT THE BUFFER.
 // RETURNS THE NUMBER OF BYTES CONSUMED FROM STRING.
-int utf82NFC(char *string,char *end);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int utf82NFC(char *string, char *end);
 
 #endif // UTF8LIB_H
-

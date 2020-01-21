@@ -12,5 +12,4 @@
 
 FS_PUBLIC FSystem __SYSTEM_GLOBAL__;
 
-
 #endif

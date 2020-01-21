@@ -7,8 +7,8 @@
 
 #include "rplthread.h"
 
-RPLThread::RPLThread(QObject *parent)
-    : QThread(parent)
+RPLThread::RPLThread(QObject * parent)
+:      QThread(parent)
 {
 }
 
@@ -22,7 +22,6 @@ void RPLThread::run()
 {
     startup();
 }
-
 
 extern "C" void thread_yield()
 {

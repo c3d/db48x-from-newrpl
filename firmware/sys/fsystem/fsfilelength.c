@@ -5,14 +5,13 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-int FSFileLength(FS_FILE *file)
+int FSFileLength(FS_FILE * file)
 {
-return file->FileSize;
+    return file->FileSize;
 }
 
 #endif

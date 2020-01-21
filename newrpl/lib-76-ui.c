@@ -13,17 +13,13 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  76
 
 //@TITLE=User Interface
 
-
 #define ERROR_LIST \
     ERR(EMPTYCLIPBOARD,0)
-
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -54,18 +50,13 @@
     CMD(EDACTOKEN,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(EDMODE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
-
-
-
 // ADD MORE OPCODES HERE
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -82,37 +73,34 @@ INCLUDE_ROMOBJECT(lib76menu_keyb);
 
 INCLUDE_ROMOBJECT(invalid_string);
 
-
 ROMOBJECT clipbd_ident[] = {
-        MKPROLOG(DOIDENT,2),
-        TEXT2WORD('C','l','i','p'),
-        TEXT2WORD('B','d',0,0)
-
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('C', 'l', 'i', 'p'),
+    TEXT2WORD('B', 'd', 0, 0)
 };
-
-
-
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib76menu_main,
-    (WORDPTR)lib76menu_clip,
-    (WORDPTR)lib76menu_keyb,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib76menu_main,
+    (WORDPTR) lib76menu_clip,
+    (WORDPTR) lib76menu_keyb,
 
-    (WORDPTR)clipbd_ident,
-    (WORDPTR)invalid_string,
+    (WORDPTR) clipbd_ident,
+    (WORDPTR) invalid_string,
 
     0
 };
 
-
 //  PROCESS KEYS FOR THE WAIT COMMAND (ON CAN INTERRUPT THE WAIT)
 int waitProcess(BINT keymsg)
 {
-    if(keymsg==(KM_KEYDN|KB_ON)) { RetNum=0; return -1; }   // TERMINATE LOOP
+    if(keymsg == (KM_KEYDN | KB_ON)) {
+        RetNum = 0;     // TERMINATE LOOP
+        return -1;
+    }
     return 1;   // RETURN AS IF ALL OTHER KEYS WERE PROCESSED, TO BLOCK DEFAULT HANDLERS FROM RUNNING
 }
 
@@ -120,27 +108,23 @@ int waitProcess(BINT keymsg)
 // LEAVES THE KEYMSG IN ObjectPTR
 int waitKeyProcess(BINT keymsg)
 {
-    switch(KM_MESSAGE(keymsg))
-    {
+    switch (KM_MESSAGE(keymsg)) {
     case KM_PRESS:
     case KM_LPRESS:
     case KM_REPEAT:
     case KM_LREPEAT:
         // CAPTURE THE KEY MESSAGE
-        RetNum=keymsg;
+        RetNum = keymsg;
         return -1;
     case KM_KEYDN:
-        if(keymsg==(KM_KEYDN|KB_ON)) { RetNum=KM_PRESS|KB_ON; return -1; }
+        if(keymsg == (KM_KEYDN | KB_ON)) {
+            RetNum = KM_PRESS | KB_ON;
+            return -1;
+        }
     default:
         return 1;
     }
 }
-
-
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -151,58 +135,57 @@ void LIB_HANDLER()
     }
 
     // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
         // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
         // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
-        if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                (OPCODE(CurOpcode)==OVR_EVAL1)||
-                (OPCODE(CurOpcode)==OVR_XEQ) )
-        {
+        if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                (OPCODE(CurOpcode) == OVR_XEQ)) {
             // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
 
-            WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            WORD saveOpcode = CurOpcode;
+            CurOpcode = *rplPopData();
             // RECURSIVE CALL
             LIB_HANDLER();
-            CurOpcode=saveOpcode;
+            CurOpcode = saveOpcode;
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
 
     case COPYCLIP:
     {
         //@SHORT_DESC=Copy an object to the clipboard
         //@NEW
         // STORE LEVEL 1 INTO .Settings/Clipbd
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        rplStoreSettings((WORDPTR)clipbd_ident,rplPeekData(1));
+        rplStoreSettings((WORDPTR) clipbd_ident, rplPeekData(1));
 
         return;
 
@@ -212,12 +195,12 @@ void LIB_HANDLER()
         //@SHORT_DESC=Move an object to the clipboard
         //@NEW
         // STORE LEVEL 1 INTO .Settings/Clipbd
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        rplStoreSettings((WORDPTR)clipbd_ident,rplPopData());
+        rplStoreSettings((WORDPTR) clipbd_ident, rplPopData());
 
         return;
 
@@ -227,32 +210,36 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Insert the clipboard contents on the stack
         //@NEW
-        WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
+        WORDPTR object = rplGetSettings((WORDPTR) clipbd_ident);
 
-        if(!object) rplError(ERR_EMPTYCLIPBOARD);
+        if(!object)
+            rplError(ERR_EMPTYCLIPBOARD);
         else {
             if(ISAUTOEXPLIST(*object)) {
-                BINT nitems=rplListLength(object);
+                BINT nitems = rplListLength(object);
                 rplExpandStack(nitems);
-                if(Exceptions) return;
-                WORDPTR ptr=object+1;
+                if(Exceptions)
+                    return;
+                WORDPTR ptr = object + 1;
 
-                while(nitems--) { rplPushData(ptr); ptr=rplSkipOb(ptr); }
-
+                while(nitems--) {
+                    rplPushData(ptr);
+                    ptr = rplSkipOb(ptr);
+                }
 
             }
-            else rplPushData(object);
+            else
+                rplPushData(object);
 
         }
         return;
     }
 
-
     case WAIT:
     {
         //@SHORT_DESC=Wait for a key press or a time lapse
         //@INCOMPAT
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -264,32 +251,39 @@ void LIB_HANDLER()
         }
 
         REAL timeout;
-        rplReadNumberAsReal(rplPeekData(1),&timeout);
-        timeout.exp+=3;    // CONVERT FROM SECONDS TO MILLISECONDS
-        BINT64 mstimeout=getBINT64Real(&timeout);
+        rplReadNumberAsReal(rplPeekData(1), &timeout);
+        timeout.exp += 3;       // CONVERT FROM SECONDS TO MILLISECONDS
+        BINT64 mstimeout = getBINT64Real(&timeout);
 
         BINT keymsg;
 
-        RetNum=0;
+        RetNum = 0;
 
-        if(mstimeout>0) {
-            halOuterLoop(mstimeout,&waitProcess,0,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS|OL_EXITONERROR);
+        if(mstimeout > 0) {
+            halOuterLoop(mstimeout, &waitProcess, 0,
+                    OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF | OL_NOCUSTOMKEYS |
+                    OL_NODEFAULTKEYS | OL_EXITONERROR);
             rplDropData(1);
         }
-        else  {
-           if(mstimeout<0) mstimeout=-mstimeout;
-               halOuterLoop(mstimeout,&waitKeyProcess,0,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS|OL_EXITONERROR);
+        else {
+            if(mstimeout < 0)
+                mstimeout = -mstimeout;
+            halOuterLoop(mstimeout, &waitKeyProcess, 0,
+                    OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF | OL_NODEFAULTKEYS |
+                    OL_NOCUSTOMKEYS | OL_LONGPRESS | OL_EXITONERROR);
 
-        keymsg=RetNum;
+            keymsg = RetNum;
 
-        if(keymsg) {
-        // PUSH THE KEY MESSAGE
+            if(keymsg) {
+                // PUSH THE KEY MESSAGE
 
-        WORDPTR keyname=rplMsg2KeyName(keymsg);
-        if(!keyname) return;
-        rplOverwriteData(1,keyname);
-        }
-        else rplOverwriteData(1,(WORDPTR)empty_string);
+                WORDPTR keyname = rplMsg2KeyName(keymsg);
+                if(!keyname)
+                    return;
+                rplOverwriteData(1, keyname);
+            }
+            else
+                rplOverwriteData(1, (WORDPTR) empty_string);
         }
         return;
 
@@ -300,7 +294,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Simulate a keypress from within a program
         //@INCOMPAT
         // REMOVE A CUSTOM KEY DEFINITION
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -311,7 +305,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT keycode=rplKeyName2Msg(rplPeekData(1));
+        BINT keycode = rplKeyName2Msg(rplPeekData(1));
 
         if(!keycode) {
             rplError(ERR_INVALIDKEYNAME);
@@ -334,47 +328,43 @@ void LIB_HANDLER()
 
     }
 
-
-
     case KEY:
     {
         //@SHORT_DESC=Get instantaneous state of the keyboard
         //@INCOMPAT
-        keymatrix key=keyb_getmatrix();
-
+        keymatrix key = keyb_getmatrix();
 
         if(!key) {
-            rplPushData((WORDPTR)zero_bint);
+            rplPushData((WORDPTR) zero_bint);
             return;
         }
 
-        BINT knum=0;
+        BINT knum = 0;
         int k;
-        for(k=0;k<63;++k) {
-            if(key&(1LL<<k)) {
-                WORDPTR kn=rplMsg2KeyName(k);
+        for(k = 0; k < 63; ++k) {
+            if(key & (1LL << k)) {
+                WORDPTR kn = rplMsg2KeyName(k);
 
-                if(!kn) return;
+                if(!kn)
+                    return;
                 rplPushData(kn);
 
                 ++knum;
             }
 
         }
-        rplNewBINTPush(knum,DECBINT);
+        rplNewBINTPush(knum, DECBINT);
 
         return;
 
     }
-
-
 
     case DOFORM:
     {
         //@SHORT_DESC=Take a variable identifier with a form list
         //@NEW
 
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -386,9 +376,10 @@ void LIB_HANDLER()
         }
 
         // STORE THE FORM DATA
-        rplStoreSettings((WORDPTR)currentform_ident,rplPeekData(1));
+        rplStoreSettings((WORDPTR) currentform_ident, rplPeekData(1));
 
-        if(Exceptions) return;
+        if(Exceptions)
+            return;
 
         uiUpdateForm(rplPeekData(1));
 
@@ -399,12 +390,12 @@ void LIB_HANDLER()
 
     }
 
-case EDINSERT:
+    case EDINSERT:
     {
         //@SHORT_DESC=Insert given text into the editor
         //@NEW
 
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -415,14 +406,12 @@ case EDINSERT:
             return;
         }
 
+        WORDPTR string = rplPeekData(1);
+        BYTEPTR start, end;
+        start = (BYTEPTR) (string + 1);
+        end = start + rplStrSize(string);
 
-
-        WORDPTR string=rplPeekData(1);
-        BYTEPTR start,end;
-        start=(BYTEPTR)(string+1);
-        end=start+rplStrSize(string);
-
-        uiOpenAndInsertTextN(start,end);
+        uiOpenAndInsertTextN(start, end);
 
         rplDropData(1);
 
@@ -431,305 +420,303 @@ case EDINSERT:
     }
 
     case EDREMOVE:
-        {
-            //@SHORT_DESC=Remove characters in the editor at the cursor position
-            //@NEW
+    {
+        //@SHORT_DESC=Remove characters in the editor at the cursor position
+        //@NEW
 
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-            rplStripTagStack(1);
-            if(!ISNUMBER(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
+        rplStripTagStack(1);
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            uiRemoveCharacters(nchars);
-
-            rplDropData(1);
-
+        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
-        }
+        uiRemoveCharacters(nchars);
+
+        rplDropData(1);
+
+        return;
+
+    }
     case EDLEFT:
-        {
-            //@SHORT_DESC=Move cursor to the left in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor to the left in the editor
+        //@NEW
 
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-            rplStripTagStack(1);
-            if(!ISNUMBER(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
+        rplStripTagStack(1);
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            uiCursorLeft(nchars);
-
-            rplDropData(1);
-
+        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
-        }
+        uiCursorLeft(nchars);
+
+        rplDropData(1);
+
+        return;
+
+    }
     case EDRIGHT:
-        {
-            //@SHORT_DESC=Move cursor to the right in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor to the right in the editor
+        //@NEW
 
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-            rplStripTagStack(1);
-            if(!ISNUMBER(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
+        rplStripTagStack(1);
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            uiCursorRight(nchars);
-
-            rplDropData(1);
-
+        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
-        }
+        uiCursorRight(nchars);
+
+        rplDropData(1);
+
+        return;
+
+    }
     case EDUP:
-        {
-            //@SHORT_DESC=Move cursor up in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor up in the editor
+        //@NEW
 
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-            rplStripTagStack(1);
+        rplStripTagStack(1);
 
-            if(!ISNUMBER(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            uiCursorUp(nchars);
-
-            rplDropData(1);
-
+        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
-        }
+        uiCursorUp(nchars);
+
+        rplDropData(1);
+
+        return;
+
+    }
     case EDDOWN:
-        {
-            //@SHORT_DESC=Move cursor down in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor down in the editor
+        //@NEW
 
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
-            rplStripTagStack(1);
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplStripTagStack(1);
 
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
-            if(!ISNUMBER(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            uiCursorDown(nchars);
-
-            rplDropData(1);
-
+        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
-        }
+        uiCursorDown(nchars);
+
+        rplDropData(1);
+
+        return;
+
+    }
     case EDSTART:
-        {
-            //@SHORT_DESC=Move cursor to the start of text in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor to the start of text in the editor
+        //@NEW
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+        uiCursorStartOfText();
 
-            uiCursorStartOfText();
+        return;
 
-            return;
+    }
+    case EDEND:
+    {
+        //@SHORT_DESC=Move cursor to the end of text in the editor
+        //@NEW
 
-        }
-     case EDEND:
-        {
-            //@SHORT_DESC=Move cursor to the end of text in the editor
-            //@NEW
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
+        uiCursorEndOfText();
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+        return;
 
-            uiCursorEndOfText();
-
-            return;
-
-        }
+    }
 
     case EDLSTART:
-        {
-            //@SHORT_DESC=Move cursor to the start of current line in the editor
-            //@NEW
+    {
+        //@SHORT_DESC=Move cursor to the start of current line in the editor
+        //@NEW
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+        uiCursorStartOfLine();
 
-            uiCursorStartOfLine();
+        return;
 
-            return;
+    }
+    case EDLEND:
+    {
+        //@SHORT_DESC=Move cursor to the end of current line in the editor
+        //@NEW
 
-        }
-     case EDLEND:
-        {
-            //@SHORT_DESC=Move cursor to the end of current line in the editor
-            //@NEW
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
+        uiCursorEndOfLine();
 
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+        return;
 
-            uiCursorEndOfLine();
-
-            return;
-
-        }
+    }
 
     case EDTOKEN:
-       {
-           //@SHORT_DESC=Extract one full word at the cursor location in the editor
-           //@NEW
+    {
+        //@SHORT_DESC=Extract one full word at the cursor location in the editor
+        //@NEW
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-           if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+        BYTEPTR start, end;
 
-           BYTEPTR start,end;
+        start = uiAutocompStringStart();
+        end = uiAutocompStringTokEnd();
 
-           start=uiAutocompStringStart();
-           end=uiAutocompStringTokEnd();
+        WORDPTR newstr = rplCreateString(start, end);
 
-           WORDPTR newstr=rplCreateString(start,end);
-
-           if(!newstr) return;
-
-           rplPushData(newstr);
-
-           return;
-
-       }
-
-    case EDACTOKEN:
-       {
-           //@SHORT_DESC=Extract one word at the left of cursor location (suitable for autocomplete)
-           //@NEW
-
-
-           if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-           BYTEPTR start,end;
-
-           start=uiAutocompStringStart();
-           end=uiAutocompStringEnd();
-
-           WORDPTR newstr=rplCreateString(start,end);
-
-           if(!newstr) return;
-
-           rplPushData(newstr);
-
-           return;
-
-       }
-
-    case EDMODE:
-        {
-            //@SHORT_DESC=Change the cursor mode in the editor
-            //@NEW
-
-            if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
-
-            rplStripTagStack(1);
-
-            if(!ISSTRING(*rplPeekData(1))) {
-                rplError(ERR_STRINGEXPECTED);
-                return;
-            }
-
-
-            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
-
-            BYTEPTR str=(BYTEPTR) (rplPeekData(1)+1);
-            if(rplStrLen(rplPeekData(1))>=1) {
-                switch(*str)
-                {
-                case 'L':
-                case 'C':
-                    halForceAlphaModeOn();
-                    halSetCmdLineMode(*str);
-                    break;
-                case 'A':
-                case 'D':
-                case 'P':
-                    halForceAlphaModeOff();
-                    halSetCmdLineMode(*str);
-                    break;
-                default:
-                    halForceAlphaModeOff();
-                    break;
-                }
-
-            }
-            rplDropData(1);
-
+        if(!newstr)
             return;
 
+        rplPushData(newstr);
+
+        return;
+
+    }
+
+    case EDACTOKEN:
+    {
+        //@SHORT_DESC=Extract one word at the left of cursor location (suitable for autocomplete)
+        //@NEW
+
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+        BYTEPTR start, end;
+
+        start = uiAutocompStringStart();
+        end = uiAutocompStringEnd();
+
+        WORDPTR newstr = rplCreateString(start, end);
+
+        if(!newstr)
+            return;
+
+        rplPushData(newstr);
+
+        return;
+
+    }
+
+    case EDMODE:
+    {
+        //@SHORT_DESC=Change the cursor mode in the editor
+        //@NEW
+
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
         }
 
+        rplStripTagStack(1);
 
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
 
+        if(!(halGetContext() & CONTEXT_INEDITOR))
+            return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
+        BYTEPTR str = (BYTEPTR) (rplPeekData(1) + 1);
+        if(rplStrLen(rplPeekData(1)) >= 1) {
+            switch (*str) {
+            case 'L':
+            case 'C':
+                halForceAlphaModeOn();
+                halSetCmdLineMode(*str);
+                break;
+            case 'A':
+            case 'D':
+            case 'P':
+                halForceAlphaModeOff();
+                halSetCmdLineMode(*str);
+                break;
+            default:
+                halForceAlphaModeOff();
+                break;
+            }
 
+        }
+        rplDropData(1);
 
+        return;
 
+    }
 
         // STANDARIZED OPCODES:
         // --------------------
@@ -746,12 +733,12 @@ case EDINSERT:
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-            // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
-            // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-     return;
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -764,7 +751,7 @@ case EDINSERT:
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -778,8 +765,7 @@ case EDINSERT:
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -796,12 +782,12 @@ case EDINSERT:
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -816,14 +802,15 @@ case EDINSERT:
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
 
@@ -834,7 +821,7 @@ case EDINSERT:
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -842,7 +829,7 @@ case EDINSERT:
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -850,26 +837,32 @@ case EDINSERT:
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+            RetNum = ERR_INVALID;
+            return;
+        }
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
-
 
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>3) { RetNum=ERR_NOTMINE; return; }
+        if(MENUNUMBER(MenuCodeArg) > 3) {
+            RetNum = ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -877,8 +870,8 @@ case EDINSERT:
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
 
     case OPCODE_LIBMSG:
@@ -887,13 +880,13 @@ case EDINSERT:
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-       return;
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
@@ -902,8 +895,8 @@ case EDINSERT:
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -911,9 +904,6 @@ case EDINSERT:
 
     return;
 
-
 }
 
-
 #endif
-

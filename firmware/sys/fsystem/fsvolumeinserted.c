@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
@@ -16,13 +15,15 @@
 
 int FSVolumeInserted(int VolNumber)
 {
-int error=FSInit();
-if(error!=FS_OK) return error;
-if(VolNumber<0 || VolNumber>3) return FS_BADVOLUME;
-if(FSystem.Volumes[VolNumber]!=NULL) return FSVolumePresent(FSystem.Volumes[VolNumber]);
-return FS_BADVOLUME;
+    int error = FSInit();
+    if(error != FS_OK)
+        return error;
+    if(VolNumber < 0 || VolNumber > 3)
+        return FS_BADVOLUME;
+    if(FSystem.Volumes[VolNumber] != NULL)
+        return FSVolumePresent(FSystem.Volumes[VolNumber]);
+    return FS_BADVOLUME;
 
 }
-
 
 #endif

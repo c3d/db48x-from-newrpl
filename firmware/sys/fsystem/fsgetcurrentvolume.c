@@ -11,8 +11,9 @@
 
 int FSGetCurrentVolume()
 {
-int error=FSInit();
-if(error!=FS_OK) return error;
-return FSystem.CurrentVolume;
+    int error = FSInit();
+    if(error != FS_OK)
+        return error;
+    return FSystem.CurrentVolume;
 }
 #endif

@@ -5,20 +5,17 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 // CLEANUP STATICALLY CREATED FS_FILE STRUCTURES
-void FSReleaseEntry(FS_FILE *file)
+void FSReleaseEntry(FS_FILE * file)
 {
-FSFreeChain(file);
-if(file->Name) {
-simpfree(file->Name);
-file->Name=NULL;
-}
+    FSFreeChain(file);
+    if(file->Name) {
+        simpfree(file->Name);
+        file->Name = NULL;
+    }
 }
 #endif

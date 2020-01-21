@@ -11,29 +11,31 @@
 
 // CHECK IF FILE IS REFERENCED, RETURNS TRUE/FALSE
 
-int FSFileIsReferenced(FS_FILE *file,FS_VOLUME *fs)
+int FSFileIsReferenced(FS_FILE * file, FS_VOLUME * fs)
 {
-FS_FILE *ff;
-int f;
+    FS_FILE *ff;
+    int f;
 
-if(file==&fs->RootDir) return TRUE;
+    if(file == &fs->RootDir)
+        return TRUE;
 
-ff=fs->CurrentDir;
-while(ff!=NULL) {
-if(ff==file) return TRUE;
-ff=ff->Dir;
-} 
+    ff = fs->CurrentDir;
+    while(ff != NULL) {
+        if(ff == file)
+            return TRUE;
+        ff = ff->Dir;
+    }
 
-for(f=0;f<FS_MAXOPENFILES;++f)
-{
-ff=fs->Files[f];
-while(ff!=NULL) {
-if(ff==file) return TRUE;
-ff=ff->Dir;
-} 
-}
+    for(f = 0; f < FS_MAXOPENFILES; ++f) {
+        ff = fs->Files[f];
+        while(ff != NULL) {
+            if(ff == file)
+                return TRUE;
+            ff = ff->Dir;
+        }
+    }
 
-return FALSE;
+    return FALSE;
 
 }
 

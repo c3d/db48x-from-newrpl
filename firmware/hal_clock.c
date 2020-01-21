@@ -5,12 +5,10 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 // HARDWARE CLOCK AND ALARM MANAGEMENT - HIGHER LEVEL API
 
 #include <newrpl.h>
 #include <ui.h>
-
 
 void halGetSystemDateTime(struct date *dt, struct time *tm)
 {
@@ -58,7 +56,6 @@ int halSetSystemAlarm(struct date dt, struct time tm, int enabled)
 {
     return rtc_setalarm(dt, tm, enabled);
 }
-
 
 int halCheckSystemAlarm()
 {

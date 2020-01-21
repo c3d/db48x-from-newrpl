@@ -5,16 +5,14 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
-
 
 #define CHUNK_SIZE  REAL_REGISTER_STORAGE
 #define MAX_CHUNKS  TOTAL_REGISTERS-10  // 10 REGISTERS RESERVED FOR RReg STATIC MEMORY, OTHERS CAN BE ALLOCATED FOR FILE SYSTEM
 #define BLOCK_WORDS ((CHUNK_SIZE)>>5)
 
-struct {
+struct
+{
     unsigned int *chunks[MAX_CHUNKS];
     unsigned int chunk_bmp[MAX_CHUNKS];
     unsigned int chunk_1stblk[MAX_CHUNKS];
@@ -22,20 +20,16 @@ struct {
     volatile int mutex;
 } SimpAllocData;
 
-
-
-
 void init_simpalloc()
 {
     int f;
-    for(f=0;f<MAX_CHUNKS;++f)
-    {
-        SimpAllocData.chunks[f]=0;
-        SimpAllocData.chunk_bmp[f]=~0;
-        SimpAllocData.chunk_1stblk[f]=0;
+    for(f = 0; f < MAX_CHUNKS; ++f) {
+        SimpAllocData.chunks[f] = 0;
+        SimpAllocData.chunk_bmp[f] = ~0;
+        SimpAllocData.chunk_1stblk[f] = 0;
     }
-    SimpAllocData.last_chunk=0;
-    SimpAllocData.mutex=0;
+    SimpAllocData.last_chunk = 0;
+    SimpAllocData.mutex = 0;
 }
 
 // ADD A NEW CHUNK TO THE POOL
@@ -44,17 +38,18 @@ int need_chunk()
     // TODO: CONNECT THIS WITH ANOTHER ALLOCATOR TO GET PAGES
     // FOR NOW GET A STATIC CHUNK
     int f;
-    for(f=0;f<MAX_CHUNKS;++f)
-    {
-        if(SimpAllocData.chunks[f]==0) {
-            SimpAllocData.chunks[f]=(unsigned int *)allocRegister();
-            if(SimpAllocData.chunks[f]==0) return -1; // CAN'T ALLOCATE ANYY MORE CHUNKS
+    for(f = 0; f < MAX_CHUNKS; ++f) {
+        if(SimpAllocData.chunks[f] == 0) {
+            SimpAllocData.chunks[f] = (unsigned int *)allocRegister();
+            if(SimpAllocData.chunks[f] == 0)
+                return -1;      // CAN'T ALLOCATE ANYY MORE CHUNKS
             break;
+        }
     }
-    }
-    if(f==MAX_CHUNKS) return -1; // CAN'T ALLOCATE ANY MORE CHUNKS
-    SimpAllocData.chunk_bmp[f]=0; // MARK ALL BLOCKS FREE
-    SimpAllocData.chunk_1stblk[f]=0;
+    if(f == MAX_CHUNKS)
+        return -1;      // CAN'T ALLOCATE ANY MORE CHUNKS
+    SimpAllocData.chunk_bmp[f] = 0;     // MARK ALL BLOCKS FREE
+    SimpAllocData.chunk_1stblk[f] = 0;
     return f;   // RETURN THE NUMBER OF THE NEW CHUNK
 }
 
@@ -62,65 +57,67 @@ void release_chunk(int f)
 {
     // TODO: CONNECT THIS WITH ANOTHER ALLOCATOR TO RELEASE PAGES
     // FOR NOW JUST CLEANUP THE STATIC CHUNKS
-    freeRegister((BINT *)SimpAllocData.chunks[f]);
-    SimpAllocData.chunks[f]=0;
-    SimpAllocData.chunk_bmp[f]=~0;
-    if(SimpAllocData.last_chunk==f) SimpAllocData.last_chunk=-1;
+    freeRegister((BINT *) SimpAllocData.chunks[f]);
+    SimpAllocData.chunks[f] = 0;
+    SimpAllocData.chunk_bmp[f] = ~0;
+    if(SimpAllocData.last_chunk == f)
+        SimpAllocData.last_chunk = -1;
 }
-
 
 unsigned int *simpmalloc(int words)
 {
-    unsigned int mask=0,rotmask;
-    int nblocks=0,f,ch,startch;
+    unsigned int mask = 0, rotmask;
+    int nblocks = 0, f, ch, startch;
 
-    while(SimpAllocData.mutex==1);
+    while(SimpAllocData.mutex == 1);
 
-    SimpAllocData.mutex=1;
+    SimpAllocData.mutex = 1;
 
-    while(words>0) {
-        mask<<=1;
-        mask|=1;
+    while(words > 0) {
+        mask <<= 1;
+        mask |= 1;
         ++nblocks;
-        words-=BLOCK_WORDS;
+        words -= BLOCK_WORDS;
     }
     // SELECT A CHUNK TO LOOK INTO
-   startch=SimpAllocData.last_chunk;
-    if(startch<0) startch=0;
-    ch=startch;
+    startch = SimpAllocData.last_chunk;
+    if(startch < 0)
+        startch = 0;
+    ch = startch;
     do {
-    do {
-    if(SimpAllocData.chunks[ch]) {
+        do {
+            if(SimpAllocData.chunks[ch]) {
 
-    for(f=0,rotmask=mask;f<33-nblocks;++f,rotmask<<=1) {
-        // LOOK IN THE CURRENT CHUNK FIRST
-        if((SimpAllocData.chunk_bmp[ch]&rotmask)==0) {
-            // FOUND A BLOCK!
-            SimpAllocData.chunk_bmp[ch]|=rotmask;
-            SimpAllocData.chunk_1stblk[ch]|=rotmask;
-            SimpAllocData.chunk_1stblk[ch]^=1<<f;
-            SimpAllocData.last_chunk=ch;
-            SimpAllocData.mutex=0;
-            return SimpAllocData.chunks[ch]+BLOCK_WORDS*f;
+                for(f = 0, rotmask = mask; f < 33 - nblocks; ++f, rotmask <<= 1) {
+                    // LOOK IN THE CURRENT CHUNK FIRST
+                    if((SimpAllocData.chunk_bmp[ch] & rotmask) == 0) {
+                        // FOUND A BLOCK!
+                        SimpAllocData.chunk_bmp[ch] |= rotmask;
+                        SimpAllocData.chunk_1stblk[ch] |= rotmask;
+                        SimpAllocData.chunk_1stblk[ch] ^= 1 << f;
+                        SimpAllocData.last_chunk = ch;
+                        SimpAllocData.mutex = 0;
+                        return SimpAllocData.chunks[ch] + BLOCK_WORDS * f;
+                    }
+                }
+            }
+            ++ch;
+            if(ch >= MAX_CHUNKS)
+                ch = 0;
         }
-        }
+        while(ch != startch);
+        // NEED A NEW CHUNK!
+        ch = need_chunk();
+
     }
-    ++ch;
-    if(ch>=MAX_CHUNKS) ch=0;
-    } while(ch!=startch);
-    // NEED A NEW CHUNK!
-        ch=need_chunk();
-
-    } while(ch>=0);
+    while(ch >= 0);
 
     // FAILED TO ALLOCATE!
 
     // TODO: AGGRESIVELY TRY TO RELEASE MEMORY FROM OPEN FILES (READ BUFFERS)
 
-
-
-    throw_dbgexception("Failed to allocate",__EX_CONT);
-    SimpAllocData.mutex=0;
+    throw_dbgexception("Failed to allocate", __EX_CONT);
+    SimpAllocData.mutex = 0;
 
     return 0;
 
@@ -128,40 +125,42 @@ unsigned int *simpmalloc(int words)
 
 void simpfree(void *voidptr)
 {
-    int ch,blk;
+    int ch, blk;
     unsigned int mask;
-    unsigned int *ptr=voidptr;
+    unsigned int *ptr = voidptr;
 
-    while(SimpAllocData.mutex==1);
+    while(SimpAllocData.mutex == 1);
 
-    SimpAllocData.mutex=1;
+    SimpAllocData.mutex = 1;
 
-    for(ch=0;ch<MAX_CHUNKS;++ch)
-    {
+    for(ch = 0; ch < MAX_CHUNKS; ++ch) {
         if(SimpAllocData.chunks[ch]) {
-        if( (ptr>=SimpAllocData.chunks[ch]) && (ptr-SimpAllocData.chunks[ch]<CHUNK_SIZE)) {
-            // POINTER IS WITHIN THIS CHUNK
-            blk=(ptr-SimpAllocData.chunks[ch])/BLOCK_WORDS;
-            mask=1<<blk;
-            SimpAllocData.chunk_bmp[ch]&=~mask; // FREE THE 1ST BLOCK
-            mask<<=1;
-            while(SimpAllocData.chunk_1stblk[ch]&mask) { SimpAllocData.chunk_bmp[ch]&=~mask; SimpAllocData.chunk_1stblk[ch]&=~mask; mask<<=1; }
-            if(SimpAllocData.chunk_bmp[ch]==0) release_chunk(ch);
-            SimpAllocData.mutex=0;
-            return;
-        }
-
+            if((ptr >= SimpAllocData.chunks[ch])
+                    && (ptr - SimpAllocData.chunks[ch] < CHUNK_SIZE)) {
+                // POINTER IS WITHIN THIS CHUNK
+                blk = (ptr - SimpAllocData.chunks[ch]) / BLOCK_WORDS;
+                mask = 1 << blk;
+                SimpAllocData.chunk_bmp[ch] &= ~mask;   // FREE THE 1ST BLOCK
+                mask <<= 1;
+                while(SimpAllocData.chunk_1stblk[ch] & mask) {
+                    SimpAllocData.chunk_bmp[ch] &= ~mask;
+                    SimpAllocData.chunk_1stblk[ch] &= ~mask;
+                    mask <<= 1;
+                }
+                if(SimpAllocData.chunk_bmp[ch] == 0)
+                    release_chunk(ch);
+                SimpAllocData.mutex = 0;
+                return;
+            }
 
         }
     }
     // POINTER WASN'T WITHIN THE ALLOCATED POOL!
     // DO NOTHING.
-SimpAllocData.mutex=0;
+    SimpAllocData.mutex = 0;
 }
 
 unsigned char *simpmallocb(int bytes)
 {
-    return (unsigned char *)simpmalloc((bytes+3)>>2);
+    return (unsigned char *)simpmalloc((bytes + 3) >> 2);
 }
-
-

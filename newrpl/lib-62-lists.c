@@ -13,8 +13,6 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  62
 
@@ -92,18 +90,14 @@ ERR(INVALIDLISTSIZE,3)
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER, LIBRARY_NUMBER+1
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
 
-
 #ifndef COMMANDS_ONLY_PASS
-
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
-
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -111,158 +105,149 @@ INCLUDE_ROMOBJECT(lib62_menu);
 INCLUDE_ROMOBJECT(lib62_menu_2);
 INCLUDE_ROMOBJECT(cmd_SEQ);
 
-
-ROMOBJECT dolist_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,DOLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,DOLISTPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,DOLISTERR),     // ERROR HANDLER
+ROMOBJECT dolist_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, DOLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, DOLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, DOLISTERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT dosubs_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,DOSUBSPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,DOSUBSPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,DOSUBSERR),     // ERROR HANDLER
+ROMOBJECT dosubs_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, DOSUBSPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, DOSUBSPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, DOSUBSERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT map_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,MAPPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,MAPPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,MAPERR),     // ERROR HANDLER
+ROMOBJECT map_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, MAPPRE),   // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
     CMD_SEMI
 };
 
-
-ROMOBJECT mapinnercomp_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,MAPINNERPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,MAPPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,MAPERR),     // ERROR HANDLER
+ROMOBJECT mapinnercomp_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, MAPINNERPRE),      // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
     CMD_SEMI
 };
 
-
-ROMOBJECT listeval_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,EVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,EVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,EVALERR),     // ERROR HANDLER
+ROMOBJECT listeval_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, EVALPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, EVALPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, EVALERR),  // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT stream_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,STREAMPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,STREAMPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,STREAMERR),     // ERROR HANDLER
+ROMOBJECT stream_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, STREAMPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, STREAMPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, STREAMERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
-
-ROMOBJECT nsub_name[]={
-    MKPROLOG(DOIDENT,1),
-    (WORD)('N' | ('S'<<8) | ('U'<<16) | ('B'<<24))
+ROMOBJECT nsub_name[] = {
+    MKPROLOG(DOIDENT, 1),
+    (WORD) ('N' | ('S' << 8) | ('U' << 16) | ('B' << 24))
 };
 
-ROMOBJECT endsub_name[]={
-    MKPROLOG(DOIDENT,2),
-    (WORD)('E' | ('N'<<8) | ('D'<<16) | ('S'<<24)),
-    (WORD)('U' | ('B'<<8))
-
+ROMOBJECT endsub_name[] = {
+    MKPROLOG(DOIDENT, 2),
+    (WORD) ('E' | ('N' << 8) | ('D' << 16) | ('S' << 24)),
+    (WORD) ('U' | ('B' << 8))
 };
 
-ROMOBJECT unary_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,UNARYPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,UNARYPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,UNARYERR),     // ERROR HANDLER
+ROMOBJECT unary_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, UNARYPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, UNARYPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, UNARYERR), // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT binary_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,BINARYPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,BINARYPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,BINARYERR),     // ERROR HANDLER
+ROMOBJECT binary_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, BINARYPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, BINARYPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, BINARYERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT testop_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,TESTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,TESTPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,TESTERR),     // ERROR HANDLER
+ROMOBJECT testop_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, TESTPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, TESTPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, TESTERR),  // ERROR HANDLER
     CMD_SEMI
 };
 
-
-
-ROMOBJECT oplist_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,OPLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,OPLISTPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,OPLISTERR),     // ERROR HANDLER
+ROMOBJECT oplist_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, OPLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, OPLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, OPLISTERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT deltalist_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,DELTAPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,DELTAPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,DELTAERR),     // ERROR HANDLER
+ROMOBJECT deltalist_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, DELTAPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, DELTAPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, DELTAERR), // ERROR HANDLER
     CMD_SEMI
 };
 
-
-ROMOBJECT empty_list[]={
-    MKPROLOG(DOLIST,1),
-    MKOPCODE(DOLIST,ENDLIST)
+ROMOBJECT empty_list[] = {
+    MKPROLOG(DOLIST, 1),
+    MKOPCODE(DOLIST, ENDLIST)
 };
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)dolist_seco,
-    (WORDPTR)dosubs_seco,
-    (WORDPTR)map_seco,
-    (WORDPTR)stream_seco,
-    (WORDPTR)nsub_name,
-    (WORDPTR)endsub_name,
-    (WORDPTR)unary_seco,
-    (WORDPTR)binary_seco,
-    (WORDPTR)testop_seco,
-    (WORDPTR)oplist_seco,
-    (WORDPTR)deltalist_seco,
-    (WORDPTR)empty_list,
-    (WORDPTR)lib62_menu,
-    (WORDPTR)lib62_menu_2,
-    (WORDPTR)cmd_SEQ,
-    (WORDPTR)mapinnercomp_seco,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) dolist_seco,
+    (WORDPTR) dosubs_seco,
+    (WORDPTR) map_seco,
+    (WORDPTR) stream_seco,
+    (WORDPTR) nsub_name,
+    (WORDPTR) endsub_name,
+    (WORDPTR) unary_seco,
+    (WORDPTR) binary_seco,
+    (WORDPTR) testop_seco,
+    (WORDPTR) oplist_seco,
+    (WORDPTR) deltalist_seco,
+    (WORDPTR) empty_list,
+    (WORDPTR) lib62_menu,
+    (WORDPTR) lib62_menu_2,
+    (WORDPTR) cmd_SEQ,
+    (WORDPTR) mapinnercomp_seco,
     0
 };
-
 
 // COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
 // OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
 
-BINT rplListItemCompare(WORDPTR a,WORDPTR b)
+BINT rplListItemCompare(WORDPTR a, WORDPTR b)
 {
 
     rplPushData(a);
@@ -270,28 +255,18 @@ BINT rplListItemCompare(WORDPTR a,WORDPTR b)
     rplCallOvrOperator((CMD_OVR_CMP));
     if(Exceptions) {
         // DON'T FAIL IF COMPARISON IS NOT DEFINED, JUST LEAVE THE OBJECTS IN THEIR PLACES
-        if(ErrorCode==ERR_INVALIDOPCODE) {
+        if(ErrorCode == ERR_INVALIDOPCODE) {
             rplClearErrors();
-           return -1;
+            return -1;
         }
         return 0;
     }
-    BINT r=rplReadBINT(rplPopData());
-    if(r==0) return (BINT)(a-b);
+    BINT r = rplReadBINT(rplPopData());
+    if(r == 0)
+        return (BINT) (a - b);
     return r;
 
 }
-
-
-
-
-
-
-
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -301,21 +276,19 @@ void LIB_HANDLER()
         return;
     }
 
-
     if(ISUNARYOP(CurOpcode)) {
         // ALL UNARY OPERATORS PASS THEIR OPERATION DIRECTLY TO EACH ELEMENT
         if(!ISPROLOG(*rplPeekData(1))) {
             // COMMAND AS ARGUMENT
-            if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                    (OPCODE(CurOpcode)==OVR_EVAL1)||
-                    (OPCODE(CurOpcode)==OVR_XEQ) )
-            {
+            if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                    (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                    (OPCODE(CurOpcode) == OVR_XEQ)) {
 
-                WORD saveOpcode=CurOpcode;
-                CurOpcode=*rplPopData();
+                WORD saveOpcode = CurOpcode;
+                CurOpcode = *rplPopData();
                 // RECURSIVE CALL
                 LIB_HANDLER();
-                CurOpcode=saveOpcode;
+                CurOpcode = saveOpcode;
                 return;
             }
             else {
@@ -324,87 +297,88 @@ void LIB_HANDLER()
             }
         }
 
-        if(OPCODE(CurOpcode)==OVR_XEQ) return;  // JUST LEAVE THE LIST ON THE STACK
+        if(OPCODE(CurOpcode) == OVR_XEQ)
+            return;     // JUST LEAVE THE LIST ON THE STACK
 
-        if(OPCODE(CurOpcode)==OVR_FUNCEVAL) {
-                // DO INDEXING ON LISTS JUST LIKE ON MATRICES
+        if(OPCODE(CurOpcode) == OVR_FUNCEVAL) {
+            // DO INDEXING ON LISTS JUST LIKE ON MATRICES
 
+            WORDPTR comp = rplPeekData(1);
+            WORDPTR posobj;
+            BINT ndims, length;
+            BINT pos;
 
-                    WORDPTR comp=rplPeekData(1);
-                        WORDPTR posobj;
-                        BINT ndims, length;
-                        BINT pos;
+            length = rplListLength(comp);
+            ndims = rplDepthData() - 1;
+            BINT k;
+            WORDPTR *stksave = DSTop;
 
-                        length=rplListLength(comp);
-                        ndims=rplDepthData()-1;
-                        BINT k;
-                        WORDPTR *stksave=DSTop;
+            for(k = 1; k <= ndims; ++k) {
+                // CHECK IF WE HAVE THE RIGHT POSITION
 
-                        for(k=1;k<=ndims;++k) {
-                        // CHECK IF WE HAVE THE RIGHT POSITION
+                posobj = rplPeekData(ndims + 1);
 
-                            posobj=rplPeekData(ndims+1);
+                if(ISSYMBOLIC(*posobj)) {
+                    if(!rplSymbIsNumeric(posobj)) {
+                        DSTop = stksave;
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
 
-                            if(ISSYMBOLIC(*posobj)) {
-                                if(!rplSymbIsNumeric(posobj)) {
-                                    DSTop=stksave;
-                                    rplError(ERR_INVALIDPOSITION);
-                                    return;
-                                }
+                    rplPushData(posobj);
+                    rplSymbNumericCompute();
+                    if(Exceptions) {
+                        DSTop = stksave;
+                        return;
+                    }
 
+                    posobj = rplPopData();
 
-                                rplPushData(posobj);
-                                rplSymbNumericCompute();
-                                if(Exceptions) { DSTop=stksave; return; }
+                }
 
-                                posobj=rplPopData();
-
-
-                            }
-
-                            pos=rplReadNumberAsBINT(posobj);
-                            if(Exceptions) {
-                                DSTop=stksave;
-                                rplError(ERR_INVALIDPOSITION);
-                                return;
-                            }
-
-                        // CHECK IF THE POSITION IS WITHIN THE LIST
-
-                        if( (pos<1) || (pos>length) ) {
-                            DSTop=stksave;
-                            rplError(ERR_INDEXOUTOFBOUNDS);
-                            return;
-                        }
-
-                        comp=rplGetListElement(rplPeekData(1),pos);
-                        if(!comp) {
-                            DSTop=stksave;
-                            rplError(ERR_INDEXOUTOFBOUNDS);
-                            return;
-                        }
-                        if( (k!=ndims)&& (!ISLIST(*comp))) {
-                            DSTop=stksave;
-                            rplError(ERR_INVALIDPOSITION);
-                            return;
-                        }
-
-                        rplPushData(comp);
-
-                        }
-
-                        // WE GOT THE ANSWER
-
-                        comp=rplPeekData(1);
-                        DSTop=stksave;
-                        rplDropData(ndims);
-                        rplOverwriteData(1,comp);
-
+                pos = rplReadNumberAsBINT(posobj);
+                if(Exceptions) {
+                    DSTop = stksave;
+                    rplError(ERR_INVALIDPOSITION);
                     return;
+                }
+
+                // CHECK IF THE POSITION IS WITHIN THE LIST
+
+                if((pos < 1) || (pos > length)) {
+                    DSTop = stksave;
+                    rplError(ERR_INDEXOUTOFBOUNDS);
+                    return;
+                }
+
+                comp = rplGetListElement(rplPeekData(1), pos);
+                if(!comp) {
+                    DSTop = stksave;
+                    rplError(ERR_INDEXOUTOFBOUNDS);
+                    return;
+                }
+                if((k != ndims) && (!ISLIST(*comp))) {
+                    DSTop = stksave;
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+
+                rplPushData(comp);
+
+            }
+
+            // WE GOT THE ANSWER
+
+            comp = rplPeekData(1);
+            DSTop = stksave;
+            rplDropData(ndims);
+            rplOverwriteData(1, comp);
+
+            return;
 
         }
 
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -416,61 +390,71 @@ void LIB_HANDLER()
 
         // NOW CREATE A PROGRAM TO 'MAP'
 
-        WORDPTR program=rplAllocTempOb(2);
+        WORDPTR program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
 
-        program[0]=MKPROLOG(DOCOL,2);
-        program[1]=CurOpcode;
-        program[2]=CMD_SEMI;
+        program[0] = MKPROLOG(DOCOL, 2);
+        program[1] = CurOpcode;
+        program[2] = CMD_SEMI;
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
-
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        if(OPCODE(CurOpcode)==OVR_EVAL) IPtr=(WORDPTR) listeval_seco;
-        else IPtr=(WORDPTR) unary_seco;
-        CurOpcode=CMD_OVR_EVAL;   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        if(OPCODE(CurOpcode) == OVR_EVAL)
+            IPtr = (WORDPTR) listeval_seco;
+        else
+            IPtr = (WORDPTR) unary_seco;
+        CurOpcode = CMD_OVR_EVAL;       // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
 
     }
 
     if(ISBINARYOP(CurOpcode)) {
-          // ALL BINARY OPERATORS PASS THEIR OPERATIONS DIRECTLY TO EACH ELEMENT
-        if(rplDepthData()<2) {
+        // ALL BINARY OPERATORS PASS THEIR OPERATIONS DIRECTLY TO EACH ELEMENT
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        if((!ISLIST(*rplPeekData(1)))  && (!ISLIST(*rplPeekData(2)))) {
-
+        if((!ISLIST(*rplPeekData(1))) && (!ISLIST(*rplPeekData(2)))) {
 
             if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
                 // COMMANDS AS OBJECTS, RESPOND TO THE "SAME" OPERATOR ONLY
-                if(OPCODE(CurOpcode)==OVR_SAME) {
-                    if(*rplPeekData(2)==*rplPeekData(1)) {
+                if(OPCODE(CurOpcode) == OVR_SAME) {
+                    if(*rplPeekData(2) == *rplPeekData(1)) {
                         rplDropData(2);
                         rplPushTrue();
                         return;
-                    } else {
+                    }
+                    else {
                         rplDropData(2);
                         rplPushFalse();
                         return;
@@ -483,8 +467,7 @@ void LIB_HANDLER()
                 }
             }
 
-
-            if(OPCODE(CurOpcode)==OVR_SAME) {
+            if(OPCODE(CurOpcode) == OVR_SAME) {
                 rplDropData(2);
                 rplPushFalse();
                 return;
@@ -493,13 +476,15 @@ void LIB_HANDLER()
             return;
         }
 
-
-        if(OPCODE(CurOpcode)==OVR_SAME) {
-            BINT result=rplListSame();
-            if(Exceptions) return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            BINT result = rplListSame();
+            if(Exceptions)
+                return;
             rplDropData(2);
-            if(result) rplPushTrue();
-            else rplPushFalse();
+            if(result)
+                rplPushTrue();
+            else
+                rplPushFalse();
             return;
         }
 
@@ -507,75 +492,91 @@ void LIB_HANDLER()
 
         if(ISAUTOEXPLIST(*rplPeekData(1)) || ISAUTOEXPLIST(*rplPeekData(2))) {
             // CASE LISTS NEED TO BE EXPANDED BEFORE
-            rplListExpandCases();  // EXPAND 2 LISTS AND REPLACE THEM IN THE STACK
-            if(Exceptions) return;
+            rplListExpandCases();       // EXPAND 2 LISTS AND REPLACE THEM IN THE STACK
+            if(Exceptions)
+                return;
         }
 
-
-
-
-        WORDPTR program=rplAllocTempOb(2);
+        WORDPTR program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
 
-        program[0]=MKPROLOG(DOCOL,2);
-        program[1]=CurOpcode;
-        program[2]=CMD_SEMI;
+        program[0] = MKPROLOG(DOCOL, 2);
+        program[1] = CurOpcode;
+        program[2] = CMD_SEMI;
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        if(ISLIST(*rplPeekData(2))) rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
-        else rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(ISLIST(*rplPeekData(2)))
+            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);  // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
+        else
+            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        if(ISLIST(*rplPeekData(1))) rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
-        else rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(ISLIST(*rplPeekData(1)))
+            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);  // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
+        else
+            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 4 = LIST1
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 4 = LIST1
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 5 = LIST2
-        if(Exceptions) { rplCleanupLAMs(0); return; }
-
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 5 = LIST2
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 and 3 = NEXT OBJECT ON EACH LIST, GETLAM 4 AND 5 = LISTS
 
         rplPushRet(IPtr);
 
-        if(ISTESTOP(CurOpcode)) IPtr=(WORDPTR) testop_seco;
-        else IPtr=(WORDPTR) binary_seco;
-        CurOpcode=CMD_OVR_ADD;   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        if(ISTESTOP(CurOpcode))
+            IPtr = (WORDPTR) testop_seco;
+        else
+            IPtr = (WORDPTR) binary_seco;
+        CurOpcode = CMD_OVR_ADD;        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
 
     }
 
-    switch(OPCODE(CurOpcode))
-    {
-
+    switch (OPCODE(CurOpcode)) {
 
     case SORT:
     {
         //@SHORT_DESC=Sort elements in a list
         // CHECK ARGUMENTS
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
         rplStripTagStack(1);
 
-        WORDPTR list=rplPeekData(1);
+        WORDPTR list = rplPeekData(1);
 
         if(!ISLIST(*list)) {
             rplError(ERR_LISTEXPECTED);
@@ -583,74 +584,91 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *stksave=DSTop;
+        WORDPTR *stksave = DSTop;
 
-        BINT nitems=rplListLength(list);
+        BINT nitems = rplListLength(list);
 
-        if(nitems<2) return;
-
+        if(nitems < 2)
+            return;
 
         rplExplodeList(list);
-        if(Exceptions) { DSTop=stksave; return; }
-
+        if(Exceptions) {
+            DSTop = stksave;
+            return;
+        }
 
         // PERFORM BINARY INSERTION SORT
 
-        WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
-        WORDPTR *left,*right;
+        WORDPTR *ptr, *ptr2, *endlimit, *startlimit, save;
+        WORDPTR *left, *right;
 
-        startlimit=DSTop-nitems;    // POINT TO SECOND ELEMENT IN THE LIST
-        endlimit=DSTop-1;           // POINT AFTER THE LAST ELEMENT
+        startlimit = DSTop - nitems;    // POINT TO SECOND ELEMENT IN THE LIST
+        endlimit = DSTop - 1;   // POINT AFTER THE LAST ELEMENT
 
-        for(ptr=startlimit;ptr<endlimit;++ptr)
-        {
-            save=*ptr;
+        for(ptr = startlimit; ptr < endlimit; ++ptr) {
+            save = *ptr;
 
-            left=startlimit-1;
-            right=ptr-1;
-            if(rplListItemCompare(*right,save)>0) {
-               if(rplListItemCompare(save,*left)>0) {
-            while(right-left>1) {
-                if(rplListItemCompare(*(left+(right-left)/2),save)>0) {
-                    right=left+(right-left)/2;
+            left = startlimit - 1;
+            right = ptr - 1;
+            if(rplListItemCompare(*right, save) > 0) {
+                if(rplListItemCompare(save, *left) > 0) {
+                    while(right - left > 1) {
+                        if(rplListItemCompare(*(left + (right - left) / 2),
+                                    save) > 0) {
+                            right = left + (right - left) / 2;
+                        }
+                        else {
+                            if(Exceptions) {
+                                DSTop = stksave;
+                                return;
+                            }
+                            left = left + (right - left) / 2;
+                        }
+                    }
                 }
                 else {
-                    if(Exceptions) { DSTop=stksave; return; }
-                    left=left+(right-left)/2;
+                    if(Exceptions) {
+                        DSTop = stksave;
+                        return;
+                    }
+                    right = left;
                 }
+                // INSERT THE POINTER RIGHT BEFORE right
+                for(ptr2 = ptr; ptr2 > right; ptr2 -= 1)
+                    *ptr2 = *(ptr2 - 1);
+                //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
+                *right = save;
             }
-               } else {
-                   if(Exceptions) { DSTop=stksave; return; }
-                   right=left;
-               }
-            // INSERT THE POINTER RIGHT BEFORE right
-            for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
-            //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
-            *right=save;
+            if(Exceptions) {
+                DSTop = stksave;
+                return;
             }
-            if(Exceptions) { DSTop=stksave; return; }
         }
 
         rplCreateList();
 
-        if(Exceptions) { DSTop=stksave; return; }
-        if(ISAUTOEXPLIST(*rplPeekData(2)) ) rplListAutoExpand(rplPeekData(1));
-        rplOverwriteData(2,rplPeekData(1));
+        if(Exceptions) {
+            DSTop = stksave;
+            return;
+        }
+        if(ISAUTOEXPLIST(*rplPeekData(2)))
+            rplListAutoExpand(rplPeekData(1));
+        rplOverwriteData(2, rplPeekData(1));
         rplDropData(1);
         return;
     }
 
     case REVLIST:
-     {
+    {
         //@SHORT_DESC=Reverse the order of elements in a list
         // CHECK ARGUMENTS
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
-        WORDPTR list=rplPeekData(1);
+        WORDPTR list = rplPeekData(1);
 
         if(!ISLIST(*list)) {
             rplError(ERR_LISTEXPECTED);
@@ -658,34 +676,36 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT nitems=rplListLength(list);
-        BINT iscaselist=ISAUTOEXPLIST(*list);
+        BINT nitems = rplListLength(list);
+        BINT iscaselist = ISAUTOEXPLIST(*list);
 
-        if(nitems<2) return;
+        if(nitems < 2)
+            return;
 
         rplDropData(1);
 
         rplExplodeList(list);
-        if(Exceptions) return;
-
+        if(Exceptions)
+            return;
 
         // REVERSE ALL ELEMENTS IN THE LIST
 
-        WORDPTR *endlimit,*startlimit,save;
+        WORDPTR *endlimit, *startlimit, save;
 
-        startlimit=DSTop-nitems-1;    // POINT TO FIRST ELEMENT IN THE LIST
-        endlimit=DSTop-2;           // POINT TO THE LAST ELEMENT
+        startlimit = DSTop - nitems - 1;        // POINT TO FIRST ELEMENT IN THE LIST
+        endlimit = DSTop - 2;   // POINT TO THE LAST ELEMENT
 
-        while(endlimit>startlimit) {
-            save=*endlimit;
-            *endlimit=*startlimit;
-            *startlimit=save;
+        while(endlimit > startlimit) {
+            save = *endlimit;
+            *endlimit = *startlimit;
+            *startlimit = save;
             ++startlimit;
             --endlimit;
         }
 
         rplCreateList();
-        if(!Exceptions && iscaselist) rplListAutoExpand(rplPeekData(1));
+        if(!Exceptions && iscaselist)
+            rplListAutoExpand(rplPeekData(1));
 
         return;
     }
@@ -695,7 +715,7 @@ void LIB_HANDLER()
         return;
     case TOLIST:
         //@SHORT_DESC=Assemble a list from its elements
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -712,7 +732,7 @@ void LIB_HANDLER()
         return;
     case INNERCOMP:
         //@SHORT_DESC=Split a list into its elements
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -735,14 +755,13 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Do a procedure with elements of lists
         //@INCOMPAT
-        BINT initdepth=rplDepthData();
-        if(initdepth<3) {
+        BINT initdepth = rplDepthData();
+        if(initdepth < 3) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(3);
-
 
         if(!ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_REALEXPECTED);
@@ -752,19 +771,19 @@ void LIB_HANDLER()
 
         // GET THE NUMBER OF LISTS
 
-        BINT64 nlists=rplReadNumberAsBINT(rplPeekData(2));
+        BINT64 nlists = rplReadNumberAsBINT(rplPeekData(2));
 
-        if(initdepth<2+nlists) {
+        if(initdepth < 2 + nlists) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
 
-        WORDPTR program=rplPeekData(1);
+        WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var=rplFindLAM(program,1);
+            WORDPTR *var = rplFindLAM(program, 1);
             if(!var) {
-                var=rplFindGlobal(program,1);
+                var = rplFindGlobal(program, 1);
                 if(!var) {
                     rplError(ERR_LISTEXPECTED);
 
@@ -772,7 +791,7 @@ void LIB_HANDLER()
                 }
             }
             // HERE var HAS THE VARIABLE, GET THE CONTENTS
-            program=*(var+1);
+            program = *(var + 1);
         }
 
         if(!ISPROGRAM(*program)) {
@@ -785,22 +804,23 @@ void LIB_HANDLER()
 
         // CHECK THAT ALL LISTS ARE ACTUALLY LISTS
 
-        BINT f,l,length=-1;
-        for(f=3;f<3+nlists;++f) {
+        BINT f, l, length = -1;
+        for(f = 3; f < 3 + nlists; ++f) {
             if(!ISLIST(*rplPeekData(f))) {
                 rplError(ERR_LISTEXPECTED);
                 return;
             }
             // MAKE SURE ALL LISTS ARE EQUAL LENGTH
-            l=rplListLength(rplPeekData(f));
-            if(length<0) length=l;
-            else if(l!=length) {
+            l = rplListLength(rplPeekData(f));
+            if(length < 0)
+                length = l;
+            else if(l != length) {
                 rplError(ERR_INVALIDLISTSIZE);
                 return;
             }
         }
 
-        if(length<1) {
+        if(length < 1) {
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
@@ -809,45 +829,52 @@ void LIB_HANDLER()
         rplCreateLAMEnvironment(IPtr);
         // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb=rplNewBINT(nlists,DECBINT);
+        WORDPTR newb = rplNewBINT(nlists, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 2 = BINT WITH NUMBER OF LISTS
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = BINT WITH NUMBER OF LISTS
 
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        newb=rplNewBINT(length,DECBINT);
+        newb = rplNewBINT(length, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
 
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        newb=rplNewBINT(1,DECBINT);
+        newb = rplNewBINT(1, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
 
-
-        for(f=0;f<nlists;++f) {
-            rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+4 = LISTS IN REVERSE ORDER
-            if(Exceptions) { rplCleanupLAMs(0); return; }
+        for(f = 0; f < nlists; ++f) {
+            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2 + nlists - f)); // LAM n+4 = LISTS IN REVERSE ORDER
+            if(Exceptions) {
+                rplCleanupLAMs(0);
+                return;
+            }
         }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
         // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
-
 
         // THIS NEEDS TO BE DONE IN 3 STEPS:
         // DOLIST WILL PREPARE THE LAMS FOR OPEN EXECUTION
@@ -861,10 +888,10 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) dolist_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) dolist_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
     }
@@ -874,18 +901,22 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
         // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
 
-
-        BINT64 nlists=rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+        BINT64 nlists = rplReadBINT(*rplGetLAMn(2));
+        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
         BINT k;
 
-        for(k=0;k<nlists;++k)
-        {
-            rplPushData(rplGetListElement(*rplGetLAMn(k+5),idx));
-            if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST); return; }
+        for(k = 0; k < nlists; ++k) {
+            rplPushData(rplGetListElement(*rplGetLAMn(k + 5), idx));
+            if(Exceptions) {
+                DSTop = rplUnprotectData();
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+                return;
+            }
         }
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE DOLISTERR WORD
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE DOLISTERR WORD
 
         // NOW RECALL THE PROGRAM TO THE STACK
 
@@ -901,28 +932,28 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        BINT64 length=rplReadBINT(*rplGetLAMn(3));
-        BINT64 nlists=rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+        BINT64 length = rplReadBINT(*rplGetLAMn(3));
+        BINT64 nlists = rplReadBINT(*rplGetLAMn(2));
+        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
 
-        if(idx<length) {
+        if(idx < length) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint=rplNewBINT(idx,DECBINT);
+            WORDPTR newbint = rplNewBINT(idx, DECBINT);
             if(Exceptions) {
-                DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                 if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
-                    DSTop-=2;
+                    DSTop -= 2;
                     rplClrSystemFlag(FL_LISTCMDCLEANUP);
                 }
                 rplCleanupLAMs(0);
-                IPtr=rplPopRet();
-                CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
                 return;
             }
-            rplPutLAMn(4,newbint);  // STORE NEW INDEX
+            rplPutLAMn(4, newbint);     // STORE NEW INDEX
 
-            IPtr=(WORDPTR) dolist_seco;   // CONTINUE THE LOOP
+            IPtr = (WORDPTR) dolist_seco;       // CONTINUE THE LOOP
             // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
             return;
         }
@@ -932,46 +963,50 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth=(BINT)(DSTop-prevDStk);
+        BINT newdepth = (BINT) (DSTop - prevDStk);
 
-        rplNewBINTPush(newdepth,DECBINT);
+        rplNewBINTPush(newdepth, DECBINT);
         if(Exceptions) {
-            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
-                DSTop-=2;
+                DSTop -= 2;
                 rplClrSystemFlag(FL_LISTCMDCLEANUP);
             }
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
             return;
         }
 
         rplCreateList();
         if(Exceptions) {
-            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
-                DSTop-=2;
+                DSTop -= 2;
                 rplClrSystemFlag(FL_LISTCMDCLEANUP);
             }
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
             return;
         }
 
-        WORDPTR *lstptr=DSTop-nlists-3;
+        WORDPTR *lstptr = DSTop - nlists - 3;
         BINT k;
-        for(k=0;k<nlists;++k,++lstptr) if(ISAUTOEXPLIST(**lstptr)) { rplListAutoExpand(rplPeekData(1)); break; }
+        for(k = 0; k < nlists; ++k, ++lstptr)
+            if(ISAUTOEXPLIST(**lstptr)) {
+                rplListAutoExpand(rplPeekData(1));
+                break;
+            }
 
         // HERE THE STACK HAS: LIST1... LISTN N PROGRAM NEWLIST
-        rplOverwriteData(nlists+3,rplPeekData(1));
-        rplDropData(nlists+2);
+        rplOverwriteData(nlists + 3, rplPeekData(1));
+        rplDropData(nlists + 2);
 
         rplClrSystemFlag(FL_LISTCMDCLEANUP);
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
+        IPtr = rplPopRet();
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
         return;
     }
 
@@ -983,17 +1018,17 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();
 
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
-            DSTop-=2;
+            DSTop -= 2;
             rplClrSystemFlag(FL_LISTCMDCLEANUP);
         }
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
         return;
 
         // **********************************************************
@@ -1003,8 +1038,8 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Do a procedure on a subset of a list
         //@INCOMPAT
-        BINT initdepth=rplDepthData();
-        if(initdepth<3) {
+        BINT initdepth = rplDepthData();
+        if(initdepth < 3) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -1023,17 +1058,15 @@ void LIB_HANDLER()
             return;
         }
 
-
         // GET THE NUMBER OF VALUES WE NEED TO USE IN EACH ITERATION
 
+        BINT64 nvalues = rplReadNumberAsBINT(rplPeekData(2));
 
-        BINT64 nvalues=rplReadNumberAsBINT(rplPeekData(2));
-
-        WORDPTR program=rplPeekData(1);
+        WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var=rplFindLAM(program,1);
+            WORDPTR *var = rplFindLAM(program, 1);
             if(!var) {
-                var=rplFindGlobal(program,1);
+                var = rplFindGlobal(program, 1);
                 if(!var) {
                     rplError(ERR_PROGRAMEXPECTED);
 
@@ -1041,9 +1074,8 @@ void LIB_HANDLER()
                 }
             }
             // HERE var HAS THE VARIABLE, GET THE CONTENTS
-            program=*(var+1);
+            program = *(var + 1);
         }
-
 
         if(!ISPROGRAM(*program)) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -1054,53 +1086,61 @@ void LIB_HANDLER()
 
         // CHECK THAT THE LIST ARE ACTUALLY LISTS
 
-        BINT length,maxpos;
-        length=rplListLength(rplPeekData(3));
+        BINT length, maxpos;
+        length = rplListLength(rplPeekData(3));
 
-        if(length<nvalues) {
+        if(length < nvalues) {
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
         // POSITION OF THE LAST ITEM TO PROCESS
-        maxpos=1+length-nvalues;
+        maxpos = 1 + length - nvalues;
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb=rplNewBINT(nvalues,DECBINT);
+        WORDPTR newb = rplNewBINT(nvalues, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
 
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        newb=rplNewBINT(maxpos,DECBINT);
+        newb = rplNewBINT(maxpos, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)endsub_name,newb);     // LAM 3 = BINT WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
+        rplCreateLAM((WORDPTR) endsub_name, newb);      // LAM 3 = BINT WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
 
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        newb=rplNewBINT(1,DECBINT);
+        newb = rplNewBINT(1, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR)nsub_name,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN THE LOOP
+        rplCreateLAM((WORDPTR) nsub_name, newb);        // LAM 4 = 1, BINT WITH CURRENT INDEX IN THE LOOP
 
-
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(3));     // LAM 5 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));  // LAM 5 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NVALUES, GETLAM3 = ENDSUB, GETLAM4 = NSUB, GETLAM 5 = LIST
 
@@ -1116,10 +1156,10 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) dosubs_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) dosubs_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
     }
@@ -1128,17 +1168,21 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NVALUES, GETLAM3 = ENDSUB, GETLAM4 = NSUB, GETLAM 5 = LIST
 
-
-        BINT64 nvalues=rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+        BINT64 nvalues = rplReadBINT(*rplGetLAMn(2));
+        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
         BINT k;
-        for(k=0;k<nvalues;++k)
-        {
-            rplPushData(rplGetListElement(*rplGetLAMn(5),idx+k));
-            if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS); return; }
+        for(k = 0; k < nvalues; ++k) {
+            rplPushData(rplGetListElement(*rplGetLAMn(5), idx + k));
+            if(Exceptions) {
+                DSTop = rplUnprotectData();
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+                return;
+            }
         }
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE DOSUBSERR WORD
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE DOSUBSERR WORD
 
         // NOW RECALL THE PROGRAM TO THE STACK
 
@@ -1156,24 +1200,24 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        BINT64 endsub=rplReadBINT(*rplGetLAMn(3));
-        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+        BINT64 endsub = rplReadBINT(*rplGetLAMn(3));
+        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
 
-        if(idx<endsub) {
+        if(idx < endsub) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint=rplNewBINT(idx,DECBINT);
+            WORDPTR newbint = rplNewBINT(idx, DECBINT);
             if(Exceptions) {
-                DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
 
                 rplCleanupLAMs(0);
-                IPtr=rplPopRet();
-                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
                 return;
             }
-            rplPutLAMn(4,newbint);  // STORE NEW INDEX
+            rplPutLAMn(4, newbint);     // STORE NEW INDEX
 
-            IPtr=(WORDPTR) dosubs_seco;   // CONTINUE THE LOOP
+            IPtr = (WORDPTR) dosubs_seco;       // CONTINUE THE LOOP
             // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
             return;
         }
@@ -1183,33 +1227,34 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth=(BINT)(DSTop-prevDStk);
+        BINT newdepth = (BINT) (DSTop - prevDStk);
 
-        rplNewBINTPush(newdepth,DECBINT);
+        rplNewBINTPush(newdepth, DECBINT);
         if(Exceptions) {
-            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
             return;
         }
 
         rplCreateList();
         if(Exceptions) {
-            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
             return;
         }
-        if(ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
+        if(ISAUTOEXPLIST(**rplGetLAMn(5)))
+            rplListAutoExpand(rplPeekData(1));
         // HERE THE STACK HAS: LIST1 N PROGRAM NEWLIST
-        rplOverwriteData(4,rplPeekData(1));
+        rplOverwriteData(4, rplPeekData(1));
         rplDropData(3);
 
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
+        IPtr = rplPopRet();
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
         return;
     }
 
@@ -1221,20 +1266,18 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();
 
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
 
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
         return;
-
 
         // END OF DOSUBS
         // *****************************************************************
-
 
         // **********************************************************
         // THE COMMANDS THAT FOLLOW ALL WORK TOGETHER TO IMPLEMENT MAP
@@ -1242,7 +1285,7 @@ void LIB_HANDLER()
     case MAP:
     {
         //@SHORT_DESC=Do a procedure on each element of a list, recursively
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -1255,12 +1298,11 @@ void LIB_HANDLER()
             return;
         }
 
-
-        WORDPTR program=rplPeekData(1);
+        WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var=rplFindLAM(program,1);
+            WORDPTR *var = rplFindLAM(program, 1);
             if(!var) {
-                var=rplFindGlobal(program,1);
+                var = rplFindGlobal(program, 1);
                 if(!var) {
                     rplError(ERR_PROGRAMEXPECTED);
 
@@ -1268,9 +1310,8 @@ void LIB_HANDLER()
                 }
             }
             // HERE var HAS THE VARIABLE, GET THE CONTENTS
-            program=*(var+1);
+            program = *(var + 1);
         }
-
 
         if(!ISPROGRAM(*program)) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -1283,14 +1324,23 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
@@ -1306,10 +1356,10 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) map_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) map_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
     }
@@ -1318,94 +1368,94 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
-        WORDPTR nextobj=*rplGetLAMn(2);
+        WORDPTR nextobj = *rplGetLAMn(2);
         WORDPTR startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
-            startobj=nextobj;
+            startobj = nextobj;
 
             while(ISLIST(*nextobj)) {
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR)map_seco);
+                rplPushData((WORDPTR) map_seco);
             }
 
-            while(*nextobj==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                if(nextobj==endmarker) {
+            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+                    BINT newdepth = (BINT) (DSTop - prevDStk);
 
-                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
+                    WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                        DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
                             DSTop--;
                             rplClrSystemFlag(FL_LISTCMDCLEANUP);
                         }
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                        rplListAutoExpand(newlist);
 
-                    rplOverwriteData(2,newlist);
+                    rplOverwriteData(2, newlist);
                     rplDropData(1);
                     rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                    IPtr = rplPopRet();
+                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                     return;
-
 
                 }
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr=DSTop-1;
+                    WORDPTR *stkptr = DSTop - 1;
 
-                    while(*stkptr!=map_seco) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements=(BINT)(DSTop-stkptr)-1;
+                    while(*stkptr != map_seco)
+                        --stkptr;       // FIND THE NEXT MARKER ON THE STACK
+                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements,DECBINT);
+                    rplNewBINTPush(nelements, DECBINT);
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
                             DSTop--;
                             rplClrSystemFlag(FL_LISTCMDCLEANUP);
                         }
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
                     rplCreateList();
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
                             DSTop--;
                             rplClrSystemFlag(FL_LISTCMDCLEANUP);
                         }
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                        rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
-                    rplOverwriteData(2,rplPeekData(1));
+                    rplOverwriteData(2, rplPeekData(1));
                     rplDropData(1);
-
 
                 }
 
@@ -1413,13 +1463,12 @@ void LIB_HANDLER()
 
             }
 
-        } while(nextobj!=startobj); // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
+        }
+        while(nextobj != startobj);     // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -1441,9 +1490,9 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        rplPutLAMn(2,rplSkipOb(*rplGetLAMn(2)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));       // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr-=3;   // CONTINUE THE LOOP
+        IPtr -= 3;      // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -1455,19 +1504,18 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();
 
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
             DSTop--;
             rplClrSystemFlag(FL_LISTCMDCLEANUP);
         }
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
         return;
-
 
         // END OF MAP
         // *****************************************************************
@@ -1480,7 +1528,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Do a procedure on each element recursively, return individual elements
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -1493,12 +1541,11 @@ void LIB_HANDLER()
             return;
         }
 
-
-        WORDPTR program=rplPeekData(1);
+        WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var=rplFindLAM(program,1);
+            WORDPTR *var = rplFindLAM(program, 1);
             if(!var) {
-                var=rplFindGlobal(program,1);
+                var = rplFindGlobal(program, 1);
                 if(!var) {
                     rplError(ERR_PROGRAMEXPECTED);
 
@@ -1506,9 +1553,8 @@ void LIB_HANDLER()
                 }
             }
             // HERE var HAS THE VARIABLE, GET THE CONTENTS
-            program=*(var+1);
+            program = *(var + 1);
         }
-
 
         if(!ISPROGRAM(*program)) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -1521,14 +1567,23 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
@@ -1544,15 +1599,15 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) mapinnercomp_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) mapinnercomp_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         // REMOVE THE PROGRAM FROM THE STACK IN ORDER TO REUSE listeval_seco
         // THIS CAUSES THE PROGRAM TO DISAPPEAR FROM THE STACK IF THERE'S AN ERROR
         // IT'S ACCEPTABLE ONLY BECAUSE MAPINNERCOMP IS MAINLY FOR INTERNAL USE
         rplDropData(1);
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         return;
     }
@@ -1561,80 +1616,79 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
-        WORDPTR nextobj=*rplGetLAMn(2);
+        WORDPTR nextobj = *rplGetLAMn(2);
         WORDPTR startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
-            startobj=nextobj;
+            startobj = nextobj;
 
             while(ISLIST(*nextobj)) {
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR)listeval_seco);
+                rplPushData((WORDPTR) listeval_seco);
             }
 
-            while(*nextobj==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                if(nextobj==endmarker) {
+            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+                    BINT newdepth = (BINT) (DSTop - prevDStk);
 
-
-                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
+                    WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                        DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                        rplListAutoExpand(newlist);
 
-                    rplOverwriteData(1,newlist);
+                    rplOverwriteData(1, newlist);
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                    IPtr = rplPopRet();
+                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                     return;
-
 
                 }
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr=DSTop-1;
+                    WORDPTR *stkptr = DSTop - 1;
 
-                    while(*stkptr!=listeval_seco) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements=(BINT)(DSTop-stkptr)-1;
+                    while(*stkptr != listeval_seco)
+                        --stkptr;       // FIND THE NEXT MARKER ON THE STACK
+                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements,DECBINT);
+                    rplNewBINTPush(nelements, DECBINT);
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
                     rplCreateList();
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                        rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
-                    rplOverwriteData(2,rplPeekData(1));
+                    rplOverwriteData(2, rplPeekData(1));
                     rplDropData(1);
-
 
                 }
 
@@ -1642,13 +1696,12 @@ void LIB_HANDLER()
 
             }
 
-        } while(nextobj!=startobj); // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
+        }
+        while(nextobj != startobj);     // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -1657,7 +1710,13 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -1670,9 +1729,9 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        rplPutLAMn(2,rplSkipOb(*rplGetLAMn(2)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));       // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr-=3;   // CONTINUE THE LOOP
+        IPtr -= 3;      // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -1685,15 +1744,14 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();
 
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
         return;
-
 
         // **********************************************************
         // THE COMMANDS THAT FOLLOW ALL WORK TOGETHER TO IMPLEMENT STREAM
@@ -1701,7 +1759,7 @@ void LIB_HANDLER()
     case STREAM:
     {
         //@SHORT_DESC=Do a procedure on consecutive elements of a list
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -1714,28 +1772,26 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length=rplListLength(rplPeekData(2));
+        BINT length = rplListLength(rplPeekData(2));
 
-        if(length<2) {
+        if(length < 2) {
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
-
-        WORDPTR program=rplPeekData(1);
+        WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var=rplFindLAM(program,1);
+            WORDPTR *var = rplFindLAM(program, 1);
             if(!var) {
-                var=rplFindGlobal(program,1);
+                var = rplFindGlobal(program, 1);
                 if(!var) {
                     rplError(ERR_PROGRAMEXPECTED);
                     return;
                 }
             }
             // HERE var HAS THE VARIABLE, GET THE CONTENTS
-            program=*(var+1);
+            program = *(var + 1);
         }
-
 
         if(!ISPROGRAM(*program)) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -1747,26 +1803,34 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) stream_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,STREAM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) stream_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         // PUSH THE FIRST ELEMENT
-        rplPushData(rplGetListElement(rplPeekData(2),1));
-
+        rplPushData(rplGetListElement(rplPeekData(2), 1));
 
         return;
     }
@@ -1775,32 +1839,30 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
         WORDPTR nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
-        nextobj=rplSkipOb(*rplGetLAMn(2));
+        nextobj = rplSkipOb(*rplGetLAMn(2));
 
-        if(nextobj==endmarker) {
+        if(nextobj == endmarker) {
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth=(BINT)(DSTop-prevDStk);
+            BINT newdepth = (BINT) (DSTop - prevDStk);
 
-            rplOverwriteData(2+newdepth,rplPeekData(1));
-            rplDropData(1+newdepth);
+            rplOverwriteData(2 + newdepth, rplPeekData(1));
+            rplDropData(1 + newdepth);
 
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,STREAM);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);
             return;
         }
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -1809,7 +1871,14 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { rplRemoveExceptionHandler(); DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        if(Exceptions) {
+            rplRemoveExceptionHandler();
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -1822,7 +1891,7 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        IPtr=(WORDPTR) stream_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) stream_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -1835,18 +1904,17 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();
 
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
 
-        IPtr=rplPopRet();
+        IPtr = rplPopRet();
 
         // AND THROW THE EXCEPTIONS TO THE UPPER HANDLER
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,STREAM);
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);
         return;
-
 
         // END OF STREAM
         // *****************************************************************
@@ -1858,118 +1926,127 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
-        WORDPTR nextobj=*rplGetLAMn(2);
+        WORDPTR nextobj = *rplGetLAMn(2);
         WORDPTR startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
-        WORD opcode=*((*rplGetLAMn(1))+1);
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        WORD opcode = *((*rplGetLAMn(1)) + 1);
 
         do {
 
-            startobj=nextobj;
+            startobj = nextobj;
 
             while(ISLIST(*nextobj)) {
                 // GET INSIDE THE LIST
                 ++nextobj;
                 {
-                // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                BINT nxtoff=nextobj-*rplGetLAMn(2);
-                BINT strtoff=startobj-nextobj;
-                BINT endoff=endmarker-nextobj;
+                    // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
+                    BINT nxtoff = nextobj - *rplGetLAMn(2);
+                    BINT strtoff = startobj - nextobj;
+                    BINT endoff = endmarker - nextobj;
 
-                rplPushData((WORDPTR)map_seco);
+                    rplPushData((WORDPTR) map_seco);
 
-                nextobj=*rplGetLAMn(2)+nxtoff;  // RESTORE
-                startobj=nextobj+strtoff;
-                endmarker=nextobj+endoff;
+                    nextobj = *rplGetLAMn(2) + nxtoff;  // RESTORE
+                    startobj = nextobj + strtoff;
+                    endmarker = nextobj + endoff;
                 }
             }
 
-            while(*nextobj==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                if(nextobj==endmarker) {
+            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+                    BINT newdepth = (BINT) (DSTop - prevDStk);
 
-
-                    if(OPCODE(opcode)==OVR_ISTRUE) {
+                    if(OPCODE(opcode) == OVR_ISTRUE) {
                         //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
                         BINT k;
-                        BINT istrue=0;
-                        for(k=1;k<=newdepth;++k) {
-                            if(!rplIsFalse(rplPeekData(k))) { istrue=1; break; }
+                        BINT istrue = 0;
+                        for(k = 1; k <= newdepth; ++k) {
+                            if(!rplIsFalse(rplPeekData(k))) {
+                                istrue = 1;
+                                break;
+                            }
                         }
 
                         rplDropData(newdepth);
-                        if(istrue) rplOverwriteData(1,(WORDPTR)one_bint);
-                        else rplOverwriteData(1,(WORDPTR)zero_bint);
+                        if(istrue)
+                            rplOverwriteData(1, (WORDPTR) one_bint);
+                        else
+                            rplOverwriteData(1, (WORDPTR) zero_bint);
 
                     }
                     else {
-                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
-                    if(!newlist) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=CMD_OVR_EVAL;
-                        return;
-                    }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
-                    rplOverwriteData(1,newlist);
+                        WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
+                        if(!newlist) {
+                            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
+                            rplCleanupLAMs(0);
+                            IPtr = rplPopRet();
+                            CurOpcode = CMD_OVR_EVAL;
+                            return;
+                        }
+                        if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                            rplListAutoExpand(newlist);
+                        rplOverwriteData(1, newlist);
                     }
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=CMD_OVR_EVAL;
+                    IPtr = rplPopRet();
+                    CurOpcode = CMD_OVR_EVAL;
                     return;
-
 
                 }
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr=DSTop-1;
+                    WORDPTR *stkptr = DSTop - 1;
 
-                    while(*stkptr!=map_seco) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements=(BINT)(DSTop-stkptr)-1;
+                    while(*stkptr != map_seco)
+                        --stkptr;       // FIND THE NEXT MARKER ON THE STACK
+                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
 
-
-                    if(OPCODE(opcode)==OVR_ISTRUE) {
+                    if(OPCODE(opcode) == OVR_ISTRUE) {
                         //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
                         BINT k;
-                        BINT istrue=0;
-                        for(k=1;k<=nelements;++k) {
-                            if(!rplIsFalse(rplPeekData(k))) { istrue=1; break; }
+                        BINT istrue = 0;
+                        for(k = 1; k <= nelements; ++k) {
+                            if(!rplIsFalse(rplPeekData(k))) {
+                                istrue = 1;
+                                break;
+                            }
                         }
 
                         rplDropData(nelements);
-                        if(istrue) rplOverwriteData(1,(WORDPTR)one_bint);
-                        else rplOverwriteData(1,(WORDPTR)zero_bint);
+                        if(istrue)
+                            rplOverwriteData(1, (WORDPTR) one_bint);
+                        else
+                            rplOverwriteData(1, (WORDPTR) zero_bint);
 
                     }
 
                     else {
-                    BINT nxtoff=nextobj-*rplGetLAMn(2);
-                    BINT strtoff=startobj-nextobj;
-                    BINT endoff=endmarker-nextobj;
+                        BINT nxtoff = nextobj - *rplGetLAMn(2);
+                        BINT strtoff = startobj - nextobj;
+                        BINT endoff = endmarker - nextobj;
 
-                    WORDPTR newlist=rplCreateListN(nelements,1,1);
-                    if(!newlist) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=CMD_OVR_EVAL;
-                        return;
-                    }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
+                        WORDPTR newlist = rplCreateListN(nelements, 1, 1);
+                        if(!newlist) {
+                            DSTop = rplUnprotectData(); // CLEANUP ALL INTERMEDIATE RESULTS
+                            rplCleanupLAMs(0);
+                            IPtr = rplPopRet();
+                            CurOpcode = CMD_OVR_EVAL;
+                            return;
+                        }
+                        if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                            rplListAutoExpand(newlist);
 
-                    nextobj=*rplGetLAMn(2)+nxtoff;  // RESTORE
-                    startobj=nextobj+strtoff;
-                    endmarker=nextobj+endoff;
+                        nextobj = *rplGetLAMn(2) + nxtoff;      // RESTORE
+                        startobj = nextobj + strtoff;
+                        endmarker = nextobj + endoff;
 
-                    // NOW REMOVE THE MARKER FROM THE STACK
-                    rplOverwriteData(1,newlist);
+                        // NOW REMOVE THE MARKER FROM THE STACK
+                        rplOverwriteData(1, newlist);
                     }
 
                 }
@@ -1978,13 +2055,12 @@ void LIB_HANDLER()
 
             }
 
-        } while(nextobj!=startobj); // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
+        }
+        while(nextobj != startobj);     // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -1993,7 +2069,13 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=CMD_OVR_EVAL; return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = CMD_OVR_EVAL;
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -2006,9 +2088,9 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        rplPutLAMn(2,rplSkipOb(*rplGetLAMn(2)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));       // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr=(WORDPTR) unary_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) unary_seco;    // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2019,15 +2101,14 @@ void LIB_HANDLER()
         rplUnprotectData();
         rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=CMD_OVR_EVAL;
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = CMD_OVR_EVAL;
         return;
-
 
         // END OF UNARY OPERATORS
         // *****************************************************************
@@ -2039,128 +2120,129 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 and 3 = NEXT OBJECT ON EACH LIST, GETLAM 4 AND 5 = LISTS
 
-
-        WORDPTR nextobj1=*rplGetLAMn(2);
-        WORDPTR nextobj2=*rplGetLAMn(3);
+        WORDPTR nextobj1 = *rplGetLAMn(2);
+        WORDPTR nextobj2 = *rplGetLAMn(3);
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
-            if(*nextobj1==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                 if(ISLIST(**rplGetLAMn(5))) {
-                    if(*nextobj2!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                        // THE LISTS HAVE INVALID DIMENSIONS
-                        rplError(ERR_INVALIDLISTSIZE);
-                        DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        ExceptionPointer=IPtr;
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-                 }
-
-                    // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
-
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
-
-                    rplNewBINTPush(newdepth,DECBINT);
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-
-                    if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
-                    rplOverwriteData(3,rplPeekData(1));
-                    rplDropData(2);
-
+        if(*nextobj1 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            if(ISLIST(**rplGetLAMn(5))) {
+                if(*nextobj2 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                    // THE LISTS HAVE INVALID DIMENSIONS
+                    rplError(ERR_INVALIDLISTSIZE);
+                    DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=(CMD_OVR_ADD);
+                    IPtr = rplPopRet();
+                    ExceptionPointer = IPtr;
+                    CurOpcode = (CMD_OVR_ADD);
                     return;
-
-
                 }
+            }
 
-            if(*nextobj2==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                 if(ISLIST(**rplGetLAMn(4))) {
-                    if(*nextobj1!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                        // THE LISTS HAVE INVALID DIMENSIONS
-                        rplError(ERR_INVALIDLISTSIZE);
-                        DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        ExceptionPointer=IPtr;
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-                 }
+            // CLOSE THE MAIN LIST AND RETURN
+            WORDPTR *prevDStk = rplUnprotectData();
 
-                    // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+            BINT newdepth = (BINT) (DSTop - prevDStk);
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+            rplNewBINTPush(newdepth, DECBINT);
+            if(Exceptions) {
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = (CMD_OVR_ADD);
+                return;
+            }
 
-                    rplNewBINTPush(newdepth,DECBINT);
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
+            rplCreateList();
+            if(Exceptions) {
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = (CMD_OVR_ADD);
+                return;
+            }
 
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
+            if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5)))
+                rplListAutoExpand(rplPeekData(1));
+            rplOverwriteData(3, rplPeekData(1));
+            rplDropData(2);
 
-                    rplOverwriteData(3,rplPeekData(1));
-                    rplDropData(2);
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
 
+        }
+
+        if(*nextobj2 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            if(ISLIST(**rplGetLAMn(4))) {
+                if(*nextobj1 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                    // THE LISTS HAVE INVALID DIMENSIONS
+                    rplError(ERR_INVALIDLISTSIZE);
+                    DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=(CMD_OVR_ADD);
+                    IPtr = rplPopRet();
+                    ExceptionPointer = IPtr;
+                    CurOpcode = (CMD_OVR_ADD);
                     return;
-
-
                 }
+            }
 
+            // CLOSE THE MAIN LIST AND RETURN
+            WORDPTR *prevDStk = rplUnprotectData();
 
+            BINT newdepth = (BINT) (DSTop - prevDStk);
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
+            rplNewBINTPush(newdepth, DECBINT);
+            if(Exceptions) {
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = (CMD_OVR_ADD);
+                return;
+            }
 
+            rplCreateList();
+            if(Exceptions) {
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr = rplPopRet();
+                CurOpcode = (CMD_OVR_ADD);
+                return;
+            }
+            if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5)))
+                rplListAutoExpand(rplPeekData(1));
 
-        rplPutLAMn(2,nextobj1);
-        rplPutLAMn(3,nextobj2);
+            rplOverwriteData(3, rplPeekData(1));
+            rplDropData(2);
+
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
+
+        }
+
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
+
+        rplPutLAMn(2, nextobj1);
+        rplPutLAMn(3, nextobj2);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj1);
         rplPushData(nextobj2);
 
-
         // NOW RECALL THE PROGRAM TO THE STACK
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=(CMD_OVR_ADD); return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -2173,10 +2255,12 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        if(ISLIST(**rplGetLAMn(4))) rplPutLAMn(2,rplSkipOb(*rplGetLAMn(2)));    // MOVE TO THE NEXT OBJECT IN THE LIST
-        if(ISLIST(**rplGetLAMn(5))) rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(ISLIST(**rplGetLAMn(4)))
+            rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));   // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(ISLIST(**rplGetLAMn(5)))
+            rplPutLAMn(3, rplSkipOb(*rplGetLAMn(3)));   // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr=(WORDPTR) binary_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) binary_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2187,15 +2271,14 @@ void LIB_HANDLER()
         rplUnprotectData();
         rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=(CMD_OVR_ADD);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = (CMD_OVR_ADD);
         return;
-
 
         // END OF BINARY OPERATORS
         // *****************************************************************
@@ -2207,161 +2290,168 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 and 3 = NEXT OBJECT ON EACH LIST, GETLAM 4 AND 5 = LISTS
 
-
-        WORDPTR nextobj1=*rplGetLAMn(2);
-        WORDPTR nextobj2=*rplGetLAMn(3);
+        WORDPTR nextobj1 = *rplGetLAMn(2);
+        WORDPTR nextobj2 = *rplGetLAMn(3);
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
-            if(*nextobj1==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                 if(ISLIST(**rplGetLAMn(5))) {
-                    if(*nextobj2!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                        // THE LISTS HAVE INVALID DIMENSIONS
-                        rplError(ERR_INVALIDLISTSIZE);
-                        DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        ExceptionPointer=IPtr;
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
-                 }
-
-                    // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
-
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
-                    BINT result=1;
-
-                    if(newdepth) {
-                        BINT f;
-                        for(f=1;f<=newdepth;++f)
-                        {
-                        if(rplIsFalse(rplPeekData(f))) { result=0; break; }
-                        }
-                    } else {
-                        // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
-                        WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
-
-                        switch(OPCODE(Opcode))
-                        {
-                        case OVR_SAME:
-                            // TWO EMPTY LISTS ARE EQUAL
-                            result=1;
-                            break;
-                        default:
-                            // ALL OTHER TESTS ARE FALSE
-                            result=0;
-                            break;
-                        }
-
-
-                    }
-                    DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-
-                    rplDropData(2); // REMOVE ORIGINAL ARGUMENTS
-                    if(result) rplPushData((WORDPTR)one_bint);
-                    else rplPushData((WORDPTR)zero_bint);
-
+        if(*nextobj1 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            if(ISLIST(**rplGetLAMn(5))) {
+                if(*nextobj2 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                    // THE LISTS HAVE INVALID DIMENSIONS
+                    rplError(ERR_INVALIDLISTSIZE);
+                    DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=(CMD_OVR_ADD);
+                    IPtr = rplPopRet();
+                    ExceptionPointer = IPtr;
+                    CurOpcode = (CMD_OVR_ADD);
                     return;
-
-
                 }
+            }
 
-            if(*nextobj2==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                 if(ISLIST(**rplGetLAMn(4))) {
-                    if(*nextobj1!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                        // THE LISTS HAVE INVALID DIMENSIONS
-                        rplError(ERR_INVALIDLISTSIZE);
-                        DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        ExceptionPointer=IPtr;
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
+            // CLOSE THE MAIN LIST AND RETURN
+            WORDPTR *prevDStk = rplUnprotectData();
+
+            BINT newdepth = (BINT) (DSTop - prevDStk);
+            BINT result = 1;
+
+            if(newdepth) {
+                BINT f;
+                for(f = 1; f <= newdepth; ++f) {
+                    if(rplIsFalse(rplPeekData(f))) {
+                        result = 0;
+                        break;
                     }
-                 }
+                }
+            }
+            else {
+                // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
+                WORD Opcode = *((*rplGetLAMn(1)) + 1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
 
-                 // CLOSE THE MAIN LIST AND RETURN
-                 WORDPTR *prevDStk = rplUnprotectData();
-
-                 BINT newdepth=(BINT)(DSTop-prevDStk);
-                 BINT result;
-
-                 if(newdepth) {
-                     BINT f;
-                     WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
-                     if(Opcode&1) {
-                         // SPECIAL TEST IS TRUE ONLY IF ALL VALUES ARE TRUE
-                         result=1;
-                     for(f=1;f<=newdepth;++f)
-                     {
-                     if(rplIsFalse(rplPeekData(f))) { result=0; break; }
-                     }
-
-                     }
-                     else {
-                         // SPECIAL TEST IS TRUE IF ANY VALUE IS TRUE
-                         result=0;
-                     for(f=1;f<=newdepth;++f)
-                     {
-                     if(!rplIsFalse(rplPeekData(f))) { result=1; break; }
-                     }
-
-
-                     }
-                 } else {
-                     // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
-                     WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
-
-                     switch(OPCODE(Opcode))
-                     {
-                     case OVR_SAME:
-                         // TWO EMPTY LISTS ARE EQUAL
-                         result=1;
-                         break;
-                     default:
-                         // ALL OTHER TESTS ARE FALSE
-                         result=0;
-                         break;
-                     }
-
-
-                 }
-                 DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-
-                 rplDropData(2); // REMOVE ORIGINAL ARGUMENTS
-                 if(result) rplPushData((WORDPTR)one_bint);
-                 else rplPushData((WORDPTR)zero_bint);
-
-                 rplCleanupLAMs(0);
-                 IPtr=rplPopRet();
-                 CurOpcode=(CMD_OVR_ADD);
-                 return;
-
+                switch (OPCODE(Opcode)) {
+                case OVR_SAME:
+                    // TWO EMPTY LISTS ARE EQUAL
+                    result = 1;
+                    break;
+                default:
+                    // ALL OTHER TESTS ARE FALSE
+                    result = 0;
+                    break;
                 }
 
+            }
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
 
+            rplDropData(2);     // REMOVE ORIGINAL ARGUMENTS
+            if(result)
+                rplPushData((WORDPTR) one_bint);
+            else
+                rplPushData((WORDPTR) zero_bint);
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
 
+        }
 
-        rplPutLAMn(2,nextobj1);
-        rplPutLAMn(3,nextobj2);
+        if(*nextobj2 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            if(ISLIST(**rplGetLAMn(4))) {
+                if(*nextobj1 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                    // THE LISTS HAVE INVALID DIMENSIONS
+                    rplError(ERR_INVALIDLISTSIZE);
+                    DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
+                    rplCleanupLAMs(0);
+                    IPtr = rplPopRet();
+                    ExceptionPointer = IPtr;
+                    CurOpcode = (CMD_OVR_ADD);
+                    return;
+                }
+            }
+
+            // CLOSE THE MAIN LIST AND RETURN
+            WORDPTR *prevDStk = rplUnprotectData();
+
+            BINT newdepth = (BINT) (DSTop - prevDStk);
+            BINT result;
+
+            if(newdepth) {
+                BINT f;
+                WORD Opcode = *((*rplGetLAMn(1)) + 1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
+                if(Opcode & 1) {
+                    // SPECIAL TEST IS TRUE ONLY IF ALL VALUES ARE TRUE
+                    result = 1;
+                    for(f = 1; f <= newdepth; ++f) {
+                        if(rplIsFalse(rplPeekData(f))) {
+                            result = 0;
+                            break;
+                        }
+                    }
+
+                }
+                else {
+                    // SPECIAL TEST IS TRUE IF ANY VALUE IS TRUE
+                    result = 0;
+                    for(f = 1; f <= newdepth; ++f) {
+                        if(!rplIsFalse(rplPeekData(f))) {
+                            result = 1;
+                            break;
+                        }
+                    }
+
+                }
+            }
+            else {
+                // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
+                WORD Opcode = *((*rplGetLAMn(1)) + 1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
+
+                switch (OPCODE(Opcode)) {
+                case OVR_SAME:
+                    // TWO EMPTY LISTS ARE EQUAL
+                    result = 1;
+                    break;
+                default:
+                    // ALL OTHER TESTS ARE FALSE
+                    result = 0;
+                    break;
+                }
+
+            }
+            DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
+
+            rplDropData(2);     // REMOVE ORIGINAL ARGUMENTS
+            if(result)
+                rplPushData((WORDPTR) one_bint);
+            else
+                rplPushData((WORDPTR) zero_bint);
+
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
+
+        }
+
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
+
+        rplPutLAMn(2, nextobj1);
+        rplPutLAMn(3, nextobj2);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj1);
         rplPushData(nextobj2);
 
-
         // NOW RECALL THE PROGRAM TO THE STACK
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=(CMD_OVR_ADD); return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = (CMD_OVR_ADD);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -2374,10 +2464,12 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        if(ISLIST(**rplGetLAMn(4))) rplPutLAMn(2,rplSkipOb(*rplGetLAMn(2)));    // MOVE TO THE NEXT OBJECT IN THE LIST
-        if(ISLIST(**rplGetLAMn(5))) rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(ISLIST(**rplGetLAMn(4)))
+            rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));   // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(ISLIST(**rplGetLAMn(5)))
+            rplPutLAMn(3, rplSkipOb(*rplGetLAMn(3)));   // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr=(WORDPTR) testop_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) testop_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2388,31 +2480,17 @@ void LIB_HANDLER()
         rplUnprotectData();
         rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=(CMD_OVR_SAME);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = (CMD_OVR_SAME);
         return;
-
 
         // END OF BINARY OPERATORS
         // *****************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         // ***************************************************************************************
         // THE COMMANDS THAT FOLLOW ALL WORK TOGETHER TO IMPLEMENT SUMLIST, PRODLIST
@@ -2424,7 +2502,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Sum of all elements in a list
         //@INCOMPAT
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -2437,57 +2515,66 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length=rplListLength(rplPeekData(1));
+        BINT length = rplListLength(rplPeekData(1));
 
-        if(length<1) {
+        if(length < 1) {
             rplError(ERR_INVALIDLISTSIZE);
 
             return;
         }
 
         // THIS DEVIATES FROM USERRPL: SUMLIST WITH A SINGLE ELEMENT RETURNS INVALID DIMENSION ERROR
-        if(length==1) {
+        if(length == 1) {
             // JUST RETURN THE ONLY ELEMENT
-            rplPushData(rplGetListElement(rplPopData(),1));
+            rplPushData(rplGetListElement(rplPopData(), 1));
             return;
         }
 
-
-        WORDPTR program=rplAllocTempOb(2);
+        WORDPTR program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
 
-        program[0]=MKPROLOG(DOCOL,2);
-        if(OPCODE(CurOpcode)==SUMLIST) program[1]=(CMD_OVR_ADD);
-        if(OPCODE(CurOpcode)==PRODLIST) program[1]=(CMD_OVR_MUL);
-        program[2]=CMD_SEMI;
+        program[0] = MKPROLOG(DOCOL, 2);
+        if(OPCODE(CurOpcode) == SUMLIST)
+            program[1] = (CMD_OVR_ADD);
+        if(OPCODE(CurOpcode) == PRODLIST)
+            program[1] = (CMD_OVR_MUL);
+        program[2] = CMD_SEMI;
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) oplist_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,SUMLIST);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) oplist_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         // PUSH THE FIRST ELEMENT
-        rplPushData(rplGetListElement(rplPeekData(1),1));
-
+        rplPushData(rplGetListElement(rplPeekData(1), 1));
 
         return;
     }
@@ -2496,32 +2583,30 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
         WORDPTR nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
-        nextobj=rplSkipOb(*rplGetLAMn(2));
+        nextobj = rplSkipOb(*rplGetLAMn(2));
 
-        if(nextobj==endmarker) {
+        if(nextobj == endmarker) {
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth=(BINT)(DSTop-prevDStk);
+            BINT newdepth = (BINT) (DSTop - prevDStk);
 
-            rplOverwriteData(1+newdepth,rplPeekData(1));
+            rplOverwriteData(1 + newdepth, rplPeekData(1));
             rplDropData(newdepth);
 
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,SUMLIST);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
             return;
         }
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -2530,7 +2615,13 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,SUMLIST); return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -2543,7 +2634,7 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        IPtr=(WORDPTR) oplist_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) oplist_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2554,15 +2645,14 @@ void LIB_HANDLER()
         rplUnprotectData();
         rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,SUMLIST);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
         return;
-
 
         // END OF OPLIST
         // *****************************************************************
@@ -2573,7 +2663,7 @@ void LIB_HANDLER()
     case DELTALIST:
     {
         //@SHORT_DESC=First differences on the elements of a list
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -2586,49 +2676,56 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length=rplListLength(rplPeekData(1));
+        BINT length = rplListLength(rplPeekData(1));
 
-        if(length<2) {
+        if(length < 2) {
             rplError(ERR_INVALIDLISTSIZE);
 
             return;
         }
 
-
-        WORDPTR program=rplAllocTempOb(2);
+        WORDPTR program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
 
-        program[0]=MKPROLOG(DOCOL,2);
-        program[1]=(CMD_OVR_SUB);
-        program[2]=CMD_SEMI;
+        program[0] = MKPROLOG(DOCOL, 2);
+        program[1] = (CMD_OVR_SUB);
+        program[2] = CMD_SEMI;
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
-        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
-        if(Exceptions) { rplCleanupLAMs(0); return; }
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr=(WORDPTR) deltalist_seco;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr = (WORDPTR) deltalist_seco;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
-        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+        rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
         // PUSH THE FIRST ELEMENT
-        rplPushData(rplGetListElement(rplPeekData(1),1));
-
+        rplPushData(rplGetListElement(rplPeekData(1), 1));
 
         return;
     }
@@ -2637,14 +2734,13 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
         WORDPTR nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
-        nextobj=rplSkipOb(*rplGetLAMn(2));
+        nextobj = rplSkipOb(*rplGetLAMn(2));
 
-         if(nextobj==endmarker) {
+        if(nextobj == endmarker) {
             // CLOSE THE MAIN LIST AND RETURN
 
             // REMOVE THE PREVIOUS ARGUMENT
@@ -2652,51 +2748,56 @@ void LIB_HANDLER()
 
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth=(BINT)(DSTop-prevDStk);
+            BINT newdepth = (BINT) (DSTop - prevDStk);
 
-            rplNewBINTPush(newdepth,DECBINT);
+            rplNewBINTPush(newdepth, DECBINT);
             if(Exceptions) {
-                DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
-                IPtr=rplPopRet();
-                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
                 return;
             }
 
             rplCreateList();
             if(Exceptions) {
-                DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
-                IPtr=rplPopRet();
-                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+                IPtr = rplPopRet();
+                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
                 return;
             }
-            if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
+            if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                rplListAutoExpand(rplPeekData(1));
 
-            rplOverwriteData(2,rplPeekData(1));
+            rplOverwriteData(2, rplPeekData(1));
             rplDropData(1);
 
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
             return;
         }
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(rplPeekData(1));
-        rplOverwriteData(2,nextobj);
+        rplOverwriteData(2, nextobj);
 
         // NOW RECALL THE PROGRAM TO THE STACK
 
-
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        if(Exceptions) {
+            DSTop = rplUnprotectData();
+            rplCleanupLAMs(0);
+            IPtr = rplPopRet();
+            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            return;
+        }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -2710,7 +2811,7 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
         rplPushData(*rplGetLAMn(2));    // PUSH LAST OBJECT AGAIN THE STACK FOR NEXT OPERATION
-        IPtr=(WORDPTR) deltalist_seco;   // CONTINUE THE LOOP
+        IPtr = (WORDPTR) deltalist_seco;        // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2721,58 +2822,67 @@ void LIB_HANDLER()
         rplUnprotectData();
         rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        DSTop = rplUnprotectData();
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
         return;
-
 
         // END OF DELTALIST
         // *****************************************************************
 
     case ADD:
         // CONCATENATE LISTS
-     {
+    {
         //@SHORT_DESC=Concatenate lists and/or elements
         //@INCOMPAT
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
-        BINT size1,size2;
-        WORDPTR obj1=rplPeekData(2),obj2=rplPeekData(1);
-        if(ISPROLOG(*obj1)) size1=OBJSIZE(*obj1)+1;
-        else size1=1;
-        if(ISLIST(*obj1)) size1-=2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
+        BINT size1, size2;
+        WORDPTR obj1 = rplPeekData(2), obj2 = rplPeekData(1);
+        if(ISPROLOG(*obj1))
+            size1 = OBJSIZE(*obj1) + 1;
+        else
+            size1 = 1;
+        if(ISLIST(*obj1))
+            size1 -= 2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
 
-        if(ISPROLOG(*obj2)) size2=OBJSIZE(*obj2)+1;
-        else size2=1;
-        if(ISLIST(*obj2)) size2-=2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
+        if(ISPROLOG(*obj2))
+            size2 = OBJSIZE(*obj2) + 1;
+        else
+            size2 = 1;
+        if(ISLIST(*obj2))
+            size2 -= 2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
 
-        WORDPTR newlist=rplAllocTempOb(size1+size2+1);
+        WORDPTR newlist = rplAllocTempOb(size1 + size2 + 1);
         if(!newlist) {
             return;
         }
-        *newlist=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
+        *newlist = MKPROLOG(LIBRARY_NUMBER, size1 + size2 + 1);
 
         // DO NOT REUSE obj1, COULD'VE BEEN MOVED BY GC
-        if(ISLIST(*rplPeekData(2))) memmovew(newlist+1,rplPeekData(2)+1,size1);
-        else memmovew(newlist+1,rplPeekData(2),size1);
+        if(ISLIST(*rplPeekData(2)))
+            memmovew(newlist + 1, rplPeekData(2) + 1, size1);
+        else
+            memmovew(newlist + 1, rplPeekData(2), size1);
 
-        if(ISLIST(*rplPeekData(1))) memmovew(newlist+1+size1,rplPeekData(1)+1,size2);
-        else memmovew(newlist+1+size1,rplPeekData(1),size2);
+        if(ISLIST(*rplPeekData(1)))
+            memmovew(newlist + 1 + size1, rplPeekData(1) + 1, size2);
+        else
+            memmovew(newlist + 1 + size1, rplPeekData(1), size2);
 
         // CLOSE THE NEW LIST WITH ENDLIST
 
-        newlist[size1+size2+1]=MKOPCODE(LIBRARY_NUMBER,ENDLIST);
+        newlist[size1 + size2 + 1] = MKOPCODE(LIBRARY_NUMBER, ENDLIST);
 
         // PUSH IT ON THE STACK
-        rplOverwriteData(2,newlist);
+        rplOverwriteData(2, newlist);
         rplDropData(1);
 
         return;
@@ -2785,8 +2895,8 @@ void LIB_HANDLER()
         // APPEND AN ELEMENT TO A LIST AND ROTATE IT
         // LIST ELEM NITEMS -> { Obj ... ObjN ELEM }
         // THE NEW LIST DROPS ELEMENTS TO BE NITEMS MAX.
-     {
-        if(rplDepthData()<3) {
+    {
+        if(rplDepthData() < 3) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -2801,16 +2911,17 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nitems=rplReadNumberAsBINT(rplPeekData(1));
-        if(nitems<1) {
+        BINT64 nitems = rplReadNumberAsBINT(rplPeekData(1));
+        if(nitems < 1) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
 
-        WORDPTR newlist=rplListAddRot(rplPeekData(3),rplPeekData(2),nitems);
-        if(!newlist) return;
+        WORDPTR newlist = rplListAddRot(rplPeekData(3), rplPeekData(2), nitems);
+        if(!newlist)
+            return;
         rplDropData(2);
-        rplOverwriteData(1,newlist);
+        rplOverwriteData(1, newlist);
 
         return;
 
@@ -2819,103 +2930,103 @@ void LIB_HANDLER()
     case SEQ:
     {
         //@SHORT_DESC=Assemble a list from results of sequential procedure
-     if(rplDepthData()<5) {
-         rplError(ERR_BADARGCOUNT);
-         return;
-     }
-     rplStripTagStack(5);
+        if(rplDepthData() < 5) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplStripTagStack(5);
 
-     if(!ISSYMBOLIC(*rplPeekData(5)) && !ISIDENT(*rplPeekData(5)) && !ISPROGRAM(*rplPeekData(5))) {
-         rplError(ERR_BADARGTYPE);
-         return;
-     }
-     if(!ISIDENT(*rplPeekData(4))) {
-         rplError(ERR_IDENTEXPECTED);
-         return;
-     }
-     // RUN THE RPL CODE IMPLEMENTING THE COMMAND
-     rplPushRet(IPtr);
-     IPtr=(WORDPTR)cmd_SEQ;
-     return;
+        if(!ISSYMBOLIC(*rplPeekData(5)) && !ISIDENT(*rplPeekData(5))
+                && !ISPROGRAM(*rplPeekData(5))) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(4))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        // RUN THE RPL CODE IMPLEMENTING THE COMMAND
+        rplPushRet(IPtr);
+        IPtr = (WORDPTR) cmd_SEQ;
+        return;
     }
-
 
     case MAPINNERPRE:
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-
-        WORDPTR nextobj=*rplGetLAMn(2);
+        WORDPTR nextobj = *rplGetLAMn(2);
         WORDPTR startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
-            startobj=nextobj;
+            startobj = nextobj;
 
             while(ISLIST(*nextobj)) {
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR)mapinnercomp_seco);
+                rplPushData((WORDPTR) mapinnercomp_seco);
             }
 
-            while(*nextobj==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
-                if(nextobj==endmarker) {
+            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+                    BINT newdepth = (BINT) (DSTop - prevDStk);
 
-                    rplRemoveAtData(newdepth+1,1);  // REMOVE ORIGINAL LIST ARGUMENT, LEAVING THE EXPLODED RESULTS IN THE STACK
-                        rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                    rplRemoveAtData(newdepth + 1, 1);   // REMOVE ORIGINAL LIST ARGUMENT, LEAVING THE EXPLODED RESULTS IN THE STACK
+                    rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                    IPtr = rplPopRet();
+                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                     return;
-
 
                 }
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr=DSTop-1;
+                    WORDPTR *stkptr = DSTop - 1;
 
-                    while((*stkptr!=mapinnercomp_seco)&&(stkptr>DStkBottom)) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements=(BINT)(DSTop-stkptr)-1;
+                    while((*stkptr != mapinnercomp_seco)
+                            && (stkptr > DStkBottom))
+                        --stkptr;       // FIND THE NEXT MARKER ON THE STACK
+                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements,DECBINT);
+                    rplNewBINTPush(nelements, DECBINT);
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
                             DSTop--;
                             rplClrSystemFlag(FL_LISTCMDCLEANUP);
                         }
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
                     rplCreateList();
                     if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
                             DSTop--;
                             rplClrSystemFlag(FL_LISTCMDCLEANUP);
                         }
                         rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        IPtr = rplPopRet();
+                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
-                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3)))
+                        rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
-                    rplOverwriteData(2,rplPeekData(1));
+                    rplOverwriteData(2, rplPeekData(1));
                     rplDropData(1);
-
 
                 }
 
@@ -2923,13 +3034,12 @@ void LIB_HANDLER()
 
             }
 
-        } while(nextobj!=startobj); // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
+        }
+        while(nextobj != startobj);     // WE EXIT THE WHILE ONLY WHEN nextobj DIDN'T CHANGE WITHIN THE LOOP
 
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
-
-
-        rplPutLAMn(2,nextobj);
+        rplPutLAMn(2, nextobj);
 
         // PUSH THE NEXT OBJECT IN THE STACK
         rplPushData(nextobj);
@@ -2945,13 +3055,11 @@ void LIB_HANDLER()
         return;
     }
 
-
         // ADD MORE OPCODES HERE
 
         // STANDARIZED OPCODES:
         // --------------------
         // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -2966,53 +3074,55 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS THE OPEN BRACKET
 
-        if(*((char * )TokenStart)=='{')
-        {
+        if(*((char *)TokenStart) == '{') {
 
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
-            if(TokenLen>1) {
-                NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
-                RetNum=OK_STARTCONSTRUCT;
+            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
+            if(TokenLen > 1) {
+                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                RetNum = OK_STARTCONSTRUCT;
             }
-            else RetNum=OK_STARTCONSTRUCT;
+            else
+                RetNum = OK_STARTCONSTRUCT;
             return;
         }
 
-        if( (TokenLen>1) && (*((char * )TokenStart)=='c') && (((char * )TokenStart)[1]=='{'))
-        {
+        if((TokenLen > 1) && (*((char *)TokenStart) == 'c')
+                && (((char *)TokenStart)[1] == '{')) {
 
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER+1,0));
-            if(TokenLen>2) {
-                NextTokenStart=(WORDPTR)(((char *)TokenStart)+2);
-                RetNum=OK_STARTCONSTRUCT;
+            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER + 1, 0));
+            if(TokenLen > 2) {
+                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 2);
+                RetNum = OK_STARTCONSTRUCT;
             }
-            else RetNum=OK_STARTCONSTRUCT;
+            else
+                RetNum = OK_STARTCONSTRUCT;
             return;
         }
 
         // CHECK IF THE TOKEN IS THE CLOSING BRACKET
 
-        if(((char * )TokenStart)[TokenLen-1]=='}')
-        {
-            if(TokenLen>1) {
-                BlankStart=NextTokenStart=(WORDPTR)(((char * )TokenStart)+TokenLen-1);
-                RetNum=ERR_NOTMINE_SPLITTOKEN;
+        if(((char *)TokenStart)[TokenLen - 1] == '}') {
+            if(TokenLen > 1) {
+                BlankStart = NextTokenStart =
+                        (WORDPTR) (((char *)TokenStart) + TokenLen - 1);
+                RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
 
-
-            if((CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) && (CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER+1,0))) {
-                RetNum=ERR_SYNTAX;
+            if((CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0))
+                    && (CurrentConstruct != MKPROLOG(LIBRARY_NUMBER + 1, 0))) {
+                RetNum = ERR_SYNTAX;
                 return;
             }
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDLIST));
-            RetNum=OK_ENDCONSTRUCT;
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDLIST));
+            RetNum = OK_ENDCONSTRUCT;
             return;
         }
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
 
         return;
     case OPCODE_DECOMPEDIT:
@@ -3026,49 +3136,66 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
 
+            if(!ISAUTOEXPLIST(*DecompileObject))
+                rplDecompAppendString((BYTEPTR) "{");
+            else
+                rplDecompAppendString((BYTEPTR) "c{");
+            BINT islistoflist = rplListHasLists(DecompileObject) ? 1 : 0;
+            BINT depth = 0, needseparator;
 
-            if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
-            else rplDecompAppendString((BYTEPTR)"c{");
-            BINT islistoflist=rplListHasLists(DecompileObject)? 1:0;
-            BINT depth=0,needseparator;
+            if(islistoflist)
+                needseparator =
+                        !rplDecompDoHintsWidth(HINT_NLAFTER |
+                        HINT_ADDINDENTAFTER);
+            else
+                needseparator = !rplDecompDoHintsWidth(0);
+            if(needseparator)
+                rplDecompAppendChar(' ');
 
-            if(islistoflist) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
-            else needseparator=!rplDecompDoHintsWidth(0);
-            if(needseparator) rplDecompAppendChar(' ');
+            BINT offset = 1, endoffset = rplObjSize(DecompileObject);
 
-            BINT offset=1,endoffset=rplObjSize(DecompileObject);
-
-            while(offset<endoffset)
-            {
+            while(offset < endoffset) {
                 if(ISLIST(DecompileObject[offset])) {
 
+                    if(!ISAUTOEXPLIST(DecompileObject[offset]))
+                        rplDecompAppendString((BYTEPTR) "{");
+                    else
+                        rplDecompAppendString((BYTEPTR) "c{");
 
-                    if(!ISAUTOEXPLIST(DecompileObject[offset])) rplDecompAppendString((BYTEPTR)"{");
-                    else rplDecompAppendString((BYTEPTR)"c{");
-
-                    if(rplListHasLists(DecompileObject+offset)) {
-                        islistoflist|=1<<(depth+1);
-                        if(!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER)) rplDecompAppendChar(' ');
+                    if(rplListHasLists(DecompileObject + offset)) {
+                        islistoflist |= 1 << (depth + 1);
+                        if(!rplDecompDoHintsWidth(HINT_NLAFTER |
+                                    HINT_ADDINDENTAFTER))
+                            rplDecompAppendChar(' ');
                     }
-                    else if(!rplDecompDoHintsWidth(0)) rplDecompAppendChar(' ');
-                    if(Exceptions) { RetNum=ERR_INVALID; return; }
+                    else if(!rplDecompDoHintsWidth(0))
+                        rplDecompAppendChar(' ');
+                    if(Exceptions) {
+                        RetNum = ERR_INVALID;
+                        return;
+                    }
 
                     ++depth;
 
                     ++offset;
                     continue;
 
-
                 }
 
-                if(DecompileObject[offset]==CMD_ENDLIST) {
+                if(DecompileObject[offset] == CMD_ENDLIST) {
                     rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
-                    rplDecompAppendString((BYTEPTR)"}");
-                    if(Exceptions) { RetNum=ERR_INVALID; return; }
+                    rplDecompAppendString((BYTEPTR) "}");
+                    if(Exceptions) {
+                        RetNum = ERR_INVALID;
+                        return;
+                    }
 
-                    if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
-                    else needseparator=!rplDecompDoHintsWidth(0);
-                    if(needseparator && offset<endoffset-1) rplDecompAppendChar(' ');
+                    if(depth)
+                        needseparator = !rplDecompDoHintsWidth(HINT_NLAFTER);
+                    else
+                        needseparator = !rplDecompDoHintsWidth(0);
+                    if(needseparator && offset < endoffset - 1)
+                        rplDecompAppendChar(' ');
 
                     --depth;
 
@@ -3076,33 +3203,37 @@ void LIB_HANDLER()
                     continue;
                 }
 
-                rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
-                if(Exceptions) { RetNum=ERR_INVALID; return; }
-
-                if(islistoflist&(1<<depth)) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
-                else needseparator=!rplDecompDoHintsWidth(0);
-                if(needseparator) rplDecompAppendChar(' ');
-
-                offset+=rplObjSize(DecompileObject+offset);
-
+                rplDecompile(DecompileObject + offset, DECOMP_EMBEDDED | ((CurOpcode == OPCODE_DECOMPEDIT) ? (DECOMP_EDIT | DECOMP_NOHINTS) : DECOMP_NOHINTS)); // RUN EMBEDDED
+                if(Exceptions) {
+                    RetNum = ERR_INVALID;
+                    return;
                 }
 
-            RetNum=OK_CONTINUE;
-            return;
+                if(islistoflist & (1 << depth))
+                    needseparator = !rplDecompDoHintsWidth(HINT_NLAFTER);
+                else
+                    needseparator = !rplDecompDoHintsWidth(0);
+                if(needseparator)
+                    rplDecompAppendChar(' ');
 
+                offset += rplObjSize(DecompileObject + offset);
+
+            }
+
+            RetNum = OK_CONTINUE;
+            return;
 
         }
 
-        if(*DecompileObject==CMD_ENDLIST) {
-            rplDecompAppendString((BYTEPTR)"}");
-            RetNum=OK_ENDCONSTRUCT;
+        if(*DecompileObject == CMD_ENDLIST) {
+            rplDecompAppendString((BYTEPTR) "}");
+            RetNum = OK_ENDCONSTRUCT;
             return;
         }
-
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -3116,8 +3247,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -3134,16 +3264,16 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        if(*((char *)TokenStart)=='}') {
+    {
+        if(*((char *)TokenStart) == '}') {
             // FOUND END OF LIST WITHIN A SYMBOLIC COMPILATION. JUST IGNORE AND LET THE SYMBOLIC LIBRARY HANDLE IT
-            RetNum=ERR_NOTMINE;
+            RetNum = ERR_NOTMINE;
             return;
         }
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -3158,17 +3288,17 @@ void LIB_HANDLER()
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_LIST,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_LIST, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
-
 
     case OPCODE_GETROMID:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL OBJECT IN ROM, EXPORTED BY THIS LIBRARY
@@ -3177,7 +3307,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3185,7 +3315,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -3193,38 +3323,45 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-    if(ISPROLOG(*ObjectPTR)) {
-        // BASIC CHECKS
-        WORDPTR ptr,objend;
+        if(ISPROLOG(*ObjectPTR)) {
+            // BASIC CHECKS
+            WORDPTR ptr, objend;
 
-        objend=rplSkipOb(ObjectPTR);
-        ptr=ObjectPTR+1;
+            objend = rplSkipOb(ObjectPTR);
+            ptr = ObjectPTR + 1;
 
-        while((*ptr!=CMD_ENDLIST)&&(ptr<objend)) {
+            while((*ptr != CMD_ENDLIST) && (ptr < objend)) {
 
-            // TODO: RECURSIVELY CHECK OBJECT VALIDITY IN HERE
+                // TODO: RECURSIVELY CHECK OBJECT VALIDITY IN HERE
 
-            ptr=rplSkipOb(ptr);
+                ptr = rplSkipOb(ptr);
+            }
+
+            if(ptr != objend - 1) {
+                RetNum = ERR_INVALID;
+                return;
+            }
         }
-
-        if(ptr!=objend-1) { RetNum=ERR_INVALID; return; }
-    }
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>1) { RetNum=ERR_NOTMINE; return; }
+        if(MENUNUMBER(MenuCodeArg) > 1) {
+            RetNum = ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+14];
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 14];
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -3232,7 +3369,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
         return;
     }
 
@@ -3241,14 +3378,13 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
         return;
     }
 
-
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
@@ -3257,19 +3393,14 @@ void LIB_HANDLER()
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
     rplError(ERR_INVALIDOPCODE);
     return;
 
-
 }
 
-
-
-
 #endif
-

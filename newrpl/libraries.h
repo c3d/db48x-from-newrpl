@@ -11,9 +11,6 @@
 #include "newrpl.h"
 #include "common-macros.h"
 
-
-
-
 // GENERIC DEFINITIONS
 
 // SPECIAL RESERVED OPCODES
@@ -36,15 +33,11 @@
 #define OPCODE_LIBREMOVE    0x7FFF1
 #define OPCODE_LIBINSTALL   0x7FFF0
 
-
-
 // ADD MORE HERE...
-
 
 #define MAXLOWLIBS  256
 #define MAXHILIBS   256
 extern const LIBHANDLER ROMLibs[];
-
 
 //   HINTS FOR THE DECOMPILER
 
@@ -65,21 +58,10 @@ extern const LIBHANDLER ROMLibs[];
 #define SET_INDENT(hints,indent) (((hints)&0xffff)|(((indent)&0x7fff)<<16))
 #define GET_HINTS(hints) ((hints)&0xffff)
 
-
-
-
-
-
-
-
-
-
-
 // USEFUL MACROS
 
 #define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
 #define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
-
 
 #define OPCODE(p) ( (p)&0x7FFFF)
 #define OBJSIZE(p) ((p)&0x3FFFF)
@@ -90,7 +72,6 @@ extern const LIBHANDLER ROMLibs[];
 #define ISPROLOG(p) ((((WORD)(p))>>19)&1)
 
 #define TEXT2WORD(a,b,c,d) (WORD)( (WORD)(a) | ((WORD)(b)<<8) | ((WORD)(c)<<16) | ((WORD)(d)<<24))
-
 
 #define TI_LENGTH(tokeninfo) ((tokeninfo)&0x3fff)
 #define TI_TYPE(tokeninfo) (((tokeninfo)&0xfc000)>>14)
@@ -115,22 +96,19 @@ extern const LIBHANDLER ROMLibs[];
 #define MENU_VARS       1
 #define MENU_USERLIB    2
 
-
-
-
-
-enum TokenInfo_Type {
-    TITYPE_UNKNOWN=0,
+enum TokenInfo_Type
+{
+    TITYPE_UNKNOWN = 0,
     TITYPE_INTEGER,
     TITYPE_REAL,
-    TITYPE_NUMBER=3,
+    TITYPE_NUMBER = 3,
     TITYPE_COMPLEX,
-    TITYPE_CNUMBER=7,
+    TITYPE_CNUMBER = 7,
     TITYPE_LIST,
     TITYPE_MATRIX,
     TITYPE_IDENT,
     TITYPE_EXPRESSION,
-    TITYPE_OPERATORS=16,
+    TITYPE_OPERATORS = 16,
     TITYPE_PREFIXOP,
     TITYPE_POSTFIXOP,
     TITYPE_BINARYOP_LEFT,
@@ -146,9 +124,9 @@ enum TokenInfo_Type {
     TITYPE_NOTALLOWED
 };
 
-
-enum CompileErrors {
-    OK_CONTINUE=1,
+enum CompileErrors
+{
+    OK_CONTINUE = 1,
     OK_CONTINUE_NOVALIDATE,
     OK_STARTCONSTRUCT,
     OK_CHANGECONSTRUCT,
@@ -168,49 +146,45 @@ enum CompileErrors {
     ERR_INVALID,
     // ADD MORE HERE...
 
-    OK_TOKENINFO=0x40000000
+    OK_TOKENINFO = 0x40000000
 };
 
-void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int numcmds);
-void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
+void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[],
+        int numcmds);
+void libDecompileCmds(char *libnames[], WORD libopcodes[], int numcmds);
 void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
-void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
+void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
+        BINT tokeninfo[], int numcmds);
 void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
-void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
-void libGetPTRFromID(WORDPTR *table,WORD id,WORD hash);
-void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
-void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
-void libFindMsg(BINT message,WORDPTR table);
+void libGetRomptrID(BINT libnum, WORDPTR * table, WORDPTR ptr);
+void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash);
+void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds);
+void libAutoCompletePrev(BINT libnum, char *libnames[], int numcmds);
+void libFindMsg(BINT message, WORDPTR table);
 WORD libComputeHash(WORDPTR object);
-WORD libComputeHash2(WORDPTR start,BINT nwords);
-
-
-
+WORD libComputeHash2(WORDPTR start, BINT nwords);
 
 // BITS USED IN MOST OBJECTS
 #define APPROX_BIT    1
 
 // BITS USED IN IDENTS USED AS VARIABLE NAMES
-#define HASATTR_BIT   1     // THE IDENT HAS ATTRIBUTES IN THE LAST WORD
+#define HASATTR_BIT   1 // THE IDENT HAS ATTRIBUTES IN THE LAST WORD
 #define UNQUOTED_BIT  2
 #define HIDDEN_BIT    4
 #define READONLY_BIT  8
 // BITS USED IN IDENTS WITHIN UNITS
 #define ACCEPTPREFIX_BIT 4
 
-
 // IDENTIFIER ATTRIBUTES USED BY THE SYSTEM
 
-
-#define IDATTR_DEFN         (1<<16)       // VARIABLE HAS A DEFINITION: A FORMULA/PROGRAM THAT NEEDS TO BE EVALUATED
-#define IDATTR_DEPEND       (2<<16)       // VARIABLE HAS DEPENDENT VARIABLES THAT NEED TO BE RECALCULATED IF ITS VALUE CHANGED
-#define IDATTR_PREFUNIT     (4<<16)       // VARIABLE HAS A PREFERRED SET OF UNITS FOR DISPLAY
-#define IDATTR_FORCEUNIT    (8<<16)       // IF UNIT IS NOT GIVEN, APPLY THE PREFERRED UNIT
-#define IDATTR_DONTUSE      (16<<16)       // RESERVED FOR INTERNAL USE - TEMPORARILY USED TO MARK VARIABLES THAT ARE NOT DEPENDENCIES
+#define IDATTR_DEFN         (1<<16)     // VARIABLE HAS A DEFINITION: A FORMULA/PROGRAM THAT NEEDS TO BE EVALUATED
+#define IDATTR_DEPEND       (2<<16)     // VARIABLE HAS DEPENDENT VARIABLES THAT NEED TO BE RECALCULATED IF ITS VALUE CHANGED
+#define IDATTR_PREFUNIT     (4<<16)     // VARIABLE HAS A PREFERRED SET OF UNITS FOR DISPLAY
+#define IDATTR_FORCEUNIT    (8<<16)     // IF UNIT IS NOT GIVEN, APPLY THE PREFERRED UNIT
+#define IDATTR_DONTUSE      (16<<16)    // RESERVED FOR INTERNAL USE - TEMPORARILY USED TO MARK VARIABLES THAT ARE NOT DEPENDENCIES
 #define IDPROP_DEPN TEXT2WORD('D','e','p','n')
 #define IDPROP_UNIT TEXT2WORD('U','n','i','t')
 #define IDPROP_DEFN TEXT2WORD('D','e','f','n')
-
 
 // IDENTIFIER ATTRIBUTES USED BY THE CAS
 // LOWER 16 BITS ARE USED BY THE CAS
@@ -231,32 +205,23 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define IDATTR_ODD     (2<<8)
 #define IDATTR_EVEN    (4<<8)
 
-
 #define IDATTR_nMASK    0xf
 #define IDATTR_mMASK   0xf0
 #define IDATTR_pMASK  0xf00
 
 #define IDATTR_ALLTYPES 0xe
 
-
-
-
-
 #define MIN_SINT    -131072
 #define MAX_SINT    +131071
 #define MAX_BINT    +9223372036854775807LL
 #define MIN_BINT    (-9223372036854775807LL-1LL)
-
-
-
-
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
 #define SECO          9
 #define DOCOL         8
 #define DOREAL       10
 #define DOREALAPP    (DOREAL|APPROX_BIT)
-#define DOBINT       12                     // JUST A GENERIC ALIAS
+#define DOBINT       12 // JUST A GENERIC ALIAS
 #define BINBINT      12
 #define DECBINT      14
 #define OCTBINT      16
@@ -266,49 +231,46 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define OCTBINTAPP   (OCTBINT|APPROX_BIT)
 #define HEXBINTAPP   (HEXBINT|APPROX_BIT)
 
+#define DOCOMMENT   20  // LIBRARIES 20,21,22, 23 ARE COMMENTS
 
+#define DOSTRING    24  // ACTUALLY USES 24, 25, 26 AND 27, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
 
-#define DOCOMMENT   20   // LIBRARIES 20,21,22, 23 ARE COMMENTS
-
-#define DOSTRING    24   // ACTUALLY USES 24, 25, 26 AND 27, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
-
-#define DODIR       28      // DIRECTORY OBJECTS
-#define DOPACKDIR   29      // PACKED DIRECTORY OBJECTS
+#define DODIR       28  // DIRECTORY OBJECTS
+#define DOPACKDIR   29  // PACKED DIRECTORY OBJECTS
 
 #define DOCMPLX     30
 
 // IDENTS TAKE ALL LIBRARIES BETWEEN 32 AND 47 INCLUDED
 // 4 BITS ARE USED FOR FLAGS IN THE LIBRARY NUMBER
-#define DOIDENT     32      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
+#define DOIDENT     32  // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
 #define DOIDENTATTR  (DOIDENT|HASATTR_BIT)      // INDICATES THE LAST WORD IN THE OBJECT ARE ATTRIBUTES, NOT PART OF THE NAME
 #define DOIDENTEVAL  (DOIDENT|UNQUOTED_BIT)     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DOIDENTHIDDEN  (DOIDENT|HIDDEN_BIT)     // VARIABLE IS HIDDEN FROM THE VARS MENU
-#define DOIDENTSIPREFIX (DOIDENT|ACCEPTPREFIX_BIT)  // USED ONLY FOR UNIT DEFINITIONS: THIS UNIT WILL ACCEPT SI PREFIXES
+#define DOIDENTSIPREFIX (DOIDENT|ACCEPTPREFIX_BIT)      // USED ONLY FOR UNIT DEFINITIONS: THIS UNIT WILL ACCEPT SI PREFIXES
 
 // RESERVE (DOIDENT|8) FOR FUTURE FLAG USE IN SYMBOLICS
-#define DOMAXIDENT  47                          // JUST A CONVENIENCE MACRO - MAXIMUM LIB NUMBER TAKEN BY IDENTS
+#define DOMAXIDENT  47  // JUST A CONVENIENCE MACRO - MAXIMUM LIB NUMBER TAKEN BY IDENTS
 
-#define DOUNIT      54       // UNIT OBJECT
+#define DOUNIT      54  // UNIT OBJECT
 
 #define DOLIST      62
 #define DOCASELIST  DOLIST+1
 
-#define DOCONST     55      // SYMBOLIC CONSTANTS
+#define DOCONST     55  // SYMBOLIC CONSTANTS
 
-#define DOSYMB      56      // SYMBOLIC OBJECT
+#define DOSYMB      56  // SYMBOLIC OBJECT
 
-#define DOANGLE     48      // ANGLE TAGGED REALS
+#define DOANGLE     48  // ANGLE TAGGED REALS
 
-#define DOMATRIX    52       // ARRAY OBJECT
+#define DOMATRIX    52  // ARRAY OBJECT
 
+#define DOBINDATA   77  // ARBITRARY BINARY DATA (LIBRARY DATA)
 
-#define DOBINDATA   77      // ARBITRARY BINARY DATA (LIBRARY DATA)
+#define DOFONT      78  // FONT OBJECT
 
-#define DOFONT      78      // FONT OBJECT
+#define DOBITMAP    80  // BITMAPS 80-87
 
-#define DOBITMAP    80      // BITMAPS 80-87
-
-#define DOLIBRARY   102     // LIBRARIES AND LIBPTRS
+#define DOLIBRARY   102 // LIBRARIES AND LIBPTRS
 #define DOLIBPTR    (DOLIBRARY+1)
 
 #define DOTAG     4081
@@ -319,12 +281,11 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define BITMAP_RAW256G  2
 #define BITMAP_RAW64KC  3
 #define BITMAP_RAWARGB  4
-#define BITMAP_EXTERNAL 5   // EXTERNAL MEANS THE DATA IS IN A FOREIGN FORMAT (JPG, PNG, ETC.) INCLUDING ALL CUSTOM HEADERS
+#define BITMAP_EXTERNAL 5       // EXTERNAL MEANS THE DATA IS IN A FOREIGN FORMAT (JPG, PNG, ETC.) INCLUDING ALL CUSTOM HEADERS
 
 #define DOBITMAP_DEFAULT (DOBITMAP+BITMAP_RAW16G)
 
 #define DOPLOT      88  // PLOT OBJECT
-
 
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
@@ -361,7 +322,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 
-
 #define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
 #define ISBITMAP(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOBITMAP))
@@ -376,7 +336,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define ISLIBPTR(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY+1))
 
 #define ISTAG(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOTAG))
-
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 
@@ -396,13 +355,10 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
 #define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
 
-
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
 #define MATMKSIZE(rows,cols) ( (((rows)&0xffff)<<16)|((cols)&0xffff) )
 #define MATROWS(size) ( ((size)>>16)&0xffff )
 #define MATCOLS(size) ( (size)&0xffff )
-
-
 
 // CONSTANTS FOR LAM ENVIRONMENTS
 #define LAM_ENVOWNER     MAKESINT(0x10000)
@@ -412,7 +368,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define DIR_START_MARKER  MAKESINT(0x20000)
 #define DIR_END_MARKER    MAKESINT(0x20001)
 #define DIR_PARENT_MARKER MAKESINT(0x20002)
-
 
 // LOCAL ENVIRONMENTS LIBRARY
 #define LIB_LOCALENV 4080
@@ -450,12 +405,10 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define USERLIB_MENU    2
 #define USERLIB_RESERVED 3
 
-
 #define OVR_GETNARGS(p) ( ((p)>>12)&0xf )
 
-
 #define MIN_RESERVED_OPCODE 0x7FFF0
-#define MIN_OVERLOAD_OPCODE 0x70000 // OPCODES BETWEEN 0X70000 AND 0X7FFF0 ARE OVERLOADABLE
+#define MIN_OVERLOAD_OPCODE 0x70000     // OPCODES BETWEEN 0X70000 AND 0X7FFF0 ARE OVERLOADABLE
 
 #define OVR_OPERATORS 0x70000
 #define OVR_UNARY      0x1000
@@ -492,9 +445,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define OVRT_UMINUS           "-"
 #define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+12
 
-
-
-
 // TESTS
 #define OVRT_EQ           "=="
 #define OVR_EQ      OVR_OPERATORS+OVR_BINARY+1
@@ -517,7 +467,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define OVRT_CMP        "CMP"
 #define OVR_CMP    OVR_OPERATORS+OVR_BINARY+11
 
-
 // BASIC OPERATORS
 #define OVRT_ADD           "+"
 #define OVR_ADD      OVR_OPERATORS+OVR_BINARY+16
@@ -528,7 +477,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define OVRT_DIV           "/"
 #define OVR_DIV      OVR_OPERATORS+OVR_BINARY+19
 
-
 #define OVRT_POW           "^"
 #define OVR_POW      OVR_OPERATORS+OVR_BINARY+22
 #define OVRT_XROOT         "XROOT"
@@ -538,12 +486,11 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 // LAST BIT=0 MEANS TEST IS TRUE IF ANY VALUE IS TRUE IN A COMPOSITE
 // LAST BIT=1 MEANS TEST IS TRUE IF ALL VALUES ARE TRUE IN A COMPOSITE
 #define OVRT_ISTRUE           "ISTRUE"
-#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+32   // IF ANY VALUE IS TRUE, THIS IS TRUE
+#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+32       // IF ANY VALUE IS TRUE, THIS IS TRUE
 #define OVRT_SAME        "SAME"
-#define OVR_SAME      OVR_OPERATORS+OVR_BINARY+33   // IF ALL VALUES ARE THE SAME, THEN THIS IS TRUE
+#define OVR_SAME      OVR_OPERATORS+OVR_BINARY+33       // IF ALL VALUES ARE THE SAME, THEN THIS IS TRUE
 
 // ADD MORE OPERATORS HERE
-
 
 // SOME EXTERNAL DATA DEFINED BY LIBRARIES, THAT IS REUSED IN OTHER LIBRARIES
 
@@ -588,29 +535,22 @@ extern const WORD invalid_string[];
 extern const WORD library_dirname[];
 extern const WORD lib70_basecycle[];
 
-
-
 // DATE AND TIME MACRO
 #define ISLEAPYEAR(y) ((!((y) & 3) && ((y) % 100)) || !((y) % 400))
 
-
-
 // THESE ARE SPECIAL OPCODES
 // THE LOWER 16 BITS ARE THE NUMBER OF LAMS TO CREATE, OR THE INDEX OF LAM NUMBER TO STO/RCL
-#define NEWNLOCALS     0x40000   // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
-#define GETLAMNEVAL    0x30000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM AND EVAL (XEQ ITS CONTENT)
-#define GETLAMN        0x20000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
-#define PUTLAMN        0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
+#define NEWNLOCALS     0x40000  // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
+#define GETLAMNEVAL    0x30000  // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM AND EVAL (XEQ ITS CONTENT)
+#define GETLAMN        0x20000  // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
+#define PUTLAMN        0x10000  // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
 #define CMD_GETLAMN(n) MKOPCODE(DOIDENT,GETLAMN|((n)&0xffff))
 #define CMD_PUTLAMN(n) MKOPCODE(DOIDENT,PUTLAMN|((n)&0xffff))
 #define CMD_GETLAMNEVAL(n) MKOPCODE(DOIDENT,GETLAMNEVAL|((n)&0xffff))
 
-
-
 // DEFINE ALL COMMAND OPCODES (CMD_nnn), EXTRACTED DIRECTLY FROM EACH LIBRARY
 #include "cmdcodes.h"
-
 
 // *************************************************************************************************************
 // RENDERER CORE FUNCTIONS HERE
@@ -639,7 +579,6 @@ extern const WORD lib70_basecycle[];
 
 #define RSTATUS_SIZE 21
 
-
 #define WIDTHPTR(rstatus)  ((BINT64 *)&(rstatus[2]))
 #define HEIGHTPTR(rstatus) ((BINT64 *)&(rstatus[2+3*1]))
 #define GA11PTR(rstatus) ((BINT64 *)&(rstatus[2+3*2]))
@@ -666,6 +605,5 @@ extern const WORD lib70_basecycle[];
 #define RLIBPTR(rstatus) ((BINT64 *)&(rstatus[2+3*20]))
 #define ROBJPTR(rstatus) ((WORDPTR)&(rstatus[1+3*21]))
 #define PERSISTPTR(rstatus) ((WORDPTR)rplSkipOb(ROBJPTR(rstatus)))
-
 
 #endif // LIBRARIES_H

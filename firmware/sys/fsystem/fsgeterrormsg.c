@@ -5,52 +5,50 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
+#define __READ_ONLY__    __attribute__ ((section(".rodata")))
 
-#define __READ_ONLY__    __attribute__ ((section(".rodata"))) 
-
-const char * const FSErrorMsgArray[] = {
-"Invalid error",
+const char *const FSErrorMsgArray[] = {
+    "Invalid error",
 // FS_OK
-"OK",
+    "OK",
 // FS_ERROR
-"Unknown/hardware/memory error",
+    "Unknown/hardware/memory error",
 // FS_EOF
-"End of file",
+    "End of file",
 // FS_BADNAME
-"Invalid filename",
+    "Invalid filename",
 // FS_BADVOLUME
-"Inexistent/unmounted volume",
+    "Inexistent/unmounted volume",
 // FS_NOTFOUND
-"File not found",
+    "File not found",
 // FS_CANTWRITE
-"Write error",
+    "Write error",
 // FS_NOCARD
-"No card inserted",
+    "No card inserted",
 // FS_CHANGED
-"Card was changed",
+    "Card was changed",
 // FS_MAXFILES
-"No more avail. handles",
+    "No more avail. handles",
 // FS_OPENDIR
 // FS_OPENFILE
 // FS_USED
-"File/dir is open",
+    "File/dir is open",
 // FS_DISKFULL
-"Disk full",
+    "Disk full",
 // FS_EXIST
-"File exists"
+    "File exists"
 };
-
 
 // RETURN ERROR MESSAGE
 const char *FSGetErrorMsg(int errornum)
 {
-if(errornum>1 || errornum<-11) errornum=2;
-return FSErrorMsgArray[2-errornum];
+    if(errornum > 1 || errornum < -11)
+        errornum = 2;
+    return FSErrorMsgArray[2 - errornum];
 }
 
 #endif

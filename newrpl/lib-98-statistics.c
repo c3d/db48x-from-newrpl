@@ -13,11 +13,8 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  98
-
 
 //@TITLE=Statistics
 
@@ -27,7 +24,6 @@
         ERR(IABCUV_NO_SOLUTION,1), \
         ERR(POSITIVEINTEGEREXPECTED,2)
 */
-
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -40,19 +36,13 @@
     CMD(RDZ,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(RAND,MKTOKENINFO(4,TITYPE_FUNCTION,0,2))
 
-
-
-
 // ADD MORE OPCODES HERE
-
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -64,19 +54,15 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib98_menu_0_main);
 INCLUDE_ROMOBJECT(lib98_menu_1_rng);
 
-
-
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib98_menu_0_main,
-    (WORDPTR)lib98_menu_1_rng,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib98_menu_0_main,
+    (WORDPTR) lib98_menu_1_rng,
     0
 };
-
-
 
 void LIB_HANDLER()
 {
@@ -87,15 +73,14 @@ void LIB_HANDLER()
     }
 
     // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
         // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
         // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
-        if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                (OPCODE(CurOpcode)==OVR_EVAL1)||
-                (OPCODE(CurOpcode)==OVR_XEQ) )
-        {
+        if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                (OPCODE(CurOpcode) == OVR_XEQ)) {
             // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
@@ -103,68 +88,71 @@ void LIB_HANDLER()
                 rplError(ERR_UNRECOGNIZEDOBJECT);
                 return;
             }
-            WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            WORD saveOpcode = CurOpcode;
+            CurOpcode = *rplPopData();
             // RECURSIVE CALL
             LIB_HANDLER();
-            CurOpcode=saveOpcode;
+            CurOpcode = saveOpcode;
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
 
     case RDZ:
         // RANDOMIZE SEQUENCE
     {
         //@SHORT_DESC=Initialize random number generator with a seed
-     if(rplDepthData()<1) {
-         rplError(ERR_BADARGCOUNT);
-         return;
-     }
-     REAL r;
-     rplReadNumberAsReal(rplPeekData(1),&r);
-     if(Exceptions) return;
-     if(iszeroReal(&r)) rplLoadBINTAsReal(halTicks(),&r);
-     UBINT64 seed=12345678901234567890ULL;
-     int k;
-     for(k=0;k<r.len;++k) {
-         if(r.data[k]) seed*=r.data[k];
-     }
-     rplRandomSeed(seed);
-     rplDropData(1);
-    return;
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        REAL r;
+        rplReadNumberAsReal(rplPeekData(1), &r);
+        if(Exceptions)
+            return;
+        if(iszeroReal(&r))
+            rplLoadBINTAsReal(halTicks(), &r);
+        UBINT64 seed = 12345678901234567890ULL;
+        int k;
+        for(k = 0; k < r.len; ++k) {
+            if(r.data[k])
+                seed *= r.data[k];
+        }
+        rplRandomSeed(seed);
+        rplDropData(1);
+        return;
     }
     case RAND:
         // GET A RANDOM NUMBER AT LEAST AT CURRENT PRECISION
     {
         //@SHORT_DESC=Generate a random real number
-        BINT nwords=(Context.precdigits+7)>>3;
+        BINT nwords = (Context.precdigits + 7) >> 3;
         BINT k;
 
-        RReg[0].exp=-nwords*8;
-        RReg[0].flags=0;
-        RReg[0].len=nwords;
+        RReg[0].exp = -nwords * 8;
+        RReg[0].flags = 0;
+        RReg[0].len = nwords;
 
-        for(k=0;k<nwords;++k) RReg[0].data[k]=rplRandom8Digits();
+        for(k = 0; k < nwords; ++k)
+            RReg[0].data[k] = rplRandom8Digits();
 
         rplNewRealFromRRegPush(0);
         return;
@@ -172,10 +160,9 @@ void LIB_HANDLER()
 
         // ADD MORE OPCODES HERE
 
-    // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -188,12 +175,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
 
-     return;
+        return;
 
     case OPCODE_DECOMPEDIT:
 
@@ -207,7 +194,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -221,8 +208,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_GETROMID:
@@ -232,7 +218,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -240,7 +226,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -248,9 +234,12 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+            RetNum = ERR_INVALID;
+            return;
+        }
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -267,12 +256,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -286,18 +275,20 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBMENU:
@@ -305,13 +296,13 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>1) {
-            RetNum=ERR_NOTMINE;
+        if(MENUNUMBER(MenuCodeArg) > 1) {
+            RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=(WORDPTR)ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
-        RetNum=OK_CONTINUE;
+        ObjectPTR = (WORDPTR) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        RetNum = OK_CONTINUE;
         return;
     }
 
@@ -320,7 +311,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
         return;
     }
 
@@ -329,13 +320,13 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
@@ -344,8 +335,8 @@ void LIB_HANDLER()
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -353,12 +344,6 @@ void LIB_HANDLER()
 
     return;
 
-
 }
 
-
 #endif
-
-
-
-

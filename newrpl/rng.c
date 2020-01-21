@@ -30,46 +30,47 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
    a 64-bit seed, we suggest to seed a splitmix64 generator and use its
    output to fill s. */
 
-
 /* Modified and adapted for newRPL */
 
 #include "newrpl.h"
 
 UBINT64 newRPL_rng[2];
 
-static inline UBINT64 rotl(const UBINT64 x, int k) {
+static inline UBINT64 rotl(const UBINT64 x, int k)
+{
     return (x << k) | (x >> (64 - k));
 }
 
-UBINT64 rplRandomNext(void) {
+UBINT64 rplRandomNext(void)
+{
     const UBINT64 s0 = newRPL_rng[0];
     UBINT64 s1 = newRPL_rng[1];
     const UBINT64 result = s0 + s1;
 
     s1 ^= s0;
-    newRPL_rng[0] = rotl(s0, 55) ^ s1 ^ (s1 << 14); // a, b
-    newRPL_rng[1] = rotl(s1, 36); // c
+    newRPL_rng[0] = rotl(s0, 55) ^ s1 ^ (s1 << 14);     // a, b
+    newRPL_rng[1] = rotl(s1, 36);       // c
 
     return result;
 }
-
 
 /* This is the jump function for the generator. It is equivalent
    to 2^64 calls to next(); it can be used to generate 2^64
    non-overlapping subsequences for parallel computations. */
 
-static const UBINT64 const JUMP[] = { 0xbeac0467eba5facbULL, 0xd86b048b86aa9922ULL };
+static const UBINT64 const JUMP[] =
+        { 0xbeac0467eba5facbULL, 0xd86b048b86aa9922ULL };
 
-void rplRandomJump(void) {
-
+void rplRandomJump(void)
+{
 
     UBINT64 s0 = 0;
     UBINT64 s1 = 0;
-    int i,b;
+    int i, b;
 
     for(i = 0; i < 2; i++)
         for(b = 0; b < 64; b++) {
-            if (JUMP[i] & 1ULL << b) {
+            if(JUMP[i] & 1ULL << b) {
                 s0 ^= newRPL_rng[0];
                 s1 ^= newRPL_rng[1];
             }
@@ -79,7 +80,6 @@ void rplRandomJump(void) {
     newRPL_rng[0] = s0;
     newRPL_rng[1] = s1;
 }
-
 
 // RANDOM SEQUENCE STARTING FROM A SEED
 // JUST SPLIT THE SEED AND RUN THE RNG 5 TIMES
@@ -104,13 +104,12 @@ void rplRandomSeed(UBINT64 seed)
 
 }
 
-
 // GET 8 RANDOM DECIMAL DIGITS
 // USES ONLY 27 BITS TAKEN FROM THE RNG, BUT NOT THE LAST 27
 
 BINT rplRandom8Digits()
 {
-    UBINT64 dig=rplRandomNext()>>2;
-    dig%=100000000;
-    return (BINT)dig;
+    UBINT64 dig = rplRandomNext() >> 2;
+    dig %= 100000000;
+    return (BINT) dig;
 }

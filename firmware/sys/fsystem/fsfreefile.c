@@ -5,56 +5,58 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 // CLEANUP FS_FILE STRUCTURES
-FS_FILE *FSFreeFile(FS_FILE *file)
+FS_FILE *FSFreeFile(FS_FILE * file)
 {
-FS_FILE *orig=file->Dir;
-FS_VOLUME *fs;
+    FS_FILE *orig = file->Dir;
+    FS_VOLUME *fs;
 
-if(file==NULL) {
+    if(file == NULL) {
 //printf("Trying to Free() NULL\n");
-return NULL;
-}
+        return NULL;
+    }
 
-if(file->Volume&(~3)) {
+    if(file->Volume & (~3)) {
 //printf("Invalid volume at simpfree()\n");
-return NULL;
-}
+        return NULL;
+    }
 
 // CHECK FOR REFERENCES BEFORE DELETING
-fs=FSystem.Volumes[file->Volume];
+    fs = FSystem.Volumes[file->Volume];
 
-if(!fs) return NULL;
+    if(!fs)
+        return NULL;
 
-if(FSFileIsReferenced(file,fs)) return NULL;
+    if(FSFileIsReferenced(file, fs))
+        return NULL;
 
 // NOT REFERENCED
 // IT'S SAFE TO DELETE THIS FILE OBJECT
 
 // FREE ENTIRE CLUSTER CHAIN
 //printf("fffree cluster chain\n");
-FSFreeChain(file);
+    FSFreeChain(file);
 
 // FREE READ/WRITE BUFFERS
 
-if(file->RdBuffer.Data) simpfree(file->RdBuffer.Data);
-if(file->WrBuffer.Data) simpfree(file->WrBuffer.Data);
-
+    if(file->RdBuffer.Data)
+        simpfree(file->RdBuffer.Data);
+    if(file->WrBuffer.Data)
+        simpfree(file->WrBuffer.Data);
 
 //printf("done\n");
 // FREE NAME
-if(file->Name) simpfree(file->Name);
+    if(file->Name)
+        simpfree(file->Name);
 //printf("done free name\n");
 // FREE FS_FILE
-simpfree(file);
+    simpfree(file);
 //printf("done free file\n");
-return orig;
+    return orig;
 }
 
 #endif

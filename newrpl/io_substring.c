@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-
 #include "mpdecimal.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +40,6 @@
 #include "typearith.h"
 #include "io.h"
 
-
 /* This file contains functions for decimal <-> string conversions, including
    PEP-3101 formatting for numeric types. */
 
@@ -53,11 +51,13 @@
 static inline int
 _mpd_strneq(const char *s, const char *l, const char *u, size_t n)
 {
-    while (--n != SIZE_MAX) {
-        if (*s != *l && *s != *u) {
+    while(--n != SIZE_MAX) {
+        if(*s != *l && *s != *u) {
             return 0;
         }
-        s++; u++; l++;
+        s++;
+        u++;
+        l++;
     }
 
     return 1;
@@ -84,39 +84,36 @@ _mpd_strneq(const char *s, const char *l, const char *u, size_t n)
 
 #define internal_isdigit(c) ( ((c)>='0') && ((c)<='9'))
 
-
-
-
-static const char *
-scan_dpoint_exp2(const char *s, const char *send, const char **dpoint, const char **exp,
-                const char **end)
+static const char *scan_dpoint_exp2(const char *s, const char *send,
+        const char **dpoint, const char **exp, const char **end)
 {
     const char *coeff = NULL;
 
     *dpoint = NULL;
     *exp = NULL;
-    for (; s != send ; s++) {
+    for(; s != send; s++) {
         switch (*s) {
         case '.':
-            if (*dpoint != NULL || *exp != NULL)
+            if(*dpoint != NULL || *exp != NULL)
                 return NULL;
             *dpoint = s;
             break;
-        case 'E': case 'e':
-            if (*exp != NULL)
+        case 'E':
+        case 'e':
+            if(*exp != NULL)
                 return NULL;
             *exp = s;
-            if (*(s+1) == '+' || *(s+1) == '-')
+            if(*(s + 1) == '+' || *(s + 1) == '-')
                 s++;
             break;
         default:
-            if (!internal_isdigit((uchar)*s))
+            if(!internal_isdigit((uchar) * s))
                 return NULL;
-            if (coeff == NULL && *exp == NULL) {
-                if (*s == '0') {
-                    if (!internal_isdigit((uchar)*(s+1)))
-                        if (!(*(s+1) == '.' &&
-                              internal_isdigit((uchar)*(s+2))))
+            if(coeff == NULL && *exp == NULL) {
+                if(*s == '0') {
+                    if(!internal_isdigit((uchar) * (s + 1)))
+                        if(!(*(s + 1) == '.' &&
+                                    internal_isdigit((uchar) * (s + 2))))
                             coeff = s;
                 }
                 else {
@@ -132,27 +129,21 @@ scan_dpoint_exp2(const char *s, const char *send, const char **dpoint, const cha
     return coeff;
 }
 
-
-
-
-
 /* scan the payload of a NaN */
-static const char *
-scan_payload(const char *s, const char **end)
+static const char *scan_payload(const char *s, const char **end)
 {
     const char *coeff;
 
-    while (*s == '0')
+    while(*s == '0')
         s++;
     coeff = s;
 
-    while ( (*s>='0') && (*s<='9'))
+    while((*s >= '0') && (*s <= '9'))
         s++;
     *end = s;
 
     return (*s == '\0') ? coeff : NULL;
 }
-
 
 /*
  * Scan 'len' words. The most significant word contains 'r' digits,
@@ -160,131 +151,136 @@ scan_payload(const char *s, const char **end)
  * consist of digits and an optional single decimal point at 'dpoint'.
  */
 static void
-string_to_coeff(mpd_uint_t *data, const char *s, const char *dpoint, int r,
-                size_t len)
+string_to_coeff(mpd_uint_t * data, const char *s, const char *dpoint, int r,
+        size_t len)
 {
     int j;
 
-    if (r > 0) {
+    if(r > 0) {
         data[--len] = 0;
-        for (j = 0; j < r; j++, s++) {
-            if (s == dpoint) s++;
+        for(j = 0; j < r; j++, s++) {
+            if(s == dpoint)
+                s++;
             data[len] = 10 * data[len] + (*s - '0');
         }
     }
 
-    while (--len != SIZE_MAX) {
+    while(--len != SIZE_MAX) {
         data[len] = 0;
-        for (j = 0; j < MPD_RDIGITS; j++, s++) {
-            if (s == dpoint) s++;
+        for(j = 0; j < MPD_RDIGITS; j++, s++) {
+            if(s == dpoint)
+                s++;
             data[len] = 10 * data[len] + (*s - '0');
         }
     }
 }
 
-
-
-long mpd_strtossize2(const char *number,const char *numend,char **endptr,int base)
+long mpd_strtossize2(const char *number, const char *numend, char **endptr,
+        int base)
 {
-    int digit,neg=0,countdigit=0;
-    long long result=0;
-    char *start=(char *)number;
+    int digit, neg = 0, countdigit = 0;
+    long long result = 0;
+    char *start = (char *)number;
 
     // SKIP INITIAL BLANKS
-    while(((*number==' ') || (*number=='\t')) && (number<numend)) ++number;
+    while(((*number == ' ') || (*number == '\t')) && (number < numend))
+        ++number;
 
-    if(number>=numend) {
-        errno=EINVAL;
+    if(number >= numend) {
+        errno = EINVAL;
         return 0;
     }
 
+    if(*number == '+')
+        ++number;
+    else if(*number == '-') {
+        neg = 1;
+        ++number;
+    }
 
-    if(*number=='+') ++number;
-    else if(*number=='-') { neg=1; ++number; }
-
-    if(number>=numend) {
-        errno=EINVAL;
+    if(number >= numend) {
+        errno = EINVAL;
         return 0;
     }
 
-    if(base==16) {
-        if(*number=='0') {
-            if((number[1]=='x')||(number[1]=='X')) number+=2;
+    if(base == 16) {
+        if(*number == '0') {
+            if((number[1] == 'x') || (number[1] == 'X'))
+                number += 2;
         }
     }
 
+    while(number < numend) {
+        digit = -1;
+        if((*number >= '0') && (*number <= '9'))
+            digit = *number - '0';
+        if((*number >= 'a') && (*number <= 'z'))
+            digit = *number - 'a' + 10;
+        if((*number >= 'A') && (*number <= 'Z'))
+            digit = *number - 'A' + 10;
+        if(digit < 0 || digit >= base) {
 
+            if(!countdigit)
+                number = start;
+            if(neg)
+                result = -result;
 
-
-while(number<numend) {
-    digit=-1;
-    if((*number>='0')&&(*number<='9')) digit=*number-'0';
-    if((*number>='a') &&(*number<='z')) digit=*number-'a'+10;
-    if((*number>='A')&&(*number<='Z')) digit=*number-'A'+10;
-    if(digit<0 || digit>=base) {
-
-        if(!countdigit) number=start;
-        if(neg) result=-result;
-
-        if(result<INT_MIN) {
-            errno=ERANGE;
-            result=INT_MIN;
-        }
-
-            if(result>INT_MAX) {
-                errno=ERANGE;
-                result=INT_MAX;
+            if(result < INT_MIN) {
+                errno = ERANGE;
+                result = INT_MIN;
             }
-    //SET END POINTER AND RETURN
-        if((endptr)) *endptr=(char *)number;
-        return result;
+
+            if(result > INT_MAX) {
+                errno = ERANGE;
+                result = INT_MAX;
+            }
+            //SET END POINTER AND RETURN
+            if((endptr))
+                *endptr = (char *)number;
+            return result;
+        }
+        ++countdigit;
+        ++number;
+        result = result * base + digit;
     }
-    ++countdigit;
-    ++number;
-    result=result*base+digit;
-}
 
-if(!countdigit) number=start;
+    if(!countdigit)
+        number = start;
 
-if(neg) result=-result;
-if(result<INT_MIN) {
-    errno=ERANGE;
-    result=INT_MIN;
-}
+    if(neg)
+        result = -result;
+    if(result < INT_MIN) {
+        errno = ERANGE;
+        result = INT_MIN;
+    }
 
-    if(result>INT_MAX) {
-        errno=ERANGE;
-        result=INT_MAX;
+    if(result > INT_MAX) {
+        errno = ERANGE;
+        result = INT_MAX;
     }
 //SET END POINTER AND RETURN
-if((endptr)) *endptr=(char *)number;
-return result;
+    if((endptr))
+        *endptr = (char *)number;
+    return result;
 }
 
-
-
-
-static mpd_ssize_t
-strtoexp2(const char *s,const char *send)
+static mpd_ssize_t strtoexp2(const char *s, const char *send)
 {
     char *end;
     mpd_ssize_t retval;
 
     errno = 0;
-    retval = mpd_strtossize2(s, send,&end, 10);
-    if (errno == 0 && !(end == send))
+    retval = mpd_strtossize2(s, send, &end, 10);
+    if(errno == 0 && !(end == send))
         errno = EINVAL;
 
     return retval;
 }
 
-
-
-
 /* convert a character string to a decimal */
 void
-mpd_qset_string2(mpd_t *dec, const char *s, const char *send, const mpd_context_t *ctx,
-                uint32_t *status)
+mpd_qset_string2(mpd_t * dec, const char *s, const char *send,
+        const mpd_context_t * ctx, uint32_t * status)
 {
     mpd_ssize_t q, r, len;
     const char *coeff, *end;
@@ -297,49 +293,49 @@ mpd_qset_string2(mpd_t *dec, const char *s, const char *send, const mpd_context_
     dec->exp = 0;
 
     /* sign */
-    if (*s == '+') {
+    if(*s == '+') {
         s++;
     }
-    else if (*s == '-') {
+    else if(*s == '-') {
         mpd_set_negative(dec);
         sign = MPD_NEG;
         s++;
     }
 
-    if (_mpd_strneq(s, "nan", "NAN", 3)) { /* NaN */
+    if(_mpd_strneq(s, "nan", "NAN", 3)) {       /* NaN */
         s += 3;
         mpd_setspecial(dec, sign, MPD_NAN);
-        if (*s == '\0')
+        if(*s == '\0')
             return;
         /* validate payload: digits only */
-        if ((coeff = scan_payload(s, &end)) == NULL)
+        if((coeff = scan_payload(s, &end)) == NULL)
             goto conversion_error;
         /* payload consists entirely of zeros */
-        if (*coeff == '\0')
+        if(*coeff == '\0')
             return;
         digits = end - coeff;
         /* prec >= 1, clamp is 0 or 1 */
-        if (digits > (size_t)(ctx->prec-ctx->clamp))
+        if(digits > (size_t)(ctx->prec - ctx->clamp))
             goto conversion_error;
-    } /* sNaN */
-    else if (_mpd_strneq(s, "snan", "SNAN", 4)) {
+    }   /* sNaN */
+    else if(_mpd_strneq(s, "snan", "SNAN", 4)) {
         s += 4;
         mpd_setspecial(dec, sign, MPD_SNAN);
-        if (*s == '\0')
+        if(*s == '\0')
             return;
         /* validate payload: digits only */
-        if ((coeff = scan_payload(s, &end)) == NULL)
+        if((coeff = scan_payload(s, &end)) == NULL)
             goto conversion_error;
         /* payload consists entirely of zeros */
-        if (*coeff == '\0')
+        if(*coeff == '\0')
             return;
         digits = end - coeff;
-        if (digits > (size_t)(ctx->prec-ctx->clamp))
+        if(digits > (size_t)(ctx->prec - ctx->clamp))
             goto conversion_error;
     }
-    else if (_mpd_strneq(s, "inf", "INF", 3)) {
+    else if(_mpd_strneq(s, "inf", "INF", 3)) {
         s += 3;
-        if (*s == '\0' || _mpd_strneq(s, "inity", "INITY", 6)) {
+        if(*s == '\0' || _mpd_strneq(s, "inity", "INITY", 6)) {
             /* numeric-value: infinity */
             mpd_setspecial(dec, sign, MPD_INF);
             return;
@@ -348,55 +344,57 @@ mpd_qset_string2(mpd_t *dec, const char *s, const char *send, const mpd_context_
     }
     else {
         /* scan for start of coefficient, decimal point, indicator, end */
-        if ((coeff = scan_dpoint_exp2(s, send, &dpoint, &exp, &end)) == NULL)
+        if((coeff = scan_dpoint_exp2(s, send, &dpoint, &exp, &end)) == NULL)
             goto conversion_error;
 
         /* numeric-value: [exponent-part] */
-        if (exp) {
+        if(exp) {
             /* exponent-part */
-            end = exp; exp++;
-            dec->exp = strtoexp2(exp,send);
-            if (errno) {
-                if (!(errno == ERANGE &&
-                     (dec->exp == MPD_SSIZE_MAX ||
-                      dec->exp == MPD_SSIZE_MIN)))
+            end = exp;
+            exp++;
+            dec->exp = strtoexp2(exp, send);
+            if(errno) {
+                if(!(errno == ERANGE &&
+                            (dec->exp == MPD_SSIZE_MAX ||
+                                dec->exp == MPD_SSIZE_MIN)))
                     goto conversion_error;
             }
         }
 
-            digits = end - coeff;
-        if (dpoint) {
-            size_t fracdigits = end-dpoint-1;
-            if (dpoint > coeff) digits--;
+        digits = end - coeff;
+        if(dpoint) {
+            size_t fracdigits = end - dpoint - 1;
+            if(dpoint > coeff)
+                digits--;
 
-            if (fracdigits > MPD_MAX_PREC) {
+            if(fracdigits > MPD_MAX_PREC) {
                 goto conversion_error;
             }
-            if (dec->exp < MPD_SSIZE_MIN+(mpd_ssize_t)fracdigits) {
+            if(dec->exp < MPD_SSIZE_MIN + (mpd_ssize_t) fracdigits) {
                 dec->exp = MPD_SSIZE_MIN;
             }
             else {
-                dec->exp -= (mpd_ssize_t)fracdigits;
+                dec->exp -= (mpd_ssize_t) fracdigits;
             }
         }
-        if (digits > MPD_MAX_PREC) {
+        if(digits > MPD_MAX_PREC) {
             goto conversion_error;
         }
-        if (dec->exp > MPD_EXP_INF) {
+        if(dec->exp > MPD_EXP_INF) {
             dec->exp = MPD_EXP_INF;
         }
-        if (dec->exp == MPD_SSIZE_MIN) {
-            dec->exp = MPD_SSIZE_MIN+1;
+        if(dec->exp == MPD_SSIZE_MIN) {
+            dec->exp = MPD_SSIZE_MIN + 1;
         }
     }
 
-    _mpd_idiv_word(&q, &r, (mpd_ssize_t)digits, MPD_RDIGITS);
+    _mpd_idiv_word(&q, &r, (mpd_ssize_t) digits, MPD_RDIGITS);
 
-    len = (r == 0) ? q : q+1;
-    if (len == 0) {
-        goto conversion_error; /* GCOV_NOT_REACHED */
+    len = (r == 0) ? q : q + 1;
+    if(len == 0) {
+        goto conversion_error;  /* GCOV_NOT_REACHED */
     }
-    if (!mpd_qresize(dec, len, status)) {
+    if(!mpd_qresize(dec, len, status)) {
         mpd_seterror(dec, MPD_Malloc_error, status);
         return;
     }
@@ -408,8 +406,7 @@ mpd_qset_string2(mpd_t *dec, const char *s, const char *send, const mpd_context_
     mpd_qfinalize(dec, ctx, status);
     return;
 
-conversion_error:
+  conversion_error:
     /* standard wants a positive NaN */
     mpd_seterror(dec, MPD_Conversion_syntax, status);
 }
-

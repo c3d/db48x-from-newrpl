@@ -9,12 +9,9 @@
 #include "libraries.h"
 #include "hal.h"
 
-
 // *****************************
 // *** COMMON LIBRARY HEADER ***
 // *****************************
-
-
 
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  55
@@ -28,17 +25,14 @@
 // IN THE ECMD() FORM, THE ENUM SYMBOL AND THE
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
-
 // SPECIAL CASE: LOWEST BIT OF CONSTANTS INDICATE IF CONSTANT IS COMPLEX OR REAL
 // MAKE SURE ALL COMPLEX CONSTANTS ARE IN ODD NUMBERS IN THE LIST
-
 
 #define COMMAND_LIST \
     ECMD(PICONST,"π",MKTOKENINFO(1,TITYPE_REAL,0,1)), \
     ECMD(ICONST,"і",MKTOKENINFO(1,TITYPE_COMPLEX,0,1)), \
     ECMD(ECONST,"е",MKTOKENINFO(1,TITYPE_REAL,0,1)), \
     ECMD(JCONST,"ј",MKTOKENINFO(1,TITYPE_COMPLEX,0,1))
-
 
 // ADD MORE OPCODES HERE
 
@@ -52,14 +46,11 @@ ERR(UNDEFINEDCONSTANT,1)
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
 
-
 #ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
-
-
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -70,23 +61,20 @@ INCLUDE_ROMOBJECT(lib55_i);
 INCLUDE_ROMOBJECT(lib55_e);
 INCLUDE_ROMOBJECT(lib55_j);
 
-
-
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)lib55_menu,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) lib55_menu,
     // HERE ADD THE VALUES OF THE CONSTANTS AS RPL OBJECTS. ALL CONSTANTS NEED TO HAVE THEIR NUMERIC OBJECTS IN ROM
-    (WORDPTR)lib55_pi,
-    (WORDPTR)lib55_i,
-    (WORDPTR)lib55_e,
-    (WORDPTR)lib55_j,
+    (WORDPTR) lib55_pi,
+    (WORDPTR) lib55_i,
+    (WORDPTR) lib55_e,
+    (WORDPTR) lib55_j,
 
     0
 };
-
 
 // CONVERT A CONSTANT TO A NUMBER
 // RETURNS EITHER A NEW OBJECT WITH THE NUMERIC REPRESENTATION OF THE CONSTANT
@@ -95,8 +83,9 @@ const WORDPTR const ROMPTR_TABLE[]={
 // DRAWBACK: IT'S ALWAYS AT MAXIMUM PRECISION (2000 DIGITS)
 WORDPTR rplConstant2Number(WORDPTR object)
 {
-    if(!ISCONSTANT(*object)) return object;
-    return ROMPTR_TABLE[OPCODE(object[1])+3];   // GET THE OPCODE FOR THE SYMBOL
+    if(!ISCONSTANT(*object))
+        return object;
+    return ROMPTR_TABLE[OPCODE(object[1]) + 3]; // GET THE OPCODE FOR THE SYMBOL
 }
 
 void LIB_HANDLER()
@@ -109,90 +98,80 @@ void LIB_HANDLER()
         return;
     }
 
-
     // PROCESS OVERLOADED OPERATORS FIRST
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
 
-        if(ISUNARYOP(CurOpcode))
-        {
-        // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
-            switch(OPCODE(CurOpcode))
-            {
+        if(ISUNARYOP(CurOpcode)) {
+            // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
+            switch (OPCODE(CurOpcode)) {
             case OVR_EVAL1:
                 // LEAVE IT ON THE STACK
                 return;
 
             case OVR_FUNCEVAL:
             {
-                    rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
-                    return;
-             }
+                rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                return;
+            }
             case OVR_EVAL:
                 // LEAVE IT ON THE STACK
                 return;
             case OVR_NUM:
             {
-                rplOverwriteData(1,rplConstant2Number(rplPeekData(1)));
+                rplOverwriteData(1, rplConstant2Number(rplPeekData(1)));
                 return;
             }
 
             case OVR_ISTRUE:
-                    // CONSTANTS ARE NEVER FALSE
-                    rplOverwriteData(1,(WORDPTR)one_bint);
-                    return;
+                // CONSTANTS ARE NEVER FALSE
+                rplOverwriteData(1, (WORDPTR) one_bint);
+                return;
 
             case OVR_XEQ:
                 // JUST KEEP THE CONSTANT ON THE STACK, UNEVALUATED
-               return;
+                return;
 
             default:
                 // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
             {
-                    LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-                    (*symblib)();
-                    return;
+                LIBHANDLER symblib = rplGetLibHandler(DOSYMB);
+                (*symblib) ();
+                return;
+            }
+            }
+
+        }       // END OF UNARY OPERATORS
+
+        else if(ISBINARYOP(CurOpcode)) {
+
+            switch (OPCODE(CurOpcode)) {
+            case OVR_SAME:
+            {
+                BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+                rplDropData(2);
+                if(same)
+                    rplPushTrue();
+                else
+                    rplPushFalse();
+                return;
+            }
+            default:
+            {
+                // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
+                LIBHANDLER symblib = rplGetLibHandler(DOSYMB);
+                (*symblib) ();
+                return;
+            }
             }
         }
 
-
-    }   // END OF UNARY OPERATORS
-
-    else if(ISBINARYOP(CurOpcode)) {
-
-
-        switch(OPCODE(CurOpcode))
-        {
-        case OVR_SAME:
-        {
-         BINT same=rplCompareObjects(rplPeekData(1),rplPeekData(2));
-         rplDropData(2);
-         if(same) rplPushTrue(); else rplPushFalse();
-         return;
-        }
-        default:
-        {
-        // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
-            LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-            (*symblib)();
-            return;
-        }
-        }
     }
 
+    switch (OPCODE(CurOpcode)) {
 
-    }
-
-
-
-    switch(OPCODE(CurOpcode))
-    {
-
-
-
-    // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -205,21 +184,23 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-            // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
-            // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-        if(RetNum==OK_CONTINUE) {
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
+        if(RetNum == OK_CONTINUE) {
             // ENCAPSULATE THE OPCODE INSIDE AN OBJECT
-            rplCompileAppend(MKOPCODE(DECBINT,OPCODE(*(CompileEnd-1))));
-            if(CompileEnd[-2]&1) {
+            rplCompileAppend(MKOPCODE(DECBINT, OPCODE(*(CompileEnd - 1))));
+            if(CompileEnd[-2] & 1) {
                 // THIS IS A COMPLEX CONSTANT, JUST REPEAT THE OPCODE
-                rplCompileAppend(*(CompileEnd-1));
-                CompileEnd[-3]=MKPROLOG(LIBRARY_NUMBER,2);
-            } else  CompileEnd[-2]=MKPROLOG(LIBRARY_NUMBER,1);
+                rplCompileAppend(*(CompileEnd - 1));
+                CompileEnd[-3] = MKPROLOG(LIBRARY_NUMBER, 2);
+            }
+            else
+                CompileEnd[-2] = MKPROLOG(LIBRARY_NUMBER, 1);
         }
-     return;
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -230,15 +211,15 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
         if(ISPROLOG(*DecompileObject)) {
             ++DecompileObject;
-            libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+            libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
             --DecompileObject;
-        } else libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        }
+        else
+            libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
 
         return;
     case OPCODE_VALIDATE:
@@ -253,8 +234,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -271,12 +251,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -290,17 +270,22 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        libGetInfo2(ObjectPTR[1],(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
-        if(TI_TYPE(RetNum)==TITYPE_REAL) TypeInfo+=DOREAL;
-        else if(TI_TYPE(RetNum)==TITYPE_COMPLEX) TypeInfo+=DOCMPLX;
-        else if(TI_TYPE(RetNum)==TITYPE_MATRIX) TypeInfo+=DOMATRIX;
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            libGetInfo2(ObjectPTR[1], (char **)LIB_NAMES,
+                    (BINT *) LIB_TOKENINFO, LIB_NUMBEROFCMDS);
+            if(TI_TYPE(RetNum) == TITYPE_REAL)
+                TypeInfo += DOREAL;
+            else if(TI_TYPE(RetNum) == TITYPE_COMPLEX)
+                TypeInfo += DOCMPLX;
+            else if(TI_TYPE(RetNum) == TITYPE_MATRIX)
+                TypeInfo += DOMATRIX;
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
 
         return;
@@ -312,7 +297,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -320,7 +305,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -330,14 +315,18 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
         if(ISPROLOG(*ObjectPTR)) {
 
-            if(OBJSIZE(*ObjectPTR)!=1) { RetNum=ERR_INVALID; return; }  // WRONG SIZE
+            if(OBJSIZE(*ObjectPTR) != 1) {
+                RetNum = ERR_INVALID;   // WRONG SIZE
+                return;
+            }
 
         }
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBMENU:
@@ -345,13 +334,13 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
-            RetNum=ERR_NOTMINE;
+        if(MENUNUMBER(MenuCodeArg) > 0) {
+            RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR=(WORDPTR)lib55_menu;
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = (WORDPTR) lib55_menu;
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -359,8 +348,8 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
     case OPCODE_LIBMSG:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
@@ -368,25 +357,24 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-       return;
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
-
 
     }
 
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -397,7 +385,3 @@ void LIB_HANDLER()
 }
 
 #endif
-
-
-
-

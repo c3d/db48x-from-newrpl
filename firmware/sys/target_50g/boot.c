@@ -12,18 +12,16 @@
 
 #define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
-
 #define enter_mode(mode) call_swi(mode)
 
-
-__ARM_MODE__ void switch_mode(int mode) __attribute__ ((naked));
+__ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
 void switch_mode(int mode)
 {
     asm volatile ("and r0,r0,#0x1f");
     asm volatile ("mrs r1,cpsr_all");
     asm volatile ("bic r1,r1,#0x1f");
     asm volatile ("orr r1,r1,r0");
-    asm volatile ("mov r0,lr");         // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
+    asm volatile ("mov r0,lr"); // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
     asm volatile ("msr cpsr_all,r1");
     asm volatile ("bx r0");
 }
@@ -32,17 +30,16 @@ __ARM_MODE__ unsigned int get_mode()
 {
     register unsigned int cpsr;
 
-    asm volatile ("mrs %0,cpsr_all" : "=r" (cpsr) );
+    asm volatile ("mrs %0,cpsr_all":"=r" (cpsr));
 
-    return cpsr&0x1f;
+    return cpsr & 0x1f;
 }
 
-__ARM_MODE__ void call_swi(unsigned int arg1) __attribute ((noinline));
-void call_swi(unsigned int arg1)
+__ARM_MODE__ void call_swi(unsigned int arg1) __attribute((noinline));
+     void call_swi(unsigned int arg1)
 {
-    asm volatile ("swi #0" : : : "r0","r1");
+    asm volatile ("swi #0":::"r0", "r1");
 }
-
 
 __ARM_MODE__ void enable_interrupts()
 {
@@ -51,7 +48,6 @@ __ARM_MODE__ void enable_interrupts()
     asm volatile ("msr cpsr_all,r1");
 }
 
-
 __ARM_MODE__ void disable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all");
@@ -59,14 +55,12 @@ __ARM_MODE__ void disable_interrupts()
     asm volatile ("msr cpsr_all,r1");
 }
 
-
-
-__ARM_MODE__ void set_stack(unsigned int *) __attribute__ ((naked));
+__ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
 void set_stack(unsigned int *newstackptr)
 {
 
-       asm volatile ("mov sp,r0");
-       asm volatile ("bx lr");
+    asm volatile ("mov sp,r0");
+    asm volatile ("bx lr");
 
 }
 
@@ -75,20 +69,19 @@ void dbg_reset()
 
     // DO A FULL RESET IF IT COMES BACK FROM POWER OFF MODE
 
-    if(*HWREG(0x56000000,0xb4)&2) {
+    if(*HWREG(0x56000000, 0xb4) & 2) {
 
-    *HWREG(0x56000000,0xb4)=*HWREG(0x56000000,0xb4);
+        *HWREG(0x56000000, 0xb4) = *HWREG(0x56000000, 0xb4);
 
 // SET THE PRESCALER OF THE WATCHDOG AS FAST AS POSSIBLE AND A REASONABLE COUNT (ABOUT 87ms)
-    *HWREG(0x53000000,8)=0x8000;
-    *HWREG(0x53000000,0)=0x21;
+        *HWREG(0x53000000, 8) = 0x8000;
+        *HWREG(0x53000000, 0) = 0x21;
 
-    // AND WAIT FOR IT TO HAPPEN
-    while(1);
+        // AND WAIT FOR IT TO HAPPEN
+        while(1);
     }
 
 }
-
 
 __ARM_MODE__ void set_async_bus()
 {
@@ -99,58 +92,56 @@ __ARM_MODE__ void set_async_bus()
 
 void setup_hardware()
 {
-volatile unsigned int *ptr=(unsigned int *)0x48000000;
+    volatile unsigned int *ptr = (unsigned int *)0x48000000;
 
 // SETUP MEMORY CONTROLLER, TO MAKE SURE WE CAN ACCESS ROM AND RAM CORRECTLY
 //  this is set by the bootloader, but do this here again in case
 // a warm start is done
-  ptr[0]=0x11111192;
-  ptr[1]=0x300;         // these values only work for slow clocks
-  ptr[2]=0x300;         // make sure CPU slows down before calling here
-  ptr[3]=0x300;
-  ptr[4]=0x300;
-  ptr[5]=0x300;
-  ptr[6]=0x300;
-  ptr[7]=5;
-  ptr[8]=5;
-  ptr[9]=0xe0459;
-  ptr[10]=0x12;
-  ptr[11]=0x30;
-  ptr[12]=0x30;
+    ptr[0] = 0x11111192;
+    ptr[1] = 0x300;     // these values only work for slow clocks
+    ptr[2] = 0x300;     // make sure CPU slows down before calling here
+    ptr[3] = 0x300;
+    ptr[4] = 0x300;
+    ptr[5] = 0x300;
+    ptr[6] = 0x300;
+    ptr[7] = 5;
+    ptr[8] = 5;
+    ptr[9] = 0xe0459;
+    ptr[10] = 0x12;
+    ptr[11] = 0x30;
+    ptr[12] = 0x30;
 
 // SETUP POWER MANAGEMENT
-  ptr=(unsigned int *)0x4C000000;
-  ptr[0]=0x5a55a5;
-  ptr[3]=0xE330;    // ENABLE CLOCK FOR ADC, RTC, GPIO, PWM, SD, LCD, FLASH, DISABLE EVERYTHING ELSE (INCLUDING USB)
-  // THE REST OF THE REGISTERS WILL BE PROGRAMMED BY cpu_setspeed
+    ptr = (unsigned int *)0x4C000000;
+    ptr[0] = 0x5a55a5;
+    ptr[3] = 0xE330;    // ENABLE CLOCK FOR ADC, RTC, GPIO, PWM, SD, LCD, FLASH, DISABLE EVERYTHING ELSE (INCLUDING USB)
+    // THE REST OF THE REGISTERS WILL BE PROGRAMMED BY cpu_setspeed
 
-  set_async_bus();
+    set_async_bus();
 
-  // SETUP GPIO
-  ptr=(unsigned int *)0x56000000;
-  ptr[0]=0x103f;    // GPACON
-  ptr[4]=0x155555;  // GPBCON
-  ptr[6]=0x7ff;     // GPB PULLUPS
-  ptr[8]=0xaaaaaaaa;  // GPCCON
-  ptr[10]=0xffff;    // GPC PULLUPS
-  ptr[12]=0x05054000; // GPDCON
-  ptr[13]=0x300;      // SET ALL LINES LOW, EXCEPT THE STOP BIT FOR THE I2C
-  ptr[14]=0xffff;     // GPD PULLUPS
-  ptr[16]=0x56aa955;    // GPECON
-  ptr[18]=0xf83f;       // GPE PULLUPS
-  ptr[20]=0x6a92;       // GPFCON
-  ptr[22]=0xff;         // GPF PULLUPS
-  ptr[24]=0x5555aaa9;   // GPGCON
-  ptr[26]=0x1;          // GPG PULLUPS
-  ptr[28]=0x155555;     // GPHCON
-  ptr[30]=0x7ff;        // GPH PULLUPS
-  ptr[32]&=~0x3000;     // MISCCR - USB IN HOST MODE AND USB SUSPEND MODE OFF
-  ptr[41]=0x00fffff0;   // EINTMASK = MASK ALL EXTERNAL INTS
-  // SETUP MISCELLANEOUS
+    // SETUP GPIO
+    ptr = (unsigned int *)0x56000000;
+    ptr[0] = 0x103f;    // GPACON
+    ptr[4] = 0x155555;  // GPBCON
+    ptr[6] = 0x7ff;     // GPB PULLUPS
+    ptr[8] = 0xaaaaaaaa;        // GPCCON
+    ptr[10] = 0xffff;   // GPC PULLUPS
+    ptr[12] = 0x05054000;       // GPDCON
+    ptr[13] = 0x300;    // SET ALL LINES LOW, EXCEPT THE STOP BIT FOR THE I2C
+    ptr[14] = 0xffff;   // GPD PULLUPS
+    ptr[16] = 0x56aa955;        // GPECON
+    ptr[18] = 0xf83f;   // GPE PULLUPS
+    ptr[20] = 0x6a92;   // GPFCON
+    ptr[22] = 0xff;     // GPF PULLUPS
+    ptr[24] = 0x5555aaa9;       // GPGCON
+    ptr[26] = 0x1;      // GPG PULLUPS
+    ptr[28] = 0x155555; // GPHCON
+    ptr[30] = 0x7ff;    // GPH PULLUPS
+    ptr[32] &= ~0x3000; // MISCCR - USB IN HOST MODE AND USB SUSPEND MODE OFF
+    ptr[41] = 0x00fffff0;       // EINTMASK = MASK ALL EXTERNAL INTS
+    // SETUP MISCELLANEOUS
 
 }
-
-
 
 // REAL PROGRAM STARTUP (main)
 // WITH VIRTUAL MEMORY ALREADY INITIALIZED
@@ -163,123 +154,121 @@ void main_virtual(unsigned int mode)
 
     do {
 
-    gglsurface scr;
-    int wascleared=0;
-    bat_setup();
+        gglsurface scr;
+        int wascleared = 0;
+        bat_setup();
 
-    // MONITOR BATTERY VOLTAGE TWICE PER SECOND
-    HEVENT event=tmr_eventcreate(battery_handler,500,1);
+        // MONITOR BATTERY VOLTAGE TWICE PER SECOND
+        HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-    ggl_initscr(&scr);
+        ggl_initscr(&scr);
 
-    //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0);
+        //   CLEAR SCREEN
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-    if(!mode) {
-        // CHECK FOR MAGIC KEY COMBINATION
-        if(keyb_isAnyKeyPressed())
-        {
-            throw_exception("Wipeout requested", __EX_WARM | __EX_WIPEOUT | __EX_EXIT );
+        if(!mode) {
+            // CHECK FOR MAGIC KEY COMBINATION
+            if(keyb_isAnyKeyPressed()) {
+                throw_exception("Wipeout requested",
+                        __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
+            }
+
+            // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
+            if(!halCheckMemoryMap()) {
+                // WIPEOUT MEMORY
+                halInitMemoryMap();
+                rplInitMemoryAllocator();
+                rplInit();
+                wascleared = 1;
+            }
+            else {
+                if(!halCheckRplMemory()) {
+                    // WIPEOUT MEMORY
+                    halInitMemoryMap();
+                    rplInitMemoryAllocator();
+                    rplInit();
+                    wascleared = 1;
+                }
+                else {
+                    rplInitMemoryAllocator();
+                    rplWarmInit();
+                }
+            }
+
         }
-
-
-    // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
-    if(!halCheckMemoryMap()) {
-        // WIPEOUT MEMORY
-    halInitMemoryMap();
-    rplInitMemoryAllocator();
-    rplInit();
-    wascleared=1;
-    }
-    else {
-        if(!halCheckRplMemory()) {
-            // WIPEOUT MEMORY
-        halInitMemoryMap();
-        rplInitMemoryAllocator();
-        rplInit();
-        wascleared=1;
+        else {
+            rplInitMemoryAllocator();
+            rplHotInit();
         }
-        else { rplInitMemoryAllocator(); rplWarmInit(); }
-    }
-
-    } else {
-        rplInitMemoryAllocator();
-        rplHotInit();
-    }
 
 #ifndef CONFIG_NO_FSYSTEM
-    // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
-    FSHardReset();
+        // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
+        FSHardReset();
 #endif
 
-    halInitKeyboard();
-    halInitScreen();
-    halInitBusyHandler();
-    halRedrawAll(&scr);
+        halInitKeyboard();
+        halInitScreen();
+        halInitBusyHandler();
+        halRedrawAll(&scr);
 
-    if(!mode) {
-    if(wascleared) halShowMsg("Memory Cleared");
-    else {
+        if(!mode) {
+            if(wascleared)
+                halShowMsg("Memory Cleared");
+            else {
 
-        // SCAN AND UPDATE ALARMS AFTER A WARMSTART
-        rplUpdateAlarms();
-        halShowMsg("Memory Recovered");
-        // RESTORE OTHER SYSTEM STATUS FROM WARMSTART
-        halWakeUp();
+                // SCAN AND UPDATE ALARMS AFTER A WARMSTART
+                rplUpdateAlarms();
+                halShowMsg("Memory Recovered");
+                // RESTORE OTHER SYSTEM STATUS FROM WARMSTART
+                halWakeUp();
+            }
+        }
+        else {
+            // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
+            halWakeUp();
+        }
+
+        halOuterLoop(0, 0, 0, 0);
+
+        tmr_eventkill(event);
+        //   CLEAR SCREEN
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0x11111111);
+
+        keyb_flushnowait();
+
+        if(halFlags & HAL_RESET) {
+            rplWarmInit();
+            mode = 1;
+        }
+
     }
-    }
-    else {
-        // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
-        halWakeUp();
-    }
-
-
-    halOuterLoop(0,0,0,0);
-
-    tmr_eventkill(event);
-    //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x11111111);
-
-
-    keyb_flushnowait();
-
-    if(halFlags&HAL_RESET) {
-        rplWarmInit();
-        mode=1;
-    }
-
-    } while(halFlags&HAL_RESET);
+    while(halFlags & HAL_RESET);
 
 }
-
 
 void clear_globals()
 {
-    int *ptr=(int *)0x02005000;
-    while(ptr!=(int *)0x02006000) *ptr++=0;
+    int *ptr = (int *)0x02005000;
+    while(ptr != (int *)0x02006000)
+        *ptr++ = 0;
 }
 
-
-
-__ARM_MODE__ void startup(int) __attribute__ ((naked,noreturn));
+__ARM_MODE__ void startup(int) __attribute__((naked, noreturn));
 void startup(int prevstate)
 {
 
     // BOOTLOADER LEAVES STACK ON MAIN RAM, MOVE TO SRAM
     // ALSO WE ENTER IN SUPERVISOR MODE
 
-    disable_interrupts();   // THIS REQUIRES SUPERVISOR MODE
+    disable_interrupts();       // THIS REQUIRES SUPERVISOR MODE
 
     //dbg_reset();
 
-
     //unsigned int mode=get_mode();
 
-    set_stack((unsigned int *)0x40000e00);  // INITIAL STACK:
+    set_stack((unsigned int *)0x40000e00);      // INITIAL STACK:
 
-
-
-    setup_hardware();       // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
+    setup_hardware();   // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
 
     create_mmu_tables();
 
@@ -289,19 +278,19 @@ void startup(int prevstate)
     //else switch_mode(SVC_MODE);
     //set_stack(0x40000f00);  // POINT TO SVC STACK TO SRAM
 
-    switch_mode(SYS_MODE);  // NOW ENTER PRIVILEDGED MODE WITH NO REGISTER BANKING
+    switch_mode(SYS_MODE);      // NOW ENTER PRIVILEDGED MODE WITH NO REGISTER BANKING
 
-    set_stack((unsigned int *)0x40000c00);  // POINT TO USER STACK TO SRAM
+    set_stack((unsigned int *)0x40000c00);      // POINT TO USER STACK TO SRAM
 
     enable_mmu();
 
     // FROM HERE ON, WE ARE RUNNING ON VIRTUAL MEMORY SPACE
 
-    set_stackall(); // SET FINAL STACK POINTERS FOR ALL MODES IN VIRTUAL SPACE
+    set_stackall();     // SET FINAL STACK POINTERS FOR ALL MODES IN VIRTUAL SPACE
 
     cpu_setspeed(HAL_FASTCLOCK);
 
-    if(*HWREG(0x05600000,0xb4)&2) {
+    if(*HWREG(0x05600000, 0xb4) & 2) {
         // WOKE UP FROM POWEROFF
         // DON'T CLEAR ANYTHING
 
@@ -309,20 +298,20 @@ void startup(int prevstate)
 
         // ADD ANY OTHER INITIALIZATION HERE
 
-    } else {
+    }
+    else {
         // FROM RESET OR WARMSTART, CLEAN VARIABLES
         __rtc_reset();
-        clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
-        __lcd_contrast=8;
+        clear_globals();        // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
+        __lcd_contrast = 8;
     }
 
-    __exception_install();  // INITIALIZE IRQ AND EXCEPTION HANDLING
+    __exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
 
     enable_interrupts();
 
     tmr_setup();
     __keyb_init();
-
 
     usb_init(1);
 
@@ -332,19 +321,17 @@ void startup(int prevstate)
     // DONE WITH SYSTEM INITIALIZATION, SWITCH BACK TO USER MODE
     //switch_mode(SYS_MODE);
 
-
     // NON-PRIVILEGED MODE FROM HERE ON...
 
     lcd_poweron();
     //lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
 
-    register int mode=*HWREG(0x05600000,0xb4)&2;
-    *HWREG(0x05600000,0xb4)|=2;
+    register int mode = *HWREG(0x05600000, 0xb4) & 2;
+    *HWREG(0x05600000, 0xb4) |= 2;
     main_virtual(mode);
 
-    while(1) ;
+    while(1);
 }
-
 
 /* PHYSICAL RAM LAYOUT:
 
@@ -396,75 +383,68 @@ extern int __last_used_byte;
 void create_mmu_tables()
 {
 
-    unsigned int *mmu_base=(unsigned int *)0x08008000;
-    volatile unsigned int *ptr=mmu_base;
+    unsigned int *mmu_base = (unsigned int *)0x08008000;
+    volatile unsigned int *ptr = mmu_base;
 
     // WIPE OUT MAIN MMU TABLE
-    while(ptr!=(unsigned int *)0x08008400) *ptr++=0;
-
+    while(ptr != (unsigned int *)0x08008400)
+        *ptr++ = 0;
 
 //MEM_ROM         0x00000000  // VIRTUAL (AND PHYSICAL) ROM LOCATION (UP TO 4 MBytes)
-    MMU_MAP_SECTION_ROM(0x00000000,0x00000000);    // MAP 1ST MEGABYTE SECTION
-    MMU_MAP_SECTION_ROM(0x00100000,0x00100000);    // MAP TOTAL 2 MBYTES OF ROM
-    
+    MMU_MAP_SECTION_ROM(0x00000000, 0x00000000);        // MAP 1ST MEGABYTE SECTION
+    MMU_MAP_SECTION_ROM(0x00100000, 0x00100000);        // MAP TOTAL 2 MBYTES OF ROM
+
 //MEM_DSTK        0x00400000  // DATA STACK VIRTUAL LOCATION (UP TO 4 MB)
-    MMU_MAP_COARSE_RAM(0x08008400,0x00400000);  // CREATE THE PAGE MAP, DON'T ADD ANY PAGES YET
-    
+    MMU_MAP_COARSE_RAM(0x08008400, 0x00400000); // CREATE THE PAGE MAP, DON'T ADD ANY PAGES YET
+
 //MEM_RSTK        0x00800000  // RETURN STACK VIRTUAL LOCATION (UP TO 4 MB)
-    MMU_MAP_COARSE_RAM(0x08008800,0x00800000);
+    MMU_MAP_COARSE_RAM(0x08008800, 0x00800000);
 
 //MEM_LAM         0x00C00000  // LOCAL VARIABLES VIRTUAL LOCATION (UP TO 4 MB)
-    MMU_MAP_COARSE_RAM(0x08008C00,0x00C00000);
+    MMU_MAP_COARSE_RAM(0x08008C00, 0x00C00000);
 
 //MEM_DIRS        0x01000000  // GLOBAL DIRECTORIES VIRTUAL LOCATION (UP TO 4 MB)
-    MMU_MAP_COARSE_RAM(0x08009000,0x01000000);
+    MMU_MAP_COARSE_RAM(0x08009000, 0x01000000);
 
 //MEM_TEMPBLOCKS  0x01400000  // BLOCK INDEX FOR TEMPOB VIRTUAL LOCATION (UP TO 4 MB)
-    MMU_MAP_COARSE_RAM(0x08009400,0x01400000);
+    MMU_MAP_COARSE_RAM(0x08009400, 0x01400000);
 
 //MEM_TEMPOB      0x01800000  // GLOBAL OBJECT ALLOCATION MEMORY VIRTUAL LOCATION (UP TO 8 MB)
-    MMU_MAP_COARSE_RAM(0x08009800,0x01800000);
-    MMU_MAP_COARSE_RAM(0x08009C00,0x01900000);  // SECOND TABLE FOR UP TO 2 MB
-    MMU_MAP_COARSE_RAM(0x0800A000,0x01A00000);  // THIRD TABLE FOR UP TO  3 MB
-    MMU_MAP_COARSE_RAM(0x0800A400,0x01B00000);  // FOURTH TABLE FOR UP TO 4 MB
-
+    MMU_MAP_COARSE_RAM(0x08009800, 0x01800000);
+    MMU_MAP_COARSE_RAM(0x08009C00, 0x01900000); // SECOND TABLE FOR UP TO 2 MB
+    MMU_MAP_COARSE_RAM(0x0800A000, 0x01A00000); // THIRD TABLE FOR UP TO  3 MB
+    MMU_MAP_COARSE_RAM(0x0800A400, 0x01B00000); // FOURTH TABLE FOR UP TO 4 MB
 
 //MEM_SYSTEM      0x02000000  // MAIN RAM FOR SYSTEM VARIABLES
-    MMU_MAP_SECTION_RAM(0x08000000,0x02000000);
-                              // 1:1 MEMORY MAPPING OF MAIN RAM BUT UNCACHED AND UNBUFFERED
-                              // BOOTLOADER EXPECTS RELOCATED EXCEPTION HANDLERS HERE
-                              // ALSO SCREEN ACCESS SHOULD NOT BE BUFFERED/CACHED
-    MMU_MAP_SECTION_DEV(0x08000000,0x08000000);
+    MMU_MAP_SECTION_RAM(0x08000000, 0x02000000);
+    // 1:1 MEMORY MAPPING OF MAIN RAM BUT UNCACHED AND UNBUFFERED
+    // BOOTLOADER EXPECTS RELOCATED EXCEPTION HANDLERS HERE
+    // ALSO SCREEN ACCESS SHOULD NOT BE BUFFERED/CACHED
+    MMU_MAP_SECTION_DEV(0x08000000, 0x08000000);
 
 //MEM_SRAM        0x03000000
-    MMU_MAP_SECTION_RAM(0x40000000,0x03000000);     // SRAM
-
-
+    MMU_MAP_SECTION_RAM(0x40000000, 0x03000000);        // SRAM
 
 //MEM_HARDWARE    0x04800000
 
-    MMU_MAP_SECTION_DEV(0x48000000,0x04800000);     // MEMORY CONTROLLLER
-    MMU_MAP_SECTION_DEV(0x49000000,0x04900000);     // USB HOST CONTROLLLER
-    MMU_MAP_SECTION_DEV(0x4A000000,0x04A00000);     // INTERRUPT CONTROLLER
-    MMU_MAP_SECTION_DEV(0x4B000000,0x04B00000);     // DMA
-    MMU_MAP_SECTION_DEV(0x4C000000,0x04C00000);     // CLOCK
-    MMU_MAP_SECTION_DEV(0x4D000000,0x04D00000);     // LCD
-    MMU_MAP_SECTION_DEV(0x4E000000,0x04E00000);     // NAND
-    MMU_MAP_SECTION_DEV(0x50000000,0x05000000);     // UART
-    MMU_MAP_SECTION_DEV(0x51000000,0x05100000);     // PWM TIMERS
-    MMU_MAP_SECTION_DEV(0x52000000,0x05200000);     // USB DEVICE
-    MMU_MAP_SECTION_DEV(0x53000000,0x05300000);     // WATCHDOG
-    MMU_MAP_SECTION_DEV(0x54000000,0x05400000);     // I2C
-    MMU_MAP_SECTION_DEV(0x55000000,0x05500000);     // I2S
-    MMU_MAP_SECTION_DEV(0x56000000,0x05600000);     // GPIO
-    MMU_MAP_SECTION_DEV(0x57000000,0x05700000);     // RTC
-    MMU_MAP_SECTION_DEV(0x58000000,0x05800000);     // ADC
-    MMU_MAP_SECTION_DEV(0x59000000,0x05900000);     // SPI
-    MMU_MAP_SECTION_DEV(0x5A000000,0x05A00000);     // SD/MMC
-
-
-
-
+    MMU_MAP_SECTION_DEV(0x48000000, 0x04800000);        // MEMORY CONTROLLLER
+    MMU_MAP_SECTION_DEV(0x49000000, 0x04900000);        // USB HOST CONTROLLLER
+    MMU_MAP_SECTION_DEV(0x4A000000, 0x04A00000);        // INTERRUPT CONTROLLER
+    MMU_MAP_SECTION_DEV(0x4B000000, 0x04B00000);        // DMA
+    MMU_MAP_SECTION_DEV(0x4C000000, 0x04C00000);        // CLOCK
+    MMU_MAP_SECTION_DEV(0x4D000000, 0x04D00000);        // LCD
+    MMU_MAP_SECTION_DEV(0x4E000000, 0x04E00000);        // NAND
+    MMU_MAP_SECTION_DEV(0x50000000, 0x05000000);        // UART
+    MMU_MAP_SECTION_DEV(0x51000000, 0x05100000);        // PWM TIMERS
+    MMU_MAP_SECTION_DEV(0x52000000, 0x05200000);        // USB DEVICE
+    MMU_MAP_SECTION_DEV(0x53000000, 0x05300000);        // WATCHDOG
+    MMU_MAP_SECTION_DEV(0x54000000, 0x05400000);        // I2C
+    MMU_MAP_SECTION_DEV(0x55000000, 0x05500000);        // I2S
+    MMU_MAP_SECTION_DEV(0x56000000, 0x05600000);        // GPIO
+    MMU_MAP_SECTION_DEV(0x57000000, 0x05700000);        // RTC
+    MMU_MAP_SECTION_DEV(0x58000000, 0x05800000);        // ADC
+    MMU_MAP_SECTION_DEV(0x59000000, 0x05900000);        // SPI
+    MMU_MAP_SECTION_DEV(0x5A000000, 0x05A00000);        // SD/MMC
 
 }
 
@@ -479,46 +459,43 @@ __ARM_MODE__ void __SVM_enable_mmu()
     asm volatile ("mcr p15,0,r0,c3,c0,0");      // SET R/W ACCESS PERMISSIONS FOR ALL DOMAINS
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-    asm volatile ("orr r0,r0,#5");              // ENABLE MMU AND DATA CACHESx49gp->env->regs[15]==0x5570
-    asm volatile ("orr r0,r0,#0x1000");         // ENABLE INSTRUCTION CACHE
+    asm volatile ("orr r0,r0,#5");      // ENABLE MMU AND DATA CACHESx49gp->env->regs[15]==0x5570
+    asm volatile ("orr r0,r0,#0x1000"); // ENABLE INSTRUCTION CACHE
 
     asm volatile ("mcr p15, 0, r0, c1, c0, 0");
 
-    asm volatile ("mov r0,r0");                 // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
+    asm volatile ("mov r0,r0"); // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
     asm volatile ("mov r0,r0");
 
-
 }
-
 
 // ALL CACHES AND TLB MUST BE FLUSHED BEFORE DISABLING MMU
 __ARM_MODE__ void __SVM_disable_mmu()
 {
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-    asm volatile ("bic r0,r0,#5");              // DISABLE MMU AND DATA CACHES
-    asm volatile ("bic r0,r0,#0x1000");         // DISABLE INSTRUCTION CACHE
+    asm volatile ("bic r0,r0,#5");      // DISABLE MMU AND DATA CACHES
+    asm volatile ("bic r0,r0,#0x1000"); // DISABLE INSTRUCTION CACHE
 
     asm volatile ("mcr p15, 0, r0, c1, c0, 0");
 
-    asm volatile ("mov r0,r0");                 // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
+    asm volatile ("mov r0,r0"); // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
     asm volatile ("mov r0,r0");
 
 }
-
 
 __ARM_MODE__ static void __SVM_flush_Dcache(void)
 {
     register unsigned int counter asm("r2");
     register unsigned int cacheaddr asm("r3");
 
-    counter=0;
-    while(counter<512) {
-    cacheaddr=((counter>>1)&0xe0) | ((counter&63)<<26);
-    // CLEAN AND INVALIDATE ENTRY USING INDEX
-    asm volatile ("mcr p15, 0, %0, c7, c14, 2" : : "r" (cacheaddr));
+    counter = 0;
+    while(counter < 512) {
+        cacheaddr = ((counter >> 1) & 0xe0) | ((counter & 63) << 26);
+        // CLEAN AND INVALIDATE ENTRY USING INDEX
+        asm volatile ("mcr p15, 0, %0, c7, c14, 2"::"r" (cacheaddr));
 
-    ++counter;
+        ++counter;
     }
 
 }
@@ -529,8 +506,8 @@ __ARM_MODE__ static void __SVM_flush_Icache(void)
 
     register unsigned int value;
 
-    value=0;
-    asm volatile ("mcr p15, 0, %0, c7, c5, 0" : : "r" (value));
+    value = 0;
+    asm volatile ("mcr p15, 0, %0, c7, c5, 0"::"r" (value));
 
 }
 
@@ -540,11 +517,10 @@ __ARM_MODE__ static void __SVM_flush_TLB(void)
 
     register unsigned int value;
 
-    value=0;
-    asm volatile ("mcr p15, 0, %0, c8, c7, 0" : : "r" (value));
+    value = 0;
+    asm volatile ("mcr p15, 0, %0, c8, c7, 0"::"r" (value));
 
 }
-
 
 inline unsigned int get_swivector_phys()
 {
@@ -558,16 +534,15 @@ inline unsigned int get_swivector()
 
 inline void set_swivector(void *handler)
 {
-    void **ptr=(void **)0x02000008;
-    *ptr=handler;
+    void **ptr = (void **)0x02000008;
+    *ptr = handler;
 }
 
 inline void set_swivector_phys(void *handler)
 {
-    void **ptr=(void **)0x08000008;
-    *ptr=handler;
+    void **ptr = (void **)0x08000008;
+    *ptr = handler;
 }
-
 
 __ARM_MODE__ void set_stackall()
 {
@@ -595,7 +570,7 @@ __ARM_MODE__ void set_stackall()
 
     switch_mode(SYS_MODE);
 
-    asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
+    asm volatile ("nop");       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
 __ARM_MODE__ void reset_stackall()
@@ -624,7 +599,7 @@ __ARM_MODE__ void reset_stackall()
 
     switch_mode(SYS_MODE);
 
-    asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
+    asm volatile ("nop");       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
 __ARM_MODE__ void enable_mmu()
@@ -639,9 +614,8 @@ __ARM_MODE__ void enable_mmu()
     __SVM_enable_mmu();
 
 // MOVE USER STACK TO VIRTUAL MEMORY, NEEDED HERE TO BE ABLE TO RETURN
-   asm volatile ("bic sp,sp,#0xff000000");
-   asm volatile ("orr sp,sp,#0x03000000");
-
+    asm volatile ("bic sp,sp,#0xff000000");
+    asm volatile ("orr sp,sp,#0x03000000");
 
 }
 
@@ -657,14 +631,12 @@ __ARM_MODE__ void disable_mmu()
     __SVM_disable_mmu();
 
 // MOVE USER STACK TO PHYSICAL MEMORY, NEEDED HERE TO BE ABLE TO RETURN
-   asm volatile ("bic sp,sp,#0xff000000");
-   asm volatile ("orr sp,sp,#0x40000000");
+    asm volatile ("bic sp,sp,#0xff000000");
+    asm volatile ("orr sp,sp,#0x40000000");
 
     __SVM_flush_TLB();
 
 }
-
-
 
 // THIS FUNCTION REBOOTS THE RPL CORE COMPLETELY
 // ALL ELEMENTS IN THE STACK WILL BE LOST
@@ -689,15 +661,13 @@ void halWarmStart()
 void halWipeoutWarmStart()
 {
 
-    int *mmutable=(int *)MEM_REVERSEMMU;
+    int *mmutable = (int *)MEM_REVERSEMMU;
 
     // INVALIDATE MMU TABLE TO CAUSE A WIPEOUT
-    *mmutable=0;
+    *mmutable = 0;
 
     halWarmStart();
 }
-
-
 
 void halReset()
 {
@@ -706,7 +676,7 @@ void halReset()
 
     usb_shutdown();
 
-   // PUT THE CPU IN A KNOWN SLOW SPEED
+    // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);
 
     // MAKE SURE ALL WRITE BUFFERS ARE PROPERLY FLUSHED
@@ -715,10 +685,9 @@ void halReset()
     __SVM_flush_Icache();
     __SVM_flush_TLB();
 
-
     // SET THE PRESCALER OF THE WATCHDOG AS FAST AS POSSIBLE AND A REASONABLE COUNT (ABOUT 87ms)
-   *HWREG(WDT_REGS,8)=0x8000;
-   *HWREG(WDT_REGS,0)=0x21;
+    *HWREG(WDT_REGS, 8) = 0x8000;
+    *HWREG(WDT_REGS, 0) = 0x21;
 
     // AND WAIT FOR IT TO HAPPEN
     while(1);
@@ -737,13 +706,10 @@ void halEnterPowerOff()
     FSShutdown();
 #endif
 
-
     __rtc_poweroff();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);
-
-
 
     // WAIT FOR ALL KEYS TO BE RELEASED
     __keyb_waitrelease();
@@ -759,7 +725,6 @@ void halEnterPowerOff()
     // AND GO DIE
     //startup(0);
     //enable_interrupts();
-
 
     cpu_off_die();
 

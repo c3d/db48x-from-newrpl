@@ -5,58 +5,53 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
 #include <QFile>
 #include "rplthread.h"
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class MainWindow;
 }
 
-class USBThread : public QThread
+class USBThread:public QThread
 {
-    Q_OBJECT
-public:
+  Q_OBJECT public:
     void run();
 
-    USBThread(QObject *parent);
-    ~USBThread();
+        USBThread(QObject * parent);
+       ~USBThread();
 };
 
-
-class MainWindow : public QMainWindow
+class MainWindow:public QMainWindow
 {
-    Q_OBJECT
-
-    QTimer *screentmr;
+    Q_OBJECT QTimer * screentmr;
     QFile sdcard;
     QString currentfile;
-    QString currentusb,currentusbpath;
+    QString currentusb, currentusbpath;
     RPLThread rpl;
     USBThread usbdriver;
     bool nousbupdate;
 
-public:
-    QFile *fileptr;
+  public:
+        QFile * fileptr;
 
     static int WriteWord(unsigned int word);
     static unsigned int ReadWord();
 
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-protected:
-    virtual void keyPressEvent(QKeyEvent *ev);
-    virtual void keyReleaseEvent(QKeyEvent *ev);
-    void closeEvent(QCloseEvent *event);
-    bool eventFilter(QObject *obj, QEvent *ev);
-    void resizeEvent(QResizeEvent *event);
-    void contextMenuEvent(QContextMenuEvent *event);
+    explicit MainWindow(QWidget * parent = 0);
+       ~MainWindow();
+  protected:
+        virtual void keyPressEvent(QKeyEvent * ev);
+    virtual void keyReleaseEvent(QKeyEvent * ev);
+    void closeEvent(QCloseEvent * event);
+    bool eventFilter(QObject * obj, QEvent * ev);
+    void resizeEvent(QResizeEvent * event);
+    void contextMenuEvent(QContextMenuEvent * event);
 
-public slots:
-    void on_EmuScreen_destroyed();
+    public slots: void on_EmuScreen_destroyed();
     void on_actionExit_triggered();
 
     void on_actionSave_triggered();
@@ -89,10 +84,7 @@ public slots:
 
     void on_actionConnect_to_calc_triggered();
 
-
-
     void on_usbconnectButton_clicked();
-
 
     void on_actionUSB_Remote_ARCHIVE_to_file_triggered();
 
@@ -100,18 +92,14 @@ public slots:
 
     void on_actionShow_LCD_grid_toggled(bool arg1);
 
+    public slots:void usbupdate();
+    private slots: void on_actionPaste_and_compile_triggered();
 
-public slots:
-    void usbupdate();
-private slots:
-
-    void on_actionPaste_and_compile_triggered();
-
-private:
+  private:
     int OpenFile(QString fname);
     void SaveFile(QString fname);
 
-    Ui::MainWindow *ui;
+        Ui::MainWindow * ui;
 };
 
 #endif // MAINWINDOW_H

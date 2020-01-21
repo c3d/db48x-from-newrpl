@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #ifndef RTC_H
 #define RTC_H
 
@@ -14,48 +13,55 @@ static const unsigned char const month_days[] = {
 };
 
 // REAL TIME CLOCK CONTROL (RTCCON) REGISTER
-union rtccon {
-    unsigned char byte;         // Represents all fields.
-    struct {
-    unsigned int  rtcen  : 1,   // RTC control enable.
-                  clksel : 1,   // BCD clock select.
-                  cntsel : 1,   // BCD count select.
-                  clkrst : 1;   // RTC clock count reset.
+union rtccon
+{
+    unsigned char byte; // Represents all fields.
+    struct
+    {
+        unsigned int rtcen:1,   // RTC control enable.
+            clksel:1,   // BCD clock select.
+            cntsel:1,   // BCD count select.
+            clkrst:1;   // RTC clock count reset.
     };
 };
 
 // RTC ALARM CONTROL (RTCALM) REGISTER
-union rtcalm {
-    unsigned char byte;         // Represents all fields.
-    struct {
-    unsigned int  secen  : 1,   // Second alarm enable.
-                  minen  : 1,   // Minute alarm enable.
-                  houren : 1,   // Hour alarm enable.
-                  dateen : 1,   // Date alarm enable.
-                  monen  : 1,   // Month alarm enable.
-                  yearen : 1,   // Year alarm enable.
-                  almen  : 1;   // Alarm global enable.
+union rtcalm
+{
+    unsigned char byte; // Represents all fields.
+    struct
+    {
+        unsigned int secen:1,   // Second alarm enable.
+            minen:1,    // Minute alarm enable.
+            houren:1,   // Hour alarm enable.
+            dateen:1,   // Date alarm enable.
+            monen:1,    // Month alarm enable.
+            yearen:1,   // Year alarm enable.
+            almen:1;    // Alarm global enable.
     };
 };
 
 // TICK TIME COUNT (TICNT) REGISTER
-union ticnt {
-    unsigned char byte;         // Represents all fields.
-    struct {
-    unsigned int  count  : 7,   // Tick time count value (1~127).
-                  enable : 1;   // Tick time interrupt enable.
+union ticnt
+{
+    unsigned char byte; // Represents all fields.
+    struct
+    {
+        unsigned int count:7,   // Tick time count value (1~127).
+            enable:1;   // Tick time interrupt enable.
     };
 };
 
 // RTC ROUND RESET (RTCRST) REGISTER
-union rtcrst {
-    unsigned char byte;         // Represents all fields.
-    struct {
-    unsigned int  seccr  : 3,   // Round boundary for second carry generation.
-                  srsten : 1;   // Round second reset enable.
+union rtcrst
+{
+    unsigned char byte; // Represents all fields.
+    struct
+    {
+        unsigned int seccr:3,   // Round boundary for second carry generation.
+            srsten:1;   // Round second reset enable.
     };
 };
-
 
 // INTERRUPT SERVICE NUMBER
 #define INT_TICK        8
@@ -138,4 +144,3 @@ union rtcrst {
 #define __setRTCYear(v) __setRTCVal(BCDYEAR, v)
 
 #endif // RTC_H
-

@@ -11,31 +11,34 @@
 
 // DETECT IF A VOLUME IS STILL PRESENT
 
-int FSVolumePresent(FS_VOLUME *fs)
+int FSVolumePresent(FS_VOLUME * fs)
 {
-int f;
+    int f;
 
-if(!SDCardInserted()) return FS_NOCARD;
+    if(!SDCardInserted())
+        return FS_NOCARD;
 
-SDSelect(0);
-if(SDSelect(fs->Disk->Rca)) return FS_OK;		// RCA IS VALID--> CARD WAS NEVER REMOVED
+    SDSelect(0);
+    if(SDSelect(fs->Disk->Rca))
+        return FS_OK;   // RCA IS VALID--> CARD WAS NEVER REMOVED
 // CARD WAS REMOVED, RESET CARD
-SD_CARD newcard;
-if(!SDCardInit(&newcard)) return FS_NOCARD;
+    SD_CARD newcard;
+    if(!SDCardInit(&newcard))
+        return FS_NOCARD;
 
 // CARD MAY HAVE BEEN REMOVED AND REINSERTED
-for(f=0;f<4;++f)
-{
-if(newcard.CID[f]!=fs->Disk->CID[f]) {
+    for(f = 0; f < 4; ++f) {
+        if(newcard.CID[f] != fs->Disk->CID[f]) {
 // IT'S A DIFFERENT CARD
-return FS_CHANGED;
-}
-}
+            return FS_CHANGED;
+        }
+    }
 
 // SAME CARD WAS OUT AND BACK IN
-fs->Disk->Rca=newcard.Rca;
-if(SDSelect(fs->Disk->Rca)) return FS_OK;
-return FS_ERROR;
+    fs->Disk->Rca = newcard.Rca;
+    if(SDSelect(fs->Disk->Rca))
+        return FS_OK;
+    return FS_ERROR;
 }
 
 #endif

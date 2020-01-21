@@ -5,18 +5,19 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
 int FSGetVolumeSize(int Volnumber)
 {
-int error=FSInit();
-if(error!=FS_OK) return error;
+    int error = FSInit();
+    if(error != FS_OK)
+        return error;
 
-if(FSystem.Volumes[Volnumber]==NULL) return 0;
-return FSystem.Volumes[Volnumber]->TotalSectors;
+    if(FSystem.Volumes[Volnumber] == NULL)
+        return 0;
+    return FSystem.Volumes[Volnumber]->TotalSectors;
 
 }
 #endif

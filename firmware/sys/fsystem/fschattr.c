@@ -7,37 +7,37 @@
 
 #include "fsyspriv.h"
 
-
 #ifndef CONFIG_NO_FSYSTEM
 
-
-
-int FSChAttr(FS_FILE *file,int newattr)
+int FSChAttr(FS_FILE * file, int newattr)
 {
-int error;
+    int error;
 
-if(!FSystem.Init) return FS_ERROR;
+    if(!FSystem.Init)
+        return FS_ERROR;
 
-if(file==NULL) return FS_ERROR;
+    if(file == NULL)
+        return FS_ERROR;
 
-if(file->Volume&(~3)) return FS_ERROR;		// INVALID VOLUME --> FILE STRUCTURE CORRUPT
+    if(file->Volume & (~3))
+        return FS_ERROR;        // INVALID VOLUME --> FILE STRUCTURE CORRUPT
 
-
-if( (file->Mode&FSMODE_WRITE) && (newattr&FSATTR_RDONLY)) {
+    if((file->Mode & FSMODE_WRITE) && (newattr & FSATTR_RDONLY)) {
 
 // FINISH A WRITING SESSION
 
-error=FSFlushBuffers(file);
-if(error!=FS_OK) { return error; }
+        error = FSFlushBuffers(file);
+        if(error != FS_OK) {
+            return error;
+        }
 
-file->Mode&=~(FSMODE_WRITE|FSMODE_MODIFY|FSMODE_APPEND);	// DISABLE ALL WRITE MODES
+        file->Mode &= ~(FSMODE_WRITE | FSMODE_MODIFY | FSMODE_APPEND);  // DISABLE ALL WRITE MODES
 
+    }
+
+    file->Attr = newattr;
+
+    return FS_OK;
 }
-
-file->Attr=newattr;
-
-return FS_OK;
-}
-
 
 #endif

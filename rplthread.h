@@ -5,19 +5,18 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef RPLTHREAD_H
 #define RPLTHREAD_H
 
 #include <QThread>
 
-class RPLThread : public QThread
+class RPLThread:public QThread
 {
-public:
+  public:
     void run();
 
-    RPLThread(QObject *parent);
-    ~RPLThread();
+        RPLThread(QObject * parent);
+       ~RPLThread();
 };
 
 #endif // RPLTHREAD_H

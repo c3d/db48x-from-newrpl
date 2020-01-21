@@ -9,19 +9,14 @@
 #define MACRONANToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_NOTANUMBER; RReg[n].len=1; }
 #define MACROInfToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_INFINITY; RReg[n].len=1; }
 
-
 /*
 int main()
 {
-
-
 
     // INITIALIZE REGISTERS STORAGE
 
     int k,j;
     BINT extranumber[REAL_REGISTER_STORAGE];
-
-
 
     initContext(TEST_DIGITS);
 
@@ -30,13 +25,10 @@ int main()
         newRealFromBINT(&RReg[k],0,0);
     }
 
-
    clock_t start,end;
-
 
     // ************************************************************************************
     // NORMALIZATION TEST
-
 
     start=clock();
 

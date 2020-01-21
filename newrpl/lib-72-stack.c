@@ -13,8 +13,6 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  72
 
@@ -22,7 +20,6 @@
 
 #define ERROR_LIST \
     ERR(BADSTACKINDEX,0)
-
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -61,17 +58,13 @@
     CMD(STKPICK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(STKDEPTH,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
-
-
 // ADD MORE OPCODES HERE
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -84,56 +77,50 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 
 INCLUDE_ROMOBJECT(lib72menu_main);
 
-ROMOBJECT unprotect_seco[]={
-    MKPROLOG(DOCOL,2),
-    MKOPCODE(LIBRARY_NUMBER,UNPROTECTSTACK),
+ROMOBJECT unprotect_seco[] = {
+    MKPROLOG(DOCOL, 2),
+    MKOPCODE(LIBRARY_NUMBER, UNPROTECTSTACK),
     CMD_SEMI
 };
 
-
-ROMOBJECT ift_seco[]={
-    MKPROLOG(DOCOL,7),
+ROMOBJECT ift_seco[] = {
+    MKPROLOG(DOCOL, 7),
     (CMD_IF),
     (CMD_THEN),
     (CMD_SWAP),
     (CMD_DROP),
-    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_OVR_XEQ),      // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
     (CMD_ENDIF),
     CMD_SEMI
 };
 
-
-ROMOBJECT ifte_seco[]={
-    MKPROLOG(DOCOL,12),
+ROMOBJECT ifte_seco[] = {
+    MKPROLOG(DOCOL, 12),
     (CMD_IF),
     (CMD_THEN),
     (CMD_DROP),
     (CMD_SWAP),
     (CMD_DROP),
-    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_OVR_XEQ),      // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
     (CMD_ELSE),
     (CMD_UNROT),
     (CMD_DROP2),
-    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_OVR_XEQ),      // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
     (CMD_ENDIF),
     CMD_SEMI
 };
 
-
-
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib72menu_main,
-    (WORDPTR)unprotect_seco,
-    (WORDPTR)ift_seco,
-    (WORDPTR)ifte_seco,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib72menu_main,
+    (WORDPTR) unprotect_seco,
+    (WORDPTR) ift_seco,
+    (WORDPTR) ifte_seco,
     0
 };
-
-
 
 void LIB_HANDLER()
 {
@@ -144,106 +131,112 @@ void LIB_HANDLER()
     }
 
     // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
         // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
         // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
-        if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                (OPCODE(CurOpcode)==OVR_EVAL1)||
-                (OPCODE(CurOpcode)==OVR_XEQ) )
-        {
+        if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                (OPCODE(CurOpcode) == OVR_XEQ)) {
             // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
 
-            WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            WORD saveOpcode = CurOpcode;
+            CurOpcode = *rplPopData();
             // RECURSIVE CALL
             LIB_HANDLER();
-            CurOpcode=saveOpcode;
+            CurOpcode = saveOpcode;
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
     case CLEAR:
         //@SHORT_DESC=Remove all objects from the stack
         // ONLY CLEAR UP TO THE STACK PROTECTED AREA
         // DON'T THROW AN ERROR
-        DSTop=DStkProtect;
+        DSTop = DStkProtect;
         return;
     case DEPTH:
         //@SHORT_DESC=Get the current stack depth
-        rplNewBINTPush(rplDepthData(),DECBINT);
+        rplNewBINTPush(rplDepthData(), DECBINT);
         return;
     case DROP:
         //@SHORT_DESC=Remove an object from the stack
-        if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         rplDropData(1);
         return;
     case DROP2:
         //@SHORT_DESC=Remove two objects form the stack
-        if(rplDepthData()<2) { rplError(ERR_BADARGCOUNT); return; }
+        if(rplDepthData() < 2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         rplDropData(2);
         return;
     case DROPN:
     {
         //@SHORT_DESC=Remove N objects from the stack
-        if(rplDepthData()<1) {
-        rplError(ERR_BADARGCOUNT);
-         return;
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
         }
-        BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
-        if(count<0 || rplDepthData()<count+1) {
+        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
+        if(count < 0 || rplDepthData() < count + 1) {
             rplError(ERR_BADSTACKINDEX);
             return;
         }
-        rplDropData(count+1);
+        rplDropData(count + 1);
         return;
     }
     case DUP:
         //@SHORT_DESC=Duplicate an object on the stack
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
-         return;
+            return;
         }
         rplPushData(rplPeekData(1));
         return;
     case DUP2:
         //@SHORT_DESC=Duplicate two objects on the stack
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         return;
     case DUPDUP:
         //@SHORT_DESC=Duplicate the same object twice on the stack
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
         rplPushData(rplPeekData(1));
         rplPushData(rplPeekData(1));
@@ -251,211 +244,221 @@ void LIB_HANDLER()
     case DUPN:
     {
         //@SHORT_DESC=Duplicate a group of N objects
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
-        if(count<0 || rplDepthData()<count+1) {
+        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
+        if(count < 0 || rplDepthData() < count + 1) {
             rplError(ERR_BADSTACKINDEX);
 
             return;
         }
         rplDropData(1);
         BINT64 f;
-        for(f=0;f<count;++f) {
+        for(f = 0; f < count; ++f) {
             rplPushData(rplPeekData(count));
-            if(Exceptions) return;
+            if(Exceptions)
+                return;
         }
         return;
     }
     case NDUPN:
     {
         //@SHORT_DESC=Replicate one object N times and return N
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
-        if(count<0) {
+        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
+        if(count < 0) {
             rplError(ERR_BADSTACKINDEX);
 
             return;
         }
         rplDropData(1);
         BINT64 f;
-        for(f=1;f<count;++f) {
+        for(f = 1; f < count; ++f) {
             rplPushData(rplPeekData(1));
-            if(Exceptions) return;
+            if(Exceptions)
+                return;
         }
-        rplNewBINTPush(count,DECBINT);
+        rplNewBINTPush(count, DECBINT);
         return;
     }
     case NIP:
         //@SHORT_DESC=Remove object at level 2 on the stack
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        rplOverwriteData(2,rplPeekData(1));
+        rplOverwriteData(2, rplPeekData(1));
         rplDropData(1);
         return;
 
     case OVER:
         //@SHORT_DESC=Duplicate object at level 2 on the stack
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
         rplPushData(rplPeekData(2));
         return;
     case PICK:
     {
         //@SHORT_DESC=Duplicate object at position N on the stack
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
 
-        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
-        if( (level<1) || (rplDepthData()<1+level)) {
+        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
+        if((level < 1) || (rplDepthData() < 1 + level)) {
             rplError(ERR_BADSTACKINDEX);
 
-         return;
+            return;
         }
 
-        rplOverwriteData(1,rplPeekData(1+level));
+        rplOverwriteData(1, rplPeekData(1 + level));
 
         return;
     }
     case PICK3:
         //@SHORT_DESC=Duplicate object at level 3 on the stack
-        if(rplDepthData()<3) {
+        if(rplDepthData() < 3) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
         rplPushData(rplPeekData(3));
         return;
     case ROLL:
     {
         //@SHORT_DESC=Move object at level N to level 1
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
 
-        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
+        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
 
-        if( (level<1) || (rplDepthData()<1+level)) {
+        if((level < 1) || (rplDepthData() < 1 + level)) {
             rplError(ERR_BADSTACKINDEX);
 
-         return;
+            return;
         }
 
         rplDropData(1);
 
-        WORDPTR objn=rplPeekData(level);
-        WORDPTR *stkptr=DSTop-level;
+        WORDPTR objn = rplPeekData(level);
+        WORDPTR *stkptr = DSTop - level;
 
         BINT64 count;
-        for(count=1;count<level;++count,++stkptr) *stkptr=*(stkptr+1);
+        for(count = 1; count < level; ++count, ++stkptr)
+            *stkptr = *(stkptr + 1);
 
-        rplOverwriteData(1,objn);
+        rplOverwriteData(1, objn);
 
         return;
-     }
+    }
     case ROLLD:
     {
         //@SHORT_DESC=Move object from level 1 to level N
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
 
-        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
+        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
 
-        if( (level<1) || (rplDepthData()<1+level)) {
+        if((level < 1) || (rplDepthData() < 1 + level)) {
             rplError(ERR_BADSTACKINDEX);
 
-         return;
+            return;
         }
 
         rplDropData(1);
 
-        WORDPTR objn=rplPeekData(1);
-        WORDPTR *stkptr=DSTop-1;
+        WORDPTR objn = rplPeekData(1);
+        WORDPTR *stkptr = DSTop - 1;
 
         BINT64 count;
-        for(count=1;count<level;++count,--stkptr) *stkptr=*(stkptr-1);
+        for(count = 1; count < level; ++count, --stkptr)
+            *stkptr = *(stkptr - 1);
 
-        rplOverwriteData(level,objn);
+        rplOverwriteData(level, objn);
 
         return;
-     }
+    }
     case ROT:
     {
         //@SHORT_DESC=Move object from level 3 to level 1
-        if(rplDepthData()<3) {
+        if(rplDepthData() < 3) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        WORDPTR obj1=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(3));
-        rplOverwriteData(3,rplPeekData(2));
-        rplOverwriteData(2,obj1);
+        WORDPTR obj1 = rplPeekData(1);
+        rplOverwriteData(1, rplPeekData(3));
+        rplOverwriteData(3, rplPeekData(2));
+        rplOverwriteData(2, obj1);
         return;
     }
 
     case SWAP:
     {
         //@SHORT_DESC=Exchange objects in levels 1 and 2
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        WORDPTR obj=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(2));
-        rplOverwriteData(2,obj);
+        WORDPTR obj = rplPeekData(1);
+        rplOverwriteData(1, rplPeekData(2));
+        rplOverwriteData(2, obj);
         return;
     }
 
     case UNPICK:
     {
         //@SHORT_DESC=Move object from level 1 to level N.
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
 
-        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
+        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
 
-        if( (level<1) || (rplDepthData()<2+level)) {
+        if((level < 1) || (rplDepthData() < 2 + level)) {
             rplError(ERR_BADSTACKINDEX);
 
-         return;
+            return;
         }
 
-        WORDPTR obj=rplPeekData(2);
+        WORDPTR obj = rplPeekData(2);
         rplDropData(2);
 
-        rplOverwriteData(level,obj);
+        rplOverwriteData(level, obj);
 
         return;
     }
@@ -463,159 +466,174 @@ void LIB_HANDLER()
     case UNROT:
     {
         //@SHORT_DESC=Move object from level 1 to level 3
-        if(rplDepthData()<3) {
+        if(rplDepthData() < 3) {
             rplError(ERR_BADARGCOUNT);
 
-         return;
+            return;
         }
-        WORDPTR obj1=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(2));
-        rplOverwriteData(2,rplPeekData(3));
-        rplOverwriteData(3,obj1);
+        WORDPTR obj1 = rplPeekData(1);
+        rplOverwriteData(1, rplPeekData(2));
+        rplOverwriteData(2, rplPeekData(3));
+        rplOverwriteData(3, obj1);
         return;
     }
-
 
     case UNPROTECTSTACK:
     {
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
-        BINT protlevel=(BINT) ((WORDPTR *)rplPopRet()-DStk);
-        if((DStkBottom+protlevel>=DStkBottom) && (DStkBottom+protlevel<DSTop) )  DStkProtect=DStkBottom+protlevel;
-        else DStkProtect=DStkBottom;
+        BINT protlevel = (BINT) ((WORDPTR *) rplPopRet() - DStk);
+        if((DStkBottom + protlevel >= DStkBottom)
+                && (DStkBottom + protlevel < DSTop))
+            DStkProtect = DStkBottom + protlevel;
+        else
+            DStkProtect = DStkBottom;
         return;
     }
 
-
-
     case IFT:
-     {
+    {
         //@SHORT_DESC=Evaluate objects on the stack conditionally
-         if(rplDepthData()<2) {
-             rplError(ERR_BADARGCOUNT);
-             return;
-         }
+        if(rplDepthData() < 2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-        WORDPTR *savestk=DSTop;
+        WORDPTR *savestk = DSTop;
 
         rplPushData(rplPeekData(2));
-        if(Exceptions) { DSTop=savestk; return; }
+        if(Exceptions) {
+            DSTop = savestk;
+            return;
+        }
 
-         WORDPTR *rstopsave=RSTop;
-         rplPushRet(IPtr);
-         rplCallOvrOperator(CMD_OVR_ISTRUE);
-         if(Exceptions) { DSTop=savestk; RSTop=rstopsave; return; }
-         if(IPtr!=*rstopsave) {
-             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-             rstopsave[1]=(WORDPTR)ift_seco+1;   // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
-             return;
-         }
-         RSTop=rstopsave;
-         // IT WAS AN ATOMIC OPERATION
-             // DIRECT EXECUTION
+        WORDPTR *rstopsave = RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
+        if(Exceptions) {
+            DSTop = savestk;
+            RSTop = rstopsave;
+            return;
+        }
+        if(IPtr != *rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1] = (WORDPTR) ift_seco + 1;      // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
+            return;
+        }
+        RSTop = rstopsave;
+        // IT WAS AN ATOMIC OPERATION
+        // DIRECT EXECUTION
 
-             if(rplIsFalse(rplPopData())) {
-                 rplDropData(2);
-                 return;
-             }
+        if(rplIsFalse(rplPopData())) {
+            rplDropData(2);
+            return;
+        }
 
-             rplOverwriteData(2,rplPeekData(1));
-             rplDropData(1);
-             rplCallOvrOperator(CMD_OVR_XEQ);
-             return;
+        rplOverwriteData(2, rplPeekData(1));
+        rplDropData(1);
+        rplCallOvrOperator(CMD_OVR_XEQ);
+        return;
 
-     }
+    }
 
-
-     case IFTE:
-     {
+    case IFTE:
+    {
         //@SHORT_DESC=Evaluate objects on the stack conditionally
-         if(rplDepthData()<3) {
-             rplError(ERR_BADARGCOUNT);
-             return;
-         }
+        if(rplDepthData() < 3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
-         WORDPTR *savestk=DSTop;
+        WORDPTR *savestk = DSTop;
 
-         rplPushData(rplPeekData(3));
-         if(Exceptions) { DSTop=savestk; return; }
+        rplPushData(rplPeekData(3));
+        if(Exceptions) {
+            DSTop = savestk;
+            return;
+        }
 
-          WORDPTR *rstopsave=RSTop;
-          rplPushRet(IPtr);
-          rplCallOvrOperator(CMD_OVR_ISTRUE);
-          if(Exceptions) { DSTop=savestk; RSTop=rstopsave; return; }
-          if(IPtr!=*rstopsave) {
-              // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-              rstopsave[1]=(WORDPTR)ifte_seco+1;   // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
-              return;
-          }
-          RSTop=rstopsave;
-          // IT WAS AN ATOMIC OPERATION
+        WORDPTR *rstopsave = RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
+        if(Exceptions) {
+            DSTop = savestk;
+            RSTop = rstopsave;
+            return;
+        }
+        if(IPtr != *rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1] = (WORDPTR) ifte_seco + 1;     // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
+            return;
+        }
+        RSTop = rstopsave;
+        // IT WAS AN ATOMIC OPERATION
 
-             // DIRECT EXECUTION
+        // DIRECT EXECUTION
 
-             if(rplIsFalse(rplPopData())) rplOverwriteData(3,rplPeekData(1));
-             else rplOverwriteData(3,rplPeekData(2));
-             rplDropData(2);
-             rplCallOvrOperator(CMD_OVR_XEQ);
-             return;
+        if(rplIsFalse(rplPopData()))
+            rplOverwriteData(3, rplPeekData(1));
+        else
+            rplOverwriteData(3, rplPeekData(2));
+        rplDropData(2);
+        rplCallOvrOperator(CMD_OVR_XEQ);
+        return;
 
-     }
-
+    }
 
     case STKPUSH:
     {
-     //@SHORT_DESC=Push a snapshot of the current stack on the undo stack
-     //@NEW
-     // PUSH CURRENT STACK TO UNDO STACK
-     rplTakeSnapshot();
-     return;
+        //@SHORT_DESC=Push a snapshot of the current stack on the undo stack
+        //@NEW
+        // PUSH CURRENT STACK TO UNDO STACK
+        rplTakeSnapshot();
+        return;
     }
     case STKPOP:
     {
         //@SHORT_DESC=Pop a stack snapshot from the undo stack
         //@NEW
-     rplRevertToSnapshot(1);
-     return;
+        rplRevertToSnapshot(1);
+        return;
     }
     case STKDROP:
     {
         //@SHORT_DESC=Drop a snapshot from the undo stack
         //@NEW
-     rplRemoveSnapshot(1);
-     return;
+        rplRemoveSnapshot(1);
+        return;
     }
-
 
     case STKPICK:
         //  PICK A VALUE FROM ANY SNAPSHOT
     {
         //@SHORT_DESC=Copy snapshot in level N to the current stack
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT64 snap,level;
+        BINT64 snap, level;
 
-        snap=rplReadNumberAsBINT(rplPeekData(2));
-        if(Exceptions) return;
-        level=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
+        snap = rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions)
+            return;
+        level = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
 
-        if( (snap<1) || (snap>rplCountSnapshots())) {
+        if((snap < 1) || (snap > rplCountSnapshots())) {
             rplError(ERR_BADSTACKINDEX);
             return;
         }
 
-        if( (level<1)||(level>rplDepthSnapshot(snap))) {
+        if((level < 1) || (level > rplDepthSnapshot(snap))) {
             rplError(ERR_BADSTACKINDEX);
             return;
         }
 
         rplDropData(1);
-        rplOverwriteData(1,rplPeekSnapshot(snap,level));
+        rplOverwriteData(1, rplPeekSnapshot(snap, level));
 
         return;
 
@@ -626,31 +644,31 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get the depth of the undo stack
         //@NEW
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         BINT64 snap;
 
-        snap=rplReadNumberAsBINT(rplPeekData(1));
-        if(Exceptions) return;
+        snap = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
+            return;
 
-        if( (snap<1) || (snap>rplCountSnapshots())) {
+        if((snap < 1) || (snap > rplCountSnapshots())) {
             rplError(ERR_BADSTACKINDEX);
             return;
         }
 
-        BINT depth=rplDepthSnapshot(snap);
+        BINT depth = rplDepthSnapshot(snap);
 
-        WORDPTR newbint=rplNewBINT(depth,DECBINT);
-        if(!newbint) return;
-        rplOverwriteData(1,newbint);
+        WORDPTR newbint = rplNewBINT(depth, DECBINT);
+        if(!newbint)
+            return;
+        rplOverwriteData(1, newbint);
 
         return;
 
     }
-
-
 
         // STANDARIZED OPCODES:
         // --------------------
@@ -667,12 +685,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-            // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
-            // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-     return;
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -685,7 +703,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -699,8 +717,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -717,12 +734,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -737,14 +754,15 @@ void LIB_HANDLER()
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
 
@@ -755,7 +773,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -763,7 +781,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -771,26 +789,32 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+            RetNum = ERR_INVALID;
+            return;
+        }
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
-
 
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) { RetNum=ERR_NOTMINE; return; }
+        if(MENUNUMBER(MenuCodeArg) > 0) {
+            RetNum = ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -798,8 +822,8 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
 
     case OPCODE_LIBMSG:
@@ -808,14 +832,13 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-       return;
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        return;
     }
 
-
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
@@ -824,8 +847,8 @@ void LIB_HANDLER()
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -833,8 +856,6 @@ void LIB_HANDLER()
 
     return;
 
-
 }
-
 
 #endif

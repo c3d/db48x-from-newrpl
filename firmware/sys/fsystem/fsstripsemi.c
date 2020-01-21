@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
@@ -13,11 +12,13 @@
 // STRIP TRAILING SEMICOLONS ON NAME
 void FSStripSemi(char *name)
 {
-char *ptr=name;
+    char *ptr = name;
 
-while(*ptr) ++ptr;
---ptr;
-while(*ptr==';' && ptr>=name) --ptr;
-ptr[1]=0;
+    while(*ptr)
+        ++ptr;
+    --ptr;
+    while(*ptr == ';' && ptr >= name)
+        --ptr;
+    ptr[1] = 0;
 }
 #endif

@@ -5,28 +5,28 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
-
 // ASSUME SEEK_... CONSTANTS ARE DEFINED SOMEWHERE ELSE
 // ACCEPTS SETTING OFFSET BEYOND END-OF-FILE
 
-int FSSeek(FS_FILE *file,int Offset,int position)
+int FSSeek(FS_FILE * file, int Offset, int position)
 {
-int from;
-from=0;
-if(position==FSSEEK_END) from=file->FileSize;
-if(position==FSSEEK_CUR) from=file->CurrentOffset;
+    int from;
+    from = 0;
+    if(position == FSSEEK_END)
+        from = file->FileSize;
+    if(position == FSSEEK_CUR)
+        from = file->CurrentOffset;
 
-from+=Offset;
+    from += Offset;
 
-if(from<0) from=0;
-file->CurrentOffset=from;
-return FS_OK;
+    if(from < 0)
+        from = 0;
+    file->CurrentOffset = from;
+    return FS_OK;
 
 }
 

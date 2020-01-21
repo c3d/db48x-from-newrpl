@@ -12,7 +12,6 @@
 
 extern "C" void rplShowRuntimeState(void);
 
-
 /*
 BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO << A 'A' LAMSTO >> A 'A' LAMSTO >> " // UNIT TEST: LAMS ACROSS SECONDARY BOUNDARIES ARE SEARCHED BY NAME, NOT GETLAM/PUTLAM
@@ -43,35 +42,30 @@ BYTEPTR testprogram=(BYTEPTR) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE 
  BYTEPTR testprogram=(BYTEPTR) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
 */
 
-
 // N-QUEENS WITH ALL CONSTANT NUMBERS AS REALS
-BYTEPTR testprogram=(BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
-                "  << "
-               " 1. R START 0. NEXT R ->LIST 'A' STO "
-               " DO "
-               "  'A' 'X' INCR R PUT "
-               "  DO "
-               "    'S' INCR DROP "
-               "   X 'Y' STO "
-               "   WHILE Y 1 > REPEAT "
-               "     A X GET A 'Y' DECR  GET - "
-               "     IF DUP 0. == SWAP ABS X Y - == OR THEN "
-               "       0. 'Y' STO "
-               "      'A' X A X GET 1. - PUT "
-               "       WHILE A X GET 0. == REPEAT "
-               "         'A' 'X' DECR A X GET 1. - PUT "
-               "       END "
-               "     END "
-               "   END "
-               "  UNTIL Y 1. == END "
-               " UNTIL X R == END "
-               " "
-               " S A "
-            " >> "
-          " >> "
-          " 'PRO' STO "
-          "     1 10 START PRO DROP DROP NEXT"
-          ;
+BYTEPTR testprogram = (BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
+        "  << "
+        " 1. R START 0. NEXT R ->LIST 'A' STO "
+        " DO "
+        "  'A' 'X' INCR R PUT "
+        "  DO "
+        "    'S' INCR DROP "
+        "   X 'Y' STO "
+        "   WHILE Y 1 > REPEAT "
+        "     A X GET A 'Y' DECR  GET - "
+        "     IF DUP 0. == SWAP ABS X Y - == OR THEN "
+        "       0. 'Y' STO "
+        "      'A' X A X GET 1. - PUT "
+        "       WHILE A X GET 0. == REPEAT "
+        "         'A' 'X' DECR A X GET 1. - PUT "
+        "       END "
+        "     END "
+        "   END "
+        "  UNTIL Y 1. == END "
+        " UNTIL X R == END "
+        " "
+        " S A "
+        " >> " " >> " " 'PRO' STO " "     1 10 START PRO DROP DROP NEXT";
 
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
 /*
@@ -126,68 +120,12 @@ const BYTEPTR nq_stk=(const BYTEPTR) "<< 8. 0. 0. 0. -> R S X Y "
         " 'NQ.STK' STO 1 10 START NQ.STK NEXT"
 ;
 */
-const BYTEPTR nq_new=(const BYTEPTR) "<< 1 -> X RES << "
-" IF X 1 > THEN "
-" X PICK 1 X 1 - FOR I "
-        " DUP I 2 + PICK - ABS X I - ABS "
-   " IF == THEN "
-     " 0 'RES' STO X 'I' STO "
-   " END "
-   " NEXT "
-   " DROP RES "
- " ELSE "
-   " 1 "
- " END "
-" >> "
-" >> "
-        " 'CHECKQUEEN' STO "
-        " <<  9 OVER - -> X LIMIT "
-        " << "
-
-         " 1 8 START LIMIT 8 + ROLLD NEXT "
-         " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT "
-
-          " DO 9 ROLL X UNPICK "
-                " IF X CHECKQUEEN "
-                " THEN X 1 + DUP "
-                 " IF 8 <= THEN "
-                        "IF DOLEVEL THEN "
-                            "0 9 ROLLD 0 'LIMIT' STO "
-                            " ELSE X PICK 17 X - ROLLD "
-                        " END "
-                  " ELSE 9 ROLLD 0 'LIMIT' STO END "
-
-                " ELSE X PICK 17 X - ROLLD "
-                " END 'LIMIT' DECR "
-              " UNTIL 0 <= "
-              " END "
-              " 1 9 X - START 9 ROLL DROP NEXT "
-              " IF LIMIT 0 == "
-              " THEN 0 ELSE 1 END "
-          " >> "
-        " >> "
-
-        " 'DOLEVEL' STO "
-
-        " << "
-          " 1 2 3 4 5 6 7 8 "
-          " 0 0 0 0 0 0 0 0 "
-          " 1 DOLEVEL DROP "
-          " 1 8 START 9 ROLL DROP NEXT "
-        " 8 ->LIST "
-        " >> "
-        " 'NEW.RUN' STO " /*" 1 10 START NEW.RUN NEXT " */
-;
-
-
+const BYTEPTR nq_new = (const BYTEPTR)"<< 1 -> X RES << " " IF X 1 > THEN " " X PICK 1 X 1 - FOR I " " DUP I 2 + PICK - ABS X I - ABS " " IF == THEN " " 0 'RES' STO X 'I' STO " " END " " NEXT " " DROP RES " " ELSE " " 1 " " END " " >> " " >> " " 'CHECKQUEEN' STO " " <<  9 OVER - -> X LIMIT " " << " " 1 8 START LIMIT 8 + ROLLD NEXT " " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT " " DO 9 ROLL X UNPICK " " IF X CHECKQUEEN " " THEN X 1 + DUP " " IF 8 <= THEN " "IF DOLEVEL THEN " "0 9 ROLLD 0 'LIMIT' STO " " ELSE X PICK 17 X - ROLLD " " END " " ELSE 9 ROLLD 0 'LIMIT' STO END " " ELSE X PICK 17 X - ROLLD " " END 'LIMIT' DECR " " UNTIL 0 <= " " END " " 1 9 X - START 9 ROLL DROP NEXT " " IF LIMIT 0 == " " THEN 0 ELSE 1 END " " >> " " >> " " 'DOLEVEL' STO " " << " " 1 2 3 4 5 6 7 8 " " 0 0 0 0 0 0 0 0 " " 1 DOLEVEL DROP " " 1 8 START 9 ROLL DROP NEXT " " 8 ->LIST " " >> " " 'NEW.RUN' STO "     /*" 1 10 START NEW.RUN NEXT " */
+        ;
 
 /*
 BYTEPTR testprogram=(BYTEPTR) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
 */
-
-
-
-
 
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=1*10^-N
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
@@ -223,7 +161,6 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " 'ATAN' STO "
                                 "1 1008 FOR I 2 I ATAN TRANSCENTABLE WRITETABLE NEXT "
 
-
                                 ;
 */
 
@@ -236,7 +173,6 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
                                 " 'ATAN' STO "
                                 "1 1008 FOR I 5 I ATAN TRANSCENTABLE WRITETABLE NEXT "
-
 
                                 ;
 */
@@ -276,7 +212,6 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 
 */
 
-
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(1*10^-x)
 /*
 BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
@@ -289,7 +224,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
  BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 2 * 'X' LAMSTO 0.0 4000 K 3 / - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
-                                ;                              
+                                ;
 */
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(5*10^-x)
 /*
@@ -299,8 +234,8 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 ;
 */
 
- // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
- // USES 2016 DIGITS PRECISION
+// GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
+// USES 2016 DIGITS PRECISION
 /*
  BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                  "1.0 "
@@ -337,7 +272,6 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " 10 MYLN 3 + 2 / DUP TRANSCENTABLE WRITETABLE "
                                 ;
 */
-
 
 // GENERATE THE CONSTANT Khyp = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
@@ -470,9 +404,6 @@ BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
           ">> "
         ">> 'TK2ROMAN' STO "
 
-
-
-
         ;
 */
 
@@ -481,26 +412,23 @@ void PrintObj(WORDPTR obj)
     WORDPTR string;
     BINT nwords;
     BYTEPTR charptr;
-    string=rplDecompile(obj,0);
+    string = rplDecompile(obj, 0);
 
     if(string) {
-    // NOW PRINT THE STRING OBJECT
-    nwords=OBJSIZE(*string);
-    charptr=(BYTEPTR) (string+1);
-    for(;nwords>1;--nwords,charptr+=4)
-    {
-        printf("%c%c%c%c",charptr[0],charptr[1],charptr[2],charptr[3]);
-    }
-    // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
-    nwords=4-(LIBNUM(*string)&3);
-    for(;nwords>0;--nwords,charptr++)
-    {
-        printf("%c",*charptr);
-    }
+        // NOW PRINT THE STRING OBJECT
+        nwords = OBJSIZE(*string);
+        charptr = (BYTEPTR) (string + 1);
+        for(; nwords > 1; --nwords, charptr += 4) {
+            printf("%c%c%c%c", charptr[0], charptr[1], charptr[2], charptr[3]);
+        }
+        // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
+        nwords = 4 - (LIBNUM(*string) & 3);
+        for(; nwords > 0; --nwords, charptr++) {
+            printf("%c", *charptr);
+        }
     }
 
 }
-
 
 void PrintSeco(WORDPTR obj)
 {
@@ -508,220 +436,212 @@ void PrintSeco(WORDPTR obj)
     BINT nwords;
     BYTEPTR charptr;
 
-    WORDPTR endobj=rplSkipOb(obj);
+    WORDPTR endobj = rplSkipOb(obj);
 
-    if(ISPROLOG(*obj) && ((LIBNUM(*obj)==DOCOL) || (LIBNUM(*obj)==SECO))) {
+    if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL) || (LIBNUM(*obj) == SECO))) {
 
-    printf("%08X: ",obj-TempOb);
-    printf(" %s\n",(LIBNUM(*obj)==DOCOL)? "::":"<<");
+        printf("%08X: ", obj - TempOb);
+        printf(" %s\n", (LIBNUM(*obj) == DOCOL) ? "::" : "<<");
 
-    ++obj;
+        ++obj;
 
-    while(obj<endobj) {
+        while(obj < endobj) {
 
-        if(ISPROLOG(*obj) && ((LIBNUM(*obj)==DOCOL) || (LIBNUM(*obj)==SECO))) {
-            PrintSeco(obj);
-            obj=rplSkipOb(obj);
-            continue;
+            if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL)
+                        || (LIBNUM(*obj) == SECO))) {
+                PrintSeco(obj);
+                obj = rplSkipOb(obj);
+                continue;
+            }
+
+            printf("%08X: ", obj - TempOb);
+
+            string = rplDecompile(obj, 0);
+
+            if(string) {
+                // NOW PRINT THE STRING OBJECT
+                nwords = OBJSIZE(*string);
+                charptr = (BYTEPTR) (string + 1);
+                for(; nwords > 1; --nwords, charptr += 4) {
+                    printf("%c%c%c%c", charptr[0], charptr[1], charptr[2],
+                            charptr[3]);
+                }
+                // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
+                nwords = 4 - (LIBNUM(*string) & 3);
+                for(; nwords > 0; --nwords, charptr++) {
+                    printf("%c", *charptr);
+                }
+            }
+
+            printf("\n");
+            obj = rplSkipOb(obj);
         }
-
-
-        printf("%08X: ",obj-TempOb);
-
-        string=rplDecompile(obj,0);
-
-    if(string) {
-    // NOW PRINT THE STRING OBJECT
-    nwords=OBJSIZE(*string);
-    charptr=(BYTEPTR) (string+1);
-    for(;nwords>1;--nwords,charptr+=4)
-    {
-        printf("%c%c%c%c",charptr[0],charptr[1],charptr[2],charptr[3]);
-    }
-    // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
-    nwords=4-(LIBNUM(*string)&3);
-    for(;nwords>0;--nwords,charptr++)
-    {
-        printf("%c",*charptr);
-    }
-    }
-
-    printf("\n");
-    obj=rplSkipOb(obj);
-    }
 
     }
     else {
 
-        printf("%08X: ",obj-TempOb);
+        printf("%08X: ", obj - TempOb);
         PrintObj(obj);
 
     }
 
 }
 
-
-
 void DumpDirs()
 {
-    WORDPTR *scan=Directories;
+    WORDPTR *scan = Directories;
 
-    while(scan<DirsTop) {
+    while(scan < DirsTop) {
 
-        if(**scan==DIR_START_MARKER) {
+        if(**scan == DIR_START_MARKER) {
             printf("*** START ");
-            WORDPTR *parent=scan;
-            WORDPTR name=rplGetDirName(scan);
+            WORDPTR *parent = scan;
+            WORDPTR name = rplGetDirName(scan);
             while(name) {
-            PrintObj(name);
-            printf(" ");
-            parent=rplGetParentDir(parent);
-            name=rplGetDirName(parent);
+                PrintObj(name);
+                printf(" ");
+                parent = rplGetParentDir(parent);
+                name = rplGetDirName(parent);
             }
 
-            printf(" *** (%d ITEMS)\n",*(*(scan+1)+1));
+            printf(" *** (%d ITEMS)\n", *(*(scan + 1) + 1));
         }
         else {
-        if(**scan==DIR_PARENT_MARKER) {
+            if(**scan == DIR_PARENT_MARKER) {
 
-        }
-        else {
-        if(**scan==DIR_END_MARKER) {
-            printf("*** END!\n");
-        }
-        else {
-            PrintObj(*scan);
-            printf(" = ");
-            PrintObj(*(scan+1));
-            printf("\n");
-        }
-        }
+            }
+            else {
+                if(**scan == DIR_END_MARKER) {
+                    printf("*** END!\n");
+                }
+                else {
+                    PrintObj(*scan);
+                    printf(" = ");
+                    PrintObj(*(scan + 1));
+                    printf("\n");
+                }
+            }
         }
 
-        scan+=2;
+        scan += 2;
     }
 
 }
 
-
 void DumpLAMs()
 {
-    WORDPTR *scan=LAMTop-2;
+    WORDPTR *scan = LAMTop - 2;
 
-    while(scan>=LAMs) {
+    while(scan >= LAMs) {
 
-        if(**scan==LAM_BASESECO) {
+        if(**scan == LAM_BASESECO) {
             printf("*** Parent environment *** \n");
         }
         else {
             PrintObj(*scan);
             printf(" = ");
-            PrintObj(*(scan+1));
+            PrintObj(*(scan + 1));
             printf("\n");
         }
 
-        scan-=2;
+        scan -= 2;
     }
 
 }
 
-
-
 void DumpDStack()
 {
-    BINT count=0;
+    BINT count = 0;
     BINT nwords;
     WORDPTR string;
     BYTEPTR charptr;
-    BINT nlevels=5;
+    BINT nlevels = 5;
 
-    while(nlevels>rplDepthData() && nlevels>0 ) {
-        printf("%d:\n",nlevels);
+    while(nlevels > rplDepthData() && nlevels > 0) {
+        printf("%d:\n", nlevels);
         --nlevels;
     }
 
-    while(count<(DSTop-DStkBottom)) {
-        printf("%d:\t",DSTop-DStkBottom-count);
-        string=rplDecompile((WORDPTR)DStkBottom[count],0);
+    while(count < (DSTop - DStkBottom)) {
+        printf("%d:\t", DSTop - DStkBottom - count);
+        string = rplDecompile((WORDPTR) DStkBottom[count], 0);
 
         if(string) {
-        // NOW PRINT THE STRING OBJECT
-        nwords=OBJSIZE(*string);
-        charptr=(BYTEPTR) (string+1);
-        for(;nwords>1;--nwords,charptr+=4)
-        {
-            printf("%c%c%c%c",charptr[0],charptr[1],charptr[2],charptr[3]);
+            // NOW PRINT THE STRING OBJECT
+            nwords = OBJSIZE(*string);
+            charptr = (BYTEPTR) (string + 1);
+            for(; nwords > 1; --nwords, charptr += 4) {
+                printf("%c%c%c%c", charptr[0], charptr[1], charptr[2],
+                        charptr[3]);
+            }
+            // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
+            nwords = 4 - (LIBNUM(*string) & 3);
+            for(; nwords > 0; --nwords, charptr++) {
+                printf("%c", *charptr);
+            }
+
         }
-        // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
-        nwords=4-(LIBNUM(*string)&3);
-        for(;nwords>0;--nwords,charptr++)
-        {
-            printf("%c",*charptr);
+        else {
+            printf("***ERROR DURING DECOMPILE!!!***");
         }
-
-
-
-
-        } else { printf("***ERROR DURING DECOMPILE!!!***"); }
-
 
         printf("\n");
         ++count;
     }
 }
 
-
 void DumpErrors()
 {
-    struct error_message {
+    struct error_message
+    {
         unsigned int num;
         const char *string;
     }
-    error_table[]={
-    { 0x00000001,"Panic Exit"},
-    { 0x00000002,"BreakPoint"},
-    { 0x00000004,"Bad opcode"},
-    { 0x00000008,"Out of memory"}, // WILL CHANGE IN THE FUTURE
-    { 0x00000010,"Circular Reference"}, // WILL CHANGE IN THE FUTURE
-    { 0x00000020,"????"}, // WILL CHANGE IN THE FUTURE
-    { 0x00000040,"Empty stack"},
-    { 0x00000080,"Empty return rtack"},
-    { 0x00000100,"Syntax error"},
-    { 0x00000200,"Undefined"},
-    { 0x00000400,"Bad argument count"},
-    { 0x00000800,"Bad argument type"},
-    { 0x00001000,"Bad argument value"},
-    { 0x00002000,"Undefined variable"},
-    { 0x00004000,"Directory not empty"},
-    { 0x00008000,"Invalid Dimension"},
-    // THESE ARE MPDECIMAL ERRORS
-    { 0x00010000,"Clamped exponent"},
-    { 0x00020000,"Conversion syntax"},
-    { 0x00040000,"Division by zero"},
-    { 0x00080000,"Division impossible"},
-    { 0x00100000,"Division undefined"},
-    { 0x00200000,"FPU Error"},
-    { 0x00400000,"Inexact"},
-    { 0x00800000,"Invalid context"},
-    { 0x01000000,"Invalid operation"},
-    { 0x02000000,"Internal out of memory"},
-    { 0x04000000,"Not implemented"},
-    { 0x08000000,"Overflow"},
-    { 0x10000000,"Rounded"},
-    { 0x20000000,"Subnormal"},
-    { 0x40000000,"Underflow"},
-    { 0x80000000,"Undefined error??"},
+    error_table[] = {
+        {0x00000001, "Panic Exit"},
+        {0x00000002, "BreakPoint"},
+        {0x00000004, "Bad opcode"},
+        {0x00000008, "Out of memory"},  // WILL CHANGE IN THE FUTURE
+        {0x00000010, "Circular Reference"},     // WILL CHANGE IN THE FUTURE
+        {0x00000020, "????"},   // WILL CHANGE IN THE FUTURE
+        {0x00000040, "Empty stack"},
+        {0x00000080, "Empty return rtack"},
+        {0x00000100, "Syntax error"},
+        {0x00000200, "Undefined"},
+        {0x00000400, "Bad argument count"},
+        {0x00000800, "Bad argument type"},
+        {0x00001000, "Bad argument value"},
+        {0x00002000, "Undefined variable"},
+        {0x00004000, "Directory not empty"},
+        {0x00008000, "Invalid Dimension"},
+        // THESE ARE MPDECIMAL ERRORS
+        {0x00010000, "Clamped exponent"},
+        {0x00020000, "Conversion syntax"},
+        {0x00040000, "Division by zero"},
+        {0x00080000, "Division impossible"},
+        {0x00100000, "Division undefined"},
+        {0x00200000, "FPU Error"},
+        {0x00400000, "Inexact"},
+        {0x00800000, "Invalid context"},
+        {0x01000000, "Invalid operation"},
+        {0x02000000, "Internal out of memory"},
+        {0x04000000, "Not implemented"},
+        {0x08000000, "Overflow"},
+        {0x10000000, "Rounded"},
+        {0x20000000, "Subnormal"},
+        {0x40000000, "Underflow"},
+        {0x80000000, "Undefined error??"},
     };
     int errbit;
-    if(!Exceptions) return;
+    if(!Exceptions)
+        return;
     printf("Error status:\n");
-    for(errbit=0;errbit<32;++errbit)
-    {
-    if(error_table[errbit].num&Exceptions) printf("- %s\n",error_table[errbit].string);
+    for(errbit = 0; errbit < 32; ++errbit) {
+        if(error_table[errbit].num & Exceptions)
+            printf("- %s\n", error_table[errbit].string);
     }
 
 }
-
 
 void Refresh()
 {
@@ -730,121 +650,118 @@ void Refresh()
     printf("~~> ");
 }
 
-
 int main()
 {
     char buffer[65535];
 
     rplInit();
 
-    Context.prec=36;
-
+    Context.prec = 36;
 
     Refresh();
-/*
-    if(testprogram) {
+    /*
+       if(testprogram) {
 
-        WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
-        if(ptr)   {
-            PrintSeco(ptr);
-            rplSetEntryPoint(ptr);
-            rplRun();
-        }
+       WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
+       if(ptr)   {
+       PrintSeco(ptr);
+       rplSetEntryPoint(ptr);
+       rplRun();
+       }
 
-        ptr=rplCompile(nq_new,strlen((char *)nq_new),1);
-        if(ptr)   {
-            PrintSeco(ptr);
-            rplSetEntryPoint(ptr);
-            rplRun();
-        }
+       ptr=rplCompile(nq_new,strlen((char *)nq_new),1);
+       if(ptr)   {
+       PrintSeco(ptr);
+       rplSetEntryPoint(ptr);
+       rplRun();
+       }
 
-    }
+       }
 
-*/
+     */
 
     do {
 
-    fgets(buffer,65535,stdin);
+        fgets(buffer, 65535, stdin);
 
-
-
-    if(buffer[0]=='\n' && buffer[1]==0) {
-        printf("Do you want to exit? Y/n: ");
-        fgets(buffer,65535,stdin);
-        if(buffer[0]=='y' || buffer[0]=='Y') return 0;
-        Refresh();
-        continue;
-    }
-
-    if(!strncmp(buffer,"UNDO",4)) {
-        rplRevertToSnapshot(1);
-        Refresh();
-        continue;
-    }
-
-    WORDPTR ptr=rplCompile((BYTEPTR)buffer,strlen(buffer),1);
-
-    if(!ptr) {
-        printf("COMPILE ERROR\n");
-        DumpErrors();
-        Exceptions=0;
-        Refresh();
-        Exceptions=0;   // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
-        continue;
-    }
-
-    clock_t start,end;
-    int debugging;
-    start=clock();
-    rplSetEntryPoint(ptr);
-
-
-    printf("1DStkBottom=%p\n",DStkBottom);
-
-    // LIMIT UNDO LEVELS TO 10
-    while(rplCountSnapshots()>=10) rplRemoveSnapshot(rplCountSnapshots());
-    printf("2DStkBottom=%p\n",DStkBottom);
-
-    rplTakeSnapshot();
-    printf("3DStkBottom=%p\n",DStkBottom);
-
-    do {
-
-
-    rplRun();
-
-    end=clock();
-
-    debugging=0;
-
-    if(Exceptions) {
-        printf("Runtime Error: %08X at %08X\n",Exceptions,ExceptionPointer-TempOb);
-        DumpErrors();
-        int oldexc=Exceptions;
-        Exceptions=0;
-        DumpLAMs();
-        DumpDirs();
-        Refresh();
-        if(oldexc&EX_BKPOINT) {
-            debugging=1;
-            printf("\nPress any key to continue...");
-            fgets(buffer,65535,stdin);
+        if(buffer[0] == '\n' && buffer[1] == 0) {
+            printf("Do you want to exit? Y/n: ");
+            fgets(buffer, 65535, stdin);
+            if(buffer[0] == 'y' || buffer[0] == 'Y')
+                return 0;
+            Refresh();
+            continue;
         }
-        Exceptions=0;
-        continue;
-    }
-    } while(debugging);
 
-    printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
-    rplShowRuntimeState();
-    Exceptions=0;
-    Refresh();
-    Exceptions=0;   // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
+        if(!strncmp(buffer, "UNDO", 4)) {
+            rplRevertToSnapshot(1);
+            Refresh();
+            continue;
+        }
+
+        WORDPTR ptr = rplCompile((BYTEPTR) buffer, strlen(buffer), 1);
+
+        if(!ptr) {
+            printf("COMPILE ERROR\n");
+            DumpErrors();
+            Exceptions = 0;
+            Refresh();
+            Exceptions = 0;     // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
+            continue;
+        }
+
+        clock_t start, end;
+        int debugging;
+        start = clock();
+        rplSetEntryPoint(ptr);
+
+        printf("1DStkBottom=%p\n", DStkBottom);
+
+        // LIMIT UNDO LEVELS TO 10
+        while(rplCountSnapshots() >= 10)
+            rplRemoveSnapshot(rplCountSnapshots());
+        printf("2DStkBottom=%p\n", DStkBottom);
+
+        rplTakeSnapshot();
+        printf("3DStkBottom=%p\n", DStkBottom);
+
+        do {
+
+            rplRun();
+
+            end = clock();
+
+            debugging = 0;
+
+            if(Exceptions) {
+                printf("Runtime Error: %08X at %08X\n", Exceptions,
+                        ExceptionPointer - TempOb);
+                DumpErrors();
+                int oldexc = Exceptions;
+                Exceptions = 0;
+                DumpLAMs();
+                DumpDirs();
+                Refresh();
+                if(oldexc & EX_BKPOINT) {
+                    debugging = 1;
+                    printf("\nPress any key to continue...");
+                    fgets(buffer, 65535, stdin);
+                }
+                Exceptions = 0;
+                continue;
+            }
+        }
+        while(debugging);
+
+        printf("Elapsed time: %.6lf seconds\n",
+                ((double)(start - end)) / (double)CLOCKS_PER_SEC);
+        rplShowRuntimeState();
+        Exceptions = 0;
+        Refresh();
+        Exceptions = 0; // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
     }
     while(1);
-
 
     return 0;
 
 }
-

@@ -9,76 +9,85 @@
 #include "libraries.h"
 #include <ui.h>
 
-
-void uiRepaintForm(DRAWSURFACE *scr)
+void uiRepaintForm(DRAWSURFACE * scr)
 {
     // REPAINT VISIBLE PART OF A FORM
     UNUSED_ARGUMENT(scr);
 
 }
 
-
 // COMPUTE THE TOTAL DIMENSIONS OF A FORM
 // USED TO ALLOCATE THE FORM BITMAP
 
-void uiFormGetDimensions(WORDPTR form,BINT *width,BINT *height)
+void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
 {
-    BINT w=0,h=0;
-    BINT roww,rowh;
-    WORDPTR item,end;
+    BINT w = 0, h = 0;
+    BINT roww, rowh;
+    WORDPTR item, end;
 
     if(!ISLIST(*form)) {
-        if(width) *width=0;
-        if(height) *height=0;
+        if(width)
+            *width = 0;
+        if(height)
+            *height = 0;
         return;
     }
-    end=rplSkipOb(form);
-    item=form+1;
-    while(item<end) {
-        roww=SCREEN_WIDTH;
+    end = rplSkipOb(form);
+    item = form + 1;
+    while(item < end) {
+        roww = SCREEN_WIDTH;
 
-        if(ISBINT(*item)) { rowh=rplReadBINT(item); item=rplSkipOb(item); }
+        if(ISBINT(*item)) {
+            rowh = rplReadBINT(item);
+            item = rplSkipOb(item);
+        }
         else {
             // TODO: DEFINE THE HEIGHT FOR VARIOUS OTHER TYPES
 
             // BY DEFAULT, THIS IS THE HEIGHT OF ONE LINE OF TEXT
-            rowh=(*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
+            rowh = (*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
 
         }
 
         if(ISLIST(*item)) {
             // A LIST OF COLUMNS
-            int ncols=0,forced=0;
-            roww=0;
-            WORDPTR col=item+1,endcol=rplSkipOb(item);
+            int ncols = 0, forced = 0;
+            roww = 0;
+            WORDPTR col = item + 1, endcol = rplSkipOb(item);
 
-            while(col<endcol) {
+            while(col < endcol) {
                 // SCAN THE COLUMN
 
-                if(ISBINT(*col)) { roww+=rplReadBINT(col); col=rplSkipOb(col); ++forced; }
+                if(ISBINT(*col)) {
+                    roww += rplReadBINT(col);
+                    col = rplSkipOb(col);
+                    ++forced;
+                }
 
-                if(*col!=CMD_ENDLIST) ++ncols;
-                col=rplSkipOb(col);
+                if(*col != CMD_ENDLIST)
+                    ++ncols;
+                col = rplSkipOb(col);
 
             }
 
-            roww+=(ncols-forced)*(SCREEN_WIDTH/(ncols));
+            roww += (ncols - forced) * (SCREEN_WIDTH / (ncols));
 
         }
 
         // HERE WE HAVE ROW WIDTH AND HEIGHT
-        h+=rowh;
-        if(roww>w) w=roww;
+        h += rowh;
+        if(roww > w)
+            w = roww;
 
-        item=rplSkipOb(item);
-        }
+        item = rplSkipOb(item);
+    }
 
-    if(width) *width=w;
-    if(height) *height=h;
+    if(width)
+        *width = w;
+    if(height)
+        *height = h;
 
 }
-
-
 
 void uiUpdateForm(WORDPTR form)
 {
@@ -94,110 +103,127 @@ void uiUpdateForm(WORDPTR form)
 
     // PASS 1: COMPUTE TOTAL WIDTH AND HEIGHT
 
-    if(!ISLIST(*form)) return;
+    if(!ISLIST(*form))
+        return;
 
-    BINT formw,formh;
-    uiFormGetDimensions(form,&formw,&formh);
+    BINT formw, formh;
+    uiFormGetDimensions(form, &formw, &formh);
 
     // ALLOCATE NEW BITMAP
-    ScratchPointer1=form;
+    ScratchPointer1 = form;
 
-    WORDPTR newbmp=rplBmpCreate(DEFAULTBITMAPMODE,formw,formh,1);   // ALLOCATE A NEW BITMAP AND CLEAR IT
-    if(!newbmp) return;
-    form=ScratchPointer1;
-
+    WORDPTR newbmp = rplBmpCreate(DEFAULTBITMAPMODE, formw, formh, 1);  // ALLOCATE A NEW BITMAP AND CLEAR IT
+    if(!newbmp)
+        return;
+    form = ScratchPointer1;
 
     // PASS 2: REDRAW EACH ELEMENT ONTO THE NEW BITMAP
 
     DRAWSURFACE backgnd;
 
-    backgnd.addr=(int *)(newbmp+3);
-    backgnd.width=formw;
-    backgnd.x=0;
-    backgnd.y=0;
+    backgnd.addr = (int *)(newbmp + 3);
+    backgnd.width = formw;
+    backgnd.x = 0;
+    backgnd.y = 0;
 
-    BINT ycoord=0;
+    BINT ycoord = 0;
 
+    BINT roww, rowh, rowid = 0;
+    WORDPTR item, end;
+    end = rplSkipOb(form);
+    item = form + 1;
+    while(item < end) {
+        roww = SCREEN_WIDTH;
 
-    BINT roww,rowh,rowid=0;
-    WORDPTR item,end;
-    end=rplSkipOb(form);
-    item=form+1;
-    while(item<end) {
-        roww=SCREEN_WIDTH;
-
-        if(ISBINT(*item)) { rowh=rplReadBINT(item); item=rplSkipOb(item); }
-        else rowh=(*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
-
+        if(ISBINT(*item)) {
+            rowh = rplReadBINT(item);
+            item = rplSkipOb(item);
+        }
+        else
+            rowh = (*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
 
         if(ISLIST(*item)) {
             // A LIST OF COLUMNS
-            int ncols=0,forced=0;
-            roww=0;
-            WORDPTR col=item+1,endcol=rplSkipOb(item);
-            BINT def_itemw,itemw;
+            int ncols = 0, forced = 0;
+            roww = 0;
+            WORDPTR col = item + 1, endcol = rplSkipOb(item);
+            BINT def_itemw, itemw;
 
-            while(col<endcol) {
+            while(col < endcol) {
                 // SCAN THE COLUMN
 
-                if(ISBINT(*col)) { roww+=rplReadBINT(col); col=rplSkipOb(col); ++forced; }
+                if(ISBINT(*col)) {
+                    roww += rplReadBINT(col);
+                    col = rplSkipOb(col);
+                    ++forced;
+                }
 
-                if(*col!=CMD_ENDLIST) ++ncols;
-                col=rplSkipOb(col);
+                if(*col != CMD_ENDLIST)
+                    ++ncols;
+                col = rplSkipOb(col);
 
             }
-            def_itemw=SCREEN_WIDTH/ncols;
-            roww+=(ncols-forced)*(SCREEN_WIDTH/(ncols));
+            def_itemw = SCREEN_WIDTH / ncols;
+            roww += (ncols - forced) * (SCREEN_WIDTH / (ncols));
 
             // NOW RENDER IT
 
-            col=item+1;
-            backgnd.clipx=0;
-            backgnd.clipy=ycoord;
-            backgnd.clipy2=ycoord+rowh-1;
-            while(col<endcol) {
-                if(ISBINT(*col)) { itemw=rplReadBINT(col); col=rplSkipOb(col); }
-                else itemw=def_itemw;
+            col = item + 1;
+            backgnd.clipx = 0;
+            backgnd.clipy = ycoord;
+            backgnd.clipy2 = ycoord + rowh - 1;
+            while(col < endcol) {
+                if(ISBINT(*col)) {
+                    itemw = rplReadBINT(col);
+                    col = rplSkipOb(col);
+                }
+                else
+                    itemw = def_itemw;
                 if(ISSTRING(*col)) {
                     // DRAW THE STRING
                     // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
-                    backgnd.clipx2=backgnd.clipx+itemw-1;
-                    DrawTextBkN(backgnd.clipx,backgnd.clipy,(char *)(col+1),(char *)(col+1)+rplStrSize(col),*halScreen.FontArray[FONT_FORMS],0xf,0,&backgnd);
-                    backgnd.clipx=backgnd.clipx2+1;
+                    backgnd.clipx2 = backgnd.clipx + itemw - 1;
+                    DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(col + 1),
+                            (char *)(col + 1) + rplStrSize(col),
+                            *halScreen.FontArray[FONT_FORMS], 0xf, 0, &backgnd);
+                    backgnd.clipx = backgnd.clipx2 + 1;
                 }
 
                 //TODO: RENDER FIELDS HERE
 
-                col=rplSkipOb(col);
+                col = rplSkipOb(col);
 
             }
 
-
         }
 
-        if(ISSTRING(*item))
-        {
+        if(ISSTRING(*item)) {
             // DRAW THE STRING
             // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
-            backgnd.clipx=0;
-            backgnd.clipy=ycoord;
-            backgnd.clipy2=ycoord+rowh-1;
-            backgnd.clipx2=backgnd.clipx+roww-1;
-            DrawTextBkN(backgnd.clipx,backgnd.clipy,(char *)(item+1),(char *)(item+1)+rplStrSize(item),*halScreen.FontArray[FONT_FORMS],0xf,0,&backgnd);
+            backgnd.clipx = 0;
+            backgnd.clipy = ycoord;
+            backgnd.clipy2 = ycoord + rowh - 1;
+            backgnd.clipx2 = backgnd.clipx + roww - 1;
+            DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(item + 1),
+                    (char *)(item + 1) + rplStrSize(item),
+                    *halScreen.FontArray[FONT_FORMS], 0xf, 0, &backgnd);
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
                 DRAWSURFACE copy;
-                copy.addr=backgnd.addr;
-                copy.width=backgnd.width;
+                copy.addr = backgnd.addr;
+                copy.width = backgnd.width;
 
-                copy.x=0;
-                copy.y=0;
-                copy.clipx=backgnd.x;
-                backgnd.x=(backgnd.width-backgnd.x)/2;
+                copy.x = 0;
+                copy.y = 0;
+                copy.clipx = backgnd.x;
+                backgnd.x = (backgnd.width - backgnd.x) / 2;
                 // CENTER THE TEXT
-                ggl_bitblt(&backgnd,&copy,copy.clipx,backgnd.clipy2-backgnd.clipy+1);
-                ggl_cliprect(&backgnd,backgnd.x+copy.clipx,backgnd.clipy,backgnd.clipx2,backgnd.clipy2,0x44444444);
-                ggl_cliprect(&backgnd,0,backgnd.clipy,backgnd.x-1,backgnd.clipy2,0x44444444);
+                ggl_bitblt(&backgnd, &copy, copy.clipx,
+                        backgnd.clipy2 - backgnd.clipy + 1);
+                ggl_cliprect(&backgnd, backgnd.x + copy.clipx, backgnd.clipy,
+                        backgnd.clipx2, backgnd.clipy2, 0x44444444);
+                ggl_cliprect(&backgnd, 0, backgnd.clipy, backgnd.x - 1,
+                        backgnd.clipy2, 0x44444444);
             }
 
         }
@@ -205,18 +231,13 @@ void uiUpdateForm(WORDPTR form)
         // TODO: RENDER FIELDS HERE
 
         // NEXT ROW
-        ycoord+=rowh;
+        ycoord += rowh;
         rowid++;
-        item=rplSkipOb(item);
-        }
+        item = rplSkipOb(item);
+    }
 
     // DONE, EVERYTHING WAS DRAWN
 
-    uiUpdateOrAddCacheEntry(form,newbmp,halScreen.FontArray[FONT_FORMS]);
-
-
+    uiUpdateOrAddCacheEntry(form, newbmp, halScreen.FontArray[FONT_FORMS]);
 
 }
-
-
-

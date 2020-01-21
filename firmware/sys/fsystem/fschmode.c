@@ -5,41 +5,42 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
-
-int FSChMode(FS_FILE *file,int newmode)
+int FSChMode(FS_FILE * file, int newmode)
 {
-int error;
+    int error;
 
-if(!FSystem.Init) return FS_ERROR;
+    if(!FSystem.Init)
+        return FS_ERROR;
 
-if(file==NULL) return FS_ERROR;
+    if(file == NULL)
+        return FS_ERROR;
 
-if(file->Volume&(~3)) return FS_ERROR;		// INVALID VOLUME --> FILE STRUCTURE CORRUPT
+    if(file->Volume & (~3))
+        return FS_ERROR;        // INVALID VOLUME --> FILE STRUCTURE CORRUPT
 
+    if(newmode & (FSMODE_APPEND | FSMODE_MODIFY))
+        newmode |= FSMODE_WRITE;
 
-if(newmode& (FSMODE_APPEND | FSMODE_MODIFY)) newmode|=FSMODE_WRITE;
-
-if( (file->Mode&FSMODE_WRITE) && (! (newmode&FSMODE_WRITE))) {
+    if((file->Mode & FSMODE_WRITE) && (!(newmode & FSMODE_WRITE))) {
 
 // FINISH WRITING SESSION AND GO READ-ONLY
-error=FSFlushBuffers(file);
-if(error!=FS_OK) { return error; }
+        error = FSFlushBuffers(file);
+        if(error != FS_OK) {
+            return error;
+        }
 
-}
+    }
 
-if( (file->Attr&FSATTR_RDONLY) && (newmode&FSMODE_WRITE)) {
-return FS_CANTWRITE;
-}
-file->Mode=newmode;
+    if((file->Attr & FSATTR_RDONLY) && (newmode & FSMODE_WRITE)) {
+        return FS_CANTWRITE;
+    }
+    file->Mode = newmode;
 
-return FS_OK;
+    return FS_OK;
 }
 
 #endif

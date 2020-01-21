@@ -13,8 +13,6 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  70
 
@@ -45,17 +43,13 @@
     CMD(BDIV,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(BNEG,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
 
-
 // ADD MORE OPCODES HERE
-
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -71,14 +65,13 @@ INCLUDE_ROMOBJECT(lib70_basecycle);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
+const WORDPTR const ROMPTR_TABLE[] = {
     //(WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib70menu_main,
-    (WORDPTR)lib70_basecycle,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib70menu_main,
+    (WORDPTR) lib70_basecycle,
     0
 };
-
 
 void LIB_HANDLER()
 {
@@ -88,75 +81,75 @@ void LIB_HANDLER()
         return;
     }
     // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
         // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
         // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
-        if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                (OPCODE(CurOpcode)==OVR_EVAL1)||
-                (OPCODE(CurOpcode)==OVR_XEQ) )
-        {
+        if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                (OPCODE(CurOpcode) == OVR_XEQ)) {
             // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
 
-            WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            WORD saveOpcode = CurOpcode;
+            CurOpcode = *rplPopData();
             // RECURSIVE CALL
             LIB_HANDLER();
-            CurOpcode=saveOpcode;
+            CurOpcode = saveOpcode;
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
 
     case STWS:
         //@SHORT_DESC=Store current word size in bits (0-63)
 
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-
-            // THIS IS A FLAG NUMBER
-            BINT64 wsize=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-
-            if(wsize<1) wsize=1;
-            if(wsize>63) wsize=63;
-
-            if(!ISBINDATA(*SystemFlags)) {
-                // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                rplError(ERR_SYSTEMFLAGSINVALID);
-                return;
-            }
-            //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-            WORDPTR low64=SystemFlags+1;
-            low64[0]=(low64[0]&~(0x3f<<4))| (wsize<<4);
-
-            rplDropData(1);
+        // THIS IS A FLAG NUMBER
+        BINT64 wsize = rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions)
             return;
 
+        if(wsize < 1)
+            wsize = 1;
+        if(wsize > 63)
+            wsize = 63;
+
+        if(!ISBINDATA(*SystemFlags)) {
+            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
+            rplError(ERR_SYSTEMFLAGSINVALID);
+            return;
+        }
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64 = SystemFlags + 1;
+        low64[0] = (low64[0] & ~(0x3f << 4)) | (wsize << 4);
+
+        rplDropData(1);
+        return;
 
     case RCWS:
     {
@@ -168,12 +161,12 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
+        WORDPTR low64 = SystemFlags + 1;
         //WORDPTR hi64=SystemFlags+5;
 
-        BINT wsize=(low64[0]>>4)&0x3f;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        rplNewBINTPush(wsize,DECBINT);
+        rplNewBINTPush(wsize, DECBINT);
 
         return;
     }
@@ -182,34 +175,34 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise OR operation
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -223,19 +216,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1|=num2;
+        num1 |= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -243,24 +237,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise AND operator
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -268,9 +262,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -284,19 +279,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1&=num2;
+        num1 &= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -304,24 +300,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise XOR operation
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -329,9 +325,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -345,19 +342,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1^=num2;
+        num1 ^= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -365,23 +363,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise logical shift left
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -389,9 +388,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -405,21 +405,25 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        if((num2>wsize)||(num2<-wsize)) num1=0;
-        else if(num2>0) num1<<=num2;
-             else num1=(BINT64)(((UBINT64)num1)>>(-num2));
+        if((num2 > wsize) || (num2 < -wsize))
+            num1 = 0;
+        else if(num2 > 0)
+            num1 <<= num2;
+        else
+            num1 = (BINT64) (((UBINT64) num1) >> (-num2));
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -427,25 +431,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise logical shift right
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -453,9 +456,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -468,25 +472,28 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
-        UBINT64 wmask=(1ULL<<wsize)-1;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
+        UBINT64 wmask = (1ULL << wsize) - 1;
 
-        num1&=wmask | (1ULL<<wsize);
+        num1 &= wmask | (1ULL << wsize);
 
+        if((num2 > wsize) || (num2 < -wsize))
+            num1 = 0;
+        else if(num2 > 0)
+            num1 = (BINT64) (((UBINT64) num1) >> num2);
+        else
+            num1 <<= -num2;
 
-        if((num2>wsize)||(num2<-wsize)) num1=0;
-        else if(num2>0) num1=(BINT64)(((UBINT64)num1)>>num2);
-              else num1<<=-num2;
-
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -494,24 +501,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise arithmetic shift right
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -519,9 +526,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -535,46 +543,48 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        if(num2>0) num1>>=num2;
-        else num1<<=-num2;
+        if(num2 > 0)
+            num1 >>= num2;
+        else
+            num1 <<= -num2;
 
-        if(num1&(1LL<<(wsize-num2))) {
+        if(num1 & (1LL << (wsize - num2))) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<(wsize-num2))-1);
+            num1 |= ~((1LL << (wsize - num2)) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
-
 
     case BADD:
     {
         //@SHORT_DESC=Bitwise addition with overflow
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -582,9 +592,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -598,19 +609,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1+=num2;
+        num1 += num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -618,24 +630,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise subtraction with overflow
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -643,9 +655,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -659,19 +672,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1-=num2;
+        num1 -= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -679,24 +693,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise multiplication
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -704,9 +718,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -720,19 +735,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1*=num2;
+        num1 *= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -740,24 +756,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise integer division
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -765,9 +781,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -781,18 +798,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        if(num2==0) {
-            if(num1!=0) {
+        if(num2 == 0) {
+            if(num1 != 0) {
                 rplInfinityToRReg(0);
                 if(rplTestSystemFlag(FL_COMPLEXMODE)) {
-                    RReg[0].flags|=F_UNDINFINITY;
+                    RReg[0].flags |= F_UNDINFINITY;
                 }
-                else if(num1<0) RReg[0].flags|=F_NEGATIVE;
+                else if(num1 < 0)
+                    RReg[0].flags |= F_NEGATIVE;
             }
-            else rplNANToRReg(0);
+            else
+                rplNANToRReg(0);
 
             rplDropData(2);
             rplNewRealFromRRegPush(0);
@@ -800,44 +819,42 @@ void LIB_HANDLER()
             return;
         }
 
-        num1/=num2;
+        num1 /= num2;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
-
-
 
     case BRL:
     {
         //@SHORT_DESC=Bitwise rotate left
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -845,9 +862,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -861,27 +879,29 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num2%=wsize+1;
-        if(num2<0) num2+=wsize+1;
+        num2 %= wsize + 1;
+        if(num2 < 0)
+            num2 += wsize + 1;
 
-        BINT64 left,right;
+        BINT64 left, right;
 
-        left=(num1<<num2);
-        right=(num1>>(wsize+1-num2))&((1LL<<num2)-1);
+        left = (num1 << num2);
+        right = (num1 >> (wsize + 1 - num2)) & ((1LL << num2) - 1);
 
-        num1=left|right;
+        num1 = left | right;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -889,24 +909,24 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise rotate right
         //@NEW
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(2);
 
-        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
             return;
         }
 
-
-        BINT64 num1,num2;
+        BINT64 num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
+            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -914,9 +934,10 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1=rplReadNumberAsBINT(rplPeekData(2));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(2));
+            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(2));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -930,56 +951,56 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num2=-num2;
-        num2%=wsize+1;
-        if(num2<0) num2+=wsize+1;
+        num2 = -num2;
+        num2 %= wsize + 1;
+        if(num2 < 0)
+            num2 += wsize + 1;
 
-        BINT64 left,right;
+        BINT64 left, right;
 
-        left=(num1<<num2);
-        right=(num1>>(wsize+1-num2))&((1LL<<num2)-1);
+        left = (num1 << num2);
+        right = (num1 >> (wsize + 1 - num2)) & ((1LL << num2) - 1);
 
-        num1=left|right;
+        num1 = left | right;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
-
 
     case BNOT:
     {
         //@SHORT_DESC=Bitwise inversion of bits
         //@NEW
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
             return;
         }
         rplStripTagStack(1);
 
-        if (ISLIST(*rplPeekData(1))) {
+        if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
             return;
         }
 
-
-
         BINT64 num1;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num1=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(1));
+            num1 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(1));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -993,19 +1014,20 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1=~num1;
+        num1 = ~num1;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -1013,7 +1035,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Bitwise negation
         //@NEW
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
             return;
@@ -1023,9 +1045,10 @@ void LIB_HANDLER()
         BINT64 num1;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num1=rplReadNumberAsBINT(rplPeekData(1));
-            if(Exceptions) return;
-            base=LIBNUM(*rplPeekData(1));
+            num1 = rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions)
+                return;
+            base = LIBNUM(*rplPeekData(1));
         }
         else {
             rplError(ERR_INTEGEREXPECTED);
@@ -1039,28 +1062,28 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+1;
-        BINT wsize=(low64[0]>>4)&0x3f;
+        WORDPTR low64 = SystemFlags + 1;
+        BINT wsize = (low64[0] >> 4) & 0x3f;
 
-        num1=-num1;
+        num1 = -num1;
 
-        if(num1&(1LL<<wsize)) {
+        if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
-            num1|=~((1LL<<wsize)-1);
+            num1 |= ~((1LL << wsize) - 1);
         }
-        else num1&=((1LL<<wsize)-1);
+        else
+            num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewBINTPush(num1,base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
-    // ADD MORE OPCODES HERE
+        // ADD MORE OPCODES HERE
 
-   // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -1073,12 +1096,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
 
-     return;
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -1091,7 +1114,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -1105,10 +1128,8 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
-
 
     case OPCODE_PROBETOKEN:
         // PROBETOKEN FINDS A VALID WORD AT THE BEGINNING OF THE GIVEN TOKEN AND RETURNS
@@ -1124,12 +1145,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -1144,14 +1165,15 @@ void LIB_HANDLER()
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
 
@@ -1162,7 +1184,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1170,7 +1192,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1178,13 +1200,17 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+            RetNum = ERR_INVALID;
+            return;
+        }
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBMENU:
@@ -1192,11 +1218,14 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) { RetNum=ERR_NOTMINE; return; }
+        if(MENUNUMBER(MenuCodeArg) > 0) {
+            RetNum = ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+1];
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 1];
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -1204,25 +1233,23 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
 
-
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
-
 
     }
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -1230,13 +1257,6 @@ void LIB_HANDLER()
 
     return;
 
-
 }
 
-
 #endif
-
-
-
-
-

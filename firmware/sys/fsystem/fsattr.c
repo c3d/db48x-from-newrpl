@@ -5,13 +5,12 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-int FSAttr(FS_FILE *file)
+int FSAttr(FS_FILE * file)
 {
-return file->Attr;
+    return file->Attr;
 }
 #endif

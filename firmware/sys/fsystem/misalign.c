@@ -9,24 +9,24 @@
 
 unsigned int ReadInt32(unsigned char *ptr)
 {
-return (ptr[0]) | (ptr[1]<<8) | (ptr[2]<<16) | (ptr[3]<<24);
+    return (ptr[0]) | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24);
 }
 
-void WriteInt32(unsigned char *ptr,unsigned int value)
+void WriteInt32(unsigned char *ptr, unsigned int value)
 {
-*ptr++=value&0xff;
-*ptr++=(value>>8)&0xff;
-*ptr++=(value>>16)&0xff;
-*ptr=(value>>24)&0xff;
+    *ptr++ = value & 0xff;
+    *ptr++ = (value >> 8) & 0xff;
+    *ptr++ = (value >> 16) & 0xff;
+    *ptr = (value >> 24) & 0xff;
 }
 
 unsigned int ReadInt16(unsigned char *ptr)
 {
-return (ptr[0]) | (ptr[1]<<8);
+    return (ptr[0]) | (ptr[1] << 8);
 }
 
-void WriteInt16(unsigned char *ptr,unsigned int value)
+void WriteInt16(unsigned char *ptr, unsigned int value)
 {
-*ptr++=value&0xff;
-*ptr=(value>>8)&0xff;
+    *ptr++ = value & 0xff;
+    *ptr = (value >> 8) & 0xff;
 }

@@ -8,8 +8,8 @@
 #include "libraries.h"
 #include "newrpl.h"
 
-
 #define INCLUDELIB(a,b) lib##a##_handler
 // THIS IS THE LIST OF ALL PRE-INSTALLED LIBRARIES IN THIS ROM
-const LIBHANDLER const ROMLibs[]={ ROM_LIST , 0 };
+const LIBHANDLER const ROMLibs[] = { ROM_LIST, 0 };
+
 #undef INCLUDELIB

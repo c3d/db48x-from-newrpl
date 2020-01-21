@@ -5,17 +5,14 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 // END-OF-FILE DETECTION
-int FSEof(FS_FILE *file)
+int FSEof(FS_FILE * file)
 {
-return (file->CurrentOffset>=file->FileSize)? TRUE:FALSE;
+    return (file->CurrentOffset >= file->FileSize) ? TRUE : FALSE;
 }
 
 #endif

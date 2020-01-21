@@ -23,7 +23,6 @@
 #define _IF_1_ELSE(...)
 #define _IF_0_ELSE(...) __VA_ARGS__
 
-
 #define EVAL(...) EVAL1024(__VA_ARGS__)
 #define EVAL1024(...) EVAL512(EVAL512(__VA_ARGS__))
 #define EVAL512(...) EVAL256(EVAL256(__VA_ARGS__))
@@ -42,7 +41,6 @@
 #define DEFER1(m) m EMPTY()
 #define DEFER2(m) m EMPTY EMPTY()()
 #define DEFER3(m) m EMPTY EMPTY EMPTY()()()
-
 
 #define HAS_ARGS(...) BOOL(FIRST(_END_OF_ARGUMENTS_ __VA_ARGS__)())
 #define _END_OF_ARGUMENTS_() 0
@@ -71,7 +69,6 @@
 #define _NTH(n, ...) EVAL1(DEFER1(HEAD)(TAILN(n)(__VA_ARGS__)))
 #define NTH(...) _NTH(__VA_ARGS__)
 #define TAILN(n) CAT(TAIL_,n)
-
 
 #define TAIL_0(...) __VA_ARGS__
 #define TAIL_1(...) TAIL(__VA_ARGS__)
@@ -134,7 +131,4 @@
 #define TAIL_58(...) EVAL1(DEFER1(TAIL)(TAIL_57(__VA_ARGS__)))
 #define TAIL_59(...) EVAL1(DEFER1(TAIL)(TAIL_58(__VA_ARGS__)))
 
-
-
 #endif // COMMONMACROS_H
-

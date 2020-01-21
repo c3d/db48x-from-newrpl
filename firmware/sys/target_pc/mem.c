@@ -5,17 +5,16 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #include <newrpl.h>
 #include <ui.h>
 
 // PC IMPLEMENTATION
-#define DSTK_SIZE 32768     //  DATA STACK MAXIMUM
-#define RSTK_SIZE 32768     //  RETURN STACK
-#define DIR_SIZE  32768     //  DIRECTORIES
-#define LAM_SIZE  32768     //  LAMS
-#define TEMPOB_SIZE 131072 //   TEMPOB
-#define TEMPBLK_SIZE  32768 //  TEMP BLOCKS
+#define DSTK_SIZE 32768 //  DATA STACK MAXIMUM
+#define RSTK_SIZE 32768 //  RETURN STACK
+#define DIR_SIZE  32768 //  DIRECTORIES
+#define LAM_SIZE  32768 //  LAMS
+#define TEMPOB_SIZE 131072      //   TEMPOB
+#define TEMPBLK_SIZE  32768     //  TEMP BLOCKS
 
 // ALL MEMORY IS ALLOCATED STATICALLY FOR THE SIMULATOR
 WORDPTR __dstk_memory[DSTK_SIZE];
@@ -24,99 +23,99 @@ WORD __dir_memory[DIR_SIZE];
 WORD __lam_memory[LAM_SIZE];
 WORD __tempob_memory[TEMPOB_SIZE];
 WORDPTR __tempblk_memory[TEMPBLK_SIZE];
-BINT __dstk_used,__rstk_used,__dir_used,__lam_used,__tempob_used,__tempblk_used;
-BINT __memmap_intact=0;
-
+BINT __dstk_used, __rstk_used, __dir_used, __lam_used, __tempob_used,
+        __tempblk_used;
+BINT __memmap_intact = 0;
 
 int halGetFreePages()
 {
-    return ((DSTK_SIZE>>10)-__dstk_used
-           +(RSTK_SIZE>>10)-__rstk_used
-            +(DIR_SIZE>>10)-__dir_used
-            +(LAM_SIZE>>10)-__lam_used
-            +(TEMPOB_SIZE>>10)-__tempob_used
-            +(TEMPBLK_SIZE>>10)-__tempblk_used);
-}
-int halGetTotalPages()
-{
-    return  ((DSTK_SIZE>>10)
-             +(RSTK_SIZE>>10)
-              +(DIR_SIZE>>10)
-              +(LAM_SIZE>>10)
-              +(TEMPOB_SIZE>>10)
-              +(TEMPBLK_SIZE>>10));
+    return ((DSTK_SIZE >> 10) - __dstk_used
+            + (RSTK_SIZE >> 10) - __rstk_used
+            + (DIR_SIZE >> 10) - __dir_used
+            + (LAM_SIZE >> 10) - __lam_used
+            + (TEMPOB_SIZE >> 10) - __tempob_used
+            + (TEMPBLK_SIZE >> 10) - __tempblk_used);
 }
 
+int halGetTotalPages()
+{
+    return ((DSTK_SIZE >> 10)
+            + (RSTK_SIZE >> 10)
+            + (DIR_SIZE >> 10)
+            + (LAM_SIZE >> 10)
+            + (TEMPOB_SIZE >> 10)
+            + (TEMPBLK_SIZE >> 10));
+}
 
 // GROW AREA OF MEMORY AT base, TO AT LEAST newsize WORDS
 // RETURN SAME base OR A NEW LOCATION OF base
 // RETURN NULL IF NOT ENOUGH MEMORY
 
-WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
+WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
 {
     int maxpages;
     BINT *current;
-    switch(zone) {
+    switch (zone) {
 
-            case MEM_AREA_RSTK:
-                 base=(WORDPTR *)__rstk_memory;
-                 current=&__rstk_used;
-                 maxpages=RSTK_SIZE>>10;
-            break;
-            case MEM_AREA_DSTK:
-                 base=(WORDPTR *)__dstk_memory;
-                 current=&__dstk_used;
-                 maxpages=DSTK_SIZE>>10;
-            break;
-            case MEM_AREA_DIR:
-                base=(WORDPTR *)__dir_memory;
-                current=&__dir_used;
-                maxpages=DIR_SIZE>>10;
-            break;
-            case MEM_AREA_LAM:
-                base=(WORDPTR *)__lam_memory;
-                current=&__lam_used;
-                maxpages=LAM_SIZE>>10;
-            break;
-            case MEM_AREA_TEMPOB:
-                base=(WORDPTR *)__tempob_memory;
-                current=&__tempob_used;
-                maxpages=TEMPOB_SIZE>>10;
-            break;
-            case MEM_AREA_TEMPBLOCKS:
-                base=(WORDPTR *)__tempblk_memory;
-                current=&__tempblk_used;
-                maxpages=TEMPBLK_SIZE>>10;
-            break;
-            default:
-                return 0;
+    case MEM_AREA_RSTK:
+        base = (WORDPTR *) __rstk_memory;
+        current = &__rstk_used;
+        maxpages = RSTK_SIZE >> 10;
+        break;
+    case MEM_AREA_DSTK:
+        base = (WORDPTR *) __dstk_memory;
+        current = &__dstk_used;
+        maxpages = DSTK_SIZE >> 10;
+        break;
+    case MEM_AREA_DIR:
+        base = (WORDPTR *) __dir_memory;
+        current = &__dir_used;
+        maxpages = DIR_SIZE >> 10;
+        break;
+    case MEM_AREA_LAM:
+        base = (WORDPTR *) __lam_memory;
+        current = &__lam_used;
+        maxpages = LAM_SIZE >> 10;
+        break;
+    case MEM_AREA_TEMPOB:
+        base = (WORDPTR *) __tempob_memory;
+        current = &__tempob_used;
+        maxpages = TEMPOB_SIZE >> 10;
+        break;
+    case MEM_AREA_TEMPBLOCKS:
+        base = (WORDPTR *) __tempblk_memory;
+        current = &__tempblk_used;
+        maxpages = TEMPBLK_SIZE >> 10;
+        break;
+    default:
+        return 0;
     }
 
-    newsize+=1023;
-    newsize>>=10;    // REQUIRED NUMBER OF PAGES
+    newsize += 1023;
+    newsize >>= 10;     // REQUIRED NUMBER OF PAGES
 
     // CAN'T EXCEED MAXIMUM AREA SIZE
-    if(newsize>maxpages) return 0;
+    if(newsize > maxpages)
+        return 0;
 
-
-    if(newsize>*current) {
+    if(newsize > *current) {
         // FIND FREE PAGES AND ADD THEM
-        int needed=newsize-*current;
-        int free=halGetFreePages();
+        int needed = newsize - *current;
+        int free = halGetFreePages();
 
-        if(free<needed) return 0;
+        if(free < needed)
+            return 0;
 
-
-        *current+=needed;
+        *current += needed;
 
         return base;
     }
 
-    if(newsize<*current) {
+    if(newsize < *current) {
         // RELEASE PAGES TO THE SYSTEM
-        int release=*current-newsize;
+        int release = *current - newsize;
 
-        *current-=release;
+        *current -= release;
 
         return base;
 
@@ -126,75 +125,83 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
     return base;
 }
 
-
 int __last_used_byte;
 
 // INITIALIZE THE MEMORY AFTER A TOTAL RESET
 void halInitMemoryMap()
 {
-__dstk_used=__rstk_used=__dir_used=__lam_used=__tempob_used=__tempblk_used=0;
+    __dstk_used = __rstk_used = __dir_used = __lam_used = __tempob_used =
+            __tempblk_used = 0;
 // MAKE DSTK MEMORY DIRTY WITH KNOWN STATE
-memsetw(__dstk_memory,0xbaadf00d,DSTK_SIZE*sizeof(WORDPTR)/sizeof(WORD));
-memsetw(__tempob_memory,0xbaadf00d,TEMPOB_SIZE);
+    memsetw(__dstk_memory, 0xbaadf00d,
+            DSTK_SIZE * sizeof(WORDPTR) / sizeof(WORD));
+    memsetw(__tempob_memory, 0xbaadf00d, TEMPOB_SIZE);
 
 }
 
 // RETURN TRUE IF MEMORY MAPS ARE INTACT, ZERO IF THEY ARE BAD OR INEXISTENT
 int halCheckMemoryMap()
 {
-return __memmap_intact;
+    return __memmap_intact;
 }
-
 
 // RETURN THE NUMBER OF ALLOCATED PAGES FOR A SPECIFIC MEMORY AREA
 int halCountUsedPages(int zone)
 {
-    switch(zone) {
+    switch (zone) {
 
-            case MEM_AREA_RSTK:
-                return __rstk_used;
-            case MEM_AREA_DSTK:
-                return __dstk_used;
-            case MEM_AREA_DIR:
-                return __dir_used;
-            case MEM_AREA_LAM:
-                return __lam_used;
-            case MEM_AREA_TEMPOB:
-                return __tempob_used;
-            case MEM_AREA_TEMPBLOCKS:
-                return __tempblk_used;
+    case MEM_AREA_RSTK:
+        return __rstk_used;
+    case MEM_AREA_DSTK:
+        return __dstk_used;
+    case MEM_AREA_DIR:
+        return __dir_used;
+    case MEM_AREA_LAM:
+        return __lam_used;
+    case MEM_AREA_TEMPOB:
+        return __tempob_used;
+    case MEM_AREA_TEMPBLOCKS:
+        return __tempblk_used;
     }
     return 0;
 
 }
-
 
 // CHECK THE MEMORY MAP AGAINST RPL SYSTEM VARIABLES
 // CHECK CONSISTENCY OF RPL CORE MEMORY
 int halCheckRplMemory()
 {
     // VERIFY MAIN RPL POINTERS
-    if(TempObEnd>=TempObSize)  return 0;
-    if((int)(TempObSize-TempOb)!=halCountUsedPages(MEM_AREA_TEMPOB)<<10) return 0;
+    if(TempObEnd >= TempObSize)
+        return 0;
+    if((int)(TempObSize - TempOb) != halCountUsedPages(MEM_AREA_TEMPOB) << 10)
+        return 0;
 
+    if(TempBlocksSize != halCountUsedPages(MEM_AREA_TEMPBLOCKS) << 10)
+        return 0;
+    if(TempBlocksEnd >= TempBlocks + TempBlocksSize)
+        return 0;
 
-    if(TempBlocksSize!=halCountUsedPages(MEM_AREA_TEMPBLOCKS)<<10) return 0;
-    if(TempBlocksEnd>=TempBlocks+TempBlocksSize) return 0;
+    if(RStkSize != halCountUsedPages(MEM_AREA_RSTK) << 10)
+        return 0;
+    if(RSTop >= RStk + RStkSize)
+        return 0;
 
-    if(RStkSize!=halCountUsedPages(MEM_AREA_RSTK)<<10) return 0;
-    if(RSTop>=RStk+RStkSize) return 0;
+    if(DStkSize != halCountUsedPages(MEM_AREA_DSTK) << 10)
+        return 0;
+    if(DSTop >= DStk + DStkSize)
+        return 0;
 
-    if(DStkSize!=halCountUsedPages(MEM_AREA_DSTK)<<10) return 0;
-    if(DSTop>=DStk+DStkSize) return 0;
+    if(LAMSize != halCountUsedPages(MEM_AREA_LAM) << 10)
+        return 0;
+    if(LAMTop >= LAMs + LAMSize)
+        return 0;
 
-    if(LAMSize!=halCountUsedPages(MEM_AREA_LAM)<<10) return 0;
-    if(LAMTop>=LAMs+LAMSize) return 0;
-
-    if(DirSize!=halCountUsedPages(MEM_AREA_DIR)<<10) return 0;
-    if(DirsTop>=Directories+DirSize) return 0;
+    if(DirSize != halCountUsedPages(MEM_AREA_DIR) << 10)
+        return 0;
+    if(DirsTop >= Directories + DirSize)
+        return 0;
 
     // ALL MEMORY POINTERS SEEM TO BE VALID
     return 1;
 }
-
-

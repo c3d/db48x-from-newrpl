@@ -5,11 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #include <ggl.h>
 
-
-void ggl_scrolllf(gglsurface *dest,int width, int height, int npixels)
+void ggl_scrolllf(gglsurface * dest, int width, int height, int npixels)
 {
 
 // SCROLLS A RECTANGULAR REGION LEFT npixelsup
@@ -18,15 +16,13 @@ void ggl_scrolllf(gglsurface *dest,int width, int height, int npixels)
 
 // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-gglsurface srf;
+    gglsurface srf;
 
-srf.addr=dest->addr;
-srf.width=dest->width;
-srf.x=dest->x+npixels;
-srf.y=dest->y;
+    srf.addr = dest->addr;
+    srf.width = dest->width;
+    srf.x = dest->x + npixels;
+    srf.y = dest->y;
 
-ggl_bitblt(dest,&srf,width-npixels,height);
+    ggl_bitblt(dest, &srf, width - npixels, height);
 
 }
-
-

@@ -10,8 +10,9 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-typedef struct {
-    FPINT x,y;
+typedef struct
+{
+    FPINT x, y;
     BINT type;
 } CURVEPT;
 
@@ -21,14 +22,4 @@ typedef struct {
 #define TYPE_CURVE 3
 #define TYPE_CLOSEEND 4
 
-
-
-
-
-
-
-
-
-
 #endif // RENDER_H
-

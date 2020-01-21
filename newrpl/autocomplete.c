@@ -9,121 +9,132 @@
 #include "libraries.h"
 #include "hal.h"
 
-
-
-WORD rplGetNextSuggestion(WORD suggestion,WORDPTR suggobject,BYTEPTR start,BYTEPTR end)
+WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
+        BYTEPTR end)
 {
 
     BINT libcnt;
     LIBHANDLER han;
-    WORD saveop=CurOpcode;
-    if(!suggestion && !suggobject) libcnt=rplGetNextLib(MAXLIBNUMBER+1);  // START FROM THE HIGHEST NUMBER
+    WORD saveop = CurOpcode;
+    if(!suggestion && !suggobject)
+        libcnt = rplGetNextLib(MAXLIBNUMBER + 1);       // START FROM THE HIGHEST NUMBER
     else {
-        if(suggestion) libcnt=LIBNUM(suggestion);
-        else libcnt=LIBNUM(*suggobject);
+        if(suggestion)
+            libcnt = LIBNUM(suggestion);
+        else
+            libcnt = LIBNUM(*suggobject);
     }
 
-    TokenStart=(WORDPTR)start;
-    BlankStart=(WORDPTR)end;
-    TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
-    SuggestedObject=suggobject;
-    SuggestedOpcode=suggestion;
+    TokenStart = (WORDPTR) start;
+    BlankStart = (WORDPTR) end;
+    TokenLen = (BINT) utf8nlen((char *)start, (char *)end);
+    SuggestedObject = suggobject;
+    SuggestedOpcode = suggestion;
 
     //if(!suggestion) suggestion=1;
     //else suggestion=0;
 
-    suggestion=1;
+    suggestion = 1;
 
     do {
 
-    while(libcnt>=0) {
-        RetNum=-1;
-        CurOpcode=MKOPCODE(libcnt,OPCODE_AUTOCOMPNEXT);
-        han=rplGetLibHandler(libcnt);
-        if(han) (*han)();
+        while(libcnt >= 0) {
+            RetNum = -1;
+            CurOpcode = MKOPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
+            han = rplGetLibHandler(libcnt);
+            if(han)
+                (*han) ();
 
-        if(RetNum==OK_CONTINUE) {
-            CurOpcode=saveop;
-            // IF SuggestedOpcode IS ZERO, THEN THE POINTER IS RETURNED IN SuggestedObject
-            return SuggestedOpcode;
+            if(RetNum == OK_CONTINUE) {
+                CurOpcode = saveop;
+                // IF SuggestedOpcode IS ZERO, THEN THE POINTER IS RETURNED IN SuggestedObject
+                return SuggestedOpcode;
+            }
+            // NO MORE SUGGESTIONS FROM THIS LIBRARY
+            libcnt = rplGetNextLib(libcnt);
         }
-        // NO MORE SUGGESTIONS FROM THIS LIBRARY
-        libcnt=rplGetNextLib(libcnt);
+
+        libcnt = rplGetNextLib(MAXLIBNUMBER + 1);
+
+        SuggestedOpcode = 0xffffffff;
+
+        // RESTART FROM THE TOP IF THERE WAS A PREVIOUS SUGGESTION
+        // COULD RETURN THE SAME SUGGESTION IF THERE WAS ONLY ONE
     }
+    while(suggestion--);
 
-    libcnt=rplGetNextLib(MAXLIBNUMBER+1);
-
-    SuggestedOpcode=0xffffffff;
-
-    // RESTART FROM THE TOP IF THERE WAS A PREVIOUS SUGGESTION
-    // COULD RETURN THE SAME SUGGESTION IF THERE WAS ONLY ONE
-    } while(suggestion--);
-
-    SuggestedObject=0;
+    SuggestedObject = 0;
     return 0;
 }
 
-WORD rplGetPrevSuggestion(WORD suggestion,WORDPTR suggobject,BYTEPTR start,BYTEPTR end)
+WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
+        BYTEPTR end)
 {
 
     BINT libcnt;
     LIBHANDLER han;
-    WORD saveop=CurOpcode,prevsugg;
+    WORD saveop = CurOpcode, prevsugg;
     WORDPTR prevsuggobj;
 
-    if(!suggestion && !suggobject) return 0;
+    if(!suggestion && !suggobject)
+        return 0;
 
-    libcnt=rplGetNextLib(MAXLIBNUMBER+1);  // START FROM THE HIGHEST NUMBER
+    libcnt = rplGetNextLib(MAXLIBNUMBER + 1);   // START FROM THE HIGHEST NUMBER
 
-    TokenStart=(WORDPTR)start;
-    BlankStart=(WORDPTR)end;
-    TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
-    SuggestedObject=(WORDPTR)zero_bint;
-    SuggestedOpcode=-1;
+    TokenStart = (WORDPTR) start;
+    BlankStart = (WORDPTR) end;
+    TokenLen = (BINT) utf8nlen((char *)start, (char *)end);
+    SuggestedObject = (WORDPTR) zero_bint;
+    SuggestedOpcode = -1;
 
     //if(!suggestion) suggestion=1;
     //else suggestion=0;
-    prevsugg=0;
-    prevsuggobj=0;
+    prevsugg = 0;
+    prevsuggobj = 0;
 
-    while(libcnt>=0) {
-        RetNum=-1;
-        CurOpcode=MKOPCODE(libcnt,OPCODE_AUTOCOMPNEXT);
-        han=rplGetLibHandler(libcnt);
-        ScratchPointer1=prevsuggobj;
-        if(han) (*han)();
-        prevsuggobj=ScratchPointer1;
+    while(libcnt >= 0) {
+        RetNum = -1;
+        CurOpcode = MKOPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
+        han = rplGetLibHandler(libcnt);
+        ScratchPointer1 = prevsuggobj;
+        if(han)
+            (*han) ();
+        prevsuggobj = ScratchPointer1;
 
-        if(RetNum==OK_CONTINUE) {
-            if((!ISPROLOG(SuggestedOpcode) &&(SuggestedOpcode==suggestion))||(ISPROLOG(SuggestedOpcode) && ISPROLOG(suggestion) && (rplCompareObjects(SuggestedObject,suggobject)))) {
+        if(RetNum == OK_CONTINUE) {
+            if((!ISPROLOG(SuggestedOpcode) && (SuggestedOpcode == suggestion))
+                    || (ISPROLOG(SuggestedOpcode) && ISPROLOG(suggestion)
+                        && (rplCompareObjects(SuggestedObject, suggobject)))) {
                 if(prevsugg || prevsuggobj) {
-                    CurOpcode=saveop;
-                    SuggestedObject=prevsuggobj;
+                    CurOpcode = saveop;
+                    SuggestedObject = prevsuggobj;
                     return prevsugg;
                 }
                 else {
                     // THIS THE FIRST SUGGESTION, SO THE RESULT SHOULD BE THE LAST
                     // ONE WE GET, KEEP WORKING ON IT
-                    prevsugg=SuggestedOpcode;
-                    prevsuggobj=SuggestedObject;
+                    prevsugg = SuggestedOpcode;
+                    prevsuggobj = SuggestedObject;
                 }
 
-            } else {
-                prevsugg=SuggestedOpcode;
-                prevsuggobj=SuggestedObject;
+            }
+            else {
+                prevsugg = SuggestedOpcode;
+                prevsuggobj = SuggestedObject;
             }
         }
         // NO MORE SUGGESTIONS FROM THIS LIBRARY
-        else libcnt=rplGetNextLib(libcnt);
+        else
+            libcnt = rplGetNextLib(libcnt);
     }
 
-    SuggestedObject=prevsuggobj;
+    SuggestedObject = prevsuggobj;
     return prevsugg;
 }
 
-
 // UPDATE THE SUGGESTION
-WORD rplUpdateSuggestion(WORD suggestion,WORDPTR suggobject,BYTEPTR start,BYTEPTR end)
+WORD rplUpdateSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
+        BYTEPTR end)
 {
-    return rplGetNextSuggestion(suggestion,suggobject,start,end);
+    return rplGetNextSuggestion(suggestion, suggobject, start, end);
 }

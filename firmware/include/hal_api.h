@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef _HAL_API_H
 #define _HAL_API_H
 
@@ -22,7 +21,8 @@ typedef long long tmr_t;
 //! Handle to refer to a timed event.
 typedef int HEVENT;
 
-typedef struct {
+typedef struct
+{
     unsigned int Prolog;
     unsigned short BitmapWidth;
     unsigned short BitmapHeight;
@@ -32,36 +32,39 @@ typedef struct {
 } UNIFONT;
 
 // COMPACT TIME STRUCTURE, SIMILAR TO STANDARD tm BUT USING ONLY 64 BITS.
-struct compact_tm {
-    unsigned tm_sec:6,          //seconds after the minute	0-60*
-             tm_min:6,          //minutes after the hour	0-59
-             tm_hour:5,         //hours since midnight	0-23
-             tm_mday:5,         //day of the month	1-31
-             tm_mon:4,          //months since January	0-11
-             tm_wday:3,         //days since Sunday	0-6
-             tm_isdst:1;
-    int      tm_year;         //int	years since 1900
+struct compact_tm
+{
+    unsigned tm_sec:6,  //seconds after the minute      0-60*
+        tm_min:6,       //minutes after the hour        0-59
+        tm_hour:5,      //hours since midnight  0-23
+        tm_mday:5,      //day of the month      1-31
+        tm_mon:4,       //months since January  0-11
+        tm_wday:3,      //days since Sunday     0-6
+        tm_isdst:1;
+    int tm_year;        //int     years since 1900
 
 };
 
 #ifndef NEWRPL_H
 
 // COMPACT TIME STRUCTURE - 32 BITS.
-struct time {
-    unsigned sec    : 6,    // seconds after the minute	0-59
-             min    : 6,    // minutes after the hour	0-59
-             hour   : 5,    // hours since midnight     0-23
-             isdst  : 1,    // daylight saving time flag
-                    : 14;   // to pad up to 32 bits
+struct time
+{
+    unsigned sec:6,     // seconds after the minute 0-59
+        min:6,  // minutes after the hour   0-59
+        hour:5, // hours since midnight     0-23
+        isdst:1,        // daylight saving time flag
+    :   14;     // to pad up to 32 bits
 };
 
 // COMPACT DATE STRUCTURE - 32 BITS.
-struct date {
-    unsigned mday   : 5,    // day of the month     1-31
-             mon    : 4,    // months since January	1-12
-             wday   : 3,    // days since Monday	1-7
-             year   : 14,   // years                1582-9999
-                    : 6;    // to pad up to 32 bits
+struct date
+{
+    unsigned mday:5,    // day of the month     1-31
+        mon:4,  // months since January     1-12
+        wday:3, // days since Monday        1-7
+        year:14,        // years                1582-9999
+    :   6;      // to pad up to 32 bits
 };
 
 #define TIME_MAXSEC  ((1 <<  6) - 1)
@@ -75,46 +78,39 @@ struct date {
 
 typedef gglsurface DRAWSURFACE;
 
-
-
-
-enum keyContext {
-    IN_STACK=0,
+enum keyContext
+{
+    IN_STACK = 0,
     IN_CMDLINE,
     IN_FORM,
-    IN_USER=16 // use IN_USER+NNN FOR CUSTOM KEY CONTEXT FOR APPLICATIONS
+    IN_USER = 16        // use IN_USER+NNN FOR CUSTOM KEY CONTEXT FOR APPLICATIONS
 };
 
-
-
-enum halFlagsEnum {
-    HAL_FASTMODE=1,
-    HAL_SLOWLOCK=2,
-    HAL_HOURGLASS=4,
-    HAL_AUTOOFFTIME1=8,
-    HAL_AUTOOFFTIME2=16,
-    HAL_AUTOOFFTIME3=32,
-    HAL_NOCLOCKCHANGE=64,
-    HAL_SKIPNEXTALARM=128,
-    HAL_HALTED=256,
-    HAL_TIMEOUT=512,
-    HAL_AUTORESUME=1024,
-    HAL_FASTAUTORESUME=2048,
-    HAL_POWEROFF=4096,
-    HAL_RESET=8192,
-    HAL_HWRESET=16384,
-    HAL_QUICKRESPONSE=32768
-    // ADD MORE BITS HERE
-
-    // STARTING WITH 2^16 = 65536 ARE NOTIFICATION FLAGS
-
+enum halFlagsEnum
+{
+    HAL_FASTMODE = 1,
+    HAL_SLOWLOCK = 2,
+    HAL_HOURGLASS = 4,
+    HAL_AUTOOFFTIME1 = 8,
+    HAL_AUTOOFFTIME2 = 16,
+    HAL_AUTOOFFTIME3 = 32,
+    HAL_NOCLOCKCHANGE = 64,
+    HAL_SKIPNEXTALARM = 128,
+    HAL_HALTED = 256,
+    HAL_TIMEOUT = 512,
+    HAL_AUTORESUME = 1024,
+    HAL_FASTAUTORESUME = 2048,
+    HAL_POWEROFF = 4096,
+    HAL_RESET = 8192,
+    HAL_HWRESET = 16384,
+    HAL_QUICKRESPONSE = 32768
+            // ADD MORE BITS HERE
+            // STARTING WITH 2^16 = 65536 ARE NOTIFICATION FLAGS
 };
 
 #define HAL_AUTOOFFTIME (HAL_AUTOOFFTIME1|HAL_AUTOOFFTIME2|HAL_AUTOOFFTIME3)
 #define GET_AUTOOFFTIME(flags) (((flags)&HAL_AUTOOFFTIME)/HAL_AUTOOFFTIME1)
 #define SET_AUTOOFFTIME(ntimes15) ((ntimes15*HAL_AUTOOFFTIME1)&HAL_AUTOOFFTIME)
-
-
 
 // ANNUNCIATORS
 
@@ -126,8 +122,9 @@ enum halFlagsEnum {
  * (131, 4) - Low Battery
  * (131, 5) - Wait
 */
-enum halNotification {
-    N_CONNECTION=0,
+enum halNotification
+{
+    N_CONNECTION = 0,
     N_LEFTSHIFT,
     N_RIGHTSHIFT,
     N_ALPHA,
@@ -137,8 +134,9 @@ enum halNotification {
     N_ALARM
 };
 
-enum halFonts {
-    FONT_STACK=0,
+enum halFonts
+{
+    FONT_STACK = 0,
     FONT_STACKLVL1,
     FONT_CMDLINE,
     FONT_MENU,
@@ -166,11 +164,9 @@ enum halFonts {
 
 #define MAX_RENDERCACHE_ENTRIES 32
 
-
-
-
 // STRUCT TO CONTAIN THE HEIGHT IN PIXELS OF SCREEN AREAS (0=INVISIBLE)
-typedef struct {
+typedef struct
+{
     int Form;
     int Stack;
     int CmdLine;
@@ -178,55 +174,52 @@ typedef struct {
     int Menu2;
     int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
-    HEVENT SAreaTimer,CursorTimer;
+    HEVENT SAreaTimer, CursorTimer;
     UNIFONT **FontArray[7];     // POINTERS TO ADDRESSES OF FONTS
-    WORD FontHash[7];           // HASH TO DETECT FONT CHANGES
+    WORD FontHash[7];   // HASH TO DETECT FONT CHANGES
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
-    int LineVisible,LineCurrent,LineIsModified;
-    int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
+    int LineVisible, LineCurrent, LineIsModified;
+    int NumLinesVisible;        // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
     int CursorState;    // Lowercase, Uppercase, Token, VISIBLE OR INVISIBLE
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
-    int CursorX,XVisible;
-    int SelStart,SelEnd;    // CURRENT SELECTION START/END OFFSET WITHIN THE LINE
-    int SelStartLine,SelEndLine; // CURRENT SELECTION START/END LINE (-1 IF NO SELECTION)
+    int CursorX, XVisible;
+    int SelStart, SelEnd;       // CURRENT SELECTION START/END OFFSET WITHIN THE LINE
+    int SelStartLine, SelEndLine;       // CURRENT SELECTION START/END LINE (-1 IF NO SELECTION)
     int CmdLineState;   // STATUS FLAGS FOR THE COMMAND LINE
     int CmdLineIndent;  // INDENT SPACING
     int ACTokenStart;   // START OF TOKEN FOR AUTO COMPLETE, OFFSET FROM START OF LINE
     WORD ACSuggestion;  // CURRENT SUGGESTED OPCODE
 
     // VARIABLES FOR USER INTERFACE
-    int StkUndolevels,StkCurrentLevel;
+    int StkUndolevels, StkCurrentLevel;
     int KeyContext;
 
     // INTERACTIVE STACK VARIABLES
-    int StkPointer,StkVisibleLvl,StkSelStart,StkSelEnd;
-    int StkVisibleOffset,StkSelStatus;
+    int StkPointer, StkVisibleLvl, StkSelStart, StkSelEnd;
+    int StkVisibleOffset, StkSelStatus;
 
     // DEFERRED IDLE PROCESSES
     void (*Processes[3])(void);
 
-
 } HALSCREEN;
-
 
 extern HALSCREEN halScreen;
 
 // CALCULATOR CONTEXT IDENTIFIERS
-enum {
+enum
+{
     // FIRST NUMBERS, UP TO 32 ARE BIT-FIELDS AND CAN BE ACTIVATED WITHIN
     // OTHER CONTEXTS
-    CONTEXT_ANY=0,
-    CONTEXT_INEDITOR=1,
-    CONTEXT_STACK=2,
-    CONTEXT_INTSTACK=4,
-    CONTEXT_PLOT=8,
-    CONTEXT_PICT=16,
+    CONTEXT_ANY = 0,
+    CONTEXT_INEDITOR = 1,
+    CONTEXT_STACK = 2,
+    CONTEXT_INTSTACK = 4,
+    CONTEXT_PLOT = 8,
+    CONTEXT_PICT = 16,
 
     // CONTEXT NUMBERS ABOVE 32 ARE JUST NUMBERS (MUST BE MULTIPLE OF 32)
-    CONTEXT_FORM=32
-
-
-    // ADD MORE SYSTEM CONTEXTS HERE
+    CONTEXT_FORM = 32
+            // ADD MORE SYSTEM CONTEXTS HERE
 };
 
 #define CMDSTATE_OPEN        0x100
@@ -238,17 +231,14 @@ enum {
 #define CMDSTATE_ACACTIVE   0x2000
 #define CMDSTATE_ACUPDATE   0x4000
 
-
 // Type definition for interrupt handler functions
 
 typedef void (*__interrupt__)(void);
 
-
-
-
 // THIS ENUM MUST BE DUPLICATED EXACTLY IN hal.h OF THE NEWRPL-BASE PROJECT
-enum {
-    MEM_AREA_RSTK=0,
+enum
+{
+    MEM_AREA_RSTK = 0,
     MEM_AREA_DSTK,
     MEM_AREA_DIR,
     MEM_AREA_LAM,
@@ -256,19 +246,17 @@ enum {
     MEM_AREA_TEMPBLOCKS
 };
 
-#define MEM_PHYSTACK    0x40000ffc  // PHYSICAL LOCATION OF THE "C" STACK (TOP OF STACK, DECREASES DOWN TO 0x40000000)
-#define MEM_ROM         0x00000000  // VIRTUAL (AND PHYSICAL) ROM LOCATION (UP TO 4 MBytes)
-#define MEM_DSTK        0x00400000  // DATA STACK VIRTUAL LOCATION (UP TO 4 MB)
-#define MEM_RSTK        0x00800000  // RETURN STACK VIRTUAL LOCATION (UP TO 4 MB)
-#define MEM_LAM         0x00C00000  // LOCAL VARIABLES VIRTUAL LOCATION (UP TO 4 MB)
-#define MEM_DIRS        0x01000000  // GLOBAL DIRECTORIES VIRTUAL LOCATION (UP TO 4 MB)
-#define MEM_TEMPBLOCKS  0x01400000  // BLOCK INDEX FOR TEMPOB VIRTUAL LOCATION (UP TO 4 MB)
-#define MEM_TEMPOB      0x01800000  // GLOBAL OBJECT ALLOCATION MEMORY VIRTUAL LOCATION (UP TO 8 MB)
-#define MEM_SYSTEM      0x02000000  // SYSTEM RAM (FIXED AMOUNT, MAPPED AT THE BEGINNING OF THE PHYSICAL RAM)
-#define MEM_SRAM        0x03000000  // ON-CHIP SRAM
-#define MEM_HARDWARE    0x04800000  // HARDWARE AND PERIPHERALS
-
-
+#define MEM_PHYSTACK    0x40000ffc      // PHYSICAL LOCATION OF THE "C" STACK (TOP OF STACK, DECREASES DOWN TO 0x40000000)
+#define MEM_ROM         0x00000000      // VIRTUAL (AND PHYSICAL) ROM LOCATION (UP TO 4 MBytes)
+#define MEM_DSTK        0x00400000      // DATA STACK VIRTUAL LOCATION (UP TO 4 MB)
+#define MEM_RSTK        0x00800000      // RETURN STACK VIRTUAL LOCATION (UP TO 4 MB)
+#define MEM_LAM         0x00C00000      // LOCAL VARIABLES VIRTUAL LOCATION (UP TO 4 MB)
+#define MEM_DIRS        0x01000000      // GLOBAL DIRECTORIES VIRTUAL LOCATION (UP TO 4 MB)
+#define MEM_TEMPBLOCKS  0x01400000      // BLOCK INDEX FOR TEMPOB VIRTUAL LOCATION (UP TO 4 MB)
+#define MEM_TEMPOB      0x01800000      // GLOBAL OBJECT ALLOCATION MEMORY VIRTUAL LOCATION (UP TO 8 MB)
+#define MEM_SYSTEM      0x02000000      // SYSTEM RAM (FIXED AMOUNT, MAPPED AT THE BEGINNING OF THE PHYSICAL RAM)
+#define MEM_SRAM        0x03000000      // ON-CHIP SRAM
+#define MEM_HARDWARE    0x04800000      // HARDWARE AND PERIPHERALS
 
 /* PHYSICAL RAM LAYOUT:
 
@@ -297,12 +285,11 @@ enum {
 
 */
 
-
 /*!
     \brief Throw a user exception
     Cause a user exception to be thrown. It displays the requested message and offer the user several
     options to treat the exception.
-    
+
     \param message The string that will be displayed.
     \param options One or more of the following constants:
     \li __EX_CONT Display the "Continue" option, allowing the program to continue.
@@ -315,28 +302,26 @@ enum {
     \note If the options parameter is passed as 0, the calculator will display the exception message
           and show no options, staying in an infinite loop until the user resets the calc using a
           paperclip. Only use this option if it is not safe to attempt to exit the program.
-                   
+
     \return The function does not return a value, and it may not return at all depending on the
             user's choice to handle the exception. If the user chooses to exit, warmstart or reset
             the program will exit first as if the exit() function was called.
 */
-void throw_exception(char * message, unsigned int options);
+void throw_exception(char *message, unsigned int options);
 
-void throw_dbgexception(char * message, unsigned int options);
-
+void throw_dbgexception(char *message, unsigned int options);
 
 // *****************************************************
 // **************  IRQ MACHINERY ***********************
 // *****************************************************
 
-
 /*!
-    \brief Install an IRQ handler 
+    \brief Install an IRQ handler
 	Set a routine to service interrupt requests from a specific device. It does not change the
 	state of the interrupt controller, so the user needs to manually unmask the interrupt and
 	configure the rest of the hardware to generate the proper IRQ request.
-    
-    \param service_number Identifies the device that is causing the interrupt. It's a 
+
+    \param service_number Identifies the device that is causing the interrupt. It's a
     					  number from 0 to 31 according to the list below (see Samsung S3C2410X manual).
     \param serv_routine   Address of a service routine. The service routine has no special requirements, other
                           than returning as fast as possible to allow other IRQ's to be processed.
@@ -377,17 +362,16 @@ void throw_dbgexception(char * message, unsigned int options);
  \sa __irq_releasehook
 */
 
-void __irq_addhook(int service_number,__interrupt__ serv_routine);
-
+void __irq_addhook(int service_number, __interrupt__ serv_routine);
 
 /*!
-    \brief Uninstall an IRQ handler 
+    \brief Uninstall an IRQ handler
 	Removes a service routine that handles interrupt requests from a specific device. It does not change the
 	state of the interrupt controller, so the user needs to manually mask the interrupt and
 	configure the rest of the hardware to stop generating IRQ requests. If an IRQ is generated
 	after this routine is called, it will be serviced by a do-nothing routine.
-    
-    \param service_number Identifies the device that is causing the interrupt. It's a 
+
+    \param service_number Identifies the device that is causing the interrupt. It's a
     					  number from 0 to 31 according to the list below (see Samsung S3C2410X manual).
     \note See __irq_addhook for a list of interrupt service numbers
 
@@ -398,11 +382,6 @@ void __irq_releasehook(int service_number);
 
 void __irq_mask(int service_number);
 void __irq_unmask(int service_number);
-
-
-
-
-
 
 /*
 
@@ -592,7 +571,6 @@ Bit set means key is pressed.
  */
 #define KB_FUNC ((unsigned long long)0x00007e0000000000)
 
-
 // SHIFT CONSTANTS FOR HIGH-LEVEL KEYBOARD FUNCTIONS
 
 //! Shift constant to use in a combined shiftcode. Shift-Hold.
@@ -616,13 +594,11 @@ Bit set means key is pressed.
 //! Shift constant to use in a combined shiftcode. Hold-Alpha.
 #define SHIFT_ALPHAHOLD  (SHIFT_ALPHA|SHIFT_ALHOLD)
 
-
-#define SHIFT_ALPHALOCK  0x1000   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
-
+#define SHIFT_ALPHALOCK  0x1000 // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
 
 //! Shift constant to use in a combined shiftcode. Any Shift or ON.
 #define SHIFT_ANY        0xfc0
-#define SHIFT_ANYLOCK    0x1fc0  // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
+#define SHIFT_ANYLOCK    0x1fc0 // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
 
 // 18-BIT KEY CODE FOR KEYBOARD HANDLER
 //#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
@@ -631,7 +607,6 @@ Bit set means key is pressed.
 #define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANYLOCK)>>7)
 #define KEYSHIFT(keycode) ((keycode)&SHIFT_ANY)
 #define KEYVALUE(keycode) ((keycode)&0x3f)
-
 
 // KEYMATRIX TYPE DEFINITION
 /*!
@@ -748,7 +723,6 @@ keymatrix keyb_getmatrix();
  */
 #define keyb_isON() ((keyb_getmatrix()&KB_MASK(KB_ON))!=0)
 
-
 /*!
  * \brief Returns the key constant of the first key pressed.
  *
@@ -785,7 +759,6 @@ keymatrix keyb_getmatrix();
  */
 int keyb_getkey(int wait);
 
-
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_PRESS  0x0000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
@@ -808,7 +781,6 @@ int keyb_getkey(int wait);
 //! \brief Mask to isolate the key message bits
 #define KM_MSGMASK  0xe000
 
-
 //! \brief Keyboard message queue size (# of messages)
 #define KEYB_BUFFER 128
 //! \brief Keyboard scanning speed in milliseconds
@@ -822,8 +794,6 @@ int keyb_getkey(int wait);
 #define KM_SHIFTEDKEY(a) ( (a) & (KM_KEYMASK|KM_SHIFTMASK))
 //! \brief Convenience macro to extract shift plane from a message
 #define KM_SHIFTPLANE(a) ( (a) & KM_SHIFTMASK)
-
-
 
 /*!
  * \brief Inserts a key message into the keyboard buffer.
@@ -841,7 +811,6 @@ int keyb_getkey(int wait);
  *
  */
 void keyb_postmsg(unsigned int msg);
-
 
 /*!
  * \brief Get a key message from the keyboard buffer.
@@ -871,7 +840,6 @@ void keyb_postmsg(unsigned int msg);
  */
 unsigned int keyb_getmsg();
 
-
 /*!
  * \brief Set all keyboard timing constants.
  *
@@ -887,8 +855,7 @@ unsigned int keyb_getmsg();
  *
  *
  */
-void keyb_settiming(int repeat,int longpress,int debounce);
-
+void keyb_settiming(int repeat, int longpress, int debounce);
 
 /*!
  * \brief Activate/deactivate keyboard autorepeat.
@@ -897,7 +864,6 @@ void keyb_settiming(int repeat,int longpress,int debounce);
  *
  */
 void keyb_setrepeat(int repeat);
-
 
 /*!
  * \brief Activate/deactivate single-alhpa lock mode.
@@ -920,7 +886,8 @@ void keyb_setalphalock(int single_alpha_lock);
  * the shift plane.
  *
  */
-void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock);
+void keyb_setshiftplane(int leftshift, int rightshift, int alpha,
+        int alphalock);
 
 // OTHER LOWER LEVEL KEYBOARD FUNCTIONS
 int keyb_anymsg();
@@ -928,19 +895,16 @@ void keyb_flush();
 void keyb_flushnowait();
 int keyb_wasupdated();
 
-
-
-
 #define NUM_EVENTS  5   // NUMBER OF SIMULTANEOUS TIMED EVENTS
 
 // INTERNAL USE ONLY
-typedef struct {
-__interrupt__ eventhandler;
-long long ticks;
-unsigned int  delay;
-unsigned int status; // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
+typedef struct
+{
+    __interrupt__ eventhandler;
+    long long ticks;
+    unsigned int delay;
+    unsigned int status;        // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
 } timed_event;
-
 
 // LOW-LEVEL TIMER STRUCTURE
 extern timed_event tmr_events[NUM_EVENTS];
@@ -951,7 +915,6 @@ void tmr_save(unsigned int *tmrbuffer);
 void tmr_restore(unsigned int *tmrbuffer);
 //! Setup system timers and event scheduler - automatically called at startup
 void tmr_setup();
-
 
 //! Get the frequency of the system timer in ticks per second, normally 100 KHz or 125KHz
 tmr_t tmr_getsysfreq();
@@ -980,8 +943,6 @@ void tmr_waituntil(tmr_t time);
 //! Macro to convert milliseconds to ticks
 #define tmr_us2ticks(a) tmr_addus((tmr_t)0,(a))
 
-
-
 /*!
     \brief Create a timed event.
     Create a new timed event, specifying a callback function that will be called after
@@ -1003,7 +964,7 @@ void tmr_waituntil(tmr_t time);
  \sa tmr_eventkill
 */
 
-HEVENT tmr_eventcreate(__interrupt__ handler,unsigned int ms,int autorepeat);
+HEVENT tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepeat);
 
 /*!
     \brief Kill a timed event.
@@ -1039,27 +1000,28 @@ extern const unsigned int Font_8C[];
 extern const unsigned int Font_8D[];
 extern const unsigned int Font_10A[];
 
-
 //const unsigned int System5Font[];
 //const unsigned int System6Font[];
 //const unsigned int System7Font[];
 //const unsigned int MiniFont[];
 
+void DrawText(int x, int y, char *Text, UNIFONT * Font, int color,
+        DRAWSURFACE * drawsurf);
+void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+        DRAWSURFACE * drawsurf);
 
+void DrawTextBk(int x, int y, char *Text, UNIFONT * Font, int color,
+        int bkcolor, DRAWSURFACE * drawsurf);
+void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+        int bkcolor, DRAWSURFACE * drawsurf);
 
-void DrawText(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
-void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
+        DRAWSURFACE * drawsurf);
+int StringWidth(char *Text, UNIFONT * Font);
+int StringWidthN(char *Text, char *End, UNIFONT * Font);
+char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord);
 
-void DrawTextBk(int x,int y,char *Text,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
-void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
-
-void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
-int StringWidth(char *Text,UNIFONT *Font);
-int StringWidthN(char *Text,char *End,UNIFONT *Font);
-char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord);
-
-
-int cpu_getlock(int lockvar,volatile int *lock_ptr);
+int cpu_getlock(int lockvar, volatile int *lock_ptr);
 int cpu_setspeed(int);
 void cpu_waitforinterrupt();
 void cpu_off();
@@ -1089,16 +1051,15 @@ void create_mmu_tables();
 void enable_mmu();
 void set_stackall();
 
-void memcpyw(void *dest,const void *source,int nwords);
-void memmovew(void *dest,const void *source,int nwords);
+void memcpyw(void *dest, const void *source, int nwords);
+void memmovew(void *dest, const void *source, int nwords);
 int stringlen(const char *s);
-char * stringcpy(char *t, const char *s);
-int safe_stringcpy(char *t,int bsize,const char *s);
+char *stringcpy(char *t, const char *s);
+int safe_stringcpy(char *t, int bsize, const char *s);
 void *memcpyb(void *trg, const void *src, int n);
 void *memmoveb(void *_dest, const void *_source, int nbytes);
-void memsetw(void *dest,int value,int nwords);
-void *memsetb(void *dest,int value,int nbytes);
-
+void memsetw(void *dest, int value, int nwords);
+void *memsetb(void *dest, int value, int nbytes);
 
 // LOW-LEVEL HARDWARE DRIVERS - POWER
 void cpu_off_prepare();
@@ -1106,7 +1067,6 @@ void cpu_off_die();
 void cpu_flushwritebuffers();
 void cpu_flushTLB();
 void cpu_flushicache(void);
-
 
 // LOW-LEVEL COMMON USB API
 void usb_sendcontrolpacket(int packet_type);
@@ -1135,7 +1095,6 @@ int usb_rxfileclose(int fileid);
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
 void __keyb_waitrelease();
-
 
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
@@ -1167,12 +1126,9 @@ void usb_shutdown();
 int usb_isconnected();
 int usb_isconfigured();
 
-
-
-
 // HIGHER LEVEL MEMORY MANAGEMENT
 
-WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
+WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize);
 int halGetFreePages();
 int halGetTotalPages();
 int halCheckMemoryMap();
@@ -1182,10 +1138,9 @@ void halInitMemoryMap();
 
 // HIGHER LEVEL GLOBAL VARIABLES
 
-
 extern BINT halFlags;
 extern void (*halProcesses[3])(void);
-extern HEVENT halBusyEvent,halTimeoutEvent;
+extern HEVENT halBusyEvent, halTimeoutEvent;
 extern BINT halLongKeyPending;
 
 // HIGHER LEVEL HAL FUNCTIONS
@@ -1200,10 +1155,6 @@ void halWakeUp();
 void halCPUSlowMode();
 void halCPUFastMode();
 void halReset();
-
-
-
-
 
 // TIMER FUNCTIONS
 BINT64 halTicks();
@@ -1222,20 +1173,19 @@ void halGetSystemDateTime(struct date *dt, struct time *tm);
 void halDisableSystemAlarm();
 int halCheckSystemAlarm();
 
-
 // SCREEN FUNCTIONS
 void halInitScreen();
-void halSetNotification(enum halNotification type,int color);
+void halSetNotification(enum halNotification type, int color);
 int halGetNotification(enum halNotification type);
 void halShowErrorMsg();
 void halShowMsg(char *Text);
-void halShowMsgN(char *Text,char *End);
+void halShowMsgN(char *Text, char *End);
 void halSetCmdLineHeight(int h);
 void halStatusAreaPopup();
 void halCancelPopup();
 void halUpdateFonts();
-void halRedrawAll(DRAWSURFACE *scr);
-void halRedrawCmdLine(DRAWSURFACE *scr);
+void halRedrawAll(DRAWSURFACE * scr);
+void halRedrawCmdLine(DRAWSURFACE * scr);
 void halUpdateStatus();
 void halSetStackHeight(int h);
 void halSetFormHeight(int h);
@@ -1253,31 +1203,24 @@ BYTE halGetCmdLineMode();
 void halForceAlphaModeOn();
 void halForceAlphaModeOff();
 
-
-
 // FORMS, PLOTS AND OTHER SCREENS
 void halSwitch2Form();
 void halSwitch2Stack();
 
-
-
 // OUTER LOOP FLAGS
-#define OL_NOEXIT 1         // DON'T POLL EXTERNAL EXIT FUNCTION DURING OUTER POL
-#define OL_NOAUTOOFF 2      // DON'T ALLOW AUTO-OFF FEATURE WHILE WAITING
-#define OL_NOALARM   4      // DON'T ALLOW EXECUTION OF ALARMS AND TIMERS
-#define OL_NOSDFLUSH 8      // DON'T FLUSH SD CACHES AFTER 3 SECONDS
-#define OL_LONGPRESS 16     // DETECT LONG PRESS MESSAGE ON ALL KEYS
-#define OL_NOCUSTOMKEYS 32  // DON'T DO USER-DEFINED ACTIONS
-#define OL_NODEFAULTKEYS 64 // DON'T DO DEFAUL KEY ACTIONS
-#define OL_NOCOMMS      128 // DON'T AUTOMATICALLY RECEIVE DATA OVER USB OR SERIAL
-#define OL_EXITONERROR  256 // EXIT THE POL IF THERE ARE ANY EXCEPTIONS
-
-
-
-
+#define OL_NOEXIT 1     // DON'T POLL EXTERNAL EXIT FUNCTION DURING OUTER POL
+#define OL_NOAUTOOFF 2  // DON'T ALLOW AUTO-OFF FEATURE WHILE WAITING
+#define OL_NOALARM   4  // DON'T ALLOW EXECUTION OF ALARMS AND TIMERS
+#define OL_NOSDFLUSH 8  // DON'T FLUSH SD CACHES AFTER 3 SECONDS
+#define OL_LONGPRESS 16 // DETECT LONG PRESS MESSAGE ON ALL KEYS
+#define OL_NOCUSTOMKEYS 32      // DON'T DO USER-DEFINED ACTIONS
+#define OL_NODEFAULTKEYS 64     // DON'T DO DEFAUL KEY ACTIONS
+#define OL_NOCOMMS      128     // DON'T AUTOMATICALLY RECEIVE DATA OVER USB OR SERIAL
+#define OL_EXITONERROR  256     // EXIT THE POL IF THERE ARE ANY EXCEPTIONS
 
 // OUTER LOOP
-void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT),BINT flags);
+void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
+        BINT flags);
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
 int halExitOuterLoop();
 
@@ -1289,28 +1232,22 @@ void halPostKeyboardMessage(BINT keymsg);
 int halDoDefaultKey(BINT keymsg);
 int halDoCustomKey(BINT keymsg);
 
-
-
 // IDLE PROCESSES
 void halDeferProcess(void (*function)(void));
 
-
-
 // RENDER CACHE EXTERNAL DATA
-extern WORDPTR halCacheContents[3*MAX_RENDERCACHE_ENTRIES];
+extern WORDPTR halCacheContents[3 * MAX_RENDERCACHE_ENTRIES];
 extern WORD halCacheEntry;
 
 // RENDER
 
 void uiClearRenderCache();
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT **font);
-void uiUpdateOrAddCacheEntry(WORDPTR object,WORDPTR bitmap,UNIFONT **font);
-WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT **font);
-void uiDrawObject(WORDPTR object, DRAWSURFACE *scr, UNIFONT **font);
-WORDPTR uiRenderObject(WORDPTR object,UNIFONT **font);
-void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
-
-
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font);
+void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font);
+WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT ** font);
+void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT ** font);
+WORDPTR uiRenderObject(WORDPTR object, UNIFONT ** font);
+void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr);
 
 #include <fsystem.h>
 #endif

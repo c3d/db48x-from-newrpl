@@ -9,12 +9,9 @@
 #include "libraries.h"
 #include "hal.h"
 
-
 // *****************************
 // *** COMMON LIBRARY HEADER ***
 // *****************************
-
-
 
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  32
@@ -68,122 +65,102 @@ ERR(CIRCULARREFERENCE,2)
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
 
-
 #ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
-
-
-
 extern const char const subscriptChars[];
 
 extern const WORD const symbeval_seco[];
 extern const WORD const symbnum_seco[];
 
-ROMOBJECT lameval_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    (CMD_OVR_EVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+ROMOBJECT lameval_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPRE),
+    (CMD_OVR_EVAL),     // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALERR),       // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT lamnum_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    (CMD_OVR_NUM),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+ROMOBJECT lamnum_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPRE),
+    (CMD_OVR_NUM),      // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALERR),       // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT lamistrue_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    (CMD_OVR_ISTRUE),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+ROMOBJECT lamistrue_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPRE),
+    (CMD_OVR_ISTRUE),   // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALERR),       // ERROR HANDLER
     CMD_SEMI
 };
 
-ROMOBJECT lamfunceval_seco[]={
-    MKPROLOG(DOCOL,5),
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    (CMD_OVR_FUNCEVAL),    // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+ROMOBJECT lamfunceval_seco[] = {
+    MKPROLOG(DOCOL, 5),
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPRE),
+    (CMD_OVR_FUNCEVAL), // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER, LAMEVALERR),       // ERROR HANDLER
     CMD_SEMI
 };
 
 // INTERNAL RPL PROGRAM THAT CALLS ABND
-ROMOBJECT abnd_prog[]=
-{
-    (WORD)MKOPCODE(LIBRARY_NUMBER,ABND),  // JUST A WORD THAT WILL BE SKIPPED BY THE COMPILER
-    (WORD)MKOPCODE(LIBRARY_NUMBER,ABND)   // THIS IS THE WORD THAT WILL BE EXECUTED
-    // SEMI NOT NEEDED SINCE ABND ALREADY DOES SEMI
+ROMOBJECT abnd_prog[] = {
+    (WORD) MKOPCODE(LIBRARY_NUMBER, ABND),      // JUST A WORD THAT WILL BE SKIPPED BY THE COMPILER
+    (WORD) MKOPCODE(LIBRARY_NUMBER, ABND)       // THIS IS THE WORD THAT WILL BE EXECUTED
+            // SEMI NOT NEEDED SINCE ABND ALREADY DOES SEMI
 };
 
 // INTERNAL SINT OBJECTS
-ROMOBJECT lam_baseseco_bint[]=
-{
-    (WORD)LAM_ENVOWNER
+ROMOBJECT lam_baseseco_bint[] = {
+    (WORD) LAM_ENVOWNER
 };
 
-ROMOBJECT lam_privatevar_bint[]=
-{
-    (WORD)LAM_PRIVATEVAR,
-    (WORD)LAM_NOPRIVATEVAR
+ROMOBJECT lam_privatevar_bint[] = {
+    (WORD) LAM_PRIVATEVAR,
+    (WORD) LAM_NOPRIVATEVAR
 };
-
 
 // INTERNAL NULLLAM IDENT OBJECTS
-ROMOBJECT nulllam_ident[]=
-{
-    (WORD)MKOPCODE(LIBRARY_NUMBER,NULLLAM)
+ROMOBJECT nulllam_ident[] = {
+    (WORD) MKOPCODE(LIBRARY_NUMBER, NULLLAM)
 };
 
 // INTERNAL NEWLOCALS OBJECT TO BLAME
-ROMOBJECT newnlocals_opcode[]=
-{
-    (WORD)MKOPCODE(LIBRARY_NUMBER,INTERNAL_NEWNLOCALS)
+ROMOBJECT newnlocals_opcode[] = {
+    (WORD) MKOPCODE(LIBRARY_NUMBER, INTERNAL_NEWNLOCALS)
 };
-
-
-
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib32_menu);
 
-
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)nulllam_ident,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib32_menu,
-    (WORDPTR)lameval_seco,
-    (WORDPTR)abnd_prog,
-    (WORDPTR)lam_baseseco_bint,
-    (WORDPTR)lam_privatevar_bint,
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)lamnum_seco,
-    (WORDPTR)lamistrue_seco,
-    (WORDPTR)newnlocals_opcode,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) nulllam_ident,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib32_menu,
+    (WORDPTR) lameval_seco,
+    (WORDPTR) abnd_prog,
+    (WORDPTR) lam_baseseco_bint,
+    (WORDPTR) lam_privatevar_bint,
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) lamnum_seco,
+    (WORDPTR) lamistrue_seco,
+    (WORDPTR) newnlocals_opcode,
     0
 };
 
-
-
 BINT64 powersof10[20];
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -195,24 +172,27 @@ void LIB_HANDLER()
         if(ISUNQUOTEDIDENT(CurOpcode)) {
             // UNQUOTED LAM, NEED TO ALSO DO XEQ ON ITS CONTENTS
             {
-                WORDPTR val=rplGetLAM(rplPeekData(1));
+                WORDPTR val = rplGetLAM(rplPeekData(1));
                 if(!val) {
-                    val=rplGetGlobal(rplPeekData(1));
+                    val = rplGetGlobal(rplPeekData(1));
                     if(!val) {
                         // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
                         return;
                     }
                 }
-                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                rplOverwriteData(1, val);       // REPLACE THE FIRST LEVEL WITH THE VALUE
+                LIBHANDLER han = rplGetLibHandler(LIBNUM(*val));        // AND EVAL THE OBJECT
                 if(han) {
-                    WORD SavedOpcode=CurOpcode,TmpOpcode;
-                    if(ISAPPROX(CurOpcode)) TmpOpcode=CurOpcode=(CMD_OVR_NUM);
-                    else TmpOpcode=CurOpcode=(CMD_OVR_XEQ);
+                    WORD SavedOpcode = CurOpcode, TmpOpcode;
+                    if(ISAPPROX(CurOpcode))
+                        TmpOpcode = CurOpcode = (CMD_OVR_NUM);
+                    else
+                        TmpOpcode = CurOpcode = (CMD_OVR_XEQ);
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
-                    (*han)();
+                    (*han) ();
                     // RESTORE THE PREVIOUS ONE ONLY IF THE HANDLER DID NOT CHANGE IT
-                    if(CurOpcode==TmpOpcode) CurOpcode=SavedOpcode;
+                    if(CurOpcode == TmpOpcode)
+                        CurOpcode = SavedOpcode;
                 }
                 else {
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
@@ -221,57 +201,54 @@ void LIB_HANDLER()
                     rplError(ERR_MISSINGLIBRARY);
                 }
 
-            return;
+                return;
             }
         }
-        else return;
+        else
+            return;
     }
 
-
     // PROCESS OVERLOADED OPERATORS FIRST
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
 
-        if(ISUNARYOP(CurOpcode))
-        {
-        // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
-            switch(OPCODE(CurOpcode))
-            {
+        if(ISUNARYOP(CurOpcode)) {
+            // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
+            switch (OPCODE(CurOpcode)) {
             case OVR_EVAL1:
-            // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
-            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+                // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
+                // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
                 if(!ISPROLOG(*rplPeekData(1))) {
-                WORD saveOpcode=CurOpcode;
-                CurOpcode=*rplPopData();
-                // RECURSIVE CALL
-                LIB_HANDLER();
-                CurOpcode=saveOpcode;
-                return;
+                    WORD saveOpcode = CurOpcode;
+                    CurOpcode = *rplPopData();
+                    // RECURSIVE CALL
+                    LIB_HANDLER();
+                    CurOpcode = saveOpcode;
+                    return;
                 }
 
-                WORDPTR val=rplGetLAM(rplPeekData(1));
+                WORDPTR val = rplGetLAM(rplPeekData(1));
                 if(!val) {
-                    val=rplGetGlobal(rplPeekData(1));
+                    val = rplGetGlobal(rplPeekData(1));
                     if(!val) {
                         // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
                         return;
                     }
                 }
-                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                CurOpcode=(CMD_OVR_XEQ);
-                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                rplOverwriteData(1, val);       // REPLACE THE FIRST LEVEL WITH THE VALUE
+                CurOpcode = (CMD_OVR_XEQ);
+                LIBHANDLER han = rplGetLibHandler(LIBNUM(*val));        // AND EVAL THE OBJECT
                 if(han) {
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
-                    (*han)();
+                    (*han) ();
                 }
                 else {
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
                     // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
                     // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
                     rplError(ERR_MISSINGLIBRARY);
-                    CurOpcode=*IPtr;
+                    CurOpcode = *IPtr;
                 }
-
 
             }
                 return;
@@ -282,287 +259,328 @@ void LIB_HANDLER()
                 // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
                 // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
                 {
-                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+                    WORDPTR *val = rplFindLAM(rplPeekData(1), 1);
                     if(!val) {
-                        val=rplFindGlobal(rplPeekData(1),1);
+                        val = rplFindGlobal(rplPeekData(1), 1);
                         if(!val) {
                             rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
                             return;
                         }
                     }
 
-                    if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
+                    if(rplCheckCircularReference((WORDPTR) symbeval_seco + 2,
+                                *(val + 1), 4)) {
                         rplError(ERR_CIRCULARREFERENCE);
                         return;
                     }
 
                     // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
                     // FOR CIRCULAR REFERENCE CHECK
-                    rplCreateLAMEnvironment((WORDPTR)symbeval_seco+2);
+                    rplCreateLAMEnvironment((WORDPTR) symbeval_seco + 2);
 
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM 1 = 0 (DUMMY)
+                    if(Exceptions) {
+                        rplCleanupLAMs(0);
+                        return;
+                    }
 
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM 2 = 0 (DUMMY)
+                    if(Exceptions) {
+                        rplCleanupLAMs(0);
+                        return;
+                    }
 
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM 3 = 0 (DUMMY)
+                    if(Exceptions) {
+                        rplCleanupLAMs(0);
+                        return;
+                    }
 
-                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));      // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                    if(Exceptions) {
+                        rplCleanupLAMs(0);
+                        return;
+                    }
 
-
-                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                    rplOverwriteData(1, *(val + 1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
 
                     rplPushRet(IPtr);
-                    IPtr=(WORDPTR) lamfunceval_seco;
-                    CurOpcode=(CMD_OVR_EVAL);
+                    IPtr = (WORDPTR) lamfunceval_seco;
+                    CurOpcode = (CMD_OVR_EVAL);
                 }
-                    return;
+                return;
 
-
-
-             }
+            }
             case OVR_EVAL:
-            // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
-            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+                // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
+                // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
                 if(!ISPROLOG(*rplPeekData(1))) {
-                WORD saveOpcode=CurOpcode;
-                CurOpcode=*rplPopData();
-                // RECURSIVE CALL
-                LIB_HANDLER();
-                CurOpcode=saveOpcode;
-                return;
+                    WORD saveOpcode = CurOpcode;
+                    CurOpcode = *rplPopData();
+                    // RECURSIVE CALL
+                    LIB_HANDLER();
+                    CurOpcode = saveOpcode;
+                    return;
                 }
 
-
-                WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+                WORDPTR *val = rplFindLAM(rplPeekData(1), 1);
                 if(!val) {
-                    val=rplFindGlobal(rplPeekData(1),1);
+                    val = rplFindGlobal(rplPeekData(1), 1);
                     if(!val) {
                         // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
                         return;
                     }
                 }
 
-                if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
+                if(rplCheckCircularReference((WORDPTR) symbeval_seco + 2,
+                            *(val + 1), 4)) {
                     rplError(ERR_CIRCULARREFERENCE);
                     return;
                 }
 
                 // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
                 // FOR CIRCULAR REFERENCE CHECK
-                rplCreateLAMEnvironment((WORDPTR)symbeval_seco+2);
+                rplCreateLAMEnvironment((WORDPTR) symbeval_seco + 2);
 
-                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
-                if(Exceptions) { rplCleanupLAMs(0); return; }
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 1 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
 
-                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
-                if(Exceptions) { rplCleanupLAMs(0); return; }
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 2 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
 
-                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
-                if(Exceptions) { rplCleanupLAMs(0); return; }
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 3 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
 
-                rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
-                if(Exceptions) { rplCleanupLAMs(0); return; }
+                rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
 
-
-                rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                rplOverwriteData(1, *(val + 1));        // REPLACE THE FIRST LEVEL WITH THE VALUE
 
                 rplPushRet(IPtr);
-                IPtr=(WORDPTR) lameval_seco;
-                CurOpcode=(CMD_OVR_EVAL);
+                IPtr = (WORDPTR) lameval_seco;
+                CurOpcode = (CMD_OVR_EVAL);
             }
                 return;
 
             case OVR_NUM:
-            // RCL WHATEVER IS STORED IN THE LAM AND THEN ->NUM ITS CONTENTS
+                // RCL WHATEVER IS STORED IN THE LAM AND THEN ->NUM ITS CONTENTS
                 // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
-                {
-                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+            {
+                WORDPTR *val = rplFindLAM(rplPeekData(1), 1);
+                if(!val) {
+                    val = rplFindGlobal(rplPeekData(1), 1);
                     if(!val) {
-                        val=rplFindGlobal(rplPeekData(1),1);
-                        if(!val) {
-                            // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
-                            rplError(ERR_UNDEFINEDVARIABLE);
-                            rplBlameError(rplPeekData(1));
-                            return;
-                        }
-                    }
-
-                    if(rplCheckCircularReference((WORDPTR)symbnum_seco+2,*(val+1),4)) {
-                        rplError(ERR_CIRCULARREFERENCE);
+                        // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
+                        rplError(ERR_UNDEFINEDVARIABLE);
+                        rplBlameError(rplPeekData(1));
                         return;
                     }
-
-                    // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
-                    // FOR CIRCULAR REFERENCE CHECK
-                    rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-
-                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
-
-                    rplPushRet(IPtr);
-                    IPtr=(WORDPTR) lamnum_seco;
-                    CurOpcode=(CMD_OVR_NUM);
                 }
+
+                if(rplCheckCircularReference((WORDPTR) symbnum_seco + 2,
+                            *(val + 1), 4)) {
+                    rplError(ERR_CIRCULARREFERENCE);
                     return;
+                }
+
+                // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                // FOR CIRCULAR REFERENCE CHECK
+                rplCreateLAMEnvironment((WORDPTR) symbnum_seco + 2);
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 1 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 2 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 3 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplOverwriteData(1, *(val + 1));        // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                rplPushRet(IPtr);
+                IPtr = (WORDPTR) lamnum_seco;
+                CurOpcode = (CMD_OVR_NUM);
+            }
+                return;
 
             case OVR_ISTRUE:
-            // RCL WHATEVER IS STORED IN THE LAM AND THEN ISTRUE ITS CONTENTS
+                // RCL WHATEVER IS STORED IN THE LAM AND THEN ISTRUE ITS CONTENTS
                 // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
-                {
-                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+            {
+                WORDPTR *val = rplFindLAM(rplPeekData(1), 1);
+                if(!val) {
+                    val = rplFindGlobal(rplPeekData(1), 1);
                     if(!val) {
-                        val=rplFindGlobal(rplPeekData(1),1);
-                        if(!val) {
-                            // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
-                            rplError(ERR_UNDEFINEDVARIABLE);
-                            rplBlameError(rplPeekData(1));
+                        // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
+                        rplError(ERR_UNDEFINEDVARIABLE);
+                        rplBlameError(rplPeekData(1));
 
-                            return;
-                        }
-                    }
-
-                    if(rplCheckCircularReference((WORDPTR)symbnum_seco+2,*(val+1),4)) {
-                        rplError(ERR_CIRCULARREFERENCE);
                         return;
                     }
-
-                    // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
-                    // FOR CIRCULAR REFERENCE CHECK
-                    rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
-                    if(Exceptions) { rplCleanupLAMs(0); return; }
-
-
-                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
-
-                    rplPushRet(IPtr);
-                    IPtr=(WORDPTR) lamistrue_seco;
-                    CurOpcode=(CMD_OVR_ISTRUE);
                 }
+
+                if(rplCheckCircularReference((WORDPTR) symbnum_seco + 2,
+                            *(val + 1), 4)) {
+                    rplError(ERR_CIRCULARREFERENCE);
                     return;
+                }
+
+                // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                // FOR CIRCULAR REFERENCE CHECK
+                rplCreateLAMEnvironment((WORDPTR) symbnum_seco + 2);
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 1 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 2 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 3 = 0 (DUMMY)
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    return;
+                }
+
+                rplOverwriteData(1, *(val + 1));        // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                rplPushRet(IPtr);
+                IPtr = (WORDPTR) lamistrue_seco;
+                CurOpcode = (CMD_OVR_ISTRUE);
+            }
+                return;
 
             case OVR_XEQ:
                 // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
                 if(!ISPROLOG(*rplPeekData(1))) {
-                WORD saveOpcode=CurOpcode;
-                CurOpcode=*rplPopData();
-                // RECURSIVE CALL
-                LIB_HANDLER();
-                CurOpcode=saveOpcode;
-                return;
+                    WORD saveOpcode = CurOpcode;
+                    CurOpcode = *rplPopData();
+                    // RECURSIVE CALL
+                    LIB_HANDLER();
+                    CurOpcode = saveOpcode;
+                    return;
                 }
 
-               return;
-
-
+                return;
 
             default:
                 // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
             {
-                    LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-                    (*symblib)();
-                    return;
+                LIBHANDLER symblib = rplGetLibHandler(DOSYMB);
+                (*symblib) ();
+                return;
+            }
+            }
+
+        }       // END OF UNARY OPERATORS
+
+        if(ISBINARYOP(CurOpcode)) {
+
+            switch (OPCODE(CurOpcode)) {
+            case OVR_SAME:
+            {
+                BINT same = rplCompareIDENT(rplPeekData(1), rplPeekData(2));
+                rplDropData(2);
+                if(same)
+                    rplPushTrue();
+                else
+                    rplPushFalse();
+                return;
+            }
+            default:
+            {
+                // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
+                LIBHANDLER symblib = rplGetLibHandler(DOSYMB);
+                (*symblib) ();
+                return;
+            }
             }
         }
 
-
-    }   // END OF UNARY OPERATORS
-
-    if(ISBINARYOP(CurOpcode)) {
-
-
-        switch(OPCODE(CurOpcode))
-        {
-        case OVR_SAME:
-        {
-         BINT same=rplCompareIDENT(rplPeekData(1),rplPeekData(2));
-         rplDropData(2);
-         if(same) rplPushTrue(); else rplPushFalse();
-         return;
-        }
-        default:
-        {
-        // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
-            LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-            (*symblib)();
-            return;
-        }
-        }
     }
-
-
-    }
-
-
 
     // SPECIAL OPCODES
-    if(OPCODE(CurOpcode)&0x70000) {
+    if(OPCODE(CurOpcode) & 0x70000) {
         // IT'S ONE OF THE COMPACT OPCODES
-        BINT op=OPCODE(CurOpcode)&0x70000;
-        BINT num=OPCODE(CurOpcode)&0xffff;
-        if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+        BINT op = OPCODE(CurOpcode) & 0x70000;
+        BINT num = OPCODE(CurOpcode) & 0xffff;
+        if(num & 0x8000)
+            num |= 0xFFFF0000;  // GET NEGATIVE LAMS TOO!
 
-        switch(op)
+        switch (op) {
+        case PUTLAMN:  // PUTLAMn
         {
-        case PUTLAMN: // PUTLAMn
-        {
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR *local=rplGetLAMn(num);
-            *local=rplPopData();
+            WORDPTR *local = rplGetLAMn(num);
+            *local = rplPopData();
             return;
-         }
-        case GETLAMN: // GETLAMn
+        }
+        case GETLAMN:  // GETLAMn
             rplPushData(*rplGetLAMn(num));
             return;
-        case GETLAMNEVAL: // GETLAMnEVAL
+        case GETLAMNEVAL:      // GETLAMnEVAL
             rplPushData(*rplGetLAMn(num));
             //rplCallOvrOperator((CMD_OVR_XEQ));
             return;
-        case NEWNLOCALS: // NEWNLOCALS
+        case NEWNLOCALS:       // NEWNLOCALS
             // THIS ONE HAS TO CREATE 'N' LOCALS TAKING THE NAMES AND OBJECTS FROM THE STACK
             // AND ALSO HAS TO 'EVAL' THE NEXT OBJECT IN THE RUNSTREAM
             // THE STACK CONTAINS VAL1 VAL2 ... VALN LAM1 LAM2 ... LAMN
         {
-            if(rplDepthData()<2*num) {
+            if(rplDepthData() < 2 * num) {
                 // MALFORMED SECONDARY? THIS SHOULD NEVER HAPPEN
-                if(rplDepthData()>=num) rplDropData(num);
+                if(rplDepthData() >= num)
+                    rplDropData(num);
                 rplError(ERR_BADARGCOUNT);
-                rplBlameError((WORDPTR)newnlocals_opcode);
+                rplBlameError((WORDPTR) newnlocals_opcode);
                 return;
             }
 
             // CHECK ALL ARGUMENTS
-            BINT cnt=num;
+            BINT cnt = num;
             while(cnt) {
                 if(!ISIDENT(*rplPeekData(cnt))) {
                     rplError(ERR_IDENTEXPECTED);
@@ -573,30 +591,28 @@ void LIB_HANDLER()
 
             // CREATE A NEW LAM ENVIRONMENT FOR THIS SECONDARY
             rplCreateLAMEnvironment(rplPeekRet(1));
-            rplPushRet((WORDPTR)abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
-            BINT offset=num;
+            rplPushRet((WORDPTR) abnd_prog);    // PUT ABND IN THE STACK TO DO THE CLEANUP
+            BINT offset = num;
             // NOW CREATE ALL LOCAL VARIABLES
             while(num) {
-                rplCreateLAM(rplPeekData(num),rplPeekData(num+offset));
+                rplCreateLAM(rplPeekData(num), rplPeekData(num + offset));
                 --num;
             }
             // CLEAN THE STACK
-            rplDropData(2*offset);
+            rplDropData(2 * offset);
 
-
-         }
+        }
             return;
         }
     }
 
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
     case LSTO:
     {
         //@SHORT_DESC=Store to a new local variable
         //@NEW
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -607,15 +623,14 @@ void LIB_HANDLER()
             return;
         }
 
-
         // FIND LOCAL VARIABLE IN THE CURRENT SCOPE ONLY
-        WORDPTR *val=rplFindLAM(rplStripTag(rplPeekData(1)),0);
-        BINT neednewenv=rplNeedNewLAMEnv();
+        WORDPTR *val = rplFindLAM(rplStripTag(rplPeekData(1)), 0);
+        BINT neednewenv = rplNeedNewLAMEnv();
 
         if(val && !neednewenv) {
-            val[1]=rplPeekData(2);
+            val[1] = rplPeekData(2);
             // STILL, CREATE A NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT TO ALLOW THE COMPILER TO TRACK IT
-            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) nulllam_ident);
             rplDropData(2);
         }
         else {
@@ -624,20 +639,20 @@ void LIB_HANDLER()
                 // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
                 rplCreateLAMEnvironment(rplPeekRet(1));
                 // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
-                rplPushRet((WORDPTR)abnd_prog);
+                rplPushRet((WORDPTR) abnd_prog);
             }
-                // CREATE THE NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
-                rplCreateLAM(rplPeekData(1),rplPeekData(2));
-                rplDropData(2);
-            }
+            // CREATE THE NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
+            rplCreateLAM(rplPeekData(1), rplPeekData(2));
+            rplDropData(2);
+        }
     }
-    return;
+        return;
     case LRCL:
     {
         //@SHORT_DESC=Recall content of local variable
         //@NEW
         // RCL CONTENT FROM INSIDE A LAM VARIABLE
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -649,9 +664,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR val=rplGetLAM(rplPeekData(1));
+        WORDPTR val = rplGetLAM(rplPeekData(1));
         if(val) {
-            rplOverwriteData(1,val);
+            rplOverwriteData(1, val);
         }
         else {
             rplError(ERR_UNDEFINEDVARIABLE);
@@ -663,36 +678,40 @@ void LIB_HANDLER()
         return;
     case ABND:
         // CLEANUP ALL LAMS AND DO SEMI
-        {
+    {
 
-            if(*(nLAMBase+1)==rplPeekRet(1)) {
-                // THIS WILL BE TRUE 99.9% OF THE TIMES
-               LAMTop=nLAMBase;
-            }
-            else {
-                // THERE'S SOME OTHER LAM CONSTRUCT OR CORRUPTED MARKERS, SEARCH FOR THE CORRECT MARKER
-            WORDPTR *val=LAMTop;
-            while( (val=rplGetNextLAMEnv(val)) )
-            {
-            // PURGE ALL LAMS AFTER THE MARKER
-            if(*(val+1)==rplPeekRet(1)) { LAMTop=val; break; }
+        if(*(nLAMBase + 1) == rplPeekRet(1)) {
+            // THIS WILL BE TRUE 99.9% OF THE TIMES
+            LAMTop = nLAMBase;
+        }
+        else {
+            // THERE'S SOME OTHER LAM CONSTRUCT OR CORRUPTED MARKERS, SEARCH FOR THE CORRECT MARKER
+            WORDPTR *val = LAMTop;
+            while((val = rplGetNextLAMEnv(val))) {
+                // PURGE ALL LAMS AFTER THE MARKER
+                if(*(val + 1) == rplPeekRet(1)) {
+                    LAMTop = val;
+                    break;
+                }
             }
             // SOMETHING BAD HAPPENED, THIS SECONDARY HAD NO LAM ENVIRONMENT BUT AN ABND WORD!
-            if(!val) LAMTop=LAMs;
-            }
-
-            nLAMBase=rplGetNextLAMEnv(LAMTop);
-            if(!nLAMBase) nLAMBase=LAMs;
-
-            IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-            if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
+            if(!val)
+                LAMTop = LAMs;
         }
-            return;
 
+        nLAMBase = rplGetNextLAMEnv(LAMTop);
+        if(!nLAMBase)
+            nLAMBase = LAMs;
+
+        IPtr = rplPopRet();     // GET THE CALLER ADDRESS
+        if(IPtr)
+            CurOpcode = *IPtr;  // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
+    }
+        return;
 
     case LAMEVALPRE:
     {
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVAL1ERR WORD
+        rplSetExceptionHandler(IPtr + 3);       // SET THE EXCEPTION HANDLER TO THE EVAL1ERR WORD
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -707,8 +726,9 @@ void LIB_HANDLER()
 
         rplCleanupLAMs(0);
 
-        IPtr=rplPopRet();
-        if(IPtr) CurOpcode=*IPtr;
+        IPtr = rplPopRet();
+        if(IPtr)
+            CurOpcode = *IPtr;
 
         return;
     }
@@ -721,15 +741,14 @@ void LIB_HANDLER()
 
         // JUST CLEANUP AND EXIT
         rplCleanupLAMs(0);
-        IPtr=rplPopRet();
-        Exceptions=TrappedExceptions;
-        ErrorCode=TrappedErrorCode;
-        ExceptionPointer=IPtr;
-        CurOpcode=(CMD_OVR_EVAL);
+        IPtr = rplPopRet();
+        Exceptions = TrappedExceptions;
+        ErrorCode = TrappedErrorCode;
+        ExceptionPointer = IPtr;
+        CurOpcode = (CMD_OVR_EVAL);
         return;
 
-    // ADD MORE OPCODES HERE
-
+        // ADD MORE OPCODES HERE
 
     case HIDELOCALS:
     {
@@ -738,46 +757,42 @@ void LIB_HANDLER()
         // HIDE ALL LOCAL VARIABLES AFTER THIS POINT FROM ANY CHILD PROCESSES
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
 
-        BINT neednewenv=rplNeedNewLAMEnv();
+        BINT neednewenv = rplNeedNewLAMEnv();
 
-            // LAM WAS NOT FOUND, CREATE A NEW ONE
-            if(neednewenv) {
-                // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
-                rplCreateLAMEnvironment(rplPeekRet(1));
-                // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
-                rplPushRet((WORDPTR)abnd_prog);
-            }
-                // CREATE A NEW NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
-                // THAT WILL STOP ALL SEARCHES
-                rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)one_bint);
-    return;
+        // LAM WAS NOT FOUND, CREATE A NEW ONE
+        if(neednewenv) {
+            // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
+            rplCreateLAMEnvironment(rplPeekRet(1));
+            // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
+            rplPushRet((WORDPTR) abnd_prog);
+        }
+        // CREATE A NEW NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
+        // THAT WILL STOP ALL SEARCHES
+        rplCreateLAM((WORDPTR) lam_privatevar_bint, (WORDPTR) one_bint);
+        return;
     }
 
-
     case UNHIDELOCALS:
-        {
+    {
         //@SHORT_DESC=Unhide local variables from subroutines
         //@NEW
         // REMOVE PROTECTION FOR LOCAL VARIABLES HIDDEN WITH HIDELOCALS
-            BINT neednewenv=rplNeedNewLAMEnv();
+        BINT neednewenv = rplNeedNewLAMEnv();
 
-                // LAM WAS NOT FOUND, CREATE A NEW ONE
-                if(neednewenv) {
-                    return; // CANNOT REMOVE PROTECTION FOR PARENT SECONDARIES
-                }
-
-                WORDPTR *var=rplFindLAM((WORDPTR)lam_privatevar_bint,0);
-                if(var) *var=(WORDPTR)lam_privatevar_bint+1;
-        return;
+        // LAM WAS NOT FOUND, CREATE A NEW ONE
+        if(neednewenv) {
+            return;     // CANNOT REMOVE PROTECTION FOR PARENT SECONDARIES
         }
 
+        WORDPTR *var = rplFindLAM((WORDPTR) lam_privatevar_bint, 0);
+        if(var)
+            *var = (WORDPTR) lam_privatevar_bint + 1;
+        return;
+    }
 
-
-
-    // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -790,38 +805,40 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if(LIBNUM(CurOpcode)!=DOIDENT) {
+        if(LIBNUM(CurOpcode) != DOIDENT) {
             // WHEN CALLED WITH UPPER LIBRARY NUMBERS, RETURN QUICKLY TO SPEED UP COMPILE TIME
-            RetNum=ERR_NOTMINE;
+            RetNum = ERR_NOTMINE;
             return;
         }
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==4) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LSTO",4)))
-        {
+        if((TokenLen == 4)
+                && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "LSTO",
+                        4))) {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object,prevobject;
-            BINT notrack=0;
-            if(ValidateTop<=ValidateBottom) {
+            WORDPTR object, prevobject;
+            BINT notrack = 0;
+            if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
-                object=TempObEnd;   // START OF COMPILATION
-            } else {
-                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
-                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+                object = TempObEnd;     // START OF COMPILATION
+            }
+            else {
+                object = *(ValidateTop - 1);    // GET LATEST CONSTRUCT
+                ++object;       // AND SKIP THE PROLOG / ENTRY WORD
 
                 // CHECK FOR CONDITIONAL VARIABLE CREATION!
-                WORDPTR *construct=ValidateTop-1;
-                while(construct>=ValidateBottom) {
-                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
-                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
-                            ||(**construct==CMD_THENCASE) )
-                    {
+                WORDPTR *construct = ValidateTop - 1;
+                while(construct >= ValidateBottom) {
+                    if((**construct == CMD_THEN) || (**construct == CMD_ELSE)
+                            || (**construct == CMD_THENERR)
+                            || (**construct == CMD_ELSEERR)
+                            || (**construct == CMD_THENCASE)) {
                         // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
-                        notrack=1;
+                        notrack = 1;
                         break;
                     }
                     --construct;
@@ -830,210 +847,219 @@ void LIB_HANDLER()
                 // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
                 if(!notrack) {
 
-                    WORDPTR *env=nLAMBase;
+                    WORDPTR *env = nLAMBase;
                     do {
-                        if(env<LAMTopSaved) break;
-                        if(env[1]==(WORDPTR)lameval_seco) {
-                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
-                            notrack=1;
+                        if(env < LAMTopSaved)
+                            break;
+                        if(env[1] == (WORDPTR) lameval_seco) {
+                            // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack = 1;
                             break;
                         }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
-
+                        env = rplGetNextLAMEnv(env);
+                    }
+                    while(env);
 
                 }
-
 
             }
 
-            if(object<CompileEnd) {
-            do {
-                prevobject=object;
-                object=rplSkipOb(object);
-            } while(object<CompileEnd);
-
-            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
-
-            if(ISIDENT(*prevobject)) {
-                // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
-
-                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
-
-                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
-
-
-                if(LAMptr<LAMTopSaved) {
-                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
-
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
-
-                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
-                    if(!notrack) {
-                    // DO WE NEED A NEW ENVIRONMENT?
-
-                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                        rplCreateLAMEnvironment(*(ValidateTop-1));
-                    }
-                    rplCreateLAM(prevobject,prevobject);
-                    }
-                    else {
-                        // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
-                        rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
-                    }
-                    RetNum=OK_CONTINUE;
-                    return;
+            if(object < CompileEnd) {
+                do {
+                    prevobject = object;
+                    object = rplSkipOb(object);
                 }
+                while(object < CompileEnd);
 
-                if(LAMptr<nLAMBase) {
-                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
-                    // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+                // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
 
-                    WORDPTR *env=nLAMBase;
-                    WORD prolog;
-                    do {
-                        if(LAMptr>env) break;
-                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
-                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
-                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS, AND NEW LAM WILL BE CREATED SHADOWING THE OLD
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                if(ISIDENT(*prevobject)) {
+                    // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
+
+                    // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
+
+                    WORDPTR *LAMptr = rplFindLAM(prevobject, 1);
+
+                    if(LAMptr < LAMTopSaved) {
+                        // THIS IS NOT A VALID LAM, LEAVE AS IDENT
+
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LSTO));
+
+                        // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
                         if(!notrack) {
-                        if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                            rplCreateLAMEnvironment(*(ValidateTop-1));
-                        }
-                        rplCreateLAM(prevobject,prevobject);
+                            // DO WE NEED A NEW ENVIRONMENT?
 
+                            if(rplNeedNewLAMEnvCompiler())      // CREATE A NEW ENVIRONMENT IF NEEDED
+                            {
+                                rplCreateLAMEnvironment(*(ValidateTop - 1));
+                            }
+                            rplCreateLAM(prevobject, prevobject);
                         }
                         else {
                             // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
-                            rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                            rplCreateLAMEnvironment((WORDPTR) lameval_seco);    // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
                         }
-                        RetNum=OK_CONTINUE;
+                        RetNum = OK_CONTINUE;
                         return;
+                    }
+
+                    if(LAMptr < nLAMBase) {
+                        // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                        // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                        WORDPTR *env = nLAMBase;
+                        WORD prolog;
+                        do {
+                            if(LAMptr > env)
+                                break;
+                            prolog = **(env + 1);       // GET THE PROLOG OF THE SECONDARY
+                            if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
+                                // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS, AND NEW LAM WILL BE CREATED SHADOWING THE OLD
+                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,
+                                            LSTO));
+                                if(!notrack) {
+                                    if(rplNeedNewLAMEnvCompiler())      // CREATE A NEW ENVIRONMENT IF NEEDED
+                                    {
+                                        rplCreateLAMEnvironment(*(ValidateTop -
+                                                    1));
+                                    }
+                                    rplCreateLAM(prevobject, prevobject);
+
+                                }
+                                else {
+                                    // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                                    rplCreateLAMEnvironment((WORDPTR) lameval_seco);    // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                                }
+                                RetNum = OK_CONTINUE;
+                                return;
+                            }
+                            env = rplGetNextLAMEnv(env);
                         }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
+                        while(env);
 
+                    }
 
+                    // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                    // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
 
-                }
+                    // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                    // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
 
+                    // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                    // INSTEAD OF PUTLAMS
 
-                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
-                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+                    // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS WHEN USING STO, CREATE NEW ONE WHEN USING LSTO
+                    WORDPTR *scanenv = ValidateTop - 1;
 
-                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
-                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
-
-                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
-                // INSTEAD OF PUTLAMS
-
-                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS WHEN USING STO, CREATE NEW ONE WHEN USING LSTO
-                WORDPTR *scanenv=ValidateTop-1;
-
-                while(scanenv>=ValidateBottom) {
-                    if( ((LIBNUM(**scanenv)==DOCOL)||(LIBNUM(**scanenv)==SECO))&& (ISPROLOG(**scanenv))) {
+                    while(scanenv >= ValidateBottom) {
+                        if(((LIBNUM(**scanenv) == DOCOL)
+                                    || (LIBNUM(**scanenv) == SECO))
+                                && (ISPROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
-                            if(*scanenv>*(nLAMBase+1)) {
+                            if(*scanenv > *(nLAMBase + 1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,
+                                            LSTO));
 
-                            if(!notrack) {
-                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                                rplCreateLAMEnvironment(*(ValidateTop-1));
-                            }
-                            rplCreateLAM(prevobject,prevobject);
+                                if(!notrack) {
+                                    if(rplNeedNewLAMEnvCompiler())      // CREATE A NEW ENVIRONMENT IF NEEDED
+                                    {
+                                        rplCreateLAMEnvironment(*(ValidateTop -
+                                                    1));
+                                    }
+                                    rplCreateLAM(prevobject, prevobject);
 
-                            }
-                            else {
-                                // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
-                                rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
-                            }
-                            RetNum=OK_CONTINUE;
-                            return;
+                                }
+                                else {
+                                    // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                                    rplCreateLAMEnvironment((WORDPTR) lameval_seco);    // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                                }
+                                RetNum = OK_CONTINUE;
+                                return;
                             }
                             break;
 
+                        }
+                        --scanenv;
                     }
-                    --scanenv;
-                }
 
+                    // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
+                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
 
-                // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
-                BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+                    // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
+                    if(Offset <= 32767 && Offset >= -32768) {
+                        CompileEnd = prevobject;
+                        rplCompileAppend(MKOPCODE(DOIDENT,
+                                    PUTLAMN + (Offset & 0xffff)));
+                    }
+                    else {
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LSTO));
+                    }
 
-                // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
-                if(Offset<=32767 && Offset>=-32768) {
-                CompileEnd=prevobject;
-                rplCompileAppend(MKOPCODE(DOIDENT,PUTLAMN+(Offset&0xffff)));
+                    RetNum = OK_CONTINUE;
+                    return;
                 }
                 else {
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
-                }
-
-                RetNum=OK_CONTINUE;
-                return;
-            }
-            else {
-                // THIS WOULD CREATE A LOCAL THAT CANNOT BE TRACED
-                // BY THE COMPILER. JUST USE AN INVALID NAME.
+                    // THIS WOULD CREATE A LOCAL THAT CANNOT BE TRACED
+                    // BY THE COMPILER. JUST USE AN INVALID NAME.
 
                     // THIS IS NOT A VALID LAM, LEAVE AS IDENT
 
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LSTO));
 
                     // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
                     if(!notrack) {
-                    // DO WE NEED A NEW ENVIRONMENT?
+                        // DO WE NEED A NEW ENVIRONMENT?
 
-                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                        rplCreateLAMEnvironment(*(ValidateTop-1));
-                    }
+                        if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                        {
+                            rplCreateLAMEnvironment(*(ValidateTop - 1));
+                        }
 
-                    // FORCE CREATION OF A NEW LAM OF UNKNOWN NAME - EVEN THOUGH THERE COULD BE AN EXISTING LAM WITH THE UNKNOWN NAME
-                    rplCreateLAM((WORDPTR)zero_bint,(WORDPTR)zero_bint);
+                        // FORCE CREATION OF A NEW LAM OF UNKNOWN NAME - EVEN THOUGH THERE COULD BE AN EXISTING LAM WITH THE UNKNOWN NAME
+                        rplCreateLAM((WORDPTR) zero_bint, (WORDPTR) zero_bint);
                     }
                     else {
                         // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
-                        rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                        rplCreateLAMEnvironment((WORDPTR) lameval_seco);        // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
                     }
-                    RetNum=OK_CONTINUE;
+                    RetNum = OK_CONTINUE;
                     return;
                 }
 
-
             }
 
-
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
-            RetNum=OK_CONTINUE;
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LSTO));
+            RetNum = OK_CONTINUE;
             return;
         }
 
         // HIDELOCALS NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME, OR TRACING WILL BE OFF BY 1
 
-        if((TokenLen==10) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"HIDELOCALS",10)))
-        {
+        if((TokenLen == 10)
+                && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
+                        "HIDELOCALS", 10))) {
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object;
-            BINT notrack=0;
-            if(ValidateTop<=ValidateBottom) {
+            BINT notrack = 0;
+            if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
-                object=TempObEnd;   // START OF COMPILATION
-            } else {
-                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
-                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+                object = TempObEnd;     // START OF COMPILATION
+            }
+            else {
+                object = *(ValidateTop - 1);    // GET LATEST CONSTRUCT
+                ++object;       // AND SKIP THE PROLOG / ENTRY WORD
 
                 // CHECK FOR CONDITIONAL VARIABLE CREATION!
-                WORDPTR *construct=ValidateTop-1;
-                while(construct>=ValidateBottom) {
-                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
-                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
-                            ||(**construct==CMD_THENCASE) )
-                    {
+                WORDPTR *construct = ValidateTop - 1;
+                while(construct >= ValidateBottom) {
+                    if((**construct == CMD_THEN) || (**construct == CMD_ELSE)
+                            || (**construct == CMD_THENERR)
+                            || (**construct == CMD_ELSEERR)
+                            || (**construct == CMD_THENCASE)) {
                         // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
-                        notrack=1;
+                        notrack = 1;
                         break;
                     }
                     --construct;
@@ -1042,163 +1068,161 @@ void LIB_HANDLER()
                 // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
                 if(!notrack) {
 
-                    WORDPTR *env=nLAMBase;
+                    WORDPTR *env = nLAMBase;
                     do {
-                        if(env<LAMTopSaved) break;
-                        if(env[1]==(WORDPTR)lameval_seco) {
-                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
-                            notrack=1;
+                        if(env < LAMTopSaved)
+                            break;
+                        if(env[1] == (WORDPTR) lameval_seco) {
+                            // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack = 1;
                             break;
                         }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
-
+                        env = rplGetNextLAMEnv(env);
+                    }
+                    while(env);
 
                 }
 
-
             }
 
+            // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+            if(!notrack) {
+                // DO WE NEED A NEW ENVIRONMENT?
 
+                if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                {
+                    rplCreateLAMEnvironment(*(ValidateTop - 1));
+                }
+                rplCreateLAM((WORDPTR) lam_privatevar_bint,
+                        (WORDPTR) lam_privatevar_bint);
+            }
 
-
-                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
-                    if(!notrack) {
-                    // DO WE NEED A NEW ENVIRONMENT?
-
-                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                        rplCreateLAMEnvironment(*(ValidateTop-1));
-                    }
-                    rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)lam_privatevar_bint);
-                    }
-
-
-
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,HIDELOCALS));
-            RetNum=OK_CONTINUE;
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, HIDELOCALS));
+            RetNum = OK_CONTINUE;
             return;
         }
 
-
-        if((TokenLen==4) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LRCL",4)))
-        {
+        if((TokenLen == 4)
+                && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "LRCL",
+                        4))) {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object,prevobject;
-            if(ValidateTop<=ValidateBottom) {
+            WORDPTR object, prevobject;
+            if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
-                object=TempObEnd;   // START OF COMPILATION
-            } else {
-                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
-                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+                object = TempObEnd;     // START OF COMPILATION
+            }
+            else {
+                object = *(ValidateTop - 1);    // GET LATEST CONSTRUCT
+                ++object;       // AND SKIP THE PROLOG / ENTRY WORD
             }
 
-            if(object<CompileEnd) {
-            do {
-                prevobject=object;
-                object=rplSkipOb(object);
-            } while(object<CompileEnd);
-
-            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
-
-            if(ISIDENT(*prevobject)) {
-                // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
-
-                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A GETLAM OPCODE IF POSSIBLE
-
-                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
-
-
-                if(LAMptr<LAMTopSaved) {
-                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
-
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
-                    RetNum=OK_CONTINUE;
-                    return;
+            if(object < CompileEnd) {
+                do {
+                    prevobject = object;
+                    object = rplSkipOb(object);
                 }
+                while(object < CompileEnd);
 
-                if(LAMptr<nLAMBase) {
-                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
-                    // WE CAN USE GETLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+                // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
 
-                    WORDPTR *env=nLAMBase;
-                    WORD prolog;
-                    do {
-                        if(LAMptr>env) break;
-                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
-                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
-                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
+                if(ISIDENT(*prevobject)) {
+                    // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
 
-                        RetNum=OK_CONTINUE;
+                    // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A GETLAM OPCODE IF POSSIBLE
+
+                    WORDPTR *LAMptr = rplFindLAM(prevobject, 1);
+
+                    if(LAMptr < LAMTopSaved) {
+                        // THIS IS NOT A VALID LAM, LEAVE AS IDENT
+
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LRCL));
+                        RetNum = OK_CONTINUE;
                         return;
+                    }
+
+                    if(LAMptr < nLAMBase) {
+                        // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                        // WE CAN USE GETLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                        WORDPTR *env = nLAMBase;
+                        WORD prolog;
+                        do {
+                            if(LAMptr > env)
+                                break;
+                            prolog = **(env + 1);       // GET THE PROLOG OF THE SECONDARY
+                            if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
+                                // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,
+                                            LRCL));
+
+                                RetNum = OK_CONTINUE;
+                                return;
+                            }
+                            env = rplGetNextLAMEnv(env);
                         }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
+                        while(env);
 
+                    }
 
+                    // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                    // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
 
-                }
+                    // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                    // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
 
+                    // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                    // INSTEAD OF GETLAMS
 
-                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
-                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+                    // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
+                    WORDPTR *scanenv = ValidateTop - 1;
 
-                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
-                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
-
-                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
-                // INSTEAD OF GETLAMS
-
-                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
-                WORDPTR *scanenv=ValidateTop-1;
-
-                while(scanenv>=ValidateBottom) {
-                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
+                    while(scanenv >= ValidateBottom) {
+                        if((LIBNUM(**scanenv) == SECO) && (ISPROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
-                            if(*scanenv>*(nLAMBase+1)) {
+                            if(*scanenv > *(nLAMBase + 1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
-                            RetNum=OK_CONTINUE;
-                            return;
+                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,
+                                            LRCL));
+                                RetNum = OK_CONTINUE;
+                                return;
                             }
                             break;
 
+                        }
+                        --scanenv;
                     }
-                    --scanenv;
+
+                    // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
+                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+
+                    if(Offset <= 32767 && Offset >= -32768) {
+                        CompileEnd = prevobject;
+                        rplCompileAppend(MKOPCODE(DOIDENT,
+                                    GETLAMN + (Offset & 0xffff)));
+                    }
+                    else {
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LRCL));
+                    }
+                    RetNum = OK_CONTINUE;
+                    return;
                 }
 
-                // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
-                BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
-
-                if(Offset<=32767 && Offset>=-32768) {
-                CompileEnd=prevobject;
-                rplCompileAppend(MKOPCODE(DOIDENT,GETLAMN+(Offset&0xffff)));
-                }
-                else {
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
-                }
-                RetNum=OK_CONTINUE;
-                return;
             }
 
-
-            }
-
-
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
-            RetNum=OK_CONTINUE;
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LRCL));
+            RetNum = OK_CONTINUE;
             return;
         }
 
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-            // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
-            // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-     return;
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -1213,504 +1237,533 @@ void LIB_HANDLER()
             // FIND UPPER CONSTRUCT, NOT JUST THE LAST ONE
 
             // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
-            WORDPTR *prevconst=ValidateTop-2;
+            WORDPTR *prevconst = ValidateTop - 2;
             WORD PreviousConstruct;
-            if(prevconst<ValidateBottom) {
+            if(prevconst < ValidateBottom) {
                 // THERE'S NO UPPER CONSTRUCT
-                PreviousConstruct=0;
-            } else {
-                PreviousConstruct=**prevconst;
+                PreviousConstruct = 0;
+            }
+            else {
+                PreviousConstruct = **prevconst;
             }
 
-            if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
+            if((ISQUOTEDIDENT(*DecompileObject))
+                    && (PreviousConstruct != CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
-            BINT len=OBJSIZE(*DecompileObject);
-            if(LIBNUM(*DecompileObject)&HASATTR_BIT) --len;
-            BYTEPTR ptr=(BYTEPTR)(DecompileObject+len);
-            if(ptr[3]==0)
+            BINT len = OBJSIZE(*DecompileObject);
+            if(LIBNUM(*DecompileObject) & HASATTR_BIT)
+                --len;
+            BYTEPTR ptr = (BYTEPTR) (DecompileObject + len);
+            if(ptr[3] == 0)
                 // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
-                rplDecompAppendString((BYTEPTR) (DecompileObject+1));
+                rplDecompAppendString((BYTEPTR) (DecompileObject + 1));
             else
-                rplDecompAppendString2((BYTEPTR)(DecompileObject+1),len<<2);
+                rplDecompAppendString2((BYTEPTR) (DecompileObject + 1),
+                        len << 2);
 
-
-            if( (OPCODE(CurOpcode)==OPCODE_DECOMPEDIT) ) {
-                WORD attr=rplGetIdentAttr(DecompileObject);
+            if((OPCODE(CurOpcode) == OPCODE_DECOMPEDIT)) {
+                WORD attr = rplGetIdentAttr(DecompileObject);
                 if(attr) {
-                    BINT noinf=0;
-                // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
-                rplDecompAppendChar(':');
-                if(attr&IDATTR_ODD) rplDecompAppendChar('O');
-                else if(attr&IDATTR_EVEN) rplDecompAppendChar('E');
-                else if(attr&IDATTR_INTEGER) rplDecompAppendChar('Z');
-                else if(attr&IDATTR_ISINFREAL)  rplDecompAppendChar('R');
-                else if(attr&IDATTR_ISINFCPLX)  rplDecompAppendChar('C');
-                else if(attr&IDATTR_ISMATRIX)  { rplDecompAppendChar('M'); noinf=1; }
-                else if(attr&IDATTR_ISUNKNOWN) { rplDecompAppendChar('?'); noinf=1; }
-
-                if((!noinf) && !(attr&IDATTR_ISNOTINF))  rplDecompAppendString((BYTEPTR)"∞");
-
-                if(attr&(IDATTR_ISINFCPLX|IDATTR_ISINFREAL)) {
-                    switch(attr&(IDATTR_mMASK))
-                    {
-                    case IDATTR_GTEZERO|IDATTR_NOTZERO:
-                        rplDecompAppendString((BYTEPTR)">0");
-                        break;
-                    case IDATTR_LTEZERO|IDATTR_NOTZERO:
-                        rplDecompAppendString((BYTEPTR)"<0");
-                        break;
-                    case IDATTR_GTEZERO:
-                        rplDecompAppendString((BYTEPTR)"≥0");
-                        break;
-                    case IDATTR_LTEZERO:
-                        rplDecompAppendString((BYTEPTR)"≤0");
-                        break;
-                    case IDATTR_NOTZERO:
-                        rplDecompAppendString((BYTEPTR)"≠0");
-                        break;
+                    BINT noinf = 0;
+                    // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
+                    rplDecompAppendChar(':');
+                    if(attr & IDATTR_ODD)
+                        rplDecompAppendChar('O');
+                    else if(attr & IDATTR_EVEN)
+                        rplDecompAppendChar('E');
+                    else if(attr & IDATTR_INTEGER)
+                        rplDecompAppendChar('Z');
+                    else if(attr & IDATTR_ISINFREAL)
+                        rplDecompAppendChar('R');
+                    else if(attr & IDATTR_ISINFCPLX)
+                        rplDecompAppendChar('C');
+                    else if(attr & IDATTR_ISMATRIX) {
+                        rplDecompAppendChar('M');
+                        noinf = 1;
                     }
-                }
+                    else if(attr & IDATTR_ISUNKNOWN) {
+                        rplDecompAppendChar('?');
+                        noinf = 1;
+                    }
 
-                rplDecompAppendChar(':');
-                // OBSOLETE NUMBER SYSTEM REMOVED
-                /*
-                BINT rot=0;
-                while((rot<32)&&((attr>>rot)!=0)) {
-                    rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
-                    rot+=4;
-                }
-                */
+                    if((!noinf) && !(attr & IDATTR_ISNOTINF))
+                        rplDecompAppendString((BYTEPTR) "∞");
+
+                    if(attr & (IDATTR_ISINFCPLX | IDATTR_ISINFREAL)) {
+                        switch (attr & (IDATTR_mMASK)) {
+                        case IDATTR_GTEZERO | IDATTR_NOTZERO:
+                            rplDecompAppendString((BYTEPTR) ">0");
+                            break;
+                        case IDATTR_LTEZERO | IDATTR_NOTZERO:
+                            rplDecompAppendString((BYTEPTR) "<0");
+                            break;
+                        case IDATTR_GTEZERO:
+                            rplDecompAppendString((BYTEPTR) "≥0");
+                            break;
+                        case IDATTR_LTEZERO:
+                            rplDecompAppendString((BYTEPTR) "≤0");
+                            break;
+                        case IDATTR_NOTZERO:
+                            rplDecompAppendString((BYTEPTR) "≠0");
+                            break;
+                        }
+                    }
+
+                    rplDecompAppendChar(':');
+                    // OBSOLETE NUMBER SYSTEM REMOVED
+                    /*
+                       BINT rot=0;
+                       while((rot<32)&&((attr>>rot)!=0)) {
+                       rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
+                       rot+=4;
+                       }
+                     */
 
                 }
             }
 
-            if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
+            if((ISQUOTEDIDENT(*DecompileObject))
+                    && (PreviousConstruct != CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
-            RetNum=OK_CONTINUE;
+            RetNum = OK_CONTINUE;
             return;
 
         }
 
-        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,LSTO)) {
+        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, LSTO)) {
 
-            rplDecompAppendString((BYTEPTR)"LSTO");
+            rplDecompAppendString((BYTEPTR) "LSTO");
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object,prevobject;
-                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
-                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+            WORDPTR object, prevobject;
+            object = *(ValidateTop - 1);        // GET LATEST CONSTRUCT
+            ++object;   // AND SKIP THE PROLOG / ENTRY WORD
 
             do {
-                prevobject=object;
-                object=rplSkipOb(object);
-            } while(object<DecompileObject);
+                prevobject = object;
+                object = rplSkipOb(object);
+            }
+            while(object < DecompileObject);
 
             // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
-            BINT notrack=0;
-                // CHECK FOR CONDITIONAL VARIABLE CREATION!
-                WORDPTR *construct=ValidateTop-1;
-                while(construct>=ValidateBottom) {
-                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
-                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
-                            ||(**construct==CMD_THENCASE) )
-                    {
-                        // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
-                        notrack=1;
+            BINT notrack = 0;
+            // CHECK FOR CONDITIONAL VARIABLE CREATION!
+            WORDPTR *construct = ValidateTop - 1;
+            while(construct >= ValidateBottom) {
+                if((**construct == CMD_THEN) || (**construct == CMD_ELSE)
+                        || (**construct == CMD_THENERR)
+                        || (**construct == CMD_ELSEERR)
+                        || (**construct == CMD_THENCASE)) {
+                    // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
+                    notrack = 1;
+                    break;
+                }
+                --construct;
+            }
+
+            // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
+            if(!notrack) {
+
+                WORDPTR *env = nLAMBase;
+                do {
+                    if(env < LAMTopSaved)
+                        break;
+                    if(env[1] == (WORDPTR) lameval_seco) {
+                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                        notrack = 1;
                         break;
                     }
-                    --construct;
+                    env = rplGetNextLAMEnv(env);
                 }
+                while(env);
 
-                // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
-                if(!notrack) {
-
-                    WORDPTR *env=nLAMBase;
-                    do {
-                        if(env<LAMTopSaved) break;
-                        if(env[1]==(WORDPTR)lameval_seco) {
-                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
-                            notrack=1;
-                            break;
-                        }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
-
-
-                }
-
-
+            }
 
             if(notrack || !ISIDENT(*prevobject)) {
                 // DO WE NEED A NEW ENVIRONMENT?
 
-                if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                    rplCreateLAMEnvironment(*(ValidateTop-1));
+                if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                {
+                    rplCreateLAMEnvironment(*(ValidateTop - 1));
                 }
-                rplCreateLAM((WORDPTR)zero_bint,(WORDPTR)zero_bint);    // CRREATE UNKNOWN LOCAL NAME
-                RetNum=OK_CONTINUE;
+                rplCreateLAM((WORDPTR) zero_bint, (WORDPTR) zero_bint); // CRREATE UNKNOWN LOCAL NAME
+                RetNum = OK_CONTINUE;
                 return;
             }
-                // WE HAVE A HARD-CODED IDENT
-                // CHECK IF IT'S AN EXISTING LAM
+            // WE HAVE A HARD-CODED IDENT
+            // CHECK IF IT'S AN EXISTING LAM
 
+            WORDPTR *LAMptr = rplFindLAM(prevobject, 1);
 
-                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
+            if(LAMptr < LAMTopSaved) {
+                // THIS IS NOT A VALID LAM, CREATE A NEW ONE
 
+                // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
 
-                if(LAMptr<LAMTopSaved) {
-                    // THIS IS NOT A VALID LAM, CREATE A NEW ONE
+                // DO WE NEED A NEW ENVIRONMENT?
 
-                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
-
-                    // DO WE NEED A NEW ENVIRONMENT?
-
-                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                        rplCreateLAMEnvironment(*(ValidateTop-1));
-                    }
-                    rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
-
-
-                    RetNum=OK_CONTINUE;
-                    return;
+                if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                {
+                    rplCreateLAMEnvironment(*(ValidateTop - 1));
                 }
+                rplCreateLAM((WORDPTR) prevobject, (WORDPTR) zero_bint);
 
-                if(LAMptr<nLAMBase) {
-                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
-                    // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+                RetNum = OK_CONTINUE;
+                return;
+            }
 
-                    WORDPTR *env=nLAMBase;
-                    WORD prolog;
-                    do {
-                        if(LAMptr>env) break;
-                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
-                        if(ISPROLOG(prolog) && ((LIBNUM(prolog)==SECO)||(LIBNUM(prolog)==DOCOL))) {
+            if(LAMptr < nLAMBase) {
+                // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                WORDPTR *env = nLAMBase;
+                WORD prolog;
+                do {
+                    if(LAMptr > env)
+                        break;
+                    prolog = **(env + 1);       // GET THE PROLOG OF THE SECONDARY
+                    if(ISPROLOG(prolog) && ((LIBNUM(prolog) == SECO)
+                                || (LIBNUM(prolog) == DOCOL))) {
                         // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
                         // SO WE CREATE A NEW ONE
-                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                                rplCreateLAMEnvironment(*(ValidateTop-1));
-                            }
-                            rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
-                        RetNum=OK_CONTINUE;
-                        return;
+                        if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                        {
+                            rplCreateLAMEnvironment(*(ValidateTop - 1));
                         }
-                        env=rplGetNextLAMEnv(env);
-                    } while(env);
-
-
-
-                }
-
-
-                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
-                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
-
-                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
-                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
-
-                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
-                // INSTEAD OF PUTLAMS
-
-                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS
-                WORDPTR *scanenv=ValidateTop-1;
-
-                while(scanenv>=RSTop) {
-                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
-                            // FOUND INNERMOST SECONDARY
-                            if(*scanenv>*(nLAMBase+1)) {
-                                // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                                rplCreateLAMEnvironment(*(ValidateTop-1));
-                            }
-                            rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
-
-
-                            RetNum=OK_CONTINUE;
-                            return;
-                            }
-                            break;
-
+                        rplCreateLAM((WORDPTR) prevobject, (WORDPTR) zero_bint);
+                        RetNum = OK_CONTINUE;
+                        return;
                     }
-                    --scanenv;
+                    env = rplGetNextLAMEnv(env);
                 }
+                while(env);
 
-                // IT'S A KNOWN LOCAL VARIABLE, NO NEED TO TRACE IT
-                RetNum=OK_CONTINUE;
-                return;
+            }
+
+            // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+            // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+
+            // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+            // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
+
+            // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+            // INSTEAD OF PUTLAMS
+
+            // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS
+            WORDPTR *scanenv = ValidateTop - 1;
+
+            while(scanenv >= RSTop) {
+                if((LIBNUM(**scanenv) == SECO) && (ISPROLOG(**scanenv))) {
+                    // FOUND INNERMOST SECONDARY
+                    if(*scanenv > *(nLAMBase + 1)) {
+                        // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
+                        if(rplNeedNewLAMEnvCompiler())  // CREATE A NEW ENVIRONMENT IF NEEDED
+                        {
+                            rplCreateLAMEnvironment(*(ValidateTop - 1));
+                        }
+                        rplCreateLAM((WORDPTR) prevobject, (WORDPTR) zero_bint);
+
+                        RetNum = OK_CONTINUE;
+                        return;
+                    }
+                    break;
+
+                }
+                --scanenv;
+            }
+
+            // IT'S A KNOWN LOCAL VARIABLE, NO NEED TO TRACE IT
+            RetNum = OK_CONTINUE;
+            return;
 
         }
 
-        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,HIDELOCALS)) {
+        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, HIDELOCALS)) {
 
-            rplDecompAppendString((BYTEPTR)"HIDELOCALS");
+            rplDecompAppendString((BYTEPTR) "HIDELOCALS");
 
-                   // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+            // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
 
-                    // DO WE NEED A NEW ENVIRONMENT?
+            // DO WE NEED A NEW ENVIRONMENT?
 
-                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                        rplCreateLAMEnvironment(*(ValidateTop-1));
-                    }
-                    rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)lam_privatevar_bint);
+            if(rplNeedNewLAMEnvCompiler())      // CREATE A NEW ENVIRONMENT IF NEEDED
+            {
+                rplCreateLAMEnvironment(*(ValidateTop - 1));
+            }
+            rplCreateLAM((WORDPTR) lam_privatevar_bint,
+                    (WORDPTR) lam_privatevar_bint);
 
+            RetNum = OK_CONTINUE;
+            return;
 
-                    RetNum=OK_CONTINUE;
-                    return;
+        }
 
-
-                }
-
-
-
-
-        switch(OPCODE(*DecompileObject)&0x70000)
-        {
+        switch (OPCODE(*DecompileObject) & 0x70000) {
         case NEWNLOCALS:
         {
 
             // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
-            WORDPTR *prevconst=ValidateTop-2;
+            WORDPTR *prevconst = ValidateTop - 2;
             WORD PreviousConstruct;
-            if(prevconst<ValidateBottom) {
+            if(prevconst < ValidateBottom) {
                 // THERE'S NO UPPER CONSTRUCT
-                PreviousConstruct=0;
-            } else {
-                PreviousConstruct=**prevconst;
+                PreviousConstruct = 0;
+            }
+            else {
+                PreviousConstruct = **prevconst;
             }
 
-            if(PreviousConstruct!=CMD_XEQSECO) {
-                RetNum=ERR_INVALID;
+            if(PreviousConstruct != CMD_XEQSECO) {
+                RetNum = ERR_INVALID;
                 return;
             }
 
-
-            rplCreateLAMEnvironment(*prevconst+1);  // OWNER WILL BE THE SECONDARY
-            BINT offset=0;
+            rplCreateLAMEnvironment(*prevconst + 1);    // OWNER WILL BE THE SECONDARY
+            BINT offset = 0;
 
             // HERE WE HAVE *prevconst POINTING TO THE XEQSECO COMMAND
             // ADD 2 TO SKIP THE WORD + PROLOG OF THE SECO
             // POINTING TO THE FIRST LAM NAME WHEN OFFSET=0
 
-            while((*prevconst)+2+offset < DecompileObject) {
+            while((*prevconst) + 2 + offset < DecompileObject) {
                 // CREATE ALL THE NAMED VARIABLES
-                rplCreateLAM((*prevconst)+2+offset,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
-                offset+=rplObjSize((*prevconst)+2+offset);
+                rplCreateLAM((*prevconst) + 2 + offset, (WORDPTR) zero_bint);   // NULLLAM FOR THE COMPILER
+                offset += rplObjSize((*prevconst) + 2 + offset);
             }
 
             // DONE CREATING THE ENVIRONMENT
 
             // NOW REMOVE THE XEQSECO CONSTRUCT WITHOUT ENDING THE SECO
-            *prevconst=*(prevconst+1);
-
+            *prevconst = *(prevconst + 1);
 
             // NOW LOOK FORWARD TO DETERMINE IF THIS IS AN ALGEBRAIC EXPRESSION
 
             WORDPTR fwd;
-            WORD alg=0,eval1=0,semi=0;
+            WORD alg = 0, eval1 = 0, semi = 0;
 
-            fwd=DecompileObject+1;
-            if(fwd<EndOfObject) {
-                alg=*fwd;
-                fwd=rplSkipOb(fwd);
-                if(fwd<EndOfObject) {
-                    eval1=*fwd;
-                    fwd=rplSkipOb(fwd);
-                    if(fwd<EndOfObject) semi=*fwd;
+            fwd = DecompileObject + 1;
+            if(fwd < EndOfObject) {
+                alg = *fwd;
+                fwd = rplSkipOb(fwd);
+                if(fwd < EndOfObject) {
+                    eval1 = *fwd;
+                    fwd = rplSkipOb(fwd);
+                    if(fwd < EndOfObject)
+                        semi = *fwd;
                 }
             }
 
-            if(ISSYMBOLIC(alg)&&(eval1==CMD_OVR_EVAL1)&&(semi==CMD_QSEMI)) {
+            if(ISSYMBOLIC(alg) && (eval1 == CMD_OVR_EVAL1)
+                    && (semi == CMD_QSEMI)) {
                 // THIS IS AN ALGEBRAIC CONSTRUCT
-                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));
-                DecompileObject+=3+OBJSIZE(alg);    // SKIP UNTIL END OF SECO
+                rplDecompile(DecompileObject + 1,
+                        DECOMP_EMBEDDED | ((CurOpcode ==
+                                OPCODE_DECOMPEDIT) ? (DECOMP_EDIT |
+                                DECOMP_NOHINTS) : DECOMP_NOHINTS));
+                DecompileObject += 3 + OBJSIZE(alg);    // SKIP UNTIL END OF SECO
             }
-            else             rplDecompAppendString((BYTEPTR)"«");
+            else
+                rplDecompAppendString((BYTEPTR) "«");
 
-
-            RetNum=OK_ENDCONSTRUCT;
+            RetNum = OK_ENDCONSTRUCT;
             return;
         }
         case GETLAMN:
         {
 
-            BINT num=OPCODE(*DecompileObject)&0xffff;
-            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            if(num & 0x8000)
+                num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
             rplDecompAppendChar('\'');
-            WORDPTR name=*rplGetLAMnName(num);
+            WORDPTR name = *rplGetLAMnName(num);
             if(!name) {
                 // THIS SHOULD NEVER HAPPEN!!
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
-                rplDecompAppendString((BYTEPTR)"GETLAM");
-                BINT result=OPCODE(*DecompileObject)&0xffff;
-                if(result&0x8000) result|=0xFFFF0000;
-                if(result<0) {
+                rplDecompAppendString((BYTEPTR) "GETLAM");
+                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                if(result & 0x8000)
+                    result |= 0xFFFF0000;
+                if(result < 0) {
                     rplDecompAppendChar('u');
-                    result=-result;
+                    result = -result;
                 }
 
-                BINT digit=0;
-                char basechr='0';
-                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                BINT digit = 0;
+                char basechr = '0';
+                while(result < powersof10[digit])
+                    ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
-                while(digit<18) {
-                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-                rplDecompAppendChar(basechr);
-                ++digit;
-                basechr='0';
+                while(digit < 18) {
+                    while(result >= powersof10[digit]) {
+                        ++basechr;
+                        result -= powersof10[digit];
+                    }
+                    rplDecompAppendChar(basechr);
+                    ++digit;
+                    basechr = '0';
                 }
-                basechr+=result;
+                basechr += result;
                 rplDecompAppendChar(basechr);
-                RetNum=OK_CONTINUE;
+                RetNum = OK_CONTINUE;
                 return;
             }
-
-
-
 
             if(!ISIDENT(*name)) {
-                RetNum=ERR_SYNTAX;
+                RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len=OBJSIZE(*name);
+            BINT len = OBJSIZE(*name);
 
-            WORD lastword=name[len];
+            WORD lastword = name[len];
 
-            len<<=2;
+            len <<= 2;
 
-            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
-            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+            if(lastword < 0x1000000)
+                rplDecompAppendString((BYTEPTR) (name + 1));
+            else
+                rplDecompAppendString2(((BYTEPTR) (name + 1)), len);
 
-            rplDecompAppendString((BYTEPTR)"\' LRCL");
-            RetNum=OK_CONTINUE;
+            rplDecompAppendString((BYTEPTR) "\' LRCL");
+            RetNum = OK_CONTINUE;
             return;
         }
-
 
         case GETLAMNEVAL:
         {
-            BINT num=OPCODE(*DecompileObject)&0xffff;
-            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            if(num & 0x8000)
+                num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
-            WORDPTR name=*rplGetLAMnName(num);
+            WORDPTR name = *rplGetLAMnName(num);
 
             if(!name) {
                 // THIS SHOULD NEVER HAPPEN!!
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
-                rplDecompAppendString((BYTEPTR)"GETLAM");
-                BINT result=OPCODE(*DecompileObject)&0xffff;
-                if(result&0x8000) result|=0xFFFF0000;
-                if(result<0) {
+                rplDecompAppendString((BYTEPTR) "GETLAM");
+                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                if(result & 0x8000)
+                    result |= 0xFFFF0000;
+                if(result < 0) {
                     rplDecompAppendChar('u');
-                    result=-result;
+                    result = -result;
                 }
 
-                BINT digit=0;
-                char basechr='0';
-                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                BINT digit = 0;
+                char basechr = '0';
+                while(result < powersof10[digit])
+                    ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
-                while(digit<18) {
-                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-                rplDecompAppendChar(basechr);
-                ++digit;
-                basechr='0';
+                while(digit < 18) {
+                    while(result >= powersof10[digit]) {
+                        ++basechr;
+                        result -= powersof10[digit];
+                    }
+                    rplDecompAppendChar(basechr);
+                    ++digit;
+                    basechr = '0';
                 }
-                basechr+=result;
+                basechr += result;
                 rplDecompAppendChar(basechr);
-                rplDecompAppendString((BYTEPTR)"EVAL");
-                RetNum=OK_CONTINUE;
+                rplDecompAppendString((BYTEPTR) "EVAL");
+                RetNum = OK_CONTINUE;
                 return;
             }
             if(!ISIDENT(*name)) {
-                RetNum=ERR_SYNTAX;
+                RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len=OBJSIZE(*name);
+            BINT len = OBJSIZE(*name);
 
-            WORD lastword=name[len];
+            WORD lastword = name[len];
 
-            len<<=2;
+            len <<= 2;
 
-            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
-            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+            if(lastword < 0x1000000)
+                rplDecompAppendString((BYTEPTR) (name + 1));
+            else
+                rplDecompAppendString2(((BYTEPTR) (name + 1)), len);
 
-
-            RetNum=OK_CONTINUE;
+            RetNum = OK_CONTINUE;
 
             return;
 
         }
 
-
         case PUTLAMN:
         {
-            BINT num=OPCODE(*DecompileObject)&0xffff;
-            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            if(num & 0x8000)
+                num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
-            WORDPTR name=*rplGetLAMnName(num);
+            WORDPTR name = *rplGetLAMnName(num);
 
             if(!name) {
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
-                rplDecompAppendString((BYTEPTR)"PUTLAM");
-                BINT result=OPCODE(*DecompileObject)&0xffff;
-                if(result&0x8000) result|=0xFFFF0000;
-                if(result<0) {
+                rplDecompAppendString((BYTEPTR) "PUTLAM");
+                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                if(result & 0x8000)
+                    result |= 0xFFFF0000;
+                if(result < 0) {
                     rplDecompAppendChar('u');
-                    result=-result;
+                    result = -result;
                 }
 
-                BINT digit=0;
-                char basechr='0';
-                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                BINT digit = 0;
+                char basechr = '0';
+                while(result < powersof10[digit])
+                    ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
-                while(digit<18) {
-                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-                rplDecompAppendChar(basechr);
-                ++digit;
-                basechr='0';
+                while(digit < 18) {
+                    while(result >= powersof10[digit]) {
+                        ++basechr;
+                        result -= powersof10[digit];
+                    }
+                    rplDecompAppendChar(basechr);
+                    ++digit;
+                    basechr = '0';
                 }
-                basechr+=result;
+                basechr += result;
                 rplDecompAppendChar(basechr);
 
-                RetNum=OK_CONTINUE;
+                RetNum = OK_CONTINUE;
                 return;
 
             }
 
             rplDecompAppendChar('\'');
 
-
             if(!ISIDENT(*name)) {
-                RetNum=ERR_SYNTAX;
+                RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len=OBJSIZE(*name);
+            BINT len = OBJSIZE(*name);
 
-            WORD lastword=name[len];
+            WORD lastword = name[len];
 
-            len<<=2;
+            len <<= 2;
 
-            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
-            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+            if(lastword < 0x1000000)
+                rplDecompAppendString((BYTEPTR) (name + 1));
+            else
+                rplDecompAppendString2(((BYTEPTR) (name + 1)), len);
 
-            rplDecompAppendString((BYTEPTR)"\' STO");
-            RetNum=OK_CONTINUE;
+            rplDecompAppendString((BYTEPTR) "\' STO");
+            RetNum = OK_CONTINUE;
             return;
         }
 
         }
 
-
-
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -1724,12 +1777,11 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -1743,14 +1795,17 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100+(LIBNUM(*ObjectPTR)-LIBRARY_NUMBER);
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_IDENT,0,1);
+            TypeInfo =
+                    LIBRARY_NUMBER * 100 + (LIBNUM(*ObjectPTR) -
+                    LIBRARY_NUMBER);
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_IDENT, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
 
         return;
@@ -1762,7 +1817,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1770,7 +1825,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1781,23 +1836,37 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
 
             // IDENTS ARE ZERO-PADDED STRINGS, DETERMINE THE ACTUAL NUMBER OF BYTES USED
-            BINT len=OBJSIZE(*ObjectPTR);
-            if(len<1) { RetNum=ERR_INVALID; return; }
-            WORD lastword=*(ObjectPTR+len);
-            BINT usedbytes=0;
-            while( !(lastword&0xff000000) && (usedbytes<4) ) { lastword<<=8; ++usedbytes; }
-            usedbytes=4-usedbytes;
+            BINT len = OBJSIZE(*ObjectPTR);
+            if(len < 1) {
+                RetNum = ERR_INVALID;
+                return;
+            }
+            WORD lastword = *(ObjectPTR + len);
+            BINT usedbytes = 0;
+            while(!(lastword & 0xff000000) && (usedbytes < 4)) {
+                lastword <<= 8;
+                ++usedbytes;
+            }
+            usedbytes = 4 - usedbytes;
 
-            if(!usedbytes) { RetNum=ERR_INVALID; return; }  // IDENT HAS AN EXTRA WORD
+            if(!usedbytes) {
+                RetNum = ERR_INVALID;   // IDENT HAS AN EXTRA WORD
+                return;
+            }
 
             // AND CHECK FOR NAME VALIDITY
-            if(!rplIsValidIdent((BYTEPTR)(ObjectPTR+1),((BYTEPTR)ObjectPTR)+(len<<2)+usedbytes)) { RetNum=ERR_INVALID; return; }
+            if(!rplIsValidIdent((BYTEPTR) (ObjectPTR + 1),
+                        ((BYTEPTR) ObjectPTR) + (len << 2) + usedbytes)) {
+                RetNum = ERR_INVALID;
+                return;
+            }
         }
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBMENU:
@@ -1805,13 +1874,13 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
-            RetNum=ERR_NOTMINE;
+        if(MENUNUMBER(MenuCodeArg) > 0) {
+            RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR=(WORDPTR)lib32_menu;
-        RetNum=OK_CONTINUE;
-       return;
+        ObjectPTR = (WORDPTR) lib32_menu;
+        RetNum = OK_CONTINUE;
+        return;
     }
 
     case OPCODE_LIBHELP:
@@ -1819,8 +1888,8 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
     case OPCODE_LIBMSG:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
@@ -1828,25 +1897,24 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-       return;
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
-
 
     }
 
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -1857,7 +1925,3 @@ void LIB_HANDLER()
 }
 
 #endif
-
-
-
-

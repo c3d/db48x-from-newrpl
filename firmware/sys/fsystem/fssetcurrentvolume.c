@@ -5,26 +5,21 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 int FSSetCurrentVolume(int VolNumber)
 {
-int error=FSInit();
-if(error!=FS_OK) return error;
+    int error = FSInit();
+    if(error != FS_OK)
+        return error;
 
-if(FSVolumeMounted(VolNumber)) {
-FSystem.CurrentVolume=VolNumber;
-return FS_OK;
-}
-return FS_BADVOLUME;
+    if(FSVolumeMounted(VolNumber)) {
+        FSystem.CurrentVolume = VolNumber;
+        return FS_OK;
+    }
+    return FS_BADVOLUME;
 }
 
 #endif
-
-
-

@@ -9,23 +9,14 @@
 #include "libraries.h"
 #include "hal.h"
 
-
 // THIS LIBRARY PROVIDES ONLY ERROR MESSAGES FOR SYSTEM EXCEPTIONS
-
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  0
-
-
-
-
-
 
 #define ERROR_LIST \
     ERR(EXITRPLEXCEPTION,0), \
@@ -54,7 +45,6 @@
     ERR(BADERRORCODE,25), \
     ERR(UNKNOWNEXCEPTION,26)
 
-
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
 // IN THE CMD() FORM, THE COMMAND NAME AND ITS
@@ -68,14 +58,11 @@
 
 // ADD MORE OPCODES HERE
 
-
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -83,21 +70,14 @@
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
-
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
     0
 };
-
-
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -107,19 +87,17 @@ void LIB_HANDLER()
         return;
     }
 
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
 
-    // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
     case OPCODE_COMPILECONT:
 
-                RetNum=ERR_NOTMINE;
-                return;
+        RetNum = ERR_NOTMINE;
+        return;
 
     case OPCODE_DECOMPEDIT:
 
@@ -131,9 +109,8 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-
         // NOTHING TO DECOMPILE HERE. THIS LIBRARY DOES NOT DEFINE ANY COMMANDS OR OBJECTS.
-        RetNum=ERR_INVALID;
+        RetNum = ERR_INVALID;
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -147,16 +124,15 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_PROBETOKEN:
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
 
     case OPCODE_GETINFO:
     {
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
     }
 
@@ -167,7 +143,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -175,7 +151,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -184,14 +160,14 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_LIBHELP:
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
     case OPCODE_LIBMENU:
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
 
     case OPCODE_LIBMSG:
@@ -200,31 +176,28 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-       return;
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        return;
     }
 
     case OPCODE_AUTOCOMPNEXT:
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
 
-
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
-
-
 
     }
 
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -234,9 +207,4 @@ void LIB_HANDLER()
 
 }
 
-
-
-
-
 #endif
-

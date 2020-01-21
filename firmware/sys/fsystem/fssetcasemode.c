@@ -5,20 +5,16 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 void FSSetCaseMode(int newmode)
 {
-if( (newmode<0) || (newmode>3)) return;
-FSystem.CaseMode=newmode;
-return;
+    if((newmode < 0) || (newmode > 3))
+        return;
+    FSystem.CaseMode = newmode;
+    return;
 }
 
 #endif
-
-

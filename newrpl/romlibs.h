@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef ROMLIBS_H
 #define ROMLIBS_H
 
@@ -53,4 +52,3 @@
 // ADD MORE LIBRARIES HERE
 
 #endif // ROMLIBS_H
-

@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
@@ -13,8 +12,8 @@
 #define HOZVAL ((LCD_W>>2)-1)
 
 // SIMULATED SYSTEM REGISTERS
-int __lcd_mode=-1;
-int __lcd_needsupdate=0;
+int __lcd_mode = -1;
+int __lcd_needsupdate = 0;
 unsigned int *__lcd_buffer;
 // SIMULATED SCREEN MEMORY
 char PhysicalScreen[8192];
@@ -25,10 +24,8 @@ int __lcd_contrast __SYSTEM_GLOBAL__;
 void halScreenUpdated()
 {
     // SEND SIGNAL THAT EMULATED SCREEN NEEDS TO BE UPDATED
-    __lcd_needsupdate=1;
+    __lcd_needsupdate = 1;
 }
-
-
 
 void __lcd_fix()
 {
@@ -51,27 +48,23 @@ void lcd_on()
 
 void lcd_save(unsigned int *buf)
 {
-    *buf=__lcd_mode;
-    unsigned int **ptr=(unsigned int **)&(buf[1]);
-    *ptr=__lcd_buffer;
+    *buf = __lcd_mode;
+    unsigned int **ptr = (unsigned int **)&(buf[1]);
+    *ptr = __lcd_buffer;
 }
 
 void lcd_restore(unsigned int *buf)
 {
-    unsigned int **ptr=(unsigned int **)&(buf[1]);
-    __lcd_buffer=*ptr;
-    __lcd_mode=*buf;
+    unsigned int **ptr = (unsigned int **)&(buf[1]);
+    __lcd_buffer = *ptr;
+    __lcd_mode = *buf;
 }
-
-
-
-
-
 
 void lcd_setcontrast(int level)
 {
 //    int value;
-if(level>15 || level<0) level=7;
+    if(level > 15 || level < 0)
+        level = 7;
 
 // TODO: ADJUST CONTRAST IN EMULATED SCREEN
 }
@@ -86,15 +79,12 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 //     =2 -> 16-gray
 // physbuf MUST be the physical address
 
-int /*height=(lcdreg[3])>>8,*/ pagewidth=LCD_W>>(4-mode);
+    int /*height=(lcdreg[3])>>8, */ pagewidth = LCD_W >> (4 - mode);
 
-__lcd_buffer=physbuf;
+    __lcd_buffer = physbuf;
 // TODO: POINT THE QT SCREEN INTO THE GIVEN BUFFER
-lcd_setcontrast(__lcd_contrast);
-__lcd_mode=mode;
+    lcd_setcontrast(__lcd_contrast);
+    __lcd_mode = mode;
 
-return pagewidth<<1;
+    return pagewidth << 1;
 }
-
-
-

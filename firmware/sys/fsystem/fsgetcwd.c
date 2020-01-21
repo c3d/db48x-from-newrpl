@@ -5,22 +5,23 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
 char *FSGetcwd(int Volume)
 {
-FS_VOLUME *fs;
+    FS_VOLUME *fs;
 
-int error=FSInit();
-if(error!=FS_OK) return NULL;
+    int error = FSInit();
+    if(error != FS_OK)
+        return NULL;
 
-fs=FSystem.Volumes[Volume];
-if(!fs) return NULL;
+    fs = FSystem.Volumes[Volume];
+    if(!fs)
+        return NULL;
 
-return FSGetFileName(fs->CurrentDir,FSNAME_HASPATH | FSNAME_ABSPATH);
+    return FSGetFileName(fs->CurrentDir, FSNAME_HASPATH | FSNAME_ABSPATH);
 
 }
 #endif

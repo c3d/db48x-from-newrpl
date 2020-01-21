@@ -5,11 +5,11 @@
 #include <QWidget>
 #include <QQuickWidget>
 
-class menuWidget : public QQuickWidget
+class menuWidget:public QQuickWidget
 {
-public:
+  public:
     menuWidget();
-    menuWidget(QWidget *parent);
+    menuWidget(QWidget * parent);
 };
 
 #endif // MENUWIDGET_H

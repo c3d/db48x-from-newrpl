@@ -5,10 +5,8 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef TARGET_PC_H
 #define TARGET_PC_H
-
 
 extern char PhysicalScreen[8192];
 extern char ExceptionScreen[8192];
@@ -22,7 +20,7 @@ extern char ExceptionScreen[8192];
 #undef DEFAULT_AUTOOFFTIME
 #define DEFAULT_AUTOOFFTIME 0   // NO AUTO OFF ON A PC!
 
-#undef __ENABLE_ARM_ASSEMBLY__ // THIS TARGET IS NOT ARM
+#undef __ENABLE_ARM_ASSEMBLY__  // THIS TARGET IS NOT ARM
 
 #undef __SYSTEM_GLOBAL__
 #define __SYSTEM_GLOBAL__

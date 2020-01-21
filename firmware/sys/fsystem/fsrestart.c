@@ -5,9 +5,7 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
-
 
 #ifndef CONFIG_NO_FSYSTEM
 
@@ -15,7 +13,7 @@
 // USE WHEN USER INSERTED A NEW CARD
 int FSRestart()
 {
-FSShutdown();
-return FSInit();
+    FSShutdown();
+    return FSInit();
 }
 #endif

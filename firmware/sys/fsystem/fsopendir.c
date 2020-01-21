@@ -5,99 +5,99 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
 // OPEN DIRECTORIES FOR ENTRY SCANNING
 
-int FSOpenDir(char *name,FS_FILE **fileptr)
+int FSOpenDir(char *name, FS_FILE ** fileptr)
 {
-FS_FILE *entry,*old;
-int error;
-FS_VOLUME *fs;
+    FS_FILE *entry, *old;
+    int error;
+    FS_VOLUME *fs;
 
+    error = FSInit();
+    if(error != FS_OK)
+        return error;
 
-error=FSInit();
-if(error!=FS_OK) return error;
-
-
-entry=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
-if(entry==NULL) return FS_ERROR;
+    entry = (FS_FILE *) simpmallocb(sizeof(FS_FILE));
+    if(entry == NULL)
+        return FS_ERROR;
 
 // CLEAN ENTRY
-memsetb((void *)entry,0,sizeof(FS_FILE));
-
+    memsetb((void *)entry, 0, sizeof(FS_FILE));
 
 // CHECK IF CARD IS PRESENT
 
-error=FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
-if(error!=FS_OK) { simpfree(entry); return error; }
+    error = FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
+    if(error != FS_OK) {
+        simpfree(entry);
+        return error;
+    }
 
+    error = FSFindFile(name, entry, TRUE);
 
+    if((error != FS_OK) && (error != FS_OPENDIR)) {
+        simpfree(entry);
+        return error;
+    }
 
-error=FSFindFile(name,entry,TRUE);
-
-if((error!=FS_OK) && (error!=FS_OPENDIR)) { simpfree(entry); return error; }
-
-if(error==FS_OK) {
+    if(error == FS_OK) {
 // NEWLY OPENED DIR
-if(!(entry->Attr&FSATTR_DIR)) {
+        if(!(entry->Attr & FSATTR_DIR)) {
 // CLEANUP PROCEDURE
-while(entry!=NULL) entry=FSFreeFile(entry);
-return FS_NOTFOUND;
-}
+            while(entry != NULL)
+                entry = FSFreeFile(entry);
+            return FS_NOTFOUND;
+        }
 
-fs=FSystem.Volumes[entry->Volume];
+        fs = FSystem.Volumes[entry->Volume];
 
 // GET FILE CLUSTER CHAIN
-error=FSGetChain(entry->FirstCluster,&entry->Chain,fs);
+        error = FSGetChain(entry->FirstCluster, &entry->Chain, fs);
 
-if(error!=FS_OK) {
-while(entry!=NULL) entry=FSFreeFile(entry);
-return FS_ERROR;
-}
-entry->FileSize=FSGetChainSize(&entry->Chain);
+        if(error != FS_OK) {
+            while(entry != NULL)
+                entry = FSFreeFile(entry);
+            return FS_ERROR;
+        }
+        entry->FileSize = FSGetChainSize(&entry->Chain);
 
-entry->Mode=FSMODE_READ;
+        entry->Mode = FSMODE_READ;
 
-
-}
-else {
+    }
+    else {
 // USE AN ALREADY OPENED DIRECTORY
-old=entry;
-entry=entry->Dir;
-simpfree(old);
-if(!(entry->Attr&FSATTR_DIR)) {
+        old = entry;
+        entry = entry->Dir;
+        simpfree(old);
+        if(!(entry->Attr & FSATTR_DIR)) {
 // CLEANUP PROCEDURE
-return FS_NOTFOUND;
-}
+            return FS_NOTFOUND;
+        }
 
-fs=FSystem.Volumes[entry->Volume];
+        fs = FSystem.Volumes[entry->Volume];
 //printf("fs=%08X\n",(unsigned int)fs);
-}
+    }
 
+    int k;
 
+    for(k = 0; k < FS_MAXOPENFILES; ++k) {
+        if(fs->Files[k] == NULL)
+            break;
+    }
 
-int k;
+    if(k == FS_MAXOPENFILES) {
+        while(entry != NULL)
+            entry = FSFreeFile(entry);
+        return FS_MAXFILES;
+    }
 
-for(k=0;k<FS_MAXOPENFILES;++k)
-{
-if(fs->Files[k]==NULL) break;
-}
-
-if(k==FS_MAXOPENFILES) {
-while(entry!=NULL) entry=FSFreeFile(entry);
-return FS_MAXFILES; 
-}
-
-
-fs->Files[k]=entry;
-*fileptr=entry;
-entry->CurrentOffset=0;
-return error;
+    fs->Files[k] = entry;
+    *fileptr = entry;
+    entry->CurrentOffset = 0;
+    return error;
 }
 
 #endif

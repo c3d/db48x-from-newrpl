@@ -9,60 +9,59 @@
 #include "libraries.h"
 #include "hal.h"
 
-
 // GROW THE DATA STACK
 
 void growDStk(WORD newtotalsize)
 {
     WORDPTR *newdstk;
 
-    BINT gc_done=0;
+    BINT gc_done = 0;
 
     do {
-    newtotalsize=(newtotalsize+1023)&~1023;
+        newtotalsize = (newtotalsize + 1023) & ~1023;
 
-    newdstk=halGrowMemory(MEM_AREA_DSTK,DStk,newtotalsize);
+        newdstk = halGrowMemory(MEM_AREA_DSTK, DStk, newtotalsize);
 
-    if(!newdstk) {
-        if(!gc_done) { rplGCollect(); ++gc_done; }
-        else {
-            rplException(EX_OUTOFMEM);
-            return;
+        if(!newdstk) {
+            if(!gc_done) {
+                rplGCollect();
+                ++gc_done;
+            }
+            else {
+                rplException(EX_OUTOFMEM);
+                return;
+            }
         }
+
     }
+    while(!newdstk);
 
-    } while(!newdstk);
+    DSTop = DSTop - DStk + newdstk;
+    DStk = newdstk;
+    DStkSize = newtotalsize;
 
-
-    DSTop=DSTop-DStk+newdstk;
-    DStk=newdstk;
-    DStkSize=newtotalsize;
-
-        // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
+    // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
 }
 
 void shrinkDStk(WORD newtotalsize)
 {
     WORDPTR *newdstk;
 
-    newtotalsize=(newtotalsize+1023)&~1023;
+    newtotalsize = (newtotalsize + 1023) & ~1023;
 
-    newdstk=halGrowMemory(MEM_AREA_DSTK,DStk,newtotalsize);
+    newdstk = halGrowMemory(MEM_AREA_DSTK, DStk, newtotalsize);
 
     if(!newdstk) {
-            rplException(EX_OUTOFMEM);
-            return;
-        }
+        rplException(EX_OUTOFMEM);
+        return;
+    }
 
-    DSTop=DSTop-DStk+newdstk;
-    DStk=newdstk;
-    DStkSize=newtotalsize;
+    DSTop = DSTop - DStk + newdstk;
+    DStk = newdstk;
+    DStkSize = newtotalsize;
 
-        // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
+    // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
 }
-
-
-
 
 // DATA STACK ONLY STORES ADDRESS POINTERS
 // NEVER DIRECTLY A WORD OR A COMMAND
@@ -73,33 +72,39 @@ void shrinkDStk(WORD newtotalsize)
 // DON'T DO MORE THAN DSTKSLACK
 void rplPushDataNoGrow(WORDPTR p)
 {
-    *DSTop++=p;
+    *DSTop++ = p;
 }
 
 // PUSH A POINTER ON THE STACK
 void rplPushData(WORDPTR p)
 {
-    *DSTop++=p;
+    *DSTop++ = p;
 
-if(DStkSize<=(BINT)((DSTop-DStk+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD))) growDStk((DSTop-DStk+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD));
-if(Exceptions) return;
+    if(DStkSize <=
+            (BINT) ((DSTop - DStk +
+                    DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD)))
+        growDStk((DSTop - DStk + DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD));
+    if(Exceptions)
+        return;
 }
-
 
 // EXPAND THE STACK TO GUARANTEE THAT THERE'S SPACE TO PUSH numobjects MORE WITHOUT NEEDING ANY MEMORY
 void rplExpandStack(BINT numobjects)
 {
 
-if(DStkSize<=(BINT)((DSTop-DStk+numobjects+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD))) growDStk((DSTop-DStk+numobjects+DSTKSLACK)*sizeof(WORDPTR)+sizeof(WORD));
-if(Exceptions) return;
+    if(DStkSize <=
+            (BINT) ((DSTop - DStk + numobjects +
+                    DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD)))
+        growDStk((DSTop - DStk + numobjects + DSTKSLACK) * sizeof(WORDPTR) +
+                sizeof(WORD));
+    if(Exceptions)
+        return;
 }
-
-
 
 // POP THE TOP OF THE STACK
 WORDPTR rplPopData()
 {
-    if(DSTop<=DStkProtect) {
+    if(DSTop <= DStkProtect) {
         rplError(ERR_INTERNALEMPTYSTACK);
         return 0;
     }
@@ -109,49 +114,62 @@ WORDPTR rplPopData()
 // DROP N LEVELS IN THE STACK
 void rplDropData(int n)
 {
-    if(DSTop-DStkProtect<n) {
+    if(DSTop - DStkProtect < n) {
         rplError(ERR_INTERNALEMPTYSTACK);
         return;
     }
-    DSTop-=n;
+    DSTop -= n;
 }
 
 // REMOVE num LEVELS FROM level TO level+num-1 FROM THE STACK
-void rplRemoveAtData(BINT level,BINT num)
+void rplRemoveAtData(BINT level, BINT num)
 {
-    if(DSTop-DStkProtect<level+num-1){
+    if(DSTop - DStkProtect < level + num - 1) {
         rplError(ERR_INTERNALEMPTYSTACK);
         return;
     }
-memmovew(DSTop-level-num+1,DSTop-level+1,(level-1)*sizeof(WORDPTR)/sizeof(WORD));
-DSTop-=num;
+    memmovew(DSTop - level - num + 1, DSTop - level + 1,
+            (level - 1) * sizeof(WORDPTR) / sizeof(WORD));
+    DSTop -= num;
 }
 
 // THIS IS FOR LIBRARY USE ONLY, SO DON'T RAISE AN EXCEPTION, JUST RETURN AN NULL POINTER
 // LEVELS = 1 ... DEPTH. DON'T CHECK FOR NEGATIVE NUMBERS!
 
 // GET STACK DEPTH
-inline BINT rplDepthData() { return (BINT)(DSTop-DStkProtect); }
+inline BINT rplDepthData()
+{
+    return (BINT) (DSTop - DStkProtect);
+}
+
 // READ LEVEL 'N' WITHOUT REMOVING THE POINTER
-inline WORDPTR rplPeekData(int level)  {  return *(DSTop-level); }
+inline WORDPTR rplPeekData(int level)
+{
+    return *(DSTop - level);
+}
+
 // OVERWRITE LEVEL 'N' WITH A DIFFERENT POINTER
-inline void rplOverwriteData(int level,WORDPTR ptr)  {  *(DSTop-level)=ptr; }
+inline void rplOverwriteData(int level, WORDPTR ptr)
+{
+    *(DSTop - level) = ptr;
+}
 
 // CLEAR THE STACK COMPLETELY
-inline void rplClearData() { DSTop=DStkProtect; }
+inline void rplClearData()
+{
+    DSTop = DStkProtect;
+}
 
 // PROTECT THE CURRENT DATA STACK FROM DROP AT THE CURRENT LEVEL
 
-
 extern WORD unprotect_seco[];
-
 
 WORDPTR *rplProtectData()
 {
-    WORDPTR *ret=DStkProtect;
-    DStkProtect=DSTop;
+    WORDPTR *ret = DStkProtect;
+    DStkProtect = DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet((WORDPTR)(DStk+(BINT)(ret-DStkBottom)));
+    rplPushRet((WORDPTR) (DStk + (BINT) (ret - DStkBottom)));
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -159,15 +177,20 @@ WORDPTR *rplProtectData()
 // REMOVE STACK PROTECTION
 WORDPTR *rplUnprotectData()
 {
-    WORDPTR *ret=DStkProtect;
-    if(rplPeekRet(1)==unprotect_seco) {
+    WORDPTR *ret = DStkProtect;
+    if(rplPeekRet(1) == unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        BINT protlevel=(BINT) ((WORDPTR *)rplPopRet()-DStk);
-        if((DStkBottom+protlevel>=DStkBottom) && (DStkBottom+protlevel<DSTop) )  DStkProtect=DStkBottom+protlevel;
-        else DStkProtect=DStkBottom;
+        BINT protlevel = (BINT) ((WORDPTR *) rplPopRet() - DStk);
+        if((DStkBottom + protlevel >= DStkBottom)
+                && (DStkBottom + protlevel < DSTop))
+            DStkProtect = DStkBottom + protlevel;
+        else
+            DStkProtect = DStkBottom;
 
-    } else DStkProtect=DStkBottom;
+    }
+    else
+        DStkProtect = DStkBottom;
     return ret;
 }
 
@@ -178,16 +201,15 @@ WORDPTR *rplUnprotectData()
 // SWITCH TO A SNAPSHOT "ROLLS" IT DOWN TO LEVEL 0.
 // TAKING A SNAPSHOT PUSHES THE CURRENT STACK TO SNAPSHOT LEVEL 1
 
-
 // GET A COUNT OF HOW MANY SNAPSHOTS ARE CURRENTLY STORED IN THE STACK
 BINT rplCountSnapshots()
 {
-    BINT count=0;
-    WORDPTR *snapptr=DStkBottom;
+    BINT count = 0;
+    WORDPTR *snapptr = DStkBottom;
 
-    while(snapptr>DStk) {
+    while(snapptr > DStk) {
         ++count;
-        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
     }
     return count;
 }
@@ -198,28 +220,29 @@ BINT rplCountSnapshots()
 
 void rplRemoveSnapshot(BINT numsnap)
 {
-    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
 
-    if(numsnap<1) return;
+    if(numsnap < 1)
+        return;
 
-    while((snapptr>DStk)&&(numsnap>0)) {
-        prevptr=snapptr;
-        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+    while((snapptr > DStk) && (numsnap > 0)) {
+        prevptr = snapptr;
+        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
-    if((numsnap>0)||(snapptr<DStk)) {
+    if((numsnap > 0) || (snapptr < DStk)) {
         // INVALID SNAPSHOT, DON'T DELETE ANYTHING!
         return;
     }
 
     // MOVE THE ENTIRE STACK DOWN
-    memmovew(snapptr,prevptr,(DSTop-prevptr)*(sizeof(void*)>>2));
+    memmovew(snapptr, prevptr, (DSTop - prevptr) * (sizeof(void *) >> 2));
     // FIX THE POINTERS
-    DSTop-=prevptr-snapptr;
-    DStkBottom-=prevptr-snapptr;
-    DStkProtect-=prevptr-snapptr;
+    DSTop -= prevptr - snapptr;
+    DStkBottom -= prevptr - snapptr;
+    DStkProtect -= prevptr - snapptr;
     return;
 }
 
@@ -227,23 +250,24 @@ void rplRemoveSnapshot(BINT numsnap)
 // AND MAKE A COPY AS CURRENT STACK
 void rplTakeSnapshot()
 {
-    WORDPTR *top=DSTop,*bottom=DStkBottom;
-    BINT levels=top-bottom;
+    WORDPTR *top = DSTop, *bottom = DStkBottom;
+    BINT levels = top - bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=NUMBER2PTR(levels);
+    *DSTop++ = NUMBER2PTR(levels);
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
-        DSTop=top;
-        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
+        DSTop = top;
+        if(Exceptions == EX_OUTOFMEM)
+            Exceptions = 0;     // CLEAR OUT OF MEMORY ERROR
         return;
     }
 
-    memcpyw(DSTop,bottom,levels*(sizeof(void*)>>2));
-    DStkProtect+=levels+1;
-    DStkBottom+=levels+1;
-    DSTop+=levels;
+    memcpyw(DSTop, bottom, levels * (sizeof(void *) >> 2));
+    DStkProtect += levels + 1;
+    DStkBottom += levels + 1;
+    DSTop += levels;
     return;
 }
 
@@ -251,25 +275,27 @@ void rplTakeSnapshot()
 // COPY ONLY nargs INTO THE CURRENT STACK
 void rplTakeSnapshotN(BINT nargs)
 {
-    WORDPTR *top=DSTop,*bottom=DStkBottom;
-    BINT levels=top-bottom;
-    if(levels<nargs) nargs=levels;
+    WORDPTR *top = DSTop, *bottom = DStkBottom;
+    BINT levels = top - bottom;
+    if(levels < nargs)
+        nargs = levels;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=NUMBER2PTR(levels);
+    *DSTop++ = NUMBER2PTR(levels);
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
-        DSTop=top;
-        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
+        DSTop = top;
+        if(Exceptions == EX_OUTOFMEM)
+            Exceptions = 0;     // CLEAR OUT OF MEMORY ERROR
 
         return;
     }
 
-    memcpyw(DSTop,top-nargs,nargs*(sizeof(void*)>>2));
-    DStkProtect+=levels+1;
-    DStkBottom+=levels+1;
-    DSTop+=nargs;
+    memcpyw(DSTop, top - nargs, nargs * (sizeof(void *) >> 2));
+    DStkProtect += levels + 1;
+    DStkBottom += levels + 1;
+    DSTop += nargs;
     return;
 }
 
@@ -279,30 +305,34 @@ void rplTakeSnapshotN(BINT nargs)
 // USED TO HIDE TEMPORARY ARGUMENTS DURING UNDO OPERATIONS
 void rplTakeSnapshotHide(BINT nargs)
 {
-    WORDPTR *top=DSTop,*bottom=DStkBottom,hidefirst;
-    BINT levels=top-bottom;
-    if(levels<nargs) nargs=levels;
-    if(nargs<0) nargs=0;
+    WORDPTR *top = DSTop, *bottom = DStkBottom, hidefirst;
+    BINT levels = top - bottom;
+    if(levels < nargs)
+        nargs = levels;
+    if(nargs < 0)
+        nargs = 0;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
-        DSTop=top;
-        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
+        DSTop = top;
+        if(Exceptions == EX_OUTOFMEM)
+            Exceptions = 0;     // CLEAR OUT OF MEMORY ERROR
 
         return;
     }
-    hidefirst=DSTop[-nargs];
-    DSTop[-nargs]=NUMBER2PTR(levels-nargs);
+    hidefirst = DSTop[-nargs];
+    DSTop[-nargs] = NUMBER2PTR(levels - nargs);
 
     // COPY TO NEW STACK
-    memmovew(DSTop-nargs+1,bottom,(levels-nargs)*(sizeof(void*)>>2));
+    memmovew(DSTop - nargs + 1, bottom,
+            (levels - nargs) * (sizeof(void *) >> 2));
 
-    DStkProtect+=levels-nargs+1;
-    DStkBottom+=levels-nargs+1;
-    DSTop+=levels-nargs+1;
-    DSTop[-nargs]=hidefirst;    // AND RESTORE THE DAMAGED WORD
+    DStkProtect += levels - nargs + 1;
+    DStkBottom += levels - nargs + 1;
+    DSTop += levels - nargs + 1;
+    DSTop[-nargs] = hidefirst;  // AND RESTORE THE DAMAGED WORD
     return;
 }
 
@@ -311,14 +341,14 @@ void rplTakeSnapshotHide(BINT nargs)
 
 void rplTakeSnapshotAndClear()
 {
-    WORDPTR *top=DSTop,*bottom=DStkBottom;
-    BINT levels=top-bottom;
+    WORDPTR *top = DSTop, *bottom = DStkBottom;
+    BINT levels = top - bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=NUMBER2PTR(levels);
+    *DSTop++ = NUMBER2PTR(levels);
 
-    DStkProtect+=levels+1;
-    DStkBottom+=levels+1;
+    DStkProtect += levels + 1;
+    DStkBottom += levels + 1;
     return;
 }
 
@@ -328,38 +358,40 @@ void rplRestoreSnapshot(BINT numsnap)
 {
 
     // RESTORE IS FORBIDDEN IN A PROTECTED STACK
-    if(DStkProtect!=DStkBottom) return;
+    if(DStkProtect != DStkBottom)
+        return;
 
-    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
 
-    if(numsnap<1) return;
+    if(numsnap < 1)
+        return;
 
-    while((snapptr>DStk)&&(numsnap>0)) {
-        prevptr=snapptr;
-        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+    while((snapptr > DStk) && (numsnap > 0)) {
+        prevptr = snapptr;
+        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
-    if((numsnap>0)||(snapptr<DStk)) {
+    if((numsnap > 0) || (snapptr < DStk)) {
         // INVALID SNAPSHOT, DON'T DO ANYTHING!
         return;
     }
 
+    BINT levels = (PTR2NUMBER) * (prevptr - 1);
 
-        BINT levels=(PTR2NUMBER)*(prevptr-1);
+    rplExpandStack(levels - rplDepthData());
+    if(Exceptions) {
+        if(Exceptions == EX_OUTOFMEM)
+            Exceptions = 0;     // CLEAR OUT OF MEMORY ERROR
+        return;
+    }
 
-        rplExpandStack(levels-rplDepthData());
-        if(Exceptions) {
-            if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
-            return;
-        }
-
-        // COPY THE SNAPSHOT TO CURRENT STACK
-        memcpyw(DStkBottom,snapptr,levels*(sizeof(void*)>>2));
-        // ADJUST STACK POINTERS
-        DSTop=DStkBottom+levels;
-        DStkProtect=DStkBottom; // PROTECTIONS ARE NOT SAVED WITHIN A SNAPSHOT
+    // COPY THE SNAPSHOT TO CURRENT STACK
+    memcpyw(DStkBottom, snapptr, levels * (sizeof(void *) >> 2));
+    // ADJUST STACK POINTERS
+    DSTop = DStkBottom + levels;
+    DStkProtect = DStkBottom;   // PROTECTIONS ARE NOT SAVED WITHIN A SNAPSHOT
 
 }
 
@@ -367,7 +399,8 @@ void rplRestoreSnapshot(BINT numsnap)
 void rplRevertToSnapshot(BINT numsnap)
 {
     // REVERT IS FORBIDDEN IN A PROTECTED STACK
-    if(DStkProtect!=DStkBottom) return;
+    if(DStkProtect != DStkBottom)
+        return;
     rplRestoreSnapshot(numsnap);
     rplRemoveSnapshot(numsnap);
 }
@@ -375,70 +408,70 @@ void rplRevertToSnapshot(BINT numsnap)
 // RETURN THE STACK DEPTH IN THE GIVEN SNAPSHOT
 BINT rplDepthSnapshot(BINT numsnap)
 {
-    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
 
-    if(numsnap<1) return 0;
+    if(numsnap < 1)
+        return 0;
 
-    while((snapptr>DStk)&&(numsnap>0)) {
-        prevptr=snapptr;
-        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+    while((snapptr > DStk) && (numsnap > 0)) {
+        prevptr = snapptr;
+        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
-    if((numsnap>0)||(snapptr<DStk)) {
+    if((numsnap > 0) || (snapptr < DStk)) {
         // INVALID SNAPSHOT, DON'T DO ANYTHING!
         return 0;
     }
 
-
-        return (PTR2NUMBER)*(prevptr-1);
+    return (PTR2NUMBER) * (prevptr - 1);
 }
 
 // SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
 
-WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
+WORDPTR rplPeekSnapshot(BINT numsnap, BINT level)
 {
-    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
 
-    if(numsnap<1) return 0;
+    if(numsnap < 1)
+        return 0;
 
-    while((snapptr>DStk)&&(numsnap>0)) {
-        prevptr=snapptr;
-        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+    while((snapptr > DStk) && (numsnap > 0)) {
+        prevptr = snapptr;
+        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
-    if((numsnap>0)||(snapptr<DStk)) {
+    if((numsnap > 0) || (snapptr < DStk)) {
         // INVALID SNAPSHOT, DON'T DO ANYTHING!
         return 0;
     }
 
+    BINT levels = (PTR2NUMBER) * (prevptr - 1);
 
-        BINT levels=(PTR2NUMBER)*(prevptr-1);
+    if((level < 1) || (level > levels))
+        return 0;       // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
 
-        if( (level<1) || (level>levels)) return 0;  // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
-
-        return *(prevptr-level-1);
+    return *(prevptr - level - 1);
 }
-
 
 // DROPS THE CURRENT STACK AND MAKES THE PREVIOUS SNAPSHOT THE CURRENT STACK
 // DOES NOT MOVE THE STACK, CAN BE USED FROM C
 
-
 void rplDropCurrentStack()
 {
 
-    if(DStkBottom>DStk) {
-        BINT nlevels=((PTR2NUMBER)*(DStkBottom-1))+1;
+    if(DStkBottom > DStk) {
+        BINT nlevels = ((PTR2NUMBER) * (DStkBottom - 1)) + 1;
         // FIX THE POINTERS
-        DSTop=DStkBottom-1;
-        DStkBottom-=nlevels;
-        DStkProtect-=nlevels;
-    } else {
-        DStkBottom=DStkProtect=DSTop=DStk;  // CLEAR THE STACK
+        DSTop = DStkBottom - 1;
+        DStkBottom -= nlevels;
+        DStkProtect -= nlevels;
+    }
+    else {
+        DStkBottom = DStkProtect = DSTop = DStk;        // CLEAR THE STACK
     }
 }
 
@@ -446,7 +479,8 @@ void rplDropCurrentStack()
 // THE SNAPSHOT WITH newstkbottom BECOMES THE CURRENT STACK
 // USE TO REMOVE ALL SNAPSHOTS TAKEN BY A PROGRAM IN ONE SINGLE CLEANUP OPERATION
 
-void rplCleanupSnapshots(WORDPTR *newstkbottom)
+void rplCleanupSnapshots(WORDPTR * newstkbottom)
 {
-    while((DStkBottom>newstkbottom)&&(DStkBottom>DStk)) rplDropCurrentStack();
+    while((DStkBottom > newstkbottom) && (DStkBottom > DStk))
+        rplDropCurrentStack();
 }

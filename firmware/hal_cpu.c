@@ -5,7 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #include <newrpl.h>
 #include <ui.h>
 #include <libraries.h>
@@ -15,16 +14,17 @@ extern void __cpu_inton(unsigned int);
 
 void halCPUSlowMode()
 {
-   unsigned int saved=__cpu_intoff();
-if(usb_isconnected()) cpu_setspeed(HAL_USBCLOCK);
-else cpu_setspeed(HAL_SLOWCLOCK);
+    unsigned int saved = __cpu_intoff();
+    if(usb_isconnected())
+        cpu_setspeed(HAL_USBCLOCK);
+    else
+        cpu_setspeed(HAL_SLOWCLOCK);
     __cpu_inton(saved);
 }
 
 void halCPUFastMode()
 {
-    unsigned int saved=__cpu_intoff();
+    unsigned int saved = __cpu_intoff();
     cpu_setspeed(HAL_FASTCLOCK);
     __cpu_inton(saved);
 }
-

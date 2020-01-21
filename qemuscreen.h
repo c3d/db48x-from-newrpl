@@ -5,16 +5,14 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-
 #ifndef QEMUSCREEN_H
 #define QEMUSCREEN_H
 
 #include <QGraphicsView>
 
-class QEmuScreen : public QGraphicsView
+class QEmuScreen:public QGraphicsView
 {
-    Q_OBJECT
-public:
+  Q_OBJECT public:
     // SIZE OF THE SCREEN TO EMULATE
     int screen_width;
     int screen_height;
@@ -26,27 +24,22 @@ public:
     QTimer *screentmr;
     QColor Grays[16];   // ARRAY WITH ALL THE DIFFERENT GRAY LEVELS
     QBrush GrayBrush[16];
-    QPen   BkgndPen;
-    QPixmap annHourglass,annComms,annAlpha,annBattery,annLShift,annRShift;
-
+    QPen BkgndPen;
+    QPixmap annHourglass, annComms, annAlpha, annBattery, annLShift, annRShift;
 
     QGraphicsScene scr;
 
     QGraphicsRectItem **Pixels;
     QGraphicsPixmapItem *Annunciators[6];
 
-    void setTimer(QTimer *tmr);
-    void setPixel(int offset,int color);
-    void setWord(int offset,unsigned int color);
-    void setMode(int _mode,unsigned int *_buffer);
+    void setTimer(QTimer * tmr);
+    void setPixel(int offset, int color);
+    void setWord(int offset, unsigned int color);
+    void setMode(int _mode, unsigned int *_buffer);
     void setScale(qreal _scale);
-    explicit QEmuScreen(QWidget *parent = 0);
+    explicit QEmuScreen(QWidget * parent = 0);
 
-
-signals:
-
-public slots:
-    void update();
+        signals: public slots: void update();
 
 };
 

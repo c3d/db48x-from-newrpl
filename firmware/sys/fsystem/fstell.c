@@ -5,15 +5,13 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
 
-
-int FSTell(FS_FILE *file)
+int FSTell(FS_FILE * file)
 {
-return file->CurrentOffset;
+    return file->CurrentOffset;
 }
 
 #endif

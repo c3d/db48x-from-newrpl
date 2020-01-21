@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 
 #ifndef CONFIG_NO_FSYSTEM
@@ -15,11 +14,14 @@
 int FSVolumeMounted(int VolNumber)
 {
 
-int error=FSInit();
-if(error!=FS_OK) return FALSE;
+    int error = FSInit();
+    if(error != FS_OK)
+        return FALSE;
 
-if(VolNumber<0 || VolNumber>3) return FALSE;
-if(FSystem.Volumes[VolNumber]!=NULL) return TRUE;
-return FALSE;
+    if(VolNumber < 0 || VolNumber > 3)
+        return FALSE;
+    if(FSystem.Volumes[VolNumber] != NULL)
+        return TRUE;
+    return FALSE;
 }
 #endif

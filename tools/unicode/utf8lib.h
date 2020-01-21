@@ -19,33 +19,25 @@
 #define MK_SINGRANGE(start,end,offset) ((((end)-(start)+1)<<12)|((offset)&0xfff))
 #define MK_SINGGAP(start,end) MK_SINGRANGE(start,end,0xfff)
 
-
 #define MAX_UNICODE_CHARACTER_LEN 32
 
-
-
-
-
 // ********************   USER ACCESSIBLE API FOR UTF-8 STRING MANIPULATION *****************************
-
-
 
 // ALL STRINGS ARE PROVIDED AS A POINTER AND A BYTE COUNT
 // STRINGS MAY CONTAIN THE NULL CHARACTER AND DON'T NEED TO BE NULL-TERMINATED
 
 // DECODE A SINGLE CODE POINT FROM THE GIVEN STRING TO A 32-BIT INTEGER
-int utf82Char(char * ptr,int len);
+int utf82Char(char *ptr, int len);
 
 // SKIP A SINGLE CODE POINT IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR NULL AT THE END OF STRING
-char *utf8Skip(char *ptr,int len);
+char *utf8Skip(char *ptr, int len);
 
 // ENCODE A UNICODE CODE POINT INTO A LITTLE ENDIAN SEQUENCE OF 4 BYTES, PACKED IN AN INT
 // LSB IS ALWAYS USED, AND CONTAINS THE FIRST BYTE
 // HIGHER ORDER BYTES ONLY CONTAIN VALID DATA WHEN NON-ZERO
 // RETURNS -1 ON AN INVALID CODEPOINT THAT CANNOT BE ENCODED
 unsigned int Char2utf8(unsigned int codepoint);
-
 
 // ********************   INTERNAL API FOR UNICODE NORMALIZATION  *****************************
 
@@ -57,16 +49,16 @@ extern unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 // EXTRACT THE PROPERTIES WITH THE CCLASS(), NFC_QC() AND NFC_EX() MACROS
 unsigned char getCPInfo(unsigned int cp);
 
-
 // STORE THE DECOMPOSITION OF A SINGLE CODE POINT INTO UP TO 3 CODE POINTS
 // *dec1==-1 --> NO DECOMPOSITION AVAILABLE
 // *dec2 or *dec3 == -1 --> CODEPOINT NOT USED/NEEDED
-void quickDecomp(unsigned int cp,unsigned int *dec1,unsigned int *dec2,unsigned int *dec3);
+void quickDecomp(unsigned int cp, unsigned int *dec1, unsigned int *dec2,
+        unsigned int *dec3);
 
 // FULLY (RECURSIVE) DECOMPOSE AND APPEND CHARACTER TO THE NORMALIZATION BUFFER
 // BUFFER POSITION SPECIFIED BY lastchar
 // RETURNS THE UPDATED POSITION
-int appendDecomp(unsigned int cp,int lastchar);
+int appendDecomp(unsigned int cp, int lastchar);
 
 // SORT COMBINING CHARACTERS BASED ON COMBINING CLASS
 // WORKS INSIDE THE BUFFER
@@ -77,24 +69,8 @@ void bubbleSort(int lastch);
 // lastch IS THE NUMBER OF CODEPOINTS IN THE BUFFER
 int quickCompose(int lastch);
 
-
 // READ A UNICODE CHARACTER (POSSIBLY MULTIPLE CODEPOINTS), CONVERT TO NFC AND LEAVE AT THE BUFFER.
 // RETURNS THE NUMBER OF BYTES CONSUMED FROM STRING.
-int utf82NFC(char *string,int len);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int utf82NFC(char *string, int len);
 
 #endif // UTF8LIB_H
-

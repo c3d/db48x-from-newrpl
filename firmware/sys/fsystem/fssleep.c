@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-
 #include "fsyspriv.h"
 #ifndef CONFIG_NO_FSYSTEM
 
@@ -13,12 +12,12 @@
 
 void FSSleep()
 {
-SDPowerDown();
+    SDPowerDown();
 }
 
 void FSWakeUp()
 {
-SDPowerUp();
+    SDPowerUp();
 }
 
 #endif

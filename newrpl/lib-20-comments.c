@@ -8,7 +8,6 @@
 // LIBRARY 20 DEFINES THE COMMENTS OBJECTS
 // AND ASSOCIATED FUNCTIONS
 
-
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
@@ -21,7 +20,6 @@
 
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  20
-
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -36,14 +34,11 @@
 
 // ADD MORE OPCODES HERE
 
-
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
@@ -51,38 +46,23 @@
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
-
-
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
-
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_HELPTABLE,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_HELPTABLE,
     0
 };
 
-
-
-
-
-
-
-
-
-
-
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
 // LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
-void rplSetCommentLength(WORDPTR string,BINT length)
+void rplSetCommentLength(WORDPTR string, BINT length)
 {
-    BINT padding=(4-((length)&3))&3;
+    BINT padding = (4 - ((length) & 3)) & 3;
 
-    *string=MKPROLOG(LIBRARY_NUMBER+padding,(length+3)>>2);
+    *string = MKPROLOG(LIBRARY_NUMBER + padding, (length + 3) >> 2);
 }
-
-
 
 void LIB_HANDLER()
 {
@@ -95,15 +75,14 @@ void LIB_HANDLER()
     }
 
     // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
-    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+    if(LIBNUM(CurOpcode) == LIB_OVERLOADABLE) {
         // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
         // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
-        if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                (OPCODE(CurOpcode)==OVR_EVAL1)||
-                (OPCODE(CurOpcode)==OVR_XEQ) )
-        {
+        if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                (OPCODE(CurOpcode) == OVR_XEQ)) {
             // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
-            if(rplDepthData()<1) {
+            if(rplDepthData() < 1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
@@ -112,47 +91,43 @@ void LIB_HANDLER()
                 rplPopData();
                 return;
             }
-            WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            WORD saveOpcode = CurOpcode;
+            CurOpcode = *rplPopData();
             // RECURSIVE CALL
             LIB_HANDLER();
-            CurOpcode=saveOpcode;
+            CurOpcode = saveOpcode;
             return;
         }
-        if(OPCODE(CurOpcode)==OVR_ISTRUE) {
-            rplOverwriteData(1,(WORDPTR)one_bint);
+        if(OPCODE(CurOpcode) == OVR_ISTRUE) {
+            rplOverwriteData(1, (WORDPTR) one_bint);
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
-
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-
-
-
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
     case STRIPCOMMENTS:
     {
         //@SHORT_DESC=Remove all comments from a compiled program
         //@NEW
         // TODO: IMPLEMENT THIS
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -164,177 +139,174 @@ void LIB_HANDLER()
         }
 
         // SCAN THE EXECUTABLE TO DETERMINE SIZE WITHOUT COMMENTS
-        BINT newsize=1;
+        BINT newsize = 1;
 
-        WORDPTR ptr,end;
-        WORDPTR *Stacksave=DSTop;
+        WORDPTR ptr, end;
+        WORDPTR *Stacksave = DSTop;
 
-        ptr=rplPeekData(1);
-        end=rplSkipOb(ptr);
+        ptr = rplPeekData(1);
+        end = rplSkipOb(ptr);
         ++ptr;
 
         // RECURSIVE SCAN
         do {
 
-            if(Stacksave!=DSTop) {
+            if(Stacksave != DSTop) {
                 // CONTINUE OBJECT WHERE WE LEFT OFF
-                newsize+=rplReadBINT(rplPopData());
-                end=rplSkipOb(rplPopData());
+                newsize += rplReadBINT(rplPopData());
+                end = rplSkipOb(rplPopData());
             }
 
-
-        while(ptr!=end) {
-            if(ISPROGRAM(*ptr)) {
-                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                rplNewBINTPush(newsize,DECBINT);
-                if(Exceptions) {
-                    DSTop=Stacksave;
-                    return;
+            while(ptr != end) {
+                if(ISPROGRAM(*ptr)) {
+                    rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                    rplNewBINTPush(newsize, DECBINT);
+                    if(Exceptions) {
+                        DSTop = Stacksave;
+                        return;
+                    }
+                    ptr = rplPeekData(2);       // RE-READ POINTERS IN CASE OF GC
+                    end = rplSkipOb(ptr);
+                    newsize = 1;
+                    ++ptr;
+                    continue;
                 }
-                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
-                end=rplSkipOb(ptr);
-                newsize=1;
-                ++ptr;
-                continue;
-            }
-            if(ISLIST(*ptr)) {
-                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                rplNewBINTPush(newsize,DECBINT);
-                if(Exceptions) {
-                    DSTop=Stacksave;
-                    return;
-                }
-                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
-                end=rplSkipOb(ptr);
-                newsize=1;
-                ++ptr;
-                continue;
-            }
-
-            if(ISCOMMENT(*ptr)) {
-                // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
-                BINT len=OBJSIZE(*ptr);
-                if(!( (len>0) && ((ptr[1]&0xff)=='@') && (((ptr[1]>>8)&0xff)!='@'))) {
-                    // NOT A PERMANENT COMMENT SKIP AND CONTINUE
-                    ptr=rplSkipOb(ptr);
+                if(ISLIST(*ptr)) {
+                    rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                    rplNewBINTPush(newsize, DECBINT);
+                    if(Exceptions) {
+                        DSTop = Stacksave;
+                        return;
+                    }
+                    ptr = rplPeekData(2);       // RE-READ POINTERS IN CASE OF GC
+                    end = rplSkipOb(ptr);
+                    newsize = 1;
+                    ++ptr;
                     continue;
                 }
 
-            }
+                if(ISCOMMENT(*ptr)) {
+                    // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
+                    BINT len = OBJSIZE(*ptr);
+                    if(!((len > 0) && ((ptr[1] & 0xff) == '@')
+                                && (((ptr[1] >> 8) & 0xff) != '@'))) {
+                        // NOT A PERMANENT COMMENT SKIP AND CONTINUE
+                        ptr = rplSkipOb(ptr);
+                        continue;
+                    }
 
-            // ALL OTHER OBJECTS NEED TO BE KEPT
-            newsize+=rplObjSize(ptr);
-            ptr=rplSkipOb(ptr);
+                }
 
+                // ALL OTHER OBJECTS NEED TO BE KEPT
+                newsize += rplObjSize(ptr);
+                ptr = rplSkipOb(ptr);
 
             }
 
             // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
 
-
-        } while(DSTop!=Stacksave);
+        }
+        while(DSTop != Stacksave);
 
         // HERE newsize HAS THE TOTAL SIZE OF THE NEW OBJECT WITHOUT COMMENTS
 
-        ptr=rplAllocTempOb(newsize-1);
-        if(!ptr) return;
+        ptr = rplAllocTempOb(newsize - 1);
+        if(!ptr)
+            return;
 
-        ScratchPointer1=ptr;   // SAFEKEEPING AGAINST POSSIBLE GC DURING RECURSIVE COPY
-        ScratchPointer2=ptr;   // RUNNING POINTER, DESTINATION WHERE TO COPY
-        ScratchPointer3=ptr;   // START OF DESTINATION OBJECT, USED TO PATCH THE FINAL SIZE
+        ScratchPointer1 = ptr;  // SAFEKEEPING AGAINST POSSIBLE GC DURING RECURSIVE COPY
+        ScratchPointer2 = ptr;  // RUNNING POINTER, DESTINATION WHERE TO COPY
+        ScratchPointer3 = ptr;  // START OF DESTINATION OBJECT, USED TO PATCH THE FINAL SIZE
 
         // SECOND PASS, COPY TO NEW OBJECT
-        ptr=rplPeekData(1);
-        end=rplSkipOb(ptr);
-        *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
+        ptr = rplPeekData(1);
+        end = rplSkipOb(ptr);
+        *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
         ++ScratchPointer2;
         ++ptr;
-        newsize=1;
-
+        newsize = 1;
 
         // RECURSIVE SCAN
         do {
 
-            if(Stacksave!=DSTop) {
+            if(Stacksave != DSTop) {
                 // CONTINUE OBJECT WHERE WE LEFT OFF
-                newsize+=rplReadBINT(rplPopData());
-                end=rplSkipOb(rplPopData());
-                ScratchPointer3=rplPopData();
+                newsize += rplReadBINT(rplPopData());
+                end = rplSkipOb(rplPopData());
+                ScratchPointer3 = rplPopData();
             }
 
-
-        while(ptr!=end) {
-            if(ISPROGRAM(*ptr)) {
-                rplPushDataNoGrow(ScratchPointer2);
-                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                rplNewBINTPush(newsize,DECBINT);
-                if(Exceptions) {
-                    DSTop=Stacksave;
-                    return;
+            while(ptr != end) {
+                if(ISPROGRAM(*ptr)) {
+                    rplPushDataNoGrow(ScratchPointer2);
+                    rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                    rplNewBINTPush(newsize, DECBINT);
+                    if(Exceptions) {
+                        DSTop = Stacksave;
+                        return;
+                    }
+                    ptr = rplPeekData(2);       // RE-READ POINTERS IN CASE OF GC
+                    end = rplSkipOb(ptr);
+                    *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
+                    ++ScratchPointer2;
+                    newsize = 1;
+                    ++ptr;
+                    continue;
                 }
-                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
-                end=rplSkipOb(ptr);
-                *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
-                ++ScratchPointer2;
-                newsize=1;
-                ++ptr;
-                continue;
-            }
-            if(ISLIST(*ptr)) {
-                rplPushDataNoGrow(ScratchPointer2);
-                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                rplNewBINTPush(newsize,DECBINT);
-                if(Exceptions) {
-                    DSTop=Stacksave;
-                    return;
-                }
-                ptr=rplPeekData(1); // RE-READ POINTERS IN CASE OF GC
-                end=rplSkipOb(ptr);
-                *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
-                ++ScratchPointer2;
-                newsize=1;
-                ++ptr;
-                continue;
-            }
-
-            if(ISCOMMENT(*ptr)) {
-                // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
-                BINT len=OBJSIZE(*ptr);
-                if(!( (len>0) && ((ptr[1]&0xff)=='@') && (((ptr[1]>>8)&0xff)!='@'))) {
-                    // NOT A PERMANENT COMMENT SKIP AND CONTINUE
-                    ptr=rplSkipOb(ptr);
+                if(ISLIST(*ptr)) {
+                    rplPushDataNoGrow(ScratchPointer2);
+                    rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                    rplNewBINTPush(newsize, DECBINT);
+                    if(Exceptions) {
+                        DSTop = Stacksave;
+                        return;
+                    }
+                    ptr = rplPeekData(1);       // RE-READ POINTERS IN CASE OF GC
+                    end = rplSkipOb(ptr);
+                    *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
+                    ++ScratchPointer2;
+                    newsize = 1;
+                    ++ptr;
                     continue;
                 }
 
-            }
+                if(ISCOMMENT(*ptr)) {
+                    // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
+                    BINT len = OBJSIZE(*ptr);
+                    if(!((len > 0) && ((ptr[1] & 0xff) == '@')
+                                && (((ptr[1] >> 8) & 0xff) != '@'))) {
+                        // NOT A PERMANENT COMMENT SKIP AND CONTINUE
+                        ptr = rplSkipOb(ptr);
+                        continue;
+                    }
 
-            // ALL OTHER OBJECTS NEED TO BE KEPT
-            rplCopyObject(ScratchPointer2,ptr);
-            newsize+=rplObjSize(ptr);
-            ptr=rplSkipOb(ptr);
-            ScratchPointer2=rplSkipOb(ScratchPointer2);
+                }
+
+                // ALL OTHER OBJECTS NEED TO BE KEPT
+                rplCopyObject(ScratchPointer2, ptr);
+                newsize += rplObjSize(ptr);
+                ptr = rplSkipOb(ptr);
+                ScratchPointer2 = rplSkipOb(ScratchPointer2);
             }
 
             // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
-            *ScratchPointer3=*ScratchPointer3|OBJSIZE(newsize-1);
+            *ScratchPointer3 = *ScratchPointer3 | OBJSIZE(newsize - 1);
 
-        } while(DSTop!=Stacksave);
-
+        }
+        while(DSTop != Stacksave);
 
         // DONE, PUT THE NEW OBJECT IN THE STACK NOW
 
-        rplOverwriteData(1,ScratchPointer1);
+        rplOverwriteData(1, ScratchPointer1);
 
         return;
     }
 
-    // ADD MORE OPCODES HERE
+        // ADD MORE OPCODES HERE
 
-
-    // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -347,185 +319,207 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if(*((BYTEPTR)TokenStart)=='@') {
+        if(*((BYTEPTR) TokenStart) == '@') {
             // START A STRING
 
-            ScratchPointer4=CompileEnd;     // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
+            ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
 
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
+            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
 
-            union {
+            union
+            {
                 WORD word;
                 BYTE bytes[4];
             } temp;
 
-            BINT count=0,mode=1,endmark=0;
-            BYTEPTR ptr=(BYTEPTR) TokenStart;
-            ++ptr;  // SKIP THE INITIAL AT
+            BINT count = 0, mode = 1, endmark = 0;
+            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            ++ptr;      // SKIP THE INITIAL AT
 
             // mode==1 MEANS JUST A STANDARD COMMENT
             // mode==2 MEANS @@ COMMENT THAT IS PERMANENT (SINGLE LINE)
             // mode==3 MEANS @@@ MULTILINE COMMENT
 
             do {
-            while(count<4) {
-                if(ptr==(BYTEPTR)NextTokenStart) {
-                    // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+                while(count < 4) {
+                    if(ptr == (BYTEPTR) NextTokenStart) {
+                        // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
-                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
-                    if(count) rplCompileAppend(temp.word);
-                    *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
-                    RetNum=OK_NEEDMORE;
-                    return;
-                }
-
-                if(*ptr=='@') {
-                    if(mode<0x40000000) ++mode;
-                    else {
-                        ++endmark;
+                        // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                        if(count)
+                            rplCompileAppend(temp.word);
+                        *ScratchPointer4 =
+                                MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                                (WORD) (CompileEnd - ScratchPointer4) - 1);
+                        RetNum = OK_NEEDMORE;
+                        return;
                     }
-                } else mode|=0x40000000;
 
-               if( ((*ptr=='\n')&&(mode<=0x40000002)) || ((mode&~0x40000000)==endmark))
-                {
-                    // END OF LINE = END OF COMMENT
-                    temp.bytes[count]=*ptr;
+                    if(*ptr == '@') {
+                        if(mode < 0x40000000)
+                            ++mode;
+                        else {
+                            ++endmark;
+                        }
+                    }
+                    else
+                        mode |= 0x40000000;
+
+                    if(((*ptr == '\n') && (mode <= 0x40000002))
+                            || ((mode & ~0x40000000) == endmark)) {
+                        // END OF LINE = END OF COMMENT
+                        temp.bytes[count] = *ptr;
+                        ++count;
+                        ++ptr;
+                        // WE HAVE REACHED THE END OF THE COMMENT
+                        if(count) {
+                            rplCompileAppend(temp.word);
+                        }
+                        *ScratchPointer4 =
+                                MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                                (WORD) (CompileEnd - ScratchPointer4) - 1);
+
+                        if(ptr < (BYTEPTR) BlankStart) {
+                            //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
+                            TokenStart = (WORDPTR) ptr;
+                            RetNum = OK_SPLITTOKEN;
+                        }
+                        else
+                            RetNum = OK_CONTINUE;
+
+                        // DROP THE COMMENT DEPENDING ON FLAGS
+                        if((mode != 0x40000002)
+                                && (rplTestSystemFlag(FL_STRIPCOMMENTS) == 1))
+                            CompileEnd = ScratchPointer4;
+
+                        return;
+                    }
+                    if(count == 0)
+                        temp.word = 0;
+                    temp.bytes[count] = *ptr;
                     ++count;
                     ++ptr;
-                    // WE HAVE REACHED THE END OF THE COMMENT
-                    if(count) {
-                    rplCompileAppend(temp.word);
-                    }
-                    *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
-
-                    if(ptr<(BYTEPTR)BlankStart) {
-                    //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                    TokenStart=(WORDPTR)ptr;
-                    RetNum=OK_SPLITTOKEN;
-                    } else RetNum=OK_CONTINUE;
-
-                    // DROP THE COMMENT DEPENDING ON FLAGS
-                    if( (mode!=0x40000002) && (rplTestSystemFlag(FL_STRIPCOMMENTS)==1)) CompileEnd=ScratchPointer4;
-
-
-                    return;
-                }
-                if(count==0) temp.word=0;
-                temp.bytes[count]=*ptr;
-                ++count;
-                ++ptr;
                 }
                 //  WE HAVE A COMPLETE WORD HERE
-                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                 rplCompileAppend(temp.word);
-                ptr=(BYTEPTR)ScratchPointer1;
+                ptr = (BYTEPTR) ScratchPointer1;
 
-                count=0;
+                count = 0;
 
-
-            } while(1);     // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
+            }
+            while(1);   // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
             //  THIS IS UNREACHABLE CODE HERE
 
         }
 
-
-
-
-
-
-
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-     return;
-
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
+        return;
 
     case OPCODE_COMPILECONT:
         // CONTINUE COMPILING STRING
     {
-        union {
+        union
+        {
             WORD word;
             BYTE bytes[4];
         } temp;
-        BINT mode=1,endmark=0;
-        if(CompileEnd>ScratchPointer4+1) {
+        BINT mode = 1, endmark = 0;
+        if(CompileEnd > ScratchPointer4 + 1) {
             // GET THE FIRST WORD TO EXTRACT THE COMMENT MODE
-        temp.word=*(ScratchPointer4+1);
+            temp.word = *(ScratchPointer4 + 1);
 
-        if(temp.bytes[0]=='@') {
-            ++mode;
-            if(temp.bytes[1]=='@') ++mode;
+            if(temp.bytes[0] == '@') {
+                ++mode;
+                if(temp.bytes[1] == '@')
+                    ++mode;
+            }
         }
-        }
 
-        mode|=0x40000000;
+        mode |= 0x40000000;
 
-        BINT count=(4-(LIBNUM(*ScratchPointer4)&3))&3; // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
+        BINT count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
 
         if(count) {
             --CompileEnd;
-            temp.word=*CompileEnd;  // GET LAST WORD
-        } else temp.word=0;
-        BYTEPTR ptr=(BYTEPTR) TokenStart;
+            temp.word = *CompileEnd;    // GET LAST WORD
+        }
+        else
+            temp.word = 0;
+        BYTEPTR ptr = (BYTEPTR) TokenStart;
         do {
-        while(count<4) {
-            if(ptr==(BYTEPTR)NextTokenStart) {
-             // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+            while(count < 4) {
+                if(ptr == (BYTEPTR) NextTokenStart) {
+                    // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
-                // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
-                if(count) rplCompileAppend(temp.word);
-                *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
-                RetNum=OK_NEEDMORE;
-                return;
-            }
-
-            if(*ptr=='@') {
-                if(mode<0x40000000) ++mode;
-                else {
-                    ++endmark;
+                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                    if(count)
+                        rplCompileAppend(temp.word);
+                    *ScratchPointer4 =
+                            MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                            (WORD) (CompileEnd - ScratchPointer4) - 1);
+                    RetNum = OK_NEEDMORE;
+                    return;
                 }
-            } else mode|=0x40000000;
 
-           if( ((*ptr=='\n')&&(mode<=0x40000002)) || ((mode&~0x40000000)==endmark))
-            {
-                // END OF COMMENT
-                temp.bytes[count]=*ptr;
+                if(*ptr == '@') {
+                    if(mode < 0x40000000)
+                        ++mode;
+                    else {
+                        ++endmark;
+                    }
+                }
+                else
+                    mode |= 0x40000000;
+
+                if(((*ptr == '\n') && (mode <= 0x40000002))
+                        || ((mode & ~0x40000000) == endmark)) {
+                    // END OF COMMENT
+                    temp.bytes[count] = *ptr;
+                    ++count;
+
+                    ++ptr;
+                    // WE HAVE REACHED THE END OF THE STRING
+                    if(count)
+                        rplCompileAppend(temp.word);
+                    *ScratchPointer4 =
+                            MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                            (WORD) (CompileEnd - ScratchPointer4) - 1);
+
+                    if(ptr < (BYTEPTR) BlankStart) {
+                        //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
+                        TokenStart = (WORDPTR) ptr;
+                        RetNum = OK_SPLITTOKEN;
+                    }
+                    else
+                        RetNum = OK_CONTINUE;
+
+                    // DROP THE COMMENT DEPENDING ON FLAGS
+                    if((mode != 0x40000002)
+                            && (rplTestSystemFlag(FL_STRIPCOMMENTS) == 1))
+                        CompileEnd = ScratchPointer4;
+
+                    return;
+                }
+                if(count == 0)
+                    temp.word = 0;
+                temp.bytes[count] = *ptr;
                 ++count;
-
                 ++ptr;
-                // WE HAVE REACHED THE END OF THE STRING
-                if(count) rplCompileAppend(temp.word);
-                *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
-
-                if(ptr<(BYTEPTR)BlankStart) {
-                //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                TokenStart=(WORDPTR)ptr;
-                RetNum=OK_SPLITTOKEN;
-                } else RetNum=OK_CONTINUE;
-
-                // DROP THE COMMENT DEPENDING ON FLAGS
-                if( (mode!=0x40000002) && (rplTestSystemFlag(FL_STRIPCOMMENTS)==1)) CompileEnd=ScratchPointer4;
-
-
-                return;
-            }
-            if(count==0) temp.word=0;
-            temp.bytes[count]=*ptr;
-            ++count;
-            ++ptr;
-
 
             }
             //  WE HAVE A COMPLETE WORD HERE
-            ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
             rplCompileAppend(temp.word);
-            ptr=(BYTEPTR)ScratchPointer1;
+            ptr = (BYTEPTR) ScratchPointer1;
 
-            count=0;
+            count = 0;
 
-
-        } while(1);     // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
+        }
+        while(1);       // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
         //  THIS IS UNREACHABLE CODE HERE
 
     }
@@ -539,37 +533,33 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendChar('@');
-            BINT len=(OBJSIZE(*DecompileObject)<<2)-(LIBNUM(*DecompileObject)&3);
-            BYTEPTR string=(BYTEPTR)(DecompileObject+1);
+            BINT len =
+                    (OBJSIZE(*DecompileObject) << 2) -
+                    (LIBNUM(*DecompileObject) & 3);
+            BYTEPTR string = (BYTEPTR) (DecompileObject + 1);
             /*
-            if(string[len-1]=='\n') {
-                // COMMENT ENDS IN NEWLINE
-                if((len>1) && (string[len-2]=='\r')) --len;
-                rplDecompAppendString2(string,len-1);
-                if(!rplDecompDoHintsWidth(HINT_NLAFTER))    // ADD A NEWLINE AND RESPECT THE INDENTATION
-                {
-                 // END THE COMMENT WITH COMMENT SYMBOL SINCE NO NEWLINE WAS ADDED!
-                 rplDecompAppendChar('@');
-                 while((len>0) &&(*string=='@')) { rplDecompAppendChar('@'); ++string; --len; }
-                }
-            }
-            else */
-                rplDecompAppendString2(string,len);
+               if(string[len-1]=='\n') {
+               // COMMENT ENDS IN NEWLINE
+               if((len>1) && (string[len-2]=='\r')) --len;
+               rplDecompAppendString2(string,len-1);
+               if(!rplDecompDoHintsWidth(HINT_NLAFTER))    // ADD A NEWLINE AND RESPECT THE INDENTATION
+               {
+               // END THE COMMENT WITH COMMENT SYMBOL SINCE NO NEWLINE WAS ADDED!
+               rplDecompAppendChar('@');
+               while((len>0) &&(*string=='@')) { rplDecompAppendChar('@'); ++string; --len; }
+               }
+               }
+               else */
+            rplDecompAppendString2(string, len);
 
-            RetNum=OK_CONTINUE;
+            RetNum = OK_CONTINUE;
             return;
 
         }
 
-
-
-
-
-
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -583,8 +573,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -601,12 +590,12 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -620,14 +609,15 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
 
@@ -639,7 +629,7 @@ void LIB_HANDLER()
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
         //libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -648,7 +638,7 @@ void LIB_HANDLER()
         // OR RetNum= ERR_NOTMINE;
 
         //libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
-        RetNum=ERR_NOTMINE;
+        RetNum = ERR_NOTMINE;
         return;
 
     case OPCODE_CHECKOBJ:
@@ -659,39 +649,40 @@ void LIB_HANDLER()
     {
         // STRINGS ARE ALWAYS VALID, EVEN IF THEY CONTAIN INVALID UTF-8 SEQUENCES
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
     }
 
     case OPCODE_AUTOCOMPNEXT:
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-        RetNum=ERR_NOTMINE;
-       return;
+        RetNum = ERR_NOTMINE;
+        return;
 
     case OPCODE_LIBHELP:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
-       return;
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        return;
     }
     case OPCODE_LIBMSG:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-        RetNum=ERR_NOTMINE;
-       return;
+        RetNum = ERR_NOTMINE;
+        return;
 
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
@@ -700,19 +691,14 @@ void LIB_HANDLER()
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
     rplError(ERR_INVALIDOPCODE);
     return;
 
-
 }
 
-
-#endif  // COMMANDS_ONLY_PASS
-
-
-
+#endif // COMMANDS_ONLY_PASS

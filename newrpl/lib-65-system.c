@@ -15,8 +15,6 @@
 // *** COMMON LIBRARY HEADER ***
 // *****************************
 
-
-
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  65
 
@@ -63,7 +61,6 @@
     CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(OFF,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
 
-
 // ADD MORE OPCODES HERE
 
 #define ERROR_LIST \
@@ -76,21 +73,17 @@ ERR(PASTDUEALRM,5), \
 ERR(ALRMSKIPPED,6), \
 ERR(ALRMCORRUPT,7)
 
-
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
-
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
-
 
 #ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
-
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -104,20 +97,18 @@ INCLUDE_ROMOBJECT(cmd_TEVAL);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)LIB_MSGTABLE,
-    (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib65_menu_0_time,
-    (WORDPTR)lib65_menu_1_memory,
-    (WORDPTR)lib65_menu_2_alarms,
-    (WORDPTR)lib65_menu_3_others,
-    (WORDPTR)newrpl_version,
-    (WORDPTR)alarms_ident,
-    (WORDPTR)cmd_TEVAL,
+const WORDPTR const ROMPTR_TABLE[] = {
+    (WORDPTR) LIB_MSGTABLE,
+    (WORDPTR) LIB_HELPTABLE,
+    (WORDPTR) lib65_menu_0_time,
+    (WORDPTR) lib65_menu_1_memory,
+    (WORDPTR) lib65_menu_2_alarms,
+    (WORDPTR) lib65_menu_3_others,
+    (WORDPTR) newrpl_version,
+    (WORDPTR) alarms_ident,
+    (WORDPTR) cmd_TEVAL,
     0
 };
-
-
 
 // RETURN THE NUMBER OF BYTES OF AVAILABLE RAM.
 BINT rplGetFreeMemory()
@@ -131,12 +122,11 @@ BINT rplGetFreeMemory()
     mem += (TempBlocksEnd - TempBlocks) & 0x3ff;
     mem += (TempObEnd - TempOb) & 0x3ff;
 
-    mem  = ((6 * 1024) - mem) << 2;
+    mem = ((6 * 1024) - mem) << 2;
     mem += halGetFreePages() << 12;
 
     return mem;
 }
-
 
 // DATE AND TIME FUNCTIONS
 
@@ -155,10 +145,12 @@ BINT rplGetMonthDays(BINT month, BINT year)
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID DATE IS GIVEN
-BINT rplReadRealAsDate(REAL *date, struct date *dt)
+BINT rplReadRealAsDate(REAL * date, struct date *dt)
 {
-    if (!rplReadRealAsDateNoCk(date, dt)) return 0;
-    if (!rplIsValidDate(*dt)) return 0;
+    if(!rplReadRealAsDateNoCk(date, dt))
+        return 0;
+    if(!rplIsValidDate(*dt))
+        return 0;
 
     return 1;
 }
@@ -168,7 +160,7 @@ BINT rplReadRealAsDate(REAL *date, struct date *dt)
 // DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF REAL IS OUT OF RANGE.
-BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
+BINT rplReadRealAsDateNoCk(REAL * date, struct date *dt)
 {
     REAL r_date;
     BINT year, month, day;
@@ -176,29 +168,32 @@ BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
     cloneReal(&r_date, date);
     r_date.exp += 6;
 
-    if (!inBINTRange(&r_date) || isNANorinfiniteReal(&r_date)
-        || (r_date.flags & F_NEGATIVE))
-            return 0;
+    if(!inBINTRange(&r_date) || isNANorinfiniteReal(&r_date)
+            || (r_date.flags & F_NEGATIVE))
+        return 0;
 
-    year  = getBINTReal(&r_date);
-    month = year  / 1000000;
+    year = getBINTReal(&r_date);
+    month = year / 1000000;
     year -= month * 1000000;
-    day   = year  / 10000;
-    year -= day   * 10000;
+    day = year / 10000;
+    year -= day * 10000;
 
-    if (rplTestSystemFlag(FL_DATEFORMAT)) {
+    if(rplTestSystemFlag(FL_DATEFORMAT)) {
         BINT swap = month;
         month = day;
         day = swap;
     }
 
     // CHECK VALUES RANGE
-    if (day   > DATE_MAXDAY)  return 0;
-    if (month > DATE_MAXMON)  return 0;
-    if (year  > DATE_MAXYEAR) return 0;
+    if(day > DATE_MAXDAY)
+        return 0;
+    if(month > DATE_MAXMON)
+        return 0;
+    if(year > DATE_MAXYEAR)
+        return 0;
 
     dt->mday = day;
-    dt->mon  = month;
+    dt->mon = month;
     dt->year = year;
 
     return 1;
@@ -210,19 +205,21 @@ BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID DATE IS GIVEN.
-BINT rplReadDateAsReal(struct date dt, REAL *date)
+BINT rplReadDateAsReal(struct date dt, REAL * date)
 {
     BINT b_date;
 
-    if (!rplIsValidDate(dt)) return 0;
+    if(!rplIsValidDate(dt))
+        return 0;
 
     b_date = dt.year;
-    if (rplTestSystemFlag(FL_DATEFORMAT)) {
-        b_date += dt.mon  * 10000;
+    if(rplTestSystemFlag(FL_DATEFORMAT)) {
+        b_date += dt.mon * 10000;
         b_date += dt.mday * 1000000;
-    } else {
+    }
+    else {
         b_date += dt.mday * 10000;
-        b_date += dt.mon  * 1000000;
+        b_date += dt.mon * 1000000;
     }
 
     newRealFromBINT(date, b_date, -6);
@@ -235,13 +232,18 @@ BINT rplReadDateAsReal(struct date dt, REAL *date)
 // RETURN 1 IF A VALID DATE IS GIVEN, 0 OTHERWISE.
 BINT rplIsValidDate(struct date dt)
 {
-    if (dt.year < 1582 || dt.year > 9999) return 0;
-    if (dt.mon  < 1    || dt.mon  > 12) return 0;
-    if (dt.mday < 1    || dt.mday > rplGetMonthDays(dt.mon, dt.year)) return 0;
+    if(dt.year < 1582 || dt.year > 9999)
+        return 0;
+    if(dt.mon < 1 || dt.mon > 12)
+        return 0;
+    if(dt.mday < 1 || dt.mday > rplGetMonthDays(dt.mon, dt.year))
+        return 0;
 
-    if (dt.year == 1582) {
-        if (dt.mon < 10) return 0;
-        if ((dt.mon == 10) && (dt.mday < 15)) return 0;
+    if(dt.year == 1582) {
+        if(dt.mon < 10)
+            return 0;
+        if((dt.mon == 10) && (dt.mday < 15))
+            return 0;
     }
 
     return 1;
@@ -251,7 +253,7 @@ BINT rplIsValidDate(struct date dt)
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID TIME IS GIVEN.
-BINT rplReadRealAsTime(REAL *time, struct time *tm)
+BINT rplReadRealAsTime(REAL * time, struct time *tm)
 {
     REAL r_time;
     BINT hour, min, sec;
@@ -259,9 +261,9 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
     cloneReal(&r_time, time);
     r_time.exp += 4;
 
-    if (!inBINTRange(&r_time) || isNANorinfiniteReal(&r_time)
-        || (r_time.flags & F_NEGATIVE))
-            return 0;
+    if(!inBINTRange(&r_time) || isNANorinfiniteReal(&r_time)
+            || (r_time.flags & F_NEGATIVE))
+        return 0;
 
     sec = getBINTReal(&r_time);
     hour = sec / 10000;
@@ -270,13 +272,16 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
     sec -= min * 100;
 
     // VERIFY A VALID TIME IS GIVEN
-    if (min  > 59) return 0;
-    if (sec  > 59) return 0;
-    if (hour > 23) return 0;
+    if(min > 59)
+        return 0;
+    if(sec > 59)
+        return 0;
+    if(hour > 23)
+        return 0;
 
     tm->hour = hour;
-    tm->min  = min;
-    tm->sec  = sec;
+    tm->min = min;
+    tm->sec = sec;
 
     return 1;
 }
@@ -285,16 +290,19 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID TIME IS GIVEN.
-BINT rplReadTimeAsReal(struct time tm, REAL *time)
+BINT rplReadTimeAsReal(struct time tm, REAL * time)
 {
     BINT b_time;
 
     // VERIFY A VALID TIME IS GIVEN
-    if (tm.min  > 59) return 0;
-    if (tm.sec  > 59) return 0;
-    if (tm.hour > 23) return 0;
+    if(tm.min > 59)
+        return 0;
+    if(tm.sec > 59)
+        return 0;
+    if(tm.hour > 23)
+        return 0;
 
-    b_time  = tm.sec;
+    b_time = tm.sec;
     b_time += tm.min * 100;
     b_time += tm.hour * 10000;
 
@@ -315,8 +323,8 @@ BINT rplDateToDays(struct date dt)
         dt.mon += 12;
     }
 
-    days = (365*dt.year) + (dt.year/4) - (dt.year/100) + (dt.year/400);
-    days += (306 * (dt.mon+1)) / 10;
+    days = (365 * dt.year) + (dt.year / 4) - (dt.year / 100) + (dt.year / 400);
+    days += (306 * (dt.mon + 1)) / 10;
     days += dt.mday - 578163;
 
     return days;
@@ -328,26 +336,26 @@ BINT rplDateToDays(struct date dt)
 struct date rplDaysToDate(BINT days)
 {
     struct date dt;
-    BINT        mon, year, ddays;
+    BINT mon, year, ddays;
 
     // ADD DAY NUMBER OF OCTOBER 15, 1582, SINCE JANUARY 0, 0
     days += 578040;
 
-    year = (BINT)((10000*(BINT64)days + 14780)/3652425);
+    year = (BINT) ((10000 * (BINT64) days + 14780) / 3652425);
 
     // REMAINING DAYS
-    ddays = days - (year*365 + year/4 - year/100 + year/400);
-    if (ddays < 0) {
+    ddays = days - (year * 365 + year / 4 - year / 100 + year / 400);
+    if(ddays < 0) {
         year--;
-        ddays = days - (year*365 + year/4 - year/100 + year/400);
+        ddays = days - (year * 365 + year / 4 - year / 100 + year / 400);
     }
 
     // MONTHS (COULD BE > 12)
     mon = ((100 * ddays) + 52) / 3060;
 
-    dt.year = (year + (mon + 2)/12);
-    dt.mon  = (((mon + 2) % 12) + 1);
-    dt.mday = (ddays - ((mon * 306) + 5)/10 + 1);
+    dt.year = (year + (mon + 2) / 12);
+    dt.mon = (((mon + 2) % 12) + 1);
+    dt.mday = (ddays - ((mon * 306) + 5) / 10 + 1);
 
     return dt;
 }
@@ -356,10 +364,10 @@ BINT64 rplDateToSeconds(struct date dt, struct time tm)
 {
     BINT64 sec;
 
-    sec  = tm.sec;
-    sec += (BINT64)tm.min * 60;
-    sec += (BINT64)tm.hour * 3600;
-    sec += (BINT64)rplDateToDays(dt) * 24 * 3600;
+    sec = tm.sec;
+    sec += (BINT64) tm.min * 60;
+    sec += (BINT64) tm.hour * 3600;
+    sec += (BINT64) rplDateToDays(dt) * 24 * 3600;
 
     return sec;
 }
@@ -371,12 +379,12 @@ void rplSecondsToDate(BINT64 sec, struct date *dt, struct time *tm)
     days = sec / (24 * 3600);
     *dt = rplDaysToDate(days);
 
-    sec -= (BINT64)days * 24 * 3600;
+    sec -= (BINT64) days *24 * 3600;
 
     tm->hour = sec / 3600;
-    sec -= (BINT64)tm->hour * 3600;
+    sec -= (BINT64) tm->hour * 3600;
     tm->min = sec / 60;
-    tm->sec = sec - ((BINT64)tm->min * 60);
+    tm->sec = sec - ((BINT64) tm->min * 60);
 
     return;
 }
@@ -384,7 +392,7 @@ void rplSecondsToDate(BINT64 sec, struct date *dt, struct time *tm)
 // CONVERTS A REAL NUMBER REPRESENTING HOURS OR
 // DEGREES WITH A DECIMAL FRACTION TO HH.MMSSs FORMAT.
 // USES RREG 0 - 5
-void rplDecimalToHMS(REAL *dec, REAL *hms)
+void rplDecimalToHMS(REAL * dec, REAL * hms)
 {
 #define HH RReg[0]
 #define MM RReg[1]
@@ -403,11 +411,11 @@ void rplDecimalToHMS(REAL *dec, REAL *hms)
     mulReal(&RReg[5], &RReg[3], &RReg[4]);
 
     /*
-        if (RReg[5].flags&F_APPROX) {
-            //rplNewBINTPush(0,DECBINT);
-            roundReal(&RReg[5], &RReg[5], RReg[5].len);
-            RReg[5].flags &= ~F_APPROX;
-        }*/
+       if (RReg[5].flags&F_APPROX) {
+       //rplNewBINTPush(0,DECBINT);
+       roundReal(&RReg[5], &RReg[5], RReg[5].len);
+       RReg[5].flags &= ~F_APPROX;
+       } */
 
     truncReal(&MM, &RReg[5], 2);
 
@@ -432,7 +440,7 @@ void rplDecimalToHMS(REAL *dec, REAL *hms)
 // ITS DECIMAL FORM (HOURS OR DEGREES WITH A
 // DECIMAL FRACTION).
 // USES RREG 0 - 5
-void rplHMSToDecimal(REAL *hms, REAL *dec)
+void rplHMSToDecimal(REAL * hms, REAL * dec)
 {
 #define HD RReg[0]
 #define MD RReg[1]
@@ -471,7 +479,6 @@ void rplHMSToDecimal(REAL *hms, REAL *dec)
 #undef SD
 }
 
-
 // ALARM FUNCTIONS
 // USES ScratchPointer4&5
 
@@ -494,21 +501,21 @@ static WORDPTR InitAlarms()
 {
     WORDPTR *Stacksave = DSTop;
 
-    rplPushData((WORDPTR)zero_bint);
-    rplPushData((WORDPTR)zero_bint);
-    rplPushData((WORDPTR)two_bint);
-    if (Exceptions) {
+    rplPushData((WORDPTR) zero_bint);
+    rplPushData((WORDPTR) zero_bint);
+    rplPushData((WORDPTR) two_bint);
+    if(Exceptions) {
         DSTop = Stacksave;
         return 0;
     }
     rplCreateList();
-    if (Exceptions) {
+    if(Exceptions) {
         DSTop = Stacksave;
         return 0;
     }
     alarms = rplPeekData(1);
     rplDropData(1);
-    rplStoreSettings((WORDPTR)alarms_ident, alarms);
+    rplStoreSettings((WORDPTR) alarms_ident, alarms);
 
     return alarms;
 }
@@ -526,20 +533,20 @@ static WORDPTR ResetAlarms()
 // RETURN NULL ON ERROR
 static WORDPTR GetAlarms()
 {
-    alarms = rplGetSettings((WORDPTR)alarms_ident);
+    alarms = rplGetSettings((WORDPTR) alarms_ident);
 
-    if (!alarms) {
+    if(!alarms) {
         alarms = InitAlarms();
-    } else {
-        if (!ISLIST(*alarms))
+    }
+    else {
+        if(!ISLIST(*alarms))
             alarms = ResetAlarms();
-        if (rplListLength(alarms) < 2)
+        if(rplListLength(alarms) < 2)
             alarms = ResetAlarms();
     }
 
     return alarms;
 }
-
 
 // LOW-LEVEL ALARMS INTERFACE
 
@@ -549,25 +556,25 @@ static BINT ReadSysAlarm(WORDPTR list, struct alarm *alrm)
 {
     WORDPTR obj;
 
-    if (!ISLIST(*list))
+    if(!ISLIST(*list))
         return 0;
-    if (rplListLength(list) != 4)
+    if(rplListLength(list) != 4)
         return 0;
 
     obj = rplGetListElement(list, 1);
-    if (!ISBINT(*obj))
+    if(!ISBINT(*obj))
         return 0;
     alrm->time = rplReadBINT(obj);
 
     obj = rplGetListElement(list, 2);
-    if (!ISBINT(*obj))
+    if(!ISBINT(*obj))
         return 0;
-    alrm->rpt = (UBINT)rplReadBINT(obj);
+    alrm->rpt = (UBINT) rplReadBINT(obj);
 
     obj = rplGetListElement(list, 3);
-    if (!ISBINT(*obj))
+    if(!ISBINT(*obj))
         return 0;
-    alrm->flags = (BYTE)rplReadBINT(obj);
+    alrm->flags = (BYTE) rplReadBINT(obj);
 
     alrm->obj = rplGetListElement(list, 4);
 
@@ -580,21 +587,23 @@ static void PushSysAlarm(struct alarm *alrm)
 
     alrm_obj = alrm->obj;
     rplNewBINTPush(alrm->time, DECBINT);
-    rplNewBINTPush((BINT64)alrm->rpt, DECBINT);
-    rplNewBINTPush((BINT64)alrm->flags, DECBINT);
+    rplNewBINTPush((BINT64) alrm->rpt, DECBINT);
+    rplNewBINTPush((BINT64) alrm->flags, DECBINT);
     rplPushData(alrm_obj);
 
     rplNewBINTPush(4, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     goto rtn;
 
-rtn_cleanup:
+  rtn_cleanup:
     DSTop = Stacksave;
-rtn:
+  rtn:
     alrm->obj = alrm_obj;
     return;
 }
@@ -604,55 +613,62 @@ rtn:
 // CALLER MUST CALL ScanAlarms
 static BINT AddSysAlarm(struct alarm *new_alrm)
 {
-    BINT    id, nalarms, first_due_id, past_due_id;
+    BINT id, nalarms, first_due_id, past_due_id;
     WORDPTR *Stacksave = DSTop;
     struct alarm cur_alrm;
 
     alrm_obj = new_alrm->obj;
     alarms = GetAlarms();
-    if (!alarms) goto rtn_cleanup;
+    if(!alarms)
+        goto rtn_cleanup;
 
     nalarms = rplExplodeList2(alarms) - 2;
     new_alrm->obj = alrm_obj;
     PushSysAlarm(new_alrm);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
     nalarms++;
 
     // TODO : Replace this O(n) search algorithm
-    for (id = 1; id < nalarms; id++) {
-        if (!ReadSysAlarm(rplPeekData((nalarms - id) + 1), &cur_alrm))
+    for(id = 1; id < nalarms; id++) {
+        if(!ReadSysAlarm(rplPeekData((nalarms - id) + 1), &cur_alrm))
             goto rtn_reset;
-        if (new_alrm->time < cur_alrm.time)
+        if(new_alrm->time < cur_alrm.time)
             break;
     }
 
     rplNewBINTPush((nalarms - id) + 1, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
     rplCallOperator(CMD_ROLLD);
 
     // MAINTAIN IDS CONSISTENCY
     first_due_id = rplReadBINT(rplPeekData(nalarms + 2));
     past_due_id = rplReadBINT(rplPeekData(nalarms + 1));
-    if (id <= first_due_id) first_due_id++;
-    if (id <= past_due_id) past_due_id++;
+    if(id <= first_due_id)
+        first_due_id++;
+    if(id <= past_due_id)
+        past_due_id++;
     rplOverwriteData(nalarms + 2, rplNewBINT(first_due_id, DECBINT));
     rplOverwriteData(nalarms + 1, rplNewBINT(past_due_id, DECBINT));
 
     rplNewBINTPush(nalarms + 2, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
-    rplStoreSettings((WORDPTR)alarms_ident, rplPeekData(1));
+    if(Exceptions)
+        goto rtn_cleanup;
+    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     goto rtn;
 
-rtn_reset:
+  rtn_reset:
     ResetAlarms();
-rtn_cleanup:
+  rtn_cleanup:
     id = 0;
     DSTop = Stacksave;
-rtn:
+  rtn:
     new_alrm->obj = alrm_obj;
     return id;
 }
@@ -660,20 +676,20 @@ rtn:
 // RETURN 0 IF NONEXISTENT ALARM
 static BINT GetSysAlarm(BINT id, struct alarm *alrm)
 {
-    BINT    nalarms;
+    BINT nalarms;
 
-    if (id < 1)
+    if(id < 1)
         return 0;
 
     alarms = GetAlarms();
-    if (!alarms)
+    if(!alarms)
         return 0;
 
     nalarms = rplListLength(alarms) - 2;
-    if (id > nalarms)
+    if(id > nalarms)
         return 0;
 
-    if (!ReadSysAlarm(rplGetListElement(alarms, id + 2), alrm)) {
+    if(!ReadSysAlarm(rplGetListElement(alarms, id + 2), alrm)) {
         ResetAlarms();
         return 0;
     }
@@ -686,21 +702,22 @@ static BINT GetSysAlarm(BINT id, struct alarm *alrm)
 static BINT DelSysAlarm(BINT id)
 {
     WORDPTR *Stacksave = DSTop;
-    BINT    nalarms, first_due_id, past_due_id;
+    BINT nalarms, first_due_id, past_due_id;
 
-    if (id < 1)
+    if(id < 1)
         return 0;
 
     alarms = GetAlarms();
-    if (!alarms)
+    if(!alarms)
         return 0;
 
     nalarms = rplExplodeList2(alarms) - 2;
-    if ((id > nalarms) || Exceptions)
+    if((id > nalarms) || Exceptions)
         goto rtn_cleanup;
 
     rplNewBINTPush((nalarms - id) + 1, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
     rplCallOperator(CMD_ROLL);
     rplDropData(1);
     nalarms--;
@@ -708,27 +725,29 @@ static BINT DelSysAlarm(BINT id)
     // MAINTAIN IDS CONSISTENCY
     first_due_id = rplReadBINT(rplPeekData(nalarms + 2));
     past_due_id = rplReadBINT(rplPeekData(nalarms + 1));
-    if (id < first_due_id)
+    if(id < first_due_id)
         first_due_id--;
-    else if (id == first_due_id)
+    else if(id == first_due_id)
         first_due_id = (id > nalarms) ? nalarms : id;
-    if (id < past_due_id)
+    if(id < past_due_id)
         past_due_id--;
-    else if (id == past_due_id)
+    else if(id == past_due_id)
         past_due_id = (id > nalarms) ? nalarms : id;
     rplOverwriteData(nalarms + 2, rplNewBINT(first_due_id, DECBINT));
     rplOverwriteData(nalarms + 1, rplNewBINT(past_due_id, DECBINT));
 
     rplNewBINTPush(nalarms + 2, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
-    rplStoreSettings((WORDPTR)alarms_ident, rplPeekData(1));
+    if(Exceptions)
+        goto rtn_cleanup;
+    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     return 1;
 
-rtn_cleanup:
+  rtn_cleanup:
     DSTop = Stacksave;
     return 0;
 }
@@ -740,8 +759,8 @@ static BINT FindNextAlarm(BINT64 time, struct alarm *alrm)
 {
     BINT id = 0;
 
-    while (GetSysAlarm(++id, alrm)) {
-        if (alrm->time >= time)
+    while(GetSysAlarm(++id, alrm)) {
+        if(alrm->time >= time)
             return id;
     }
 
@@ -754,7 +773,7 @@ static BINT FindNextAlarm(BINT64 time, struct alarm *alrm)
 static BINT UpdateSysAlarm(BINT id, struct alarm *alrm)
 {
     alrm_obj = alrm->obj;
-    if (!DelSysAlarm(id)) {
+    if(!DelSysAlarm(id)) {
         alrm->obj = alrm_obj;
         return 0;
     }
@@ -772,34 +791,36 @@ static BINT ReplaceSysAlarm(BINT id, struct alarm *alrm)
     WORDPTR *Stacksave = DSTop;;
     BINT nalarms;
 
-    if (id < 1)
+    if(id < 1)
         return 0;
 
     alrm_obj = alrm->obj;
     alarms = GetAlarms();
-    if (!alarms)
+    if(!alarms)
         return 0;
 
     nalarms = rplExplodeList(alarms) - 2;
-    if ((id > nalarms) || Exceptions)
+    if((id > nalarms) || Exceptions)
         goto rtn_cleanup;
 
     alrm->obj = alrm_obj;
     PushSysAlarm(alrm);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     rplOverwriteData((nalarms - id) + 3, rplPeekData(1));
     rplDropData(1);
 
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
-    rplStoreSettings((WORDPTR)alarms_ident, rplPeekData(1));
+    if(Exceptions)
+        goto rtn_cleanup;
+    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     alrm->obj = alrm_obj;
     return 1;
 
-rtn_cleanup:
+  rtn_cleanup:
     alrm->obj = alrm_obj;
     DSTop = Stacksave;
     return 0;
@@ -809,46 +830,48 @@ static BINT GetFirstAlarmId(BINT type)
 {
     WORDPTR bint;
 
-    if (type < DUE_ALM || type > PASTDUE_ALM)
+    if(type < DUE_ALM || type > PASTDUE_ALM)
         return 0;
 
     alarms = GetAlarms();
-    if (!alarms)
+    if(!alarms)
         return 0;
 
     bint = rplGetListElement(alarms, 1 + type);
-    if (!ISBINT(*bint)) {
+    if(!ISBINT(*bint)) {
         ResetAlarms();
         return 0;
     }
 
-    return (BINT)rplReadBINT(bint);
+    return (BINT) rplReadBINT(bint);
 }
 
 static void SetFirstAlarmId(BINT type, BINT id)
 {
     WORDPTR *Stacksave = DSTop;;
-    BINT    nitems;
+    BINT nitems;
 
-    if (type < DUE_ALM || type > PASTDUE_ALM)
+    if(type < DUE_ALM || type > PASTDUE_ALM)
         return;
 
     alarms = GetAlarms();
-    if (!alarms)
-            return;
+    if(!alarms)
+        return;
 
     nitems = rplExplodeList(alarms);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     rplOverwriteData((nitems + 1) - type, rplNewBINT(id, DECBINT));
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
-    rplStoreSettings((WORDPTR)alarms_ident, rplPeekData(1));
+    if(Exceptions)
+        goto rtn_cleanup;
+    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     return;
 
-rtn_cleanup:
+  rtn_cleanup:
     DSTop = Stacksave;
     return;
 }
@@ -857,10 +880,11 @@ static BINT GetFirstAlarm(BINT type, struct alarm *alrm)
 {
     BINT id = GetFirstAlarmId(type);
 
-    if (!id) id++;
+    if(!id)
+        id++;
 
-    while (GetSysAlarm(id, alrm)) {
-        if (alrm->flags == type) {
+    while(GetSysAlarm(id, alrm)) {
+        if(alrm->flags == type) {
             alrm_obj = alrm->obj;
             SetFirstAlarmId(type, id);
             alrm->obj = alrm_obj;
@@ -882,22 +906,21 @@ static BINT RescheduleAlarm(BINT id, struct alarm *alrm)
 {
     struct alarm stored;
 
-    if (!alrm) {
-        if (!GetSysAlarm(id, &stored))
+    if(!alrm) {
+        if(!GetSysAlarm(id, &stored))
             return 0;
         alrm = &stored;
     }
 
-    if (!alrm->rpt)
+    if(!alrm->rpt)
         return 0;
 
-    if (!alrm->ack && rplTestSystemFlag(FL_RESRPTALRM))
+    if(!alrm->ack && rplTestSystemFlag(FL_RESRPTALRM))
         return 0;
 
     alrm->flags = DUE_ALM;
 
     alrm->time += (((GetSysTime() - alrm->time) / alrm->rpt) + 1) * alrm->rpt;
-
 
     return UpdateSysAlarm(id, alrm);
 }
@@ -917,12 +940,13 @@ static void ScanFirstDue()
 {
     struct alarm alrm;
 
-    if (GetFirstAlarm(DUE_ALM, &alrm)) {
-        if (alrm.time <= GetSysTime())
+    if(GetFirstAlarm(DUE_ALM, &alrm)) {
+        if(alrm.time <= GetSysTime())
             alrm.time = GetSysTime() + 1;
 
         ScheduleAlarm(&alrm);
-    } else {
+    }
+    else {
         halDisableSystemAlarm();
     }
 
@@ -933,7 +957,7 @@ static void ScanPastDue()
 {
     struct alarm alrm;
 
-    if (!GetFirstAlarm(PASTDUE_ALM, &alrm))
+    if(!GetFirstAlarm(PASTDUE_ALM, &alrm))
         halSetNotification(N_ALARM, 0x0);
 
     return;
@@ -950,8 +974,7 @@ static void ScanAlarms()
 static void WarnAlarm()
 {
     WORDPTR msg;
-    char    *msg_start,
-            *msg_end;
+    char *msg_start, *msg_end;
 
     msg = uiGetLibMsg(ERR_PASTDUEALRM);
     msg_start = (char *)(msg + 1);
@@ -969,8 +992,7 @@ static void WarnAlarm()
 static BINT AckSequence(struct alarm *alrm)
 {
     BINT i, ack;
-    char    *msg_start,
-            *msg_end;
+    char *msg_start, *msg_end;
 
     msg_start = (char *)(alrm->obj + 1);
     msg_end = msg_start + rplStrSize(alrm->obj);
@@ -980,10 +1002,10 @@ static BINT AckSequence(struct alarm *alrm)
     // TODO : Display alarm text
     // TODO : Implement BEEP and WAIT for key
 
-    for (i = 0; i < 30; i++) {
+    for(i = 0; i < 30; i++) {
         tmr_delayms(100);
         ack = keyb_anymsg();
-        if (ack) {
+        if(ack) {
             keyb_flush();
             break;
         }
@@ -996,36 +1018,38 @@ static BINT AckSequence(struct alarm *alrm)
 BINT rplTriggerAlarm()
 {
     struct alarm alrm;
-    BINT    id, new_id;
+    BINT id, new_id;
     WORDPTR *Stacksave = DSTop;
 
     id = GetFirstAlarm(DUE_ALM, &alrm);
-    if (!id)
+    if(!id)
         return GetFirstAlarmId(PASTDUE_ALM) ? 1 : 0;
 
     alrm_obj = alrm.obj;
-    if (ISSTRING(*alrm_obj)) {
+    if(ISSTRING(*alrm_obj)) {
 
         // APPOINTMENT ALARM
 
         alrm.ann = 1;
 
-        if (AckSequence(&alrm)) {
+        if(AckSequence(&alrm)) {
             alrm.ack = 1;
             alrm.ann = 0;
 
-            if (!RescheduleAlarm(id, &alrm)) {
-                if (rplTestSystemFlag(FL_SAVACKALRM))
+            if(!RescheduleAlarm(id, &alrm)) {
+                if(rplTestSystemFlag(FL_SAVACKALRM))
                     ReplaceSysAlarm(id, &alrm);
                 else
                     DelSysAlarm(id);
             }
-        } else {
-            if (!RescheduleAlarm(id, &alrm))
+        }
+        else {
+            if(!RescheduleAlarm(id, &alrm))
                 ReplaceSysAlarm(id, &alrm);
         }
 
-    } else {
+    }
+    else {
 
         // CONTROL ALARM
 
@@ -1033,12 +1057,12 @@ BINT rplTriggerAlarm()
         alrm.ann = 1;
 
         new_id = RescheduleAlarm(id, &alrm);
-        if (!new_id)
+        if(!new_id)
             new_id = ReplaceSysAlarm(id, &alrm);
 
         rplNewBINTPush(new_id, DECBINT);
         rplPushData(alrm_obj);
-        if (Exceptions)
+        if(Exceptions)
             DSTop = Stacksave;
         else
             uiCmdRun(CMD_OVR_EVAL);
@@ -1056,13 +1080,13 @@ BINT rplCheckAlarms()
     BINT64 start_tm;
     struct alarm first_due;
 
-    if (GetFirstAlarmId(PASTDUE_ALM))
+    if(GetFirstAlarmId(PASTDUE_ALM))
         WarnAlarm();
 
     // MISSED ALARM ?
-    if (GetFirstAlarmId(DUE_ALM)) {
+    if(GetFirstAlarmId(DUE_ALM)) {
         start_tm = GetSysTime() - ((halTicks() / 100000) + 1);
-        if ((GetFirstAlarm(DUE_ALM, &first_due)) && (first_due.time < start_tm))
+        if((GetFirstAlarm(DUE_ALM, &first_due)) && (first_due.time < start_tm))
             rplTriggerAlarm();
     }
 
@@ -1072,26 +1096,27 @@ BINT rplCheckAlarms()
 void rplUpdateAlarms()
 {
     struct alarm alrm;
-    BINT   id = 0;
+    BINT id = 0;
     BINT64 now;
 
     now = GetSysTime();
 
-    while (GetSysAlarm(++id, &alrm) && (alrm.time <= now)) {
-        if (alrm.flags == DUE_ALM) {
+    while(GetSysAlarm(++id, &alrm) && (alrm.time <= now)) {
+        if(alrm.flags == DUE_ALM) {
             alrm.flags = DISABLED_ALM;
             ReplaceSysAlarm(id, &alrm);
         }
     }
 
-    if (GetSysAlarm(id, &alrm)) {
+    if(GetSysAlarm(id, &alrm)) {
         SetFirstAlarmId(DUE_ALM, id);
 
-        while (GetSysAlarm(id, &alrm)) {
+        while(GetSysAlarm(id, &alrm)) {
             alrm.flags = DUE_ALM;
             ReplaceSysAlarm(id++, &alrm);
         }
-    } else {
+    }
+    else {
         SetFirstAlarmId(DUE_ALM, 0);
     }
 
@@ -1104,13 +1129,12 @@ void rplUpdateAlarms()
 void rplSkipNextAlarm()
 {
     struct alarm first_due;
-    BINT    id;
+    BINT id;
     WORDPTR msg;
-    char    *msg_start,
-            *msg_end;
+    char *msg_start, *msg_end;
 
     id = GetFirstAlarm(DUE_ALM, &first_due);
-    if (id) {
+    if(id) {
         first_due.dis = 1;
         ReplaceSysAlarm(id, &first_due);
         ScanFirstDue();
@@ -1125,7 +1149,6 @@ void rplSkipNextAlarm()
     return;
 }
 
-
 // HIGHER-LEVEL ALARMS INTERFACE
 
 // RETURN ALARM INDEX
@@ -1133,13 +1156,13 @@ BINT rplAddAlarm(struct alarm *alrm)
 {
     BINT id;
 
-    if (alrm->time > GetSysTime())
+    if(alrm->time > GetSysTime())
         alrm->flags = DUE_ALM;
     else
         alrm->flags = DISABLED_ALM;
 
-    if (alrm->obj == NULL)
-        alrm->obj = rplCreateString(0 ,0);
+    if(alrm->obj == NULL)
+        alrm->obj = rplCreateString(0, 0);
 
     id = AddSysAlarm(alrm);
 
@@ -1158,12 +1181,12 @@ BINT rplGetAlarm(BINT id, struct alarm *alrm)
 // RETURN 0 IF NONEXISTENT ALARM
 BINT rplDelAlarm(BINT id)
 {
-    if (!id) {
+    if(!id) {
         InitAlarms();
         return 1;
     }
 
-    if (!DelSysAlarm(id))
+    if(!DelSysAlarm(id))
         return 0;
 
     ScanAlarms();
@@ -1176,32 +1199,31 @@ BINT rplDelAlarm(BINT id)
 // RETURN 0 ON ERROR AND SET ERROR NUMBER
 BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
 {
-    struct date  dt, sys_dt;
-    struct time  tm;
-    WORDPTR      alarm_dt = NULL,
-                 alarm_tm = NULL,
-                 alarm_obj = NULL,
-                 alarm_rpt = NULL;
-    BINT         lst_sz;
-    BINT64       b_alarm_rpt;
-    REAL         r_dt, r_tm;
+    struct date dt, sys_dt;
+    struct time tm;
+    WORDPTR alarm_dt = NULL,
+            alarm_tm = NULL, alarm_obj = NULL, alarm_rpt = NULL;
+    BINT lst_sz;
+    BINT64 b_alarm_rpt;
+    REAL r_dt, r_tm;
 
     // EXTRACT ALARM DATA
 
-    if (ISNUMBER(*obj)) {
+    if(ISNUMBER(*obj)) {
 
         alarm_tm = obj;
 
-    } else {
+    }
+    else {
 
-        if (!ISLIST(*obj)) {
+        if(!ISLIST(*obj)) {
             rplError(ERR_BADARGTYPE);
             return 0;
         }
 
         lst_sz = rplListLength(obj);
 
-        if (lst_sz < 2 || lst_sz > 4) {
+        if(lst_sz < 2 || lst_sz > 4) {
             rplError(ERR_INVALIDLISTSIZE);
             return 0;
         }
@@ -1221,41 +1243,42 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
     // CHECK AND READ ALARM DATA
 
     // 1 - ALARM TIME
-    if (!ISNUMBER(*alarm_tm)) {
+    if(!ISNUMBER(*alarm_tm)) {
         rplError(ERR_BADARGTYPE);
         return 0;
     }
 
     rplReadNumberAsReal(alarm_tm, &r_tm);
-    if (!rplReadRealAsTime(&r_tm, &tm)) {
+    if(!rplReadRealAsTime(&r_tm, &tm)) {
         rplError(ERR_INVALIDTIME);
         return 0;
     }
 
     // 2 - ALARM DATE
-    if (alarm_dt == NULL) {
+    if(alarm_dt == NULL) {
 
         dt = halGetSystemDate();
 
-    } else {
+    }
+    else {
 
-        if (!ISREAL(*alarm_dt)) {
+        if(!ISREAL(*alarm_dt)) {
             rplError(ERR_BADARGTYPE);
             return 0;
         }
 
         rplReadNumberAsReal(alarm_dt, &r_dt);
-        if (!rplReadRealAsDateNoCk(&r_dt, &dt)) {
+        if(!rplReadRealAsDateNoCk(&r_dt, &dt)) {
             rplError(ERR_INVALIDDATE);
             return 0;
         }
 
-        if (!dt.year) {
+        if(!dt.year) {
             sys_dt = halGetSystemDate();
             dt.year = sys_dt.year;
         }
 
-        if (!rplIsValidDate(dt)) {
+        if(!rplIsValidDate(dt)) {
             rplError(ERR_INVALIDDATE);
             return 0;
         }
@@ -1268,23 +1291,24 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
     alrm->obj = alarm_obj;
 
     // 4 - ALARM REPEAT
-    if (alarm_rpt == NULL) {
+    if(alarm_rpt == NULL) {
 
         alrm->rpt = 0;
 
-    } else {
+    }
+    else {
 
-        if (!ISNUMBER(*alarm_rpt)) {
+        if(!ISNUMBER(*alarm_rpt)) {
             rplError(ERR_BADARGTYPE);
             return 0;
         }
 
         b_alarm_rpt = rplReadNumberAsBINT(alarm_rpt);
-        if ((b_alarm_rpt < 0) || (b_alarm_rpt >= (1LL << 32))) {
+        if((b_alarm_rpt < 0) || (b_alarm_rpt >= (1LL << 32))) {
             rplError(ERR_INVALIDRPT);
             return 0;
         }
-        alrm->rpt = (UBINT)b_alarm_rpt;
+        alrm->rpt = (UBINT) b_alarm_rpt;
     }
 
     return 1;
@@ -1311,16 +1335,18 @@ void rplPushAlarm(struct alarm *alrm)
     rplNewBINTPush(alrm->rpt, DECBINT);
 
     rplNewBINTPush(4, DECBINT);
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     rplCreateList();
-    if (Exceptions) goto rtn_cleanup;
+    if(Exceptions)
+        goto rtn_cleanup;
 
     goto rtn;
 
-rtn_cleanup:
+  rtn_cleanup:
     DSTop = Stacksave;
-rtn:
+  rtn:
     alrm->obj = alrm_obj;
     return;
 }
@@ -1328,40 +1354,26 @@ rtn:
 // COMPUTE STANDARD CRC-32 OF THE OBJECT
 BINT64 rplObjChecksum(WORDPTR object)
 {
-    BYTEPTR ptr=(BYTEPTR)object;
-    BYTEPTR end=(BYTEPTR)rplSkipOb(object);
+    BYTEPTR ptr = (BYTEPTR) object;
+    BYTEPTR end = (BYTEPTR) rplSkipOb(object);
     int k;
 
-    UBINT crc=0xffffffff,tmpcrc;
+    UBINT crc = 0xffffffff, tmpcrc;
 
-    while(ptr!=end) {
+    while(ptr != end) {
         // SLOW METHOD BUT DOESN'T REQUIRE A TABLE
-        tmpcrc=(crc ^ (*ptr)) & 0xff;
-        for(k=0;k<8;++k)
-        {
-            if (tmpcrc&1) tmpcrc= 0xEDB88320^(tmpcrc>>1);
-            else tmpcrc>>=1;
+        tmpcrc = (crc ^ (*ptr)) & 0xff;
+        for(k = 0; k < 8; ++k) {
+            if(tmpcrc & 1)
+                tmpcrc = 0xEDB88320 ^ (tmpcrc >> 1);
+            else
+                tmpcrc >>= 1;
         }
-        crc=tmpcrc^(crc>>8);
+        crc = tmpcrc ^ (crc >> 8);
         ++ptr;
     }
-    return crc^0xffffffff;
+    return crc ^ 0xffffffff;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -1373,16 +1385,15 @@ void LIB_HANDLER()
 
     if(ISUNARYOP(CurOpcode)) {
         if(!ISPROLOG(*rplPeekData(1))) {
-            if( (OPCODE(CurOpcode)==OVR_EVAL)||
-                    (OPCODE(CurOpcode)==OVR_EVAL1)||
-                    (OPCODE(CurOpcode)==OVR_XEQ) )
-            {
+            if((OPCODE(CurOpcode) == OVR_EVAL) ||
+                    (OPCODE(CurOpcode) == OVR_EVAL1) ||
+                    (OPCODE(CurOpcode) == OVR_XEQ)) {
 
-                WORD saveOpcode=CurOpcode;
-                CurOpcode=*rplPopData();
+                WORD saveOpcode = CurOpcode;
+                CurOpcode = *rplPopData();
                 // RECURSIVE CALL
                 LIB_HANDLER();
-                CurOpcode=saveOpcode;
+                CurOpcode = saveOpcode;
                 return;
             }
             else {
@@ -1395,36 +1406,34 @@ void LIB_HANDLER()
             return;
         }
     }
-    if(ISBINARYOP(CurOpcode))
-    {
+    if(ISBINARYOP(CurOpcode)) {
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(OPCODE(CurOpcode)==OVR_SAME) {
-                if(*rplPeekData(2)==*rplPeekData(1)) {
-                    rplDropData(2);
-                    rplPushTrue();
-                } else {
-                    rplDropData(2);
-                    rplPushFalse();
-                }
-                return;
+        if(OPCODE(CurOpcode) == OVR_SAME) {
+            if(*rplPeekData(2) == *rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
+                rplDropData(2);
+                rplPushFalse();
             }
+            return;
+        }
+        else {
+            rplError(ERR_INVALIDOPCODE);
+            return;
+        }
 
     }
 
-
-    switch(OPCODE(CurOpcode))
-    {
+    switch (OPCODE(CurOpcode)) {
     case TICKS:
         // RETURN SYSTEM CLOCK
         //@SHORT_DESC=Return system clock in microseconds
         //@INCOMPAT
     {
-        BINT64 ticks=halTicks();
-        rplNewBINTPush(ticks,DECBINT);
+        BINT64 ticks = halTicks();
+        rplNewBINTPush(ticks, DECBINT);
         return;
     }
     case DATE:
@@ -1443,45 +1452,45 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Set current system date in MM.DDYYYY
         struct date dt, sys_dt;
-        WORDPTR     arg_date;
-        REAL        r_date;
+        WORDPTR arg_date;
+        REAL r_date;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
         arg_date = rplPeekData(1);
-        if (!ISREAL(*arg_date)) {
+        if(!ISREAL(*arg_date)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_date, &r_date);
-        if (!rplReadRealAsDateNoCk(&r_date, &dt)) {
+        if(!rplReadRealAsDateNoCk(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
 
-        if (!dt.year) {
+        if(!dt.year) {
             sys_dt = halGetSystemDate();
             dt.year = sys_dt.year;
         }
 
-        if (!rplIsValidDate(dt)) {
+        if(!rplIsValidDate(dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
 
         // CHECK FOR DATES SILENTLY REJECTED
-        if ((dt.year > 1990) && (dt.year < 2000)) {
+        if((dt.year > 1990) && (dt.year < 2000)) {
             rplDropData(1);
             return;
         }
 
         // CHECK THE RANGE OF ALLOWABLE DATES
-        if ((dt.year < 2000) || (dt.year > 2090)) {
+        if((dt.year < 2000) || (dt.year > 2090)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1494,12 +1503,12 @@ void LIB_HANDLER()
     case DATEADD:
     {
         //@SHORT_DESC=Add days to a date in MM.DDYYYY
-        WORDPTR     arg_date, arg_days;
+        WORDPTR arg_date, arg_days;
         struct date dt;
-        BINT        days, day_num;
-        REAL        r_date, r_days;
+        BINT days, day_num;
+        REAL r_date, r_days;
 
-        if (rplDepthData() < 2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1510,18 +1519,18 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_days) || ISLIST(*arg_date)) {
+        if(ISLIST(*arg_days) || ISLIST(*arg_date)) {
             rplListBinaryDoCmd();
             return;
         }
 
-        if (!ISNUMBER(*arg_days) || !ISREAL(*arg_date)) {
+        if(!ISNUMBER(*arg_days) || !ISREAL(*arg_date)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_date, &r_date);
-        if (!rplReadRealAsDate(&r_date, &dt)) {
+        if(!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1533,7 +1542,7 @@ void LIB_HANDLER()
         days = getBINTReal(&RReg[0]);
 
         day_num += days;
-        if ((day_num < 1) || (day_num > 3074324)) {
+        if((day_num < 1) || (day_num > 3074324)) {
             rplError(ERR_BADARGVALUE);
             return;
         }
@@ -1549,11 +1558,11 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Number of days between dates in MM.DDYYYY
         struct date dt;
-        WORDPTR     arg_date1, arg_date2;
-        BINT        ddays;
-        REAL        r_date;
+        WORDPTR arg_date1, arg_date2;
+        BINT ddays;
+        REAL r_date;
 
-        if (rplDepthData() < 2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1564,18 +1573,18 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_date1) || ISLIST(*arg_date2)) {
+        if(ISLIST(*arg_date1) || ISLIST(*arg_date2)) {
             rplListBinaryDoCmd();
             return;
         }
 
-        if (!ISREAL(*arg_date1) || !ISREAL(*arg_date2)) {
+        if(!ISREAL(*arg_date1) || !ISREAL(*arg_date2)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_date1, &r_date);
-        if (!rplReadRealAsDate(&r_date, &dt)) {
+        if(!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1583,14 +1592,14 @@ void LIB_HANDLER()
         ddays = rplDateToDays(dt);
 
         rplReadReal(arg_date2, &r_date);
-        if (!rplReadRealAsDate(&r_date, &dt)) {
+        if(!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
         ddays -= rplDateToDays(dt);
 
         rplDropData(2);
-        rplNewBINTPush((BINT64)ddays, DECBINT);
+        rplNewBINTPush((BINT64) ddays, DECBINT);
 
         return;
     }
@@ -1610,23 +1619,23 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Set current time as HH.MMSS
         struct time tm;
-        WORDPTR     arg_time;
-        REAL        r_time;
+        WORDPTR arg_time;
+        REAL r_time;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
         arg_time = rplPeekData(1);
-        if (!ISNUMBER(*arg_time)) {
+        if(!ISNUMBER(*arg_time)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadNumberAsReal(arg_time, &r_time);
-        if (!rplReadRealAsTime(&r_time, &tm)) {
+        if(!rplReadRealAsTime(&r_time, &tm)) {
             rplError(ERR_INVALIDTIME);
             return;
         }
@@ -1640,9 +1649,9 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Convert decimal time to HH.MMSS
         WORDPTR arg_dec;
-        REAL    r_dec;
+        REAL r_dec;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1652,27 +1661,27 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_dec)) {
+        if(ISLIST(*arg_dec)) {
             rplListUnaryDoCmd();
             return;
         }
 
-        if (ISBINT(*arg_dec))
+        if(ISBINT(*arg_dec))
             return;
 
-        if (!ISREAL(*arg_dec)) {
+        if(!ISREAL(*arg_dec)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_dec, &r_dec);
 
-        if (isNANorinfiniteReal(&r_dec)) {
+        if(isNANorinfiniteReal(&r_dec)) {
             rplError(ERR_BADARGVALUE);
             return;
         }
 
-        if (isintegerReal(&r_dec))
+        if(isintegerReal(&r_dec))
             return;
 
         rplDecimalToHMS(&r_dec, &RReg[6]);
@@ -1686,9 +1695,9 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Convert time in HH.MMSS to decimal
         WORDPTR arg_hms;
-        REAL    r_hms;
+        REAL r_hms;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1698,27 +1707,27 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_hms)) {
+        if(ISLIST(*arg_hms)) {
             rplListUnaryDoCmd();
             return;
         }
 
-        if (ISBINT(*arg_hms))
+        if(ISBINT(*arg_hms))
             return;
 
-        if (!ISREAL(*arg_hms)) {
+        if(!ISREAL(*arg_hms)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_hms, &r_hms);
 
-        if (isNANorinfiniteReal(&r_hms)) {
+        if(isNANorinfiniteReal(&r_hms)) {
             rplError(ERR_BADARGVALUE);
             return;
         }
 
-        if (isintegerReal(&r_hms))
+        if(isintegerReal(&r_hms))
             return;
 
         rplHMSToDecimal(&r_hms, &RReg[7]);
@@ -1732,9 +1741,9 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Add time in HH.MMSS format
         WORDPTR arg_hms1, arg_hms2;
-        REAL    r_hms1, r_hms2;
+        REAL r_hms1, r_hms2;
 
-        if (rplDepthData() < 2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1745,12 +1754,12 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
+        if(ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
             rplListBinaryDoCmd();
             return;
         }
 
-        if (!ISNUMBER(*arg_hms1) || !ISNUMBER(*arg_hms2)) {
+        if(!ISNUMBER(*arg_hms1) || !ISNUMBER(*arg_hms2)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
@@ -1758,7 +1767,7 @@ void LIB_HANDLER()
         rplReadNumberAsReal(arg_hms1, &r_hms1);
         rplReadNumberAsReal(arg_hms2, &r_hms2);
 
-        if (isNANorinfiniteReal(&r_hms1) || isNANorinfiniteReal(&r_hms2)) {
+        if(isNANorinfiniteReal(&r_hms1) || isNANorinfiniteReal(&r_hms2)) {
             rplError(ERR_BADARGVALUE);
             return;
         }
@@ -1779,9 +1788,9 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Subtract time in HH.MMSS format
         WORDPTR arg_hms1, arg_hms2;
-        REAL    r_hms1, r_hms2;
+        REAL r_hms1, r_hms2;
 
-        if (rplDepthData() < 2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1792,12 +1801,12 @@ void LIB_HANDLER()
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-        if (ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
+        if(ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
             rplListBinaryDoCmd();
             return;
         }
 
-        if (!ISNUMBER(*arg_hms1) || !ISNUMBER(*arg_hms2)) {
+        if(!ISNUMBER(*arg_hms1) || !ISNUMBER(*arg_hms2)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
@@ -1805,7 +1814,7 @@ void LIB_HANDLER()
         rplReadNumberAsReal(arg_hms1, &r_hms1);
         rplReadNumberAsReal(arg_hms2, &r_hms2);
 
-        if (isNANorinfiniteReal(&r_hms1) || isNANorinfiniteReal(&r_hms2)) {
+        if(isNANorinfiniteReal(&r_hms1) || isNANorinfiniteReal(&r_hms2)) {
             rplError(ERR_BADARGVALUE);
             return;
         }
@@ -1829,16 +1838,16 @@ void LIB_HANDLER()
         BINT past_due_id;
 
         past_due_id = GetFirstAlarm(PASTDUE_ALM, &past_due);
-        if (!past_due_id)
+        if(!past_due_id)
             return;
 
-        if (past_due.rpt) {
+        if(past_due.rpt) {
             RescheduleAlarm(past_due_id, &past_due);
             ScanAlarms();
             return;
         }
 
-        if (rplTestSystemFlag(FL_SAVACKALRM)) {
+        if(rplTestSystemFlag(FL_SAVACKALRM)) {
             past_due.flags = PAST_ALM;
             ReplaceSysAlarm(past_due_id, &past_due);
             ScanPastDue();
@@ -1852,7 +1861,7 @@ void LIB_HANDLER()
     case ACKALL:
     {
         //@SHORT_DESC=Acknowledge (dismiss) all alarms
-        while (GetFirstAlarmId(PASTDUE_ALM))
+        while(GetFirstAlarmId(PASTDUE_ALM))
             rplCallOperator(CMD_ACK);
 
         return;
@@ -1862,23 +1871,23 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall specified alarm
         struct alarm alrm;
         WORDPTR arg_id;
-        BINT    id;
+        BINT id;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
         arg_id = rplPeekData(1);
-        if (!ISNUMBER(*arg_id)) {
+        if(!ISNUMBER(*arg_id)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         id = rplReadNumberAsBINT(arg_id);
 
-        if (!rplGetAlarm(id, &alrm)) {
+        if(!rplGetAlarm(id, &alrm)) {
             rplError(ERR_BADALARMNUM);
             return;
         }
@@ -1891,18 +1900,18 @@ void LIB_HANDLER()
     case STOALARM:
     {
         //@SHORT_DESC=Create a new alarm
-        WORDPTR      arg_alarm;
-        BINT         alarm_id;
+        WORDPTR arg_alarm;
+        BINT alarm_id;
         struct alarm alrm;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
         arg_alarm = rplPeekData(1);
-        if (!rplReadAlarm(arg_alarm, &alrm))
+        if(!rplReadAlarm(arg_alarm, &alrm))
             return;
 
         alarm_id = rplAddAlarm(&alrm);
@@ -1916,23 +1925,23 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Delete an existing alarm
         WORDPTR arg_id;
-        BINT    id;
+        BINT id;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
         rplStripTagStack(1);
 
         arg_id = rplPeekData(1);
-        if (!ISNUMBER(*arg_id)) {
+        if(!ISNUMBER(*arg_id)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         id = rplReadNumberAsBINT(arg_id);
 
-        if (!rplDelAlarm(id)) {
+        if(!rplDelAlarm(id)) {
             rplError(ERR_BADALARMNUM);
             return;
         }
@@ -1947,11 +1956,11 @@ void LIB_HANDLER()
         struct date dt, sys_dt;
         struct time tm;
         struct alarm alrm;
-        REAL    r_dt, r_tm;
+        REAL r_dt, r_tm;
         WORDPTR arg, arg_tm, arg_dt;
-        BINT64  sec;
+        BINT64 sec;
 
-        if (rplDepthData() < 1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1959,40 +1968,42 @@ void LIB_HANDLER()
 
         arg = rplPeekData(1);
 
-        if (ISNUMBER(*arg)) {
+        if(ISNUMBER(*arg)) {
             arg_dt = arg;
-            if (ISREAL(*arg)) {
+            if(ISREAL(*arg)) {
                 tm.hour = 12;
                 tm.min = 0;
                 tm.sec = 0;
-            } else {
+            }
+            else {
                 rplReadNumberAsReal(arg_dt, &r_dt);
-                if (iszeroReal(&r_dt)) {
+                if(iszeroReal(&r_dt)) {
                     rplDropData(1);
                     rplNewBINTPush(GetFirstAlarmId(PASTDUE_ALM), DECBINT);
                     return;
                 }
             }
-        } else {
-            if (!ISLIST(*arg)) {
+        }
+        else {
+            if(!ISLIST(*arg)) {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
-            if (rplListLength(arg) != 2) {
+            if(rplListLength(arg) != 2) {
                 rplError(ERR_INVALIDLISTSIZE);
                 return;
             }
 
             arg_tm = rplGetListElement(arg, 2);
 
-            if (!ISNUMBER(*arg_tm)) {
+            if(!ISNUMBER(*arg_tm)) {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
             rplReadNumberAsReal(arg_tm, &r_tm);
-            if (!rplReadRealAsTime(&r_tm, &tm)) {
+            if(!rplReadRealAsTime(&r_tm, &tm)) {
                 rplError(ERR_INVALIDTIME);
                 return;
             }
@@ -2000,23 +2011,23 @@ void LIB_HANDLER()
             arg_dt = rplGetListElement(arg, 1);
         }
 
-        if (!ISREAL(*arg_dt)) {
+        if(!ISREAL(*arg_dt)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
         rplReadReal(arg_dt, &r_dt);
-        if (!rplReadRealAsDateNoCk(&r_dt, &dt)) {
+        if(!rplReadRealAsDateNoCk(&r_dt, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
 
-        if (!dt.year) {
+        if(!dt.year) {
             sys_dt = halGetSystemDate();
             dt.year = sys_dt.year;
         }
 
-        if (!rplIsValidDate(dt)) {
+        if(!rplIsValidDate(dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -2031,15 +2042,14 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=@HIDE
         BINT id;
-        char *msg_start,
-             *msg_end;
+        char *msg_start, *msg_end;
         struct alarm alrm;
 
         id = GetFirstAlarmId(PASTDUE_ALM);
 
-        if (!id)
+        if(!id)
             return;
-        if (!GetSysAlarm(id, &alrm))
+        if(!GetSysAlarm(id, &alrm))
             return;
 
         alrm_obj = alrm.obj;
@@ -2061,7 +2071,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get available memory in bytes
         rplGCollect();
-        rplNewBINTPush((BINT64)rplGetFreeMemory(), DECBINT);
+        rplNewBINTPush((BINT64) rplGetFreeMemory(), DECBINT);
 
         return;
     }
@@ -2070,22 +2080,22 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Size of an object in bytes and CRC32
         //@INCOMPAT
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT size=rplObjSize(rplPeekData(1));
-        BINT64 cksum=rplObjChecksum(rplPeekData(1));
+        BINT size = rplObjSize(rplPeekData(1));
+        BINT64 cksum = rplObjChecksum(rplPeekData(1));
         rplDropData(1);
-        rplNewBINTPush(cksum,HEXBINT);
-        rplNewBINTPush(size*sizeof(WORD),DECBINT);
+        rplNewBINTPush(cksum, HEXBINT);
+        rplNewBINTPush(size * sizeof(WORD), DECBINT);
         return;
-     }
+    }
     case PEEK:
     {
         //@SHORT_DESC=Low-level read memory address
         //@INCOMPAT
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -2096,32 +2106,32 @@ void LIB_HANDLER()
             return;
         }
 
-       BINT64 addr=rplReadBINT(rplPeekData(1));
+        BINT64 addr = rplReadBINT(rplPeekData(1));
 
-       if((addr<0)||(addr>0xffffffffLL)) {
-        rplError(ERR_ARGOUTSIDEDOMAIN);
+        if((addr < 0) || (addr > 0xffffffffLL)) {
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+
+        rplDropData(1);
+
+        if(addr & 3) {
+            BYTEPTR data = (BYTEPTR) NUMBER2PTR(addr & 0xffffffff);
+            addr = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+        }
+        else {
+            WORDPTR data = NUMBER2PTR(addr & 0xffffffff);
+            addr = data[0];
+        }
+        rplNewBINTPush(addr, HEXBINT);
+
         return;
-       }
-
-       rplDropData(1);
-
-       if(addr&3) {
-       BYTEPTR data=(BYTEPTR) NUMBER2PTR(addr&0xffffffff);
-       addr=data[0] | (data[1]<<8) | (data[2]<<16) | (data[3]<<24);
-       }
-       else {
-           WORDPTR data=NUMBER2PTR(addr&0xffffffff);
-           addr=data[0];
-       }
-       rplNewBINTPush(addr,HEXBINT);
-
-       return;
     }
     case POKE:
     {
         //@SHORT_DESC=Low level write to memory address
         //@INCOMPAT
-        if(rplDepthData()<2) {
+        if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -2136,53 +2146,53 @@ void LIB_HANDLER()
             return;
         }
 
-       BINT64 addr=rplReadBINT(rplPeekData(2));
-       BINT64 value=rplReadBINT(rplPeekData(1));
+        BINT64 addr = rplReadBINT(rplPeekData(2));
+        BINT64 value = rplReadBINT(rplPeekData(1));
 
-       if((addr<0)||(addr>0xffffffffLL)) {
-        rplError(ERR_ARGOUTSIDEDOMAIN);
+        if((addr < 0) || (addr > 0xffffffffLL)) {
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+
+        rplDropData(2);
+
+        if(addr & 3) {
+            // MISALIGNED POKE
+            BYTEPTR ptr = (BYTEPTR) NUMBER2PTR(addr & 0xffffffff);
+
+            ptr[0] = value & 0xff;
+            ptr[1] = (value >> 8) & 0xff;
+            ptr[2] = (value >> 16) & 0xff;
+            ptr[3] = (value >> 24) & 0xff;
+
+        }
+        else {
+            WORDPTR ptr = NUMBER2PTR(addr & 0xffffffff);
+            *ptr = (WORD) (value & 0xffffffffLL);
+        }
+
         return;
-       }
-
-
-       rplDropData(2);
-
-       if(addr&3) {
-           // MISALIGNED POKE
-           BYTEPTR ptr=(BYTEPTR) NUMBER2PTR(addr&0xffffffff);
-
-           ptr[0]=value&0xff;
-           ptr[1]=(value>>8)&0xff;
-           ptr[2]=(value>>16)&0xff;
-           ptr[3]=(value>>24)&0xff;
-
-       }
-       else {
-       WORDPTR ptr=NUMBER2PTR(addr&0xffffffff);
-       *ptr=(WORD)(value&0xffffffffLL);
-       }
-
-       return;
     }
 
     case NEWOB:
         // MAKE A NEW COPY OF THE POINTED OBJECT
     {
         //@SHORT_DESC=Make a new copy of the given object
-        if(rplDepthData()<1) {
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR newobj=rplMakeNewCopy(rplPeekData(1));
-        if(!newobj) return;
-        rplOverwriteData(1,newobj);
+        WORDPTR newobj = rplMakeNewCopy(rplPeekData(1));
+        if(!newobj)
+            return;
+        rplOverwriteData(1, newobj);
         return;
-     }
+    }
 
     case VERSION:
     {
         //@SHORT_DESC=Get newRPL version string
-        rplPushData((WORDPTR)newrpl_version);
+        rplPushData((WORDPTR) newrpl_version);
         rplCallOvrOperator(CMD_OVR_EVAL);
 
         return;
@@ -2196,14 +2206,22 @@ void LIB_HANDLER()
     {
         // SYSTEM SANITY CHECK
         //@SHORT_DESC=@HIDE
-        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDStack(0))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyRStack())
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyTempOb(0))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyDirectories(0))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
 
         return;
 
@@ -2211,14 +2229,22 @@ void LIB_HANDLER()
     case MEMFIX:
     {
         //@SHORT_DESC=@HIDE
-        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb(1)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDStack(0))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyRStack())
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyTempOb(1))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+        if(rplVerifyDirectories(0))
+            rplPushDataNoGrow((WORDPTR) one_bint);
+        else
+            rplPushDataNoGrow((WORDPTR) zero_bint);
         return;
     }
     case USBFWUPDATE:
@@ -2226,11 +2252,10 @@ void LIB_HANDLER()
 
         ram_startfwupdate();
 
-     return;
+        return;
     }
 
-
- case OFF:
+    case OFF:
     {
         //@SHORT_DESC=Turn calculator off programmatically
         rplException(EX_POWEROFF);
@@ -2240,53 +2265,51 @@ void LIB_HANDLER()
 
     }
 
-case TEVAL:
+    case TEVAL:
     {
-     //@SHORT_DESC=Perform EVAL and measure elapsed time
-     //@INCOMPAT
-     if(rplDepthData()<1) {
-         rplError(ERR_BADARGCOUNT);
-         return;
-     }
-
-     // RUN THE RPL CODE IMPLEMENTING THE COMMAND
-     rplPushRet(IPtr);
-     IPtr=(WORDPTR)cmd_TEVAL;
-     return;
-    }
-
-        /*
-    case DONUM:
-    {
-        BINT f;
-        REAL r;
-
-        if(rplDepthData()<1) {
+        //@SHORT_DESC=Perform EVAL and measure elapsed time
+        //@INCOMPAT
+        if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        rplReadNumberAsReal(rplPeekData(1),&r);
-        copyReal(&RReg[0],&r);
-        left_justify(&RReg);
-
-        printf("// LEN=%d\n",RReg[0].len);
-
-        for(f=0;f<RReg[0].len;++f) {
-            printf("%d, ",RReg[0].data[f]);
-        }
-
+        // RUN THE RPL CODE IMPLEMENTING THE COMMAND
+        rplPushRet(IPtr);
+        IPtr = (WORDPTR) cmd_TEVAL;
         return;
+    }
 
+        /*
+           case DONUM:
+           {
+           BINT f;
+           REAL r;
 
-    }*/
+           if(rplDepthData()<1) {
+           rplError(ERR_BADARGCOUNT);
+           return;
+           }
 
-    // ADD MORE OPCODES HERE
+           rplReadNumberAsReal(rplPeekData(1),&r);
+           copyReal(&RReg[0],&r);
+           left_justify(&RReg);
 
-   // STANDARIZED OPCODES:
-    // --------------------
-    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
+           printf("// LEN=%d\n",RReg[0].len);
 
+           for(f=0;f<RReg[0].len;++f) {
+           printf("%d, ",RReg[0].data[f]);
+           }
+
+           return;
+
+           } */
+
+        // ADD MORE OPCODES HERE
+
+        // STANDARIZED OPCODES:
+        // --------------------
+        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -2299,12 +2322,12 @@ case TEVAL:
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES, NULL,
+                LIB_NUMBEROFCMDS);
 
-     return;
+        return;
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -2317,7 +2340,7 @@ case TEVAL:
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -2331,8 +2354,7 @@ case TEVAL:
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
 
     case OPCODE_PROBETOKEN:
@@ -2349,12 +2371,12 @@ case TEVAL:
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
-        {
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+    {
+        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                LIB_NUMBEROFCMDS);
 
         return;
-        }
-
+    }
 
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
@@ -2368,18 +2390,17 @@ case TEVAL:
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+            TypeInfo = LIBRARY_NUMBER * 100;
+            DecompHints = 0;
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
-            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
-            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
+            DecompHints = 0;
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+                    LIB_NUMBEROFCMDS);
         }
         return;
-
-
 
     case OPCODE_GETROMID:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL OBJECT IN ROM, EXPORTED BY THIS LIBRARY
@@ -2388,7 +2409,7 @@ case TEVAL:
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
 
         return;
     case OPCODE_ROMID2PTR:
@@ -2397,7 +2418,7 @@ case TEVAL:
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2405,9 +2426,12 @@ case TEVAL:
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+            RetNum = ERR_INVALID;
+            return;
+        }
 
-        RetNum=OK_CONTINUE;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_AUTOCOMPNEXT:
         // THIS OPCODE RECEIVES
@@ -2430,19 +2454,20 @@ case TEVAL:
 
         // NEXT OPCODE SCANS IN DECREASING LIBRARY AND DECREASING OPCODE NUMBER
 
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,
+                LIB_NUMBEROFCMDS);
         return;
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>3) {
-            RetNum=ERR_NOTMINE;
+        if(MENUNUMBER(MenuCodeArg) > 3) {
+            RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR=(WORDPTR)ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
-        RetNum=OK_CONTINUE;
+        ObjectPTR = (WORDPTR) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        RetNum = OK_CONTINUE;
         return;
     }
 
@@ -2451,7 +2476,7 @@ case TEVAL:
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2460,25 +2485,22 @@ case TEVAL:
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
         return;
     }
     case OPCODE_LIBINSTALL:
-        LibraryList=(WORDPTR)libnumberlist;
-        RetNum=OK_CONTINUE;
+        LibraryList = (WORDPTR) libnumberlist;
+        RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
-
-
-
 
     }
     // UNHANDLED OPCODE...
 
     // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
-    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
-        RetNum=ERR_NOTMINE;
+    if(OPCODE(CurOpcode) >= MIN_RESERVED_OPCODE) {
+        RetNum = ERR_NOTMINE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -2486,9 +2508,5 @@ case TEVAL:
 
     return;
 }
-
-
-
-
 
 #endif
