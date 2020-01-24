@@ -322,7 +322,7 @@ void USBSelector::RefreshList()
                             tmr_t start, end;
                             // WAIT FOR THE CONTROL PACKET TO BE SENT
                             start = tmr_ticks();
-                            res = 0;
+                            res = 1;
                             while(__usb_drvstatus & USB_STATUS_TXCTL) {
 
                                 if((__usb_drvstatus & (USB_STATUS_CONFIGURED |
@@ -336,16 +336,16 @@ void USBSelector::RefreshList()
 
                                 end = tmr_ticks();
                                 if(tmr_ticks2ms(start, end) > __usb_timeout) {
-                                    res = -1;
+                                    res = 0;
                                     break;
                                 }
                             }
 
-                            if(res < 0)
+                            if(!res)
                                 break;
 
                             if(!usb_waitforreport()) {
-                                res = -1;
+                                res = 0;
                                 break;
                             }
                             // WAIT FOR A RESPONSE
@@ -362,7 +362,7 @@ void USBSelector::RefreshList()
 
                                 // WAIT FOR THE CONTROL PACKET TO BE SENT
                                 start = tmr_ticks();
-                                res = 0;
+
                                 while(__usb_drvstatus & USB_STATUS_TXCTL) {
 
                                     if((__usb_drvstatus & (USB_STATUS_CONFIGURED
@@ -376,21 +376,22 @@ void USBSelector::RefreshList()
                                     QThread::yieldCurrentThread();
                                     end = tmr_ticks();
                                     if(tmr_ticks2ms(start, end) > __usb_timeout) {
-                                        res = -1;
+                                        res = 0;
                                         break;
                                     }
                                 }
+                                if(!res) break;
                                 continue;
                             }
 
                             usb_releasereport();
 
-                            if(res < 0)
+                            if(!res)
                                 break;
                             // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
                             if(__usb_drvstatus & (USB_STATUS_HALT |
                                         USB_STATUS_ERROR)) {
-                                res = -1;
+                                res = 0;
                                 break;
                             }
 
@@ -417,12 +418,12 @@ void USBSelector::RefreshList()
 
                             res = usb_txfileclose(fileid);
 
-                            if(res < 0)
+                            if(!res)
                                 break;
 
                             // WAIT FOR THE FILE TO ARRIVE
                             start = tmr_ticks();
-                            res = 0;
+                            res = 1;
                             while(!usb_hasdata()) {
 
                                 if((__usb_drvstatus & (USB_STATUS_CONFIGURED |
@@ -435,21 +436,21 @@ void USBSelector::RefreshList()
                                 QThread::yieldCurrentThread();
                                 end = tmr_ticks();
                                 if(tmr_ticks2ms(start, end) > __usb_timeout) {
-                                    res = -1;
+                                    res = 0;
                                     break;
                                 }
                             }
-                            if(res < 0)
+                            if(!res)
                                 break;
 
                             res = fileid = usb_rxfileopen();
 
-                            if(res < 0)
+                            if(!res)
                                 break;
 
                             res = usb_fileread(fileid, buffer, 1024);
 
-                            if(res <= 0)
+                            if(!res)
                                 break;
 
                             usb_rxfileclose(fileid);

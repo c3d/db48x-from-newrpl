@@ -720,6 +720,8 @@ extern "C"
             WORDPTR * diagv);
     WORDPTR rplMatrixQRGetR(WORDPTR * a, BINT rowsa, BINT colsa,
             WORDPTR * diagv);
+    WORDPTR rplMatrixQRDoRQ(WORDPTR * a, BINT n, WORDPTR * diagv);
+
     void rplMatrixUnary(WORD Opcode);
 
 // USER LIBRARIES

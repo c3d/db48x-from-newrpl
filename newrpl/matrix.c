@@ -2573,3 +2573,97 @@ WORDPTR rplMatrixQRGetR(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
     return newmat;
 
 }
+
+
+// PERFORMS A(k+1) = R*Q after A(k) WAS DECOMPOSED BY QR IMPLICIT
+// EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
+// MATRIX MUST BE SQUARE OF nxn AND diag IS THE n ELEMENT DIAGONAL
+// RETURNS A(k+1) AS A MATRIX OBJECT
+
+WORDPTR rplMatrixQRDoRQ(WORDPTR * a, BINT n, WORDPTR * diagv)
+{
+    UNUSED_ARGUMENT(diagv);
+    // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+    // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*n+(c)]
+#define VECTELEM(c) diagv[(c)]
+#define ZELEM(r) z[(r)-1]
+    WORDPTR *stksave = DSTop, *z;
+    BINT i, j, k;
+
+    for(i = 1; i <= n; ++i) {
+
+        z = DSTop;
+        for(k = 1; k <= n; ++k) {   // EXTRACT VECTORS FROM THE ROWS OF MATRIX R
+            if(k<i) rplPushData((WORDPTR) zero_bint);
+            else if(k>i) rplPushData(STACKELEM(i,k));
+            else rplPushData(VECTELEM(i));
+            if(Exceptions) {
+                DSTop = stksave;
+                return 0;
+            }
+        }
+
+        for(j = 1; j <= n; ++j) {       // PERFORM LOOP FOR QT*RT
+            rplPushDataNoGrow((WORDPTR) zero_bint);
+            for(k = j; k <= n; ++k) {
+                rplPushDataNoGrow(STACKELEM(k, j));
+                rplPushDataNoGrow(ZELEM(k));
+                rplCallOvrOperator(CMD_OVR_MUL);
+                if(Exceptions) {
+                    DSTop = stksave;
+                    return 0;
+                }
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) {
+                    DSTop = stksave;
+                    return 0;
+                }
+
+            }
+            if(ISSYMBOLIC(*rplPeekData(1)))
+                rplSymbAutoSimplify();
+            if(Exceptions) {
+                DSTop = stksave;
+                return 0;
+            }
+
+            for(k = j; k <= n; ++k) {
+                rplPushDataNoGrow(ZELEM(k));
+                rplPushDataNoGrow(STACKELEM(k, j));
+                rplPushDataNoGrow(rplPeekData(3));      // s
+                rplCallOvrOperator(CMD_OVR_MUL);
+                if(Exceptions) {
+                    DSTop = stksave;
+                    return 0;
+                }
+                rplCallOvrOperator(CMD_OVR_SUB);        // zk=zk-akj*s;
+                if(Exceptions) {
+                    DSTop = stksave;
+                    return 0;
+                }
+                if(ISSYMBOLIC(*rplPeekData(1)))
+                    rplSymbAutoSimplify();
+                if(Exceptions) {
+                    DSTop = stksave;
+                    return 0;
+                }
+                ZELEM(k) = rplPopData();
+            }
+            rplDropData(1);
+        }
+
+    }
+
+#undef STACKELEM
+#undef VECTELEM
+#undef ZELEM
+
+    WORDPTR newmat = rplMatrixCompose(n, n);
+    if(!newmat) {
+        DSTop = stksave;
+        return 0;
+    }
+    return newmat;
+
+}

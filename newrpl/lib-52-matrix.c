@@ -3245,8 +3245,54 @@ void LIB_HANDLER()
     }
     case EGVL:
     {
+        //@SHORT_DESC=Compute the eigenvalues of a matrix
 
-        // TODO:
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplStripTagStack(1);
+
+        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+
+        if(!ISMATRIX(**a)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        BINT rows, cols;
+        rows = rplMatrixRows(*a);
+        cols = rplMatrixCols(*a);
+
+        if(rows!=cols) {
+            rplError(ERR_SQUAREMATRIXONLY);
+            return;
+        }
+
+        rplMatrixExplode();
+        if(Exceptions)
+            return;
+
+        // EXTRACT EIGENVALUES FROM QR ALGORITHM
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        rplMatrixQREx(a, rows, cols);
+
+        if(Exceptions) {
+            DSTop = savestk;
+            return;
+        }
+
+        WORDPTR *diag = DSTop - rows - 1;
+        WORDPTR q = rplMatrixQRDoRQ(a, rows, diag);
+
+        if(Exceptions) {
+            DSTop = savestk;
+            return;
+        }
+        DSTop = savestk;
+        rplOverwriteData(1, q);
 
         return;
     }
