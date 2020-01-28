@@ -1742,3 +1742,20 @@ void USBThread::run()
         __usb_paused = -__usb_paused;   // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
     }
 }
+
+extern "C" {
+    void qt_mutex_lock(void);
+    void qt_mutex_unlock(void);
+}
+
+static QMutex usb_mutex;
+
+void qt_mutex_lock(void)
+{
+    usb_mutex.lock();
+}
+
+void qt_mutex_unlock(void)
+{
+    usb_mutex.unlock();
+}

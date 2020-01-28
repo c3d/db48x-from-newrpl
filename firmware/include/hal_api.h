@@ -383,6 +383,10 @@ void __irq_releasehook(int service_number);
 void __irq_mask(int service_number);
 void __irq_unmask(int service_number);
 
+// Saves __usb_drvstatus
+void mutex_lock(void);
+void mutex_unlock(void);
+
 /*
 
 KEYBOARD BIT MAP

@@ -197,12 +197,15 @@ void usb_irqdisconnect()
 
     if(__usb_curdevice)
         hid_close(__usb_curdevice);
+
+    mutex_lock();
     __usb_curdevice = 0;
     __usb_devicepath[0] = 0;
 
     __usb_fileid = 0;
-    __usb_drvstatus = 0;        // MARK UNCONFIGURED
 
+    __usb_drvstatus = 0;        // MARK UNCONFIGURED
+    mutex_unlock();
 }
 
 void usb_irqconnect()
@@ -210,10 +213,14 @@ void usb_irqconnect()
 
     // CALLED WHEN THE CABLE IS CONNECTED, CALLED FROM WITHIN THE THREAD
 
+    mutex_lock();
     __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTNOW;
+    mutex_unlock();
 
     // WE HAVE A PATH, TRY TO OPEN THE DEVICE
     __usb_curdevice = hid_open_path((const char *)__usb_devicepath);
+
+    mutex_lock();
     if(!__usb_curdevice)
         __usb_devicepath[0] = 0;
 
@@ -230,7 +237,7 @@ void usb_irqconnect()
     __usb_rxtotalbytes = 0;     // DON'T KNOW THE TOTAL FILE SIZE YET
 
     __usb_drvstatus |= USB_STATUS_CONNECTED | USB_STATUS_CONFIGURED;
-
+    mutex_unlock();
 }
 
 void usb_init(int force)
@@ -244,7 +251,9 @@ void usb_init(int force)
 
     int oldpause = __usb_paused;
 
+    mutex_lock();
     __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTNOW;
+    mutex_unlock();
 
     __usb_paused = 0;
 
@@ -281,14 +290,18 @@ void usb_shutdown()
 
     int oldpause = __usb_paused;
 
+    mutex_lock();
     __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_DISCONNECTNOW;
+    mutex_unlock();
 
     __usb_paused = 0;
 
     while(__usb_drvstatus & USB_STATUS_DISCONNECTNOW);
 
+    mutex_lock();
     __usb_fileid = 0;
     __usb_drvstatus = 0;        // MARK UNCONFIGURED
+    mutex_unlock();
 
     if(oldpause) {
         __usb_paused = 1;
@@ -320,7 +333,9 @@ void usb_ep1_transmit()
             hid_write(__usb_curdevice, __usb_ctltxbuffer, RAWHID_TX_SIZE + 1);
         }
 
+        mutex_lock();
         __usb_drvstatus &= ~USB_STATUS_TXCTL;
+        mutex_unlock();
         return;
     }
 
@@ -348,6 +363,8 @@ void usb_ep1_transmit()
                 if((bufoff < 0) || (bufoff > oldestdata)) {
                     // WE DON'T HAVE THAT DATA STORED ANYMORE, ABORT THE FILE
                     usb_sendcontrolpacket(P_TYPE_ABORT);
+
+                    mutex_lock();
                     __usb_fileid = 0;
                     __usb_offset = 0;
                     __usb_crc32 = 0;
@@ -356,6 +373,7 @@ void usb_ep1_transmit()
 
                     __usb_drvstatus &= ~USB_STATUS_TXDATA;
                     __usb_drvstatus |= USB_STATUS_ERROR;
+                    mutex_unlock();
 
                     if(__usb_curdevice) {
                         memmoveb(__usb_ctltxbuffer + 1, __usb_ctltxbuffer, 64);
@@ -363,7 +381,10 @@ void usb_ep1_transmit()
                         hid_write(__usb_curdevice, __usb_ctltxbuffer,
                                 RAWHID_TX_SIZE + 1);
                     }
+
+                    mutex_lock();
                     __usb_drvstatus &= ~USB_STATUS_TXCTL;
+                    mutex_unlock();
                     return;
                 }
 
@@ -373,10 +394,11 @@ void usb_ep1_transmit()
                     __usb_rxtxbottom += RING_BUFFER_SIZE;
                 __usb_offset = __usb_rxoffset;
             }
+            mutex_lock();
             __usb_txseq = 0;    // RESTART BACK THE SEQUENCE NUMBER
             __usb_crc32 = 0;    // RESET THE CRC FROM HERE ON
             __usb_drvstatus &= ~USB_STATUS_ERROR;       // REMOVE THE ERROR AND RESEND
-
+            mutex_unlock();
         }
 
         int bufbytes;
@@ -445,8 +467,9 @@ void usb_ep1_transmit()
         __usb_txseq = p_type & 0x1f;
         if(eof) {
             usb_sendcontrolpacket(P_TYPE_ENDOFFILE);
+            mutex_lock();
             __usb_drvstatus &= ~USB_STATUS_TXDATA;
-
+            mutex_unlock();
             // DONE SENDING ALL DATA
 
         }
@@ -456,8 +479,11 @@ void usb_ep1_transmit()
                 usb_sendcontrolpacket(P_TYPE_CHECKPOINT);
 
             // IF WE CONSUMED ALL THE BUFFER, SIGNAL THAT WE ARE DONE
-            if(__usb_rxtxtop == __usb_rxtxbottom)
+            if(__usb_rxtxtop == __usb_rxtxbottom) {
+                mutex_lock();
                 __usb_drvstatus &= ~USB_STATUS_TXDATA;
+                mutex_unlock();
+            }
 
         }
 
@@ -480,15 +506,20 @@ void usb_ep2_receive()
     BYTE tmpbuf[RAWHID_RX_SIZE + 1];
     int fifocnt;
     fifocnt = hid_read_timeout(__usb_curdevice, tmpbuf, RAWHID_RX_SIZE, 0);
+
     if(fifocnt <= 0) {
+        mutex_lock();
         if(fifocnt == -1)
             __usb_drvstatus &= ~(USB_STATUS_CONNECTED | USB_STATUS_CONFIGURED);
         // THERE'S NO PACKETS AVAILABLE
         __usb_drvstatus &= ~USB_STATUS_NOWAIT;  // GO TO SLEEP IF NEEDED, NOTHING ON THE WIRE
+        mutex_unlock();
         return;
     }
 
+    mutex_lock();
     __usb_drvstatus |= USB_STATUS_NOWAIT;       // THERE COULD BE MORE DATA, DON'T SLEEP UNTIL ALL DATA IS RETRIEVED
+    mutex_unlock();
 
     int cnt = 0;
 
@@ -497,9 +528,11 @@ void usb_ep2_receive()
     BYTEPTR rcvbuf;
 
     if(p_type & 0x80) {
+        mutex_lock();
         // THIS IS A CONTROL PACKET
         // PUT IT IN THE CTL BUFFER AND NOTIFY THE USER
         __usb_drvstatus |= USB_STATUS_RXCTL;
+        mutex_unlock();
 
         rcvbuf = __usb_ctlrxbuffer;
         cnt = 1;
@@ -542,7 +575,9 @@ void usb_ep2_receive()
         //  WE MUST'VE MISSED SOMETHING
 
         if(!(__usb_drvstatus & USB_STATUS_ERROR)) {
+            mutex_lock();
             __usb_drvstatus |= USB_STATUS_ERROR;
+            mutex_unlock();
             // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
             if(!(__usb_drvstatus & USB_STATUS_TXCTL))
                 usb_sendcontrolpacket(P_TYPE_REPORT);
@@ -555,8 +590,10 @@ void usb_ep2_receive()
     else {
         // GOT THE RIGHT OFFSET, RESET ERROR CONDITION IF ANY
         if(__usb_drvstatus & USB_STATUS_ERROR) {
+            mutex_lock();
             __usb_crc32 = 0;
             __usb_drvstatus &= ~USB_STATUS_ERROR;
+            mutex_unlock();
         }
     }
 
@@ -566,8 +603,10 @@ void usb_ep2_receive()
         usedspace += RING_BUFFER_SIZE;
 
     if(pptr->p_dataused > RING_BUFFER_SIZE - usedspace) {
+        mutex_lock();
         // DATA WON'T FIT IN THE BUFFER DUE TO OVERFLOW, ISSUE AN ERROR AND REQUEST RESEND
         __usb_drvstatus |= USB_STATUS_ERROR;
+        mutex_unlock();
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus & USB_STATUS_TXCTL))
             usb_sendcontrolpacket(P_TYPE_REPORT);
@@ -600,13 +639,17 @@ void usb_ep2_receive()
     usedspace += pptr->p_dataused;
 
     if(usedspace >= RING_BUFFER_SIZE / 2) {
+        mutex_lock();
         __usb_drvstatus |= USB_STATUS_HALT;     // REQUEST HALT IF BUFFER IS HALF-FULL
+        mutex_unlock();
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus & USB_STATUS_TXCTL))
             usb_sendcontrolpacket(P_TYPE_REPORT);
     }
 
+    mutex_lock();
     __usb_drvstatus |= USB_STATUS_RXDATA;       // AND SIGNAL THAT WE HAVE DATA AVAILABLE
+    mutex_unlock();
 }
 
 // SENDING INTERRUPT ENDPOINT
@@ -633,11 +676,13 @@ void usb_irqservice()
     if(__usb_drvstatus & USB_STATUS_CONNECTNOW) {
         // WE HAVE A PATH, TRY TO OPEN THE DEVICE
         __usb_curdevice = hid_open_path((const char *)__usb_devicepath);
+        mutex_lock();
         if(!__usb_curdevice)
             __usb_devicepath[0] = 0;
         else
             __usb_drvstatus |= USB_STATUS_CONNECTED | USB_STATUS_CONFIGURED;
         __usb_drvstatus &= ~USB_STATUS_CONNECTNOW;
+        mutex_unlock();
         return;
     }
 
@@ -648,7 +693,9 @@ void usb_irqservice()
         __usb_curdevice = 0;
         __usb_devicepath[0] = 0;
         hid_exit();
+        mutex_lock();
         __usb_drvstatus &= ~USB_STATUS_DISCONNECTNOW;
+        mutex_unlock();
         return;
     }
 
@@ -661,12 +708,17 @@ void usb_irqservice()
     if(!__usb_curdevice)
         return; // SHOULDN'T HAPPEN, BUT JUST IN CASE A THREAD CLOSED THE HANDLE AFTER WE ENTERED HERE
 
+    mutex_lock();
     __usb_drvstatus |= USB_STATUS_INSIDEIRQ;
+    mutex_unlock();
 
     ep1_irqservice();
 
     ep2_irqservice();
 
+    mutex_lock();
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
+    mutex_unlock();
+
     return;
 }
