@@ -384,8 +384,8 @@ void __irq_mask(int service_number);
 void __irq_unmask(int service_number);
 
 // Saves __usb_drvstatus
-void mutex_lock(void);
-void mutex_unlock(void);
+void usb_mutex_lock(void);
+void usb_mutex_unlock(void);
 
 /*
 

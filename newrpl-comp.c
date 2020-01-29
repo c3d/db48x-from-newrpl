@@ -436,3 +436,9 @@ int main(int argc, char *argv[])
     return 0;
 
 }
+
+void usb_mutex_lock_implementation(void)
+{}
+
+void usb_mutex_unlock_implementation(void)
+{}

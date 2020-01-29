@@ -118,7 +118,7 @@ void usb_sendcontrolpacket(int packet_type)
     USB_PACKET *p = (USB_PACKET *) __usb_ctltxbuffer;
     memsetb(__usb_ctltxbuffer, 0, RAWHID_TX_SIZE + 1);
 
-    mutex_lock();
+    usb_mutex_lock();
 
     switch (packet_type) {
     case P_TYPE_GETSTATUS:
@@ -169,11 +169,11 @@ void usb_sendcontrolpacket(int packet_type)
         break;
 
     default:
-        mutex_unlock();
+        usb_mutex_unlock();
         return; // INVALID PACKET TO SEND
     }
     __usb_drvstatus |= USB_STATUS_TXCTL;        // INDICATE THE DRIVER WE HAVE TO SEND A CONTROL PACKET
-    mutex_unlock();
+    usb_mutex_unlock();
 }
 
 // CALLED WHEN A REPORT ARRIVED FROM THE OTHER SIDE, PROCESS DEPENDING ON WHAT WE ARE DOING
@@ -187,7 +187,7 @@ void usb_receivecontrolpacket()
         case P_TYPE_GETSTATUS:
         {
             if(!__usb_fileid) {
-                mutex_lock();
+                usb_mutex_lock();
 
                 // START RECEIVING A NEW TRANSMISSION
                 __usb_fileid = P_FILEID(ctl);
@@ -200,7 +200,7 @@ void usb_receivecontrolpacket()
                 __usb_drvstatus &=
                         ~(USB_STATUS_HALT | USB_STATUS_ERROR | USB_STATUS_EOF);
 
-                mutex_unlock();
+                usb_mutex_unlock();
             }
             // SEND A REPORT, IF WE HAVE AN EXISTING TRANSMISSION, IT WILL REPLY WITH THE OLD FILEID
             usb_sendcontrolpacket(P_TYPE_REPORT);
@@ -210,11 +210,11 @@ void usb_receivecontrolpacket()
         {
 
             if(__usb_fileid == P_FILEID(ctl)) {
-                mutex_lock();
+                usb_mutex_lock();
 
                 if(__usb_drvstatus & USB_STATUS_ERROR) {
                     // IGNORE THE CHECKPOINT, THERE WAS A PRIOR ERROR
-                    mutex_unlock();
+                    usb_mutex_unlock();
                     break;
                 }
                 __usb_drvstatus &= ~USB_STATUS_ERROR;   // REMOVE ERROR SIGNAL
@@ -234,7 +234,7 @@ void usb_receivecontrolpacket()
                     __usb_drvstatus |= USB_STATUS_ERROR;        // SIGNAL TO RESEND FROM CURRENT OFFSET
                 }
 
-                mutex_unlock();
+                usb_mutex_unlock();
 
                 // SEND THE REPORT
                 usb_sendcontrolpacket(P_TYPE_REPORT);
@@ -244,11 +244,11 @@ void usb_receivecontrolpacket()
         case P_TYPE_ENDOFFILE:
         {
             if(__usb_fileid == P_FILEID(ctl)) {
-                mutex_lock();
+                usb_mutex_lock();
                 
                 if(__usb_drvstatus & USB_STATUS_ERROR) {
                     // IGNORE THE END OF FILE, THERE WAS A PRIOR ERROR
-                    mutex_unlock();
+                    usb_mutex_unlock();
                     break;
                 }
 
@@ -270,7 +270,7 @@ void usb_receivecontrolpacket()
                 if(!(__usb_drvstatus & USB_STATUS_ERROR))
                     __usb_rxtotalbytes = ctl->p_offset;
                 
-                mutex_unlock();
+                usb_mutex_unlock();
 
                 // SEND A REPORT
                 usb_sendcontrolpacket(P_TYPE_REPORT);
@@ -280,7 +280,7 @@ void usb_receivecontrolpacket()
         }
         case P_TYPE_ABORT:
         {
-            mutex_lock();
+            usb_mutex_lock();
 
             if((__usb_fileid == P_FILEID(ctl)) || (P_FILEID(ctl) == 0xffff)) {
 
@@ -304,7 +304,7 @@ void usb_receivecontrolpacket()
 
             __usb_drvstatus |= USB_STATUS_RXRCVD;
 
-            mutex_unlock();
+            usb_mutex_unlock();
 
             // DO NOT REPLY TO AN ABORT CONDITION
 
@@ -314,7 +314,7 @@ void usb_receivecontrolpacket()
 
         case P_TYPE_REPORT:
         {
-            mutex_lock();
+            usb_mutex_lock();
 
             if(__usb_fileid == P_FILEID(ctl)) {
 
@@ -346,7 +346,7 @@ void usb_receivecontrolpacket()
 
             __usb_drvstatus |= USB_STATUS_RXRCVD;
 
-            mutex_unlock();
+            usb_mutex_unlock();
 
             break;
         }
@@ -358,10 +358,10 @@ void usb_receivecontrolpacket()
 
     }
 
-    mutex_lock();
+    usb_mutex_lock();
     // SIGNAL THAT IT WAS PROCESSED
     __usb_drvstatus &= ~USB_STATUS_RXCTL;
-    mutex_unlock();
+    usb_mutex_unlock();
 }
 
 int usb_isconnected()
@@ -492,9 +492,9 @@ USB_PACKET *usb_getreport()
 // RELEASE THE CONTROL PACKET
 void usb_releasereport()
 {
-    mutex_lock();
+    usb_mutex_lock();
     __usb_drvstatus &= ~USB_STATUS_RXRCVD;
-    mutex_unlock();
+    usb_mutex_unlock();
 }
 
 // START TRANSMISSION OF A FILE
@@ -632,9 +632,9 @@ int usb_filewrite(int fileid, BYTEPTR data, int nbytes)
             if(new__usb_rxtxtop >= RING_BUFFER_SIZE)
                 new__usb_rxtxtop -= RING_BUFFER_SIZE;
             __usb_rxtxtop = new__usb_rxtxtop;
-            mutex_lock();
+            usb_mutex_lock();
             __usb_drvstatus |= USB_STATUS_TXDATA;
-            mutex_unlock();
+            usb_mutex_unlock();
             nbytes -= available;
             sent += available;
         }
@@ -657,9 +657,9 @@ int usb_txfileclose(int fileid)
 
     // SIGNAL THAT WE HAVE A NEW BUFFER READY
     // IF NOT CURRENTLY SENDING ANYTHING, A ZERO-BYTE PACKET WILL BE SENT INDICATING END-OF-FILE
-    mutex_lock();
+    usb_mutex_lock();
     __usb_drvstatus |= USB_STATUS_TXDATA;
-    mutex_unlock();
+    usb_mutex_unlock();
 
     // BLOCK UNTIL TRANSMISSION IS COMPLETE
     tmr_t start, end;
@@ -767,9 +767,9 @@ int usb_fileread(int fileid, BYTEPTR dest, int nbytes)
         bytescopied += available;
 
         if(__usb_rxtotalbytes && (__usb_rxoffset >= __usb_rxtotalbytes)) {
-            mutex_lock();
+            usb_mutex_lock();
             __usb_drvstatus |= USB_STATUS_EOF;
-            mutex_unlock();
+            usb_mutex_unlock();
             nbytes = 0;
         }
 
@@ -782,9 +782,9 @@ int usb_fileread(int fileid, BYTEPTR dest, int nbytes)
 
             // RELEASE THE HALT IF BUFFERS ARE LESS THAN QUARTER FULL
             if(usedspace <= RING_BUFFER_SIZE / 4) {
-                mutex_lock();
+                usb_mutex_lock();
                 __usb_drvstatus &= ~USB_STATUS_HALT;
-                mutex_unlock();
+                usb_mutex_unlock();
                 if(!(__usb_drvstatus & USB_STATUS_ERROR))
                     usb_sendcontrolpacket(P_TYPE_REPORT);       // NOTIFY WE LIFTED THE HALT ONLY IF THERE WERE NO ERRORS, OTHERWISE LET THE DRIVER FIX THE ERROR FIRST
             }
@@ -841,10 +841,10 @@ int usb_rxfileclose(int fileid)
     __usb_rxtxbottom = 0;
     __usb_rxoffset = 0;
     __usb_rxtotalbytes = 0;
-    mutex_lock();
+    usb_mutex_lock();
     __usb_drvstatus &=
             ~(USB_STATUS_EOF | USB_STATUS_HALT | USB_STATUS_ERROR |
             USB_STATUS_RXDATA);
-    mutex_unlock();
+    usb_mutex_unlock();
     return 1;
 }

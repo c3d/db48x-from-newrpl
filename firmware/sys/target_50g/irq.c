@@ -90,12 +90,12 @@ void __irq_unmask(int service_number)
     *HWREG(INT_REGS, 0x8) &= ~(1 << service_number);
 }
 
-void mutex_lock(void)
+void usb_mutex_lock(void)
 {
     // FIXME disable irq
 }
 
-void mutex_unlock(void)
+void usb_mutex_unlock(void)
 {
     // FIXME enable irq
 }

@@ -11,15 +11,15 @@
 
 unsigned int __saveint;
 
-void qt_mutex_lock(void);
-void qt_mutex_unlock(void);
+void usb_mutex_lock_implementation(void);
+void usb_mutex_unlock_implementation(void);
 
-void mutex_lock(void)
+void usb_mutex_lock(void)
 {
-	qt_mutex_lock();
+	usb_mutex_lock_implementation();
 }
 
-void mutex_unlock(void)
+void usb_mutex_unlock(void)
 {
-	qt_mutex_unlock();
+	usb_mutex_unlock_implementation();
 }

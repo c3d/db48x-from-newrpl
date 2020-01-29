@@ -1744,18 +1744,18 @@ void USBThread::run()
 }
 
 extern "C" {
-    void qt_mutex_lock(void);
-    void qt_mutex_unlock(void);
+    void usb_mutex_lock_implementation(void);
+    void usb_mutex_unlock_implementation(void);
 }
 
 static QMutex usb_mutex;
 
-void qt_mutex_lock(void)
+void usb_mutex_lock_implementation(void)
 {
     usb_mutex.lock();
 }
 
-void qt_mutex_unlock(void)
+void usb_mutex_unlock_implementation(void)
 {
     usb_mutex.unlock();
 }
