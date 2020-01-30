@@ -119,8 +119,25 @@ void LIB_HANDLER()
         return;
     }
     case OVR_ISTRUE:
-        rplOverwriteData(1, (WORDPTR) one_bint);        // ALWAYS RETURN TRUE
+    {
+        WORDPTR *stksave=DSTop;
+
+        rplRunAtomic(CMD_OVR_XEQ);
+
+        if(Exceptions) {
+            if(stksave<DSTop) DSTop=stksave;
+            rplBlameError(IPtr);
+            return;
+        }
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
         return;
+
+    }
     case OVR_FUNCEVAL:
     case OVR_EVAL:
     case OVR_EVAL1:

@@ -614,7 +614,16 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        rplOverwriteData(1, (WORDPTR) one_bint);
+        if(ISPROLOG(rplPeekData(1))) {
+            WORDPTR dataptr=rplPeekData(1);
+            BINT size=OBJSIZE(*dataptr)-2;
+            dataptr+=2;
+            BINT iszero=1;
+            while(size--) if(*dataptr++) { iszero=0; break; }
+            rplOverwriteData(1, (iszero)? (WORDPTR)zero_bint:(WORDPTR) one_bint);
+        }
+        else
+            rplOverwriteData(1, (WORDPTR) one_bint);
         return;
     }
 

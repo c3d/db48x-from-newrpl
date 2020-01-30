@@ -123,8 +123,9 @@ void LIB_HANDLER()
             }
 
             case OVR_ISTRUE:
-                // CONSTANTS ARE NEVER FALSE
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                // CONSTANTS FALSE WHEN ZERO ONLY
+                rplOverwriteData(1, rplConstant2Number(rplPeekData(1)));
+                rplCallOperator(CurOpcode);
                 return;
 
             case OVR_XEQ:

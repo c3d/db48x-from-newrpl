@@ -2552,6 +2552,12 @@ void LIB_HANDLER()
         }
         return;
     case OVR_ISTRUE:
+        if(ISPACKEDDIR(rplPeekData(1))) {
+           if(OBJSIZE(*rplPeekData(1))==0) {
+               rplOverwriteData(1, (WORDPTR) zero_bint);
+               return;
+           }
+        }
         rplOverwriteData(1, (WORDPTR) one_bint);
         return;
 
