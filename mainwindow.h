@@ -98,6 +98,7 @@ class MainWindow:public QMainWindow
   private:
     int OpenFile(QString fname);
     void SaveFile(QString fname);
+    QString getDocumentsLocation();
 
         Ui::MainWindow * ui;
 };

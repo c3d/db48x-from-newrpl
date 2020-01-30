@@ -526,19 +526,7 @@ extern "C" unsigned int read_data(void *opaque)
 void MainWindow::on_actionSave_triggered()
 {
     QString fname;
-    QString path;
-
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
+    QString path = getDocumentsLocation();
 
     if(currentfile.isEmpty()) {
         fname = QFileDialog::getSaveFileName(this,
@@ -561,22 +549,9 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString path;
+    QString path = getDocumentsLocation();
 
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
-
-    QString fname =
-            QFileDialog::getOpenFileName(this, "Open File Name", path,
+    QString fname = QFileDialog::getOpenFileName(this, "Open File Name", path,
             "newRPL Backups (*.nrpb *.* *)");
 
     if(!OpenFile(fname)) {
@@ -595,23 +570,12 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fname;
-    QString path;
+    QString path = getDocumentsLocation();
 
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
-
-    fname = QFileDialog::getSaveFileName(this, "Select file name to Save as",
+    QString fname =
+            QFileDialog::getSaveFileName(this, "Select file name to Save as",
             path, "newRPL Backups (*.nrpb *.* *)");
+
     if(!fname.isEmpty()) {
         currentfile = fname;
         setWindowTitle(QString("newRPL - [") + fname + QString("]"));
@@ -655,19 +619,7 @@ void MainWindow::on_actionNew_triggered()
 
 void MainWindow::on_actionInsert_SD_Card_Image_triggered()
 {
-    QString path;
-
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
+    QString path = getDocumentsLocation();
 
     QString fname =
             QFileDialog::getOpenFileName(this, "Open SD Card Image", path,
@@ -791,19 +743,7 @@ void MainWindow::on_actionSimulate_Alarm_triggered()
 
 void MainWindow::on_actionTake_Screenshot_triggered()
 {
-    QString path;
-
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
+    QString path = getDocumentsLocation();
 
     QString fname =
             QFileDialog::getSaveFileName(this, "Save screenshot as...", path,
@@ -877,22 +817,9 @@ void MainWindow::on_actionCut_Level_1_triggered()
 
 void MainWindow::on_actionSave_Level_1_As_triggered()
 {
-    QString path;
+    QString path = getDocumentsLocation();
 
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
-
-    QString fname =
-            QFileDialog::getSaveFileName(this,
+    QString fname = QFileDialog::getSaveFileName(this,
             "Select file name to store object", path,
             "newRPL objects (*.nrpl *.* *)");
 
@@ -912,22 +839,9 @@ void MainWindow::on_actionSave_Level_1_As_triggered()
 
 void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 {
-    QString path;
+    QString path = getDocumentsLocation();
 
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
-
-    QString fname =
-            QFileDialog::getOpenFileName(this, "Select File Name", path,
+    QString fname = QFileDialog::getOpenFileName(this, "Select File Name", path,
             "newRPL objects (*.nrpl *.* *)");
 
     if(!fname.isEmpty()) {
@@ -1106,19 +1020,7 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
         return;
     }
 
-    QString path;
-
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
+    QString path = getDocumentsLocation();
 
     QString fname =
             QFileDialog::getSaveFileName(this, "Select file name to Save as",
@@ -1208,22 +1110,9 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
         return;
     }
 
-    QString path;
+    QString path = getDocumentsLocation();
 
-    if(currentfile.isEmpty()) {
-        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
-        if(path.isEmpty())
-            path = QStandardPaths::writableLocation(QStandardPaths::
-                    DocumentsLocation);
-    }
-    else {
-        QFileInfo info(currentfile);
-        path = info.path();
-    }
-
-    QString fname =
-            QFileDialog::getOpenFileName(this, "Open File Name", path,
+    QString fname = QFileDialog::getOpenFileName(this, "Open File Name", path,
             "newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
@@ -1743,7 +1632,27 @@ void USBThread::run()
     }
 }
 
-extern "C" {
+QString MainWindow::getDocumentsLocation()
+{
+    QString path;
+
+    if(currentfile.isEmpty()) {
+        path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
+                "newRPL", QStandardPaths::LocateDirectory);
+        if(path.isEmpty())
+            path = QStandardPaths::writableLocation(QStandardPaths::
+                    DocumentsLocation);
+    }
+    else {
+        QFileInfo info(currentfile);
+        path = info.path();
+    }
+
+    return path;
+}
+
+extern "C"
+{
     void usb_mutex_lock_implementation(void);
     void usb_mutex_unlock_implementation(void);
 }
