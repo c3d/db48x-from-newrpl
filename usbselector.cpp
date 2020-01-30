@@ -143,11 +143,6 @@ void USBSelector::RefreshList()
     // MAKE SURE WE CLOSE EVERYTHING AND RESET THE ENTIRE LIBRARY BEFORE ENUMERATION
     usb_shutdown();
 
-    if(hid_init()) {
-        ui->USBtreeWidget->clear();
-        return;
-    }
-
     devs = hid_enumerate(0x0, 0x0);
     if(!devs) {
         ui->USBtreeWidget->clear();

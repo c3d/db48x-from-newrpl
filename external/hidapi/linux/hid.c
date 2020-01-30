@@ -390,7 +390,9 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 	struct hid_device_info *cur_dev = NULL;
 	struct hid_device_info *prev_dev = NULL; /* previous device */
 
-	hid_init();
+    if(hid_init()) {
+        return NULL;
+    }
 
 	/* Create the udev object */
 	udev = udev_new();
@@ -621,7 +623,9 @@ hid_device * HID_API_EXPORT hid_open_path(const char *path)
 {
 	hid_device *dev = NULL;
 
-	hid_init();
+    if(hid_init()) {
+        return NULL;
+    }
 
 	dev = new_hid_device();
 
