@@ -706,10 +706,65 @@ static void busywait(int ms)
     while(tmr_ticks2ms(start, end) < ms);
 }
 
+static QString send_package(int nwords, int offset)
+{
+    WORD header[3];
+    int fileid;
+
+    fileid=usb_txfileopen('W');
+    if(!fileid) {
+        return "Could not initiate package transmission";
+    }
+
+    // SEND FIRMWARE BLOCK MARKER
+
+    header[0]=TEXT2WORD('F','W','U','P');
+    header[1]=__fwupdate_address+(offset<<2);
+    header[2]=nwords;
+
+    if(!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD))) {
+        return "Could not send data to usb device";
+    }
+
+
+    BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
+    if(!usb_filewrite(fileid,buffer,nwords*sizeof(WORD))) {
+        return "Could not send data to usb device";
+    }
+
+    if(!usb_txfileclose(fileid)) {
+       return "Could not finalize package transmission";
+    }
+    return NULL;
+}
+
+static QString send_reset()
+{
+    WORD header[3];
+    int fileid;
+
+    fileid=usb_txfileopen('W');
+    if(!fileid) {
+        return "Could not initiate reset";
+    }
+
+    header[0]=TEXT2WORD('F','W','U','P');
+    header[1]=0xffffffff;
+    header[2]=0;
+
+    if(!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD))) {
+        return "Could not initiate reset";
+    }
+
+    if(!usb_txfileclose(fileid)) {
+        return "Could not initiate reset";
+    }
+
+    return NULL;
+}
+
 void FWThread::run()
 {
-    QString message;
-
     int nwords = __fwupdate_nwords;
     __fwupdate_progress = 0;
 
@@ -720,133 +775,30 @@ void FWThread::run()
     busywait(200);
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
-        __fwupdate_address = 0;
+        emit FirmwareUpdateError("Could not send firmware update command");
         return;
     }
 
     // WAIT 500ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     busywait(500);
 
-    WORD header[3];
-    int result = 1, offset = 0;
-    int fileid;
-
-    while(result && (nwords > 1024)) {
-
-        if(result)
-            result = fileid = usb_txfileopen('W');
-        if(!result) {
-            message = "Could not initiate package transmission";
+    while(nwords > 0) {
+        int size = std::min(1024, nwords);
+        QString error = send_package(size, __fwupdate_progress);
+        if (error != NULL) {
+            emit FirmwareUpdateError(error);
+            // still going to reset the device...
             break;
         }
-
-        // SEND FIRMWARE BLOCK MARKER
-
-        header[0] = TEXT2WORD('F', 'W', 'U', 'P');
-        header[1] = __fwupdate_address + (offset << 2);
-        header[2] = 1024;
-
-        if(result
-                && (!usb_filewrite(fileid, (BYTEPTR) header,
-                        3 * sizeof(WORD)))) {
-            // TODO: SOME KIND OF ERROR
-            result = 0;
-            message = "Could not send data to usb device";
-
-            break;
-        }
-
-        if(result) {
-            BYTEPTR buffer = __fwupdate_buffer + offset * sizeof(WORD);
-            if(!usb_filewrite(fileid, buffer, 1024 * sizeof(WORD))) {
-                result = 0;
-                message = "Could not send data to usb device";
-                break;
-            }
-            offset += 1024;
-        }
-
-        if(result && (!usb_txfileclose(fileid))) {
-            result = 0;
-            message = "Could not finalize package transmission";
-
-            break;
-        }
-
-        nwords -= 1024;
-
-        __fwupdate_progress = offset;
-
+        nwords-=size;
+        __fwupdate_progress+=size;
     }
-
-    if(result && nwords) {
-        result = fileid = usb_txfileopen('W');
-
-        // SEND FIRMWARE BLOCK MARKER
-        if(!result)
-            message = "Could not initiate package transmission";
-
-        header[0] = TEXT2WORD('F', 'W', 'U', 'P');
-        header[1] = __fwupdate_address + (offset << 2);
-        header[2] = nwords;
-
-        if(result
-                && (!usb_filewrite(fileid, (BYTEPTR) header,
-                        3 * sizeof(WORD)))) {
-            // TODO: SOME KIND OF ERROR
-            result = 0;
-            message = "Could not send data to usb device";
-        }
-
-        if(result) {
-            BYTEPTR buffer = __fwupdate_buffer + offset * sizeof(WORD);
-            if(!usb_filewrite(fileid, buffer, nwords * sizeof(WORD))) {
-                result = 0;
-                message = "Could not send data to usb device";
-
-            }
-            offset += nwords;
-        }
-
-        if(result && (!usb_txfileclose(fileid))) {
-            // TODO: SOME KIND OF ERROR
-            result = 0;
-            message = "Could not finalize package transmission";
-
-        }
-        __fwupdate_progress = offset;
-
-    }
-
-    // DONE SENDING THE LAST BLOCK
 
     // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     busywait(2000);
 
-    // NOW FINISH THE TEST BY RESETTING
-    result = fileid = usb_txfileopen('W');
-
-    if(!result) {
-        message = "Could not initiate reset";
+    QString error = send_reset();
+    if (error != NULL) {
+        emit FirmwareUpdateError(error);
     }
-
-    header[0] = TEXT2WORD('F', 'W', 'U', 'P');
-    header[1] = 0xffffffff;
-    header[2] = 0;
-
-    if(result && (!usb_filewrite(fileid, (BYTEPTR) header, 3 * sizeof(WORD)))) {
-        message = "Could not initiate reset";
-        result = 0;
-    }
-
-    if(result && (!usb_txfileclose(fileid))) {
-        message = "Could not initiate reset";
-        result = 0;
-    }
-
-    if(!result) {
-        emit FirmwareUpdateError(message);
-    }
-    __fwupdate_address = result;
-
 }
