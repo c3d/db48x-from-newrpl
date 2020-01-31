@@ -10,6 +10,64 @@
 #include <ui.h>
 #include <libraries.h>
 
+static inline WORDPTR rplDecompileAnyway(WORDPTR object, BINT flags)
+{
+    BINT SavedException = Exceptions;
+    BINT SavedErrorCode = ErrorCode;
+
+    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+    WORDPTR opname = rplDecompile(object, flags);
+
+    Exceptions = SavedException;
+    ErrorCode = SavedErrorCode;
+
+    return opname;
+}
+
+// Sets pointers to string. Returns string length in code points
+static BINT rplGetStringPointers(WORDPTR object, BYTEPTR *start, BYTEPTR *end)
+{
+    *start = (BYTEPTR) (object + 1);
+    BINT totaln = rplStrLenCp(object);
+    *end = (BYTEPTR) utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
+    return totaln;
+}
+
+// Decompiles object and sets pointers to resulting string
+// Returns 0 on error with target pointers set to null
+// Returns string length in code points if ok with target pointers set
+static BINT rplGetDecompiledString(WORDPTR object, BINT flags, BYTEPTR *start, BYTEPTR *end)
+{
+    WORDPTR opname = rplDecompileAnyway(object, flags);
+    if (!opname) {
+        *start = NULL;
+        *end = NULL;
+        return 0;
+    }
+
+    return rplGetStringPointers(opname, start, end);
+}
+
+// Decompiles object and sets pointers to resulting string with tickmarks removed
+// returns 0 on error with target pointers set to null
+// returns 1 if ok with target pointers set
+static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, BINT flags, BYTEPTR *start, BYTEPTR *end)
+{
+    BINT totaln = rplGetDecompiledString(object, flags, start, end);
+    if (!totaln)
+        return 0;
+
+    // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
+    // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
+    if((totaln > 2) && ((*start)[0] == '\'')) {
+        ++(*start);
+        --(*end);
+    }
+
+    return 1;
+}
+
 // WAITS FOR A KEY TO BE PRESSED IN SLOW MODE
 
 BINT halWaitForKey()
@@ -1419,26 +1477,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                 case 'A':
                 case 'P':
                 {
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname =
-                            rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
@@ -1525,25 +1566,7 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
-
-                                // VARIABLE EXISTS, GET THE CONTENTS
-                                BINT SavedException = Exceptions;
-                                BINT SavedErrorCode = ErrorCode;
-
-                                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                                WORDPTR opname =
-                                        rplDecompile(var[1], DECOMP_EDIT);
-                                Exceptions = SavedException;
-                                ErrorCode = SavedErrorCode;
-
-                                if(opname) {
-                                    BINT totaln = rplStrLenCp(opname);
-                                    string = (BYTEPTR) (opname + 1);
-                                    endstring =
-                                            (BYTEPTR) utf8nskip((char *)string,
-                                            (char *)rplSkipOb(opname), totaln);
-                                }
+                                rplGetDecompiledString(var[1], DECOMP_EDIT, &string, &endstring);
                             }
 
                             if(string) {
@@ -1594,33 +1617,7 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
-
-                                // VARIABLE EXISTS, GET THE CONTENTS
-                                BINT SavedException = Exceptions;
-                                BINT SavedErrorCode = ErrorCode;
-
-                                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                                WORDPTR opname =
-                                        rplDecompile(var[1],
-                                        DECOMP_EDIT | DECOMP_NOHINTS);
-                                Exceptions = SavedException;
-                                ErrorCode = SavedErrorCode;
-
-                                if(opname) {
-                                    string = (BYTEPTR) (opname + 1);
-                                    BINT totaln = rplStrLenCp(opname);
-                                    endstring =
-                                            (BYTEPTR) utf8nskip((char *)string,
-                                            (char *)rplSkipOb(opname), totaln);
-
-                                    // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
-                                    // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
-                                    if((totaln > 2) && (string[0] == '\'')) {
-                                        string++;
-                                        endstring--;
-                                    }
-                                }
+                                rplGetDecompiledStringWithoutTickmarks(var[1], DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring);
                             }
 
                             if(string) {
@@ -1661,26 +1658,7 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
-                                // VARIABLE EXISTS, GET THE CONTENTS
-                                BINT SavedException = Exceptions;
-                                BINT SavedErrorCode = ErrorCode;
-
-                                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                                WORDPTR opname =
-                                        rplDecompile(var[1], DECOMP_EDIT);
-                                Exceptions = SavedException;
-                                ErrorCode = SavedErrorCode;
-
-                                if(opname) {
-                                    string = (BYTEPTR) (opname + 1);
-                                    BINT totaln = rplStrLenCp(opname);
-                                    endstring =
-                                            (BYTEPTR) utf8nskip((char *)string,
-                                            (char *)rplSkipOb(opname), totaln);
-
-                                }
-
+                                rplGetDecompiledString(var[1], DECOMP_EDIT, &string, &endstring);
                             }
                             if(string) {
                                 uiSeparateToken();
@@ -1728,25 +1706,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                 case 'A':
                 case 'P':
                 {
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
@@ -1869,31 +1831,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                             break;
                         }
                     }
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
-
-                    // REMOVE THE TICK MARKS IN ALG MODE
-                    if((totaln > 2) && (string[0] == '\'')) {
-                        ++string;
-                        --endstring;
-                    }
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiInsertCharactersN(string, endstring);
                     uiAutocompleteUpdate();
@@ -1913,30 +1853,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                         }
                     }
 
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
-
-                    // REMOVE THE TICK MARKS IN ALG MODE
-                    if((totaln > 2) && (string[0] == '\'')) {
-                        ++string;
-                        --endstring;
-                    }
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
@@ -1992,11 +1911,8 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                     if(!opname)
                         break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    BINT totaln = rplGetStringPointers(opname, &string, &endstring);
 
                     if(removevalue) {
                         // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
@@ -2021,25 +1937,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
 
                 case 'P':
                 {
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
@@ -2091,25 +1991,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                         CurOpcode = savecurOpcode;
                     }
 
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname =
-                            rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BINT nlines = uiInsertCharactersN(string, endstring);
                     if(nlines)
@@ -2150,25 +2034,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
 
                     }
 
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-
-                    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname =
-                            rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                    Exceptions = SavedException;
-                    ErrorCode = SavedErrorCode;
-
-                    if(!opname)
-                        break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string = (BYTEPTR) (opname + 1);
-                    BINT totaln = rplStrLenCp(opname);
-                    BYTEPTR endstring =
-                            (BYTEPTR) utf8nskip((char *)string,
-                            (char *)rplSkipOb(opname), totaln);
+                    BYTEPTR string, endstring;
+                    if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                        break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BINT nlines = 0;
 
@@ -2321,25 +2189,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
                     CurOpcode = savecurOpcode;
                 }
 
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname =
-                        rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
@@ -2353,25 +2205,9 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
 
             case 'P':
             {
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 BINT nlines = uiInsertCharactersN(string, endstring);
@@ -5071,30 +4907,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
                     }
                 }
 
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
-
-                // REMOVE THE TICK MARKS IN ALG MODE
-                if((totaln > 2) && (string[0] == '\'')) {
-                    ++string;
-                    --endstring;
-                }
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 uiAutocompleteUpdate();
@@ -5114,30 +4929,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
                     }
                 }
 
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
-
-                // REMOVE THE TICK MARKS IN ALG MODE
-                if((totaln > 2) && (string[0] == '\'')) {
-                    ++string;
-                    --endstring;
-                }
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 uiInsertCharactersN(string, endstring);
@@ -5165,25 +4959,10 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
             }
             case 'A':
             {
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                BINT totaln = rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring);
+                if (!totaln)
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 if((totaln > 2) && (string[0] == '1') && (string[1] == '_'))
                     string += 2;
@@ -5197,25 +4976,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
             case 'P':
             {
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 uiInsertCharactersN(string, endstring);
@@ -5261,26 +5024,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
                     CurOpcode = savecurOpcode;
                 }
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname =
-                        rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
@@ -5294,25 +5040,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
             case 'P':
             {
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 BINT nlines = uiInsertCharactersN(string, endstring);
@@ -5345,11 +5075,8 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
             }
         }
         else if(ISSTRING(*action)) {
-            BYTEPTR string = (BYTEPTR) (action + 1);
-            BINT totaln = rplStrLenCp(action);
-            BYTEPTR endstring =
-                    (BYTEPTR) utf8nskip((char *)string,
-                    (char *)rplSkipOb(action), totaln);
+            BYTEPTR string, endstring;
+            rplGetStringPointers(action, &string, &endstring);
 
             if(!inlist) {
                 // ADD THE QUOTES IN D OR P MODE
@@ -5405,26 +5132,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
                     CurOpcode = savecurOpcode;
                 }
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname =
-                        rplDecompile(action, DECOMP_EDIT | DECOMP_NOHINTS);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
@@ -5438,25 +5148,9 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
             case 'P':
             {
-
-                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                BINT SavedException = Exceptions;
-                BINT SavedErrorCode = ErrorCode;
-
-                Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
-                Exceptions = SavedException;
-                ErrorCode = SavedErrorCode;
-
-                if(!opname)
-                    break;      // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                BYTEPTR string = (BYTEPTR) (opname + 1);
-                BINT totaln = rplStrLenCp(opname);
-                BYTEPTR endstring =
-                        (BYTEPTR) utf8nskip((char *)string,
-                        (char *)rplSkipOb(opname), totaln);
+                BYTEPTR string, endstring;
+                if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                    break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 BINT nlines = uiInsertCharactersN(string, endstring);
