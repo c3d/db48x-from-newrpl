@@ -629,6 +629,9 @@ void LIB_HANDLER()
             // XEQ NEEDS TO LEAVE THE MATRIX ON THE STACK
             return;
 
+        case OVR_NOT:
+
+            return;
         }
 
     }

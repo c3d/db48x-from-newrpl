@@ -43,7 +43,8 @@ void Stack2Clipboard(int level, int dropit)
 
     QByteArray decomptext((const char *)text, strsize);
     QString utf8string(decomptext);
-    data->setText(utf8string);
+    //data->setText(utf8string);  // PLAIN TEXT
+    data->setData(QString("text/plain;charset=utf-8"),decomptext); // UTF-8 ENCODED TEXT
     data->setHtml(utf8string);
     clip->setMimeData(data, QClipboard::Clipboard);
 
@@ -57,6 +58,24 @@ void Clipboard2Stack()
 {
     QClipboard *clip = qApp->clipboard();
     const QMimeData *data = clip->mimeData();
+
+    // DEBUG ONLY
+    for(QString& formatName: data->formats()) {
+            std::string s;
+            s = formatName.toStdString();
+
+            QByteArray arr = clip->mimeData()->data(formatName);
+            qDebug() << "name=" << s.c_str() << ", size=" << arr.size();
+            qDebug() << "\nContents:\n";
+            qDebug() << QString::fromUtf8(arr);
+
+
+
+            qDebug() << "\n";
+        }
+
+
+
 
     if(data->hasFormat(QString("application/newrpl-object"))) {
         QByteArray mydata(data->data(QString("application/newrpl-object")));
