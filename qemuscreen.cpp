@@ -126,6 +126,11 @@ annRShift(QString(":/bitmap/bitmap/ann_right.xbm"))
     show();
 }
 
+QEmuScreen::~QEmuScreen()
+{
+    delete[] Pixels;
+}
+
 void QEmuScreen::setTimer(QTimer * tmr)
 {
     screentmr = tmr;

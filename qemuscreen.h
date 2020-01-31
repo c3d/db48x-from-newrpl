@@ -38,7 +38,8 @@ class QEmuScreen:public QGraphicsView
     void setMode(int _mode, unsigned int *_buffer);
     void setScale(qreal _scale);
     explicit QEmuScreen(QWidget * parent = 0);
-
+    ~QEmuScreen();
+    
         signals: public slots: void update();
 
 };
