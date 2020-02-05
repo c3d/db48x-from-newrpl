@@ -15,34 +15,6 @@
 #define FALSE 0
 #endif
 
-#define CLKREG CLK_REGS
-#define SDREG  SD_REGS
-#define IOPORT IO_REGS
-
-#define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
-
-#define GPD(a) HWREG(IOPORT,0x30+a)
-#define GPE(a) HWREG(IOPORT,0x40+a)
-#define GPF(a) HWREG(IOPORT,0x50+a)
-
-#define SDICON HWREG(SDREG,0)
-#define SDIPRE HWREG(SDREG,0X4)
-#define SDICARG HWREG(SDREG,0x8)
-#define SDICCON HWREG(SDREG,0xc)
-#define SDICSTA HWREG(SDREG,0x10)
-#define SDIRSP0 HWREG(SDREG,0x14)
-#define SDIRSP1 HWREG(SDREG,0x18)
-#define SDIRSP2 HWREG(SDREG,0x1c)
-#define SDIRSP3 HWREG(SDREG,0x20)
-#define SDIDTIMER HWREG(SDREG,0x24)
-#define SDIBSIZE HWREG(SDREG,0x28)
-#define SDIDCON HWREG(SDREG,0x2c)
-#define SDIDCNT HWREG(SDREG,0x30)
-#define SDIDSTA HWREG(SDREG,0x34)
-#define SDIFSTA HWREG(SDREG,0x38)
-#define SDIDAT HWREG(SDREG,0x3c)
-#define SDIIMSK HWREG(SDREG,0x40)
-
 #define CON 0
 #define DAT 4
 #define PULLUP 8

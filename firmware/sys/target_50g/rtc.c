@@ -292,8 +292,8 @@ int rtc_setalarm(struct date dt, struct time tm, int enabled)
 
 int rtc_chkalrm()
 {
-    if(*HWREG(INT_REGS, SRCPND) & (1 << INT_RTC)) {
-        *HWREG(INT_REGS, SRCPND) = (1 << INT_RTC);
+    if(*SRCPND & (1 << INT_RTC)) {
+        *SRCPND = (1 << INT_RTC);
         return 1;
     }
 

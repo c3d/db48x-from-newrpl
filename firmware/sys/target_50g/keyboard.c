@@ -30,10 +30,6 @@ extern int __keyb_repeattime, __keyb_longpresstime, __keyb_debounce;
 
 keymatrix __keyb_getmatrix()
 {
-
-    unsigned int volatile *GPGDAT = (unsigned int *)(IO_REGS + 0x64);   //data
-    unsigned int volatile *GPGCON = (unsigned int *)(IO_REGS + 0x60);   //control
-
     unsigned int tmp[DEBOUNCE], f, k;
 
     unsigned int lo = 0, hi = 0;
@@ -153,18 +149,6 @@ void __keyb_waitrelease()
 #define KF_ALPHALOCK 2
 #define KF_NOREPEAT  4
 #define KF_UPDATED   8
-
-#define GPGCON ((unsigned int *)(IO_REGS+0x60))
-#define GPGDAT ((unsigned int *)(IO_REGS+0x64))
-#define GPGUP ((unsigned int *)(IO_REGS+0x68))
-#define GPFCON ((unsigned int *)(IO_REGS+0x50))
-#define EXTINT0 ((unsigned int *)(IO_REGS+0x88))
-#define EXTINT1 ((unsigned int *)(IO_REGS+0x8c))
-#define EINTMASK ((unsigned int *)(IO_REGS+0xa4))
-#define EINTPEND ((unsigned int *)(IO_REGS+0xa8))
-#define INTMSK   ((unsigned int *)(INT_REGS+0x8))
-#define INTPND   ((unsigned int *)(INT_REGS+0x10))
-#define SRCPND   ((unsigned int *)(INT_REGS+0x0))
 
 // RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
 // MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED

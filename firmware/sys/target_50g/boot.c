@@ -10,8 +10,6 @@
 #include <ui.h>
 #include "../fsystem/fsyspriv.h"
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 #define enter_mode(mode) call_swi(mode)
 
 __ARM_MODE__ void switch_mode(int mode) __attribute__((naked));

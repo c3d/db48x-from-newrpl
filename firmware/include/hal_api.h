@@ -285,6 +285,17 @@ enum
 
 */
 
+// MAIN EXCEPTION PROCESSOR
+
+#define __EX_CONT 1     // SHOW CONTINUE OPTION
+#define __EX_EXIT 2     // SHOW EXIT OPTION
+#define __EX_WARM 4     // SHOW WARMSTART OPTION
+#define __EX_RESET 8    // SHOW RESET OPTION
+#define __EX_NOREG 16   // DON'T SHOW REGISTERS
+#define __EX_WIPEOUT 32 // FULL MEMORY WIPEOUT AND WARMSTART
+#define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define __EX_RPLEXIT 128        // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+
 /*!
     \brief Throw a user exception
     Cause a user exception to be thrown. It displays the requested message and offer the user several

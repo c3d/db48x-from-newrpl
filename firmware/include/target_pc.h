@@ -46,8 +46,6 @@ extern char ExceptionScreen[8192];
 #undef __ROMLINK__
 #define __ROMLINK__
 
-#undef halScreenUpdated
-
 // SIGNALS FOR OS-DRIVEN EVENTS
 extern void halScreenUpdated();
 
@@ -55,5 +53,26 @@ extern void halScreenUpdated();
 #undef USB_TIMEOUT_MS
 #define USB_TIMEOUT_MS __usb_timeout
 extern int __usb_timeout;
+
+
+// Target PC uses 50g screen and other capabilities for now
+
+// USABLE SCREEN SIZE
+#define SCREEN_WIDTH 131
+#define SCREEN_HEIGHT 80
+#define STATUSAREA_X  66
+
+// PHYSICAL SCREEN SIZE
+#define SCREEN_W 160
+#define SCREEN_H 80
+
+// DEFAULT COLOR MODE OF THE SYSTEM
+#define DEFAULTBITSPERPIXEL 4
+#define DEFAULTBITMAPMODE   1   // SAME AS BITMAP_RAW16G
+
+// DEFAULT CLOCK SPEEDS
+#define HAL_SLOWCLOCK     6000000
+#define HAL_USBCLOCK     48000000
+#define HAL_FASTCLOCK   192000000
 
 #endif // TARGET_PC_H

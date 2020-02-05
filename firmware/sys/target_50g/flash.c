@@ -6,7 +6,6 @@
  */
 #include <ui.h>
 // LOW-LEVEL FLASH DRIVER FOR SST 36VF1601 CHIPSET
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 // ENTER QUERY MODE AND COPY INFORMATION
 __ARM_MODE__ void flash_CFIQuery(unsigned short *ptr)

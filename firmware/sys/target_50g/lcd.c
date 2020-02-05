@@ -7,10 +7,6 @@
 
 #include <ui.h>
 
-#define IO_GPDDAT HWREG(IO_REGS,0x34)
-#define IO_GPDUP HWREG(IO_REGS,0x38)
-#define IO_GPDCON HWREG(IO_REGS,0x30)
-
 #define LCD_TARGET_FREQ 500000
 #define LCD_W 160
 #define HOZVAL ((LCD_W>>2)-1)

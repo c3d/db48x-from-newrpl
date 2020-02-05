@@ -7,10 +7,6 @@
 
 #include <ui.h>
 
-#define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
-
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 // IRQ AND CPU LOW LEVEL
 unsigned int irq_table[32] __SYSTEM_GLOBAL__;
 unsigned int __saveint __SYSTEM_GLOBAL__;

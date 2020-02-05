@@ -67,9 +67,6 @@ union rtcrst
 #define INT_TICK        8
 #define INT_RTC         30
 
-// INTERRUPT REGISTERS OFFSET
-#define SRCPND          0x00
-
 #define BCD2BIN(x)      (((x) & 0x0f) + ((x) >> 4) * 10)
 #define BIN2BCD(x)      ((((x) / 10) << 4) + (x) % 10)
 

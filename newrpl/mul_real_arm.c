@@ -1,8 +1,6 @@
 
 #include <newrpl.h>
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 // OPTIMIZED REAL NUMBER MULTIPLICATION LOOP
 
 // RESTRICTIONS:

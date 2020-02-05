@@ -7,14 +7,11 @@
 
 #include <ui.h>
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 extern unsigned int __saveint;
 
 void cpu_intoff()
 {
     //ARM ints off
-    unsigned int volatile *INTMSK = (unsigned int *)(INT_REGS + 0x8);
 
     if(!__saveint) {
 
@@ -29,7 +26,6 @@ void cpu_intoff()
 unsigned int __cpu_intoff()
 {
     //ARM ints off
-    unsigned int volatile *INTMSK = (unsigned int *)(INT_REGS + 0x8);
     unsigned int previous = *INTMSK;
     *INTMSK = 0xffffffff;       //mask all interrupts
     return previous;
@@ -38,8 +34,6 @@ unsigned int __cpu_intoff()
 void cpu_inton()
 {
     //ARM ints on
-
-    unsigned int volatile *INTMSK = (unsigned int *)(INT_REGS + 0x8);
 
     if(__saveint)
         *INTMSK = __saveint;
@@ -51,8 +45,6 @@ void __cpu_inton(unsigned int state)
 {
     //ARM ints on
 
-    unsigned int volatile *INTMSK = (unsigned int *)(INT_REGS + 0x8);
-
     *INTMSK = state;
 }
 
@@ -61,17 +53,15 @@ EXTERN void __tmr_fix();
 EXTERN int SDGetClock();
 EXTERN void SDSetClock(int clock);
 
-#define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
-
 int __cpu_getFCLK()
 {
-    int CLKSLOW = *HWREG(CLK_REGS, 0x10);
+    int clkslow = *CLKSLOW;
     int FCLK = 12000000;
 
-    if(CLKSLOW & 0x10)  // slow mode
+    if(clkslow & 0x10)  // slow mode
     {
-        if(CLKSLOW & 7)
-            FCLK /= (CLKSLOW & 7) << 1;
+        if(clkslow & 7)
+            FCLK /= (clkslow & 7) << 1;
     }
     else        // fast mode
     {
@@ -377,14 +367,14 @@ __ARM_MODE__ void cpu_off_prepare()
 
     // CLEAR SRCPEND, INTPEND BITS
 
-    *HWREG(INT_REGS, 0) = *HWREG(INT_REGS, 0);  // SRCPND
+    *SRCPND = *SRCPND;
     *HWREG(INT_REGS, 0x18) = *HWREG(INT_REGS, 0x18);    // SUB-SRCPND
-    *HWREG(INT_REGS, 0x10) = *HWREG(INT_REGS, 0x10);    // INTPND
-    *HWREG(IO_REGS, 0xa8) = *HWREG(IO_REGS, 0xa8);      // EINTPND
+    *INTPND = *INTPND;
+    *EINTPEND = *EINTPEND;
     *HWREG(LCD_REGS, 0x054) = *HWREG(LCD_REGS, 0x054);  // LCD INTPND
     *HWREG(LCD_REGS, 0x058) = *HWREG(LCD_REGS, 0x058);  // LCD SRCPND
 
-    *HWREG(INT_REGS, 0x8) = 0xfffffffe; // UNMASK ONLY THE ON KEY INTERRUPT
+    *INTMSK = 0xfffffffe; // UNMASK ONLY THE ON KEY INTERRUPT
 
     // TODO: SETUP ALARM TO WAKE UP
     // FLUSH ALL BUFFERS

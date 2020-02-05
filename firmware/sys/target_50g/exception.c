@@ -8,8 +8,6 @@
 #include <newrpl.h>
 #include <ui.h>
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 
@@ -70,18 +68,6 @@ __ARM_MODE__ void __ex_gethireg(unsigned int *hi_reg)
     return;
 }
 
-/*
-// MAIN EXCEPTION PROCESSOR
-
-#define __EX_CONT 1		// SHOW CONTINUE OPTION
-#define __EX_EXIT 2		// SHOW EXIT OPTION
-#define __EX_WARM 4		// SHOW WARMSTART OPTION
-#define __EX_RESET 8	// SHOW RESET OPTION
-#define __EX_NOREG 16	// DON'T SHOW REGISTERS
-#define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
-#define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
-#define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
-*/
 __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
         int options)
 {

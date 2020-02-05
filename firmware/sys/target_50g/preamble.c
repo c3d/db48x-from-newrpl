@@ -7,8 +7,6 @@
 
 #include <ui.h>
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 char kinpo_preamble[16] __attribute__((section(".preamble")))
         = PREAMBLE_STRING;
 

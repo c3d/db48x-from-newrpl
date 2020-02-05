@@ -9,84 +9,8 @@
 #include <libraries.h>
 #include <ui.h>
 
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-
 // OTHER EXTERNAL FUNCTIONS NEEDED
 extern int __cpu_getPCLK();
-
-// HARDWARE PORTS FOR S3C2410 - USB DEVICE
-
-#define CLKCON              HWREG(CLK_REGS,0xc)
-
-#define FUNC_ADDR_REG       HWREG(USBD_REGS,0x140)
-#define PWR_REG             HWREG(USBD_REGS,0x144)
-#define EP_INT_REG          HWREG(USBD_REGS,0x148)
-#define USB_INT_REG         HWREG(USBD_REGS,0x158)
-#define EP_INT_EN_REG       HWREG(USBD_REGS,0x15c)
-#define USB_INT_EN_REG      HWREG(USBD_REGS,0x16c)
-#define INDEX_REG           HWREG(USBD_REGS,0x178)
-#define EP0_FIFO            HWREG(USBD_REGS,0x1c0)
-#define EP1_FIFO            HWREG(USBD_REGS,0x1c4)
-#define EP2_FIFO            HWREG(USBD_REGS,0x1c8)
-#define EP3_FIFO            HWREG(USBD_REGS,0x1cc)
-#define EP4_FIFO            HWREG(USBD_REGS,0x1d0)
-
-// INDEXED REGISTERS
-#define EP0_CSR             HWREG(USBD_REGS,0x184)
-#define IN_CSR1_REG         HWREG(USBD_REGS,0x184)
-#define IN_CSR2_REG         HWREG(USBD_REGS,0x188)
-#define MAXP_REG            HWREG(USBD_REGS,0x180)
-#define MAXP_REG2           HWREG(USBD_REGS,0x18c)
-#define OUT_CSR1_REG        HWREG(USBD_REGS,0x190)
-#define OUT_CSR2_REG        HWREG(USBD_REGS,0x194)
-#define OUT_FIFO_CNT1_REG   HWREG(USBD_REGS,0x198)
-#define OUT_FIFO_CNT2_REG   HWREG(USBD_REGS,0x19c)
-
-// MISCELLANEOUS REGISTERS
-#define MISCCR              HWREG(IO_REGS,0x80)
-#define UPLLCON             HWREG(CLK_REGS,0x8)
-#define CLKCON              HWREG(CLK_REGS,0xc)
-#define CLKSLOW             HWREG(CLK_REGS,0x10)
-
-#define CABLE_IS_CONNECTED  (*HWREG(IO_REGS,0x54)&2)
-
-// VARIOUS STATES AND PIN CONSTANTS
-#define USBSUSPND1  (1<<13)
-#define USBSUSPND0  (1<<13)
-#define USBPAD      (1<<3)
-
-// CONTROL ENDPOINT CSR
-#define EP0_OUT_PKT_RDY 1
-#define EP0_IN_PKT_RDY  2
-#define EP0_SENT_STALL  4
-#define EP0_DATA_END    8
-#define EP0_SETUP_END   16
-#define EP0_SEND_STALL  32
-#define EP0_SERVICED_OUT_PKT_RDY 64
-#define EP0_SERVICED_SETUP_END 128
-
-// OTHER ENDPOINTS CSR
-#define EPn_OUT_SEND_STALL      0x20
-#define EPn_IN_PKT_RDY          0x1
-#define EPn_IN_FIFO_FLUSH       0x8
-#define EPn_IN_SEND_STALL       0x10
-#define EPn_IN_SENT_STALL       0x20
-#define EPn_IN_CLR_DATA_TOGGLE  0x40
-#define EPn_OUT_PKT_RDY          0x1
-#define EPn_OUT_FIFO_FLUSH       0x10
-#define EPn_OUT_SEND_STALL       0x20
-#define EPn_OUT_SENT_STALL       0x40
-#define EPn_OUT_CLR_DATA_TOGGLE  0x80
-
-// OTHER BIT DEFINITIONS
-#define USB_RESET        8
-
-#define EP0_FIFO_SIZE    8
-#define EP1_FIFO_SIZE    64
-#define EP2_FIFO_SIZE    64
-
-#define USB_DIRECTION   0x80
-#define USB_DEV_TO_HOST 0x80
 
 // standard control endpoint request types
 #define GET_STATUS			0
@@ -1719,10 +1643,6 @@ __ARM_MODE__ void __ramirq_service()
     asm volatile ("ldmia sp!, {r0-r12,lr}");    // RESTORE ALL OTHER REGISTERS BACK
     asm volatile ("subs pc,lr,#4");
 }
-
-#define IO_GPDDAT HWREG(IO_REGS,0x34)
-#define IO_GPDUP HWREG(IO_REGS,0x38)
-#define IO_GPDCON HWREG(IO_REGS,0x30)
 
 // DO A FULL RESET
 __ARM_MODE__ void ram_doreset()
