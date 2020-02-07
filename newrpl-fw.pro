@@ -246,6 +246,7 @@ SOURCES +=\
 
 HEADERS  += \
     firmware/include/ggl.h \
+    firmware/include/target_50g.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     firmware/include/usb.h \
