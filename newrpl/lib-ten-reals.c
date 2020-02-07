@@ -486,6 +486,9 @@ void LIB_HANDLER()
                         rplError(ERR_COMPLEXRESULT);
                         return;
                     }
+
+                    if(isoddReal(&RReg[1])) subReal(&RReg[9],&RReg[9],&RReg[7]);
+
                     Darg1.flags ^= F_NEGATIVE;  // MAKE IT POSITIVE
 
                     powReal(&RReg[8], &Darg1, &Darg2);  // ONLY RReg[9] IS PRESERVED
@@ -607,6 +610,9 @@ void LIB_HANDLER()
                         rplError(ERR_COMPLEXRESULT);
                         return;
                     }
+
+                    if(isoddReal(&RReg[1])) subReal(&RReg[9],&RReg[9],&RReg[7]);
+
                     Darg1.flags ^= F_NEGATIVE;  // MAKE IT POSITIVE
 
                     xrootReal(&RReg[8], &Darg1, &Darg2);        // ONLY RReg[9] IS PRESERVED

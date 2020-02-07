@@ -1026,6 +1026,9 @@ void LIB_HANDLER()
                             return;
                         }
 
+                        if(isoddReal(&RReg[1])) subReal(&RReg[9],&RReg[9],&RReg[7]);
+
+
                         rplBINTToRReg(6, -op1);
 
                         powReal(&RReg[8], &RReg[6], &rop2);     // ONLY RReg[9] IS PRESERVED
@@ -1138,6 +1141,8 @@ void LIB_HANDLER()
                     rplError(ERR_COMPLEXRESULT);
                     return;
                 }
+                if(isoddReal(&RReg[1])) subReal(&RReg[9],&RReg[9],&RReg[5]);
+
                 RReg[6].flags ^= F_NEGATIVE;    // MAKE IT POSITIVE
 
                 // HERE WE LEFT THE NEW ANGLE IN RReg[9]
