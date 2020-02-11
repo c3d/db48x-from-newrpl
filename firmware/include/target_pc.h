@@ -8,8 +8,6 @@
 #ifndef TARGET_PC_H
 #define TARGET_PC_H
 
-extern char PhysicalScreen[8192];
-extern char ExceptionScreen[8192];
 
 #undef MEM_PHYS_SCREEN
 #define MEM_PHYS_SCREEN PhysicalScreen
@@ -58,13 +56,15 @@ extern int __usb_timeout;
 // Target PC uses 50g screen and other capabilities for now
 
 // USABLE SCREEN SIZE
-#define SCREEN_WIDTH 131
-#define SCREEN_HEIGHT 80
-#define STATUSAREA_X  66
+#define SCREEN_WIDTH 256
+#define SCREEN_HEIGHT 160
+#define STATUSAREA_X  (66*SCREEN_WIDTH)/131
+#define MENU_TAB_WIDTH (((SCREEN_WIDTH-5)/6)+1)
+#define PIXELS_PER_WORD 8
 
 // PHYSICAL SCREEN SIZE
-#define SCREEN_W 160
-#define SCREEN_H 80
+#define SCREEN_W 288
+#define SCREEN_H 160
 
 // DEFAULT COLOR MODE OF THE SYSTEM
 #define DEFAULTBITSPERPIXEL 4
@@ -74,5 +74,10 @@ extern int __usb_timeout;
 #define HAL_SLOWCLOCK     6000000
 #define HAL_USBCLOCK     48000000
 #define HAL_FASTCLOCK   192000000
+
+extern char PhysicalScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
+extern char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
+
+
 
 #endif // TARGET_PC_H

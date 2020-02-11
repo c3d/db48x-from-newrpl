@@ -220,13 +220,6 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff,
     dstart = dest + (destoff >> 3);
     dend = dest + ((destoff + npixels - 1) >> 3);
 
-#ifndef NDEBUG
-    if((dstart < dest) || (dend > dest + 2048)) {
-
-        return;
-    }
-#endif
-
     if(dstart == dend) {
         // single word operation
         ml |= mr;

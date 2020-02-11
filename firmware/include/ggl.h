@@ -8,8 +8,8 @@
 #ifndef _GGL_H
 #define _GGL_H
 
-#define LCD_H 80
-#define LCD_W 160
+#define LCD_H SCREEN_H
+#define LCD_W SCREEN_W
 
 // internal buffer for hblt routines
 

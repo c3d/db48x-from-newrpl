@@ -896,15 +896,15 @@ void halRedrawMenu1(DRAWSURFACE * scr)
     scr->clipy2 = ytop + MENU1_HEIGHT - 2;
 
     for(k = 0; k < 5; ++k) {
-        scr->clipx = 22 * k;
-        scr->clipx2 = 22 * k + 20;
+        scr->clipx = MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
         uiDrawMenuItem(item, mcolor, scr);
     }
 
     // NOW DO THE NXT KEY
-    scr->clipx = 22 * k;
-    scr->clipx2 = 22 * k + 20;
+    scr->clipx = MENU_TAB_WIDTH * k;
+    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
 
     if(nitems == 6) {
         item = uiGetMenuItem(m1code, MenuObj, 5);

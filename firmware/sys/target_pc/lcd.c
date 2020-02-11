@@ -8,7 +8,7 @@
 #include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
-#define LCD_W 160
+#define LCD_W SCREEN_W
 #define HOZVAL ((LCD_W>>2)-1)
 
 // SIMULATED SYSTEM REGISTERS
@@ -16,8 +16,8 @@ int __lcd_mode = -1;
 int __lcd_needsupdate = 0;
 unsigned int *__lcd_buffer;
 // SIMULATED SCREEN MEMORY
-char PhysicalScreen[8192];
-char ExceptionScreen[8192];
+char PhysicalScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
+char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
 
 int __lcd_contrast __SYSTEM_GLOBAL__;
 

@@ -31,8 +31,8 @@ annRShift(QString(":/bitmap/bitmap/ann_right.xbm"))
 
     screentmr = nullptr;
 
-    screen_height = 80;
-    screen_width = 131;
+    screen_height = SCREEN_HEIGHT;
+    screen_width = SCREEN_WIDTH;
     BkgndColor = QColor(172, 222, 157);
     MainColor = QColor(0, 0, 0);
     BkgndPen.setColor(BkgndColor);
@@ -89,32 +89,32 @@ annRShift(QString(":/bitmap/bitmap/ann_right.xbm"))
 
     Annunciators[0] = scr.addPixmap(annComms);
     Annunciators[0]->setScale(0.25);
-    Annunciators[0]->setOffset(120 * 4 - 0 * 80, -20);
+    Annunciators[0]->setOffset(((SCREEN_WIDTH-10) - 0 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[0]->setOpacity(1.0);
 
     Annunciators[1] = scr.addPixmap(annLShift);
     Annunciators[1]->setScale(0.25);
-    Annunciators[1]->setOffset(120 * 4 - 5 * 80, -20);
+    Annunciators[1]->setOffset(((SCREEN_WIDTH-10) - 5 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[1]->setOpacity(1.0);
 
     Annunciators[2] = scr.addPixmap(annRShift);
     Annunciators[2]->setScale(0.25);
-    Annunciators[2]->setOffset(120 * 4 - 4 * 80, -20);
+    Annunciators[2]->setOffset(((SCREEN_WIDTH-10) - 4 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[2]->setOpacity(1.0);
 
     Annunciators[3] = scr.addPixmap(annAlpha);
     Annunciators[3]->setScale(0.25);
-    Annunciators[3]->setOffset(120 * 4 - 3 * 80, -20);
+    Annunciators[3]->setOffset(((SCREEN_WIDTH-10) - 3 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[3]->setOpacity(1.0);
 
     Annunciators[4] = scr.addPixmap(annBattery);
     Annunciators[4]->setScale(0.25);
-    Annunciators[4]->setOffset(120 * 4 - 2 * 80, -20);
+    Annunciators[4]->setOffset(((SCREEN_WIDTH-10) - 2 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[4]->setOpacity(1.0);
 
     Annunciators[5] = scr.addPixmap(annHourglass);
     Annunciators[5]->setScale(0.25);
-    Annunciators[5]->setOffset(120 * 4 - 1 * 80, -20);
+    Annunciators[5]->setOffset(((SCREEN_WIDTH-10) - 1 * ((SCREEN_WIDTH-30)/5))*4, -20);
     Annunciators[5]->setOpacity(1.0);
 
     setScene(&scr);
@@ -220,7 +220,7 @@ void QEmuScreen::update()
         int mask;
         for(i = 0; i < screen_height; ++i) {
             mask = 0xf;
-            ptr = __lcd_buffer + (LCD_W >> 3) * i;
+            ptr = __lcd_buffer + (LCD_W / PIXELS_PER_WORD) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = (*ptr & mask) >> ((j & 7) * 4);
                 Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
