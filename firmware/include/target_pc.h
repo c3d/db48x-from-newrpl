@@ -56,15 +56,15 @@ extern int __usb_timeout;
 // Target PC uses 50g screen and other capabilities for now
 
 // USABLE SCREEN SIZE
-#define SCREEN_WIDTH 256
-#define SCREEN_HEIGHT 160
-#define STATUSAREA_X  (66*SCREEN_WIDTH)/131
-#define MENU_TAB_WIDTH (((SCREEN_WIDTH-5)/6)+1)
+#define SCREEN_WIDTH 131
+#define SCREEN_HEIGHT 80
 #define PIXELS_PER_WORD 8
 
 // PHYSICAL SCREEN SIZE
-#define SCREEN_W 288
-#define SCREEN_H 160
+#define SCREEN_W 160
+#define SCREEN_H 80
+
+#define ANN_X_COORD (SCREEN_WIDTH)
 
 // DEFAULT COLOR MODE OF THE SYSTEM
 #define DEFAULTBITSPERPIXEL 4

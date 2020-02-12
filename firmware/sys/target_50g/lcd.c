@@ -8,7 +8,6 @@
 #include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
-#define LCD_W 160
 #define HOZVAL ((LCD_W>>2)-1)
 
 int __lcd_contrast __SYSTEM_GLOBAL__;

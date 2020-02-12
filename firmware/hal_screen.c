@@ -23,9 +23,9 @@ void halSetNotification(enum halNotification type, int color)
 
     if(type < N_DATARECVD) {
         unsigned char *scrptr = (unsigned char *)MEM_PHYS_SCREEN;
-        scrptr += 65;
-        scrptr += type * 80;
-        *scrptr = (*scrptr & 0xf) | (color << 4);
+        scrptr += ANN_X_COORD / (PIXELS_PER_WORD/4);
+        scrptr += type * (SCREEN_W / (PIXELS_PER_WORD/4));
+        *scrptr = (*scrptr & ~(((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD/4))))) | (color << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD/4))));
         return;
     }
     else {
@@ -815,8 +815,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
                 nextline = rplStrSize(helptext);
             }
             DrawTextN(3,
-                    ytop + 2 + (k +
-                        1) * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+                    ytop + 2 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight + k * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
                     (char *)basetext + currentline, (char *)basetext + nextline,
                     *halScreen.FontArray[FONT_STATUS], 0xf, scr);
 
@@ -828,7 +827,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
 
         scr->clipy = ytop + 1;
         scr->clipy2 =
-                ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
+                ytop + 1 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight;
 
         uiDrawMenuItem(item, 0xf, scr);
 
@@ -990,8 +989,8 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     scr->clipy2 = ytop + MENU2_HEIGHT / 2 - 2;
 
     for(k = 0; k < 3; ++k) {
-        scr->clipx = 22 * k;
-        scr->clipx2 = 22 * k + 20;
+        scr->clipx = MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
         uiDrawMenuItem(item, mcolor, scr);
     }
@@ -1002,15 +1001,15 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     scr->clipy2 = ybottom - 1;
 
     for(k = 0; k < 2; ++k) {
-        scr->clipx = 22 * k;
-        scr->clipx2 = 22 * k + 20;
+        scr->clipx = MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + 3 + MENUPAGE(m2code));
         uiDrawMenuItem(item, mcolor, scr);
     }
 
     // NOW DO THE NXT KEY
-    scr->clipx = 22 * k;
-    scr->clipx2 = 22 * k + 20;
+    scr->clipx = MENU_TAB_WIDTH * k;
+    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
 
     if(nitems == 6) {
         item = uiGetMenuItem(m2code, MenuObj, 5);

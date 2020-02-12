@@ -220,7 +220,7 @@ void QEmuScreen::update()
         int mask;
         for(i = 0; i < screen_height; ++i) {
             mask = 0xf;
-            ptr = __lcd_buffer + (LCD_W / PIXELS_PER_WORD) * i;
+            ptr = __lcd_buffer + (LCD_W >> 3) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = (*ptr & mask) >> ((j & 7) * 4);
                 Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
@@ -233,10 +233,11 @@ void QEmuScreen::update()
             }
         }
         // UPDATE ANNUNCIATORS
-        mask = 0xf << 12;
+        mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD))));
         for(i = 0; i < 6; ++i) {
-            ptr = __lcd_buffer + 16 + (LCD_W >> 3) * i;
-            color = (*ptr & mask) >> 12;
+            ptr = __lcd_buffer + ANN_X_COORD / (PIXELS_PER_WORD);
+            ptr += i * (SCREEN_W / PIXELS_PER_WORD);
+            color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD)));
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);
         }
 

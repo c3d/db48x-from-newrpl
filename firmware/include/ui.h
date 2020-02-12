@@ -43,6 +43,11 @@ typedef uint32_t PTR2NUMBER;
 #include <firmware.h>
 #include <hal_api.h>
 
+// CONSTANTS THAT DEFINE THE LOOK OF THE USER INTERFACE
+#define STATUSAREA_X  (66*SCREEN_WIDTH)/131
+#define MENU_TAB_WIDTH (((SCREEN_WIDTH-5)/6)+1)
+#define BITSPERPIXEL (32/PIXELS_PER_WORD)
+
 // COMMAND LINE
 
 WORDPTR halSaveCmdLine();
