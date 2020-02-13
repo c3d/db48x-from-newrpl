@@ -12,6 +12,7 @@ TEMPLATE = app
 DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += main.cpp\
+    firmware/sys/Font24.c \
         mainwindow.cpp \
     newrpl/lib-112-asm.c \
     newrpl/lib-4081-tags.c \
