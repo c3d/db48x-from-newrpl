@@ -26,7 +26,7 @@ typedef struct
 
 #define MAX_NCHARS       0xfffff
 
-#define PACKDATA(w,o) ((((w)<<12)|((o&0xfff)))&0xffff)
+#define PACKDATA(w,o) (((w)<<16)|((o&0xffff)))
 
 #define SING_OFFSET(val) (((val)&0xFFF))
 #define SING_LEN(val) (((val)>>12)&0xfffff)
@@ -41,15 +41,15 @@ typedef struct
 int width[MAX_GLYPHS];
 int offset[MAX_GLYPHS];
 int codeidx[0x110000];
-char txtbuff[256 * 1024];       // MAX. 256K FOR THE TEXT FILE
-unsigned short packedata[0x110000];
+char txtbuff[1024 * 1024];       // MAX. 1MB FOR THE TEXT FILE
+unsigned int packedata[0x110000];
 unsigned int ranges[2000];
 int used_ranges;
-unsigned short offdata[20000 + MAX_NCHARS];
+unsigned int offdata[20000 + MAX_NCHARS];
 int used_data;
 
 // FIND DUPLICATED ITEMS IN THE STREAM
-int searchDupData(unsigned short *start, int nitems)
+int searchDupData(unsigned int *start, int nitems)
 {
     int j, k;
 
@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
      * REPEAT UNTIL IT COVERS THE ENTIRE UNICODE RANGE 0x110000
      *
      * ------ TABLE OF WIDTH & OFFSET
-     * 2-BYTES VALUES 0xWOOO, WITH W=WIDTH IN PIXELS, OOO=x COORDINATE WITHIN THE BITMAP
+     * 4-BYTES VALUES 0xWWWWOOOO, WITH W=WIDTH IN PIXELS, OOO=x COORDINATE WITHIN THE BITMAP
      * REPEAT AS NEEDED
      *
      * ------ BITMAP
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
     while(j < 0x110000);
 
     printf("Total ranges=%d\n", used_ranges);
-    printf("Total table bytes=%d\n", (int)sizeof(unsigned short) * used_data);
+    printf("Total table bytes=%d\n", (int)sizeof(unsigned int) * used_data);
 
 // DONE PROCESSING, CREATE FILE AND SAVE IT
 
@@ -497,7 +497,7 @@ int main(int argc, char *argv[])
         printf("Starting binary output to file '%s'\n", outfile);
 
         int totalsize =
-                2 + used_ranges + ((used_data + 1) >> 1) +
+                2 + used_ranges + used_data +
                 ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
         unsigned int prolog = MKPROLOG(LIB_FONTS, totalsize);
@@ -508,8 +508,7 @@ int main(int argc, char *argv[])
 
         fwrite(&prolog, 4, 1, han);
 
-        prolog = ((3 + used_ranges) << 16 | ((3 + used_ranges + ((used_data +
-                                1) >> 1))));
+        prolog = ((3 + used_ranges) << 16 | (3 + used_ranges + used_data));
 
         fwrite(&prolog, 4, 1, han);
 
@@ -517,12 +516,7 @@ int main(int argc, char *argv[])
         fwrite(&ranges, 4, used_ranges, han);
 
 // WRITE DATA TABLE
-        fwrite(&offdata, 2, used_data, han);
-
-        if(used_data & 1) {
-            prolog = 0;
-            fwrite(&prolog, 2, 1, han);
-        }
+        fwrite(&offdata, 4, used_data, han);
 
 // WRITE BITMAP
         fwrite(&monobitmap, rowlen, hdr.Height - 1, han);
@@ -547,7 +541,7 @@ int main(int argc, char *argv[])
         printf("Starting C format output to file '%s'\n", outfile);
 
         int totalsize =
-                2 + used_ranges + ((used_data + 1) >> 1) +
+                2 + used_ranges + used_data +
                 ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
         unsigned int prolog = MKPROLOG(LIB_FONTS, totalsize);
@@ -567,8 +561,7 @@ int main(int argc, char *argv[])
         //fwrite(&prolog,4,1,han);
         fprintf(han, "0x%X, // FONT HEIGHT AND BITMAP WIDTH\n", prolog);
 
-        prolog = ((3 + used_ranges) << 16 | ((3 + used_ranges + ((used_data +
-                                1) >> 1))));
+        prolog = ((3 + used_ranges) << 16 | ((3 + used_ranges + used_data)));
 
         //fwrite(&prolog,4,1,han);
         fprintf(han, "0x%X, // OFFSETS TO TABLES\n", prolog);
@@ -584,20 +577,9 @@ int main(int argc, char *argv[])
         // WRITE DATA TABLE
         //fwrite(&offdata,2,used_data,han);
         for(j = 0; j < used_data; ++j) {
-            if(j & 1) {
-                prolog |= offdata[j] << 16;
-                fprintf(han, "0x%X, ", prolog);
-            }
-            else {
-                prolog = offdata[j];
-            }
+                fprintf(han, "0x%X, ", offdata[j]);
             if(j % 16 == 0)
                 fprintf(han, "\n");
-        }
-        if(j & 1) {
-            fprintf(han, "0x%X, ", prolog);
-            fprintf(han, "\n");
-
         }
 
         // WRITE BITMAP

@@ -17,11 +17,11 @@ static unsigned int gui_chgcolorfilter(unsigned int dest, unsigned int src,
 int StringWidthN(char *Text, char *End, UNIFONT * Font)
 {
     int cp, startcp, rangeend, offset, cpinfo;
-    unsigned short *offtable;
-    unsigned int *mapptr;
-    int w, width = 0;
+    unsigned int *offtable;
+    unsigned int *mapptr,w;
+    int width = 0;
 
-    offtable = (unsigned short *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
 
     while(Text < End) {
 
@@ -63,7 +63,7 @@ int StringWidthN(char *Text, char *End, UNIFONT * Font)
             w = offtable[offset + cp - startcp];
         }
 
-        width += w >> 12;
+        width += (int)(w >> 16);
         Text = utf8skip(Text, End);
 
     }
@@ -82,16 +82,16 @@ int StringWidthN(char *Text, char *End, UNIFONT * Font)
 char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord)
 {
     int cp, startcp, rangeend, offset, cpinfo;
-    unsigned short *offtable;
-    unsigned int *mapptr;
-    int w, width = 0;
+    unsigned int *offtable;
+    unsigned int *mapptr,w;
+    int  width = 0;
 
     if(*xcoord < 0) {
         *xcoord = 0;
         return Text;
     }
 
-    offtable = (unsigned short *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
 
     while(Text < End) {
 
@@ -135,12 +135,12 @@ char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord)
             w = offtable[offset + cp - startcp];
         }
 
-        if((*xcoord >= width) && (*xcoord < width + (w >> 12))) {
+        if((*xcoord >= width) && (*xcoord < width + (int)(w >> 16))) {
             *xcoord = width;
             return Text;
         }
 
-        width += w >> 12;
+        width += w >> 16;
 
         Text = utf8skip(Text, End);
 
@@ -166,7 +166,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
         DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
-    unsigned short *offtable;
+    unsigned int *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
 
@@ -179,9 +179,10 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned short *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
 
-    int w = 0, clipped = 0, h;
+    unsigned int w = 0;
+    int clipped = 0, h;
     gglsurface srf;
     srf.addr = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
@@ -252,13 +253,13 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
             w = offtable[offset + cp - startcp];
         }
 
-        srf.x = w & 0xfff;
-        w >>= 12;
+        srf.x = w & 0xffff;
+        w >>= 16;
         clipped = 0;
         if(w) {
             if(drawsurf->x > drawsurf->clipx2)
                 return;
-            if(drawsurf->x + w - 1 < drawsurf->clipx) {
+            if(drawsurf->x + (int)w - 1 < drawsurf->clipx) {
                 drawsurf->x += w;
                 Text = utf8skip(Text, End);
                 continue;
@@ -269,7 +270,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
                 clipped |= (drawsurf->clipx - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
                 drawsurf->x = drawsurf->clipx;
             }
-            if(drawsurf->x + w - 1 > drawsurf->clipx2) {
+            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2) {
                 clipped |= w - (drawsurf->clipx2 - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
                 w = drawsurf->clipx2 - drawsurf->x + 1;
             }
@@ -294,7 +295,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
         int bkcolor, DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
-    unsigned short *offtable;
+    unsigned int *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
 
@@ -307,9 +308,10 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned short *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
 
-    int w = 0, clipped = 0, h;
+    unsigned int w = 0;
+    int clipped = 0, h;
     gglsurface srf;
     srf.addr = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
@@ -382,14 +384,14 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
             w = offtable[offset + cp - startcp];
         }
 
-        srf.x = w & 0xfff;
-        w >>= 12;
+        srf.x = w & 0xffff;
+        w >>= 16;
         clipped = 0;
         if(w) {
 
             if(drawsurf->x > drawsurf->clipx2)
                 return;
-            if(drawsurf->x + w - 1 < drawsurf->clipx) {
+            if(drawsurf->x + (int)w - 1 < drawsurf->clipx) {
                 drawsurf->x += w;
                 Text = utf8skip(Text, End);
                 continue;
@@ -400,7 +402,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
                 clipped |= (drawsurf->clipx - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
                 drawsurf->x = drawsurf->clipx;
             }
-            if(drawsurf->x + w - 1 > drawsurf->clipx2) {
+            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2) {
                 clipped |= w - (drawsurf->clipx2 - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
                 w = drawsurf->clipx2 - drawsurf->x + 1;
             }
@@ -449,7 +451,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
         DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
-    unsigned short *offtable;
+    unsigned int *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
 
@@ -467,9 +469,10 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned short *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
 
-    int w, h;
+    unsigned int w;
+    int h;
     gglsurface srf;
     srf.addr = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
@@ -526,21 +529,21 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
             w = offtable[offset + cp - startcp];
         }
 
-        srf.x = w & 0xfff;
-        w >>= 12;
+        srf.x = w & 0xffff;
+        w >>= 16;
 
         if(w) {
 
             if(drawsurf->x > drawsurf->clipx2)
                 return;
-            if(drawsurf->x + w - 1 < drawsurf->clipx)
+            if(drawsurf->x + (int)w - 1 < drawsurf->clipx)
                 return;
             if(drawsurf->x < drawsurf->clipx) {
                 srf.x += drawsurf->clipx - drawsurf->x;
                 w -= drawsurf->clipx - drawsurf->x;
                 drawsurf->x = drawsurf->clipx;
             }
-            if(drawsurf->x + w - 1 > drawsurf->clipx2)
+            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2)
                 w = drawsurf->clipx2 - drawsurf->x + 1;
 
             int address, f, k;
@@ -549,7 +552,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
             for(k = 0; k < h; ++k) {
                 address = srf.x + (srf.y + k) * srf.width;
                 destword = 0;
-                for(f = 0; f < w; ++f) {
+                for(f = 0; f < (int)w; ++f) {
                     if(ggl_getmonopix((char *)srf.addr, address)) {
                         // PLOT A PIXEL ON DESTINATION
                         destword |= 1 << f;
