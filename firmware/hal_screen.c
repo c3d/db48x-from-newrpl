@@ -383,7 +383,7 @@ void halRedrawStack(DRAWSURFACE * scr)
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
     int ystart = halScreen.Form, yend = ystart + halScreen.Stack;
     int depth = rplDepthData(), level = 1;
-    int objheight, ytop, y, numwidth, xright;
+    int objheight, ytop, y, numwidth, xright,stknum_w;
     BINT width, height;
     char num[16];
     UNIFONT **levelfnt;
@@ -394,6 +394,7 @@ void halRedrawStack(DRAWSURFACE * scr)
     oldclipx2 = scr->clipx2;
     oldclipy2 = scr->clipy2;
 
+    stknum_w=((*halScreen.FontArray[FONT_STACK])->BitmapHeight*192)/256;    // ESTIMATE NUMBER WIDTH AT 75% OF THE FONT HEIGHT
     if(halScreen.KeyContext & CONTEXT_INTSTACK) {
 
         // ENSURE THE STACK POINTER IS COMPLETELY INSIDE THE SCREEN
@@ -453,22 +454,22 @@ void halRedrawStack(DRAWSURFACE * scr)
 
         }
 
-        xright = 12;
+        xright = 2*stknum_w;
     }
     else
-        xright = 6;
+        xright = stknum_w;
 
     level = halScreen.StkVisibleLvl;
     y = yend - halScreen.StkVisibleOffset;
 
     if(depth >= 10)
-        xright += 6;
+        xright += stknum_w;
     if(depth >= 100)
-        xright += 6;
+        xright += stknum_w;
     if(depth >= 1000)
-        xright += 6;
+        xright += stknum_w;
     if(depth >= 10000)
-        xright += 6;
+        xright += stknum_w;
 
     ggl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, 0);    // CLEAR RECTANGLE
 
@@ -543,7 +544,7 @@ void halRedrawStack(DRAWSURFACE * scr)
                         ggl_cliprect(scr, 0, ytop, xright - 1, y - 1,
                                 0x44444444);
                     if(level == halScreen.StkSelStart)
-                        DrawText(2, ytop, "▶", *levelfnt, 0xf, scr);
+                        DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], 0xf, scr);
                 }
                 else {
                     if((level >= halScreen.StkSelStart)
@@ -551,7 +552,7 @@ void halRedrawStack(DRAWSURFACE * scr)
                         ggl_cliprect(scr, 0, ytop, xright - 1, y - 1,
                                 0x44444444);
                     if(level == halScreen.StkSelStart)
-                        DrawText(2, ytop, "▶", *levelfnt, 0xf, scr);
+                        DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], 0xf, scr);
                 }
                 break;
             case 2:
@@ -560,29 +561,29 @@ void halRedrawStack(DRAWSURFACE * scr)
                         && (level <= halScreen.StkSelEnd))
                     ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, 0x44444444);
                 if(level == halScreen.StkSelStart)
-                    DrawText(2, ytop, "▶", *levelfnt, 0xf, scr);
+                    DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], 0xf, scr);
                 if(level == halScreen.StkSelEnd)
-                    DrawText(2, ytop, "▶", *levelfnt, 0xf, scr);
+                    DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], 0xf, scr);
                 break;
             }
 
             // DRAW THE POINTER
             if((level <= depth) && (level == halScreen.StkPointer))
-                DrawText(0, ytop, "▶", *levelfnt, 0xf, scr);
+                DrawText(0, ytop, "▶", *halScreen.FontArray[FONT_STACK], 0xf, scr);
             else if((level == 1) && (halScreen.StkPointer == 0))
                 DrawText(0, ytop + (*levelfnt)->BitmapHeight / 2, "▶",
-                        *levelfnt, 0xf, scr);
+                        *halScreen.FontArray[FONT_STACK], 0xf, scr);
             else if((level == depth) && (halScreen.StkPointer > depth))
                 DrawText(0, ytop - (*levelfnt)->BitmapHeight / 2 + 1, "▶",
-                        *levelfnt, 0xf, scr);
+                        *halScreen.FontArray[FONT_STACK], 0xf, scr);
         }
 
         if(level <= depth) {
             // DRAW THE NUMBER
             halInt2String(level, num);
-            numwidth = StringWidth(num, *levelfnt);
+            numwidth = StringWidth(num, *halScreen.FontArray[FONT_STACK]);
 
-            DrawText(xright - numwidth, ytop, num, *levelfnt, 0xf, scr);
+            DrawText(xright - numwidth, ytop, num, *halScreen.FontArray[FONT_STACK], 0xf, scr);
         }
 
         if(level <= depth) {
@@ -1528,7 +1529,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 
             else {
                 scr->clipx = halScreen.CursorX - halScreen.XVisible;
-                scr->clipx2 = scr->clipx + 8;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
+                scr->clipx2 = scr->clipx + (*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+4;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
                 if(scr->clipx2 >= SCREEN_WIDTH)
                     scr->clipx2 = SCREEN_WIDTH - 1;
 

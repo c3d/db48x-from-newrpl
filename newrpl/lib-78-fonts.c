@@ -181,10 +181,18 @@ ROMOBJECT fontplot_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fnt24_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('F', 'o', 'n', 't'),
+    TEXT2WORD('2', '4', 0, 0)
+};
+
+
+
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
 // SO IT'S NOT HARDWARE-INDEPENDENT, BUT THE NAMES OF THE FONTS SHOULD BE CONSISTENT
 
-#define NUMBER_OF_FONTS_IN_ROM 11
+#define NUMBER_OF_FONTS_IN_ROM 12
 #define START_ROMPTR_INDEX 4    // START OF THE ROM FONTS TABLE
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -220,6 +228,8 @@ const WORDPTR const ROMPTR_TABLE[] = {
     (WORDPTR) Font_8D,
     (WORDPTR) fnt10a_ident,
     (WORDPTR) Font_10A,
+    (WORDPTR) fnt24_ident,
+    (WORDPTR) Font_24,
 
     // OTHER ROM OBJECTS
 
@@ -267,6 +277,27 @@ WORDPTR rplGetSystemFont(WORDPTR ident)
 
     return 0;   // NOT FOUND
 }
+
+#define MABS(a) (((a)<0)? -(a):(a))
+
+// FIND THE CLOSEST MATCHING SYSTEM FONT FOR A GIVEN HEIGHT
+WORDPTR *rplGetSystemFontbyHeight(int height)
+{
+    int k;
+    int howclose=height;
+    UNIFONT *ptr;
+    WORDPTR *selection=0;
+
+    for(k = START_ROMPTR_INDEX;
+            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
+            ptr=(UNIFONT *)ROMPTR_TABLE[k + 1];
+            if(MABS(ptr->BitmapHeight-height)<howclose) { selection=(WORDPTR *) (ROMPTR_TABLE+ k + 1); howclose=MABS(ptr->BitmapHeight-height); }
+            if(!howclose) break;
+    }
+
+    return selection;
+}
+
 
 // FIND A FONT NAME BY OBJECT
 WORDPTR rplGetSystemFontName(WORDPTR font)
@@ -546,17 +577,17 @@ void rplUpdateFontArray(WORDPTR ** fontarray)
 {
     // FILL THE ARRAY WITH ROM DEFAULTS - COORDINATE THE OFFSETS WITH THE ROMPTR_TABLE
     fontarray[FONT_STACK] =
-            (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 17);
+            rplGetSystemFontbyHeight(DEF_FNTSTK_HEIGHT);
     fontarray[FONT_STACKLVL1] =
-            (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 17);
+            rplGetSystemFontbyHeight(DEF_FNT1STK_HEIGHT);
     fontarray[FONT_CMDLINE] =
-            (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 17);
-    fontarray[FONT_MENU] = (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 7);
+            rplGetSystemFontbyHeight(DEF_FNTCMDL_HEIGHT);
+    fontarray[FONT_MENU] = rplGetSystemFontbyHeight(DEF_FNTMENU_HEIGHT);
     fontarray[FONT_STATUS] =
-            (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 7);
-    fontarray[FONT_PLOT] = (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 7);
+           rplGetSystemFontbyHeight(DEF_FNTSTAT_HEIGHT);
+    fontarray[FONT_PLOT] = rplGetSystemFontbyHeight(DEF_FNTPLOT_HEIGHT);
     fontarray[FONT_FORMS] =
-            (WORDPTR *) ROMPTR_TABLE + (START_ROMPTR_INDEX + 17);
+            rplGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
 
     WORDPTR *var;
     if(!ISDIR(*SettingsDir))

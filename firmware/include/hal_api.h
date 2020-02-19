@@ -1014,6 +1014,7 @@ extern const unsigned int Font_8B[];
 extern const unsigned int Font_8C[];
 extern const unsigned int Font_8D[];
 extern const unsigned int Font_10A[];
+extern const unsigned int Font_24[];
 
 //const unsigned int System5Font[];
 //const unsigned int System6Font[];
