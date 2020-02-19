@@ -241,7 +241,9 @@ SOURCES +=\
     newrpl/lib-104-solvers.c \
     newrpl/lib-55-constants.c \
     newrpl/lib-4081-tags.c \
-    newrpl/lib-112-asm.c
+    newrpl/lib-112-asm.c \
+    firmware/sys/Font24.c
+
 
 
 HEADERS  += \
