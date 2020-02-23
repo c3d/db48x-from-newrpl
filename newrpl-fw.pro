@@ -87,6 +87,7 @@ SOURCES +=\
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
     firmware/sys/Font10A.c \
+    firmware/sys/Font24.c \
     firmware/sys/target_50g/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
