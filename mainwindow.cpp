@@ -552,7 +552,7 @@ void MainWindow::on_actionOpen_triggered()
     QString path = getDocumentsLocation();
 
     QString fname = QFileDialog::getOpenFileName(this, "Open File Name", path,
-            "newRPL Backups (*.nrpb *.* *)");
+            "newRPL Backups (*.nrpb *.* *)",nullptr,QFileDialog::DontUseNativeDialog);
 
     if(!OpenFile(fname)) {
         if(!rpl.isRunning()) {
@@ -842,7 +842,7 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
     QString path = getDocumentsLocation();
 
     QString fname = QFileDialog::getOpenFileName(this, "Select File Name", path,
-            "newRPL objects (*.nrpl *.* *)");
+            "newRPL objects (*.nrpl *.* *)",nullptr,QFileDialog::DontUseNativeDialog);
 
     if(!fname.isEmpty()) {
         if(!rpl.isRunning())
@@ -1113,7 +1113,7 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
     QString path = getDocumentsLocation();
 
     QString fname = QFileDialog::getOpenFileName(this, "Open File Name", path,
-            "newRPL Backups (*.nrpb *.* *)");
+            "newRPL Backups (*.nrpb *.* *)",nullptr,QFileDialog::DontUseNativeDialog);
 
     if(!fname.isEmpty()) {
         QFile file(fname);
