@@ -14,7 +14,11 @@
 #ifdef TARGET_40GS
 #include <target_40gs.h>
 #else
+#ifdef TARGET_PRIME1
+#include <target_prime1.h>
+#else
 #include <target_50g.h>
+#endif
 #endif
 #endif
 #endif
