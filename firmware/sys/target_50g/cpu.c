@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-extern unsigned int __saveint;
+unsigned int __saveint __SYSTEM_GLOBAL__;
 
 void cpu_intoff()
 {
