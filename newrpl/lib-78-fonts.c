@@ -338,7 +338,7 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
     if(oldlist) {
         WORDPTR endoldlst = rplSkipOb(oldlist);
         WORDPTR font, fontname;
-        WORDPTR fntid[7] = {
+        WORDPTR fntid[FONTS_NUM] = {
             (WORDPTR) fontstack_ident,
             (WORDPTR) fontstack1_ident,
             (WORDPTR) fontcmdline_ident,
@@ -349,7 +349,7 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
         };
 
         int k;
-        for(k = 0; k < 7; ++k) {
+        for(k = 0; k < FONTS_NUM; ++k) {
             font = rplGetSettings(fntid[k]);
             if((font >= oldlist) && (font < endoldlst)) {
                 // MOVE THIS FONT TO THE NEW LIST
@@ -571,7 +571,7 @@ void rplPurgeSystemFont(WORDPTR ident)
 
 }
 
-// UPDATE AN ARRAY WITH ALL 7 FONT POINTERS
+// UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
 // NEEDS TO BE FAST
 void rplUpdateFontArray(WORDPTR ** fontarray)
 {
