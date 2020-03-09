@@ -581,9 +581,9 @@ void halRedrawStack(DRAWSURFACE * scr)
         if(level <= depth) {
             // DRAW THE NUMBER
             halInt2String(level, num);
-            numwidth = StringWidth(num, *levelfnt);
+            numwidth = StringWidth(num, *halScreen.FontArray[FONT_STACK]);
 
-            DrawText(xright - numwidth, ytop, num, *levelfnt, 0xf, scr);
+            DrawText(xright - numwidth, ytop, num,  *halScreen.FontArray[FONT_STACK], 0xf, scr);
         }
 
         if(level <= depth) {
