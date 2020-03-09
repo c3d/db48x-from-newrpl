@@ -9,7 +9,6 @@
 
 // IRQ AND CPU LOW LEVEL
 unsigned int irq_table[32] __SYSTEM_GLOBAL__;
-unsigned int __saveint __SYSTEM_GLOBAL__;
 
 __ARM_MODE__ void __irq_dummy(void)
 {

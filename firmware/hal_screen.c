@@ -581,9 +581,9 @@ void halRedrawStack(DRAWSURFACE * scr)
         if(level <= depth) {
             // DRAW THE NUMBER
             halInt2String(level, num);
-            numwidth = StringWidth(num, *halScreen.FontArray[FONT_STACK]);
+            numwidth = StringWidth(num, *levelfnt);
 
-            DrawText(xright - numwidth, ytop, num, *halScreen.FontArray[FONT_STACK], 0xf, scr);
+            DrawText(xright - numwidth, ytop, num, *levelfnt, 0xf, scr);
         }
 
         if(level <= depth) {
@@ -632,7 +632,7 @@ void halInitScreen()
 
     rplUpdateFontArray((WORDPTR **) halScreen.FontArray);
     int k;
-    for(k = 0; k < 7; ++k)
+    for(k = 0; k < FONTS_NUM; ++k)
         halScreen.FontHash[k] = 0;
 
     halFlags = 0;
@@ -1623,12 +1623,12 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 // GET NEW FONT DATA FROM THE RPL ENVIRONMENT
 void halUpdateFonts()
 {
-    UNIFONT **tmparray[7];
+    UNIFONT **tmparray[FONTS_NUM];
     WORD hash;
     rplUpdateFontArray((WORDPTR **) tmparray);
 
     int f;
-    for(f = 0; f < 7; ++f) {
+    for(f = 0; f < FONTS_NUM; ++f) {
         // COMPUTE THE HASH OF THE FONT
         hash = OPCODE((*tmparray[f])->Prolog) | (((*tmparray[f])->
                     BitmapHeight) << 20);

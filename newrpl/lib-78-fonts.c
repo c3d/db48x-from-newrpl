@@ -338,7 +338,7 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
     if(oldlist) {
         WORDPTR endoldlst = rplSkipOb(oldlist);
         WORDPTR font, fontname;
-        WORDPTR fntid[7] = {
+        WORDPTR fntid[FONTS_NUM] = {
             (WORDPTR) fontstack_ident,
             (WORDPTR) fontstack1_ident,
             (WORDPTR) fontcmdline_ident,
@@ -349,7 +349,7 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
         };
 
         int k;
-        for(k = 0; k < 7; ++k) {
+        for(k = 0; k < FONTS_NUM; ++k) {
             font = rplGetSettings(fntid[k]);
             if((font >= oldlist) && (font < endoldlst)) {
                 // MOVE THIS FONT TO THE NEW LIST
@@ -571,23 +571,17 @@ void rplPurgeSystemFont(WORDPTR ident)
 
 }
 
-// UPDATE AN ARRAY WITH ALL 7 FONT POINTERS
+// UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
 // NEEDS TO BE FAST
 void rplUpdateFontArray(WORDPTR ** fontarray)
 {
-    // FILL THE ARRAY WITH ROM DEFAULTS - COORDINATE THE OFFSETS WITH THE ROMPTR_TABLE
-    fontarray[FONT_STACK] =
-            rplGetSystemFontbyHeight(DEF_FNTSTK_HEIGHT);
-    fontarray[FONT_STACKLVL1] =
-            rplGetSystemFontbyHeight(DEF_FNT1STK_HEIGHT);
-    fontarray[FONT_CMDLINE] =
-            rplGetSystemFontbyHeight(DEF_FNTCMDL_HEIGHT);
-    fontarray[FONT_MENU] = rplGetSystemFontbyHeight(DEF_FNTMENU_HEIGHT);
-    fontarray[FONT_STATUS] =
-           rplGetSystemFontbyHeight(DEF_FNTSTAT_HEIGHT);
-    fontarray[FONT_PLOT] = rplGetSystemFontbyHeight(DEF_FNTPLOT_HEIGHT);
-    fontarray[FONT_FORMS] =
-            rplGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
+    // SET ALL POINTERS TO 0
+
+    for (int i = 0; i < FONTS_NUM; ++i) {
+        fontarray[i] = 0;
+    }
+
+    // SET CONFIGURED FONTS
 
     WORDPTR *var;
     if(!ISDIR(*SettingsDir))
@@ -627,6 +621,36 @@ void rplUpdateFontArray(WORDPTR ** fontarray)
 
         var = rplFindNext(var);
     }
+
+    // UNCONFIGURED FONTS GET DEFAULTS
+
+    if (fontarray[FONT_STACK] == 0) {
+        fontarray[FONT_STACK] =
+                rplGetSystemFontbyHeight(DEF_FNTSTK_HEIGHT);
+    }
+    if (fontarray[FONT_STACKLVL1] == 0) {
+        fontarray[FONT_STACKLVL1] =
+                rplGetSystemFontbyHeight(DEF_FNT1STK_HEIGHT);
+    }
+    if (fontarray[FONT_CMDLINE] == 0) {
+        fontarray[FONT_CMDLINE] =
+                rplGetSystemFontbyHeight(DEF_FNTCMDL_HEIGHT);
+    }
+    if (fontarray[FONT_MENU] == 0) {
+        fontarray[FONT_MENU] = rplGetSystemFontbyHeight(DEF_FNTMENU_HEIGHT);
+    }
+    if (fontarray[FONT_STATUS] == 0) {
+        fontarray[FONT_STATUS] =
+               rplGetSystemFontbyHeight(DEF_FNTSTAT_HEIGHT);
+    }
+    if (fontarray[FONT_PLOT] == 0) {
+        fontarray[FONT_PLOT] = rplGetSystemFontbyHeight(DEF_FNTPLOT_HEIGHT);
+    }
+    if (fontarray[FONT_FORMS] == 0) {
+        fontarray[FONT_FORMS] =
+                rplGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
+    }
+
     return;
 }
 

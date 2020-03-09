@@ -224,7 +224,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/lib-55-constants.c \
     newrpl/lib-4081-tags.c \
     newrpl/lib-112-asm.c \
-    firmware/sys/target_pc/fwupdate.c
+    firmware/sys/target_pc/fwupdate.c \
+    firmware/sys/Font24.c
 
 
 

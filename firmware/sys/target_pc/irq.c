@@ -5,12 +5,6 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-// IRQ AND CPU LOW LEVEL
-
-// NOT NEEDED FOR NOW
-
-unsigned int __saveint;
-
 void usb_mutex_lock_implementation(void);
 void usb_mutex_unlock_implementation(void);
 

@@ -334,7 +334,7 @@ win32: LIBS += -lsetupapi
 
 android: SOURCES += external/hidapi/libusb/hid.c
 android: INCLUDEPATH += external/libusb-1.0.22/libusb/
-android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a -lusb1.0
+android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a -L$$PWD/external/libusb-1.0.22/android/libs/x86 -lusb1.0
 
 freebsd: SOURCES += external/hidapi/libusb/hid.c
 freebsd: LIBS += -lusb -lthr -liconv
@@ -346,11 +346,6 @@ macx: SOURCES += external/hidapi/mac/hid.c
 macx: LIBS += -framework CoreFoundation -framework IOKit
 
 # End of HIDAPI
-
-contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
-    ANDROID_EXTRA_LIBS = \
-        $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
-}
 
 DISTFILES += \
     android/AndroidManifest.xml \
@@ -376,5 +371,7 @@ DISTFILES += \
     android/gradlew.bat
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+ANDROID_EXTRA_LIBS = $$PWD/external/libusb-1.0.22/android/libs/x86/libusb1.0.so $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
 
 
