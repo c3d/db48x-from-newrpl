@@ -1949,7 +1949,7 @@ __ARM_MODE__ void ram_startfwupdate()
     // EVERYTHING IS NOW IN RAM
 
     // DISABLE ALL INTERRUPTS
-    cpu_intoff();
+    __cpu_intoff();
     // MAKE SURE THE CODE WAS COPIED TO RAM BEFORE WE EXECUTE IT
     cpu_flushwritebuffers();
 
