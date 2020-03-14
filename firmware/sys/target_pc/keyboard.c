@@ -10,8 +10,8 @@
 
 void thread_processevents();    // ONLY NEEDED TO AVOID LOCKING IN MULTITHREADED ENVIRONMENTS
 
-unsigned int __cpu_intoff();
-void __cpu_inton(unsigned int);
+INTERRUPT_TYPE __cpu_intoff();
+void __cpu_inton(INTERRUPT_TYPE state);
 void __tmr_eventreschedule();
 
 void __keyb_update();
@@ -47,7 +47,7 @@ keymatrix __keyb_getmatrix()
 
 keymatrix __keyb_getmatrixEX()
 {
-    unsigned int saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = __cpu_intoff();
     keymatrix m = __keyb_getmatrix();
     thread_processevents();
     __cpu_inton(saved);

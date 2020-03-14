@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-unsigned int __saveint __SYSTEM_GLOBAL__;
+INTERRUPT_TYPE __saveint __SYSTEM_GLOBAL__;
 
 void cpu_intoff()
 {
@@ -23,10 +23,10 @@ void cpu_intoff()
 
 // LOW-LEVEL VERSION, RETURN PREVIOUS STATE
 // USED BY THE EXCEPTION HANDLERS
-unsigned int __cpu_intoff()
+INTERRUPT_TYPE __cpu_intoff()
 {
     //ARM ints off
-    unsigned int previous = *INTMSK;
+    INTERRUPT_TYPE previous = *INTMSK;
     *INTMSK = 0xffffffff;       //mask all interrupts
     return previous;
 }
@@ -41,7 +41,7 @@ void cpu_inton()
 
 // LOW-LEVEL VERSION USED BY THE EXCEPTION HANDLERS
 // RESTORES A PREVIOUSLY SAVED INTERRUPT STATE
-void __cpu_inton(unsigned int state)
+void __cpu_inton(INTERRUPT_TYPE state)
 {
     //ARM ints on
 

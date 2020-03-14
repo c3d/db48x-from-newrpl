@@ -80,6 +80,6 @@ extern int __usb_timeout;
 extern char PhysicalScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
 extern char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
 
-
+typedef unsigned int INTERRUPT_TYPE;
 
 #endif // TARGET_PC_H

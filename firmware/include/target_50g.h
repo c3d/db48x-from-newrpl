@@ -241,4 +241,6 @@
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
+typedef unsigned int INTERRUPT_TYPE;
+
 #endif // TARGET_50G_H

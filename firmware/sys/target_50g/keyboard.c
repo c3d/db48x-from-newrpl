@@ -7,8 +7,8 @@
 
 #include <ui.h>
 
-extern unsigned int __cpu_intoff();
-extern void __cpu_inton(unsigned int);
+extern INTERRUPT_TYPE __cpu_intoff();
+extern void __cpu_inton(INTERRUPT_TYPE state);
 extern void __tmr_eventreschedule();
 
 extern void __keyb_update();
@@ -127,7 +127,7 @@ keymatrix __keyb_getmatrix()
 
 keymatrix __keyb_getmatrixEX()
 {
-    unsigned int saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = __cpu_intoff();
     keymatrix m = __keyb_getmatrix();
     __cpu_inton(saved);
     return m;

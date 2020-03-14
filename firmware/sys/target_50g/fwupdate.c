@@ -9,6 +9,8 @@
 #include <libraries.h>
 #include <ui.h>
 
+INTERRUPT_TYPE __cpu_intoff();
+
 // OTHER EXTERNAL FUNCTIONS NEEDED
 extern int __cpu_getPCLK();
 

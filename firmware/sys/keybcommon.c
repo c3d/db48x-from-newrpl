@@ -8,8 +8,8 @@
 #include <newrpl.h>
 #include <ui.h>
 
-unsigned int __cpu_intoff();
-void __cpu_inton(unsigned int);
+INTERRUPT_TYPE __cpu_intoff();
+void __cpu_inton(INTERRUPT_TYPE state);
 void __tmr_eventreschedule();
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES

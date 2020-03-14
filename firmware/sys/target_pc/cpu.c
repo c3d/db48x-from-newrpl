@@ -7,8 +7,8 @@
 
 #include <ui.h>
 
-unsigned int cpu_state;
-unsigned int __saveint;
+INTERRUPT_TYPE cpu_state;
+INTERRUPT_TYPE __saveint;
 volatile unsigned int __cpu_idle;
 
 enum
@@ -25,10 +25,10 @@ void cpu_intoff()
     cpu_state |= CPU_INTMASKED;
 }
 
-unsigned int __cpu_intoff()
+INTERRUPT_TYPE __cpu_intoff()
 {
     //ARM ints off
-    unsigned int previous = cpu_state;
+    INTERRUPT_TYPE previous = cpu_state;
     cpu_state |= CPU_INTMASKED;
     return previous;
 }
@@ -41,7 +41,7 @@ void cpu_inton()
 
 // LOW-LEVEL VERSION USED BY THE EXCEPTION HANDLERS
 // RESTORES A PREVIOUSLY SAVED INTERRUPT STATE
-void __cpu_inton(unsigned int state)
+void __cpu_inton(INTERRUPT_TYPE state)
 {
     cpu_state = state;
 }

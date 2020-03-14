@@ -9,12 +9,12 @@
 #include <ui.h>
 #include <libraries.h>
 
-extern unsigned int __cpu_intoff();
-extern void __cpu_inton(unsigned int);
+extern INTERRUPT_TYPE __cpu_intoff();
+extern void __cpu_inton(INTERRUPT_TYPE);
 
 void halCPUSlowMode()
 {
-    unsigned int saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = __cpu_intoff();
     if(usb_isconnected())
         cpu_setspeed(HAL_USBCLOCK);
     else
@@ -24,7 +24,7 @@ void halCPUSlowMode()
 
 void halCPUFastMode()
 {
-    unsigned int saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = __cpu_intoff();
     cpu_setspeed(HAL_FASTCLOCK);
     __cpu_inton(saved);
 }
