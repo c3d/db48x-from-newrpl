@@ -8,6 +8,13 @@
 #ifndef DECIMAL_H
 #define DECIMAL_H
 
+#include "newrpl_types.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // CONSTANTS COMMENTED OUT ARE DEFINED BY THE RPL CORE
 // TO USE THE LIBRARY AS STAND-ALONE, THEY ARE REQUIRED.
 
@@ -44,12 +51,6 @@ extern void sub_long_mul_shift_arm(BINT * result, BINT * n1start, BINT nwords,
         BINT shift_mul);
 #endif
 
-/*
-typedef int BINT;
-typedef long long BINT64;
-typedef unsigned int WORD;
-typedef unsigned long long UBINT64;
-*/
 typedef union
 {
     UBINT64 w;
@@ -120,8 +121,6 @@ enum RealErrors
 // *************************************************************************
 // ************* LOW LEVEL API FOR DECIMAL LIBRARY ************************
 // *************************************************************************
-
-extern CONTEXT Context;
 
 void initContext(WORD precision);
 
@@ -480,5 +479,9 @@ BINT formatlengthReal(REAL * number, BINT format, UBINT64 locale);
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************
 // *************************************************************************
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DECIMAL_H

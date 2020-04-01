@@ -72,7 +72,6 @@ SOURCES += main.cpp \
 HEADERS += \
     libraries.h \
     newrpl.h \
-    hal.h \
     sysvars.h \
     contrib/mpdecimal-2.4.0/libmpdec/basearith.h \
     contrib/mpdecimal-2.4.0/libmpdec/bits.h \

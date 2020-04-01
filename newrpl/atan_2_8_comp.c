@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <ui.h>
+#include <stdint.h>
 
 #ifndef CONFIG_LIGHT_MATH_TABLES
 

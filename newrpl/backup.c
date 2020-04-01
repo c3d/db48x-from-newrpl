@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+#include "newrpl.h"
+#include "sysvars.h"
 
 // CONVERT A POINTER INTO A ROMPTR ID
 // IF IT FAILS, RETURNS 0

@@ -6,7 +6,6 @@
 */
 
 #ifndef _FSYSTEM_H
-
 #define _FSYSTEM_H
 
 // FILE SYSTEM PUBLIC HEADER FILE
@@ -27,6 +26,8 @@
  *
  * For a detailed reference of each function see \ref fsystem.h
  */
+
+#include "hal_api.h"
 
 // CONSTANTS
 

@@ -15,8 +15,6 @@
 // ************* LOW LEVEL API FOR DECIMAL LIBRARY ************************
 // *************************************************************************
 
-extern CONTEXT Context;
-
 void initContext(WORD precision)
 {
     if(precision > REAL_PRECISION_MAX)

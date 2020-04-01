@@ -5,8 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
 #include "libraries.h"
+#include "newrpl.h"
 
 // THIS MODULE ORGANIZES THE NUMERIC SOLVERS
 

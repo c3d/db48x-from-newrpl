@@ -5,8 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include "cmdcodes.h"
 #include "libraries.h"
-#include "newrpl.h"
+#include "ui.h"
 
 // FAST MACRO TO GET A POINTER TO AN ELEMENT
 // INTERNAL USE ONLY

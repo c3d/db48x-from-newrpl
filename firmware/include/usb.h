@@ -8,6 +8,8 @@
 #ifndef USB_H
 #define USB_H
 
+#include "newrpl_types.h"
+
 // These 4 numbers identify your device.  Set these to
 // something that is (hopefully) not used by any others!
 #define VENDOR_ID		0x3f0

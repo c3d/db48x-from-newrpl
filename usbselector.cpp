@@ -7,7 +7,6 @@
 #include <QFileDialog>
 #include <QCloseEvent>
 
-//#include "string.h"
 #include "hidapi.h"
 #include "usbselector.h"
 #include "ui_usbselector.h"
@@ -20,8 +19,10 @@
 
 extern "C"
 {
-#include "newrpl.h"
+#include "cmdcodes.h"
+#include "hal_api.h"
 #include "libraries.h"
+#include "newrpl.h"
 
     extern hid_device *__usb_curdevice;
     extern char __usb_devicepath[8192];

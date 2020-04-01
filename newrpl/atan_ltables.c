@@ -1,4 +1,4 @@
-#include "newrpl.h"
+#include "newrpl_types.h"
 
 #define ATAN_TABLES_LEN 252
 #define ATAN_TABLES_PASSES 7

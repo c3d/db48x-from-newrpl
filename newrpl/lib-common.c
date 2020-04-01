@@ -5,9 +5,10 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
 #include "libraries.h"
-#include "hal.h"
+#include "newrpl.h"
+#include "utf8lib.h"
 
 // STANDARD COMPILER FOR COMMAND TOKENS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS

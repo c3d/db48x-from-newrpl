@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
 #include "libraries.h"
 #include "ui.h"
 
@@ -266,7 +266,11 @@ int main(int argc, char *argv[])
     }
     else {
         fprintf(f, "// newRPL binary version 1.0\n\n");
-        fprintf(f, "#include \"libraries.h\"\n\n");
+        fprintf(f, "#include \"cmdcodes.h\"\n");
+        fprintf(f, "#include \"libraries.h\"\n");
+        fprintf(f, "#include \"newrpl.h\"\n");
+        fprintf(f, "#include \"firmware.h\"\n\n");
+
     }
 
     // COMPILE ALL CHUNKS

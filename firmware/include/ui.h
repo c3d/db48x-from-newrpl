@@ -8,40 +8,16 @@
 #ifndef UI_H
 #define UI_H
 
+#include <newrpl.h>
+#include <utf8lib.h>
+#include <hal_api.h>
+
 #define UNUSED_ARGUMENT(a) (void)(a)
-
-#ifndef NEWRPL_H
-// DEFINE COMMON TYPES
-#include <stdint.h>
-
-typedef uint16_t HALFWORD;
-typedef uint32_t WORD;
-typedef uint8_t BYTE;
-typedef WORD *WORDPTR;
-typedef BYTE *BYTEPTR;
-typedef int32_t BINT;
-typedef uint32_t UBINT;
-typedef int64_t BINT64;
-typedef uint64_t UBINT64;
-#if defined(__LP64__) || defined(_WIN64)
-typedef uint64_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)(a)))
-#else
-typedef uint32_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)(a))
-#endif
-
-#endif
 
 // HERE'S THE LANGUAGE OF THE ROM
 // CHANGE THIS FOR OTHER LANGUAGES
 // ONLY THE MATCHING LANGUAGE WILL BE COMPILED AND INCLUDED
 #define UI_LANG_ENGLISH 1
-
-#include <ggl.h>
-#include <utf8lib.h>
-#include <firmware.h>
-#include <hal_api.h>
 
 // CONSTANTS THAT DEFINE THE LOOK OF THE USER INTERFACE
 #define STATUSAREA_X  (66*SCREEN_WIDTH)/131
@@ -56,8 +32,6 @@ typedef uint32_t PTR2NUMBER;
 #define DEF_FNTPLOT_HEIGHT DEF_FNTSTK_HEIGHT
 #define DEF_FNTMENU_HEIGHT (SCREEN_HEIGHT/13)
 #define DEF_FNTSTAT_HEIGHT DEF_FNTMENU_HEIGHT
-
-
 
 // COMMAND LINE
 

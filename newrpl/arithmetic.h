@@ -8,6 +8,9 @@
 #ifndef ARITHMETIC_H
 #define ARITHMETIC_H
 
+#include "decimal.h"
+#include "newrpl_types.h"
+
 // INTERNAL TRANSCENDENTAL FUNCTIONS
 
 void decconst_PI(REAL * real);

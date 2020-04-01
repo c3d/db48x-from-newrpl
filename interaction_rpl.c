@@ -9,7 +9,7 @@
 #endif
 #define WORD _WORD
 
-#include <newrpl.h>
+#include <cmdcodes.h>
 #include <libraries.h>
 #include <ui.h>
 

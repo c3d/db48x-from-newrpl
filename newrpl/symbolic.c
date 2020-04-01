@@ -5,8 +5,11 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
+#include "hal_api.h"
 #include "libraries.h"
+#include "newrpl.h"
+#include "sysvars.h"
 
 // GLOBAL SUPPORT FUNCTIONS FOR SYMBOLICS
 #define num_max(a,b) ((a)>(b)? (a):(b))

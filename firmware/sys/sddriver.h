@@ -7,6 +7,8 @@
 #ifndef _SDDRIVER_H
 #define _SDDRIVER_H
 
+#include <stdint.h>
+
 #ifndef TRUE
 #define TRUE    1
 #endif

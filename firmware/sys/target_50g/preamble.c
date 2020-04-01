@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <ui.h>
+#include "target_50g.h"
 
 char kinpo_preamble[16] __attribute__((section(".preamble")))
         = PREAMBLE_STRING;

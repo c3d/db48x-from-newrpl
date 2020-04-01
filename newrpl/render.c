@@ -9,7 +9,7 @@
 // ALL MATH USES fastmath.c 40.24 FIXED POINT
 
 #include "newrpl.h"
-#include "ui.h"
+#include "hal_api.h"
 #include "render.h"
 
 // EVALUATE A CUBIC BEZIER FOR THE PARAMETER t (0 TO 1)

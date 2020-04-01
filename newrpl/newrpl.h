@@ -8,106 +8,23 @@
 #ifndef NEWRPL_H
 #define NEWRPL_H
 
-#include <stdint.h>
+#include "newrpl_types.h"
+#include <firmware.h>
+#include "utf8lib.h"
+#include "arithmetic.h"
+#include "decimal.h"
+#include "fastmath.h"
+#include "sysvars.h"
 
 // BUILD SYSTEM PROVIDES NEWRPL_BUILDNUM MACRO WITH THE COMMIT NUMBER
 
 // EXTERNAL API FOR THE NEWRPL MACHINE - TO BE USED ONLY BY USER LIBRARIES
 // BASIC CONSTANTS AND TYPE DEFINITIONS FOR THE RUN ENVIRONMENT
 
-typedef void (*LIBHANDLER)(void);
-
-typedef uint16_t HALFWORD;
-typedef uint32_t WORD;
-typedef uint8_t BYTE;
-typedef WORD *WORDPTR;
-typedef BYTE *BYTEPTR;
-typedef int32_t BINT;
-typedef uint32_t UBINT;
-typedef int64_t BINT64;
-typedef uint64_t UBINT64;
-#if (defined(__LP64__) || defined(_WIN64)) && !defined(TARGET_50G)
-typedef uint64_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)(a)))
-#else
-typedef uint32_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)((WORD)(a)))
-#endif
-
-#ifndef FIRMWARE_H
-#include <firmware.h>
-#endif
-
-#ifndef UTF8LIB_H
-#include "utf8lib.h"
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-// CONSTANTS THAT CONTROL THE MAIN RPL ENGINE
-
-// NUMBER OF STATIC REGISTERS FOR FAST HANDLING OF REAL NUMBERS
-#define REAL_REGISTERS 10
-// NUMBER OF SIMULTANEOUS CONVERSIONS OF BINT TO REALS THAT CAN BE DONE
-#define BINT2REAL      16
-
-// MAXIMUM PRECISION ALLOWED IN THE SYSTEM
-// MAKE SURE REAL_SCRATCHMEM CAN HAVE AT LEAST "REAL_REGISTERS*PRECISION_MAX*2/9" WORDS
-// WARNING: THIS CONSTANT CANNOT BE CHANGED UNLESS ALL PRECOMPUTED CONSTANT TABLES ARE CHANGED ACCORDINGLY
-#define REAL_PRECISION_MAX 2016
-#define MAX_USERPRECISION  2000
-
-// SCRATCHPAD MEMORY TO ALLOCATE DIGITS FOR ARBITRARY PRECISION TEMP RESULTS
-// THIS IS THE NUMBER OF WORDS, EACH GOOD FOR 8 DIGITS.
-// THIS AREA WILL ALSO BE SHARED WITH THE FILE SYSTEM, SO MAKE SURE
-// REAL_REGISTER_STORAGE HAS AT LEAST 512 BYTES TO STORE ONE SECTOR
-
-#define REAL_REGISTER_STORAGE ((REAL_PRECISION_MAX*3)/8+3)
-#define BINT_REGISTER_STORAGE  3
-#define EXTRA_STORAGE BINT2REAL*BINT_REGISTER_STORAGE
-
-// DEFINE THE LIMITS FOR THE EXPONENT RANGE FOR ALL REALS
-// NOTE: THIS HAS TO FIT WITHIN THE FIELDS OF REAL_HEADER
-#define REAL_EXPONENT_MAX   30000
-#define REAL_EXPONENT_MIN   -30000
-
-#ifndef DECIMAL_H
-#include "decimal.h"
-#endif
-
-#ifndef FASTMATH_H
-#include "fastmath.h"
-#endif
-
-// HIGH LIBRARIES ARE USER LIBRARIES, SLOWER TO EXECUTE
-// LOW LIBRARIES ARE SYSTEM LIBRARIES, WITH FASTER EXECUTION
-#define MAXHILIBS 256
-#define MAXLOWLIBS 256
-#define MAXSYSHILIBS 16
-#define MAXLIBNUMBER 4095
-// NUMBER OF SCRATCH POINTERS
-#define MAX_GC_PTRUPDATE 38
-
-// MINIMUM GUARANTEED STACK LEVELS FOR MEMORY ALLOCATION
-#define DSTKSLACK   16
-// MINIMUM GUARANTEED STACK LEVELS IN RETURN STACK
-#define RSTKSLACK   16
-// MINIMUM GUARANTEED STACK LEVELS IN LAM STACK
-#define LAMSLACK   16
-// MINIMUM GUARANTEED SPACE IN TEMPOB FOR LOWMEM CONDITIONS (IN 32-BIT WORDS)
-#define TEMPOBSLACK 32
-// MINIMUM GUARANTEED SPACE IN TEMPOB FOR NORMAL OPERATION (IN 32-BIT WORDS)
-#define TEMPOBLARGESLACK 128
-// MINIMUM GUARANTEED SPACE IN TEMPBLOCKS (IN 32-BIT WORDS)
-#define TEMPBLOCKSLACK 16
-
-// MINIMUM GUARANTEED STACK LEVELS IN DIRECTORY STACK
-#define DIRSLACK   16
-
-#include "sysvars.h"
 
 // FORMATTING FOR NUMBERS
     typedef struct
@@ -131,24 +48,24 @@ extern "C"
     } REAL_HEADER;
 
 // COMPACT TIME STRUCTURE - 32 BITS.
-    struct time
-    {
-        unsigned sec:6, // seconds after the minute 0-59
-            min:6,      // minutes after the hour   0-59
-            hour:5,     // hours since midnight     0-23
-            isdst:1,    // daylight saving time flag
-        :   14; // to pad up to 32 bits
-    };
+struct time
+{
+    unsigned sec:6, // seconds after the minute 0-59
+        min:6,      // minutes after the hour   0-59
+        hour:5,     // hours since midnight     0-23
+        isdst:1,    // daylight saving time flag
+    :   14; // to pad up to 32 bits
+};
 
 // COMPACT DATE STRUCTURE - 32 BITS.
-    struct date
-    {
-        unsigned mday:5,        // day of the month     1-31
-            mon:4,      // months since January     1-12
-            wday:3,     // days since Monday        1-7
-            year:14,    // years                1582-9999
-        :   6;  // to pad up to 32 bits
-    };
+struct date
+{
+    unsigned mday:5,        // day of the month     1-31
+        mon:4,      // months since January     1-12
+        wday:3,     // days since Monday        1-7
+        year:14,    // years                1582-9999
+    :   6;  // to pad up to 32 bits
+};
 
 #define TIME_MAXSEC  ((1 <<  6) - 1)
 #define TIME_MAXMIN  ((1 <<  6) - 1)
@@ -975,7 +892,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
-#include "arithmetic.h"
 
 #endif // NEWRPL_H

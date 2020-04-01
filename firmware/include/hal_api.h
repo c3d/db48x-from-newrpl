@@ -8,6 +8,10 @@
 #ifndef _HAL_API_H
 #define _HAL_API_H
 
+#include "newrpl.h"
+#include "ggl.h"
+#include "usb.h"
+
 #ifndef EXTERN
 #define EXTERN extern
 #endif
@@ -42,39 +46,7 @@ struct compact_tm
         tm_wday:3,      //days since Sunday     0-6
         tm_isdst:1;
     int tm_year;        //int     years since 1900
-
 };
-
-#ifndef NEWRPL_H
-
-// COMPACT TIME STRUCTURE - 32 BITS.
-struct time
-{
-    unsigned sec:6,     // seconds after the minute 0-59
-        min:6,  // minutes after the hour   0-59
-        hour:5, // hours since midnight     0-23
-        isdst:1,        // daylight saving time flag
-    :   14;     // to pad up to 32 bits
-};
-
-// COMPACT DATE STRUCTURE - 32 BITS.
-struct date
-{
-    unsigned mday:5,    // day of the month     1-31
-        mon:4,  // months since January     1-12
-        wday:3, // days since Monday        1-7
-        year:14,        // years                1582-9999
-    :   6;      // to pad up to 32 bits
-};
-
-#define TIME_MAXSEC  ((1 <<  6) - 1)
-#define TIME_MAXMIN  ((1 <<  6) - 1)
-#define TIME_MAXHOUR ((1 <<  5) - 1)
-#define DATE_MAXDAY  ((1 <<  5) - 1)
-#define DATE_MAXMON  ((1 <<  4) - 1)
-#define DATE_MAXYEAR ((1 << 14) - 1)
-
-#endif
 
 typedef gglsurface DRAWSURFACE;
 
@@ -236,7 +208,6 @@ enum
 
 typedef void (*__interrupt__)(void);
 
-// THIS ENUM MUST BE DUPLICATED EXACTLY IN hal.h OF THE NEWRPL-BASE PROJECT
 enum
 {
     MEM_AREA_RSTK = 0,
@@ -1266,5 +1237,4 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT ** font);
 WORDPTR uiRenderObject(WORDPTR object, UNIFONT ** font);
 void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr);
 
-#include <fsystem.h>
 #endif

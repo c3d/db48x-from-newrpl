@@ -5,8 +5,11 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include "cmdcodes.h"
+#include "hal_api.h"
 #include "libraries.h"
 #include "newrpl.h"
+#include "sysvars.h"
 
 #define ENDLIST 0       // NOTE: COORDINATE THIS WITH LIBRARY 26, FIRST OPCODE MUST BE ENDLIST
 

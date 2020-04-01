@@ -5,9 +5,13 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+
+#ifndef COMMANDS_ONLY_PASS
+#include "cmdcodes.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#endif
 
 // THIS LIBRARY PROVIDES ONLY COMPILATION OF IDENTS AFTER ALL OTHER LIBRARIES
 // HAD A CHANCE TO IDENTIFY THEIR COMMANDS

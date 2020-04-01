@@ -5,9 +5,14 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+
+#ifndef COMMANDS_ONLY_PASS
+#include "cmdcodes.h"
+#include "hal_api.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#endif
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***
@@ -97,6 +102,7 @@
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
+
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib64_menu_0_main);

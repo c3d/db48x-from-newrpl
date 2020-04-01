@@ -5,9 +5,10 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#include "hal_api.h"
 
 // GENERAL SYSTEM SANITY CHECK IMPLEMENTATION
 

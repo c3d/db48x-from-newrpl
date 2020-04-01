@@ -1,3 +1,8 @@
+#ifndef INCLUDE_ALL_H
+#define INCLUDE_ALL_H
+
+#include "common-macros.h"
+
 // MACRO THAT INCLUDES ALL FILES IN LIBRARY_LIST
 
 #define J_INDEX 0
@@ -362,3 +367,5 @@
 #endif
 #undef J_INDEX
 #undef J_FILENAME
+
+#endif // INCLUDE_ALL_H

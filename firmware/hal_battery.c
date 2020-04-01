@@ -6,8 +6,7 @@
  */
 
 // POWER AND BATTERY MANAGEMENT
-#include <newrpl.h>
-#include "libraries.h"
+#include <libraries.h>
 #include <ui.h>
 
 void battery_handler()

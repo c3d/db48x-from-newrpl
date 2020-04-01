@@ -8,6 +8,13 @@
 #ifndef FASTMATH_H
 #define FASTMATH_H
 
+#include "newrpl_types.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 // THIS IS A BASIC FIXED-POINT MATH LIBRARY TO BE USED WITH PLOT OBJECTS AND GRAPHICS IN GENERAL
 // IT'S LOW-PRECISION 40.24 ARITHMETIC
 // FAST, NO ERRORS OR EXCEPTIONS, OVERFLOW CHECK ONLY DURING MULTIPLICATION
@@ -28,5 +35,9 @@ extern FPINT divFPINT(FPINT a, FPINT b);
 #define FPINT2INT(a) ((a)>>24)
 #define TRUNCFPINT(a) (((FPINT)(a))&~((1LL<<24)-1LL))
 #define FRACFPINT(a) (((FPINT)(a))&((1<<24)-1))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // FASTMATH_H

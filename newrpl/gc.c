@@ -6,8 +6,7 @@
  */
 
 #include "newrpl.h"
-#include "libraries.h"
-#include "hal.h"
+#include "hal_api.h"
 
 // PROVIDE GARBAGE COLLECTION
 

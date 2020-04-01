@@ -5,9 +5,11 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <newrpl.h>
-#include <ui.h>
+#include <cmdcodes.h>
 #include <libraries.h>
+#include <newrpl.h>
+#include <sysvars.h>
+#include <ui.h>
 
 // SOFT MENU API
 

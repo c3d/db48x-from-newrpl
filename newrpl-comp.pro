@@ -237,9 +237,9 @@ HEADERS  += firmware/include/ggl.h \
     target_pc.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
-    newrpl/hal.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
+    newrpl/newrpl_types.h \
     newrpl/sysvars.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \

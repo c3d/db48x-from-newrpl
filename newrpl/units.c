@@ -5,8 +5,12 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
+#include "hal_api.h"
 #include "libraries.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#include "utf8lib.h"
 
 // SYSTEM UNIT NAME TABLE: CONTAINS NAMES FOR ALL SYSTEM DEFINED UNITS
 const WORD const system_unit_names[] = {

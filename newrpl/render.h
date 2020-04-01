@@ -5,10 +5,10 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-// NEEDS fastmath.h
-
 #ifndef RENDER_H
 #define RENDER_H
+
+#include "fastmath.h"
 
 typedef struct
 {

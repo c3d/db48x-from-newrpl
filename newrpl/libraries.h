@@ -8,8 +8,7 @@
 #ifndef LIBRARIES_H
 #define LIBRARIES_H
 
-#include "newrpl.h"
-#include "common-macros.h"
+#include "newrpl_types.h"
 
 // GENERIC DEFINITIONS
 
@@ -548,9 +547,6 @@ extern const WORD lib70_basecycle[];
 #define CMD_GETLAMN(n) MKOPCODE(DOIDENT,GETLAMN|((n)&0xffff))
 #define CMD_PUTLAMN(n) MKOPCODE(DOIDENT,PUTLAMN|((n)&0xffff))
 #define CMD_GETLAMNEVAL(n) MKOPCODE(DOIDENT,GETLAMNEVAL|((n)&0xffff))
-
-// DEFINE ALL COMMAND OPCODES (CMD_nnn), EXTRACTED DIRECTLY FROM EACH LIBRARY
-#include "cmdcodes.h"
 
 // *************************************************************************************************************
 // RENDERER CORE FUNCTIONS HERE

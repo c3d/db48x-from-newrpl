@@ -5,9 +5,12 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include <cmdcodes.h>
+#include <fsystem.h>
+#include <libraries.h>
 #include <newrpl.h>
 #include <ui.h>
-#include <libraries.h>
+
 // THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
 // SET TO SHOW/HIDE THE NOTIFICATION ICON

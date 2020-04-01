@@ -8,9 +8,14 @@
 // LIBRARY 20 DEFINES THE COMMENTS OBJECTS
 // AND ASSOCIATED FUNCTIONS
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+
+#ifndef COMMANDS_ONLY_PASS
+#include "cmdcodes.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#include "utf8lib.h"
+#endif
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***

@@ -5,9 +5,10 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
+#include "cmdcodes.h"
+#include "hal_api.h"
 #include "libraries.h"
-#include "hal.h"
+#include "newrpl.h"
 
 // GROW THE RETURN STACK
 

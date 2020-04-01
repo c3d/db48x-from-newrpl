@@ -6,7 +6,7 @@
  */
 
 #include "newrpl.h"
-#include "hal.h"
+#include "ui.h"
 
 // ALLOCATES MEMORY FROM TEMPOB
 // SIZE IS THE NUMBER OF WORDS REQUIRED, NOT COUNTING THE PROLOG!

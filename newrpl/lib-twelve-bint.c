@@ -7,9 +7,14 @@
 
 // LIBRARY ONE DEFINES THE BASIC TYPES BINT AND SINT
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+
+#ifndef COMMANDS_ONLY_PASS
+#include "cmdcodes.h"
+#include "hal_api.h"
+#include "newrpl.h"
+#include "sysvars.h"
+#endif
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***

@@ -5,8 +5,8 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "libraries.h"
-#include "newrpl.h"
+#include "newrpl_types.h"
+#include "cmdcodes.h"
 
 #define INCLUDELIB(a,b) lib##a##_handler
 // THIS IS THE LIST OF ALL PRE-INSTALLED LIBRARIES IN THIS ROM

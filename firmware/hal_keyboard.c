@@ -6,9 +6,13 @@
  */
 
 // THIS IS THE MAIN STABLE API FOR KEYBOARD ACCESS
-#include <newrpl.h>
-#include <ui.h>
+
+#include <cmdcodes.h>
+#include <fsystem.h>
 #include <libraries.h>
+#include <newrpl.h>
+#include <sysvars.h>
+#include <ui.h>
 
 static inline WORDPTR rplDecompileAnyway(WORDPTR object, BINT flags)
 {

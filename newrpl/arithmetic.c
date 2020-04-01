@@ -7,8 +7,11 @@
 
 // SPECIAL FUNCTIONS DEALING WITH NUMERIC CALCULATIONS
 
-#include "newrpl.h"
 #include "libraries.h"
+#include "decimal.h"
+#include "sysvars.h"
+#include "newrpl.h"
+#include "cmdcodes.h"
 
 // EITHER RETURN THE FACTORIAL AS A BINT64 WHEN THE NUMBER IS SMALL ENOUGH
 // OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE

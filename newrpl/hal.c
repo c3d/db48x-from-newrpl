@@ -6,7 +6,7 @@
  */
 
 // HARDWARE DEPENDENT LAYER
-#include "hal.h"
+#include "ui.h"
 
 #ifdef TARGET_PC
 

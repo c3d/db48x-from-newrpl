@@ -5,11 +5,13 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
 
-//#include <stdio.h>
+#ifndef COMMANDS_ONLY_PASS
+#include "cmdcodes.h"
+#include "sysvars.h"
+#include "ui.h"
+#endif
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***

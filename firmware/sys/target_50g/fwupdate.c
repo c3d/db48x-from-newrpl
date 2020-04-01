@@ -5,7 +5,6 @@
 * See the file LICENSE.txt that shipped with this distribution.
 */
 
-#include <newrpl.h>
 #include <libraries.h>
 #include <ui.h>
 
