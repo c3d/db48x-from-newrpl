@@ -663,5 +663,6 @@ typedef struct {
 } INTERRUPT_TYPE;
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
+#define CONFIG_NO_FSYSTEM 1
 
 #endif // TARGET_PRIME1_H
