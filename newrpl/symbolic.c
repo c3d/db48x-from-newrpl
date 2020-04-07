@@ -2171,7 +2171,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
 
                 // SCAN ALL NUMERIC FACTORS IN THE DENOMINATOR AND MULTIPLY TOGETHER
-                BINT reddenom = 0, approxdenom = 0;
+                BINT reddenom = 0, approxdenom = 0, addfactors = 0;
                 argptr = stkptr - 2;
 
                 for(f = 0; f < nargs - redargs; ++f) {
@@ -2359,6 +2359,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             ++stkptr;
                             ++DSTop;
 
+                            ++addfactors;
+
                             *(stkptr - 2) = rplPeekData(1 + ((reddenom > 0) ? 1 : 0));  // STORE THE NUMERATOR
 
                         }
@@ -2416,6 +2418,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             ptr[1] = rplPeekData(1);    // STORE THE DENOMINATOR
                             ptr[2] = (WORDPTR) two_bint;
                             ptr[3] = (WORDPTR) inverse_opcode;
+                            ++addfactors;
 
                         }
                         --DSTop;
@@ -2435,17 +2438,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                     if(redargs + reddenom) {
                         // UPDATE THE ARGUMENT COUNT
-                        BINT newcount = nargs - redargs - reddenom;
-                        if((redargs || num_is_one) && !(num_is_one
-                                    && (reddenom + redargs < nargs)))
-                            ++newcount;
-                        else if(approxdenom)
-                            ++newcount;
-                        if(reddenom) {
-                            ++newcount;
-                            if(den_is_one)
-                                --newcount;
-                        }
+                        BINT newcount = nargs - redargs - reddenom + addfactors;
 
                         if(newcount < 2) {
                             // SINGLE ARGUMENT, SO REMOVE THE MULTIPLICATION
