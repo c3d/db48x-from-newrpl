@@ -389,7 +389,7 @@ void halRedrawStack(DRAWSURFACE * scr)
     int objheight, ytop, y, numwidth, xright,stknum_w;
     BINT width, height;
     char num[16];
-    UNIFONT **levelfnt;
+    UNIFONT const **levelfnt;
     WORDPTR object;
 
     oldclipx = scr->clipx;
@@ -620,6 +620,113 @@ void halRedrawStack(DRAWSURFACE * scr)
     halScreen.DirtyFlag &= ~STACK_DIRTY;
 }
 
+#define MABS(a) (((a)<0)? -(a):(a))
+
+// FIND THE CLOSEST MATCHING SYSTEM FONT FOR A GIVEN HEIGHT
+// DOES NOT SEARCH USER INSTALLED FONTS
+WORDPTR const *halGetSystemFontbyHeight(int height)
+{
+    int k;
+    int howclose=height;
+    UNIFONT *ptr;
+    WORDPTR const *selection=0;
+
+    for(k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2) {
+        ptr = (UNIFONT *)rplGetFontRomPtrTableAddress()[k + 1];
+        if (ptr == NULL) break;
+        if(MABS(ptr->BitmapHeight-height)<howclose) {
+            selection = rplGetFontRomPtrTableAddress() + k + 1;
+            howclose = MABS(ptr->BitmapHeight-height);
+        }
+        if(!howclose) break;
+    }
+
+    return selection;
+}
+
+// UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
+// NEEDS TO BE FAST
+void halUpdateFontArray(WORDPTR const ** fontarray)
+{
+    // SET ALL POINTERS TO 0
+
+    for (int i = 0; i < FONTS_NUM; ++i) {
+        fontarray[i] = 0;
+    }
+
+    // SET CONFIGURED FONTS
+
+    WORDPTR *var;
+    if(!ISDIR(*SettingsDir))
+        return;
+
+    var = rplFindFirstByHandle(SettingsDir);
+
+    while(var) {
+        if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_STACK])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_STACK] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_STACKLVL1])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_STACKLVL1] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_CMDLINE])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_CMDLINE] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_MENU])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_MENU] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_STATUS])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_STATUS] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_FORMS])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_FORMS] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_PLOT])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_PLOT] = var + 1;
+        }
+
+        var = rplFindNext(var);
+    }
+
+    // UNCONFIGURED FONTS GET DEFAULTS
+
+    if (fontarray[FONT_STACK] == 0) {
+        fontarray[FONT_STACK] =
+                halGetSystemFontbyHeight(DEF_FNTSTK_HEIGHT);
+    }
+    if (fontarray[FONT_STACKLVL1] == 0) {
+        fontarray[FONT_STACKLVL1] =
+                halGetSystemFontbyHeight(DEF_FNT1STK_HEIGHT);
+    }
+    if (fontarray[FONT_CMDLINE] == 0) {
+        fontarray[FONT_CMDLINE] =
+                halGetSystemFontbyHeight(DEF_FNTCMDL_HEIGHT);
+    }
+    if (fontarray[FONT_MENU] == 0) {
+        fontarray[FONT_MENU] = halGetSystemFontbyHeight(DEF_FNTMENU_HEIGHT);
+    }
+    if (fontarray[FONT_STATUS] == 0) {
+        fontarray[FONT_STATUS] =
+               halGetSystemFontbyHeight(DEF_FNTSTAT_HEIGHT);
+    }
+    if (fontarray[FONT_PLOT] == 0) {
+        fontarray[FONT_PLOT] = halGetSystemFontbyHeight(DEF_FNTPLOT_HEIGHT);
+    }
+    if (fontarray[FONT_FORMS] == 0) {
+        fontarray[FONT_FORMS] =
+                halGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
+    }
+
+    return;
+}
+
 // INITIALIZE DEFAULT SCREEN PARAMETERS
 
 void halInitScreen()
@@ -633,7 +740,7 @@ void halInitScreen()
             lcd_setcontrast(rplReadBINT(saved));
     }
 
-    rplUpdateFontArray((WORDPTR **) halScreen.FontArray);
+    halUpdateFontArray((WORDPTR const **) halScreen.FontArray);
     int k;
     for(k = 0; k < FONTS_NUM; ++k)
         halScreen.FontHash[k] = 0;
@@ -1626,9 +1733,9 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 // GET NEW FONT DATA FROM THE RPL ENVIRONMENT
 void halUpdateFonts()
 {
-    UNIFONT **tmparray[FONTS_NUM];
+    UNIFONT const **tmparray[FONTS_NUM];
     WORD hash;
-    rplUpdateFontArray((WORDPTR **) tmparray);
+    halUpdateFontArray((WORDPTR const **) tmparray);
 
     int f;
     for(f = 0; f < FONTS_NUM; ++f) {

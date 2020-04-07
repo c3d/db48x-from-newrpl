@@ -14,11 +14,12 @@ static unsigned int gui_chgcolorfilter(unsigned int dest, unsigned int src,
     return ggl_opmaskcol(dest, src, 0, param);
 }
 
-int StringWidthN(char *Text, char *End, UNIFONT * Font)
+int StringWidthN(char *Text, char *End, UNIFONT const * Font)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int *mapptr,w;
+    unsigned int const *mapptr;
+    unsigned int w;
     int width = 0;
 
     offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
@@ -79,11 +80,12 @@ int StringWidthN(char *Text, char *End, UNIFONT * Font)
 
 // WARNING: DO NOT PASS xcoord=NULL, NO ARGUMENT CHECKS
 
-char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord)
+char *StringCoordToPointer(char *Text, char *End, UNIFONT const * Font, int *xcoord)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int *mapptr,w;
+    unsigned int const *mapptr;
+    unsigned int w;
     int  width = 0;
 
     if(*xcoord < 0) {
@@ -151,7 +153,7 @@ char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord)
 
 }
 
-int StringWidth(char *Text, UNIFONT * Font)
+int StringWidth(char *Text, UNIFONT const * Font)
 {
     char *End = Text;
     while(*End)
@@ -162,12 +164,12 @@ int StringWidth(char *Text, UNIFONT * Font)
 // DRAW TEXT WITH TRANSPARENT BACKGROUND
 // UTF8 STRING
 
-void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int *mapptr;
+    unsigned int const *mapptr;
     char *fontbitmap;
 
     if(drawsurf->clipx < 0)
@@ -291,12 +293,12 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
 
 // DRAW TEXT WITH SOLID BACKGROUND
 // UTF8 STRING
-void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
         int bkcolor, DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int *mapptr;
+    unsigned int const *mapptr;
     char *fontbitmap;
 
     if(drawsurf->clipx < 0)
@@ -423,7 +425,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
 
 }
 
-void DrawTextBk(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
         int bkcolor, DRAWSURFACE * drawsurf)
 {
     char *End = Text;
@@ -434,7 +436,7 @@ void DrawTextBk(int x, int y, char *Text, UNIFONT * Font, int color,
     DrawTextBkN(x, y, Text, End, Font, color, bkcolor, drawsurf);
 }
 
-void DrawText(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf)
 {
     char *End = Text;
@@ -447,12 +449,12 @@ void DrawText(int x, int y, char *Text, UNIFONT * Font, int color,
 
 // DRAWS TEXT TO A 1-BIT MONOCHROME SURFACE
 // TRANSPARENT BACKGROUND
-void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int *mapptr;
+    unsigned int const *mapptr;
     char *fontbitmap;
 
     // FIND END OF STRING

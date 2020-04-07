@@ -24,7 +24,7 @@ void uiClearRenderCache()
 }
 
 // ADD AN ENTRY TO THE CACHE
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font)
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -39,7 +39,7 @@ void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font)
         halCacheEntry |= CACHE_FULL;
 }
 
-void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font)
+void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -70,7 +70,7 @@ void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font)
 }
 
 // USE AN ENTRY IN THE CACHE
-WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT ** font)
+WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT const ** font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -116,7 +116,7 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 
 // RENDER AN OBJECT TO THE GIVEN DRAWSURFACE, USE CACHE IF POSSIBLE
 
-void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT ** font)
+void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
@@ -154,7 +154,7 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT ** font)
 
 // RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
 
-WORDPTR uiRenderObject(WORDPTR object, UNIFONT ** font)
+WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE

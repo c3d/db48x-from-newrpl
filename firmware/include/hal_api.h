@@ -148,7 +148,7 @@ typedef struct
     int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer, CursorTimer;
-    UNIFONT **FontArray[FONTS_NUM];     // POINTERS TO ADDRESSES OF FONTS
+    UNIFONT const **FontArray[FONTS_NUM];     // POINTERS TO ADDRESSES OF FONTS
     WORD FontHash[FONTS_NUM];   // HASH TO DETECT FONT CHANGES
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
     int LineVisible, LineCurrent, LineIsModified;
@@ -993,21 +993,21 @@ extern const unsigned int Font_24[];
 //const unsigned int System7Font[];
 //const unsigned int MiniFont[];
 
-void DrawText(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf);
-void DrawTextN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf);
 
-void DrawTextBk(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
         int bkcolor, DRAWSURFACE * drawsurf);
-void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT * Font, int color,
+void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
         int bkcolor, DRAWSURFACE * drawsurf);
 
-void DrawTextMono(int x, int y, char *Text, UNIFONT * Font, int color,
+void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
         DRAWSURFACE * drawsurf);
-int StringWidth(char *Text, UNIFONT * Font);
-int StringWidthN(char *Text, char *End, UNIFONT * Font);
-char *StringCoordToPointer(char *Text, char *End, UNIFONT * Font, int *xcoord);
+int StringWidth(char *Text, UNIFONT const * Font);
+int StringWidthN(char *Text, char *End, UNIFONT const * Font);
+char *StringCoordToPointer(char *Text, char *End, UNIFONT const * Font, int *xcoord);
 
 int cpu_getlock(int lockvar, volatile int *lock_ptr);
 int cpu_setspeed(int);
@@ -1230,11 +1230,11 @@ extern WORD halCacheEntry;
 // RENDER
 
 void uiClearRenderCache();
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font);
-void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT ** font);
-WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT ** font);
-void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT ** font);
-WORDPTR uiRenderObject(WORDPTR object, UNIFONT ** font);
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font);
+void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font);
+WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT const ** font);
+void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font);
+WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font);
 void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr);
 
 #endif

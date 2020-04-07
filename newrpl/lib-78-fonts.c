@@ -12,7 +12,6 @@
 #include "hal_api.h"
 #include "newrpl.h"
 #include "sysvars.h"
-#include "ui.h"
 #endif
 
 // *****************************
@@ -198,9 +197,6 @@ ROMOBJECT fnt24_ident[] = {
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
 // SO IT'S NOT HARDWARE-INDEPENDENT, BUT THE NAMES OF THE FONTS SHOULD BE CONSISTENT
 
-#define NUMBER_OF_FONTS_IN_ROM 12
-#define START_ROMPTR_INDEX 4    // START OF THE ROM FONTS TABLE
-
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[] = {
@@ -210,7 +206,22 @@ const WORDPTR const ROMPTR_TABLE[] = {
     (WORDPTR) lib78_menu,
     (WORDPTR) sysfonts_ident,
 
-    // START OF ROM FONT NAME/OBJECT PAIRS
+    // OTHER ROM OBJECTS INDEX 4-15
+
+    (WORDPTR) fontstack_ident,
+    (WORDPTR) fontstack1_ident,
+    (WORDPTR) fontcmdline_ident,
+    (WORDPTR) fontmenu_ident,
+    (WORDPTR) fontstarea_ident,
+    (WORDPTR) fontplot_ident,
+    (WORDPTR) fontform_ident,
+    (WORDPTR) zero_bint,
+    (WORDPTR) zero_bint,
+    (WORDPTR) zero_bint,
+    (WORDPTR) zero_bint,
+    (WORDPTR) zero_bint,
+
+    // START OF ROM FONT NAME/OBJECT PAIRS INDEX 16-63
 
     (WORDPTR) fnt5a_ident,
     (WORDPTR) Font_5A,
@@ -237,18 +248,14 @@ const WORDPTR const ROMPTR_TABLE[] = {
     (WORDPTR) fnt24_ident,
     (WORDPTR) Font_24,
 
-    // OTHER ROM OBJECTS
-
-    (WORDPTR) fontstack_ident,
-    (WORDPTR) fontstack1_ident,
-    (WORDPTR) fontcmdline_ident,
-    (WORDPTR) fontmenu_ident,
-    (WORDPTR) fontstarea_ident,
-    (WORDPTR) fontplot_ident,
-    (WORDPTR) fontform_ident,
-
+    0, // ZERO PAIR AS FINALIZER
     0
 };
+
+WORDPTR const *rplGetFontRomPtrTableAddress(void)
+{
+    return ROMPTR_TABLE;
+}
 
 // FIND A SYSTEM FONT BY NAME
 
@@ -257,8 +264,9 @@ WORDPTR rplGetSystemFont(WORDPTR ident)
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
 
-    for(k = START_ROMPTR_INDEX;
-            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
+    for(k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2) {
+        if (ROMPTR_TABLE[k] == NULL)
+            break;
         if(rplCompareIDENT(ident, ROMPTR_TABLE[k]))
             return ROMPTR_TABLE[k + 1];
     }
@@ -284,35 +292,15 @@ WORDPTR rplGetSystemFont(WORDPTR ident)
     return 0;   // NOT FOUND
 }
 
-#define MABS(a) (((a)<0)? -(a):(a))
-
-// FIND THE CLOSEST MATCHING SYSTEM FONT FOR A GIVEN HEIGHT
-WORDPTR *rplGetSystemFontbyHeight(int height)
-{
-    int k;
-    int howclose=height;
-    UNIFONT *ptr;
-    WORDPTR *selection=0;
-
-    for(k = START_ROMPTR_INDEX;
-            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
-            ptr=(UNIFONT *)ROMPTR_TABLE[k + 1];
-            if(MABS(ptr->BitmapHeight-height)<howclose) { selection=(WORDPTR *) (ROMPTR_TABLE+ k + 1); howclose=MABS(ptr->BitmapHeight-height); }
-            if(!howclose) break;
-    }
-
-    return selection;
-}
-
-
 // FIND A FONT NAME BY OBJECT
 WORDPTR rplGetSystemFontName(WORDPTR font)
 {
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
 
-    for(k = START_ROMPTR_INDEX;
-            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
+    for(k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2) {
+        if (ROMPTR_TABLE[k] == NULL)
+            break;
         if(font == ROMPTR_TABLE[k + 1])
             return ROMPTR_TABLE[k];
     }
@@ -406,8 +394,9 @@ void rplAddSystemFont(WORDPTR ident, WORDPTR font)
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
 
-    for(k = START_ROMPTR_INDEX;
-            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
+    for(k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2) {
+        if (ROMPTR_TABLE[k] == NULL)
+            break;
         if(rplCompareIDENT(ident, ROMPTR_TABLE[k])) {
             rplError(ERR_RESERVEDNAME);
             return;
@@ -508,8 +497,9 @@ void rplPurgeSystemFont(WORDPTR ident)
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
 
-    for(k = START_ROMPTR_INDEX;
-            k < START_ROMPTR_INDEX + 2 * NUMBER_OF_FONTS_IN_ROM; k += 2) {
+    for(k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2) {
+        if (ROMPTR_TABLE[k] == NULL)
+            break;
         if(rplCompareIDENT(ident, ROMPTR_TABLE[k])) {
             rplError(ERR_RESERVEDNAME);
             return;
@@ -575,89 +565,6 @@ void rplPurgeSystemFont(WORDPTR ident)
 
     rplStoreSettings((WORDPTR) sysfonts_ident, newlist);
 
-}
-
-// UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
-// NEEDS TO BE FAST
-void rplUpdateFontArray(WORDPTR ** fontarray)
-{
-    // SET ALL POINTERS TO 0
-
-    for (int i = 0; i < FONTS_NUM; ++i) {
-        fontarray[i] = 0;
-    }
-
-    // SET CONFIGURED FONTS
-
-    WORDPTR *var;
-    if(!ISDIR(*SettingsDir))
-        return;
-
-    var = rplFindFirstByHandle(SettingsDir);
-
-    while(var) {
-        if(rplCompareIDENT(var[0], (WORDPTR) fontstack_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_STACK] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontstack1_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_STACKLVL1] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontcmdline_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_CMDLINE] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontmenu_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_MENU] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontstarea_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_STATUS] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontform_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_FORMS] = var + 1;
-        }
-        else if(rplCompareIDENT(var[0], (WORDPTR) fontplot_ident)) {
-            if(ISFONT(*var[1]))
-                fontarray[FONT_PLOT] = var + 1;
-        }
-
-        var = rplFindNext(var);
-    }
-
-    // UNCONFIGURED FONTS GET DEFAULTS
-
-    if (fontarray[FONT_STACK] == 0) {
-        fontarray[FONT_STACK] =
-                rplGetSystemFontbyHeight(DEF_FNTSTK_HEIGHT);
-    }
-    if (fontarray[FONT_STACKLVL1] == 0) {
-        fontarray[FONT_STACKLVL1] =
-                rplGetSystemFontbyHeight(DEF_FNT1STK_HEIGHT);
-    }
-    if (fontarray[FONT_CMDLINE] == 0) {
-        fontarray[FONT_CMDLINE] =
-                rplGetSystemFontbyHeight(DEF_FNTCMDL_HEIGHT);
-    }
-    if (fontarray[FONT_MENU] == 0) {
-        fontarray[FONT_MENU] = rplGetSystemFontbyHeight(DEF_FNTMENU_HEIGHT);
-    }
-    if (fontarray[FONT_STATUS] == 0) {
-        fontarray[FONT_STATUS] =
-               rplGetSystemFontbyHeight(DEF_FNTSTAT_HEIGHT);
-    }
-    if (fontarray[FONT_PLOT] == 0) {
-        fontarray[FONT_PLOT] = rplGetSystemFontbyHeight(DEF_FNTPLOT_HEIGHT);
-    }
-    if (fontarray[FONT_FORMS] == 0) {
-        fontarray[FONT_FORMS] =
-                rplGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
-    }
-
-    return;
 }
 
 // CHANGE THE CURRENT FONT

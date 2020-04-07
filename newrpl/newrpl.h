@@ -692,9 +692,11 @@ struct date
     BINT rplKeyName2Msg(WORDPTR keyname);
 
 // FONT FUNCTIONS
+    #define FONT_IDENTS_ROMPTR_INDEX 4
+    #define START_ROMPTR_INDEX 16    // START OF THE ROM FONTS TABLE
+    WORDPTR const *rplGetFontRomPtrTableAddress(void);
     WORDPTR rplGetCurrentFont(BINT area);
     void rplSetCurrentFont(BINT area, WORDPTR ident);
-    void rplUpdateFontArray(WORDPTR ** fontarray);
     void rplAddSystemFont(WORDPTR ident, WORDPTR font);
     void rplPurgeSystemFont(WORDPTR ident);
     WORDPTR rplGetSystemFont(WORDPTR ident);
