@@ -544,7 +544,7 @@ void DumpLAMs()
 
     while(scan >= LAMs) {
 
-        if(**scan == LAM_BASESECO) {
+        if(**scan == LAM_ENVOWNER) {
             printf("*** Parent environment *** \n");
         }
         else {
@@ -664,6 +664,7 @@ int main()
 {
     char buffer[65535];
 
+    rplInitMemoryAllocator();
     rplInit();
 
     Context.precdigits = 36;
