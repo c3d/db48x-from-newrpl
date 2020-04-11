@@ -6,7 +6,9 @@
  */
 
 #include "libraries.h"
+#include "newrpl.h"
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 extern "C" void rplShowRuntimeState(void);
@@ -406,6 +408,15 @@ BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
         ;
 */
 
+extern "C"
+{
+  void usb_mutex_lock_implementation(void)
+  {}
+
+  void usb_mutex_unlock_implementation(void)
+  {}
+}
+
 void PrintObj(WORDPTR obj)
 {
     WORDPTR string;
@@ -439,7 +450,7 @@ void PrintSeco(WORDPTR obj)
 
     if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL) || (LIBNUM(*obj) == SECO))) {
 
-        printf("%08X: ", obj - TempOb);
+        printf("%08lX: ", obj - TempOb);
         printf(" %s\n", (LIBNUM(*obj) == DOCOL) ? "::" : "<<");
 
         ++obj;
@@ -453,7 +464,7 @@ void PrintSeco(WORDPTR obj)
                 continue;
             }
 
-            printf("%08X: ", obj - TempOb);
+            printf("%08lX: ", obj - TempOb);
 
             string = rplDecompile(obj, 0);
 
@@ -479,7 +490,7 @@ void PrintSeco(WORDPTR obj)
     }
     else {
 
-        printf("%08X: ", obj - TempOb);
+        printf("%08lX: ", obj - TempOb);
         PrintObj(obj);
 
     }
@@ -562,7 +573,7 @@ void DumpDStack()
     }
 
     while(count < (DSTop - DStkBottom)) {
-        printf("%d:\t", DSTop - DStkBottom - count);
+        printf("%ld:\t", DSTop - DStkBottom - count);
         string = rplDecompile((WORDPTR) DStkBottom[count], 0);
 
         if(string) {
@@ -655,7 +666,7 @@ int main()
 
     rplInit();
 
-    Context.prec = 36;
+    Context.precdigits = 36;
 
     Refresh();
     /*
@@ -733,7 +744,7 @@ int main()
             debugging = 0;
 
             if(Exceptions) {
-                printf("Runtime Error: %08X at %08X\n", Exceptions,
+                printf("Runtime Error: %08X at %08lX\n", Exceptions,
                         ExceptionPointer - TempOb);
                 DumpErrors();
                 int oldexc = Exceptions;
@@ -741,7 +752,7 @@ int main()
                 DumpLAMs();
                 DumpDirs();
                 Refresh();
-                if(oldexc & EX_BKPOINT) {
+                if(oldexc & EX_HWBKPOINT) {
                     debugging = 1;
                     printf("\nPress any key to continue...");
                     fgets(buffer, 65535, stdin);
