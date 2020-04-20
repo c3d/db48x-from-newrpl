@@ -765,7 +765,7 @@ int main()
         while(debugging);
 
         printf("Elapsed time: %.6lf seconds\n",
-                ((double)(start - end)) / (double)CLOCKS_PER_SEC);
+                ((double)(end - start)) / (double)CLOCKS_PER_SEC);
         rplShowRuntimeState();
         Exceptions = 0;
         Refresh();
