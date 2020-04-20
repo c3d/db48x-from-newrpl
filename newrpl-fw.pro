@@ -326,7 +326,7 @@ LIBS += -lgcc
 FORMS    +=
 
 DISTFILES += \
-    firmware/target_50g/ld.script
+    firmware/sys/target_50g/ld.script
 
 RESOURCES +=
 
@@ -334,7 +334,7 @@ QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
 #QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
-#QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
+#QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
 
 
 QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc
@@ -348,7 +348,7 @@ QMAKE_CFLAGS_APP =
 QMAKE_LFLAGS_DEBUG =
 QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
-QMAKE_LFLAGS = -g -T$$PWD/firmware/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
+QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
 QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
 
