@@ -15,9 +15,7 @@ SEARCH_DIR(".");
 
 SECTIONS
 {
-  . = 0x30000020;
-  __code_start = . ;
-
+  . = 0x30000000;
 
 /* all other sections here */
   .interp         : { *(.interp) }
