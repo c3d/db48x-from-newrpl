@@ -7,21 +7,26 @@
 
 #include "target_prime1.h"
 
-unsigned char preamble[0x20] __attribute__((section(".preamble"))) = {
-    0x20, 0x00, 0x00, 0x30,
-    0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x10, 0x00,
-    0x00, 0x00, 0x00, 0x30,
-    0x00, 0x00, 0x10, 0x00,
-    0x56, 0x35, 0x4A, 0x00, 0x32, 0x34, 0x31, 0x36,
-    0x00, 0x00, 0x00, 0x00 
-};
-
 extern void startup(int);
 
-void _boot(int prevstate) __attribute__((naked))
-        __attribute__((section(".codepreamble")));
-__ARM_MODE__ void _boot(int prevstate)
-{
-    asm volatile ("b startup");
-}
+struct Preamble {
+	uint32_t entrypoint;
+	uint32_t unused1;
+	uint32_t copy_size;
+	uint32_t load_addr;
+	uint32_t load_size;
+	uint32_t cpu_arch;
+	uint32_t cpuid;
+	uint32_t unused2;
+} __attribute__ ((packed));
+
+struct Preamble preamble __attribute__((section(".preamble"))) = {
+	.entrypoint = (uint32_t)&startup,
+	.unused1 = 0,
+	.copy_size = 1024*1024,
+	.load_addr = 0x30000000,
+	.load_size = 1024*1024,
+	.cpu_arch = 0x4a3556, // "V5J"
+	.cpuid = 0x36313432, // "2416"
+	.unused2 = 0,
+};

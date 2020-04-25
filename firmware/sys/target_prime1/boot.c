@@ -9,7 +9,7 @@
 
 static void setup_hardware()
 {
-	// Set 3 LED pins as outputs
+	// Set LED pins GPC5-7 as outputs
     uint32_t config = *GPCCON;
     config &= 0xFFFF03FF;
     config |= 0x00005400;
@@ -21,10 +21,17 @@ void startup(int prevstate)
 {
 	setup_hardware();
 
-    uint32_t pins = *GPCDAT;
-    // Pin GPC7 is red LED
-    pins |= 0x000000E0;
-    *GPCDAT = pins;
+    uint32_t value;
+
+    // activate LEDs
+    value = *GPCDAT;
+    value |= 0x000000E0;
+    *GPCDAT = value;
+
+    // GPB1 is display backlight
+    value = *GPBDAT;
+    value |= 0x00000002;
+    *GPBDAT = value;
 
     while(1);
 }

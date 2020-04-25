@@ -3,15 +3,7 @@ OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",
 	      "elf32-littlearm")
 OUTPUT_ARCH(arm)
 
-/* CHANGE ENTRY POINT */
-ENTRY(_boot)
-
-
-SEARCH_DIR("."); 
-
 /* ALL MODULES WILL BE PRELINKED */
-
-/* STARTUP("preamble.o")*/
 
 SECTIONS
 {
@@ -57,7 +49,6 @@ SECTIONS
 
   /* STORE THE PREAMBLE FIRST */
   .preamble ALIGN(4) : { *(.preamble) }
-  .codepreamble ALIGN(4) : { *(.codepreamble) }
 
   /* THEN THE ROM EXPORTED OBJECTS */
   .romobjects ALIGN(4) : { *(.romobjects) }
