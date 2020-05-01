@@ -22,7 +22,7 @@
 #define HSMMC0_BASE 0x4ac00000
 #define DMA_BASE    0x4b000000
 #define SYS_BASE    0x4c000000
-#define LDC_BASE    0x4c800000
+#define LCD_BASE    0x4c800000
 #define TWOD_BASE   0x4d408000
 #define NAND_BASE   0x4e000000
 #define MATRIX_BASE 0x4e800000
@@ -616,8 +616,8 @@
 #define SIFCCON1     HWREG(LCD_BASE, 0x140)
 #define SIFCCON2     HWREG(LCD_BASE, 0x144)
 #define CPUTRIGCON2  HWREG(LCD_BASE, 0x160)
-#define WIN0         HWREG(LCD_BASE, 0x400) // 0-255
-#define WIN1         HWREG(LCD_BASE, 0x800) // 0-255
+#define WIN0Palette  HWREG(LCD_BASE, 0x400) // 0-255
+#define WIN1Palette  HWREG(LCD_BASE, 0x800) // 0-255
 
 #define ADCCON  HWREG(TSADC_BASE, 0x00)
 #define ADCTSC  HWREG(TSADC_BASE, 0x04)
@@ -652,8 +652,18 @@
 #define PCM_FIFO_STAT HWREG(PCM_BASE, 0x18)
 #define PCM_CLRINT    HWREG(PCM_BASE, 0x20)
 
+#define BPPMODE_1BPP  0x0 // uses palette
+#define BPPMODE_2BPP  0x1 // uses palette
+#define BPPMODE_4BPP  0x2 // uses palette
+#define BPPMODE_8BPP  0x3 // uses palette
+#define BPPMODE_24BPP 0xb // rgb
+
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
+#define SCREEN_W 320
+#define SCREEN_H 240
+
+#define MEM_PHYS_SCREEN 0x31000000
 
 #define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
 

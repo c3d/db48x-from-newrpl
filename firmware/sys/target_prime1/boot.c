@@ -6,14 +6,38 @@
  */
 
 #include <newrpl.h>
+#include <hal_api.h>
+#include <ggl.h>
 
-static void setup_hardware()
+static void setup_hardware(void)
 {
-	// Set LED pins GPC5-7 as outputs
-    uint32_t config = *GPCCON;
-    config &= 0xFFFF03FF;
-    config |= 0x00005400;
-    *GPCCON = config;
+}
+
+void main_virtual(void)
+{
+    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_on();
+
+    gglsurface scr;
+
+    ggl_initscr(&scr);
+
+    ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+
+    for (int x = 0; x < 8; ++x) {
+        for (int y = 0; y < 8; ++y) {
+            ggl_rect(&scr,
+                    x * 10 + 10, y * 10 + 10,
+                    x * 10 + 20, y * 10 + 20,
+                    ggl_mkcolor(x + y)
+                    );
+        }
+    }
+
+    for (int i = 100; i < 150; ++i) {
+        ggl_pltnib((int *)((uint8_t *)scr.addr + 160 * i), i, 0xff);
+    }
+
 }
 
 __ARM_MODE__ void startup(int) __attribute__((naked, noreturn));
@@ -21,17 +45,7 @@ void startup(int prevstate)
 {
 	setup_hardware();
 
-    uint32_t value;
-
-    // activate LEDs
-    value = *GPCDAT;
-    value |= 0x000000E0;
-    *GPCDAT = value;
-
-    // GPB1 is display backlight
-    value = *GPBDAT;
-    value |= 0x00000002;
-    *GPBDAT = value;
+    main_virtual();
 
     while(1);
 }
