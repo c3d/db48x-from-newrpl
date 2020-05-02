@@ -123,7 +123,7 @@ SECTIONS
   .system_globals ALIGN(4) : { * (.system_globals) }
 
 
-  . = 0x3000AC00;
+  . = 0x30010000;
 
   .persistent_memory ALIGN(4) : { * (.persistent_memory) }
 

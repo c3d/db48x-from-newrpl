@@ -51,7 +51,11 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_scrollrt.c \
     firmware/ggl/ggl/ggl_scrollup.c \
     firmware/ggl/ggl/ggl_vline.c \
-    firmware/ggl/ggl/ggl_fltreplace.c
+    firmware/ggl/ggl/ggl_fltreplace.c \
+    firmware/sys/Font10A.c \
+    firmware/sys/graphics.c \
+    newrpl/utf8data.c \
+    newrpl/utf8lib.c
 
 HEADERS  += \
     newrpl/arithmetic.h \
