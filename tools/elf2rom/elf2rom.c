@@ -373,7 +373,18 @@ int main(int argc, char **argv)
         return (-1);
     }
     if(argc >2) {
-        if(!strncmp(inp,"-pad1mb",7)) { --argc; inp=*++argv; dopadding=1; }
+        if(!strncmp(inp,"-pad",4)) {
+            inp+=4;
+            while(*inp) {
+                if((*inp>='0')&&(*inp<='9')) { dopadding=dopadding*10+(*inp-'0'); ++inp; continue; }
+                if(*inp=='k') { dopadding*=1024; break; }
+                if(*inp=='m') { dopadding*=1048576; break; }
+                break;
+            }
+
+            --argc;
+            inp=*++argv;
+        }
     }
 
     if(elf_version(EV_CURRENT) == EV_NONE)
@@ -425,13 +436,13 @@ int main(int argc, char **argv)
 
     if(dopadding) {
         unsigned int value=0xffffffff;
-        printf("Padding %d bytes with FF\n", 1024*1024-out_size);
-        while(out_size<=(1024*1024-4)) {
+        printf("Padding %d bytes with FF\n", dopadding-out_size);
+        while(out_size<=(dopadding-4)) {
             fwrite(&value,4,1,out);
             out_size+=4;
         }
         if(out_size<1024*1024) {
-            fwrite(&value,1,1024*1024-out_size,out);
+            fwrite(&value,1,dopadding-out_size,out);
         }
 
     }

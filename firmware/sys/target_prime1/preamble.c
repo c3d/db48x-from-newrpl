@@ -23,9 +23,9 @@ struct Preamble {
 struct Preamble preamble __attribute__((section(".preamble"))) = {
 	.entrypoint = (uint32_t)&startup,
 	.unused1 = 0,
-	.copy_size = 1024*1024,
+    .copy_size = 128*1024,
 	.load_addr = 0x30000000,
-	.load_size = 1024*1024,
+    .load_size = 128*1024,
 	.cpu_arch = 0x4a3556, // "V5J"
 	.cpuid = 0x36313432, // "2416"
 	.unused2 = 0,
