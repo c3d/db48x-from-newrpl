@@ -111,4 +111,4 @@ QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad1mb $(TARGET)

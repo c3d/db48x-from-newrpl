@@ -240,7 +240,9 @@ int dump_sections(FILE * out, Elf_file * elf_file)
                         unsigned int i;
                         for(i = 0; i < (entry.address - file_offset); i++)
                             fwrite("\0", 1, 1, out);
+                        text_size+=(entry.address - file_offset);
                         file_offset = entry.address;
+
                     }
 
                 }
@@ -254,6 +256,7 @@ int dump_sections(FILE * out, Elf_file * elf_file)
                     for(i = 0; i < (4 - rest4); i++) {
                         fwrite("\0", 1, 1, out);
                         ++file_offset;
+                        ++text_size;
                     }
 
             }
@@ -359,6 +362,7 @@ int get_romlib_version(Elf * elf)
 int main(int argc, char **argv)
 {
 
+    int dopadding=0;
     char *inp;
     Elf_file elf_file;
 
@@ -367,6 +371,9 @@ int main(int argc, char **argv)
     else {
         fprintf(stderr, "No input file provided.\n");
         return (-1);
+    }
+    if(argc >2) {
+        if(!strncmp(inp,"-pad1mb",7)) { --argc; inp=*++argv; dopadding=1; }
     }
 
     if(elf_version(EV_CURRENT) == EV_NONE)
@@ -413,7 +420,21 @@ int main(int argc, char **argv)
     if(!(out = fopen(outfile, "wb")))
         _failure("Can't open target file for writing.\n");
 //    dump_romlib_version(out,rlibver);
-    dump_sections(out, &elf_file);
+    int out_size=dump_sections(out, &elf_file);
+    printf("Written %d bytes\n", out_size);
+
+    if(dopadding) {
+        unsigned int value=0xffffffff;
+        printf("Padding %d bytes with FF\n", 1024*1024-out_size);
+        while(out_size<=(1024*1024-4)) {
+            fwrite(&value,4,1,out);
+            out_size+=4;
+        }
+        if(out_size<1024*1024) {
+            fwrite(&value,1,1024*1024-out_size,out);
+        }
+
+    }
 
     fclose(out);
     close(elf_file.fd);
