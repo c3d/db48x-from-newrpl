@@ -261,7 +261,7 @@ BINT halGetDispObjectHeight(WORDPTR object, UNIFONT * font)
     return font->BitmapHeight;
 }
 
-const UBINT64 const powersof10[20];
+extern const UBINT64 const powersof10[20];
 
 // CONVERT INTEGER NUMBER INTO STRING FOR STACK LEVEL
 // str MUST CONTAIN AT LEAST 15: BYTES "-1,345,789,123[NULL]"

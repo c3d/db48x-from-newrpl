@@ -165,7 +165,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
     0
 };
 
-BINT64 powersof10[20];
+extern const UBINT64 const powersof10[20];
 
 void LIB_HANDLER()
 {
