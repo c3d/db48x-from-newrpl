@@ -30,7 +30,8 @@ extern int __keyb_repeattime, __keyb_longpresstime, __keyb_debounce;
 
 keymatrix __keyb_getmatrix()
 {
-    unsigned int tmp[DEBOUNCE], f, k;
+    unsigned int c;
+    uint32_t v;
 
     unsigned int lo = 0, hi = 0;
 
@@ -45,25 +46,18 @@ keymatrix __keyb_getmatrix()
         *GPGCON = control;
 
         // DEBOUNCE TECHNIQUE
-
-        // FILL DEBOUNCE BUFFER
-        for(f = 0; f < DEBOUNCE; ++f)
-            tmp[f] = f;
-        // DO CIRCULAR BUFFER, CHECKING FOR NOISE ON EVERY READ
-        k = 0;
-        do {
-            tmp[k] = *GPGDAT & 0xfe;
-            for(f = 1; f < DEBOUNCE; ++f) {
-                if(tmp[f] != tmp[f - 1])
-                    break;
+        c = 0;
+        while (c < DEBOUNCE) {
+            uint32_t nv = *GPGDAT & 0xfe;
+            if (nv == v) {
+                ++c;
+            } else {
+                c = 0;
+                v = nv;
             }
-            ++k;
-            if(k >= DEBOUNCE)
-                k = 0;
         }
-        while(f < DEBOUNCE);
 
-        hi = (hi << 8) | ((~(tmp[0])) & 0xfe);
+        hi = (hi << 8) | ((~(v)) & 0xfe);
 
     }
 
@@ -75,23 +69,19 @@ keymatrix __keyb_getmatrix()
         *GPGCON = control;
 
         // GPGDAT WAS SET TO ZERO, SO THE SELECTED COLUMN IS DRIVEN LOW
-        for(f = 0; f < DEBOUNCE; ++f)
-            tmp[f] = f;
-        // DO CIRCULAR BUFFER, CHECKING FOR NOISE ON EVERY READ
-        k = 0;
-        do {
-            tmp[k] = *GPGDAT & 0xfe;
-            for(f = 1; f < DEBOUNCE; ++f) {
-                if(tmp[f] != tmp[f - 1])
-                    break;
-            }
-            ++k;
-            if(k >= DEBOUNCE)
-                k = 0;
-        }
-        while(f < DEBOUNCE);
 
-        lo = (lo << 8) | ((~(tmp[0])) & 0xfe);
+        c = 0;
+        while (c < DEBOUNCE) {
+            uint32_t nv = *GPGDAT & 0xfe;
+            if (nv == v) {
+                ++c;
+            } else {
+                c = 0;
+                v = nv;
+            }
+        }
+
+        lo = (lo << 8) | ((~(v)) & 0xfe);
 
     }
 
@@ -100,24 +90,19 @@ keymatrix __keyb_getmatrix()
 
     unsigned int volatile *GPFDAT = ((unsigned int *)(IO_REGS + 0x54));
 
-    for(f = 0; f < DEBOUNCE; ++f)
-        tmp[f] = f;
-    // DO CIRCULAR BUFFER, CHECKING FOR NOISE ON EVERY READ
-    k = 0;
-    do {
-        tmp[k] = *GPFDAT & 0x71;
-        for(f = 1; f < DEBOUNCE; ++f) {
-            if(tmp[f] != tmp[f - 1])
-                break;
+    c = 0;
+    while (c < DEBOUNCE) {
+        uint32_t nv = *GPFDAT & 0x71;
+        if (nv == v) {
+            ++c;
+        } else {
+            c = 0;
+            v = nv;
         }
-        ++k;
-        if(k >= DEBOUNCE)
-            k = 0;
     }
-    while(f < DEBOUNCE);
 
-    hi |= (tmp[k] & 0x70) << 24;
-    hi |= tmp[k] << 31;
+    hi |= (v & 0x70) << 24;
+    hi |= v << 31;
 
     return ((keymatrix) lo) | (((keymatrix) hi) << 32);
 }

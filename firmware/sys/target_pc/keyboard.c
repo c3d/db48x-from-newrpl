@@ -16,8 +16,6 @@ void __tmr_eventreschedule();
 
 void __keyb_update();
 
-#define DEBOUNCE  16    // 10 SEEMS TO BE ADEQUATE EVEN AT 75 MHz
-
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
 unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
 volatile int __keyb_lock __SYSTEM_GLOBAL__;
