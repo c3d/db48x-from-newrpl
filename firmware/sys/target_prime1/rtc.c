@@ -7,3 +7,7 @@
 
 #include <newrpl.h>
 
+void rtc_getdatetime(struct date *dt, struct time *tm)
+{
+    // FIXME implement
+}

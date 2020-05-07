@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 // GENERAL HARDWARE REGISTER MACRO
-#define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
+#define HWREG(base,off) ( (volatile uint32_t *) (((uint32_t)base+(uint32_t)off)))
 #define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 #define DRAMC_BASE  0x48000000
@@ -658,6 +658,11 @@
 #define BPPMODE_8BPP  0x3 // uses palette
 #define BPPMODE_24BPP 0xb // rgb
 
+#define NAND_CMD_READ1st 0x00
+#define NAND_CMD_READ2nd 0x30
+#define NAND_CMD_RND_OUT1st 0x05
+#define NAND_CMD_RND_OUT2nd 0xe0
+
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 #define SCREEN_W 320
@@ -666,6 +671,8 @@
 #define MEM_PHYS_SCREEN 0x31000000
 
 #define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
+#define __DATAORDER1__ __attribute__((section (".data_1")))
+#define __DATAORDER2__ __attribute__((section (".data_2")))
 
 typedef struct {
 	uint32_t mask1;
@@ -673,6 +680,5 @@ typedef struct {
 } INTERRUPT_TYPE;
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
-#define CONFIG_NO_FSYSTEM 1
 
 #endif // TARGET_PRIME1_H
