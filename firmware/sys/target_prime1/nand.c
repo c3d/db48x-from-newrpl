@@ -8,7 +8,9 @@
 #include "nand.h"
 #include <newrpl.h>
 
-#define NAND_PAGE_SIZE 2048
+#define NAND_ROW_SIZE 2048
+#define NAND_ROW_BITS 11
+#define NAND_COLUMN_MASK 0x7ff
 #define NAND_PACKET_SIZE 512
 
 void NANDWriteProtect(void)
@@ -37,7 +39,7 @@ static void NANDClearReady(void)
     *NFSTAT |= 0x00000010;
 }
 
-// Reads up to 512 @num_bytes from NAND @read_address and writes to ram @target_address
+// Reads up to @num_bytes from NAND @read_address and writes to ram @target_address
 // All three parameters support arbitrary byte alignment 
 // Returns number of read bytes
 static unsigned int NANDReadPacket(uint32_t read_address, unsigned int num_bytes, uint8_t *target_address)
@@ -50,8 +52,8 @@ static unsigned int NANDReadPacket(uint32_t read_address, unsigned int num_bytes
 
     // Page size is 2048 bytes, read in max 512 byte packets
     // NAND expects 5 address cycles
-    unsigned int row = read_address >> 11;
-    unsigned int column = read_address & 0x7ff;
+    unsigned int row = read_address >> NAND_ROW_BITS;
+    unsigned int column = read_address & NAND_COLUMN_MASK;
     for (int i = 0; i < 2; ++i) {
         *NFADDR = column & 0xff;
         column >>= 8;
@@ -65,22 +67,27 @@ static unsigned int NANDReadPacket(uint32_t read_address, unsigned int num_bytes
 
     NANDWaitReady();
 
-    // Reading the incomming data bytewise
+    // Reading the incoming data bytewise
     volatile uint8_t *NFDATA8 = (volatile uint8_t *)NFDATA;
-    unsigned int count = 0;
 
-    for (int i = 0; i < NAND_PACKET_SIZE; ++i) {
+    unsigned int bytes_to_read = NAND_PACKET_SIZE;    
+    if (num_bytes < bytes_to_read) {
+        bytes_to_read = num_bytes;
+    }
+    unsigned int const row_end = (read_address & ~NAND_COLUMN_MASK) + NAND_ROW_SIZE;
+    unsigned int const bytes_to_row_end = row_end - read_address;
+    if (bytes_to_row_end < bytes_to_read) {
+        bytes_to_read = bytes_to_row_end;
+    }
+
+    for (int i = 0; i < bytes_to_read; ++i) {
         *target_address = *NFDATA8;
         ++target_address;
-
-        ++count;
-        if (count == num_bytes)
-            break;
     }
     
     NANDDisableChipSelect();
 
-    return count;
+    return bytes_to_read;
 }
 
 void NANDRead(uint32_t read_address, unsigned int num_bytes, uint8_t *target_address)
