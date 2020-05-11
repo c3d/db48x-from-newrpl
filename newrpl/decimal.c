@@ -1449,7 +1449,7 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
 // COUNT NUMBER OF SIGNIFICANT USED DIGITS IN A WORD
 // WORD MUST BE NORMALIZED AND >0
 
-int sig_digits(BINT word)
+BINT sig_digits(BINT word)
 {
 
     if(word >= 10000) {
