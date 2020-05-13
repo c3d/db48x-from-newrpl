@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 
-TARGET = newrplp1.elf
+TARGET = primeg1_newrpl.elf
 TEMPLATE = app
 
 CONFIG(release, debug|release) {
@@ -22,9 +22,9 @@ DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count H
 
 
 SOURCES +=\
-    firmware/sys/target_prime1/boot.c \
+    firmware/sys/target_prime1/boot_newrpl.c \
     firmware/sys/target_prime1/exception.c \
-    firmware/sys/target_prime1/preamble.c \
+    firmware/sys/target_prime1/preamble_newrpl.c \
     firmware/sys/target_prime1/lcd.c \
     firmware/sys/target_prime1/nand.c \
     firmware/sys/target_prime1/rtc.c \
@@ -173,14 +173,11 @@ INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 LIBS += -lgcc
 
 DISTFILES += \
-    firmware/sys/target_prime1/ld.script
+    firmware/sys/target_prime1/ld_newrpl.script
 
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
-#QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
-#QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/sys/target_prime1/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
-
 
 QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm926ej-s -mcpu=arm926ej-s -march=armv5tej -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc
 QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm926ej-s -mcpu=arm926ej-s -march=armv5tej -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc
@@ -193,6 +190,6 @@ QMAKE_CFLAGS_APP =
 QMAKE_LFLAGS_DEBUG =
 QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
-QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
+QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld_newrpl.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad254k $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad256k $(TARGET)

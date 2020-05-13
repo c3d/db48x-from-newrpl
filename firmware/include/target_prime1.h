@@ -679,6 +679,18 @@ typedef struct {
 	uint32_t mask2;
 } INTERRUPT_TYPE;
 
+// This preamble preceeds PRIME_OS.ROM
+struct Preamble {
+	uint32_t entrypoint;
+	uint32_t unused1;
+	uint32_t copy_size;
+	uint32_t load_addr;
+	uint32_t load_size;
+	uint32_t cpu_arch;
+	uint32_t cpuid;
+	uint32_t unused2;
+} __attribute__ ((packed));
+
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
 #endif // TARGET_PRIME1_H

@@ -9,7 +9,7 @@
 
 __ARM_MODE__ void throw_exception(char *message, unsigned int options)
 {
-	static char buffer[9];
+    static char buffer[9];
     tohex(options, buffer);
     printline(message, buffer);
     while(1);
