@@ -12,6 +12,7 @@
 #include "fsystem.h"
 #include "nand.h"
 #include "hal_api.h"
+#include "../fsystem/fsyspriv.h"
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
@@ -65,7 +66,11 @@ int n_pressed() {
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
-    // line = 0; bss
+    initContext(32);
+    Context.alloc_bmp = EMPTY_STORAGEBMP;
+    init_simpalloc();
+    FSHardReset();
+    line = 0;
 
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
@@ -76,9 +81,6 @@ void startup(int prevstate)
     // Playing it save for testing
     NANDWriteProtect();
 
-    initContext(32);
-    Context.alloc_bmp = EMPTY_STORAGEBMP;
-    init_simpalloc();
 
     BINT err;
 

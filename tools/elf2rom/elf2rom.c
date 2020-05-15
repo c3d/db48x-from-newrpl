@@ -364,28 +364,37 @@ int main(int argc, char **argv)
 
     int dopadding=0;
     char *inp;
+    char *outfilename = NULL;
     Elf_file elf_file;
 
-    if(argc > 1)
-        inp = *++argv;
-    else {
+    ++argv; // program name
+    if (argc < 1) {
         fprintf(stderr, "No input file provided.\n");
-        return (-1);
+        return -1;
     }
-    if(argc >2) {
-        if(!strncmp(inp,"-pad",4)) {
-            inp+=4;
-            while(*inp) {
-                if((*inp>='0')&&(*inp<='9')) { dopadding=dopadding*10+(*inp-'0'); ++inp; continue; }
-                if(*inp=='k') { dopadding*=1024; break; }
-                if(*inp=='m') { dopadding*=1048576; break; }
+
+    while (argc > 2) {
+        if (!strncmp(*argv, "-pad", 4)) {
+            char *string = *argv + 4;
+            while(*string) {
+                if((*string>='0')&&(*string<='9')) { dopadding=dopadding*10+(*string-'0'); ++string; continue; }
+                if(*string=='k') { dopadding*=1024; break; }
+                if(*string=='m') { dopadding*=1048576; break; }
                 break;
             }
-
             --argc;
-            inp=*++argv;
+            ++argv;
+        } else if (!strncmp(*argv, "-out", 4)) {
+            outfilename = *argv + 4;
+            --argc;
+            ++argv;
+        } else {
+            fprintf(stderr, "Unknown parameter %s.\n", *argv);
+            return -1;
         }
     }
+    // last parameter is expected to be input file
+    inp = *argv;
 
     if(elf_version(EV_CURRENT) == EV_NONE)
         _failure("Libelf out of date.");
@@ -415,16 +424,20 @@ int main(int argc, char **argv)
 
     char *p, outfile[256];
 
-    strcpy(outfile, inp);
-    p = (char *)((unsigned long)outfile + strlen(outfile) - 1);
-    while(*p && *p != '.')
-        p--;
-    if(*p == '.') {
-        *p = '\0';
-        strcat(outfile, ".bin");
+    if (outfilename != NULL) {
+        strcpy(outfile, outfilename);
+    } else {
+        strcpy(outfile, inp);
+        p = (char *)((unsigned long)outfile + strlen(outfile) - 1);
+        while(*p && *p != '.')
+            p--;
+        if(*p == '.') {
+            *p = '\0';
+            strcat(outfile, ".bin");
+        }
+        else
+            strcpy(outfile, OUTFILE);
     }
-    else
-        strcpy(outfile, OUTFILE);
 
     //printf("DEBUG: outfile=%s\n",outfile);
 
@@ -435,7 +448,7 @@ int main(int argc, char **argv)
     printf("Written %d bytes\n", out_size);
 
     if(dopadding) {
-        unsigned int value=0;
+        unsigned int value=0xff;
         printf("Padding %d bytes with FF\n", dopadding-out_size);
         while(out_size<=(dopadding-4)) {
             fwrite(&value,4,1,out);
