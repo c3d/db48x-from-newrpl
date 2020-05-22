@@ -365,6 +365,7 @@ void __irq_releasehook(int service_number);
 
 void __irq_mask(int service_number);
 void __irq_unmask(int service_number);
+void __irq_clrpending(int service_number);
 
 // Saves __usb_drvstatus
 void usb_mutex_lock(void);

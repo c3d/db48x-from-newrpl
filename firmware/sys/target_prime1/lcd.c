@@ -48,6 +48,12 @@ void lcd_restore(unsigned int *buf)
 void lcd_setcontrast(int level)
 {
 }
+#define BKGND_RED 172
+#define BKGND_GREEN 222
+#define BKGND_BLUE 157
+#define FOGND_RED  0
+#define FOGND_GREEN  0
+#define FOGND_BLUE  0
 
 int lcd_setmode(int mode, unsigned int *physbuf)
 {
@@ -60,12 +66,19 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     // palette data format for window 0 8:8:8
     *WPALCON = (*WPALCON & 0xFFFFFFF8) | 1;
 
-    uint32_t color = 0x00FFFFFF;
+    int red,green,blue;
+    uint32_t color;
     for (int i = 0; i < 16; ++i) {
         // bitswap rotates the bits of a nibble
         int offset = ((i & 0x1) << 3) | ((i & 0x2) << 1) | ((i & 0x4) >> 1) | ((i & 0x8) >> 3);
+
+        // linear color interpolation between foreground and background
+        red= 128 + BKGND_RED * 256 + ((FOGND_RED-BKGND_RED) * (i+1) * 256) / 16 ;
+        green= 128 + BKGND_GREEN * 256 + ((FOGND_GREEN-BKGND_GREEN) * (i+1) * 256) / 16 ;
+        blue= 128 + BKGND_BLUE * 256 + ((FOGND_BLUE-BKGND_BLUE) * (i+1) * 256) / 16 ;
+        color = ((red&0xff00)<<8)|((green&0xff00))|((blue&0xff00)>>8);
+
         *(WIN0Palette + offset) = color;
-        color -= 0x00111111;
     }
 
     // Allow LCD controller access to palette

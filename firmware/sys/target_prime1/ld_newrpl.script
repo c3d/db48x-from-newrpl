@@ -106,17 +106,23 @@ SECTIONS
 
 	. = ALIGN(4);
 
+  . = 0x30080000;
+
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
 
  __data_start = . ;
 
  
+  . = 0x30085000;
+
   __tmp_datastart = . ;
 
 
   /* ADDED SUPPORT FOR SYSTEM GLOBALS */
   .system_globals ALIGN(4) : { * (.system_globals) }
 
+
+  . = 0x3008a000;
 
   .persistent_memory ALIGN(4) : { * (.persistent_memory) }
 

@@ -22,8 +22,12 @@ DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count H
 
 
 SOURCES +=\
+    firmware/sys/keybcommon.c \
     firmware/sys/target_prime1/boot_newrpl.c \
+    firmware/sys/target_prime1/cpu.c \
     firmware/sys/target_prime1/exception.c \
+    firmware/sys/target_prime1/irq.c \
+    firmware/sys/target_prime1/keyboard.c \
     firmware/sys/target_prime1/preamble_newrpl.c \
     firmware/sys/target_prime1/lcd.c \
     firmware/sys/target_prime1/nand.c \
@@ -133,6 +137,7 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/sys/Font10A.c \
     firmware/sys/graphics.c \
+    firmware/sys/target_prime1/timer.c \
     newrpl/decimal.c \
     newrpl/mul_real_arm.c \
     newrpl/sysvars.c \

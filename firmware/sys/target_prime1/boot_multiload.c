@@ -109,7 +109,7 @@ void startup(int prevstate)
         throw_exception("Could not rewind", err);
     }
 
-    err = FSRead((unsigned char *)preamble.load_addr, preamble.copy_size, fileptr);
+    err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
     if (err != preamble.copy_size) {
         throw_exception("Could not read data", 0);
     }

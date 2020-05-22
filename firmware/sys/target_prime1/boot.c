@@ -9,42 +9,44 @@
 #include <hal_api.h>
 #include <ggl.h>
 
+static const int lineheight = 12;
+static UNIFONT const * const font = (UNIFONT const *)Font_10A;
+static const int black = 0xffffffff;
+static const int left = 0;
+static const int right = 64;
 
-#define lineheight 12
-#define font (UNIFONT const *)Font_10A
-#define black 0xffffffff
-#define left 0
-#define right 160
-
-void tohex(uint32_t value, char *buffer) {
-    buffer[8] = 0;
+static void printhex(gglsurface *surface, int line, char *text, uint32_t value) {
+    char buffer[8];
 
     for (int i = 7; i >= 0; --i) {
         buffer[i] = "0123456789ABCDEF"[value % 16];
         value = value / 16;
     }
+
+    DrawText(left, line * lineheight, text, font, black, surface);
+    DrawTextN(right, line * lineheight, buffer, buffer + 8, font, black, surface);
 }
 
-static void tobin(uint32_t value, char *buffer) {
-    buffer[32] = 0;
+static void printbin(gglsurface *surface, int line, char *text, uint32_t value) {
+    char buffer[32];
 
     for (int i = 31; i >= 0; --i) {
         buffer[i] = "01"[value % 2];
         value = value / 2;
     }
+
+    DrawText(left, line * lineheight, text, font, black, surface);
+    DrawTextN(right, line * lineheight, buffer, buffer + 32, font, black, surface);
 }
 
-void printline(gglsurface *surface,int line,char *left_text, char *right_text) {
-    if (left_text) {
-        DrawText(left, line * lineheight, left_text, font, black, surface);
-    }
-    if (right_text) {
-        DrawText(right, line * lineheight, right_text, font, black, surface);
-    }
+__ARM_MODE__ unsigned int get_c1()
+{
+    register unsigned int c1;
 
+    asm volatile ("mrc p15, 0, %0, c1, c0, 0":"=r" (c1));
+
+    return c1;
 }
-
-
 
 __ARM_MODE__ void enable_interrupts()
 {
@@ -62,13 +64,6 @@ __ARM_MODE__ void disable_interrupts()
 
 
 
-// CLEANUP GLOBAL VARIABLES
-extern const int __data_start;
-extern const int __data_size;
-
-
-
-
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
@@ -76,46 +71,40 @@ void startup(int prevstate)
     lcd_on();
 
     gglsurface scr;
-    
     ggl_initscr(&scr);
     ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-    char buffer[9];
-    buffer[8]=0;
-    tohex((unsigned int) (&__data_size),buffer);
-    printline(&scr, 1, "Data size=", buffer);
-
-    tohex((unsigned int) (&__data_start),buffer);
-    printline(&scr, 2, "Data start=", buffer);
-
-
-    printline(&scr, 10, "Attempt to install handlers", 0);
+    printhex(&scr, 10, "Attempt to install handlers", 0);
 
     __exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
 
-    printline(&scr, 11, "Attempt to enable interrupts", 0);
+    printhex(&scr, 11, "Attempt to enable interrupts", 0);
 
     enable_interrupts();
 
-    printline(&scr, 12, "Attempt to enable timers", 0);
+    printhex(&scr, 12, "Attempt to enable timers", 0);
 
     tmr_setup();
 
-    printline(&scr, 13, "Attempt to enable keyboard", 0);
+    printhex(&scr, 13, "Attempt to enable keyboard", 0);
 
     __keyb_init();
 
-    printline(&scr, 14, "Press any key", 0);
+    printhex(&scr, 14, "Press any key", 0);
 
     unsigned int msg;
     do {
     msg=keyb_getmsg();
-    tohex(msg,buffer);
-    buffer[8]=0;
-    if(msg) printline(&scr, 15, "MSG=", buffer);
+    if(msg) printhex(&scr, 15, "MSG=", msg);
     } while (1);
 
 
+    int line = 0;
+    printhex(&scr, line++, "NFCONF", *NFCONF);
+    printhex(&scr, line++, "NFCONT", *NFCONT);
+    printbin(&scr, line++, "c1", get_c1());
+
+    throw_dbgexception("Hello Exceptions!!!",__EX_CONT | __EX_WARM | __EX_RESET);
 
 
     while(1);

@@ -670,9 +670,15 @@
 
 #define MEM_PHYS_SCREEN 0x31000000
 
+// SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
 #define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
 #define __DATAORDER1__ __attribute__((section (".data_1")))
 #define __DATAORDER2__ __attribute__((section (".data_2")))
+#define __DATAORDER3__ __attribute__((section (".data_3")))
+#define __DATAORDERLAST__ __attribute__((section (".data_last")))
+#define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
+#define __ROMOBJECT__ __attribute__((section (".romobjects")))
+#define __ROMLINK__  __attribute__((section (".romlink")))
 
 typedef struct {
 	uint32_t mask1;
@@ -690,6 +696,7 @@ struct Preamble {
 	uint32_t cpuid;
 	uint32_t unused2;
 } __attribute__ ((packed));
+
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
