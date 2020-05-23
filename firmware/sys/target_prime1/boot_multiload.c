@@ -9,10 +9,8 @@
 #include <hal_api.h>
 #include <ggl.h>
 #include <stdio.h>
-#include "fsystem.h"
 #include "nand.h"
 #include "hal_api.h"
-#include "../fsystem/fsyspriv.h"
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
@@ -53,156 +51,34 @@ void printline(char *left_text, char *right_text) {
     }
 }
 
-int n_pressed() {
-    *GPGCON = 0;    // SET ALL KEYBOARD COLUMNS AS INPUTS
-    *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
-
-    *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
-    *GPDDAT |= (1 << 7);
-
-    return *GPGDAT & (1 << 4);
-}
-
-
-
-
-// Initialize global variables region to zero
-// Any globals that need to have a value must be initialized at run time or be declared read-only.
-extern const int __data_start;
-extern const int __data_size;
-void clear_globals()
-{
-int size=(unsigned int) (&__data_size);
-unsigned int *data= (unsigned int *) (&__data_start);
-
-while(size>0) { *data++=0; size-=4; }
-
-}
-
-
-
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
+    initContext(32);
+    Context.alloc_bmp = EMPTY_STORAGEBMP;
+    init_simpalloc();
+    line = 0;
 
-    clear_globals();
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-
-
-    line=0;
-    printline("Multiboot stated",NULL);
-
-    initContext(32);
-    Context.alloc_bmp = EMPTY_STORAGEBMP;
-    init_simpalloc();
-    printline("Memory allocation started",NULL);
-
-    FSHardReset();
-
-    printline("File system started",NULL);
-
-
     // Playing it save for testing
     NANDWriteProtect();
 
-    printline("Write protect",NULL);
+    static char buffer[9];
 
-//    __exception_install();
-
-//    printline("Exceptions & IRQ vectors installed",NULL);
-
-//    tmr_setup();
-/*
-    {
-        char buffer[9];
-        buffer[8]=0;
-        tohex(tmr_getsysfreq(),buffer);
-        printline("Timer init=",buffer);
-    }
-*/
-//    __keyb_init();
-
-//    printline("Keyboard driver initialized",NULL);
-
-
-    BINT err;
-
-    err = FSSetCurrentVolume(0);
-    if (err != FS_OK) {
-        printline("Could not set volume", (char *)FSGetErrorMsg(err));
+    for (uint32_t i = 0; i < 0x10000000; i += 0x20000) {
+        if (!NANDIsBlockValid(i)) {
+            tohex(i, buffer);
+            printline(buffer, 0);
+        }
     }
 
-    struct __file *fileptr;
-
-
-    printline("Loading ",(n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM");
-
-    err = FSOpen(
-            (n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM",
-            FSMODE_READ | FSMODE_NOCREATE, &fileptr);
-    if (err != FS_OK) {
-        printline("Could not open file", (char *)FSGetErrorMsg(err));
-    } else {
-        char buffer[9];
-        buffer[8]=0;
-        printline("File open OK",fileptr->Name);
-        tohex(fileptr->FileSize,buffer);
-        printline("File Size=",buffer);
-    }
-
-
-
-    struct Preamble preamble;
-    err = FSRead((unsigned char *)&preamble, 32, fileptr);
-    if (err != 32) {
-        printline("Could not read preamble", 0);
-    }  else {
-        struct Preamble *pr=(struct Preamble *) (fileptr->RdBuffer.Data);
-        char buffer[9];
-        buffer[8]=0;
-        tohex(preamble.load_addr,buffer);
-        printline("Load addr=",buffer);
-        tohex(pr->load_addr,buffer);
-        printline("Load addr=",buffer);
-        tohex(preamble.load_size,buffer);
-        printline("Load size=",buffer);
-        tohex(pr->load_size,buffer);
-        printline("Load size=",buffer);
-        tohex(preamble.entrypoint,buffer);
-        printline("Entry addr=",buffer);
-        tohex(pr->entrypoint,buffer);
-        printline("Entry addr=",buffer);
-    }
-
-    err = FSSeek(fileptr, 0, SEEK_SET);
-    if (err != FS_OK) {
-        printline("Could not rewind", (char *)FSGetErrorMsg(err));
-    }
-
-    err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
-    if (err != preamble.load_size) {
-        printline("Could not read data", 0);
-    } else printline("Finished reading file",NULL);
-
-    err = FSClose(fileptr);
-    if (err != FS_OK) {
-        // Can't be closed due to missing write support
-    }
-
-
-    printline("Preparing to jump...",NULL);
-
-    // call payload
-    ((void (*)(void))preamble.entrypoint)();
-    
     while(1);
 }
-
 
 //************************************************************************************
 //****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********
