@@ -61,17 +61,24 @@ __ARM_MODE__ void disable_interrupts()
 }
 
 
-
-// CLEANUP GLOBAL VARIABLES
+// Initialize global variables region to zero
+// Any globals that need to have a value must be initialized at run time or be declared read-only.
 extern const int __data_start;
 extern const int __data_size;
+void clear_globals()
+{
+int size=(unsigned int) (&__data_size);
+unsigned int *data= (unsigned int *) (&__data_start);
 
+while(size>0) { *data++=0; --size; }
 
-
+}
 
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
+    clear_globals();
+
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 
@@ -87,7 +94,6 @@ void startup(int prevstate)
 
     tohex((unsigned int) (&__data_start),buffer);
     printline(&scr, 2, "Data start=", buffer);
-
 
     printline(&scr, 10, "Attempt to install handlers", 0);
 

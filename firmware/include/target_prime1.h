@@ -656,6 +656,9 @@
 #define BPPMODE_2BPP  0x1 // uses palette
 #define BPPMODE_4BPP  0x2 // uses palette
 #define BPPMODE_8BPP  0x3 // uses palette
+#define BPPMODE_16BPP565  0x5
+#define BPPMODE_16BPP555  0x7
+#define BPPMODE_18BPP  0x8
 #define BPPMODE_24BPP 0xb // rgb
 
 #define NAND_CMD_READ1st 0x00

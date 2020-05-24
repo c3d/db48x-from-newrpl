@@ -22,14 +22,19 @@ DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count H
 
 
 SOURCES +=\
-    firmware/sys/target_prime1/boot_multiload.c \
-    firmware/sys/target_prime1/exception.c \
     firmware/sys/target_prime1/preamble_multiload.c \
+    firmware/sys/target_prime1/boot_multiload.c \
+    firmware/sys/target_prime1/cpu.c \
+    firmware/sys/target_prime1/exception.c \
+    firmware/sys/target_prime1/irq.c \
     firmware/sys/target_prime1/lcd.c \
     firmware/sys/target_prime1/nand.c \
     firmware/sys/target_prime1/rtc.c \
     firmware/sys/target_prime1/sddriver.c \
     firmware/sys/target_prime1/stdlib.c \
+    firmware/sys/target_prime1/timer.c \
+    firmware/sys/keybcommon.c \
+    firmware/sys/target_prime1/keyboard.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
     firmware/sys/fsystem/fscalcfreespace.c \

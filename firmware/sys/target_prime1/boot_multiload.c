@@ -63,64 +63,176 @@ int n_pressed() {
     return *GPGDAT & (1 << 4);
 }
 
+
+
+
+// Initialize global variables region to zero
+// Any globals that need to have a value must be initialized at run time or be declared read-only.
+extern const int __data_start;
+extern const int __data_size;
+void clear_globals()
+{
+int size=(unsigned int) (&__data_size);
+unsigned int *data= (unsigned int *) (&__data_start);
+
+while(size>0) { *data++=0; size-=4; }
+
+}
+
+
+
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
-    initContext(32);
-    Context.alloc_bmp = EMPTY_STORAGEBMP;
-    init_simpalloc();
-    FSHardReset();
-    line = 0;
 
+    clear_globals();
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
+
+
+    line=0;
+    printline("Multiboot stated",NULL);
+
+    initContext(32);
+    Context.alloc_bmp = EMPTY_STORAGEBMP;
+    init_simpalloc();
+    printline("Memory allocation started",NULL);
+
+    FSHardReset();
+
+    printline("File system started",NULL);
+
+
     // Playing it save for testing
     NANDWriteProtect();
+
+    printline("Write protect",NULL);
+
+//    __exception_install();
+
+//    printline("Exceptions & IRQ vectors installed",NULL);
+
+//    tmr_setup();
+/*
+    {
+        char buffer[9];
+        buffer[8]=0;
+        tohex(tmr_getsysfreq(),buffer);
+        printline("Timer init=",buffer);
+    }
+*/
+//    __keyb_init();
+
+//    printline("Keyboard driver initialized",NULL);
 
 
     BINT err;
 
     err = FSSetCurrentVolume(0);
     if (err != FS_OK) {
-        throw_exception("Could not set volume", err);
+        printline("Could not set volume", (char *)FSGetErrorMsg(err));
     }
 
-    FS_FILE *fileptr;
+    struct __file *fileptr;
+
+
+    printline("Loading ",(n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM");
 
     err = FSOpen(
             (n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM",
             FSMODE_READ | FSMODE_NOCREATE, &fileptr);
     if (err != FS_OK) {
-        throw_exception("Could not open file", err);
+        printline("Could not open file", (char *)FSGetErrorMsg(err));
+    } else {
+        char buffer[9];
+        buffer[8]=0;
+        printline("File open OK",fileptr->Name);
+        tohex(fileptr->FileSize,buffer);
+        printline("File Size=",buffer);
     }
+
+
 
     struct Preamble preamble;
     err = FSRead((unsigned char *)&preamble, 32, fileptr);
     if (err != 32) {
-        throw_exception("Could not read preamble", 0);
+        printline("Could not read preamble", 0);
+    }  else {
+        struct Preamble *pr=(struct Preamble *) (fileptr->RdBuffer.Data);
+        char buffer[9];
+        buffer[8]=0;
+        tohex(preamble.load_addr,buffer);
+        printline("Load addr=",buffer);
+        tohex(pr->load_addr,buffer);
+        printline("Load addr=",buffer);
+        tohex(preamble.load_size,buffer);
+        printline("Load size=",buffer);
+        tohex(pr->load_size,buffer);
+        printline("Load size=",buffer);
+        tohex(preamble.entrypoint,buffer);
+        printline("Entry addr=",buffer);
+        tohex(pr->entrypoint,buffer);
+        printline("Entry addr=",buffer);
     }
 
     err = FSSeek(fileptr, 0, SEEK_SET);
     if (err != FS_OK) {
-        throw_exception("Could not rewind", err);
+        printline("Could not rewind", (char *)FSGetErrorMsg(err));
     }
 
     err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
-    if (err != preamble.copy_size) {
-        throw_exception("Could not read data", 0);
-    }
+    if (err != preamble.load_size) {
+        printline("Could not read data", 0);
+    } else printline("Finished reading file",NULL);
 
     err = FSClose(fileptr);
     if (err != FS_OK) {
         // Can't be closed due to missing write support
     }
 
+
+    printline("Preparing to jump...",NULL);
+
     // call payload
     ((void (*)(void))preamble.entrypoint)();
     
     while(1);
 }
+
+
+//************************************************************************************
+//****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********
+
+int halGetFreePages()
+{
+    return 1;
+}
+int halGetTotalPages()
+{
+    return 1;
+}
+
+void halReset()
+{
+    while(1);
+}
+
+void halWipeoutWarmStart()
+{
+    while(1);
+}
+
+void halWarmStart()
+{
+    while(1);
+}
+
+uint32_t RPLLastOpcode;
+
+//********* END OF STUBS *************************************************************
+//************************************************************************************
+//************************************************************************************

@@ -86,6 +86,31 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 
     *VIDW00ADD0B0 = (unsigned int)physbuf;
 
+    switch(mode)
+    {
+    case BPPMODE_1BPP:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>3;
+        break;
+    case BPPMODE_2BPP:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>2;
+        break;
+    case BPPMODE_4BPP:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>1;
+        break;
+    case BPPMODE_8BPP:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT);
+        break;
+    case BPPMODE_16BPP565:
+    case BPPMODE_16BPP555:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*2;
+        break;
+    case BPPMODE_18BPP:
+    case BPPMODE_24BPP:
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*4;
+        break;
+    }
+
+
     // fixed buffer0 with bit swap enabled
-    *WINCON0 = (*WINCON0 & 0xFE38FFC3) | 0x00040000 | (mode << 2);
+    *WINCON0 = (*WINCON0 & 0xFF38FFC3) | 0x00040001 | ((mode&0xf) << 2);
 }
