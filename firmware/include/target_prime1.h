@@ -673,12 +673,6 @@
 #define BPPMODE_18BPP  0x8
 #define BPPMODE_24BPP 0xb // rgb
 
-#define NAND_CMD_READ1st 0x00
-#define NAND_CMD_READ2nd 0x30
-#define NAND_CMD_RND_OUT1st 0x05
-#define NAND_CMD_RND_OUT2nd 0xe0
-
-
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 #define SCREEN_W 320

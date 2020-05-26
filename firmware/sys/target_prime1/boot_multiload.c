@@ -9,9 +9,10 @@
 #include <hal_api.h>
 #include <ggl.h>
 #include <stdio.h>
+#include "fsystem.h"
 #include "nand.h"
-#include <fsystem.h>
-
+#include "hal_api.h"
+#include "../fsystem/fsyspriv.h"
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
@@ -62,9 +63,6 @@ int n_pressed() {
     return *GPGDAT & (1 << 4);
 }
 
-
-
-
 // Initialize global variables region to zero
 // Any globals that need to have a value must be initialized at run time or be declared read-only.
 extern const int __data_start;
@@ -112,11 +110,6 @@ void switch_mode(int mode)
     asm volatile ("msr cpsr_all,r1");
     asm volatile ("bx r0");
 }
-
-
-
-
-
 
 // Move Stack for all modes to better locations
 // Stage 2 bootloader leaves stack at:
@@ -171,85 +164,38 @@ void set_stackall()
     asm volatile ("bx %[lr]" : : [lr] "r" (lr_copy));       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
-
-extern void FSHardReset();
-
 __ARM_MODE__ void main() __attribute__((noreturn));
-
-__ARM_MODE__ void startup(int) __attribute__((naked));
-void startup(int prevstate)
-{
-    disable_interrupts();
-
-    set_stackall();
-
-    clear_globals();
-
-    main();
-
-    // main() never returns
-}
-
-
 void main()
 {
+    // Playing it save for testing
+    NANDWriteProtect();
+
+    initContext(32);
+    Context.alloc_bmp = EMPTY_STORAGEBMP;
+    init_simpalloc();
+
+    if (NANDInit() == 0)
+        printline("No BFX", NULL);
+
+    FSHardReset();
+
+    line = 0;
+
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
-    FSHardReset();
 
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-    static char buffer[9];
 
+    char buffer[9];
+    char buffer2[9];
+    BINT err;
 
-    line=0;
-    printline("Stacks moved",NULL);
-
-    __exception_install();
-
-    printline("Exceptions installed",NULL);
-
-    // The memory allocator needs to be initialized first
-    // TODO: Decouple the allocator from the decimal library, this is OK for newrpl, not for multiloader
-    Context.alloc_bmp=EMPTY_STORAGEBMP;
-    init_simpalloc();
-
-    printline("Heap allocator initialized",NULL);
-
-
-    printline("Multiboot stated",NULL);
-
-
-    int size=(unsigned int) (&__data_size);
-    unsigned int *data= (unsigned int *) (&__data_start);
-    tohex((unsigned int)data,buffer);
-    printline("Globals location=",buffer);
-    tohex(size,buffer);
-    printline("Globals size=",buffer);
-
-
-    // Playing it save for testing
-    NANDWriteProtect();
-
-
-    for (uint32_t i = 0; i < 0x10000000; i += 0x20000) {
-        if (!NANDIsBlockValid(i)) {
-            tohex(i, buffer);
-            printline(buffer, 0);
-        }
-
+    err = FSSetCurrentVolume(0);
+    if (err != FS_OK) {
+        printline("Could not set volume", (char *)FSGetErrorMsg(err));
     }
-
-    int err;
-
-    while(!n_pressed());
-
-    line=0;
-    ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
-
-
-    printline("Loading ",(n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM");
 
     FS_FILE *fileptr;
 
@@ -268,41 +214,17 @@ void main()
         printline("Flash Offset=",buffer);
     }
 
-
     struct Preamble preamble;
     err = FSRead((unsigned char *)&preamble, 32, fileptr);
     if (err != 32) {
         printline("Could not read preamble", 0);
     }  else {
-        struct Preamble *pr=(struct Preamble *) (fileptr->RdBuffer.Data);
         tohex(preamble.load_addr,buffer);
-        printline("Load addr=",buffer);
-        tohex(pr->load_addr,buffer);
         printline("Load addr=",buffer);
         tohex(preamble.load_size,buffer);
         printline("Load size=",buffer);
-        tohex(pr->load_size,buffer);
-        printline("Load size=",buffer);
         tohex(preamble.entrypoint,buffer);
         printline("Entry addr=",buffer);
-        tohex(pr->entrypoint,buffer);
-        printline("Entry addr=",buffer);
-
-
-        uint8_t otherbuffer[512];
-
-        NANDRead(fileptr->Chain.StartAddr<<9,32,otherbuffer);
-
-        struct Preamble *otherPreamble=(struct Preamble *)otherbuffer;
-        tohex(otherPreamble->load_addr,buffer);
-        printline("Load addr=",buffer);
-        tohex(otherPreamble->load_size,buffer);
-        printline("Load size=",buffer);
-        tohex(otherPreamble->entrypoint,buffer);
-        printline("Entry addr=",buffer);
-
-
-
     }
 
     err = FSSeek(fileptr, 0, SEEK_SET);
@@ -311,7 +233,7 @@ void main()
     }
 
     err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
-    if (err != preamble.load_size) {
+    if (err != preamble.copy_size) {
         printline("Could not read data", 0);
     } else printline("Finished reading file",NULL);
 
@@ -320,16 +242,58 @@ void main()
         // Can't be closed due to missing write support
     }
 
+// values valid for PRIME_OS.ROM from firmware 20200116
+tohex(*(uint64_t *)((unsigned char *)preamble.load_addr), buffer);
+tohex(0x30000020, buffer2);
+printline(buffer, buffer2);
 
-    printline("Preparing to jump...",NULL);
+tohex(*(uint64_t *)((unsigned char *)preamble.entrypoint), buffer);
+tohex(0xea00002a, buffer2);
+printline(buffer, buffer2);
 
-    // call payload
+tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0xd0), buffer);
+tohex(0xe3a00453, buffer2);
+printline(buffer, buffer2);
+
+tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0xd4), buffer);
+tohex(0xe3a01000, buffer2);
+printline(buffer, buffer2);
+
+tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0x4d628), buffer);
+tohex(0xebffff04, buffer2);
+printline(buffer, buffer2);
+
+tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0x83e84), buffer);
+tohex(0xf8885020, buffer2);
+printline(buffer, buffer2);
+
+printline((char *)preamble.load_addr + 0x85da0, 0);
+printline((char *)preamble.load_addr + 0xffb00, 0);
+
+// show debug information
+while(1);
+
+    // FIXME call payload like BL2
+    // mov lr, pc
+    // mov pc, preamble.entrypoint
+    // and reverse what BL2 does when PRIME_OS.ROM returns
     ((void (*)(void))preamble.entrypoint)();
-
-
-
-
+    
     while(1);
+}
+
+__ARM_MODE__ void startup(int) __attribute__((noreturn));
+void startup(int prevstate)
+{
+    disable_interrupts();
+
+    set_stackall();
+
+    clear_globals();
+
+    __exception_install();
+
+    main(); // never returns
 }
 
 //************************************************************************************
