@@ -110,6 +110,9 @@ int lcd_setmode(int mode, unsigned int *physbuf)
         break;
     }
 
+    // set buffer1 immediately after the screen, with 4kpage alignment for exception handlers
+    *VIDW00ADD0B1 = ((unsigned int)physbuf& 0xff000000) + ((*VIDW00ADD1B0 + 0xfff) & 0x00fff000);
+    *VIDW00ADD1B1 = (*VIDW00ADD0B1 + (*VIDW00ADD1B0 - (*VIDW00ADD0B0&0x00ffffff)))&0x00ffffff;
 
     // fixed buffer0 with bit swap enabled
     *WINCON0 = (*WINCON0 & 0xFF38FFC3) | 0x00040001 | ((mode&0xf) << 2);

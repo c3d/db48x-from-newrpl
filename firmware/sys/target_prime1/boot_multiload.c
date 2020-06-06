@@ -10,7 +10,8 @@
 #include <ggl.h>
 #include <stdio.h>
 #include "nand.h"
-#include "hal_api.h"
+#include <fsystem.h>
+
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
@@ -51,31 +52,282 @@ void printline(char *left_text, char *right_text) {
     }
 }
 
-__ARM_MODE__ void startup(int) __attribute__((noreturn));
+int n_pressed() {
+    *GPGCON = 0;    // SET ALL KEYBOARD COLUMNS AS INPUTS
+    *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
+
+    *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
+    *GPDDAT |= (1 << 7);
+
+    return *GPGDAT & (1 << 4);
+}
+
+
+
+
+// Initialize global variables region to zero
+// Any globals that need to have a value must be initialized at run time or be declared read-only.
+extern const int __data_start;
+extern const int __data_size;
+void clear_globals()
+{
+int size=(unsigned int) (&__data_size);
+unsigned int *data= (unsigned int *) (&__data_start);
+
+while(size>0) { *data++=0; size-=4; }
+
+}
+
+
+__ARM_MODE__ void enable_interrupts()
+{
+    asm volatile ("mrs r1,cpsr_all");
+    asm volatile ("bic r1,r1,#0xc0");
+    asm volatile ("msr cpsr_all,r1");
+}
+
+__ARM_MODE__ void disable_interrupts()
+{
+    asm volatile ("mrs r1,cpsr_all");
+    asm volatile ("orr r1,r1,#0xc0");
+    asm volatile ("msr cpsr_all,r1");
+}
+
+__ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
+void set_stack(unsigned int *newstackptr)
+{
+
+    asm volatile ("mov sp,r0");
+    asm volatile ("bx lr");
+
+}
+__ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
+void switch_mode(int mode)
+{
+    asm volatile ("and r0,r0,#0x1f");
+    asm volatile ("mrs r1,cpsr_all");
+    asm volatile ("bic r1,r1,#0x1f");
+    asm volatile ("orr r1,r1,r0");
+    asm volatile ("mov r0,lr"); // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
+    asm volatile ("msr cpsr_all,r1");
+    asm volatile ("bx r0");
+}
+
+
+
+
+
+
+// Move Stack for all modes to better locations
+// Stage 2 bootloader leaves stack at:
+// Above 0x31ffff00 it's the relocated exception handlers
+// FIQ: 0x31ffff00
+// IRQ: 0x31fffe00
+// ABT: 0x31fffd00
+// UND: 0x31fffc00
+// SUP: 0x31fffb00
+// and stays in supervisor mode
+
+// New stack locations for all modes:
+// FIQ: 0x31fffefc (4-byte buffer in case of stack underrun)
+// IRQ: 0x31fff400  // Provide 1kbyte stack for IRQ handlers
+// ABT: 0x31fff800  // Data Abort and Prefetch Undefined share the same handler, so stack is shared
+// UND: 0x31fff800  // Data Abort and Prefetch Undefined share the same handler, so stack is shared
+// SUP: 0x31fff800  // Superfisor mode is never used, share the same stack with other abort handlers
+// SYS: 0x31ff7c00  // Stack below the MMU table with 1kbytes buffer in case of underrun
+// Stay in SYS mode, with supervisor privileges but using no banked registers
+
+__ARM_MODE__ void set_stackall() __attribute__((naked));
+void set_stackall()
+{
+    register unsigned int lr_copy;
+    // THE USER STACK IS ALREADY SETUP PROPERLY
+    asm volatile ("mov %[res],lr" : [res] "=r" (lr_copy) : );
+
+    switch_mode(SVC_MODE);
+
+    set_stack((unsigned int *)0x31fff800);
+
+    switch_mode(ABT_MODE);
+
+    set_stack((unsigned int *)0x31fff800);
+
+    switch_mode(UND_MODE);
+
+    set_stack((unsigned int *)0x31fff800);
+
+    switch_mode(FIQ_MODE);
+
+    set_stack((unsigned int *)0x31fffefc);
+
+    switch_mode(IRQ_MODE);
+
+    set_stack((unsigned int *)0x31fff400);
+
+    switch_mode(SYS_MODE);
+
+    set_stack((unsigned int *)0x31ff7c00);  // Leave 1 kbytes buffer to make sure a bad stack does not overwrite the MMU tables
+
+    asm volatile ("bx %[lr]" : : [lr] "r" (lr_copy));       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
+}
+
+
+extern void FSHardReset();
+
+__ARM_MODE__ void main() __attribute__((noreturn));
+
+__ARM_MODE__ void startup(int) __attribute__((naked));
 void startup(int prevstate)
 {
-    initContext(32);
-    Context.alloc_bmp = EMPTY_STORAGEBMP;
-    init_simpalloc();
-    line = 0;
+    disable_interrupts();
 
+    set_stackall();
+
+    clear_globals();
+
+    main();
+
+    // main() never returns
+}
+
+
+void main()
+{
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
+    FSHardReset();
 
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
+    static char buffer[9];
+
+
+    line=0;
+    printline("Stacks moved",NULL);
+
+    __exception_install();
+
+    printline("Exceptions installed",NULL);
+
+    // The memory allocator needs to be initialized first
+    // TODO: Decouple the allocator from the decimal library, this is OK for newrpl, not for multiloader
+    Context.alloc_bmp=EMPTY_STORAGEBMP;
+    init_simpalloc();
+
+    printline("Heap allocator initialized",NULL);
+
+
+    printline("Multiboot stated",NULL);
+
+
+    int size=(unsigned int) (&__data_size);
+    unsigned int *data= (unsigned int *) (&__data_start);
+    tohex((unsigned int)data,buffer);
+    printline("Globals location=",buffer);
+    tohex(size,buffer);
+    printline("Globals size=",buffer);
+
+
     // Playing it save for testing
     NANDWriteProtect();
 
-    static char buffer[9];
 
     for (uint32_t i = 0; i < 0x10000000; i += 0x20000) {
         if (!NANDIsBlockValid(i)) {
             tohex(i, buffer);
             printline(buffer, 0);
         }
+
     }
+
+    int err;
+
+    while(!n_pressed());
+
+    line=0;
+    ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+
+
+    printline("Loading ",(n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM");
+
+    FS_FILE *fileptr;
+
+    err = FSOpen(
+            (n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM",
+            FSMODE_READ | FSMODE_NOCREATE, &fileptr);
+    if (err != FS_OK) {
+        printline("Could not open file", (char *)FSGetErrorMsg(err));
+    } else {
+        printline("File open OK",fileptr->Name);
+        tohex(fileptr->FileSize,buffer);
+        printline("File Size=",buffer);
+        tohex(fileptr->FirstCluster,buffer);
+        printline("First Cluster=",buffer);
+        tohex(fileptr->Chain.StartAddr<<9,buffer);
+        printline("Flash Offset=",buffer);
+    }
+
+
+    struct Preamble preamble;
+    err = FSRead((unsigned char *)&preamble, 32, fileptr);
+    if (err != 32) {
+        printline("Could not read preamble", 0);
+    }  else {
+        struct Preamble *pr=(struct Preamble *) (fileptr->RdBuffer.Data);
+        tohex(preamble.load_addr,buffer);
+        printline("Load addr=",buffer);
+        tohex(pr->load_addr,buffer);
+        printline("Load addr=",buffer);
+        tohex(preamble.load_size,buffer);
+        printline("Load size=",buffer);
+        tohex(pr->load_size,buffer);
+        printline("Load size=",buffer);
+        tohex(preamble.entrypoint,buffer);
+        printline("Entry addr=",buffer);
+        tohex(pr->entrypoint,buffer);
+        printline("Entry addr=",buffer);
+
+
+        uint8_t otherbuffer[512];
+
+        NANDRead(fileptr->Chain.StartAddr<<9,32,otherbuffer);
+
+        struct Preamble *otherPreamble=(struct Preamble *)otherbuffer;
+        tohex(otherPreamble->load_addr,buffer);
+        printline("Load addr=",buffer);
+        tohex(otherPreamble->load_size,buffer);
+        printline("Load size=",buffer);
+        tohex(otherPreamble->entrypoint,buffer);
+        printline("Entry addr=",buffer);
+
+
+
+    }
+
+    err = FSSeek(fileptr, 0, SEEK_SET);
+    if (err != FS_OK) {
+        printline("Could not rewind", (char *)FSGetErrorMsg(err));
+    }
+
+    err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
+    if (err != preamble.load_size) {
+        printline("Could not read data", 0);
+    } else printline("Finished reading file",NULL);
+
+    err = FSClose(fileptr);
+    if (err != FS_OK) {
+        // Can't be closed due to missing write support
+    }
+
+
+    printline("Preparing to jump...",NULL);
+
+    // call payload
+    ((void (*)(void))preamble.entrypoint)();
+
+
+
 
     while(1);
 }

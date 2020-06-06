@@ -13,6 +13,8 @@
 // GENERAL HARDWARE REGISTER MACRO
 #define HWREG(base,off) ( (volatile uint32_t *) (((uint32_t)base+(uint32_t)off)))
 #define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
+#define __ARM_MODE_INLINE__ __attribute__((target("arm")))
+
 
 #define DRAMC_BASE  0x48000000
 #define USBH_BASE   0x49000000
@@ -652,6 +654,16 @@
 #define PCM_FIFO_STAT HWREG(PCM_BASE, 0x18)
 #define PCM_CLRINT    HWREG(PCM_BASE, 0x20)
 
+// ARM CPU MODE CONSTANTS
+#define USER_MODE 0x10
+#define FIQ_MODE  0x11
+#define IRQ_MODE  0x12
+#define SVC_MODE  0x13
+#define ABT_MODE  0x17
+#define UND_MODE  0x1b
+#define SYS_MODE  0x1f
+
+
 #define BPPMODE_1BPP  0x0 // uses palette
 #define BPPMODE_2BPP  0x1 // uses palette
 #define BPPMODE_4BPP  0x2 // uses palette
@@ -665,6 +677,7 @@
 #define NAND_CMD_READ2nd 0x30
 #define NAND_CMD_RND_OUT1st 0x05
 #define NAND_CMD_RND_OUT2nd 0xe0
+
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
