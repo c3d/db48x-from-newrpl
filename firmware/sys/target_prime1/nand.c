@@ -9,14 +9,8 @@
 #include "target_prime1.h"
 #include <newrpl.h>
 #include <stdint.h>
+#include <stddef.h>
 #include "nand.h"
-
-// Spare area layout
-// 0x00 = Bad indicator
-// 0x08-0x0F = 7 bytes ECC parity code for packet 1
-// 0x18-0x1F = 7 bytes ECC parity code for packet 2
-// 0x28-0x2F = 7 bytes ECC parity code for packet 3
-// 0x38-0x3F = 7 bytes ECC parity code for packet 4
 
 #define NFCONF_MsgLength       0x02000000
 #define NFCONF_ECCTypeMask     0x01800000
@@ -30,14 +24,22 @@
 #define NFCONT_ECCDirection    0x00040000
 
 #define NFSTAT_RnB_TransDetect 0x00000010
+#define NFSTAT_IllegalAccess   0x00000020
 #define NFSTAT_ECCDecDone      0x00000040
 
 #define NFECCERR0_ECCReady     0x40000000
 
-#define NAND_CMD_READ1st       0x00
-#define NAND_CMD_READ2nd       0x30
-#define NAND_CMD_RND_OUT1st    0x05
-#define NAND_CMD_RND_OUT2nd    0xe0
+#define NAND_STATUS_FAIL         0x01
+
+#define NAND_CMD_READ1st         0x00
+#define NAND_CMD_READ2nd         0x30
+#define NAND_CMD_RND_OUT1st      0x05
+#define NAND_CMD_RND_OUT2nd      0xe0
+#define NAND_CMD_PAGE_PROGRAM1st 0x80
+#define NAND_CMD_PAGE_PROGRAM2nd 0x10
+#define NAND_CMD_READ_STATUS     0x70
+#define NAND_CMD_BLOCK_ERASE1st  0x60
+#define NAND_CMD_BLOCK_ERASE2nd  0xd0
 
 // Some registers are accessed with other data width than 32bit
 
@@ -49,6 +51,18 @@
 
 // error bit pattern is byte
 #define NFMLCBITPT_8 (volatile uint8_t *)NFMLCBITPT
+
+typedef struct {
+    uint8_t bad;            // 0xff = good, 0x00 = bad
+    uint8_t other;          // 0xfe
+    uint8_t unused[6];      // 0xff
+    uint32_t parity_low;    // parity bytes 1-4 from NFMECC0
+    uint32_t parity_high;   // parity bytes 5-7 from NFMECC1
+}  __attribute__ ((packed)) SparePacket;
+
+typedef struct {
+    SparePacket packets[4];
+}  __attribute__ ((packed)) SparePage;
 
 typedef struct {
     uint32_t unused1;
@@ -66,7 +80,7 @@ typedef struct {
     // - first 2 good blocks containing bootloaders
     // - bad blocks
     uint16_t locked_blocks[2816];
-} BFX;
+}  __attribute__ ((packed)) BFX;
 
 static uint16_t nand_block_translation_table[NAND_NUM_BLOCKS];
 
@@ -106,25 +120,37 @@ static inline void NANDActivateECCDecoder(void)
     *NFCONT &= ~NFCONT_ECCDirection;
 }
 
-static void NANDSetReadAddress(unsigned int row, unsigned int column)
+static inline void NANDActivateECCEncoder(void)
 {
-    NANDClearReady();
+    *NFCONT |= NFCONT_ECCDirection;
+}
 
-    *NFCMMD = NAND_CMD_READ1st;
+static inline void NANDUnlockMainAreaECC(void)
+{
+    *NFCONT &= ~NFCONT_MainECCLock;
+}
 
+static inline void NANDLockMainAreaECC(void)
+{
+    *NFCONT |= NFCONT_MainECCLock;
+}
+
+static void NANDSetRowAddress(unsigned int row)
+{
+    for (int i = 0; i < 3; ++i) {
+        *NFADDR = row & 0xff;
+        row >>= 8;
+    }
+}
+
+static void NANDSetAddress(unsigned int row, unsigned int column)
+{
     // NAND expects 5 address cycles
     for (int i = 0; i < 2; ++i) {
         *NFADDR = column & 0xff;
         column >>= 8;
     }
-    for (int i = 0; i < 3; ++i) {
-        *NFADDR = row & 0xff;
-        row >>= 8;
-    }
-
-    *NFCMMD = NAND_CMD_READ2nd;
-
-    NANDWaitReady();
+    NANDSetRowAddress(row);
 }
 
 static void NANDChangeReadColumn(unsigned int column)
@@ -140,7 +166,7 @@ static void NANDChangeReadColumn(unsigned int column)
 // Returns 1 if ok, 0 if uncorrectable
 static int NANDECC4Correct(uint8_t *data)
 {
-    int count = (*NFECCERR0 >> 29) & 0x03;
+    int count = (*NFECCERR0 >> 26) & 0x03;
 
     if (count == 0) {
         return 1;
@@ -161,7 +187,7 @@ static int NANDECC4Correct(uint8_t *data)
     return 1;
 }
 
-static void NANDConfigureECCDecoder(void)
+static void NANDConfigureECC(void)
 {
     // Message length 512 bytes
     *NFCONF &= ~NFCONF_MsgLength;
@@ -172,9 +198,6 @@ static void NANDConfigureECCDecoder(void)
     // Initialize main and spare area ECC decoder
     // TODO why activate spare area decoding here?
     *NFCONT |= NFCONT_InitSECC | NFCONT_InitMECC;
-
-    // Unlock main area ECC
-    *NFCONT &= ~NFCONT_MainECCLock;
 }
 
 static void NANDWaitForECCDecoder(void)
@@ -192,91 +215,232 @@ static void NANDWaitForECCDecoder(void)
     }
 }
 
-// Reads whole aligned page at @read_address into @target_address.
-// Does ECC error correction.
-// Does not correct block address.
-// Returns 1 on success, 0 on error
-static int NANDReadPage(uint32_t nand_read_address, uint8_t *target_address)
+int NANDReadPage(uint32_t nand_address, uint8_t *target_address)
 {
-  NANDEnableChipSelect();
+    int retval = 1;
 
-  NANDSetReadAddress(NAND_PAGE_NUMBER(nand_read_address), 0);
+    NANDEnableChipSelect();
 
-  NANDActivateECCDecoder();
+    *NFCMMD = NAND_CMD_READ1st;
 
-  for (int packet = 0; packet < NAND_PACKETS_PER_PAGE; ++packet) {
-    int column;
+    NANDSetAddress(NAND_PAGE_NUMBER(nand_address), 0);
 
-    NANDConfigureECCDecoder();
+    NANDClearReady();
 
-    // Read packet data
-    for (int i = 0; i < NAND_PACKET_SIZE; ++i) {
-      *target_address = *NFDATA_8;
-      ++target_address;
+    *NFCMMD = NAND_CMD_READ2nd;
+
+    NANDWaitReady();
+
+    NANDActivateECCDecoder();
+
+    for (int packet = 0; packet < NAND_PACKETS_PER_PAGE; ++packet) {
+        int column;
+
+        NANDConfigureECC();
+
+        NANDUnlockMainAreaECC();
+
+        // Read packet data
+        for (int i = 0; i < NAND_PACKET_SIZE; ++i) {
+          *target_address = *NFDATA_8;
+          ++target_address;
+        }
+
+        // Change column to stored ECC parity from spare area
+        NANDChangeReadColumn(NAND_PAGE_SIZE + offsetof(SparePage, packets[packet].parity_low));
+
+        // Read ECC parity code for packet
+        for (int i = 0; i < 7; ++i) {
+          *NFDATA_8;
+        }
+
+        NANDWaitForECCDecoder();
+
+        // Try to correct errors.
+        // Return existance of uncorrectable bits but continue
+        if (NANDECC4Correct(target_address - NAND_PACKET_SIZE) == 0) {
+          retval = 0;
+        }
+
+        // Change column to next packet
+        if (packet < (NAND_PACKETS_PER_PAGE - 1)) {
+          NANDChangeReadColumn(NAND_PACKET_SIZE * (packet + 1));
+        }
     }
 
-    // Change column to stored ECC parity from spare area
-    NANDChangeReadColumn(NAND_PAGE_SIZE + 8 + (packet << 4));
+    NANDDisableChipSelect();
 
-    // Read ECC parity code for packet
-    for (int i = 0; i < 7; ++i) {
-      *NFDATA_8;
-    }
-
-    NANDWaitForECCDecoder();
-
-    // Try to correct errors
-    if (NANDECC4Correct(target_address - NAND_PACKET_SIZE) == 0) {
-      return 0;
-    }
-
-    // Change column to next packet
-    if (packet < (NAND_PACKETS_PER_PAGE - 1)) {
-      NANDChangeReadColumn(NAND_PACKET_SIZE * (packet + 1));
-    }
-  }
-
-  NANDDisableChipSelect();
-
-  return 1;
+    return retval;
 }
 
 // Reads first byte of spare area and checks it against validity conditions
 // taken from BXCBOOT0.BIN from 20140331 firmware.
-// Returns 1 if page @address lies in is valid, else 0.
-static int NANDIsPageValid(uint32_t nand_address)
+// Returns 1 if page @address lies in is bad, else 0.
+static int NANDIsPageBad(uint32_t nand_address)
 {
-  NANDEnableChipSelect();
+    NANDEnableChipSelect();
 
-  NANDSetReadAddress(NAND_PAGE_NUMBER(nand_address), 1 << NAND_PAGE_BITS);
+    NANDClearReady();
 
-  uint8_t byte = *NFDATA_8;
+    *NFCMMD = NAND_CMD_READ1st;
 
-  NANDDisableChipSelect();
+    NANDSetAddress(NAND_PAGE_NUMBER(nand_address), NAND_PAGE_SIZE);
 
-  return (byte == 0x00 || byte == 0xf0) ? 0 : 1;
+    *NFCMMD = NAND_CMD_READ2nd;
+
+    NANDWaitReady();
+
+    uint8_t byte = *NFDATA_8;
+
+    NANDDisableChipSelect();
+
+    return (byte == 0x00 || byte == 0xf0) ? 1 : 0;
 }
 
-// Checks first, second and last page in block.
-// Returns 1 if block @address lies in is valid, else 0.
-static int NANDIsBlockValid(uint32_t nand_address)
+// Checks first, second and last page in block. If any of these has bad marker
+// whole block is bad.
+int NANDIsBlockBad(uint32_t nand_address)
 {
-  unsigned int page_0 = nand_address & NAND_BLOCK_MASK;
-  if (!NANDIsPageValid(page_0)) {
-    return 0;
-  }
+    unsigned int page_0 = NAND_BLOCK_START(nand_address);
+    if (NANDIsPageBad(page_0)) {
+        return 1;
+    }
 
-  unsigned int page_1 = page_0 + NAND_PAGE_SIZE;
-  if (!NANDIsPageValid(page_1)) {
-    return 0;
-  }
+    unsigned int page_1 = page_0 + NAND_PAGE_SIZE;
+    if (NANDIsPageBad(page_1)) {
+        return 1;
+    }
 
-  unsigned int page_last = page_0 + NAND_BLOCK_SIZE - NAND_PAGE_SIZE;
-  if (!NANDIsPageValid(page_last)) {
-    return 0;
-  }
+    unsigned int page_last = page_0 + NAND_BLOCK_SIZE - NAND_PAGE_SIZE;
+    if (NANDIsPageBad(page_last)) {
+        return 1;
+    }
 
-  return 1;
+    return 0;
+}
+
+static void __attribute__ ((noinline)) busy_wait(unsigned int count)
+{
+    for (unsigned int i = 0; i < count; ++i) {
+        // asm statement with data dependency and potential side effect
+        // can't be optimized away
+        __asm__ volatile("" : "+g" (i) : :);
+    }
+}
+
+// Returns 1 on success, 0 on error.
+static int NANDCheckWrite(void)
+{
+    if ((*NFSTAT & NFSTAT_IllegalAccess) != 0) {
+        return 0;
+    }
+
+    *NFCMMD = NAND_CMD_READ_STATUS;
+
+    busy_wait(3);
+
+    for (int i = 0; i < 1024; ++i) {
+        if ((*NFDATA_8 & NAND_STATUS_FAIL) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Sets bad marker in spare for first packet to 0x00.
+// Returns 1 on success, 0 on error.
+static int NANDMarkPageBad(uint32_t nand_address)
+{
+    int retval = 1;
+
+    NANDEnableChipSelect();
+
+    *NFCMMD = NAND_CMD_PAGE_PROGRAM1st;
+
+    NANDSetAddress(NAND_PAGE_NUMBER(nand_address), NAND_PAGE_SIZE);
+
+    *NFDATA_8 = 0;
+
+    NANDClearReady();
+
+    *NFCMMD = NAND_CMD_PAGE_PROGRAM2nd;
+
+    NANDWaitReady();
+
+    if (NANDCheckWrite() == 0) {
+        retval = 0;
+    }
+
+    NANDDisableChipSelect();
+
+    return retval;
+}
+
+int NANDMarkBlockBad(uint32_t nand_address)
+{
+    return NANDMarkPageBad(NAND_BLOCK_START(nand_address));
+}
+
+int NANDWritePage(uint32_t nand_address, uint8_t *source_address)
+{
+    SparePage spare;
+    int retval = 1;
+
+    // initialize spare
+    for (int i = 0; i < sizeof(SparePage); ++i) {
+        *((uint8_t *)&spare + i) = 0xff;
+    }
+
+    NANDEnableChipSelect();
+
+    *NFCMMD = NAND_CMD_PAGE_PROGRAM1st;
+
+    NANDSetAddress(NAND_PAGE_NUMBER(nand_address), 0);
+
+    NANDActivateECCEncoder();
+
+    for (int packet = 0; packet < NAND_PACKETS_PER_PAGE; ++packet) {
+        NANDConfigureECC();
+        
+        busy_wait(500);
+        
+        NANDUnlockMainAreaECC();
+
+        // Write packet data
+        for (int i = 0; i < NAND_PACKET_SIZE; ++i) {
+            *NFDATA_8 = *source_address;
+            ++source_address;
+        }
+
+        busy_wait(4);
+
+        SparePacket *spare_packet = &spare.packets[packet];
+        spare_packet->bad = 0xff;
+        spare_packet->other = 0xfe;
+        spare_packet->parity_low = *NFMECC0;
+        spare_packet->parity_high = *NFMECC1;
+    }
+
+    // Write spare data
+    uint8_t *sparepointer = (uint8_t *)&spare;
+    for (int i = 0; i < sizeof(SparePage); ++i) {
+        *NFDATA_8 = *sparepointer;
+        ++sparepointer;
+    }
+
+    NANDClearReady();
+
+    *NFCMMD = NAND_CMD_PAGE_PROGRAM2nd;
+
+    NANDWaitReady();
+
+    if (NANDCheckWrite() == 0) {
+        retval = 0;
+    }
+
+    NANDDisableChipSelect();
+
+    return retval;
 }
 
 // Returns 1 on success, 0 on error.
@@ -314,6 +478,32 @@ int NANDInit(void)
     return 1;
 }
 
+int NANDBlockErase(uint32_t nand_address)
+{
+    int retval = 1;
+
+    NANDEnableChipSelect();
+
+    *NFCMMD = NAND_CMD_BLOCK_ERASE1st;
+
+    NANDSetRowAddress(NAND_PAGE_NUMBER(NAND_BLOCK_START(nand_address)));
+
+    NANDClearReady();
+
+    *NFCMMD = NAND_CMD_BLOCK_ERASE2nd;
+
+    NANDWaitReady();
+
+    // NOTE BL2 does not check NFSTAT_IllegalAccess here
+    if (NANDCheckWrite() == 0) {
+        retval = 0;
+    }
+
+    NANDDisableChipSelect();
+
+    return retval;   
+}
+
 static uint32_t NANDTranslateVirtualAddress(uint32_t virtual_address)
 {
     uint32_t virtual_block_number = NAND_BLOCK_NUMBER(virtual_address);
@@ -325,18 +515,31 @@ static uint32_t NANDTranslateVirtualAddress(uint32_t virtual_address)
     return nand_address;
 }
 
-int NANDReadPages(uint32_t virtual_read_address, uint8_t *target_address, unsigned int num_bytes)
+int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num_bytes)
 {
-    while (num_bytes > 0) {
-        uint32_t nand_read_address = NANDTranslateVirtualAddress(virtual_read_address);
+    uint8_t buffer[NAND_PAGE_SIZE];
 
-        if (NANDReadPage(nand_read_address, target_address) == 0) {
+    while (num_bytes != 0) {
+        uint32_t page_start = NAND_PAGE_START(virtual_address);
+        uint32_t offset = virtual_address - page_start;
+
+        uint32_t nand_read_address = NANDTranslateVirtualAddress(page_start);
+        if (NANDReadPage(nand_read_address, buffer) == 0) {
             return 0;
         }
 
-        target_address += NAND_PAGE_SIZE;
-        virtual_read_address += NAND_PAGE_SIZE;
-        num_bytes -= NAND_PAGE_SIZE;
+        int bytes_used = NAND_PAGE_SIZE - offset;
+        if (num_bytes < bytes_used) {
+            bytes_used = num_bytes;
+        }
+
+        for (int i = 0; i < bytes_used; ++i) {
+            *target_address = buffer[i + offset];
+            ++target_address;
+        }
+
+        virtual_address += bytes_used;
+        num_bytes -= bytes_used;
     }
 
     return 1;
