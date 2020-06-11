@@ -179,16 +179,19 @@ void __keyb_init()
     *INTMSK1 |= 0x20;
 
     *GPDCON= (*GPDCON &0xffff0000) | 0x5555;    // ALL COLUMNS TO OUTPUT
-    *GPDDAT = 0xFF;        // DRIVE OUTPUTS HIGH
-    *GPDUDP = (*GPDCON &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
+    *GPDDAT |= 0xFF;        // DRIVE OUTPUTS HIGH
+    *GPDUDP = (*GPDUDP &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
     *GPGUDP = 0x5555;       // ENABLE PULLDOWN ON ALL INPUT LINES
     *GPGCON = 0xaaaa;       // ALL ROWS TO EINT
 
-    __irq_addhook(5, &__keyb_int_handler);
+
 
     *EXTINT1 = 0x66666666;      // ALL OTHER KEYS TRIGGER ON BOTH EDGES
     *EINTMASK = (*EINTMASK & ~0x00ff00);       // UNMASK 8-15
-    *EINTPEND = 0xffffffff;     // CLEAR ALL PENDING INTERRUPTS
+    *EINTPEND = 0xfff0;     // CLEAR ALL PENDING INTERRUPTS
+
+    __irq_addhook(5, &__keyb_int_handler);
+
     __irq_unmask(5);     // UNMASK EXTERNAL INTERRUPTS
     __irq_clrpending(5);    // REMOVE ANY PENDING REQUESTS
 }

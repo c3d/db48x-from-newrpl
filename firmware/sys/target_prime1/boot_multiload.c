@@ -164,6 +164,25 @@ void set_stackall()
     asm volatile ("bx %[lr]" : : [lr] "r" (lr_copy));       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
+__ARM_MODE__ void finaljump(int address) __attribute__((noreturn));
+void finaljump(int address)
+{
+    // This needs to be a register, not in the stack since the stack will change during the mode change
+    register void (*funcptr)(void);
+
+    funcptr=(void (*)(void))address;
+    switch_mode(SVC_MODE);     // Firmware expects to be in supervisor mode. PRIME_OS will crash if not.
+
+    cpu_flushwritebuffers();   // Ensure the file we just read is completely written to actual DRAM
+    cpu_flushicache();         // Ensure any old code is removed from caches, force the new code we loaded to be read from DRAM
+
+    funcptr();
+
+    while(1);
+}
+
+
+
 __ARM_MODE__ void main() __attribute__((noreturn));
 void main()
 {
@@ -174,11 +193,7 @@ void main()
     Context.alloc_bmp = EMPTY_STORAGEBMP;
     init_simpalloc();
 
-    if (NANDInit() == 0)
-        printline("No BFX", NULL);
-
-    FSHardReset();
-
+    // Initialize screen earlier so we can print error messages
     line = 0;
 
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
@@ -192,6 +207,30 @@ void main()
     char buffer2[9];
     BINT err;
 
+
+
+    if (NANDInit() == 0)
+        printline("No BFX", NULL);
+    buffer[8]=0;
+    tohex((unsigned int)&line,buffer);
+    printline("Line=",buffer);
+
+    buffer[8]=0;
+    tohex(__cpu_getFCLK(),buffer);
+    printline("FCLK=",buffer);
+    buffer[8]=0;
+    tohex(__cpu_getHCLK(),buffer);
+    printline("HCLK=",buffer);
+    buffer[8]=0;
+    tohex(__cpu_getPCLK(),buffer);
+    printline("PCLK=",buffer);
+
+
+
+    FSHardReset();
+
+
+
     err = FSSetCurrentVolume(0);
     if (err != FS_OK) {
         printline("Could not set volume", (char *)FSGetErrorMsg(err));
@@ -200,7 +239,7 @@ void main()
     FS_FILE *fileptr;
 
     err = FSOpen(
-            (n_pressed()) ? "NEWRPL.ROM" : "PRIME_OS.ROM",
+            (n_pressed()) ?  "PRIME_OS.ROM" : "NEWRPL.ROM",
             FSMODE_READ | FSMODE_NOCREATE, &fileptr);
     if (err != FS_OK) {
         printline("Could not open file", (char *)FSGetErrorMsg(err));
@@ -225,6 +264,9 @@ void main()
         printline("Load size=",buffer);
         tohex(preamble.entrypoint,buffer);
         printline("Entry addr=",buffer);
+
+        uint8_t otherbuffer[512];
+
     }
 
     err = FSSeek(fileptr, 0, SEEK_SET);
@@ -242,44 +284,22 @@ void main()
         // Can't be closed due to missing write support
     }
 
-// values valid for PRIME_OS.ROM from firmware 20200116
-tohex(*(uint64_t *)((unsigned char *)preamble.load_addr), buffer);
-tohex(0x30000020, buffer2);
-printline(buffer, buffer2);
+    // show debug information until we press and release N again
+    while(n_pressed()) ;
+    while(!n_pressed()) ;
+    while(n_pressed()) ;
 
-tohex(*(uint64_t *)((unsigned char *)preamble.entrypoint), buffer);
-tohex(0xea00002a, buffer2);
-printline(buffer, buffer2);
+tohex(preamble.entrypoint,buffer);
+printline("Jumping to Entry addr=",buffer);
 
-tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0xd0), buffer);
-tohex(0xe3a00453, buffer2);
-printline(buffer, buffer2);
+// show debug information until we press and release N again
+while(n_pressed()) ;
+while(!n_pressed()) ;
+while(n_pressed()) ;
 
-tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0xd4), buffer);
-tohex(0xe3a01000, buffer2);
-printline(buffer, buffer2);
 
-tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0x4d628), buffer);
-tohex(0xebffff04, buffer2);
-printline(buffer, buffer2);
+    finaljump(preamble.entrypoint);
 
-tohex(*(uint64_t *)((unsigned char *)preamble.load_addr + 0x83e84), buffer);
-tohex(0xf8885020, buffer2);
-printline(buffer, buffer2);
-
-printline((char *)preamble.load_addr + 0x85da0, 0);
-printline((char *)preamble.load_addr + 0xffb00, 0);
-
-// show debug information
-while(1);
-
-    // FIXME call payload like BL2
-    // mov lr, pc
-    // mov pc, preamble.entrypoint
-    // and reverse what BL2 does when PRIME_OS.ROM returns
-    ((void (*)(void))preamble.entrypoint)();
-    
-    while(1);
 }
 
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
@@ -293,8 +313,15 @@ void startup(int prevstate)
 
     __exception_install();
 
+    cpu_flushTLB();            // We did not change the MMU, but doesn't hurt to flush it
+    cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
+    cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
+
     main(); // never returns
 }
+
+
+
 
 //************************************************************************************
 //****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********

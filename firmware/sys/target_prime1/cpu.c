@@ -66,10 +66,10 @@ int __cpu_getFCLK()
 
         if(PLLCON&0x1000000) return 12000000;
 
-        int m = (PLLCON >> 14)&0xff, p = ((PLLCON >> 5) & 0x3f) + 2, s =
+        int m = (PLLCON >> 14)&0x3ff, p = ((PLLCON >> 5) & 0x3f) , s =
                 PLLCON & 7;
 
-        return ((unsigned)m * 12000000) / (p * (1 << s));
+        return ((long long)m * 12000000LL) / (p * (1 << s));
 
 }
 
@@ -104,4 +104,55 @@ __ARM_MODE__ int cpu_getlock(int lockvar, volatile int *lock_ptr)
     asm volatile ("swp %1,%1,[%2];":"=r" (lockvar):"r"(lockvar), "r"(lock_ptr));
 
     return lockvar;
+}
+
+
+
+__ARM_MODE__ void cpu_flushwritebuffers(void)
+{
+    register unsigned int value;
+
+    value = 0;
+
+    // Test, Clean and invalidate DCache
+    // Uses special behavior of R15 as per ARM 926EJ-S Reference Manual
+    asm volatile("flush_loop:\n"
+                 "mrc p15, 0, r15, c7, c14, 3\n"
+                 "bne flush_loop");
+
+
+    // Drain write buffers to make sure everything is written before returning
+    asm volatile ("mcr p15, 0, %0, c7, c10, 4"::"r" (value));
+
+    // Make sure the prefetched operations that are read into the pipeline before the cache is flushed don't read any data
+    asm volatile ("nop");
+    asm volatile ("nop");
+
+}
+
+
+__ARM_MODE__ void cpu_flushicache(void)
+{
+    register unsigned int value;
+
+    // Invalidate ICache
+    value = 0;
+    asm volatile ("mcr p15, 0, %0, c7, c5, 0"::"r" (value));
+
+    // Make sure the prefetched operations that are read into the pipeline before the cache is flushed are well-known
+    asm volatile ("nop");
+    asm volatile ("nop");
+
+}
+
+__ARM_MODE__ void cpu_flushTLB(void)
+{
+    register unsigned int value;
+
+    value = 0;
+    asm volatile ("mcr p15, 0, %0, c8, c7, 0"::"r" (value));
+
+    // Make sure all instructions past the return of this function will be read using a full lookup through the MMU table.
+    asm volatile ("nop");
+    asm volatile ("nop");
 }

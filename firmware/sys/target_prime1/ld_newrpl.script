@@ -112,10 +112,12 @@ __data_load = . ;
 
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
 
- __data_start = . ;
+
 
  
   . = 0x30085000;
+
+  __data_start = . ;
 
   __tmp_datastart = . ;
 

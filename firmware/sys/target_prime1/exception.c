@@ -388,35 +388,35 @@ else {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"FIQ" );
 		for(f=0;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+14*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x12) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"IRQ" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+14*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x13) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SUP" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+14*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x17) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"ABT" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+14*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1B) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"UND" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+14*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1f) {
@@ -433,7 +433,7 @@ else {
 if(options&__EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-8),"Cont");
+        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"Cont");
 		//pnewb[70*5]|=0x10000;
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
@@ -444,7 +444,7 @@ if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-8),"Exit");
+        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"Exit");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
@@ -456,8 +456,8 @@ if(options&__EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&__EX_WIPEOUT) __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-8),"*Clear Mem*");
-            else __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-8),"*Warmstart*");
+        if(options&__EX_WIPEOUT) __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
+            else __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
@@ -468,7 +468,7 @@ if(options&__EX_WARM) {
 if(options&__EX_RESET) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 4
-        __ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-8),"**Reset**");
+        __ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"**Reset**");
         //for(f=0;f<9;++f) pnewb[(SCREEN_HEIGHT-9)*5+4+5*f]|=0x1;
         //pnewb[(SCREEN_HEIGHT-2)*5+3]|=0xffffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0xf0000000;
@@ -703,13 +703,39 @@ register unsigned int value asm("r0");
 }
 
 
-
 void __exception_install()
 {
     unsigned *handler_addr=(unsigned int *)0x31ffff00L;
-	handler_addr[1]=(unsigned int)(&__handler_und);
-	handler_addr[3]=(unsigned int)(&__handler_iabort);
-	handler_addr[4]=(unsigned int)(&__handler_dabort);
+    handler_addr[0]=(unsigned int)(&__handler_und); // RESET EXCEPTION!!
+    handler_addr[1]=(unsigned int)(&__handler_und); // UNDEFINED instruction
+    handler_addr[2]=(unsigned int)(&__handler_und); // SWI service handler
+    handler_addr[3]=(unsigned int)(&__handler_iabort); // PREFETCH abort
+    handler_addr[4]=(unsigned int)(&__handler_dabort); // DATA abort
+    handler_addr[5]=(unsigned int)(&__handler_und); // RESERVED
+    handler_addr[6]=(unsigned int)(&__handler_und); // IRQ handler - will be overwritten by the ISR
+    handler_addr[7]=(unsigned int)(&__handler_und); // FIQ handler - will be overwritten by the ISR
+
+    handler_addr[62]=0xe51ff100; // This goes at 0x31fffff8: asm volatile ("ldr pc, .Lhdlr_reset");
+    handler_addr[61]=0xe51ff0f8;
+    handler_addr[60]=0xe51ff0f0;
+    handler_addr[59]=0xe51ff0e8;
+    handler_addr[58]=0xe51ff0e0;
+    handler_addr[57]=0xe51ff0d8;
+    handler_addr[56]=0xe51ff0d0;
+    handler_addr[55]=0xe51ff0c8;
+    handler_addr[54]=0xe51ff0c0;
+
+    // Relocation of exception vectors from SRAM to DRAM (why is this needed? we could keep the table at 0x20):
+
+    handler_addr=0;
+    handler_addr[0]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31fffff8 (reset handler)
+    handler_addr[1]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31fffff4 (reset handler)
+    handler_addr[2]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31fffff0 (reset handler)
+    handler_addr[3]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffec (reset handler)
+    handler_addr[4]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffe8 (reset handler)
+    handler_addr[5]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffe4 (reset handler)
+    handler_addr[6]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffe0 (reset handler)
+    handler_addr[7]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffdc (reset handler)
 
 	__irq_install();
 }
