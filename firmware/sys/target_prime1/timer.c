@@ -150,12 +150,6 @@ void tmr_setup()
     prescaler = (pclk << 3) / SYSTIMER_FREQ;
     divider = 1;
 
-    if(prescaler & 0xf) {
-// WARNING: REQUESTED FREQUENCY CANNOT BE REPRESENTED ACCURATELY
-// THIS ONLY HAPPENS AT 75 MHz, ALL OTHER SPEEDS ARE OK
-        prescaler = (pclk << 3) / ALTSYSTIMER_FREQ;
-    }
-
     while(prescaler > (1 << (11 + divider))) {
         divider++;
     }
@@ -224,12 +218,6 @@ void __tmr_fix()
     prescaler = (pclk << 3) / SYSTIMER_FREQ;
     divider = 1;
 
-    if(prescaler & 0xf) {
-// WARNING: REQUESTED FREQUENCY CANNOT BE REPRESENTED ACCURATELY
-// THIS ONLY HAPPENS AT 75 MHz, ALL OTHER SPEEDS ARE OK
-        prescaler = (pclk << 3) / ALTSYSTIMER_FREQ;
-    }
-
     while(prescaler > (1 << (11 + divider))) {
         divider++;
     }
@@ -247,7 +235,9 @@ void __tmr_fix()
 
 // SET PRESCALER VALUES FOR TIMERS 0 AND 1
     *TCFG0 = (*TCFG0 & (~0xFF)) | (prescaler - 1);
-    *TCFG1 = (*TCFG1 & (~0xf000ff)) | (divider - 1) | ((divider - 1) << 4);
+    *TCFG1 =
+            (*TCFG1 & (~0xf000ff)) | (divider - 1) | ((divider - 1) << 4);
+
 
 }
 

@@ -311,7 +311,8 @@ void startup(int prevstate)
 
     clear_globals();
 
-    __exception_install();
+// Do not install exception handlers in the boot loader to avoid conflict with firmware
+//    __exception_install();
 
     cpu_flushTLB();            // We did not change the MMU, but doesn't hurt to flush it
     cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM

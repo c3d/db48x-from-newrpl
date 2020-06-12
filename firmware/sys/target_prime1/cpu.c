@@ -59,6 +59,84 @@ void __cpu_inton(INTERRUPT_TYPE state)
 //; IS INFORM2==0X55AA?
 //; WakeupFromSleep ; YES, WE ARE WAKING UP, RESTORE STATE AND RESUME
 
+// Set CPU Clock Speed in Hz
+// Peripherals clock will be modified accordingly
+
+// Valid clocks for this target:
+// 400000000 = 400MHz:
+// MSysCLK = 800 MHz ; ARMCLK = 400 MHz, HCLK = 133 MHz, PCLK = 66 MHz, DDRCLK=2*HCLK=266 MHz
+// 200000000 = 200MHz:
+// MSysCLK = 800 MHz ; ARMCLK = 200 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
+
+
+// Given a PLL configuration, set the clock and adjust all other hardware clocks to comply with specs
+// HCLK target is 100 MHz
+// PCLK target is 50 MHz
+// ARMCLK target has to be an integer multiple of HCLK
+
+
+// Auxiliary function that fixes timer frequency every time the cpu clock is adjusted
+extern void __tmr_fix();
+
+int __cpu_setspeed(unsigned int mode)
+{
+switch(mode)
+{
+
+
+
+case 400:
+    // MSysCLK = 800 MHz ; ARMCLK = 400 MHz, HCLK = 133 MHz, PCLK = 66 MHz, DDRCLK=2*HCLK=266 MHz
+    // Max. performance MsysCLK = 800 MHz
+    //          MDIV        PDIV    SDIV
+    *MPLLCON = (400<<14) | (3<<5) | (1);
+
+    //         ARMDIV   PREDIV   PCLKDIV  HCLKDIV
+    *CLKDIV0 = (1<<9) | (2<<4) | (1<<2) | (1) ;
+    break;
+case 200:
+    // MSysCLK = 400 MHz ; ARMCLK = 200 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
+    //         MDIV        PDIV    SDIV
+    *MPLLCON= (400<<14) | (3<<5) | (2);
+
+    //         ARMDIV   PREDIV   PCLKDIV  HCLKDIV
+    *CLKDIV0 = (1<<9) | (1<<4) | (1<<2) | (1) ;
+    break;
+default:
+case 100:
+    // MSysCLK = 400 MHz ; ARMCLK = 100 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
+    //         MDIV        PDIV    SDIV
+    *MPLLCON= (400<<14) | (3<<5) | (2);
+
+    //         ARMDIV   PREDIV   PCLKDIV  HCLKDIV
+    *CLKDIV0 = (3<<9) | (1<<4) | (1<<2) | (1) ;
+    break;
+
+}
+
+// TODO: Also set the EPLL clocks although this clock doesn't change
+//*EPLLCON= 0x200102; // 96 MHz regardless of CPU speed
+//*CLKSRC=0x118;
+
+__tmr_fix();
+
+}
+
+
+// Support only a few speeds:
+// Slow mode at 100 MHz
+// Full speed mode is at 400 MHz
+
+int cpu_setspeed(int freq)
+{
+    if(freq >= 400000000)
+        return __cpu_setspeed(400);
+    if(freq >= 200000000)
+        return __cpu_setspeed(200);
+    return __cpu_setspeed(100);
+}
+
+
 
 int __cpu_getFCLK()
 {

@@ -252,16 +252,22 @@ void main()
 
     printline("Press any key", 0);
 
-    unsigned int msg;
-
+    int msg;
+    keymatrix a;
+    char buffer2[9];
+    buffer2[8]=0;
 
     do {
     msg=keyb_getmsg();
     if(!msg) continue;
+    a=keyb_getmatrix();
+    tohex(a&0xffffffff,buffer);
+    tohex((a>>32)&0xffffffff,buffer2);
+    ggl_rect(&surface, 0, line * lineheight, SCREEN_WIDTH - 1, (line+1)*2*lineheight-1, 0);
+    printline(buffer,buffer2);
     tohex(msg,buffer);
-    buffer[8]=0;
-    if(msg) printline("MSG=", buffer);
-    if(line>=20) break;
+    printline("Keymsg=",buffer);
+    if(line>=20) line=0;
     } while (1);
 
     printline("Too many lines", 0);

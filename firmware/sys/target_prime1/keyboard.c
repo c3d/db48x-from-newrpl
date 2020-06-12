@@ -39,13 +39,11 @@ keymatrix __keyb_getmatrix()
     unsigned int control;
 
     *GPGCON=0;    // ALL INPUTS
-    *GPDDAT = 0xff;    // DRIVE THE OUTPUT COLUMN HIGH
 
 
     for(col = 7; col >= 4; --col) {
 
-        control = 1 << (col * 2);
-        *GPDCON = control;
+        *GPDDAT = (*GPDDAT & (~0xff)) | (1 << col);
 
         // DEBOUNCE TECHNIQUE
         c = 0;
@@ -65,8 +63,7 @@ keymatrix __keyb_getmatrix()
 
     for(; col >= 0; --col) {
 
-        control = 1 << (col * 2);
-        *GPDCON = control;
+      *GPDDAT = (*GPDDAT & (~0xff)) | (1 << col);
 
         // DEBOUNCE TECHNIQUE
         c = 0;
@@ -97,7 +94,7 @@ keymatrix __keyb_getmatrix()
     }
 
 
-    *GPDCON |= 0x5555;       // SET ALL COLUMNS TO OUTPUT
+    *GPDDAT |= 0xff;       // SET ALL COLUMNS TO OUTPUT
     *GPGCON = 0xaaaa;        // ALL KEYS FUNCTION BACK TO EINT
 
     hi |= v << 31;          // read the on key at GPG0
@@ -192,8 +189,9 @@ void __keyb_init()
 
     __irq_addhook(5, &__keyb_int_handler);
 
-    __irq_unmask(5);     // UNMASK EXTERNAL INTERRUPTS
     __irq_clrpending(5);    // REMOVE ANY PENDING REQUESTS
+    __irq_unmask(5);     // UNMASK EXTERNAL INTERRUPTS
+
 }
 
 void __keyb_stop()
