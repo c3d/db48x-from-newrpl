@@ -234,7 +234,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
 
 
 HEADERS  += firmware/include/ggl.h \
-    target_pc.h \
+    firmware/include/firmware.h \
+    firmware/include/target_pc.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     newrpl/libraries.h \

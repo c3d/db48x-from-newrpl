@@ -25,6 +25,103 @@ extern int __keyplane;
 extern int __keynumber, __keycount;
 extern int __keyb_repeattime, __keyb_longpresstime, __keyb_debounce;
 
+
+/*
+
+KEYBOARD BIT MAP
+----------------
+This is the bit number in the 64-bit keymatrix.
+Bit set means key is pressed.
+
+    AP]+  SY]+                   HL]+  ES]+
+    |36|  |20|                   |61|  |52|
+    +--+  +--+                   +--+  +--+
+
+    HM]+  PL]+        UP]+       VW]+  CA]+
+    |28|  |12|        |37|       |29|  |13|
+    +--+  +--+  LF]+  +--+  RT]+ +--+  +--+
+                |57|  DN]+  |15|
+          NM]+  +--+  |44|  +--+ ME]+
+          |04|        +--+       |21|
+          +--+                   +--+
+
+    A]--+  B]--+  C]--+  D]--+  E]--+  BKS]+
+    | 42|  | 58|  | 18|  | 10|  | 34|  | 02|
+    +---+  +---+  +---+  +---+  +---+  +---+
+
+    F]--+  G]--+  H]--+  I]--+  J]--+  K]--+
+    | 59|  | 50|  | 43|  | 35|  | 27|  | 19|
+    +---+  +---+  +---+  +---+  +---+  +---+
+
+    L]--+  M]--+  N]--+  O]--+  ENTER]-----+
+    | 11|  | 03|  | 60|  | 06|  |    07    |
+    +---+  +---+  +---+  +---+  +----------+
+
+    P]--+  7]---+  8]---+  9]---+  /]--+
+    | 01|  | 22 |  | 14 |  | 05 |  | 17|
+    +---+  +----+  +----+  +----+  +---+
+
+    AL]-+  4]---+  5]---+  6]---+  *]--+
+    | 26|  | 46 |  | 38 |  | 30 |  | 25|
+    +---+  +----+  +----+  +----+  +---+
+
+    RS]-+  1]---+  2]---+  3]---+  -]--+
+    | 51|  | 45 |  | 62 |  | 54 |  | 33|
+    +---+  +----+  +----+  +----+  +---+
+
+    ON]-+  0]---+  .]---+  SP]--+  +]--+
+    | 63|  | 09 |  | 53 |  | 49 |  | 41|
+    +---+  +----+  +----+  +----+  +---+
+
+*/
+
+
+// Matrix to KeyCode mapping - Defined in keyboard.c for this target
+const unsigned char const __keyb_codefrombit[64] = {
+     0, KB_P, KB_BKS, KB_M,KB_NUM, KB_9, KB_O, KB_ENT, 8, KB_0,
+    KB_D,KB_L,KB_PLT,KB_CAS,KB_8,KB_RT,16,KB_DIV,KB_C,KB_K,
+    KB_SYM,KB_MEN,KB_7,23,24,KB_MUL,KB_ALPHA,KB_J,KB_HOM,KB_VIE,
+    KB_6,31,32,KB_SUB,KB_E,KB_I,KB_APP,KB_UP,KB_5,39,
+    40,KB_ADD,KB_A,KB_H,KB_DN,KB_1,KB_4,47,48,KB_SPC,
+    KB_G,KB_RSHIFT,KB_ESC,KB_DOT,KB_3,55,56,KB_LF,KB_B,KB_F,
+    KB_N,KB_HLP,KB_2, KB_ON
+};
+const unsigned char const __keyb_bitfromcode[64] = {
+
+
+//    BKS U   /   *   -  +  ENT    P
+    0, 2, 0, 17, 25, 33, 41, 7, 0, 1,
+
+//  T  Y  9  6    3  SPC     O  S  X
+    0, 0, 5, 60, 54, 49, 0,  6, 0, 0,
+
+//  8   5   2   .      N   R   W  7   4
+   14, 38, 62, 53, 0, 60,  0,  0, 22, 46,
+
+//  1  0      M   Q   V
+   45, 9, 0,  3,  0,  0, 0, 0, 0, 0,
+
+//    A    B   C   D   E   F   G     UP
+   0, 42, 58, 18, 10, 34, 59, 50, 0, 37,
+
+// LF  DN  RT  H    I   J      K   L
+   57, 44, 15, 43, 35, 27, 0, 19, 11, 0,
+
+// AL  LS  RS  ON
+   26,  0, 51, 63
+};
+
+
+
+
+
+
+
+
+
+
+
+
 // LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
 // HANDLERS ONLY
 

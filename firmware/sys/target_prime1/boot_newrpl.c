@@ -49,17 +49,6 @@ void printline(char *left_text, char *right_text) {
     }
 }
 
-int n_pressed() {
-    *GPGCON = 0;    // SET ALL KEYBOARD COLUMNS AS INPUTS
-    *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
-
-    *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
-    *GPDDAT |= (1 << 7);
-
-    return *GPGDAT & (1 << 4);
-}
-
-
 __ARM_MODE__ void enable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all" ::: "r1");
@@ -191,62 +180,9 @@ void main()
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
 
-    printline("Attempt to enable interrupts", 0);
-
-    // show debug information until we press and release N again
-    while(n_pressed()) ;
-    while(!n_pressed()) ;
-    while(n_pressed()) ;
-
     enable_interrupts();
 
-    printline("Attempt to enable timers", 0);
-
-    // show debug information until we press and release N again
-    while(n_pressed()) ;
-    while(!n_pressed()) ;
-    while(n_pressed()) ;
-
     tmr_setup();
-
-    char buffer[9];
-    tohex(tmr_getsysfreq(),buffer);
-    buffer[8]=0;
-
-    printline("Testing system timer, freq = ", buffer);
-
-    tmr_delayms(1000);
-
-    printline("One...", 0);
-
-    tmr_delayms(1000);
-    printline("Two...", 0);
-
-    tmr_delayms(1000);
-
-    printline("Three...", 0);
-
-    printline("Testing event...", 0);
-
-    tmrtest=0;
-    HEVENT myevent=tmr_eventcreate(&myhandler,1000,0);
-
-    tmr_t start=tmr_ticks(),end;
-
-    do {
-        if(tmrtest) break;
-        end=tmr_ticks();
-
-    } while(tmr_ticks2ms(start,end)<3000);
-
-    printline("Event test result: ",(char *)tmrtest);
-
-    printline("Attempt to enable keyboard", 0);
-
-    // show debug information until we press and release N again
-    while(n_pressed()) ;
-    while(!n_pressed()) ;
-    while(n_pressed()) ;
 
     __keyb_init();
 
@@ -254,7 +190,7 @@ void main()
 
     int msg;
     keymatrix a;
-    char buffer2[9];
+    char buffer[9],buffer2[9];
     buffer2[8]=0;
 
     do {
@@ -263,11 +199,11 @@ void main()
     a=keyb_getmatrix();
     tohex(a&0xffffffff,buffer);
     tohex((a>>32)&0xffffffff,buffer2);
-    ggl_rect(&surface, 0, line * lineheight, SCREEN_WIDTH - 1, (line+1)*2*lineheight-1, 0);
+    line=0;
+    ggl_rect(&surface, 0, line * lineheight, SCREEN_WIDTH - 1, (line+2)*lineheight-1, 0);
     printline(buffer,buffer2);
     tohex(msg,buffer);
     printline("Keymsg=",buffer);
-    if(line>=20) line=0;
     } while (1);
 
     printline("Too many lines", 0);

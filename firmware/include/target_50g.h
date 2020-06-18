@@ -243,4 +243,23 @@
 
 typedef unsigned int INTERRUPT_TYPE;
 
+
+// Keyboard remapping constants
+
+// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
+#define KEYMATRIX_ALL_SHIFTS   0x7000000000000000LL
+#define KEYMATRIX_ON           0x8000000000000000LL
+#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>61)&1)
+#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>62)&1)
+#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>60)&1)
+
+
+// Keyboard mapping macros  - MUST exist for all targets
+#define KEYMAP_CODEFROMBIT(bit) (bit)
+#define KEYMAP_BITFROMCODE(code) (code)
+
+
+
+
+
 #endif // TARGET_50G_H

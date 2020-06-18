@@ -130,6 +130,7 @@ void switch_mode(int mode)
 // SYS: 0x31ff7c00  // Stack below the MMU table with 1kbytes buffer in case of underrun
 // Stay in SYS mode, with supervisor privileges but using no banked registers
 
+//  Set the stack for all modes, also clear ALL registers to zero in ALL modes
 __ARM_MODE__ void set_stackall() __attribute__((naked));
 void set_stackall()
 {
@@ -151,6 +152,12 @@ void set_stackall()
 
     switch_mode(FIQ_MODE);
 
+    asm volatile ("mvn r8,#0");
+    asm volatile ("mvn r9,#0");
+    asm volatile ("mvn r10,#0");
+    asm volatile ("mvn r11,#0");
+    asm volatile ("mvn r12,#0");
+
     set_stack((unsigned int *)0x31fffefc);
 
     switch_mode(IRQ_MODE);
@@ -161,27 +168,127 @@ void set_stackall()
 
     set_stack((unsigned int *)0x31ff7c00);  // Leave 1 kbytes buffer to make sure a bad stack does not overwrite the MMU tables
 
-    asm volatile ("bx %[lr]" : : [lr] "r" (lr_copy));       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
+    asm volatile ("mov lr, %[lr]" : : [lr] "r" (lr_copy));
+
+    // Clear ALL other unbanked regitsters to known values (zero)
+    asm volatile ("mvn r0,#0");
+    asm volatile ("mvn r1,#0");
+    asm volatile ("mvn r2,#0");
+    asm volatile ("mvn r3,#0");
+    asm volatile ("mvn r4,#0");
+    asm volatile ("mvn r5,#0");
+    asm volatile ("mvn r6,#0");
+    asm volatile ("mvn r7,#0");
+    asm volatile ("mvn r8,#0");
+    asm volatile ("mvn r9,#0");
+    asm volatile ("mvn r10,#0");
+    asm volatile ("mvn r11,#0");
+    asm volatile ("mvn r12,#0");
+
+    // Here r13 = sp = new stack for each mode
+    //      r14 = lr = caller return address in sys mode, will be overwritten with other address upon calling in other modes
+    //      All other registers reset to zero, including banked registers in FIQ mode
+
+    asm volatile ("bx lr");
 }
 
 __ARM_MODE__ void finaljump(int address) __attribute__((noreturn));
 void finaljump(int address)
 {
+
+    unsigned int *dest=(unsigned int *)0x30200000;  // Cleanup address where multiload is loaded
+    unsigned int *end=(unsigned int *)0x30c00000;  // This is where the bootloader is loaded
+
+    while(dest!=end) *dest++=0xbaadf00d;   //0xe1a00000;  // Fill with NOP
+
     // This needs to be a register, not in the stack since the stack will change during the mode change
     register void (*funcptr)(void);
 
     funcptr=(void (*)(void))address;
     switch_mode(SVC_MODE);     // Firmware expects to be in supervisor mode. PRIME_OS will crash if not.
 
-    cpu_flushwritebuffers();   // Ensure the file we just read is completely written to actual DRAM
-    cpu_flushicache();         // Ensure any old code is removed from caches, force the new code we loaded to be read from DRAM
+//    __ARM_MODE__ void cpu_flushwritebuffers(void)
+    {
+        register unsigned int value;
 
-    funcptr();
+        value = 0;
+
+        // Test, Clean and invalidate DCache
+        // Uses special behavior of R15 as per ARM 926EJ-S Reference Manual
+        asm volatile("flush_loop:\n"
+                     "mrc p15, 0, r15, c7, c14, 3\n"
+                     "bne flush_loop");
+
+
+        // Drain write buffers to make sure everything is written before returning
+        asm volatile ("mcr p15, 0, %0, c7, c10, 4"::"r" (value));
+
+        // Make sure the prefetched operations that are read into the pipeline before the cache is flushed don't read any data
+        asm volatile ("nop");
+        asm volatile ("nop");
+
+    }
+
+
+ //   __ARM_MODE__ void cpu_flushicache(void)
+    {
+        register unsigned int value;
+
+        // Invalidate ICache
+        value = 0;
+        asm volatile ("mcr p15, 0, %0, c7, c5, 0"::"r" (value));
+
+        // Make sure the prefetched operations that are read into the pipeline before the cache is flushed are well-known
+        asm volatile ("nop");
+        asm volatile ("nop");
+
+    }
+
+
+    asm volatile ("push { %[func] }" : : [func] "r" (funcptr));
+    // Clear ALL other unbanked regitsters to known values (zero)
+    asm volatile ("mvn r0,#0");
+    asm volatile ("mvn r1,#0");
+    asm volatile ("mvn r2,#0");
+    asm volatile ("mvn r3,#0");
+    asm volatile ("mvn r4,#0");
+    asm volatile ("mvn r5,#0");
+    asm volatile ("mvn r6,#0");
+    asm volatile ("mvn r7,#0");
+    asm volatile ("mvn r8,#0");
+    asm volatile ("mvn r9,#0");
+    asm volatile ("mvn r10,#0");
+    asm volatile ("mvn r11,#0");
+    asm volatile ("mvn r12,#0");
+
+    asm volatile ("pop { lr }");
+
+    asm volatile ("blx lr");
 
     while(1);
 }
 
+__ARM_MODE__ void cleanup_from_sram(int address)
+{
+    // Copy this code to SRAM, execute from there
 
+    unsigned int *start=(unsigned int *) &enable_interrupts;
+    unsigned int *end=(unsigned int *) &cleanup_from_sram;
+    unsigned int *dest=(unsigned int *)MEM_PHYS_SCREEN;  // Use the upper 4kbytes of SRAM
+
+    void (*fjumpptr)(int) = (void (*)(int)) (dest+ ((unsigned int *)&finaljump-start));
+
+
+    while(start!=end) *dest++=*start++;
+
+    // Now call finaljump() into SRAM
+
+    cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
+    cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
+
+    fjumpptr(address);
+
+}
 
 __ARM_MODE__ void main() __attribute__((noreturn));
 void main()
@@ -298,7 +405,7 @@ while(!n_pressed()) ;
 while(n_pressed()) ;
 
 
-    finaljump(preamble.entrypoint);
+    cleanup_from_sram(preamble.entrypoint);
 
 }
 

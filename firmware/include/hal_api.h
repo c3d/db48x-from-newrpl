@@ -524,6 +524,29 @@ Bit set means key is pressed.
 #define KB_RSHIFT  62
 //! Constant for the ON key
 #define KB_ON  63
+//! Constant for the APPS key (prime Only)
+#define KB_APP  8
+//! Constant for the HOME key (prime Only)
+#define KB_HOM 16
+//! Constant for the SYMB key (prime Only)
+#define KB_SYM 24
+//! Constant for the PLOT key (prime Only)
+#define KB_PLT 32
+//! Constant for the NUM key (prime Only)
+#define KB_NUM 48
+//! Constant for the HELP key (prime Only)
+#define KB_HLP 36
+//! Constant for the VIEW key (prime Only)
+#define KB_VIE 37
+//! Constant for the MENU key (prime Only)
+#define KB_MEN 38
+//! Constant for the ESC key (prime Only)
+#define KB_ESC 39
+//! Constant for the CAS key (prime Only)
+#define KB_CAS 40
+
+// Unassigned key codes: 56, 59
+
 
 // MACROS TO CREATE KEYBOARD MASKS
 /*!
