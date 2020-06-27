@@ -381,7 +381,7 @@ int NANDMarkBlockBad(uint32_t nand_address)
     return NANDMarkPageBad(NAND_BLOCK_START(nand_address));
 }
 
-int NANDWritePage(uint32_t nand_address, uint8_t *source_address)
+int NANDWritePage(uint32_t nand_address, uint8_t const *source_address)
 {
     SparePage spare;
     int retval = 1;

@@ -69,233 +69,94 @@ extern const int __data_start;
 extern const int __data_size;
 void clear_globals()
 {
-int size=(unsigned int) (&__data_size);
-unsigned int *data= (unsigned int *) (&__data_start);
+    int size=(unsigned int) (&__data_size);
+    unsigned int *data= (unsigned int *) (&__data_start);
 
-while(size>0) { *data++=0; size-=4; }
-
+    while(size>0) { *data++=0; size-=4; }
 }
 
-
-__ARM_MODE__ void enable_interrupts()
+__ARM_MODE__  __attribute__((naked)) void start_newrpl_os(int entrypoint)
 {
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("bic r1,r1,#0xc0");
-    asm volatile ("msr cpsr_all,r1");
+    // No prerequisites yet
+    // r0 is entrypoint according to calling convention
+    asm volatile ("blx r0");
 }
 
-__ARM_MODE__ void disable_interrupts()
+__ARM_MODE__  __attribute__((naked)) void start_prime_os(int entrypoint)
 {
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("orr r1,r1,#0xc0");
-    asm volatile ("msr cpsr_all,r1");
+    // Size of this multiloader needs to be equal to original PRIME_OS.ROM
+    // Enable IRQ; Enable FIQ; Supervisor mode
+    asm volatile ("mrs r1,cpsr");
+    asm volatile ("bic r1,r1,#0xdf");
+    asm volatile ("orr r1,r1,#0x13");
+    asm volatile ("msr cpsr,r1");
+
+    // Set register values according to BL2 start
+    // r0 is entrypoint according to calling convention
+    asm volatile ("ldr r1,=#0x0002bc00");
+    asm volatile ("ldr r2,=#0x000000ff");
+    asm volatile ("ldr r3,=#0");
+    asm volatile ("ldr r4,=#0x300ffffc");
+    asm volatile ("ldr r5,=#0");
+    asm volatile ("ldr r6,=#0x307ffffc");
+    asm volatile ("ldr r7,=#0x00004808");
+    asm volatile ("ldr r8,=#0");
+    asm volatile ("ldr r9,=#0");
+    asm volatile ("ldr r10,=#0");
+    asm volatile ("ldr r11,=#0");
+    asm volatile ("ldr r12,=#0xfffff800");
+    asm volatile ("blx r0");
 }
 
-__ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
-void set_stack(unsigned int *newstackptr)
+// Returns entrypoint of os
+int load_os(char *name)
 {
+    BINT err;
 
-    asm volatile ("mov sp,r0");
-    asm volatile ("bx lr");
-
-}
-__ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
-void switch_mode(int mode)
-{
-    asm volatile ("and r0,r0,#0x1f");
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("bic r1,r1,#0x1f");
-    asm volatile ("orr r1,r1,r0");
-    asm volatile ("mov r0,lr"); // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
-    asm volatile ("msr cpsr_all,r1");
-    asm volatile ("bx r0");
-}
-
-// Move Stack for all modes to better locations
-// Stage 2 bootloader leaves stack at:
-// Above 0x31ffff00 it's the relocated exception handlers
-// FIQ: 0x31ffff00
-// IRQ: 0x31fffe00
-// ABT: 0x31fffd00
-// UND: 0x31fffc00
-// SUP: 0x31fffb00
-// and stays in supervisor mode
-
-// New stack locations for all modes:
-// FIQ: 0x31fffefc (4-byte buffer in case of stack underrun)
-// IRQ: 0x31fff400  // Provide 1kbyte stack for IRQ handlers
-// ABT: 0x31fff800  // Data Abort and Prefetch Undefined share the same handler, so stack is shared
-// UND: 0x31fff800  // Data Abort and Prefetch Undefined share the same handler, so stack is shared
-// SUP: 0x31fff800  // Superfisor mode is never used, share the same stack with other abort handlers
-// SYS: 0x31ff7c00  // Stack below the MMU table with 1kbytes buffer in case of underrun
-// Stay in SYS mode, with supervisor privileges but using no banked registers
-
-//  Set the stack for all modes, also clear ALL registers to zero in ALL modes
-__ARM_MODE__ void set_stackall() __attribute__((naked));
-void set_stackall()
-{
-    register unsigned int lr_copy;
-    // THE USER STACK IS ALREADY SETUP PROPERLY
-    asm volatile ("mov %[res],lr" : [res] "=r" (lr_copy) : );
-
-    switch_mode(SVC_MODE);
-
-    set_stack((unsigned int *)0x31fff800);
-
-    switch_mode(ABT_MODE);
-
-    set_stack((unsigned int *)0x31fff800);
-
-    switch_mode(UND_MODE);
-
-    set_stack((unsigned int *)0x31fff800);
-
-    switch_mode(FIQ_MODE);
-
-    asm volatile ("mvn r8,#0");
-    asm volatile ("mvn r9,#0");
-    asm volatile ("mvn r10,#0");
-    asm volatile ("mvn r11,#0");
-    asm volatile ("mvn r12,#0");
-
-    set_stack((unsigned int *)0x31fffefc);
-
-    switch_mode(IRQ_MODE);
-
-    set_stack((unsigned int *)0x31fff400);
-
-    switch_mode(SYS_MODE);
-
-    set_stack((unsigned int *)0x31ff7c00);  // Leave 1 kbytes buffer to make sure a bad stack does not overwrite the MMU tables
-
-    asm volatile ("mov lr, %[lr]" : : [lr] "r" (lr_copy));
-
-    // Clear ALL other unbanked regitsters to known values (zero)
-    asm volatile ("mvn r0,#0");
-    asm volatile ("mvn r1,#0");
-    asm volatile ("mvn r2,#0");
-    asm volatile ("mvn r3,#0");
-    asm volatile ("mvn r4,#0");
-    asm volatile ("mvn r5,#0");
-    asm volatile ("mvn r6,#0");
-    asm volatile ("mvn r7,#0");
-    asm volatile ("mvn r8,#0");
-    asm volatile ("mvn r9,#0");
-    asm volatile ("mvn r10,#0");
-    asm volatile ("mvn r11,#0");
-    asm volatile ("mvn r12,#0");
-
-    // Here r13 = sp = new stack for each mode
-    //      r14 = lr = caller return address in sys mode, will be overwritten with other address upon calling in other modes
-    //      All other registers reset to zero, including banked registers in FIQ mode
-
-    asm volatile ("bx lr");
-}
-
-__ARM_MODE__ void finaljump(int address) __attribute__((noreturn));
-void finaljump(int address)
-{
-
-    unsigned int *dest=(unsigned int *)0x30200000;  // Cleanup address where multiload is loaded
-    unsigned int *end=(unsigned int *)0x30c00000;  // This is where the bootloader is loaded
-
-    while(dest!=end) *dest++=0xbaadf00d;   //0xe1a00000;  // Fill with NOP
-
-    // This needs to be a register, not in the stack since the stack will change during the mode change
-    register void (*funcptr)(void);
-
-    funcptr=(void (*)(void))address;
-    switch_mode(SVC_MODE);     // Firmware expects to be in supervisor mode. PRIME_OS will crash if not.
-
-//    __ARM_MODE__ void cpu_flushwritebuffers(void)
-    {
-        register unsigned int value;
-
-        value = 0;
-
-        // Test, Clean and invalidate DCache
-        // Uses special behavior of R15 as per ARM 926EJ-S Reference Manual
-        asm volatile("flush_loop:\n"
-                     "mrc p15, 0, r15, c7, c14, 3\n"
-                     "bne flush_loop");
-
-
-        // Drain write buffers to make sure everything is written before returning
-        asm volatile ("mcr p15, 0, %0, c7, c10, 4"::"r" (value));
-
-        // Make sure the prefetched operations that are read into the pipeline before the cache is flushed don't read any data
-        asm volatile ("nop");
-        asm volatile ("nop");
-
+    err = FSSetCurrentVolume(0);
+    if (err != FS_OK) {
+        printline("Could not set volume", (char *)FSGetErrorMsg(err));
+        while(1);
     }
 
+    FS_FILE *fileptr;
 
- //   __ARM_MODE__ void cpu_flushicache(void)
-    {
-        register unsigned int value;
-
-        // Invalidate ICache
-        value = 0;
-        asm volatile ("mcr p15, 0, %0, c7, c5, 0"::"r" (value));
-
-        // Make sure the prefetched operations that are read into the pipeline before the cache is flushed are well-known
-        asm volatile ("nop");
-        asm volatile ("nop");
-
+    err = FSOpen(name, FSMODE_READ | FSMODE_NOCREATE, &fileptr);
+    if (err != FS_OK) {
+        printline("Could not open file", (char *)FSGetErrorMsg(err));
+        while(1);
     }
 
+    struct Preamble preamble;
 
-    asm volatile ("push { %[func] }" : : [func] "r" (funcptr));
-    // Clear ALL other unbanked regitsters to known values (zero)
-    asm volatile ("mvn r0,#0");
-    asm volatile ("mvn r1,#0");
-    asm volatile ("mvn r2,#0");
-    asm volatile ("mvn r3,#0");
-    asm volatile ("mvn r4,#0");
-    asm volatile ("mvn r5,#0");
-    asm volatile ("mvn r6,#0");
-    asm volatile ("mvn r7,#0");
-    asm volatile ("mvn r8,#0");
-    asm volatile ("mvn r9,#0");
-    asm volatile ("mvn r10,#0");
-    asm volatile ("mvn r11,#0");
-    asm volatile ("mvn r12,#0");
+    err = FSRead((unsigned char *)&preamble, 32, fileptr);
+    if (err != 32) {
+        printline("Could not read preamble", 0);
+        while(1);
+    }
 
-    asm volatile ("pop { lr }");
+    err = FSSeek(fileptr, 0, SEEK_SET);
+    if (err != FS_OK) {
+        printline("Could not rewind", (char *)FSGetErrorMsg(err));
+        while(1);
+    }
 
-    asm volatile ("blx lr");
+    err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
+    if (err != preamble.copy_size) {
+        printline("Could not read data", 0);
+        while(1);
+    }
 
-    while(1);
+    err = FSClose(fileptr);
+    if (err != FS_OK) {
+        // Can't be closed due to missing write support
+    }
+
+    return preamble.entrypoint;
 }
 
-__ARM_MODE__ void cleanup_from_sram(int address)
+__ARM_MODE__ __attribute__((noreturn)) void main()
 {
-    // Copy this code to SRAM, execute from there
-
-    unsigned int *start=(unsigned int *) &enable_interrupts;
-    unsigned int *end=(unsigned int *) &cleanup_from_sram;
-    unsigned int *dest=(unsigned int *)MEM_PHYS_SCREEN;  // Use the upper 4kbytes of SRAM
-
-    void (*fjumpptr)(int) = (void (*)(int)) (dest+ ((unsigned int *)&finaljump-start));
-
-
-    while(start!=end) *dest++=*start++;
-
-    // Now call finaljump() into SRAM
-
-    cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
-    cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
-
-    fjumpptr(address);
-
-}
-
-__ARM_MODE__ void main() __attribute__((noreturn));
-void main()
-{
-    // Playing it save for testing
-    NANDWriteProtect();
-
     initContext(32);
     Context.alloc_bmp = EMPTY_STORAGEBMP;
     init_simpalloc();
@@ -309,117 +170,27 @@ void main()
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-
-    char buffer[9];
-    char buffer2[9];
-    BINT err;
-
-
-
-    if (NANDInit() == 0)
+    if (NANDInit() == 0) {
         printline("No BFX", NULL);
-    buffer[8]=0;
-    tohex((unsigned int)&line,buffer);
-    printline("Line=",buffer);
-
-    buffer[8]=0;
-    tohex(__cpu_getFCLK(),buffer);
-    printline("FCLK=",buffer);
-    buffer[8]=0;
-    tohex(__cpu_getHCLK(),buffer);
-    printline("HCLK=",buffer);
-    buffer[8]=0;
-    tohex(__cpu_getPCLK(),buffer);
-    printline("PCLK=",buffer);
-
-
+        while(1);
+    }
 
     FSHardReset();
 
-
-
-    err = FSSetCurrentVolume(0);
-    if (err != FS_OK) {
-        printline("Could not set volume", (char *)FSGetErrorMsg(err));
-    }
-
-    FS_FILE *fileptr;
-
-    err = FSOpen(
-            (n_pressed()) ?  "PRIME_OS.ROM" : "NEWRPL.ROM",
-            FSMODE_READ | FSMODE_NOCREATE, &fileptr);
-    if (err != FS_OK) {
-        printline("Could not open file", (char *)FSGetErrorMsg(err));
+    if (n_pressed()) {
+        int entrypoint = load_os("NEWRPL.ROM");
+        start_newrpl_os(entrypoint);
     } else {
-        printline("File open OK",fileptr->Name);
-        tohex(fileptr->FileSize,buffer);
-        printline("File Size=",buffer);
-        tohex(fileptr->FirstCluster,buffer);
-        printline("First Cluster=",buffer);
-        tohex(fileptr->Chain.StartAddr<<9,buffer);
-        printline("Flash Offset=",buffer);
+        int entrypoint = load_os("PRIME_OS.ROM");
+        start_prime_os(entrypoint);
     }
 
-    struct Preamble preamble;
-    err = FSRead((unsigned char *)&preamble, 32, fileptr);
-    if (err != 32) {
-        printline("Could not read preamble", 0);
-    }  else {
-        tohex(preamble.load_addr,buffer);
-        printline("Load addr=",buffer);
-        tohex(preamble.load_size,buffer);
-        printline("Load size=",buffer);
-        tohex(preamble.entrypoint,buffer);
-        printline("Entry addr=",buffer);
-
-        uint8_t otherbuffer[512];
-
-    }
-
-    err = FSSeek(fileptr, 0, SEEK_SET);
-    if (err != FS_OK) {
-        printline("Could not rewind", (char *)FSGetErrorMsg(err));
-    }
-
-    err = FSRead((unsigned char *)preamble.load_addr, preamble.load_size, fileptr);
-    if (err != preamble.copy_size) {
-        printline("Could not read data", 0);
-    } else printline("Finished reading file",NULL);
-
-    err = FSClose(fileptr);
-    if (err != FS_OK) {
-        // Can't be closed due to missing write support
-    }
-
-    // show debug information until we press and release N again
-    while(n_pressed()) ;
-    while(!n_pressed()) ;
-    while(n_pressed()) ;
-
-tohex(preamble.entrypoint,buffer);
-printline("Jumping to Entry addr=",buffer);
-
-// show debug information until we press and release N again
-while(n_pressed()) ;
-while(!n_pressed()) ;
-while(n_pressed()) ;
-
-
-    cleanup_from_sram(preamble.entrypoint);
-
+    while(1);
 }
 
-__ARM_MODE__ void startup(int) __attribute__((noreturn));
-void startup(int prevstate)
+__ARM_MODE__ __attribute__((noreturn)) void startup(int prevstate)
 {
-    disable_interrupts();
-
-    set_stackall();
-
     clear_globals();
-
-// Do not install exception handlers in the boot loader to avoid conflict with firmware
-//    __exception_install();
 
     cpu_flushTLB();            // We did not change the MMU, but doesn't hurt to flush it
     cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
@@ -427,9 +198,6 @@ void startup(int prevstate)
 
     main(); // never returns
 }
-
-
-
 
 //************************************************************************************
 //****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********

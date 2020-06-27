@@ -9,7 +9,7 @@
 
 extern void startup(int);
 
-#define size_in_kb 256
+#define size_in_kb 1024
 
 struct Preamble preamble __attribute__((section(".preamble"))) = {
 	.entrypoint = (uint32_t)&startup,

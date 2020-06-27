@@ -60,7 +60,7 @@ int NANDReadPage(uint32_t nand_address, uint8_t *target_address);
 
 // Writes data from @source_address to whole aligned page at @nand_address.
 // Returns 1 on success, 0 on error.
-int NANDWritePage(uint32_t nand_address, uint8_t *source_address);
+int NANDWritePage(uint32_t nand_address, uint8_t const *source_address);
 
 // Reads @num_bytes from @virtual_address to @target_address
 // @virtual_address and @num_bytes need not be page aligned.
