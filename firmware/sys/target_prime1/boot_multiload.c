@@ -42,6 +42,16 @@ static void tobin(uint32_t value, char *buffer) {
 }
 
 void printline(char *left_text, char *right_text) {
+
+    if(line==-1) {
+        lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+        lcd_on();
+
+        ggl_initscr(&surface);
+        ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+        line =0;
+    }
+
     if (left_text) {
         DrawText(left, line * lineheight, left_text, font, black, &surface);
     }
@@ -53,12 +63,12 @@ void printline(char *left_text, char *right_text) {
     }
 }
 
-int n_pressed() {
+int esc_pressed() {
     *GPGCON = 0;    // SET ALL KEYBOARD COLUMNS AS INPUTS
     *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
 
     *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
-    *GPDDAT |= (1 << 7);
+    *GPDDAT |= (1 << 6);
 
     return *GPGDAT & (1 << 4);
 }
@@ -86,25 +96,11 @@ __ARM_MODE__  __attribute__((naked)) void start_prime_os(int entrypoint)
 {
     // Size of this multiloader needs to be equal to original PRIME_OS.ROM
     // Enable IRQ; Enable FIQ; Supervisor mode
-    asm volatile ("mrs r1,cpsr");
-    asm volatile ("bic r1,r1,#0xdf");
-    asm volatile ("orr r1,r1,#0x13");
-    asm volatile ("msr cpsr,r1");
+    //asm volatile ("mrs r1,cpsr");
+    //asm volatile ("bic r1,r1,#0xdf");
+    //asm volatile ("orr r1,r1,#0x13");
+    //asm volatile ("msr cpsr,r1");
 
-    // Set register values according to BL2 start
-    // r0 is entrypoint according to calling convention
-    asm volatile ("ldr r1,=#0x0002bc00");
-    asm volatile ("ldr r2,=#0x000000ff");
-    asm volatile ("ldr r3,=#0");
-    asm volatile ("ldr r4,=#0x300ffffc");
-    asm volatile ("ldr r5,=#0");
-    asm volatile ("ldr r6,=#0x307ffffc");
-    asm volatile ("ldr r7,=#0x00004808");
-    asm volatile ("ldr r8,=#0");
-    asm volatile ("ldr r9,=#0");
-    asm volatile ("ldr r10,=#0");
-    asm volatile ("ldr r11,=#0");
-    asm volatile ("ldr r12,=#0xfffff800");
     asm volatile ("blx r0");
 }
 
@@ -162,13 +158,8 @@ __ARM_MODE__ __attribute__((noreturn)) void main()
     init_simpalloc();
 
     // Initialize screen earlier so we can print error messages
-    line = 0;
+    line = -1;
 
-    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
-    lcd_on();
-
-    ggl_initscr(&surface);
-    ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
     if (NANDInit() == 0) {
         printline("No BFX", NULL);
@@ -177,11 +168,15 @@ __ARM_MODE__ __attribute__((noreturn)) void main()
 
     FSHardReset();
 
-    if (n_pressed()) {
+    if (esc_pressed()) {
         int entrypoint = load_os("NEWRPL.ROM");
+        cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
+        cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
         start_newrpl_os(entrypoint);
     } else {
         int entrypoint = load_os("PRIME_OS.ROM");
+        cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
+        cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
         start_prime_os(entrypoint);
     }
 
