@@ -107,7 +107,8 @@ int f,j;
 
 
 lcd_save(lcd_buffer);
-*WINCON0|=(1<<23);                        // AND START DISPLAYING BUFFER 1
+*WINCON0&=~1;   // Window 0 off
+*WINCON0|=(1<<23)|1;                        // AND START DISPLAYING BUFFER 1
 //lcd_setmode(0,(int *)MEM_PHYS_EXSCREEN);
 
 doitagain:
@@ -479,7 +480,6 @@ if(options&__EX_RESET) {
 // WARMSTART AND RESET REQUIRE SIMULTANEOUS SHIFT OR ALPHA KEYPRESS
 
 // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
-while(1);
 
 __keyb_waitrelease();
 
@@ -519,7 +519,8 @@ if( KEYVALUE(f)==KB_F )	break;
 } while(1);
 
 __keyb_waitrelease();
-*WINCON0&=~(1U<<23);                        // AND START DISPLAYING BUFFER 0
+*WINCON0&=~(1U<<23)|1;                        // AND START DISPLAYING BUFFER 0
+*WINCON0|=1;   // Window 0 on
 lcd_restore(lcd_buffer);
 
 return j;
@@ -702,11 +703,11 @@ register unsigned int value asm("r0");
 
 }
 
-
+extern void startup(int);
 void __exception_install()
 {
     unsigned *handler_addr=(unsigned int *)0x31ffff00L;
-    handler_addr[0]=(unsigned int)(&__handler_und); // RESET EXCEPTION!!
+    handler_addr[0]=(unsigned int)(&startup); // RESET EXCEPTION!!
     handler_addr[1]=(unsigned int)(&__handler_und); // UNDEFINED instruction
     handler_addr[2]=(unsigned int)(&__handler_und); // SWI service handler
     handler_addr[3]=(unsigned int)(&__handler_iabort); // PREFETCH abort

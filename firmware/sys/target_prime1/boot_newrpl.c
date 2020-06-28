@@ -167,7 +167,7 @@ void set_stackall()
 
     switch_mode(SYS_MODE);
 
-    set_stack((unsigned int *)0x10ffc);  // Stack for normal use in cached/buffered SRAM
+    set_stack((unsigned int *)0x31fb7ffc);  // Stack for normal use, this is in an uncached/unbuffered area so it's not good for speed, consider moving it somewhere else in the future
 
     asm volatile ("bx %[lr]" : : [lr] "r" (lr_copy));       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
@@ -216,11 +216,8 @@ __ARM_MODE__ void main_virtual() __attribute__((noreturn));
 void main_virtual(unsigned int mode)
 {
 
-    green_led_off();
 
     initContext(32);
-
-    red_led_off();
 
     Context.alloc_bmp = EMPTY_STORAGEBMP;
     init_simpalloc();
@@ -243,7 +240,7 @@ void main_virtual(unsigned int mode)
 
     __keyb_init();
 
-    printline("Press any key", 0);
+    printline("Press any key - ENTER to exit", 0);
 
     int msg;
     keymatrix a;
@@ -261,10 +258,43 @@ void main_virtual(unsigned int mode)
     printline(buffer,buffer2);
     tohex(msg,buffer);
     printline("Keymsg=",buffer);
-    } while (msg!=(KM_PRESS|KB_ESC));
+    } while (msg!=(KM_PRESS|KB_ENT));
 
-    printline("Testing the virtual space", 0);
+    printline("Testing persistence", 0);
 
+    tohex(*INFORM0,buffer);
+    printline("INFORM0=",buffer);
+    tohex(*INFORM0,buffer);
+    printline("INFORM1=",buffer);
+    tohex(*INFORM0,buffer);
+    printline("INFORM2=",buffer);
+    tohex(*INFORM0,buffer);
+    printline("INFORM3=",buffer);
+
+    *INFORM0=0x11111111;
+    *INFORM1=0x22222222;
+    *INFORM2=0x33333333;
+    *INFORM3=0x44444444;
+
+    printline("Press ON for restart", 0);
+
+    do {
+    msg=keyb_getmsg();
+    } while (msg!=(KM_PRESS|KB_ON));
+
+    blue_led_on();  // THIS SHOULD LOSE STATE ON RESET
+
+    *SWRST = 0x533c2450;
+
+    printline("Didn't work?", "Press ON to try again");
+
+    green_led_on();  // THIS SHOULD LOSE STATE ON RESET
+
+    *SWRST = 0x533c2416;
+
+    printline("What?", "Meditate infinitely...");
+
+    red_led_on();  // THIS SHOULD LOSE STATE ON RESET
 
     while(1);
 }
@@ -312,7 +342,9 @@ extern int __last_used_byte;
 
 // 0x30000000 - 0x30100000 - Approx. 1 MB newRPL code AND data, including all persistent and scratch areas
 // 0x30100000 - 0x31efffff - Free pages to be allocated to the different regions (30 MB approx. of free pages)
-// 0x31f00000 - 0x31fbffff - Screen area (768 kbytes - 2 screens at full RGB color)
+// 0x31f00000 - 0x31fb0000 - Screen area (704 kbytes - more than enough for 2 screens at full RGB color) - any unused area becomes a buffer for stack overruns
+// 0x31fb0000 - 0x31fb7fff - Normal CPU stack (32 kbytes)
+// 0x31fb8000 - 0x31fbffff - Reverse MMU table (32 kbytes)
 // 0x31fc0000 - 0x31ff3fff - MMU tables for all the different regions - Main table at 0x31ff0000
 
 // 0x31ff4000 - 0x31ffff00  - Stacks for exception handlers
@@ -578,27 +610,14 @@ void create_mmu_tables()
     // ALSO SCREEN ACCESS SHOULD NOT BE BUFFERED/CACHED
     MMU_MAP_SECTION_DEV(0x31f00000, 0x31f00000);
 
-//MEM_SRAM        0x03000000
-    MMU_MAP_COARSE_RAM(0x31ff8000, 0x00000000);        // SRAM MAPPED TO 0 - 64 KBYTES OF RAM FOR EXCEPTION HANDLERS
+    // HP Prime uses an obsolete boot mode of the S3C2416 called NAND boot
+    // that makes the rest of SRAM inaccessible, only maps 8kb at 0x00000000
+    // and the rest vanishes.
+    // This is not explained on Samsung's datasheet, only on older documents
+    // from some development website in chinese.
+    // So only 8kbytes of SRAM appear at 0x0, the rest is inaccessible.
 
-    // ADD PAGES TO MAP 8 KBYTES OF SRAM
-    MMU_MAP_PAGE(0x40000000,0x00000000);
-    MMU_MAP_PAGE(0x40001000,0x00001000);               // 8 KBYTES FOR THE BOOTLOADER/EXCEPTION HANDLERS
-    MMU_MAP_PAGE(0xffff0000,0x00002000);               // LEAVE AN INVALID PAGE TO THROW AN EXCEPTION IF STACK OVERFLOWS
-    MMU_MAP_PAGE(0x40002000,0x00003000);
-    MMU_MAP_PAGE(0x40003000,0x00004000);
-    MMU_MAP_PAGE(0x40004000,0x00005000);
-    MMU_MAP_PAGE(0x40005000,0x00006000);
-    MMU_MAP_PAGE(0x40006000,0x00007000);
-    MMU_MAP_PAGE(0x40007000,0x00008000);
-    MMU_MAP_PAGE(0x40008000,0x00009000);
-    MMU_MAP_PAGE(0x40009000,0x0000A000);
-    MMU_MAP_PAGE(0x4000A000,0x0000B000);
-    MMU_MAP_PAGE(0x4000B000,0x0000C000);
-    MMU_MAP_PAGE(0x4000C000,0x0000D000);
-    MMU_MAP_PAGE(0x4000D000,0x0000E000);
-    MMU_MAP_PAGE(0x4000E000,0x0000F000);
-    MMU_MAP_PAGE(0x4000F000,0x00010000);               // END AT 68K
+     MMU_MAP_SECTION_RAM(0x0 , 0x0);
 
 
 
@@ -692,8 +711,7 @@ void startup(int prevstate)
 
     disable_mmu();
 
-    set_stack((unsigned int *)0x31effffc);  // Move initial stack to a known location
-
+    set_stack((unsigned int *)0x31fb7ffc);  // Move initial stack to a known location
 
     setup_hardware();
 
@@ -712,11 +730,7 @@ void startup(int prevstate)
 
     set_stackall();
 
-    blue_led_on();
-
     __exception_install();
-
-    blue_led_off();
 
     main_virtual(0); // never returns
 }
