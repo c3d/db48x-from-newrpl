@@ -715,6 +715,7 @@ void __exception_install()
     handler_addr[6]=(unsigned int)(&__handler_und); // IRQ handler - will be overwritten by the ISR
     handler_addr[7]=(unsigned int)(&__handler_und); // FIQ handler - will be overwritten by the ISR
 
+
     handler_addr[62]=0xe51ff100; // This goes at 0x31fffff8: asm volatile ("ldr pc, .Lhdlr_reset");
     handler_addr[61]=0xe51ff0f8;
     handler_addr[60]=0xe51ff0f0;
@@ -738,6 +739,7 @@ void __exception_install()
     handler_addr[7]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffdc (reset handler)
 
 	__irq_install();
+
 }
 
 void __attribute__ ((noinline)) throw_exception(char * message, unsigned int options)

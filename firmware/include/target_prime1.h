@@ -678,7 +678,85 @@
 #define SCREEN_W 320
 #define SCREEN_H 240
 
-#define MEM_PHYS_SCREEN 0x31000000
+
+
+
+
+// CONSTANTS THAT CHANGE WITH DIFFERENT TARGETS
+#define RAM_BASE_PHYSICAL 0x30000000
+#define RAM_END_PHYSICAL  0x31f00000
+
+#define MEM_PHYS_SCREEN  0x31f00000
+#define MEM_VIRT_SCREEN  MEM_PHYS_SCREEN
+
+#define MEM_DSTKMMU      0x31fe8000
+
+#define MEM_RSTKMMU      0x31fe0000
+
+#define MEM_LAMMMU       0x31fd8000
+
+#define MEM_DIRMMU       0x31fd0000
+
+#define MEM_TEMPBLKMMU   0x31fc8000
+
+#define MEM_TEMPOBMMU    0x31fc0000
+
+#define MEM_REVERSEMMU   0x31fb8000
+
+
+
+#define MEM_PHYSTACK    0x40010ffc      // PHYSICAL LOCATION OF THE "C" STACK (TOP OF STACK, DECREASES DOWN TO 0x40000000)
+#define MEM_DSTK        0x02000000      // DATA STACK VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_RSTK        0x04000000      // RETURN STACK VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_LAM         0x06000000      // LOCAL VARIABLES VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_DIRS        0x08000000      // GLOBAL DIRECTORIES VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_TEMPBLOCKS  0x0a000000      // BLOCK INDEX FOR TEMPOB VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_TEMPOB      0x10000000      // GLOBAL OBJECT ALLOCATION MEMORY VIRTUAL LOCATION (UP TO 32 MB)
+#define MEM_SYSTEM      0x30000000      // SYSTEM RAM (FIXED AMOUNT, MAPPED AT THE BEGINNING OF THE PHYSICAL RAM)
+#define MEM_SRAM        0x00000000      // ON-CHIP SRAM
+#define MEM_HARDWARE    0x48000000      // HARDWARE AND PERIPHERALS
+
+
+// newRPL for HP Prime G1 VIRTUAL memory map:
+
+// 0x00010000 - 64 kbytes SRAM for exception handlers and CPU stack
+// 0x02000000 - Data Stack
+// 0x04000000 - Return Stack
+// 0x06000000 - LAMs
+// 0x08000000 - Directories
+// 0x0a000000 - TempBlocks
+// 0x10000000 - TempOb
+
+// 0x30000000 - Physical memory for persistent and temporary variables (32 MB)
+
+// Physical memory partition:
+
+// 0x30000000 - 0x30100000 - Approx. 1 MB newRPL code AND data, including all persistent and scratch areas
+// 0x30100000 - 0x31efffff - Free pages to be allocated to the different regions (30 MB approx. of free pages)
+// 0x31f00000 - 0x31fbffff - Screen area (768 kbytes - 2 screens at full RGB color)
+// 0x31fc0000 - 0x31ff3fff - MMU tables for all the different regions - Main table at 0x31ff0000
+
+// 0x31ff4000 - 0x31ffff00  - Stacks for exception handlers
+// 0x31ffff00 - 0x31ffff20  - Relocated exception handler pointers
+
+// Note: Regular CPU Stack should not be here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
 #define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))

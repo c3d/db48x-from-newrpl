@@ -28,6 +28,7 @@ SOURCES +=\
     firmware/sys/target_prime1/exception.c \
     firmware/sys/target_prime1/irq.c \
     firmware/sys/target_prime1/keyboard.c \
+    firmware/sys/target_prime1/mem.c \
     firmware/sys/target_prime1/preamble_newrpl.c \
     firmware/sys/target_prime1/lcd.c \
     firmware/sys/target_prime1/nand.c \
@@ -139,6 +140,7 @@ SOURCES +=\
     firmware/sys/graphics.c \
     firmware/sys/target_prime1/timer.c \
     newrpl/decimal.c \
+    newrpl/hal.c \
     newrpl/mul_real_arm.c \
     newrpl/sysvars.c \
     newrpl/utf8data.c \
