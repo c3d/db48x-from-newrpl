@@ -20,6 +20,11 @@
 #define left 0
 #define right 160
 
+
+// Magic word "NRPL"
+#define NEWRPL_MAGIC   0x4c50524e
+
+
 static int line;
 static gglsurface surface;
 
@@ -85,22 +90,10 @@ void clear_globals()
     while(size>0) { *data++=0; size-=4; }
 }
 
-__ARM_MODE__  __attribute__((naked)) void start_newrpl_os(int entrypoint)
+__ARM_MODE__  __attribute__((naked)) void start_os(int entrypoint)
 {
     // No prerequisites yet
     // r0 is entrypoint according to calling convention
-    asm volatile ("blx r0");
-}
-
-__ARM_MODE__  __attribute__((naked)) void start_prime_os(int entrypoint)
-{
-    // Size of this multiloader needs to be equal to original PRIME_OS.ROM
-    // Enable IRQ; Enable FIQ; Supervisor mode
-    //asm volatile ("mrs r1,cpsr");
-    //asm volatile ("bic r1,r1,#0xdf");
-    //asm volatile ("orr r1,r1,#0x13");
-    //asm volatile ("msr cpsr,r1");
-
     asm volatile ("blx r0");
 }
 
@@ -168,17 +161,25 @@ __ARM_MODE__ __attribute__((noreturn)) void main()
 
     FSHardReset();
 
+    int isnewrpl=((*INFORM3)==NEWRPL_MAGIC)? 1:0;
+    int entrypoint;
+
+    // Switch operating systems if ESC is pressed
     if (esc_pressed()) {
-        int entrypoint = load_os("NEWRPL.ROM");
-        cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
-        cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
-        start_newrpl_os(entrypoint);
-    } else {
-        int entrypoint = load_os("PRIME_OS.ROM");
-        cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
-        cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
-        start_prime_os(entrypoint);
+        if(isnewrpl) {
+            *INFORM3=0;
+            isnewrpl=0;
+        }
+        else {
+            *INFORM3=NEWRPL_MAGIC;
+            isnewrpl=1;
+        }
     }
+
+    entrypoint = load_os( isnewrpl? "NEWRPL.ROM" : "PRIME_OS.ROM");
+    cpu_flushwritebuffers();   // Ensure exception handlers are written to actual RAM
+    cpu_flushicache();         // Ensure any old code is removed from caches, force the new exception handlers to be re-read from RAM
+    start_os(entrypoint);
 
     while(1);
 }

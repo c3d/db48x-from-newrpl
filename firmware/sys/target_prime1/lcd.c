@@ -110,8 +110,8 @@ int lcd_setmode(int mode, unsigned int *physbuf)
         break;
     }
 
-    // set buffer1 immediately after the screen, with 4kpage alignment for exception handlers
-    *VIDW00ADD0B1 = ((((unsigned int)physbuf& 0xff000000) | (*VIDW00ADD1B0)) + 0xfff) & 0xfffff000;
+    // set buffer1 immediately after the screen, with 64kb alignment for exception handlers
+    *VIDW00ADD0B1 = ((((unsigned int)physbuf& 0xff000000) | (*VIDW00ADD1B0)) + 0xffff) & 0xffff0000;
     *VIDW00ADD1B1 = (*VIDW00ADD0B1 + (*VIDW00ADD1B0 - (*VIDW00ADD0B0&0x00ffffff)))&0x00ffffff;
 
     *VIDW00ADD2B0 = 160; // PAGEWIDTH=160, no OFFSET

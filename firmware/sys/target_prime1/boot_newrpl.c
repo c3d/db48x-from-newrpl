@@ -260,41 +260,18 @@ void main_virtual(unsigned int mode)
     printline("Keymsg=",buffer);
     } while (msg!=(KM_PRESS|KB_ENT));
 
-    printline("Testing persistence", 0);
+    printline("Done with keyboard test", 0);
 
-    tohex(*INFORM0,buffer);
-    printline("INFORM0=",buffer);
-    tohex(*INFORM0,buffer);
-    printline("INFORM1=",buffer);
-    tohex(*INFORM0,buffer);
-    printline("INFORM2=",buffer);
-    tohex(*INFORM0,buffer);
-    printline("INFORM3=",buffer);
-
-    *INFORM0=0x11111111;
-    *INFORM1=0x22222222;
-    *INFORM2=0x33333333;
-    *INFORM3=0x44444444;
-
-    printline("Press ON for restart", 0);
+    printline("Press HOME for restart", 0);
+    printline("Hold ESC to switch OS", 0);
 
     do {
     msg=keyb_getmsg();
-    } while (msg!=(KM_PRESS|KB_ON));
-
-    blue_led_on();  // THIS SHOULD LOSE STATE ON RESET
+    } while (msg!=(KM_PRESS|KB_HOM));
 
     *SWRST = 0x533c2450;
 
-    printline("Didn't work?", "Press ON to try again");
-
-    green_led_on();  // THIS SHOULD LOSE STATE ON RESET
-
-    *SWRST = 0x533c2416;
-
     printline("What?", "Meditate infinitely...");
-
-    red_led_on();  // THIS SHOULD LOSE STATE ON RESET
 
     while(1);
 }
