@@ -70,37 +70,13 @@ union rtcrst
 #define BCD2BIN(x)      (((x) & 0x0f) + ((x) >> 4) * 10)
 #define BIN2BCD(x)      ((((x) / 10) << 4) + (x) % 10)
 
-#define RTCREG(offset)  ((volatile unsigned char *)(RTC_REGS + offset))
-
-// RTC REGISTERS OFFSET
-#define RTCCON          0x40
-#define TICNT           0x44
-#define RTCALM          0x50
-
-#define ALMSEC          0x54
-#define ALMMIN          0x58
-#define ALMHOUR         0x5c
-#define ALMDATE         0x60
-#define ALMMON          0x64
-#define ALMYEAR         0x68
-
-#define RTCRST          0x6C
-
-#define BCDSEC          0x70
-#define BCDMIN          0x74
-#define BCDHOUR         0x78
-#define BCDDATE         0x7c
-#define BCDDAY          0x80
-#define BCDMON          0x84
-#define BCDYEAR         0x88
-
 // READ FROM RTC REGISTERS
-#define __getRTCVal(r)  BCD2BIN(*RTCREG(r))
+#define __getRTCVal(r)  BCD2BIN(*(r))
 
-#define __getRTCCon()   (*RTCREG(RTCCON))
-#define __getRTCTic()   (*RTCREG(TICNT))
-#define __getRTCAlm()   (*RTCREG(RTCALM))
-#define __getRTCRst()   (*RTCREG(RTCRST))
+#define __getRTCCon()   (*RTCCON)
+#define __getRTCTic()   (*TICNT0)
+#define __getRTCAlm()   (*RTCALM)
+#define __getRTCRst()   (*RTCRST)
 
 #define __getALMSec()   __getRTCVal(ALMSEC)
 #define __getALMMin()   __getRTCVal(ALMMIN)
@@ -118,12 +94,12 @@ union rtcrst
 #define __getRTCYear()  __getRTCVal(BCDYEAR)
 
 // WRITE TO RTC REGISTERS
-#define __setRTCVal(r, v) (*RTCREG(r)  = (unsigned char)BIN2BCD(v))
+#define __setRTCVal(r, v) (*(r)  = (unsigned char)BIN2BCD(v))
 
-#define __setRTCCon(v)  (*RTCREG(RTCCON) = (unsigned char)v)
-#define __setRTCTic(v)  (*RTCREG(TICNT)  = (unsigned char)v)
-#define __setRTCAlm(v)  (*RTCREG(RTCALM) = (unsigned char)v)
-#define __setRTCRst(v)  (*RTCREG(RTCRST) = (unsigned char)v)
+#define __setRTCCon(v)  (*RTCCON = (unsigned char)v)
+#define __setRTCTic(v)  (*TICNT0  = (unsigned char)v)
+#define __setRTCAlm(v)  (*RTCALM = (unsigned char)v)
+#define __setRTCRst(v)  (*RTCRST = (unsigned char)v)
 
 #define __setALMSec(v)  __setRTCVal(ALMSEC,  v)
 #define __setALMMin(v)  __setRTCVal(ALMMIN,  v)

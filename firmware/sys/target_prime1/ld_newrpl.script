@@ -108,14 +108,12 @@ SECTIONS
 
 __data_load = . ;
 
-  . = 0x30080000;
+  . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
 
 
-
- 
-  . = 0x30085000;
+  . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
   __data_start = . ;
 
@@ -126,7 +124,8 @@ __data_load = . ;
   .system_globals ALIGN(4) : { * (.system_globals) }
 
 
-  . = 0x3008a000;
+  . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
+
 
   .persistent_memory ALIGN(4) : { * (.persistent_memory) }
 

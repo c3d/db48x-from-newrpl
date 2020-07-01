@@ -7,9 +7,8 @@
 
 #include <ui.h>
 
-void halScreenUpdated()
-{
-}
+int __lcd_contrast __SYSTEM_GLOBAL__;
+
 
 void __lcd_fix()
 {

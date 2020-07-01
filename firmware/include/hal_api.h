@@ -1210,9 +1210,14 @@ int halDoCustomKey(BINT keymsg);
 // IDLE PROCESSES
 void halDeferProcess(void (*function)(void));
 
+
+
+
+
 // RENDER CACHE EXTERNAL DATA
 extern WORDPTR halCacheContents[3 * MAX_RENDERCACHE_ENTRIES];
 extern WORD halCacheEntry;
+
 
 // RENDER
 

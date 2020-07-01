@@ -111,3 +111,15 @@ void __irq_clrpending(int service_number)
         *INTPND1=(1<<service_number);
     }
 }
+
+
+
+void usb_mutex_lock(void)
+{
+    // FIXME disable irq
+}
+
+void usb_mutex_unlock(void)
+{
+    // FIXME enable irq
+}

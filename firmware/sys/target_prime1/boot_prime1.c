@@ -217,11 +217,6 @@ void main_virtual(unsigned int mode)
 {
 
 
-    initContext(32);
-
-    Context.alloc_bmp = EMPTY_STORAGEBMP;
-    init_simpalloc();
-
     // Initialize screen earlier so we can print error messages
     line = 0;
 
@@ -232,44 +227,102 @@ void main_virtual(unsigned int mode)
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
-    printline("Running with MMU on", 0);
+    printline("Starting newRPL...", 0);
 
-    enable_interrupts();
-
-    tmr_setup();
-
-    __keyb_init();
-
-    printline("Press any key - ENTER to exit", 0);
-
-    int msg;
-    keymatrix a;
-    char buffer[9],buffer2[9];
-    buffer2[8]=0;
+    // INITIALIZE SOME SYSTEM VARIABLES
 
     do {
-    msg=keyb_getmsg();
-    if(!msg) continue;
-    a=keyb_getmatrix();
-    tohex(a&0xffffffff,buffer);
-    tohex((a>>32)&0xffffffff,buffer2);
-    line=0;
-    ggl_rect(&surface, 0, line * lineheight, SCREEN_WIDTH - 1, (line+2)*lineheight-1, 0);
-    printline(buffer,buffer2);
-    tohex(msg,buffer);
-    printline("Keymsg=",buffer);
-    } while (msg!=(KM_PRESS|KB_ENT));
 
-    printline("Done with keyboard test", 0);
+        gglsurface scr;
+        int wascleared = 0;
+        bat_setup();
 
-    printline("Press HOME for restart", 0);
-    printline("Hold ESC to switch OS", 0);
+        // MONITOR BATTERY VOLTAGE TWICE PER SECOND
+        HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-    do {
-    msg=keyb_getmsg();
-    } while (msg!=(KM_PRESS|KB_HOM));
+        ggl_initscr(&scr);
 
-    *SWRST = 0x533c2450;
+        //   CLEAR SCREEN
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+
+        if(!mode) {
+            // CHECK FOR MAGIC KEY COMBINATION
+            if(keyb_isAnyKeyPressed()) {
+                throw_exception("Wipeout requested",
+                        __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
+            }
+
+            // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
+            if(!halCheckMemoryMap()) {
+                // WIPEOUT MEMORY
+                halInitMemoryMap();
+                rplInitMemoryAllocator();
+                rplInit();
+                wascleared = 1;
+            }
+            else {
+                if(!halCheckRplMemory()) {
+                    // WIPEOUT MEMORY
+                    halInitMemoryMap();
+                    rplInitMemoryAllocator();
+                    rplInit();
+                    wascleared = 1;
+                }
+                else {
+                    rplInitMemoryAllocator();
+                    rplWarmInit();
+                }
+            }
+
+        }
+        else {
+            rplInitMemoryAllocator();
+            rplHotInit();
+        }
+
+#ifndef CONFIG_NO_FSYSTEM
+        // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
+        FSHardReset();
+#endif
+
+        halInitKeyboard();
+        halInitScreen();
+        halInitBusyHandler();
+        halRedrawAll(&scr);
+
+        if(!mode) {
+            if(wascleared)
+                halShowMsg("Memory Cleared");
+            else {
+
+                // SCAN AND UPDATE ALARMS AFTER A WARMSTART
+                rplUpdateAlarms();
+                halShowMsg("Memory Recovered");
+                // RESTORE OTHER SYSTEM STATUS FROM WARMSTART
+                halWakeUp();
+            }
+        }
+        else {
+            // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
+            halWakeUp();
+        }
+
+        halOuterLoop(0, 0, 0, 0);
+
+        tmr_eventkill(event);
+        //   CLEAR SCREEN
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0x11111111);
+
+        keyb_flushnowait();
+
+        if(halFlags & HAL_RESET) {
+            rplWarmInit();
+            mode = 1;
+        }
+
+    }
+    while(halFlags & HAL_RESET);
+
 
     printline("What?", "Meditate infinitely...");
 
@@ -684,6 +737,8 @@ __ARM_MODE__ void disable_mmu()
 __ARM_MODE__ void startup(int) __attribute__((noreturn));
 void startup(int prevstate)
 {
+    // Initialize board - after bootloader
+
     disable_interrupts();
 
     disable_mmu();
@@ -711,26 +766,104 @@ void startup(int prevstate)
 
     main_virtual(0); // never returns
 }
-//************************************************************************************
-//****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********
 
-void halReset()
+
+
+// THIS FUNCTION REBOOTS THE RPL CORE COMPLETELY
+// ALL ELEMENTS IN THE STACK WILL BE LOST
+// MUST BE ENTERED IN SUPERVISOR MODE
+void halWarmStart()
 {
-    while(1);
+    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+    disable_interrupts();
+
+    usb_shutdown();
+
+    // PUT THE CPU IN A KNOWN SLOW SPEED
+    cpu_setspeed(HAL_SLOWCLOCK);
+    // DISABLE THE MMU
+    disable_mmu();
+    // AND RESTART LIKE NEW
+    startup(0);
+
+    // STARTUP NEVER RETURNS
 }
 
 void halWipeoutWarmStart()
 {
-    while(1);
+
+    int *mmutable = (int *)MEM_REVERSEMMU;
+
+    // INVALIDATE MMU TABLE TO CAUSE A WIPEOUT
+    *mmutable = 0;
+
+    halWarmStart();
 }
 
-void halWarmStart()
+void halReset()
 {
+    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+    disable_interrupts();
+
+    usb_shutdown();
+
+    // PUT THE CPU IN A KNOWN SLOW SPEED
+    cpu_setspeed(HAL_SLOWCLOCK);
+
+    // MAKE SURE ALL WRITE BUFFERS ARE PROPERLY FLUSHED
+
+    cpu_flushwritebuffers();
+    cpu_flushicache();
+    cpu_flushTLB();
+
+    // TRIGGER A SOFTWARE RESET
+    *SWRST = 0x533c2450;
+
+    // AND WAIT FOR IT TO HAPPEN
     while(1);
+
 }
 
-uint32_t RPLLastOpcode;
+// ENTER POWER OFF MODE
+void halEnterPowerOff()
+{
+    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
 
-//********* END OF STUBS *************************************************************
-//************************************************************************************
-//************************************************************************************
+    usb_shutdown();
+
+    // FILE SYSTEM SHUTDOWN
+#ifndef CONFIG_NO_FSYSTEM
+    FSShutdown();
+#endif
+
+    __rtc_poweroff();
+
+    // PUT THE CPU IN A KNOWN SLOW SPEED
+    cpu_setspeed(HAL_SLOWCLOCK);
+
+    // WAIT FOR ALL KEYS TO BE RELEASED
+    __keyb_waitrelease();
+
+    disable_interrupts();
+
+    cpu_off_prepare();
+
+    // DISABLE THE MMU
+    disable_mmu();
+    //reset_stackall();
+
+    // AND GO DIE
+    //startup(0);
+    //enable_interrupts();
+
+    cpu_off_die();
+
+    //startup(0);
+
+}
+
+// NEVER EXIT, THIS IS NOT AN APP, IT'S A FIRMWARE
+int halExitOuterLoop()
+{
+    return 0;
+}

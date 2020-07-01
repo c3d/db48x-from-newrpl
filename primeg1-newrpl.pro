@@ -22,19 +22,65 @@ DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count H
 
 
 SOURCES +=\
-    firmware/sys/keybcommon.c \
-    firmware/sys/target_prime1/boot_newrpl.c \
+    firmware/sys/target_prime1/preamble_prime1.c \
+    firmware/sys/target_prime1/boot_prime1.c \
+    firmware/sys/target_prime1/nand.c \
+    firmware/sys/target_prime1/battery.c \
     firmware/sys/target_prime1/cpu.c \
     firmware/sys/target_prime1/exception.c \
     firmware/sys/target_prime1/irq.c \
     firmware/sys/target_prime1/keyboard.c \
-    firmware/sys/target_prime1/mem.c \
-    firmware/sys/target_prime1/preamble_newrpl.c \
+    firmware/sys/keybcommon.c \
     firmware/sys/target_prime1/lcd.c \
-    firmware/sys/target_prime1/nand.c \
-    firmware/sys/target_prime1/rtc.c \
-    firmware/sys/target_prime1/sddriver.c \
     firmware/sys/target_prime1/stdlib.c \
+    firmware/sys/target_prime1/timer.c \
+    firmware/sys/target_prime1/mem.c \
+    firmware/sys/target_prime1/rtc.c \
+    firmware/sys/target_prime1/usbdriver.c \
+    firmware/sys/usbcommon.c \
+    firmware/sys/target_prime1/fwupdate.c \
+    firmware/ggl/ggl/ggl_bitblt.c \
+    firmware/ggl/ggl/ggl_bitbltoper.c \
+    firmware/ggl/ggl/ggl_filter.c \
+    firmware/ggl/ggl/ggl_fltdarken.c \
+    firmware/ggl/ggl/ggl_fltlighten.c \
+    firmware/ggl/ggl/ggl_fltinvert.c \
+    firmware/ggl/ggl/ggl_getnib.c \
+    firmware/ggl/ggl/ggl_hblt.c \
+    firmware/ggl/ggl/ggl_hbltfilter.c \
+    firmware/ggl/ggl/ggl_hbltoper.c \
+    firmware/ggl/ggl/ggl_hline.c \
+    firmware/ggl/ggl/ggl_initscr.c \
+    firmware/ggl/ggl/ggl_mkcolor.c \
+    firmware/ggl/ggl/ggl_mkcolor32.c \
+    firmware/ggl/ggl/ggl_opmask.c \
+    firmware/ggl/ggl/ggl_optransp.c \
+    firmware/ggl/ggl/ggl_ovlblt.c \
+    firmware/ggl/ggl/ggl_pltnib.c \
+    firmware/ggl/ggl/ggl_rect.c \
+    firmware/ggl/ggl/ggl_rectp.c \
+    firmware/ggl/ggl/ggl_revblt.c \
+    firmware/ggl/ggl/ggl_scrolldn.c \
+    firmware/ggl/ggl/ggl_scrolllf.c \
+    firmware/ggl/ggl/ggl_scrollrt.c \
+    firmware/ggl/ggl/ggl_scrollup.c \
+    firmware/ggl/ggl/ggl_vline.c \
+    firmware/ggl/ggl/ggl_fltreplace.c \
+    firmware/sys/graphics.c \
+    firmware/sys/icons.c \
+    firmware/sys/Font5A.c \
+    firmware/sys/Font5B.c \
+    firmware/sys/Font5C.c \
+    firmware/sys/Font6A.c \
+    firmware/sys/Font6m.c \
+    firmware/sys/Font7A.c \
+    firmware/sys/Font8A.c \
+    firmware/sys/Font8B.c \
+    firmware/sys/Font8C.c \
+    firmware/sys/Font8D.c \
+    firmware/sys/Font10A.c \
+    firmware/sys/Font24.c \
+    firmware/sys/target_prime1/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
     firmware/sys/fsystem/fscalcfreespace.c \
@@ -109,60 +155,149 @@ SOURCES +=\
     firmware/sys/fsystem/fsystem.c \
     firmware/sys/fsystem/misalign.c \
     firmware/sys/fsystem/fsallocator.c \
-    firmware/ggl/ggl/ggl_bitblt.c \
-    firmware/ggl/ggl/ggl_bitbltoper.c \
-    firmware/ggl/ggl/ggl_filter.c \
-    firmware/ggl/ggl/ggl_fltdarken.c \
-    firmware/ggl/ggl/ggl_fltlighten.c \
-    firmware/ggl/ggl/ggl_fltinvert.c \
-    firmware/ggl/ggl/ggl_getnib.c \
-    firmware/ggl/ggl/ggl_hblt.c \
-    firmware/ggl/ggl/ggl_hbltfilter.c \
-    firmware/ggl/ggl/ggl_hbltoper.c \
-    firmware/ggl/ggl/ggl_hline.c \
-    firmware/ggl/ggl/ggl_initscr.c \
-    firmware/ggl/ggl/ggl_mkcolor.c \
-    firmware/ggl/ggl/ggl_mkcolor32.c \
-    firmware/ggl/ggl/ggl_opmask.c \
-    firmware/ggl/ggl/ggl_optransp.c \
-    firmware/ggl/ggl/ggl_ovlblt.c \
-    firmware/ggl/ggl/ggl_pltnib.c \
-    firmware/ggl/ggl/ggl_rect.c \
-    firmware/ggl/ggl/ggl_rectp.c \
-    firmware/ggl/ggl/ggl_revblt.c \
-    firmware/ggl/ggl/ggl_scrolldn.c \
-    firmware/ggl/ggl/ggl_scrolllf.c \
-    firmware/ggl/ggl/ggl_scrollrt.c \
-    firmware/ggl/ggl/ggl_scrollup.c \
-    firmware/ggl/ggl/ggl_vline.c \
-    firmware/ggl/ggl/ggl_fltreplace.c \
-    firmware/sys/Font10A.c \
-    firmware/sys/graphics.c \
-    firmware/sys/target_prime1/timer.c \
+    firmware/hal_cpu.c \
+    firmware/hal_globals.c \
+    firmware/ui_cmdline.c \
+    firmware/ui_softmenu.c \
+    firmware/hal_battery.c \
+    firmware/hal_clock.c \
+    firmware/hal_keyboard.c \
+    firmware/hal_screen.c \
+    firmware/hal_alarm.c \
+    firmware/ui_render.c \
+    firmware/ui_forms.c \
     newrpl/decimal.c \
-    newrpl/hal.c \
-    newrpl/mul_real_arm.c \
+    newrpl/lighttranscend.c \
+    newrpl/atan_ltables.c \
+    newrpl/ln_ltables.c \
     newrpl/sysvars.c \
+    newrpl/compiler.c \
+    newrpl/datastack.c \
+    newrpl/directory.c \
+    newrpl/errors.c \
+    newrpl/gc.c \
+    newrpl/lam.c \
+    newrpl/lists.c \
+    newrpl/matrix.c \
+    newrpl/units.c \
+    newrpl/returnstack.c \
+    newrpl/romlibs.c \
+    newrpl/runstream.c \
+    newrpl/symbolic.c \
+    newrpl/tempob.c \
+    newrpl/backup.c \
+    newrpl/sanity.c \
+    newrpl/utf8lib.c \
     newrpl/utf8data.c \
-    newrpl/utf8lib.c
+    newrpl/autocomplete.c \
+    newrpl/arithmetic.c \
+    newrpl/lib-zero-messages.c \
+    newrpl/lib-4080-localenv.c \
+    newrpl/lib-4090-overloaded.c \
+    newrpl/lib-common.c \
+    newrpl/lib-two-ident.c \
+    newrpl/lib-eight-docol.c \
+    newrpl/lib-nine-docol2.c \
+    newrpl/lib-ten-reals.c \
+    newrpl/lib-twelve-bint.c \
+    newrpl/lib-20-comments.c \
+    newrpl/lib-24-string.c \
+    newrpl/lib-28-dirs.c \
+    newrpl/lib-30-complex.c \
+    newrpl/lib-32-lam.c \
+    newrpl/lib-48-angles.c \
+    newrpl/lib-52-matrix.c \
+    newrpl/lib-54-units.c \
+    newrpl/lib-56-symbolic.c \
+    newrpl/lib-62-lists.c \
+    newrpl/lib-64-arithmetic.c \
+    newrpl/lib-65-system.c \
+    newrpl/lib-66-transcendentals.c \
+    newrpl/lib-68-flags.c \
+    newrpl/lib-70-binary.c \
+    newrpl/lib-72-stack.c \
+    newrpl/lib-74-sdcard.c \
+    newrpl/lib-76-ui.c \
+    newrpl/lib-77-libdata.c \
+    newrpl/lib-78-fonts.c \
+    newrpl/lib-80-bitmaps.c \
+    newrpl/lib-88-plot.c \
+    newrpl/lib-96-composites.c \
+    newrpl/lib-98-statistics.c \
+    newrpl/lib-100-usb.c \
+    newrpl/lib-102-libptr.c \
+    newrpl/fastmath.c \
+    newrpl/render.c \
+    newrpl/mul_real_arm.c \
+    newrpl/rng.c \
+    newrpl/solvers.c \
+    newrpl/lib-104-solvers.c \
+    newrpl/lib-55-constants.c \
+    newrpl/lib-4081-tags.c \
+    newrpl/lib-112-asm.c
+
+
 
 HEADERS  += \
-    newrpl/arithmetic.h \
-    newrpl/decimal.h \
-    newrpl/fastmath.h \
+    firmware/include/ggl.h \
+    firmware/include/target_prime1.h \
+    firmware/include/ui.h \
+    firmware/include/hal_api.h \
+    firmware/include/usb.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/newrpl_types.h \
     newrpl/sysvars.h \
-    newrpl/utf8lib.h \
+    newrpl/decimal.h \
+    newrpl/arithmetic.h \
+    newrpl/cmdcodes.h \
+    newrpl/common-macros.h \
+    newrpl/lib-header.h \
+    newrpl/include-all.h \
+    newrpl/romlibs.h \
+    firmware/sys/rtc.h \
+    firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
-    firmware/include/firmware.h \
     firmware/include/fsystem.h \
-    firmware/include/ggl.h \
-    firmware/include/hal_api.h \
-    firmware/include/target_prime1.h \
-    firmware/include/ui.h \
-    firmware/include/usb.h
+    newrpl/fastmath.h \
+    newrpl/render.h \
+    firmware/include/firmware.h
+
+RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
+                newrpl/rpl-objects/lib-9.nrpl \
+                newrpl/rpl-objects/lib-10.nrpl \
+                newrpl/rpl-objects/lib-12.nrpl \
+                newrpl/rpl-objects/lib-20.nrpl \
+                newrpl/rpl-objects/lib-24.nrpl \
+                newrpl/rpl-objects/lib-28.nrpl \
+                newrpl/rpl-objects/lib-30.nrpl \
+                newrpl/rpl-objects/lib-32.nrpl \
+                newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-62.nrpl \
+                newrpl/rpl-objects/lib-64.nrpl \
+                newrpl/rpl-objects/lib-65.nrpl \
+                newrpl/rpl-objects/lib-66.nrpl \
+                newrpl/rpl-objects/lib-68.nrpl \
+                newrpl/rpl-objects/lib-70.nrpl \
+                newrpl/rpl-objects/lib-72.nrpl \
+                newrpl/rpl-objects/lib-74.nrpl \
+                newrpl/rpl-objects/lib-76.nrpl \
+                newrpl/rpl-objects/lib-0.nrpl \
+                newrpl/rpl-objects/lib-8.nrpl \
+                newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-55.nrpl \
+                newrpl/rpl-objects/lib-56.nrpl \
+                newrpl/rpl-objects/lib-77.nrpl \
+                newrpl/rpl-objects/lib-78.nrpl \
+                newrpl/rpl-objects/lib-80.nrpl \
+                newrpl/rpl-objects/lib-88.nrpl \
+                newrpl/rpl-objects/lib-96.nrpl \
+                newrpl/rpl-objects/lib-98.nrpl \
+                newrpl/rpl-objects/lib-100.nrpl \
+                newrpl/rpl-objects/lib-102.nrpl \
+                newrpl/rpl-objects/lib-104.nrpl \
+                newrpl/rpl-objects/lib-4081.nrpl \
+                newrpl/rpl-objects/version.nrpl
 
 
 # Cross compiler dependent
@@ -199,4 +334,13 @@ QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld_newrpl.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad256k -outNEWRPL.ROM $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad1280k -outNEWRPL.ROM $(TARGET)
+
+
+## Additional RPL compiler, make sure it's in the PATH
+rpl_compiler.output = auto_${QMAKE_FILE_BASE}.c
+rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+rpl_compiler.input = RPL_OBJECTS
+rpl_compiler.variable_out = SOURCES
+
+QMAKE_EXTRA_COMPILERS += rpl_compiler

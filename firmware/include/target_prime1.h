@@ -308,6 +308,7 @@
 #define ALMDATE HWREG(RTC_BASE, 0x60)
 #define ALMMON  HWREG(RTC_BASE, 0x64)
 #define ALMYEAR HWREG(RTC_BASE, 0x68)
+#define RTCRST  HWREG(RTC_BASE, 0x6c)
 #define BCDSEC  HWREG(RTC_BASE, 0x70)
 #define BCDMIN  HWREG(RTC_BASE, 0x74)
 #define BCDHOUR HWREG(RTC_BASE, 0x78)
@@ -804,6 +805,28 @@ extern unsigned char const __keyb_bitfromcode[64];
 // Keyboard mapping macros  - MUST exist for all targets
 #define KEYMAP_CODEFROMBIT(bit) (__keyb_codefrombit[bit])
 #define KEYMAP_BITFROMCODE(code) (__keyb_bitfromcode[code])
+
+// HAL Required definitions
+
+// Screen Update Notification
+
+#define halScreenUpdated()    ((void)0)
+
+// DEFAULT CLOCK SPEEDS
+#define HAL_SLOWCLOCK    200000000
+#define HAL_USBCLOCK     400000000
+#define HAL_FASTCLOCK    400000000
+
+#define DEFAULT_AUTOOFFTIME 3
+
+// DEFAULT COLOR MODE OF THE SYSTEM
+#define DEFAULTBITSPERPIXEL 4
+#define DEFAULTBITMAPMODE   1   // SAME AS BITMAP_RAW16G
+
+#define ANN_X_COORD 131
+#define ANN_Y_COORD 0
+
+#define PIXELS_PER_WORD 8
 
 
 #define __ENABLE_ARM_ASSEMBLY__ 1

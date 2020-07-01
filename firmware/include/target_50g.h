@@ -136,6 +136,40 @@
 #define SDIDAT HWREG(SD_REGS,0x3c)
 #define SDIIMSK HWREG(SD_REGS,0x40)
 
+
+#define RTCCON  HWREG(RTC_REGS, 0x40)
+#define TICNT0  HWREG(RTC_REGS, 0x44)
+#define TICNT2  HWREG(RTC_REGS, 0x48)
+#define TICNT1  HWREG(RTC_REGS, 0x4c)
+#define RTCALM  HWREG(RTC_REGS, 0x50)
+#define ALMSEC  HWREG(RTC_REGS, 0x54)
+#define ALMMIN  HWREG(RTC_REGS, 0x58)
+#define ALMHOUR HWREG(RTC_REGS, 0x5c)
+#define ALMDATE HWREG(RTC_REGS, 0x60)
+#define ALMMON  HWREG(RTC_REGS, 0x64)
+#define ALMYEAR HWREG(RTC_REGS, 0x68)
+#define BCDSEC  HWREG(RTC_REGS, 0x70)
+#define BCDMIN  HWREG(RTC_REGS, 0x74)
+#define BCDHOUR HWREG(RTC_REGS, 0x78)
+#define BCDDATE HWREG(RTC_REGS, 0x7c)
+#define BCDDAY  HWREG(RTC_REGS, 0x80)
+#define BCDMON  HWREG(RTC_REGS, 0x84)
+#define BCDYEAR HWREG(RTC_REGS, 0x88)
+#define TICKCNT HWREG(RTC_REGS, 0x90)
+
+#define RTCRST  HWREG(RTC_REGS, 0x6c)
+
+
+
+
+
+
+
+
+
+
+
+
 #define halScreenUpdated()    ((void)0)
 
 // Firmware preamble string
