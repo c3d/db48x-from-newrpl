@@ -14,7 +14,8 @@ extern const unsigned int Font_10A[];
 extern unsigned int RPLLastOpcode;
 
 // EXCEPTIONS SCREEN AREA RIGHT AFTER THE SCREEN, RESERVE SPACE FOR 16-BIT COLOR MODE
-#define MEM_PHYS_EXSCREEN (*VIDW00ADD0B1);
+#define MEM_SCREENSIZE ((((*VIDTCON2)>>11)+1)*(((*VIDW00ADD2B0)&0x1fff)+((*VIDW00ADD2B0)>>13)))
+#define MEM_PHYS_EXSCREEN (MEM_PHYS_SCREEN+MEM_SCREENSIZE)
 #define FNT_HEIGHT 12
 #define FNT_AVGW   7
 #define BTN_WIDTH  52
@@ -107,9 +108,13 @@ int f,j;
 
 
 lcd_save(lcd_buffer);
+
 *WINCON0&=~1;   // Window 0 off
-*WINCON0|=(1<<23)|1;                        // AND START DISPLAYING BUFFER 1
-//lcd_setmode(0,(int *)MEM_PHYS_EXSCREEN);
+// Move Window 0 to the exception buffer
+*VIDW00ADD0B0=MEM_PHYS_EXSCREEN;
+*VIDW00ADD1B0=(MEM_PHYS_EXSCREEN+MEM_SCREENSIZE)&0x00ffffff;
+*WINCON0|=1;   // Window 0 on
+
 
 doitagain:
 
@@ -519,8 +524,13 @@ if( KEYVALUE(f)==KB_F )	break;
 } while(1);
 
 __keyb_waitrelease();
-*WINCON0&=~(1U<<23)|1;                        // AND START DISPLAYING BUFFER 0
+
+*WINCON0&=~1;   // Window 0 off
+// Move Window 0 to the regular buffer
+*VIDW00ADD0B0=MEM_PHYS_SCREEN;
+*VIDW00ADD1B0=(MEM_PHYS_SCREEN+MEM_SCREENSIZE)&0x00ffffff;
 *WINCON0|=1;   // Window 0 on
+
 lcd_restore(lcd_buffer);
 
 return j;

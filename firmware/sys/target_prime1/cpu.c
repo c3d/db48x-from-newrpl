@@ -120,6 +120,8 @@ case 100:
 
 __tmr_fix();
 
+
+
 }
 
 
@@ -129,6 +131,17 @@ __tmr_fix();
 
 int cpu_setspeed(int freq)
 {
+
+// Disable this, we need specialized procedure to change clocks
+// while running from DRAM.
+
+    return freq;
+
+// TODO: Ideally, code needs to run from SRAM and wait until the DRAM clock stabilizes to return
+// or do NOT change HCLK, ever, to avoid messing with the DDR timings
+// DDR clock is locked to twice the HCLK, so HCLK must be changed very carefully
+
+
     if(freq >= 400000000)
         return __cpu_setspeed(400);
     if(freq >= 200000000)

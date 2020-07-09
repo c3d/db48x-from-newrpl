@@ -176,22 +176,15 @@ void set_stackall()
 
 
 
-__ARM_MODE__ void set_async_bus()
-{
-    asm volatile ("mrc p15,0,r0,c1,c0,0");
-    asm volatile ("orr r0,r0,#0xC0000000");
-    asm volatile ("mcr p15,0,r0,c1,c0,0");
-}
-
 void setup_hardware()
 {
 
-    set_async_bus();
+    *WDTCON=0;       // Disable Watchdog just in case
 
     // Most basic hardware setup is done by the bootloader
     // Add any additional setup here if needed
 
-    // Playing it safe for testing
+    // Playing it safe for testing -
     NANDWriteProtect();
 
 }
@@ -221,13 +214,11 @@ void main_virtual(unsigned int mode)
     line = 0;
 
 
-    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
-    lcd_on();
-
     ggl_initscr(&surface);
     ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
 
     printline("Starting newRPL...", 0);
+
 
     // INITIALIZE SOME SYSTEM VARIABLES
 
@@ -641,11 +632,8 @@ void create_mmu_tables()
     MMU_MAP_SECTION_DEV(0x31f00000, 0x31f00000);
 
     // HP Prime uses an obsolete boot mode of the S3C2416 called NAND boot
-    // that makes the rest of SRAM inaccessible, only maps 8kb at 0x00000000
-    // and the rest vanishes.
     // This is not explained on Samsung's datasheet, only on older documents
     // from some development website in chinese.
-    // So only 8kbytes of SRAM appear at 0x0, the rest is inaccessible.
 
      MMU_MAP_SECTION_RAM(0x0 , 0x0);
 
@@ -691,6 +679,9 @@ __ARM_MODE__ void enable_mmu()
     asm volatile ("sub r0,r0,#0x10000");         // MMU BASE REGISTER = 0x31ff0000
     asm volatile ("mcr p15,0,r0,c2,c0,0");      // WRITE MMU BASE REGISTER, ALL CACHES SHOULD'VE BEEN CLEARED BEFORE
 
+    asm volatile ("mov r0,#0");
+    asm volatile ("mcr p15,0,r0,c13,c0,0");      // SET PROCESS ID = 0
+
     asm volatile ("mvn r0,#0");
     asm volatile ("mcr p15,0,r0,c3,c0,0");      // SET R/W ACCESS PERMISSIONS FOR ALL DOMAINS
 
@@ -711,7 +702,7 @@ __ARM_MODE__ void disable_mmu()
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
     asm volatile ("bic r0,r0,#5");      // DISABLE MMU AND DATA CACHES
-    asm volatile ("bic r0,r0,#0x1000"); // DISABLE INSTRUCTION CACHE
+    asm volatile ("bic r0,r0,#0x1300"); // DISABLE INSTRUCTION CACHE, DISABLE ROM PROTECTION AND DOMAIN ACCESS CONTROL
 
     asm volatile ("mcr p15, 0, r0, c1, c0, 0");
 
@@ -756,6 +747,7 @@ void startup(int prevstate)
 
     enable_mmu();           // Now we are in virtual mode, but still executing from the physical 1:1 map
 
+
     clear_globals();
 
     switch_mode(SYS_MODE);  // Enter privileged mode without register banking
@@ -763,6 +755,38 @@ void startup(int prevstate)
     set_stackall();
 
     __exception_install();
+
+
+    cpu_flushwritebuffers();   // Ensure exception handlers are written to RAM
+    cpu_flushicache();         // Ensure any old code is removed from caches
+
+
+    cpu_setspeed(HAL_FASTCLOCK);
+
+
+    enable_interrupts();
+
+    red_led_on();
+
+    tmr_setup();
+
+    blue_led_on();
+
+    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_on();
+
+
+    green_led_on();
+
+    __keyb_init();
+
+    usb_init(1);
+
+
+
+
+
+
 
     main_virtual(0); // never returns
 }
