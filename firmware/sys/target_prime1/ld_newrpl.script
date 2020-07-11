@@ -164,13 +164,17 @@ __data_load = . ;
   _end = .;
   __last_used_byte = .;
 
+
+
  /* CREATE VARIABLE _bss_size */
  
   __bss_size = SIZEOF( .bss );
 
 
+  . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
 
+  __total_file_size = . - 0x30000000 ;
 
 /* ADD CONFIG SECTION TO EXECUTABLE */
   .config          : { *(.config) }

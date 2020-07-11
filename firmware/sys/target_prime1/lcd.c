@@ -10,9 +10,6 @@
 int __lcd_contrast __SYSTEM_GLOBAL__;
 
 
-void __lcd_fix()
-{
-}
 
 void lcd_sync()
 {
@@ -26,6 +23,7 @@ void lcd_off()
     // Disable video signals immediately
     *VIDCON0 = *VIDCON0 & 0xFFFFFFFC;
 }
+
 
 void lcd_on()
 {
@@ -198,11 +196,24 @@ void lcd_initspidisplay()
 // Total clock pulses per line: 320 + 1 (sync) + 18 (front porch) + 65 (back porch) = 404 ticks per line
 // Total lines: 240 + 1 (sync) + 4 (front porch) + 18 (back porch) = 263 lines
 
-// Total ticks per frame = 404*263 = 106,252 ticks
+// Total ticks per frame = 404*263 = 106,252 ticks * 3 (serial RGB interface takes 3 ticks per pixel) = 318,756 ticks total
 
-// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 106252 = 6,375,120 Hz
+// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 318,756 = 19,125,360 Hz
 
-#define LCD_TARGET_REFRESH      60
+#define LCD_TARGET_REFRESH      55
+
+// UPDATE THE LCD CLOCK WHEN THE CPU CLOCK CHANGES
+void __lcd_fix()
+{
+    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
+
+    clkdiv+=7;
+    clkdiv>>=3; // Round to closest integer to stay as close to target as possible
+
+    *VIDCON0 = 0x5030 | ((clkdiv&0x3f)<<6); // Serial R->G->B, CLKVALUP=Start of frame, VCLKEN=Enabled, CLKDIR=Divided using CLKVAL_F, CLKSEL_F = Use HCLK source
+
+}
+
 
 
 int lcd_setmode(int mode, unsigned int *physbuf)
@@ -212,7 +223,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 
     lcd_initspidisplay();
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(106252*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -221,9 +232,16 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *VIDCON1 = 0x80; // All pulses normal, use VCLK rising edge
 
 
-    *VIDTCON0 = 0x11030;    // Set Vertical Front/Back porch and sync
-    *VIDTCON1 = 0x401100;   // Set Horizontal Front/Back porch and sync
+    *VIDTCON0 = 0x110300;    // Set Vertical Front/Back porch and sync
+    *VIDTCON1 = 0x3f1100;   // Set Horizontal Front/Back porch and sync
     *VIDTCON2 = 0x7793f;    // Set screen size 320x240
+
+    *VIDOSD1A = *VIDOSD0A = 0;          // Window 0/1 top left corner = (0,0)
+    *VIDOSD1B = *VIDOSD0B = 0xa00f0;    // Window 0/1 lower corner = (320,240)
+
+    *VIDOSD1C = 0;
+
+    *WIN1MAP = *WIN0MAP = 0;                       // Disable colormap
 
     // Disable LCD controller palette access
     *WPALCON = *WPALCON | 0x00000200;
@@ -271,22 +289,26 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     case BPPMODE_8BPP:
         *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT);
         *VIDW00ADD2B0 = (((SCREEN_WIDTH))+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *WINCON0 = 0;     // Disable bit swap
         break;
     case BPPMODE_16BPP565:
     case BPPMODE_16BPP555:
         *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*2;
         *VIDW00ADD2B0 = (((SCREEN_WIDTH)<<1)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *WINCON0 = 0;     // Disable bit swap
         break;
     case BPPMODE_18BPP:
     case BPPMODE_24BPP:
         *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*4;
         *VIDW00ADD2B0 = (((SCREEN_WIDTH)<<2)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *WINCON0 = 0;     // Disable bit swap
         break;
     }
 
     *WINCON1=0; // Disable Window 1
     // Set final mode, set 4-word burst length, and enable window 0
-    *WINCON0 = 0x401  | ((mode&0xf) << 2);
+    // Preserve bit swap as set for each mode
+    *WINCON0 = (*WINCON0&0x40000) | 0x401  | ((mode&0xf) << 2);
 
 
 }

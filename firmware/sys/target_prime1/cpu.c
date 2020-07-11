@@ -80,11 +80,17 @@ extern void __tmr_fix();
 
 int __cpu_setspeed(unsigned int mode)
 {
+
+    // Check if LCD is already on, then adjust cpu speed only at end of frame
+    // and fix the LCD frequency
+    if(*VIDCON0&3) {
+        *VIDCON0 &= ~1;     // Request LCD signals off at end of current frame
+        while(*VIDCON0&1) ; // And wait for it to happen
+    }
+
+
 switch(mode)
 {
-
-
-
 case 400:
     // MSysCLK = 800 MHz ; ARMCLK = 400 MHz, HCLK = 133 MHz, PCLK = 66 MHz, DDRCLK=2*HCLK=266 MHz
     // Max. performance MsysCLK = 800 MHz
@@ -120,6 +126,10 @@ case 100:
 
 __tmr_fix();
 
+if(*VIDCON0&3) {
+    __lcd_fix();        // Recalculate frequency and fix it
+    *VIDCON0 |= 3;      // Enable LCD again
+}
 
 
 }
@@ -134,8 +144,6 @@ int cpu_setspeed(int freq)
 
 // Disable this, we need specialized procedure to change clocks
 // while running from DRAM.
-
-    return freq;
 
 // TODO: Ideally, code needs to run from SRAM and wait until the DRAM clock stabilizes to return
 // or do NOT change HCLK, ever, to avoid messing with the DDR timings
@@ -418,15 +426,14 @@ __ARM_MODE__ void cpu_off_prepare()
 
 // WARNING: CALL THIS FUNCTION AFTER DISABLING MMU
 
-#define PHYS_CLK_REGS 0x4c000000
-
 __ARM_MODE__ void cpu_off_die()
 {
     // GO OFF!
     asm volatile ("mov r0,r0");
     asm volatile ("mov r0,r0");
 
-    *HWREG(PHYS_CLK_REGS, 0xC) |= 0x8;  // POWER OFF
+    *PWRCFG = 0;
+    *PWRMODE = 0x2bed;  // POWER OFF
     // DOES NOT RETURN
     asm volatile ("mov r0,r0");
     asm volatile ("mov r0,r0");
