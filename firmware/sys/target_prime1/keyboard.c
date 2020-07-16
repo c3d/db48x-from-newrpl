@@ -83,8 +83,8 @@ const unsigned char const __keyb_codefrombit[64] = {
     KB_SYM,KB_MEN,KB_7,23,24,KB_MUL,KB_ALPHA,KB_J,KB_HOM,KB_VIE,
     KB_6,31,32,KB_SUB,KB_E,KB_I,KB_APP,KB_UP,KB_5,39,
     40,KB_ADD,KB_A,KB_H,KB_DN,KB_1,KB_4,47,48,KB_SPC,
-    KB_G,KB_RSHIFT,KB_ESC,KB_DOT,KB_3,55,56,KB_LF,KB_B,KB_F,
-    KB_N,KB_HLP,KB_2, KB_ON
+    KB_G,KB_LSHIFT,KB_ON,KB_DOT,KB_3,55,56,KB_LF,KB_B,KB_F,
+    KB_N,KB_HLP,KB_2, KB_RSHIFT
 };
 const unsigned char const __keyb_bitfromcode[64] = {
 
@@ -108,7 +108,7 @@ const unsigned char const __keyb_bitfromcode[64] = {
    57, 44, 15, 43, 35, 27, 0, 19, 11, 0,
 
 // AL  LS  RS  ON
-   26,  0, 51, 63
+   26, 51, 63, 52
 };
 
 

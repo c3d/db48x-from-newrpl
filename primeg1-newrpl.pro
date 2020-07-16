@@ -161,7 +161,7 @@ SOURCES +=\
     firmware/ui_softmenu.c \
     firmware/hal_battery.c \
     firmware/hal_clock.c \
-    firmware/hal_keyboard.c \
+    firmware/hal_keyboard_primeg1.c \
     firmware/hal_screen.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
