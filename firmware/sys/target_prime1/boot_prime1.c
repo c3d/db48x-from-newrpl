@@ -184,6 +184,8 @@ void setup_hardware()
     // Most basic hardware setup is done by the bootloader
     // Add any additional setup here if needed
 
+    lcd_off();
+
     // Playing it safe for testing -
     NANDWriteProtect();
 
@@ -219,6 +221,7 @@ void main_virtual(unsigned int mode)
 
     printline("Starting newRPL...", 0);
 
+    red_led_on();
 
     // INITIALIZE SOME SYSTEM VARIABLES
 
@@ -226,6 +229,7 @@ void main_virtual(unsigned int mode)
 
         gglsurface scr;
         int wascleared = 0;
+
         bat_setup();
 
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
@@ -719,64 +723,83 @@ __ARM_MODE__ void disable_mmu()
 
 
 
+#define WAKEUP_FROM_SLEEP 1
+#define WAKEUP_ONKEY    2
+#define WAKEUP_ALARM    4
 
 
 
 
 
-
-__ARM_MODE__ void startup(int) __attribute__((noreturn));
-void startup(int prevstate)
+__ARM_MODE__ void startup(void) __attribute__((noreturn, naked));
+void startup(void)
 {
     // Initialize board - after bootloader
 
     disable_interrupts();
 
-    disable_mmu();
 
-    set_stack((unsigned int *)0x31fb7ffc);  // Move initial stack to a known location
+    //set_stack((unsigned int *)0x31fb7ffc);  // Move initial stack to a known location
+    //switch_mode(SYS_MODE);  // Enter privileged mode without register banking
+
+    set_stackall();
+
+    // After set_stackall() we are in SYS_MODE and all modes have a valid stack pointing to physical memory.
+
+
+
+    register int prevstate;
+    // Check if we are waking up from sleep
+    prevstate=0;
+
+    if(*RSTSTAT&0x18) {
+        // Woke up from SLEEP mode
+        red_led_on();
+        prevstate|=WAKEUP_FROM_SLEEP;
+        if(*WKUPSTAT&1) { green_led_on(); prevstate|=WAKEUP_ONKEY; } else green_led_off();
+        if(*WKUPSTAT&0x32) { blue_led_on(); prevstate|=WAKEUP_ALARM; } else blue_led_off();
+    } else
+    {
+        // Woke up from RESET
+        red_led_off();
+        // Wokeup from Software Reset
+        if(*RSTSTAT*0x20) green_led_on(); else green_led_off();
+        // Wokeup from Paperclip reset or Watchdog
+        if(*RSTSTAT&5) blue_led_on(); else blue_led_off();
+    }
+
+    *RSTSTAT=0x3f;
+    *WKUPSTAT=0x33;
+
+
+    disable_mmu();
 
     setup_hardware();
 
-    create_mmu_tables();
+    // Avoid re-creating MMU tables if they are already there
+    if(!(prevstate&WAKEUP_FROM_SLEEP))  create_mmu_tables();
 
     cpu_flushwritebuffers();   // Ensure MMU table values are written to actual RAM
     cpu_flushicache();         // Ensure any old code is removed from caches
     cpu_flushTLB();
 
-
     enable_mmu();           // Now we are in virtual mode, but still executing from the physical 1:1 map
-
 
     clear_globals();
 
-    switch_mode(SYS_MODE);  // Enter privileged mode without register banking
-
-    set_stackall();
-
     __exception_install();
-
 
     cpu_flushwritebuffers();   // Ensure exception handlers are written to RAM
     cpu_flushicache();         // Ensure any old code is removed from caches
 
-
     cpu_setspeed(HAL_FASTCLOCK);
-
 
     enable_interrupts();
 
-    red_led_on();
-
     tmr_setup();
-
-    blue_led_on();
 
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
-
-
-    green_led_on();
 
     __keyb_init();
 
@@ -784,11 +807,7 @@ void startup(int prevstate)
 
 
 
-
-
-
-
-    main_virtual(0); // never returns
+    main_virtual(prevstate); // never returns
 }
 
 
@@ -798,18 +817,25 @@ void startup(int prevstate)
 // MUST BE ENTERED IN SUPERVISOR MODE
 void halWarmStart()
 {
-    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET.
+
     disable_interrupts();
 
     usb_shutdown();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(HAL_SLOWCLOCK);
+    //cpu_setspeed(HAL_SLOWCLOCK);
     // DISABLE THE MMU
-    disable_mmu();
-    // AND RESTART LIKE NEW
-    startup(0);
+    //disable_mmu();
+     // MAKE SURE ALL WRITE BUFFERS ARE PROPERLY FLUSHED
 
+    cpu_flushwritebuffers();
+    cpu_flushicache();
+    cpu_flushTLB();
+
+    //cpu_off_prepare();
+
+   startup();
     // STARTUP NEVER RETURNS
 }
 
@@ -839,6 +865,8 @@ void halReset()
     cpu_flushwritebuffers();
     cpu_flushicache();
     cpu_flushTLB();
+
+    cpu_off_prepare();
 
     // TRIGGER A SOFTWARE RESET
     *SWRST = 0x533c2450;
@@ -870,7 +898,12 @@ void halEnterPowerOff()
 
     disable_interrupts();
 
+    cpu_flushwritebuffers();
+    cpu_flushicache();
+    cpu_flushTLB();
+
     cpu_off_prepare();
+
 
     // DISABLE THE MMU
     disable_mmu();
@@ -878,11 +911,11 @@ void halEnterPowerOff()
 
     // AND GO DIE
     //startup(0);
-    //enable_interrupts();
+    enable_interrupts();
 
-    cpu_off_die();
+    //cpu_off_die();
 
-    //startup(0);
+    startup();
 
 }
 

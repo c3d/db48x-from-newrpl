@@ -14,25 +14,29 @@ void bat_setup()
 {
     //  ENABLE PRESCALER AT MAXIMUM DIVISION (255)
     //  SELECT CHANNEL 0, NORMAL OPERATION, START BY READ
-/*
-    *HWREG(IO_REGS, 0x58) |= 0x2;       // DISABLE PULLUPS
-    *HWREG(ADC_REGS, 0) = 0x7FC2;
-    *HWREG(ADC_REGS, 4) = 0x58;
-    *HWREG(ADC_REGS, 8) = 0xff;
-    __battery = *HWREG(ADC_REGS, 0xc) & 0x3ff;  // INITAL READ WILL TRIGGER FIRST CONVERSION
-*/
+
+    *GPFCON &= ~0xc0;    // SET GPF3 AS INPUT
+
+
+    *ADCDLY = 0x5dc;
+    *ADCMUX=0;
+    *ADCCON=0x7fc2;     // Enable prescaler, maximum prescaler=0xff, start by Read
+    *ADCTSC = 0xd8;     // YM 2 ground switch enable, YP to VDD disable, XM to GND disable, XP to VDD disable, PULL_UP disable
+    __battery = *ADCDAT0 & 0x3ff;  // INITAL READ WILL TRIGGER FIRST CONVERSION
+
     bat_read();
 }
 
 void bat_read()
 {
-/*
-    if(*HWREG(IO_REGS, 0x54) & 2) {
-        // GPF1 BIT SET INDICATES WE ARE ON USB POWER!!
+
+    if(*GPFDAT & 8) {
+        // GPF3 BIT SET INDICATES WE ARE ON USB POWER!!
         __battery = 0x400;
         return;
     }
-    while(!(*HWREG(ADC_REGS, 0) & 0x8000));
-*/
-    __battery = 0x3ff; //*HWREG(ADC_REGS, 0xc) & 0x3ff;  // READ LAST KNOWN VALUE, AND TRIGGER A NEW ONE
+
+    while(!(*ADCCON & 0x8000));
+
+    __battery = *ADCDAT0 & 0x3ff;  // READ LAST KNOWN VALUE, AND TRIGGER A NEW ONE
 }

@@ -439,7 +439,7 @@ else {
 if(options&__EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"Cont");
+        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
 		//pnewb[70*5]|=0x10000;
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
@@ -450,7 +450,7 @@ if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"Exit");
+        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
@@ -462,8 +462,8 @@ if(options&__EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&__EX_WIPEOUT) __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
-            else __ex_print(2*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
+        if(options&__EX_WIPEOUT) __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
+            else __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
@@ -474,7 +474,7 @@ if(options&__EX_WARM) {
 if(options&__EX_RESET) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 4
-        __ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"**Reset**");
+        __ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"**Reset**");
         //for(f=0;f<9;++f) pnewb[(SCREEN_HEIGHT-9)*5+4+5*f]|=0x1;
         //pnewb[(SCREEN_HEIGHT-2)*5+3]|=0xffffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0xf0000000;
@@ -494,13 +494,13 @@ f=__keyb_getkey(1);
 
 if(options&__EX_CONT) {
 j=__EX_CONT;
-if( KEYVALUE(f)==KB_A )	break;
+if( KEYVALUE(f)==KB_SYM )	break;
 }
 if(options&(__EX_EXIT|__EX_RPLEXIT)) {
 j=options&(__EX_EXIT|__EX_RPLEXIT);
-if( KEYVALUE(f)==KB_B )	break;
+if( KEYVALUE(f)==KB_PLT )	break;
 }
-if( KEYVALUE(f)==KB_L) {
+if( KEYVALUE(f)==KB_MEN) {
     options^=__EX_RPLREGS;
     options&=~__EX_NOREG;
     goto doitagain;
@@ -512,14 +512,12 @@ if(!KEYSHIFT(f)) continue;
 if(options&(__EX_WARM|__EX_WIPEOUT)) {
     if((options&__EX_WIPEOUT) && (KEYSHIFT(f)==(SHIFT_ALPHA|SHIFT_ALPHAHOLD|SHIFT_RS|SHIFT_RSHOLD|SHIFT_LS|SHIFT_LSHOLD))) j=__EX_WIPEOUT;
     else j=__EX_WARM;
-if( KEYVALUE(f)==KB_C )	break;
-if( KEYVALUE(f)==KB_D )	break;
+if( KEYVALUE(f)==KB_NUM )	break;
 }
 
 if(options&__EX_RESET) {
 j=__EX_RESET;
-if( KEYVALUE(f)==KB_E )	break;
-if( KEYVALUE(f)==KB_F )	break;
+if( KEYVALUE(f)==KB_HLP )	break;
 }
 } while(1);
 
@@ -713,7 +711,7 @@ register unsigned int value asm("r0");
 
 }
 
-extern void startup(int);
+extern void startup(void);
 void __exception_install()
 {
     unsigned *handler_addr=(unsigned int *)0x31ffff00L;

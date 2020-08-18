@@ -7,7 +7,7 @@
 
 #include "target_prime1.h"
 
-extern void startup(int);
+extern void startup(void);
 
 extern unsigned int __total_file_size;
 

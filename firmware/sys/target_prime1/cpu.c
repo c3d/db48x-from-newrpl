@@ -275,7 +275,7 @@ __ARM_MODE__ void cpu_off_prepare()
     *INTSUBMSK = 0xffffffff; // INTSUBMSK ALL MASKED
     *INTMSK1 = 0xffffffff; // INTMSK ALL MASKED
     *INTMSK2 = 0xffffffff; // INTMSK ALL MASKED
-    *EINTMASK = 0xfffff0;   // EINTMSK ALL MASKED
+    *EINTMASK = 0xfff0;   // EINTMSK ALL MASKED
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
@@ -289,7 +289,7 @@ __ARM_MODE__ void cpu_off_prepare()
     *TCON = 0;  // STOP ALL RUNNING TIMERS
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
+/*
     // GPIO-A
 
     *GPADAT = 0;
@@ -376,6 +376,7 @@ __ARM_MODE__ void cpu_off_prepare()
     *GPMDAT = 0;
     *GPMCON = 0xA;   // SELECT FUNCTION (Flash/OneNAND related)
     *GPMUDP = 0;      // ALL PULLUPS DISABLED
+*/
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
@@ -391,7 +392,7 @@ __ARM_MODE__ void cpu_off_prepare()
      *MISCCR |= 0x1000;          // USB PORT INTO SUSPEND MODE
 
     // SIGNAL THAT IT'S US GOING INTO POWEROFF MODE
-    *INFORM2 = 0x11223344;
+    *INFORM2 = 0x4c50524e;  // 'NRPL' SIGNAL THE BOOT PROCEDURE THAT WE WANT TO STAY IN NEWRPL
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
@@ -416,7 +417,7 @@ __ARM_MODE__ void cpu_off_prepare()
     *EINTPEND = *EINTPEND;
 
     *INTMSK1 = 0xffffffdf; // UNMASK ONLY THE ON KEY INTERRUPT
-
+    *EINTMASK = 0xfef0;    // UNMASK THE ON KEY INTERRUPT
     // TODO: SETUP ALARM TO WAKE UP
     // FLUSH ALL BUFFERS
 
