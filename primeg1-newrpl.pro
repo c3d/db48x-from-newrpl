@@ -157,12 +157,12 @@ SOURCES +=\
     firmware/sys/fsystem/fsallocator.c \
     firmware/hal_cpu.c \
     firmware/hal_globals.c \
+    firmware/hal_battery_primeg1.c \
+    firmware/hal_screen_primeg1.c \
     firmware/ui_cmdline.c \
     firmware/ui_softmenu.c \
-    firmware/hal_battery.c \
     firmware/hal_clock.c \
     firmware/hal_keyboard_primeg1.c \
-    firmware/hal_screen.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
     firmware/ui_forms.c \

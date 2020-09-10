@@ -376,6 +376,7 @@ int halCountUsedPages(int zone)
 
 int halCheckRplMemory()
 {
+    if( !TempOb || !TempBlocks || !DStk || !RStk || !LAMs || !Directories) return 0;
     // VERIFY MAIN RPL POINTERS
     if(TempObEnd >= TempObSize)
         return 0;
