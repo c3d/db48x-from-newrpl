@@ -403,7 +403,8 @@ __ARM_MODE__ void cpu_off_prepare()
     // 01 01 01 01 01 01 01 10 =0x5556
     //  7  6  5  4  3  2  1  0
     *GPGCON = 0x5556;     // ONLY ENABLE EINT8, ALL OTHERS OUTPUT
-    *EXTINT1 = 6;         //    BOTH EDGES TRIGGER EINT8
+    *GPGUDP = 1;          // ENABLE PULLDOWN ON GPG0
+    *EXTINT1 = 6;         // BOTH EDGES TRIGGER EINT8
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
@@ -426,18 +427,45 @@ __ARM_MODE__ void cpu_off_prepare()
 }
 
 // WARNING: CALL THIS FUNCTION AFTER DISABLING MMU
+struct PRIME_BL_WAKEUP {
+    unsigned int pc_resume;
+    unsigned int cpu_control_c1;
+    unsigned int cpu_mmu_base;
+    unsigned int cpu_domaccess;
+} __cpu_wakeup_struct __SCRATCH_MEMORY__;
+
+
+// Startup function is supplied by boot module
+extern void startup(void);
+
 
 __ARM_MODE__ void cpu_off_die()
 {
-    // GO OFF!
-    asm volatile ("mov r0,r0");
-    asm volatile ("mov r0,r0");
+    register unsigned int data;
 
-    *PWRCFG = 0;
+
+    // SAVE CPU STATE TO DATA STRUCTURE REQUIRED BY BOOTLOADER
+    __cpu_wakeup_struct.pc_resume=(unsigned int)&startup;
+
+    asm volatile ("mrc p15,0,%[reg],c1,c0,0" : [ reg ] "=r" (data) );
+    __cpu_wakeup_struct.cpu_control_c1=data;
+
+    asm volatile ("mrc p15,0,%[reg],c2,c0,0" : [ reg ] "=r" (data) );
+    __cpu_wakeup_struct.cpu_mmu_base=data;
+
+    asm volatile ("mrc p15,0,%[reg],c3,c0,0" : [ reg ] "=r" (data) );
+    __cpu_wakeup_struct.cpu_domaccess=data;
+
+    *INFORM3=(unsigned int)&__cpu_wakeup_struct;
+    *INFORM2=0x55aa;
+
+    *PWRCFG = 0x28088;
+
     *PWRMODE = 0x2bed;  // POWER OFF
     // DOES NOT RETURN
-    asm volatile ("mov r0,r0");
-    asm volatile ("mov r0,r0");
+    *GPCCON= (*GPCCON&~0x3000) | 0x1000; // GPC6 TO OUTPUT
+    *GPCDAT|= 1<<6 ;
 
     while(1);
+
 }

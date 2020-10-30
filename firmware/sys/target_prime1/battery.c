@@ -8,7 +8,8 @@
 #include <ui.h>
 
 WORD __battery __SYSTEM_GLOBAL__;
-
+WORD __bat_avg[8] __SCRATCH_MEMORY__;
+WORD __bat_avgidx __SCRATCH_MEMORY__;
 // SETUP ADC CONVERTERS TO READ BATTERY VOLTAGE
 void bat_setup()
 {
@@ -24,6 +25,8 @@ void bat_setup()
     *ADCTSC = 0xd8;     // YM 2 ground switch enable, YP to VDD disable, XM to GND disable, XP to VDD disable, PULL_UP disable
     __battery = *ADCDAT0 & 0x3ff;  // INITAL READ WILL TRIGGER FIRST CONVERSION
 
+    for(int k=0;k<8;++k) __bat_avg[k]=__battery;
+    __bat_avgidx=0;
     bat_read();
 }
 
@@ -38,5 +41,9 @@ void bat_read()
 
     while(!(*ADCCON & 0x8000));
 
-    __battery = *ADCDAT0 & 0x3ff;  // READ LAST KNOWN VALUE, AND TRIGGER A NEW ONE
+    __bat_avg[__bat_avgidx]= *ADCDAT0 & 0x3ff;  // READ LAST KNOWN VALUE, AND TRIGGER A NEW ONE
+    int count=0;
+    for(int k=0;k<8;++k) count += __bat_avg[k]; // AVERAGE OUT TO MAKE IT MORE STABLE
+
+    __battery = count >> 3;
 }

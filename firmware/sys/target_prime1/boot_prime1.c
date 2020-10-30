@@ -173,12 +173,34 @@ void set_stackall()
 }
 
 
+// Startup code that needs to run from SRAM
+
+void sram_startup()
+{
+    *RSTCON|=0x10000;   // Clear POWEROFF_SLP bit to disable GPIO retention if we woke up from sleep
+    *WDTCON=0;       // Disable Watchdog just in case
+    *INTMSK1=0xffffffff;
+    *INTSUBMSK=0xffffffff;
+    *GPBSEL=0;
+    *GPBDAT=0x60;
+    *GPBCON=0x1400;
+    *GPBUDP=0;
+    *CLKDIV0=0x22d;
+    *CLKDIV1=0;
+    *MPLLCON=0x640061;
+    *CLKSRC=0x118;
+    *HCLKCON=0xffffffff;
+    *PCLKCON=~0x40;
+    *SCLKCON=~0x6000;
+
+
+}
 
 
 
 void setup_hardware()
 {
-
+    *RSTCON|=0x10000;   // Clear POWEROFF_SLP bit to disable GPIO retention if we woke up from sleep
     *WDTCON=0;       // Disable Watchdog just in case
 
     // Most basic hardware setup is done by the bootloader
@@ -863,7 +885,7 @@ void startup(void)
     blue_led_off();
 
     // Avoid re-creating MMU tables if they are already there
-    prevstate=check_and_create_mmu_tables(*INFORM2);
+    prevstate=check_and_create_mmu_tables(*INFORM1);
 
     if(!prevstate)
     {
@@ -880,6 +902,8 @@ void startup(void)
 
     }
     else {
+        green_led_on();
+
         cpu_flushwritebuffers();   // Ensure MMU table values are written to actual RAM
         cpu_flushicache();         // Ensure any old code is removed from caches
         cpu_flushTLB();
@@ -934,7 +958,7 @@ void halWarmStart()
     cpu_flushTLB();
 
     // STORE THE CRC32 OF THE MMU TABLES FOR USE ON WAKEUP
-    *INFORM2=COMPUTE_MMU_CRC();
+    *INFORM1=COMPUTE_MMU_CRC();
 
     //cpu_off_prepare();
 
@@ -969,10 +993,12 @@ void halReset()
     cpu_flushicache();
     cpu_flushTLB();
 
-    cpu_off_prepare();
+
 
     // STORE THE CRC32 OF THE MMU TABLES FOR USE ON WAKEUP
-    *INFORM2=COMPUTE_MMU_CRC();
+    *INFORM1=COMPUTE_MMU_CRC();
+
+    cpu_off_prepare();
 
     // TRIGGER A SOFTWARE RESET
     *SWRST = 0x533c2450;
@@ -1011,7 +1037,7 @@ void halEnterPowerOff()
     cpu_off_prepare();
 
     // STORE THE CRC32 OF THE MMU TABLES FOR USE ON WAKEUP
-    *INFORM2=COMPUTE_MMU_CRC();
+    *INFORM1=COMPUTE_MMU_CRC();
 
     // DISABLE THE MMU
     disable_mmu();
@@ -1022,7 +1048,12 @@ void halEnterPowerOff()
     //startup(0);
     enable_interrupts();
 
-    //cpu_off_die();
+    blue_led_off();
+    red_led_on();
+    green_led_off();
+
+
+    cpu_off_die();
 
     startup();
 
@@ -1033,3 +1064,8 @@ int halExitOuterLoop()
 {
     return 0;
 }
+
+
+
+
+

@@ -439,7 +439,7 @@ else {
 if(options&__EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
+        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
 		//pnewb[70*5]|=0x10000;
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
@@ -450,7 +450,7 @@ if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
+        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
@@ -462,8 +462,8 @@ if(options&__EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&__EX_WIPEOUT) __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
-            else __ex_print(0*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
+        if(options&__EX_WIPEOUT) __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
+            else __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
