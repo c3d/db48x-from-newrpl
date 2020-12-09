@@ -56,15 +56,15 @@ extern int __usb_timeout;
 // Target PC uses 50g screen and other capabilities for now
 
 // USABLE SCREEN WINDOW SIZE
-#define SCREEN_WIDTH 256
-#define SCREEN_HEIGHT 160
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 #define PIXELS_PER_WORD 8
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#define SCREEN_W 264
+#define SCREEN_W 320
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
-#define SCREEN_H 160
+#define SCREEN_H 240
 
 #define ANN_X_COORD (SCREEN_WIDTH)
 
@@ -82,6 +82,9 @@ extern char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
 
 typedef unsigned int INTERRUPT_TYPE;
 
+
+#ifndef TARGET_PC_PRIMEG1
+
 // Keyboard remapping constants
 
 // Keymatrix mask to isolate all shifts (Left, Right and Alpha)
@@ -96,8 +99,28 @@ typedef unsigned int INTERRUPT_TYPE;
 #define KEYMAP_CODEFROMBIT(bit) (bit)
 #define KEYMAP_BITFROMCODE(code) (code)
 
+#else
+
+// Keyboard remapping constants
+
+// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
+#define KEYMATRIX_ALL_SHIFTS   ((1LL<<26)|(1LL<<51)|(1LL<<63))
+#define KEYMATRIX_ON           (1LL<<52)
+#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>51)&1)
+#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>63)&1)
+#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>26)&1)
 
 
+
+// Matrix to KeyCode mapping - Defined in keyboard.c for this target
+extern unsigned char const __keyb_codefrombit[64];
+extern unsigned char const __keyb_bitfromcode[64];
+
+// Keyboard mapping macros  - MUST exist for all targets
+#define KEYMAP_CODEFROMBIT(bit) (__keyb_codefrombit[bit])
+#define KEYMAP_BITFROMCODE(code) (__keyb_bitfromcode[code])
+
+#endif
 
 
 #endif // TARGET_PC_H

@@ -10,7 +10,7 @@
 #include "../fsystem/fsyspriv.h"
 
 int __pc_terminate;
-int __memmap_intact;
+extern int __memmap_intact;
 
 void setup_hardware()
 {

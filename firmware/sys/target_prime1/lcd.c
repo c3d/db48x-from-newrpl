@@ -144,16 +144,44 @@ void lcd_sendi2c(int cmd,int data)
 
 void lcd_initspidisplay()
 {
+    // Setup GPIO
+
+
+    *GPCCON = (*GPCCON&0xfc00) | 0xaaaa02aa;    // ALL GPC PINS SET FOR LCD FUNCTION
+    *GPCUDP = (*GPCUDP&0xfc00);                 // PULL DOWN DISABLED ON ALL LCD PINS
+    *GPDCON = (*GPDCON&0xffff0000) | 0xaaaa0000; // GPD 8 THRU 15 SET TO LCD FUNCTION
+    *GPDUDP = (*GPDUDP&0xffff0000);              // PULL DOWN DISABLED
     *GPHCON=(*GPHCON&~0x3f00)|0x1500;   // SET GPH4,5,6 AS OUTPUT
 
     *GPHUDP&=0x3f00;                    // DISABLE PULLUP/DOWN
 
+    *GPBCON = (*GPBCON & (~0xc0000)) | 0x40000;  // GPB9 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
+    *GPBUDP = (*GPBUDP & (~0xc0000));            // GPB9 DISABLE PULLUP/DOWN
+    *GPBDAT = (*GPBDAT | 0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
+
+    DELAY_ONETICK;
+
+    *GPFCON = (*GPFCON & (~0x300)) | 0x100;      // GPF4 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
+    *GPFUDP = (*GPFUDP & (~0x300));              // GPF4 DISABLE PULLUP/DOWN
+    *GPFDAT = (*GPFDAT | 0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
+
+    DELAY_ONETICK;
+
+    // INITIALIZE THE LCD DRIVER CHIP THROUGH I2C CONNECTED TO GPH 4=DATA,5=CS,6=CLK
 
     SET_DATA(0);
     SET_CLK_LOW;
+    SET_CS_LOW;
+
+    DELAY_ONETICK;
+    DELAY_ONETICK;
+    DELAY_ONETICK;
+
     SET_CS_HIGH;
 
     DELAY_ONETICK;
+
+
 
     lcd_sendi2c(0x1,0x14);
     lcd_sendi2c(0x2,0x34);
