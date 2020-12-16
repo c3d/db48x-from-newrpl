@@ -337,8 +337,8 @@ QMAKE_LINK = arm-none-eabi-gcc
 #QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
 
 
-QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc
-QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc
+QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
+QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
 QMAKE_CFLAGS_SHLIB =
 QMAKE_CFLAGS_MT =
 QMAKE_CFLAGS_MT_DBG =
