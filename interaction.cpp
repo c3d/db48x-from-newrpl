@@ -43,9 +43,9 @@ void Stack2Clipboard(int level, int dropit)
 
     QByteArray decomptext((const char *)text, strsize);
     QString utf8string(decomptext);
-    //data->setText(utf8string);  // PLAIN TEXT
-    data->setData(QString("text/plain;charset=utf-8"),decomptext); // UTF-8 ENCODED TEXT
-    data->setHtml(utf8string);
+    data->setText(utf8string);  // PLAIN TEXT
+    //data->setData(QString("text/plain;charset=utf-8"),decomptext); // UTF-8 ENCODED TEXT
+    //data->setHtml(utf8string);
     clip->setMimeData(data, QClipboard::Clipboard);
 
     if(dropit)

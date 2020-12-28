@@ -304,7 +304,7 @@ FORMS    += mainwindow.ui \
     usbselector.ui
 
 RESOURCES += \
-    annunciators.qrc
+    annunciators-prime.qrc
 
 
 
