@@ -9,6 +9,7 @@
 #include <hal_api.h>
 #include <ggl.h>
 #include "nand.h"
+#include "../fsystem/fsyspriv.h"
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
