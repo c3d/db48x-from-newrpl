@@ -873,7 +873,7 @@ void startup(void)
     }
 
     *RSTSTAT=0x3f;
-    *WKUPSTAT=0x33;
+    *WKUPSTAT=0x33;lcd_initspidisplay();
     */
 
     disable_mmu();

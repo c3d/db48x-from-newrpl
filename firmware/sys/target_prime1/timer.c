@@ -306,11 +306,10 @@ void tmr_delayus(int microseconds)
     if(microseconds <= 0)
         return;
 
-    unsigned long long start = tmr_ticks();
+    tmr_t start = tmr_ticks();
 
 // CALCULATE ENDING TICKS
-    unsigned long long end =
-            start + ((microseconds * tmr_getsysfreq()) / 1000000);
+    tmr_t end = start + ((microseconds * tmr_getsysfreq()) / 1000000);
 
 // AND WAIT
     while(end > tmr_ticks());

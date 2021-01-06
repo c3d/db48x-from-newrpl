@@ -70,8 +70,9 @@ void printline(char *left_text, char *right_text) {
 
 int esc_pressed() {
     *GPGCON = 0;    // SET ALL KEYBOARD COLUMNS AS INPUTS
+    *GPGUDP = 0x5555;       // ENABLE PULLDOWN ON ALL INPUT LINES
     *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
-
+    *GPDUDP = (*GPDUDP &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
     *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
     *GPDDAT |= (1 << 6);
 

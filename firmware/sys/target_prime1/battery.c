@@ -24,6 +24,8 @@ void bat_setup()
     *ADCCON=0x7fc2;     // Enable prescaler, maximum prescaler=0xff, start by Read
     *ADCTSC = 0xd8;     // YM 2 ground switch enable, YP to VDD disable, XM to GND disable, XP to VDD disable, PULL_UP disable
     __battery = *ADCDAT0 & 0x3ff;  // INITAL READ WILL TRIGGER FIRST CONVERSION
+    while(!(*ADCCON & 0x8000));
+    __battery = *ADCDAT0 & 0x3ff;  // SECOND READ IS A GOOD VALUE
 
     for(int k=0;k<8;++k) __bat_avg[k]=__battery;
     __bat_avgidx=0;
@@ -42,6 +44,12 @@ void bat_read()
     while(!(*ADCCON & 0x8000));
 
     __bat_avg[__bat_avgidx]= *ADCDAT0 & 0x3ff;  // READ LAST KNOWN VALUE, AND TRIGGER A NEW ONE
+
+    if(__bat_avg[__bat_avgidx]<0x100) __bat_avg[__bat_avgidx]=0x3ff;    // WHEN BATTERY IS FULLY CHARGED AD CONVERSION RETURNS 0x0nn INSTEAD OF 0x4nn, JUST MAKE IT MAXIMUM CHARGE
+    __bat_avgidx++;
+    __bat_avgidx&=7;
+
+
     int count=0;
     for(int k=0;k<8;++k) count += __bat_avg[k]; // AVERAGE OUT TO MAKE IT MORE STABLE
 

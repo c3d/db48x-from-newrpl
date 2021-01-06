@@ -10,6 +10,9 @@
 int __lcd_contrast __SYSTEM_GLOBAL__;
 
 
+// Function supplied by CPU module, returns the hardware clock frequency in Hertz
+extern int __cpu_getHCLK();
+
 
 void lcd_sync()
 {
@@ -85,7 +88,7 @@ void lcd_setcontrast(int level)
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   tmr_delayus(1000)
+#define DELAY_ONETICK   tmr_delayms(1)
 
 void lcd_sendi2c(int cmd,int data)
 {
@@ -157,12 +160,20 @@ void lcd_initspidisplay()
 
     *GPBCON = (*GPBCON & (~0xc0000)) | 0x40000;  // GPB9 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
     *GPBUDP = (*GPBUDP & (~0xc0000));            // GPB9 DISABLE PULLUP/DOWN
+
+    *GPFCON = (*GPFCON & (~0x300)) | 0x100;      // GPF4 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
+    *GPFUDP = (*GPFUDP & (~0x300));              // GPF4 DISABLE PULLUP/DOWN
+
+    // SET BOTH TO ZERO TO RESET THE CHIP
+    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
+    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
+
+    DELAY_ONETICK;
+
     *GPBDAT = (*GPBDAT | 0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
 
     DELAY_ONETICK;
 
-    *GPFCON = (*GPFCON & (~0x300)) | 0x100;      // GPF4 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
-    *GPFUDP = (*GPFUDP & (~0x300));              // GPF4 DISABLE PULLUP/DOWN
     *GPFDAT = (*GPFDAT | 0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
 
     DELAY_ONETICK;
@@ -193,6 +204,7 @@ void lcd_initspidisplay()
     lcd_sendi2c(0x15,0x55);
     lcd_sendi2c(0x16,0x18);
     lcd_sendi2c(0x17,0x62);
+
 
 
 }

@@ -813,7 +813,7 @@ extern unsigned char const __keyb_bitfromcode[64];
 #define halScreenUpdated()    ((void)0)
 
 // DEFAULT CLOCK SPEEDS
-#define HAL_SLOWCLOCK    200000000
+#define HAL_SLOWCLOCK    100000000
 #define HAL_USBCLOCK     400000000
 #define HAL_FASTCLOCK    400000000
 

@@ -68,7 +68,7 @@ void battery_handler()
 
 
     // THIS IS THE REAL HANDLER
-    if(__battery < 0x300) {
+    if(__battery < 0x60) {
         // SHOW CRITICAL BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST
@@ -90,7 +90,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery < 0x320) {
+    if(__battery < 0x62) {
         // SHOW STATIC LOW BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST IS OK
@@ -118,7 +118,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery >= 0x320) {
+    if(__battery >= 0x62) {
         // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
         if(halGetNotification(N_LOWBATTERY))
             halScreenUpdated();

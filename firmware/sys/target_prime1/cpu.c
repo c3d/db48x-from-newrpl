@@ -64,9 +64,9 @@ void __cpu_inton(INTERRUPT_TYPE state)
 
 // Valid clocks for this target:
 // 400000000 = 400MHz:
-// MSysCLK = 800 MHz ; ARMCLK = 400 MHz, HCLK = 133 MHz, PCLK = 66 MHz, DDRCLK=2*HCLK=266 MHz
+// MSysCLK = 400 MHz ; ARMCLK = 400 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
 // 200000000 = 200MHz:
-// MSysCLK = 800 MHz ; ARMCLK = 200 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
+// MSysCLK = 400 MHz ; ARMCLK = 200 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
 
 
 // Given a PLL configuration, set the clock and adjust all other hardware clocks to comply with specs
@@ -84,7 +84,7 @@ int __cpu_setspeed(unsigned int mode)
     // Check if LCD is already on, then adjust cpu speed only at end of frame
     // and fix the LCD frequency
     if(*VIDCON0&3) {
-        *VIDCON0 &= ~1;     // Request LCD signals off at end of current frame
+        *VIDCON0 = (*VIDCON0&~3)|0x2;     // Request LCD signals off at end of current frame
         while(*VIDCON0&1) ; // And wait for it to happen
     }
 
@@ -92,13 +92,13 @@ int __cpu_setspeed(unsigned int mode)
 switch(mode)
 {
 case 400:
-    // MSysCLK = 800 MHz ; ARMCLK = 400 MHz, HCLK = 133 MHz, PCLK = 66 MHz, DDRCLK=2*HCLK=266 MHz
+    // MSysCLK = 400 MHz ; ARMCLK = 400 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
     // Max. performance MsysCLK = 800 MHz
     //          MDIV        PDIV    SDIV
-    *MPLLCON = (400<<14) | (3<<5) | (1);
+    *MPLLCON= (400<<14) | (3<<5) | (2);
 
     //         ARMDIV   PREDIV   PCLKDIV  HCLKDIV
-    *CLKDIV0 = (1<<9) | (2<<4) | (1<<2) | (1) ;
+    *CLKDIV0 = (0<<9) | (1<<4) | (1<<2) | (1) ;
     break;
 case 200:
     // MSysCLK = 400 MHz ; ARMCLK = 200 MHz, HCLK = 100 MHz, PCLK = 50 MHz, DDRCLK=2*HCLK=200 MHz
@@ -280,6 +280,10 @@ __ARM_MODE__ void cpu_off_prepare()
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
     lcd_off();
+
+    // SET GPB9 and GPF4 TO ZERO TO POWER DOWN THE LCD CHIP
+    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
+    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
