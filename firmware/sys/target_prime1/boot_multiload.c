@@ -20,11 +20,6 @@
 #define left 0
 #define right 160
 
-
-// Magic word "NRPL"
-#define NEWRPL_MAGIC   0x4c50524e
-
-
 static int line;
 static gglsurface surface;
 

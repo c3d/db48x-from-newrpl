@@ -831,4 +831,7 @@ extern unsigned char const __keyb_bitfromcode[64];
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
+// Magic word "NRPL"
+#define NEWRPL_MAGIC   0x4c50524e
+
 #endif // TARGET_PRIME1_H
