@@ -924,6 +924,7 @@ void startup(void)
 
     tmr_setup();
 
+    lcd_poweron();
     lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 

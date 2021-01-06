@@ -88,7 +88,10 @@ void lcd_setcontrast(int level)
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   tmr_delayms(1)
+#define DELAY_ONETICK   tmr_delayus(100)
+#define DELAY_10MS      tmr_delayms(10)
+
+
 
 void lcd_sendi2c(int cmd,int data)
 {
@@ -147,55 +150,11 @@ void lcd_sendi2c(int cmd,int data)
 
 void lcd_initspidisplay()
 {
-    // Setup GPIO
 
+    lcd_sendi2c(0x1,0x14);      // Set VCOM amplitude to x1.10
+    lcd_sendi2c(0x2,0x34);      // Set VCOM High voltage to x0.89
 
-    *GPCCON = (*GPCCON&0xfc00) | 0xaaaa02aa;    // ALL GPC PINS SET FOR LCD FUNCTION
-    *GPCUDP = (*GPCUDP&0xfc00);                 // PULL DOWN DISABLED ON ALL LCD PINS
-    *GPDCON = (*GPDCON&0xffff0000) | 0xaaaa0000; // GPD 8 THRU 15 SET TO LCD FUNCTION
-    *GPDUDP = (*GPDUDP&0xffff0000);              // PULL DOWN DISABLED
-    *GPHCON=(*GPHCON&~0x3f00)|0x1500;   // SET GPH4,5,6 AS OUTPUT
-
-    *GPHUDP&=0x3f00;                    // DISABLE PULLUP/DOWN
-
-    *GPBCON = (*GPBCON & (~0xc0000)) | 0x40000;  // GPB9 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
-    *GPBUDP = (*GPBUDP & (~0xc0000));            // GPB9 DISABLE PULLUP/DOWN
-
-    *GPFCON = (*GPFCON & (~0x300)) | 0x100;      // GPF4 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
-    *GPFUDP = (*GPFUDP & (~0x300));              // GPF4 DISABLE PULLUP/DOWN
-
-    // SET BOTH TO ZERO TO RESET THE CHIP
-    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
-    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
-
-    DELAY_ONETICK;
-
-    *GPBDAT = (*GPBDAT | 0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
-
-    DELAY_ONETICK;
-
-    *GPFDAT = (*GPFDAT | 0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
-
-    DELAY_ONETICK;
-
-    // INITIALIZE THE LCD DRIVER CHIP THROUGH I2C CONNECTED TO GPH 4=DATA,5=CS,6=CLK
-
-    SET_DATA(0);
-    SET_CLK_LOW;
-    SET_CS_LOW;
-
-    DELAY_ONETICK;
-    DELAY_ONETICK;
-    DELAY_ONETICK;
-
-    SET_CS_HIGH;
-
-    DELAY_ONETICK;
-
-
-
-    lcd_sendi2c(0x1,0x14);
-    lcd_sendi2c(0x2,0x34);
+    // Set various gamma correction curves
     lcd_sendi2c(0x10,0xa7);
     lcd_sendi2c(0x11,0x55);
     lcd_sendi2c(0x12,0x71);
@@ -204,8 +163,6 @@ void lcd_initspidisplay()
     lcd_sendi2c(0x15,0x55);
     lcd_sendi2c(0x16,0x18);
     lcd_sendi2c(0x17,0x62);
-
-
 
 }
 
@@ -261,7 +218,6 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     // Disable video signals immediately
     *VIDCON0 = *VIDCON0 & 0xFFFFFFFC;
 
-    lcd_initspidisplay();
 
     int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
 
@@ -351,4 +307,90 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *WINCON0 = (*WINCON0&0x40000) | 0x401  | ((mode&0xf) << 2);
 
 
+}
+
+// ILI9322 PowerOn Sequence to brign up the display
+void lcd_poweron()
+{
+    // Setup GPIO
+
+    *GPCCON = (*GPCCON&0xfc00) | 0xaaaa02aa;    // ALL GPC PINS SET FOR LCD FUNCTION
+    *GPCUDP = (*GPCUDP&0xfc00);                 // PULL DOWN DISABLED ON ALL LCD PINS
+    *GPDCON = (*GPDCON&0xffff0000) | 0xaaaa0000; // GPD 8 THRU 15 SET TO LCD FUNCTION
+    *GPDUDP = (*GPDUDP&0xffff0000);              // PULL DOWN DISABLED
+    *GPHCON=(*GPHCON&~0x3f00)|0x1500;   // SET GPH4,5,6 AS OUTPUT
+
+    *GPHUDP&=0x3f00;                    // DISABLE PULLUP/DOWN
+
+    *GPBCON = (*GPBCON & (~0xc030c)) | 0x40004;  // GPB9 SET TO OUTPUT (POWER TO LCD DRIVER CHIP), GPB4 = INPUT (LCD SPI COMMS DATA IN), GPB1 = OUTPUT (BACKLIGHT)
+    *GPBUDP = (*GPBUDP & (~0xc030c)) | 0x400;    // GPB9 DISABLE PULLUP/DOWN, GPB4 = ENABLE PULL UP, GPB1 = DISABLE UP/DOWN
+
+    *GPFCON = (*GPFCON & (~0x300)) | 0x100;      // GPF4 SET TO OUTPUT (POWER TO LCD DRIVER CHIP)
+    *GPFUDP = (*GPFUDP & (~0x300));              // GPF4 DISABLE PULLUP/DOWN
+
+    // TURN BACKLIGHT ON
+    *GPBDAT = (*GPBDAT | 0x2);                 // GPB1 TURN BACKLIGHT ON
+
+    // SET BOTH TO ZERO TO RESET THE CHIP
+    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
+    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
+
+
+    // INITIALIZE THE LCD DRIVER CHIP THROUGH SPI CONNECTED TO GPH 4=DATA,5=CS,6=CLK
+    // SET THE LINES TO VALID INITIAL STATES (IDLE)
+
+    SET_DATA(1);
+    SET_CLK_HIGH;
+    SET_CS_HIGH;
+
+    *GPBDAT = (*GPBDAT | 0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP (VCC/IOVCC)
+
+    DELAY_ONETICK;
+
+    *GPFDAT = (*GPFDAT | 0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP (nRESET)
+
+    DELAY_10MS;
+    DELAY_10MS;
+
+    lcd_sendi2c(0x4,0x0);                       // ISSUE ILI9322 GLOBAL RESET
+
+
+    DELAY_10MS;
+
+
+    // SETUP BASIC CLOCKS TO ENABLE A VALID VCLK - NO VIDEO MODE SETTINGS YET
+
+    // Disable ALL video signals immediately
+    *VIDCON0 = *VIDCON0 & 0xFFFFFFDC;
+
+
+    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
+
+    clkdiv+=7;
+    clkdiv>>=3; // Round to closest integer to stay as close to target as possible
+
+
+    *VIDCON1 = 0x80; // All pulses normal, use VCLK rising edge
+
+    *VIDTCON0 = 0x110300;    // Set Vertical Front/Back porch and sync
+    *VIDTCON1 = 0x3f1100;   // Set Horizontal Front/Back porch and sync
+    *VIDTCON2 = 0x7793f;    // Set screen size 320x240
+
+    *VIDOSD1A = *VIDOSD0A = 0;          // Window 0/1 top left corner = (0,0)
+    *VIDOSD1B = *VIDOSD0B = 0xa00f0;    // Window 0/1 lower corner = (320,240)
+
+    *VIDOSD1C = 0;
+
+    *WINCON0 = *WINCON1 = 0;                        // Disable both windows (just display black screen until video mode is set)
+
+    *VIDCON0 = 0x5030 | ((clkdiv&0x3f)<<6); // Serial R->G->B, CLKVALUP=Start of frame, VCLKEN=Enabled, CLKDIR=Divided using CLKVAL_F, CLKSEL_F = Use HCLK source
+
+
+    lcd_initspidisplay();                        // Setup various ILI9322 parameters
+
+    *VIDCON0|= 3;                                 // Enable all video signals and clocks
+
+    lcd_sendi2c(0x7,0xEF);                       // ISSUE ILI9322 power on and out of Standby (typically done automatically, but done here again just in case)
+
+    // And image should appear after 10 to 80 frames
 }
