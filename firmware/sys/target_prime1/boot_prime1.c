@@ -22,32 +22,38 @@ static gglsurface surface;
 
 // DEBUG ONLY - TURN ON LEDS
 
+__ARM_MODE__ void blue_led_on();
 void blue_led_on()
 {
     *GPCCON= (*GPCCON&~0xc00) | 0x400; // GPC5 TO OUTPUT
     *GPCDAT|= 1<<5 ;
 }
+__ARM_MODE__ void blue_led_off();
 void blue_led_off()
 {
     *GPCCON= (*GPCCON&~0xc00) | 0x400; // GPC5 TO OUTPUT
     *GPCDAT&=~(1<<5) ;
 }
 
+__ARM_MODE__ void green_led_on();
 void green_led_on()
 {
     *GPCCON= (*GPCCON&~0x3000) | 0x1000; // GPC6 TO OUTPUT
     *GPCDAT|= 1<<6 ;
 }
+__ARM_MODE__ void green_led_off();
 void green_led_off()
 {
     *GPCCON= (*GPCCON&~0x3000) | 0x1000; // GPC6 TO OUTPUT
     *GPCDAT&=~(1<<6) ;
 }
+__ARM_MODE__ void red_led_on();
 void red_led_on()
 {
     *GPCCON= (*GPCCON&~0xc000) | 0x4000; // GPC7 TO OUTPUT
     *GPCDAT|= 1<<7 ;
 }
+__ARM_MODE__ void red_led_off();
 void red_led_off()
 {
     *GPCCON= (*GPCCON&~0xc000) | 0x4000; // GPC7 TO OUTPUT
@@ -220,6 +226,7 @@ void setup_hardware()
 // Any globals that need to have a value must be initialized at run time or be declared read-only.
 extern const int __data_start;
 extern const int __data_size;
+__ARM_MODE__ void clear_globals();
 void clear_globals()
 {
 int size=(unsigned int) (&__data_size);
@@ -479,7 +486,7 @@ static WORD crc32(WORD oldcrc, BYTEPTR data, BINT len)
 
 #define COMPUTE_MMU_CRC()  crc32(0,(BYTEPTR)MMU_REVERSE_TABLE_ADDR,MMU_TOTAL_TABLE_SIZE)
 
-
+__ARM_MODE__ int check_and_create_mmu_tables(WORD oldcrc32);
 int check_and_create_mmu_tables(WORD oldcrc32)
 {
 
@@ -921,6 +928,7 @@ void startup(void)
     cpu_setspeed(HAL_FASTCLOCK);
 
     enable_interrupts();
+
 
     tmr_setup();
 
