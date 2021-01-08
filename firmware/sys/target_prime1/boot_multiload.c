@@ -44,6 +44,7 @@ static void tobin(uint32_t value, char *buffer) {
 void printline(char *left_text, char *right_text) {
 
     if(line==-1) {
+        lcd_poweron();
         lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
         lcd_on();
 
@@ -69,9 +70,14 @@ int esc_pressed() {
     *GPDCON = (*GPDCON & 0xffff0000) | 0X5555;   // ALL ROWS TO OUTPUT
     *GPDUDP = (*GPDUDP &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
     *GPDDAT &= 0xffff0000;    // ALL ROWS LOW
-    *GPDDAT |= (1 << 6);
+    *GPDDAT |= (1 << 6);      // JUST 1 ROW ENABLED
 
-    return *GPGDAT & (1 << 4);
+    // READ MANY TIMES TO ALLOW SIGNALS TO STABILIZE
+    int k;
+    for(k=0;k<500;++k) {
+        if(*GPGDAT & (1 << 4)) return 1;
+    }
+    return 0;
 }
 
 // Initialize global variables region to zero
