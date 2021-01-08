@@ -94,36 +94,44 @@ void printline(char *left_text, char *right_text) {
 
 __ARM_MODE__ void enable_interrupts()
 {
-    asm volatile ("mrs r1,cpsr_all" ::: "r1");
-    asm volatile ("bic r1,r1,#0xc0");
-    asm volatile ("msr cpsr_all,r1");
+    asm volatile (
+        "mrs r1,cpsr_all;"
+        "bic r1,r1,#0xc0;"
+        "msr cpsr_all,r1"
+        ::: "r1");
 }
 
 __ARM_MODE__ void disable_interrupts()
 {
-    asm volatile ("mrs r1,cpsr_all"  ::: "r1");
-    asm volatile ("orr r1,r1,#0xc0");
-    asm volatile ("msr cpsr_all,r1");
+    asm volatile (
+        "mrs r1,cpsr_all;"
+        "orr r1,r1,#0xc0;"
+        "msr cpsr_all,r1"
+        ::: "r1");
 }
 
 __ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
 void set_stack(unsigned int *newstackptr)
 {
 
-    asm volatile ("mov sp,r0");
-    asm volatile ("bx lr");
-
+    asm volatile (
+        "mov sp,r0;"
+        "bx lr"
+        );
 }
+
 __ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
 void switch_mode(int mode)
 {
-    asm volatile ("and r0,r0,#0x1f");
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("bic r1,r1,#0x1f");
-    asm volatile ("orr r1,r1,r0");
-    asm volatile ("mov r0,lr"); // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
-    asm volatile ("msr cpsr_all,r1");
-    asm volatile ("bx r0");
+    asm volatile (
+        "and r0,r0,#0x1f;"
+        "mrs r1,cpsr_all;"
+        "bic r1,r1,#0x1f;"
+        "orr r1,r1,r0;"
+        "mov r0,lr;" // GET THE RETURN ADDRESS **BEFORE** MODE CHANGE
+        "msr cpsr_all,r1;"
+        "bx r0"
+        ::: "r0", "r1");
 }
 
 // Move Stack for all modes to better locations
@@ -789,41 +797,34 @@ int check_and_create_mmu_tables(WORD oldcrc32)
 
 __ARM_MODE__ void enable_mmu()
 {
-
-    asm volatile ("mov r0,#0x32000000");
-    asm volatile ("sub r0,r0,#0x10000");         // MMU BASE REGISTER = 0x31ff0000
-    asm volatile ("mcr p15,0,r0,c2,c0,0");      // WRITE MMU BASE REGISTER, ALL CACHES SHOULD'VE BEEN CLEARED BEFORE
-
-    asm volatile ("mov r0,#0");
-    asm volatile ("mcr p15,0,r0,c13,c0,0");      // SET PROCESS ID = 0
-
-    asm volatile ("mvn r0,#0");
-    asm volatile ("mcr p15,0,r0,c3,c0,0");      // SET R/W ACCESS PERMISSIONS FOR ALL DOMAINS
-
-    asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-    asm volatile ("orr r0,r0,#5");      // ENABLE MMU AND DATA CACHES
-    asm volatile ("orr r0,r0,#0x1000"); // ENABLE INSTRUCTION CACHE
-
-    asm volatile ("mcr p15, 0, r0, c1, c0, 0");
-
-    asm volatile ("mov r0,r0"); // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
-    asm volatile ("mov r0,r0");
-
+    asm volatile (
+        "mov r0,#0x32000000;"
+        "sub r0,r0,#0x10000;"           // MMU BASE REGISTER = 0x31ff0000
+        "mcr p15,0,r0,c2,c0,0;"         // WRITE MMU BASE REGISTER, ALL CACHES SHOULD'VE BEEN CLEARED BEFORE
+        "mov r0,#0;"
+        "mcr p15,0,r0,c13,c0,0;"        // SET PROCESS ID = 0
+        "mvn r0,#0;"
+        "mcr p15,0,r0,c3,c0,0;"         // SET R/W ACCESS PERMISSIONS FOR ALL DOMAINS
+        "mrc p15, 0, r0, c1, c0, 0;"
+        "orr r0,r0,#5;"                 // ENABLE MMU AND DATA CACHES
+        "orr r0,r0,#0x1000;"            // ENABLE INSTRUCTION CACHE
+        "mcr p15, 0, r0, c1, c0, 0;"
+        "mov r0,r0;"                    // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
+        "mov r0,r0"
+        ::: "r0");
 }
 
 // ALL CACHES AND TLB MUST BE FLUSHED BEFORE DISABLING MMU
 __ARM_MODE__ void disable_mmu()
 {
-
-    asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-    asm volatile ("bic r0,r0,#5");      // DISABLE MMU AND DATA CACHES
-    asm volatile ("bic r0,r0,#0x1300"); // DISABLE INSTRUCTION CACHE, DISABLE ROM PROTECTION AND DOMAIN ACCESS CONTROL
-
-    asm volatile ("mcr p15, 0, r0, c1, c0, 0");
-
-    asm volatile ("mov r0,r0"); // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
-    asm volatile ("mov r0,r0");
-
+    asm volatile (
+        "mrc p15, 0, r0, c1, c0, 0;"
+        "bic r0,r0,#5;"                 // DISABLE MMU AND DATA CACHES
+        "bic r0,r0,#0x1300;"            // DISABLE INSTRUCTION CACHE, DISABLE ROM PROTECTION AND DOMAIN ACCESS CONTROL
+        "mcr p15, 0, r0, c1, c0, 0;"
+        "mov r0,r0;"                    // NOP INSTRUCTIONS THAT ARE FETCHED FROM PHYSICAL ADDRESS
+        "mov r0,r0"
+        ::: "r0");
 }
 
 
