@@ -892,6 +892,13 @@ void startup(void)
     green_led_off();
     blue_led_off();
 
+    // Start the LCD as early as possible, even before the MMU is up and running
+    lcd_poweron();
+    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_on();
+
+
+
     // Avoid re-creating MMU tables if they are already there
     prevstate=check_and_create_mmu_tables(*INFORM1);
 
@@ -932,9 +939,7 @@ void startup(void)
 
     tmr_setup();
 
-    lcd_poweron();
-    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
-    lcd_on();
+
 
     __keyb_init();
 

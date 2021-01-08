@@ -57,28 +57,84 @@ void lcd_setcontrast(int level)
 
 
 
-/*
- * GPH4,5,6 = OUTPUT, DISABLE PULLUP/DOWN, LEAVE IN LOW STATE
- * LCD SPI DRIVER IS CONNECTED TO GPH4,5,6
- * GPH6 = CLK
- * GPH5 = CS
- * GPH4 = DATA
- *
- * LCD SPI INITIALIZATION SEQUENCE:
- * 0XCCDD WHERE CC=CMD, DD=DATA
- *
- * 0X0114
- * 0X0234
- * 0X10A7
- * 0X1155
- * 0X1271
- * 0X1371
- * 0X1473
- * 0X1555
- * 0X1618
- * 0X1762
- *
-*/
+
+
+
+// Setup TIMER 4 for delays in LCD chip communications
+#define LCDTIMER_FREQ 100000        // 100 kHz tick
+
+extern unsigned int __cpu_getPCLK();
+
+void lcd_setupdelay()
+{
+    unsigned int pclk = __cpu_getPCLK();
+
+    unsigned int divider, prescaler;
+
+    prescaler = (pclk << 3) / LCDTIMER_FREQ;
+    divider = 1;
+
+    while(prescaler > (1 << (11 + divider))) {
+        divider++;
+    }
+
+    prescaler += (1 << (2 + divider));
+    prescaler >>= divider + 3;
+
+//if(divider>4) PCLK TOO HIGH TO ACHIEVE TIMER FREQUENCY, USE HIGHER MULTIPLE
+    if(divider > 4)
+        divider = 4;
+
+// SET PRESCALER VALUES FOR TIMERS 2,3 AND 4
+    *TCFG0 = (*TCFG0 & (~0xFF00)) | ((prescaler - 1)<<8);
+    *TCFG1 =
+            (*TCFG1 & (~0xf0000)) | ((divider - 1) << 16);
+
+// SET COUNT VALUES TO MAXIMUM
+    *TCNTB4 = 0xffff;
+
+// Make sure no interrupts are fired by timer4
+    *INTMSK1 |= 0x4000;
+}
+
+// Do a single delay 100 usec
+void lcd_delay100us()
+{
+        *TCNTB4= (LCDTIMER_FREQ * 100) / 1000000;
+        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
+        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+
+        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
+}
+
+// Do a single delay 100 usec
+void lcd_delay10ms()
+{
+        *TCNTB4= (LCDTIMER_FREQ * 10) / 1000;
+        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
+        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+
+        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
+}
+
+// Do a single delay 100 usec
+void lcd_delay20ms()
+{
+        *TCNTB4= (LCDTIMER_FREQ * 20) / 1000;
+        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
+        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+
+        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
+}
+
+
+
+
+
+
+
+
+
 
 #define SET_CLK_HIGH *GPHDAT|=0x40
 #define SET_CLK_LOW  *GPHDAT&=~0x40
@@ -88,8 +144,9 @@ void lcd_setcontrast(int level)
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   tmr_delayus(100)
-#define DELAY_10MS      tmr_delayms(10)
+#define DELAY_ONETICK   lcd_delay100us()
+#define DELAY_10MS      lcd_delay10ms()
+#define DELAY_20MS      lcd_delay20ms()
 
 
 
@@ -148,6 +205,29 @@ void lcd_sendi2c(int cmd,int data)
 }
 
 
+/*
+ * GPH4,5,6 = OUTPUT, DISABLE PULLUP/DOWN, LEAVE IN LOW STATE
+ * LCD SPI DRIVER IS CONNECTED TO GPH4,5,6
+ * GPH6 = CLK
+ * GPH5 = CS
+ * GPH4 = DATA
+ *
+ * LCD SPI INITIALIZATION SEQUENCE:
+ * 0XCCDD WHERE CC=CMD, DD=DATA
+ *
+ * 0X0114
+ * 0X0234
+ * 0X10A7
+ * 0X1155
+ * 0X1271
+ * 0X1371
+ * 0X1473
+ * 0X1555
+ * 0X1618
+ * 0X1762
+ *
+*/
+
 void lcd_initspidisplay()
 {
 
@@ -191,18 +271,27 @@ void lcd_initspidisplay()
 // Vertical Front Porch VFPD=3 (+1), Back Porch = 17 (+1)
 
 // Total clock pulses per line: 320 + 1 (sync) + 18 (front porch) + 65 (back porch) = 404 ticks per line
-// Total lines: 240 + 1 (sync) + 4 (front porch) + 18 (back porch) = 263 lines
 
-// Total ticks per frame = 404*263 = 106,252 ticks * 3 (serial RGB interface takes 3 ticks per pixel) = 318,756 ticks total
+// As per ILI9322 datasheet: Back porch is 241 ticks. Needs correction to 240 using register 9 to make it multiple of 3.
+// Total then is 240/3 = 80 (includes the sync pulse).
+// Using a 1 pulse for sync, the value to use for VIDTCON is HBPD=78 (+1+sync)
+// HFPD should then be: 1359 - 3*320 - 240 = 159; HFPD=159/3 = 52 (+1)
 
-// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 318,756 = 19,125,360 Hz
+// Vertical back porch = 4 lines (incl. 1 line for VSYNC), hence VBPD = 2 (+1)
+// Front porch and sync should be 1 line only (VFPD = 0 (+1), VSPW = 0 (+1))
+
+// Total lines: 240 + 1 (sync) + 1 (front porch) + 3 (back porch) = 245 lines
+
+// Total ticks per frame = (320+80+53) * 245 = 110985 ticks * 3 (serial RGB interface takes 3 ticks per pixel) = 332955 ticks total
+
+// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 332955 = 19,977,300 Hz
 
 #define LCD_TARGET_REFRESH      55
 
 // UPDATE THE LCD CLOCK WHEN THE CPU CLOCK CHANGES
 void __lcd_fix()
 {
-    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -213,13 +302,17 @@ void __lcd_fix()
 
 
 
+
+
+
+
 int lcd_setmode(int mode, unsigned int *physbuf)
 {
     // Disable video signals immediately
     *VIDCON0 = *VIDCON0 & 0xFFFFFFFC;
 
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -228,8 +321,8 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *VIDCON1 = 0x80; // All pulses normal, use VCLK rising edge
 
 
-    *VIDTCON0 = 0x110300;    // Set Vertical Front/Back porch and sync
-    *VIDTCON1 = 0x3f1100;   // Set Horizontal Front/Back porch and sync
+    *VIDTCON0 = 0x030000;    // Set Vertical Front/Back porch and sync
+    *VIDTCON1 = 0x4e3400;   // Set Horizontal Front/Back porch and sync
     *VIDTCON2 = 0x7793f;    // Set screen size 320x240
 
     *VIDOSD1A = *VIDOSD0A = 0;          // Window 0/1 top left corner = (0,0)
@@ -312,6 +405,9 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 // ILI9322 PowerOn Sequence to brign up the display
 void lcd_poweron()
 {
+
+    lcd_setupdelay();                           // SETUP TIMERS TO GET ACCURATE DELAYS
+
     // Setup GPIO
 
     *GPCCON = (*GPCCON&0xfc00) | 0xaaaa02aa;    // ALL GPC PINS SET FOR LCD FUNCTION
@@ -345,17 +441,29 @@ void lcd_poweron()
 
     *GPBDAT = (*GPBDAT | 0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP (VCC/IOVCC)
 
+
+
+
     DELAY_ONETICK;
 
     *GPFDAT = (*GPFDAT | 0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP (nRESET)
 
-    DELAY_10MS;
-    DELAY_10MS;
+    DELAY_20MS;
 
     lcd_sendi2c(0x4,0x0);                       // ISSUE ILI9322 GLOBAL RESET
 
 
     DELAY_10MS;
+
+    // And image should appear after 10 to 80 frames
+    lcd_sendi2c(0x30,0x4);                       // ISSUE ILI9322 power on control: Display image immediately
+
+    lcd_sendi2c(0x7,0xEF);                       // ISSUE ILI9322 power on and out of Standby (typically done automatically, but done here again just in case)
+    lcd_sendi2c(0x9,0x7F);                       // ISSUE ILI9322 back porch correction: CPU has a 3*VCLK resolution on pulses, therefore total horizontal period must be a multiple of 3, 1 clock correction is needed
+
+
+    lcd_initspidisplay();                        // Setup various ILI9322 parameters
+
 
 
     // SETUP BASIC CLOCKS TO ENABLE A VALID VCLK - NO VIDEO MODE SETTINGS YET
@@ -364,7 +472,7 @@ void lcd_poweron()
     *VIDCON0 = *VIDCON0 & 0xFFFFFFDC;
 
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(318756*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -372,8 +480,8 @@ void lcd_poweron()
 
     *VIDCON1 = 0x80; // All pulses normal, use VCLK rising edge
 
-    *VIDTCON0 = 0x110300;    // Set Vertical Front/Back porch and sync
-    *VIDTCON1 = 0x3f1100;   // Set Horizontal Front/Back porch and sync
+    *VIDTCON0 = 0x030000;    // Set Vertical Front/Back porch and sync
+    *VIDTCON1 = 0x4e3400;   // Set Horizontal Front/Back porch and sync
     *VIDTCON2 = 0x7793f;    // Set screen size 320x240
 
     *VIDOSD1A = *VIDOSD0A = 0;          // Window 0/1 top left corner = (0,0)
@@ -386,11 +494,8 @@ void lcd_poweron()
     *VIDCON0 = 0x5030 | ((clkdiv&0x3f)<<6); // Serial R->G->B, CLKVALUP=Start of frame, VCLKEN=Enabled, CLKDIR=Divided using CLKVAL_F, CLKSEL_F = Use HCLK source
 
 
-    lcd_initspidisplay();                        // Setup various ILI9322 parameters
-
     *VIDCON0|= 3;                                 // Enable all video signals and clocks
 
-    lcd_sendi2c(0x7,0xEF);                       // ISSUE ILI9322 power on and out of Standby (typically done automatically, but done here again just in case)
 
-    // And image should appear after 10 to 80 frames
+
 }
