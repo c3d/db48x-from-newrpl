@@ -187,7 +187,18 @@ void __keyb_update()
     a = __keyb_getmatrix();
     b = a ^ __kmat;
     __kmat = a;
-
+    //****** DEBUG
+    /*
+    // PRINT KEYBOARD MATRIX
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int k;
+    // DRAW THE KEYMATRIX
+    for(k=0;k<64;++k)
+        ggl_rect(&scr, SCREEN_WIDTH-4*(k+2), 0, SCREEN_WIDTH-4*(k+1),4 ,
+                   (a&(1LL<<k))? 0xffffffff:0x44444444);
+    //************ END DEBUG
+    */
     // ANALYZE CHANGES
     if(b != 0) {
         // POST MESSAGE
@@ -204,7 +215,10 @@ void __keyb_update()
                     }
                     else {
                         __keyb_postmsg(KM_KEYDN + KEYMAP_CODEFROMBIT(key));
-                        if( (KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (__keyplane & (SHIFT_RS | SHIFT_LS))))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
+                        if( (KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (__keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
+                                 || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (__keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                                || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (__keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                                )
                         {
                             __keyb_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
                                     (__keyplane & SHIFT_ANY));
@@ -243,6 +257,7 @@ void __keyb_update()
 
                             }
                             if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
+                                __keyplane &= ~OTHER_KEY;
                                 __keyplane |= SHIFT_ONHOLD;
                             }
                             // THE KM_SHIFT MESSAGE CARRIES THE OLD PLANE IN THE KEY CODE
@@ -255,7 +270,21 @@ void __keyb_update()
                     }
                 }
                 else {
+
+                    if(KEYMAP_CODEFROMBIT(key) == KB_ON) {      // SPECIAL CASE OF THE ON KEY PRESSED AND RELEASED
+                         if(!(__keyplane & OTHER_KEY)) {
+                             // NO OTHER KEY WAS PRESSED , ONLY ON WAS PRESSED AND RELEASED
+                             // POST A LATE PRESS MESSAGE FOR THE ON KEY
+                             __keyb_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
+                                     (__keyplane & (SHIFT_ANY) & ~(SHIFT_ONHOLD)));
+
+                         }
+                    }
+
+
                     __keyb_postmsg(KM_KEYUP + KEYMAP_CODEFROMBIT(key));
+
+
 
                     if((KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (__keyplane & (SHIFT_RS | SHIFT_LS)))) {
                         if(__keynumber > 0)
@@ -279,7 +308,7 @@ void __keyb_update()
                         }
                         else {
 
-                            if(__keyplane & SHIFT_ALPHA) {
+                            if(__keyplane & (SHIFT_ALPHA|SHIFT_ONHOLD)) {
                                 // THIS IS A PRESS AND HOLD KEY BEING RAISED
                                 __keyplane |= OTHER_KEY;
                             }
@@ -294,7 +323,6 @@ void __keyb_update()
                                             MKOLDSHIFT(oldkeyplane |
                                                 ((oldkeyplane & ALPHALOCK) >>
                                                     16)));
-
                             }
                         }
 
@@ -371,6 +399,7 @@ void __keyb_update()
                         }
                         if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
                             __keyplane &= ~SHIFT_ONHOLD;
+                            __keyplane &= ~OTHER_KEY;
                         }
                         __keyb_postmsg(KM_SHIFT | (__keyplane & SHIFT_ANY) |
                                 MKOLDSHIFT(oldkeyplane | ((oldkeyplane &

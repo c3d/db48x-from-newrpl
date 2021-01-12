@@ -9,12 +9,20 @@
 #include <libraries.h>
 #include <ui.h>
 
+#define ADC_100_LIMIT   0x370
+#define ADC_0_LIMIT     0x300
+#define ADC_PLUGGED     0x400
+
+#define ADC_LOWBAT          (ADC_0_LIMIT+(ADC_100_LIMIT-ADC_0_LIMIT)/10)
+#define ADC_CRITICAL        (ADC_0_LIMIT+(ADC_100_LIMIT-ADC_0_LIMIT)/20)
 
 
 void battery_handler()
 {
 
     bat_read();
+
+
     //halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
 
 
@@ -26,7 +34,21 @@ void battery_handler()
 
        int text,rot;
        int k;
-       k=467*__battery-353330;  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
+
+       // EMPIRICAL PERCENTAGE SCALE:
+
+       // ADC VALUE = 0x370 --> 100% = 65536
+       // ADC_VALUE = 0X300 --> 0%   = 0
+       // 65536 = A*0X370-B
+       // 0 = A*0X300-B ---> A=B/0x300
+       // B = 65536/(0x370-0x300/0x300)
+       // B = 0x300 * 65536 / (0x370-0x300)
+
+       k=(65536/(ADC_100_LIMIT-ADC_0_LIMIT))*__battery- ((ADC_0_LIMIT<<16)/(ADC_100_LIMIT-ADC_0_LIMIT));  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
+
+       // STRICT BOUNDARIES SINCE VALUES ARE APPROXIMATED
+       if(k>65535) k=65535;
+       if(k<0) k=0;
 
        if(__battery==0x400) text=0x676843;  // "Chg"
 
@@ -66,9 +88,12 @@ void battery_handler()
        // CAREFUL, INTEGER USED AS STRING IS ONLY VALID IN LITTLE ENDIAN!
        DrawTextBk(STATUSAREA_X+12,SCREEN_HEIGHT-10,(char *)&k,(UNIFONT *)Font_10A,0xf,0,&scr);
 
+       // END OF DEBUG
+
+
 
     // THIS IS THE REAL HANDLER
-    if(__battery < 0x60) {
+    if(__battery < ADC_CRITICAL) {
         // SHOW CRITICAL BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST
@@ -90,7 +115,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery < 0x62) {
+    if(__battery < ADC_LOWBAT) {
         // SHOW STATIC LOW BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST IS OK
@@ -108,7 +133,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery == 0x400) {
+    if(__battery == ADC_PLUGGED) {
         // WE ARE ON USB POWER
         if(!halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
@@ -118,7 +143,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery >= 0x62) {
+    if(__battery >= ADC_LOWBAT) {
         // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
         if(halGetNotification(N_LOWBATTERY))
             halScreenUpdated();

@@ -944,6 +944,8 @@ void startup(void)
 
     __keyb_init();
 
+    ts_init();
+
     usb_init(1);
 
 

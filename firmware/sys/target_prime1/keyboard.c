@@ -89,20 +89,20 @@ const unsigned char const __keyb_codefrombit[64] = {
 const unsigned char const __keyb_bitfromcode[64] = {
 
 
-//    BKS U   /   *   -  +  ENT    P
-    0, 2, 0, 17, 25, 33, 41, 7, 0, 1,
+//    BKS U   /   *   -  +  ENT APP P
+    0, 2, 0, 17, 25, 33, 41, 7, 36, 1,
 
-//  T  Y  9  6    3  SPC     O  S  X
-    0, 0, 5, 60, 54, 49, 0,  6, 0, 0,
+//  T  Y  9  6    3  SPC HOM  O  S  X
+    0, 0, 5, 60, 54, 49, 28,  6, 0, 0,
 
-//  8   5   2   .      N   R   W  7   4
-   14, 38, 62, 53, 0, 60,  0,  0, 22, 46,
+//  8   5   2   .  SYM  N   R   W  7   4
+   14, 38, 62, 53, 20, 60,  0,  0, 22, 46,
 
-//  1  0      M   Q   V
-   45, 9, 0,  3,  0,  0, 0, 0, 0, 0,
+//  1  0  PLT  M   Q   V  HLP VIE MEN ESC
+   45, 9, 12,  3,  0,  0, 61, 29, 21, 52,
 
-//    A    B   C   D   E   F   G     UP
-   0, 42, 58, 18, 10, 34, 59, 50, 0, 37,
+// CAS  A   B   C   D   E   F   G  NUM UP
+   13, 42, 58, 18, 10, 34, 59, 50, 4, 37,
 
 // LF  DN  RT  H    I   J      K   L
    57, 44, 15, 43, 35, 27, 0, 19, 11, 0,
@@ -138,9 +138,12 @@ keymatrix __keyb_getmatrix()
     *GPGCON=0;    // ALL INPUTS
 
 
+
     for(col = 7; col >= 4; --col) {
 
-        *GPDDAT = (*GPDDAT & (~0xff)) | (1 << col);
+        *GPDDAT= (*GPDDAT & ~0xff) | (1<<col);  // ONLY 1 COLUMN SET TO HIGH, ALL OTHERS TO LOW (OTHERWISE THERE'S GHOSTING ON THE FLOATING LINES SET TO INPUT)
+        *GPDUDP= (*GPDUDP &0xffff0000) | (0x5555 ^ (1<< (2*col)));    // PULLDOWN ALL LINES EXCEPT THE OUTPUT ONE
+        *GPDCON= (*GPDCON &0xffff0000) | (1<< (2*col));    // ONLY 1 COLUMN TO OUTPUT
 
         // DEBOUNCE TECHNIQUE
         c = 0;
@@ -160,7 +163,9 @@ keymatrix __keyb_getmatrix()
 
     for(; col >= 0; --col) {
 
-      *GPDDAT = (*GPDDAT & (~0xff)) | (1 << col);
+        *GPDDAT= (*GPDDAT & ~0xff) | (1<<col);  // ONLY 1 COLUMN SET TO HIGH, ALL OTHERS TO LOW (OTHERWISE THERE'S GHOSTING ON THE FLOATING LINES SET TO INPUT)
+        *GPDUDP= (*GPDUDP &0xffff0000) | (0x5555 ^ (1<< (2*col)));    // PULLDOWN ALL LINES EXCEPT THE OUTPUT ONE
+        *GPDCON= (*GPDCON &0xffff0000) | (1<< (2*col));    // ONLY 1 COLUMN TO OUTPUT
 
         // DEBOUNCE TECHNIQUE
         c = 0;
@@ -190,8 +195,11 @@ keymatrix __keyb_getmatrix()
         }
     }
 
+    *GPDCON= (*GPDCON &0xffff0000) | 0x5555;    // ALL COLUMNS TO OUTPUT
+    *GPDDAT|= 0xff;      // ALL LINES OUTPUT HIGH
+    *GPDUDP&= ~0xFFFF;   // DISABLE ALL PULL UP/DOWN
 
-    *GPDDAT |= 0xff;       // SET ALL COLUMNS TO OUTPUT
+
     *GPGCON = 0xaaaa;        // ALL KEYS FUNCTION BACK TO EINT
 
     hi |= v << 31;          // read the on key at GPG0
@@ -274,7 +282,9 @@ void __keyb_init()
 
     *GPDCON= (*GPDCON &0xffff0000) | 0x5555;    // ALL COLUMNS TO OUTPUT
     *GPDDAT |= 0xFF;        // DRIVE OUTPUTS HIGH
-    *GPDUDP = (*GPDUDP &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
+    *GPDUDP = (*GPDUDP &0xffff0000);   // PULL UP/DOWN DISABLE
+    //*GPGUDP = 0;       // DISABLE PULLDOWN ON ALL INPUT LINES
+    //*GPDUDP = (*GPDUDP &0xffff0000) | 0x5555;   // PULL DOWN ENABLE ON ALL OUTPUTS (TEMPORARILY SET TO INPUTS DURING SCAN)
     *GPGUDP = 0x5555;       // ENABLE PULLDOWN ON ALL INPUT LINES
     *GPGCON = 0xaaaa;       // ALL ROWS TO EINT
 

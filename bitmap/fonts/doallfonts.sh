@@ -1,3 +1,4 @@
+#!/bin/sh
 ../../tools-bin/bmp2font Font5_styleA.bmp Font5_styleA.txt Font5A.c 5A
 ../../tools-bin/bmp2font Font5_styleB.bmp Font5_styleB.txt Font5B.c 5B
 ../../tools-bin/bmp2font Font5_styleC.bmp Font5_styleC.txt Font5C.c 5C

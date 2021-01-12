@@ -806,6 +806,10 @@ extern unsigned char const __keyb_bitfromcode[64];
 #define KEYMAP_CODEFROMBIT(bit) (__keyb_codefrombit[bit])
 #define KEYMAP_BITFROMCODE(code) (__keyb_bitfromcode[code])
 
+
+// Touchscreen related functions
+extern void ts_init();
+
 // HAL Required definitions
 
 // Screen Update Notification

@@ -6274,18 +6274,20 @@ DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
         DECLARE_MENUKEYHANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0))
         DECLARE_MENUKEYHANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0))
         DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
-     void cancelKeyHandler(BINT keymsg)
+
+void powerOffKeyHandler(BINT keymsg)
+{
+        UNUSED_ARGUMENT(keymsg);
+            // SHIFT-ON MEANS POWER OFF!
+            halPreparePowerOff();
+            halEnterPowerOff();
+            return;
+}
+
+
+void cancelKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
-
-    if(halGetNotification(N_RIGHTSHIFT)) {
-        // SHIFT-ON MEANS POWER OFF!
-        halPreparePowerOff();
-        halEnterPowerOff();
-        return;
-
-    }
-
     if(halGetNotification(N_LEFTSHIFT)) {
         // THIS IS CONTINUE
         contKeyHandler(keymsg);
@@ -6353,10 +6355,20 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_DOT | SHIFT_ALPHA, CONTEXT_ANY, &decimaldotKeyHandler},
 
 // BASIC ON AND SHIFTS
-    {KM_KEYDN | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_LS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_RS, CONTEXT_ANY, &cancelKeyHandler},
+
+    {KM_PRESS | KB_RSHIFT | SHIFT_ONHOLD, CONTEXT_ANY, &powerOffKeyHandler},
+    {KM_PRESS | KB_RSHIFT | SHIFT_ONHOLD | SHIFT_ALPHA, CONTEXT_ANY, &powerOffKeyHandler},
 
     {KM_PRESS | KB_ALPHA | SHIFT_RS, CONTEXT_ANY, &shiftedalphaKeyHandler},
     {KM_PRESS | KB_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, &shiftedalphaKeyHandler},
+
+
 
 // TEXT EDITING KEYS
     {KM_PRESS | KB_ENT, CONTEXT_ANY, &enterKeyHandler},
@@ -6444,11 +6456,11 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_DN | SHIFT_ALPHAHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 &alphaholddownKeyHandler},
 
-    {KM_PRESS | KB_DOT | SHIFT_RS, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_RSHOLD, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
+    {KM_PRESS | KB_ENT | SHIFT_RS, CONTEXT_ANY, &newlineKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RSHOLD, CONTEXT_ANY, &newlineKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
                 &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
+    {KM_PRESS | KB_ENT | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 &newlineKeyHandler},
 
 // BASIC OPERATORS
@@ -6458,7 +6470,8 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_MUL, CONTEXT_ANY, &mulKeyHandler},
     {KM_PRESS | KB_ADD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sadd)},
     {KM_PRESS | KB_SUB | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ssub)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
     {KM_PRESS | KB_MUL | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(smul)},
 
 
@@ -6615,9 +6628,9 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_9 | SHIFT_ONHOLD, CONTEXT_ANY, &onDigitKeyHandler},
 
 
-    {KM_LPRESS | KB_A | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
-    {KM_PRESS | KB_A | SHIFT_ONHOLD, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
-    {KM_PRESS | KB_B | SHIFT_ONHOLD, CONTEXT_ANY, &onBKeyHandler},
+    { KM_LPRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
+    { KM_PRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
+    { KM_PRESS | KB_B | SHIFT_ONHOLD, CONTEXT_ANY, &onBKeyHandler},
 
 
     {KM_PRESS | KB_9 | SHIFT_LS, CONTEXT_ANY, &infinityKeyHandler},
@@ -6629,14 +6642,16 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
                 &undinfinityKeyHandler},
 
 
-    {KM_PRESS | KB_0 | SHIFT_RS, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RS, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RSHOLD, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
 
     {KM_PRESS | KB_O | SHIFT_RS, CONTEXT_ANY, &commaKeyHandler},
     {KM_PRESS | KB_O | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &commaKeyHandler},
 
-    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &semiKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
+    {KM_PRESS | KB_ADD | SHIFT_RS , CONTEXT_ANY, &semiKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
                 &semiKeyHandler},
 
 
@@ -6763,16 +6778,16 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_O | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(o)},
     {KM_PRESS | KB_P | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(p)},
 
-    {KM_PRESS | KB_HLP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_HLP | SHIFT_ALPHA | SHIFT_RS , CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_VIE | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_MEN | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_MEN | SHIFT_ALPHA | SHIFT_RS , CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_APP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_HOM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
+    {KM_PRESS | KB_HOM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
+    {KM_PRESS | KB_NUM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
+    {KM_PRESS | KB_MEN | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
+    {KM_PRESS | KB_CAS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
+    {KM_PRESS | KB_APP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
+    {KM_PRESS | KB_PLT | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
+    {KM_PRESS | KB_VIE | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
     {KM_PRESS | KB_SYM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_PLT | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_NUM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
+    {KM_PRESS | KB_HLP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
     {KM_PRESS | KB_A | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(a)},
     {KM_PRESS | KB_B | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(b)},
     {KM_PRESS | KB_C | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(c)},
@@ -6789,16 +6804,16 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_N | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(n)},
     {KM_PRESS | KB_O | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(o)},
     {KM_PRESS | KB_P | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(p)},
-    {KM_PRESS | KB_HLP | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_HLP | SHIFT_ALPHAHOLD | SHIFT_RS , CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_VIE | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_MEN | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_MEN | SHIFT_ALPHAHOLD | SHIFT_RS , CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_APP | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_HOM | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_SYM | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_PLT | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_NUM | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(z)},
+    {KM_PRESS | KB_HOM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(q)},
+    {KM_PRESS | KB_NUM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(r)},
+    {KM_PRESS | KB_MEN | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(s)},
+    {KM_PRESS | KB_CAS | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(t)},
+    {KM_PRESS | KB_APP | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(u)},
+    {KM_PRESS | KB_PLT | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(v)},
+    {KM_PRESS | KB_VIE | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(w)},
+    {KM_PRESS | KB_SYM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(x)},
+    {KM_PRESS | KB_HLP | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(z)},
 
     {KM_PRESS | KB_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, &alphaKeyHandler},
 
@@ -6881,12 +6896,10 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
 
     {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
                 KEYHANDLER_NAME(and)},
-    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
+    {KM_PRESS | KB_ADD | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 KEYHANDLER_NAME(at)},
     {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 KEYHANDLER_NAME(and)},
-    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(at)},
 
 
     {KM_PRESS | KB_DOT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
@@ -6909,9 +6922,9 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 KEYHANDLER_NAME(ge)},
 
-    {KM_PRESS | KB_DIV | SHIFT_RS | SHIFT_ALPHA , CONTEXT_ANY,
+    {KM_PRESS | KB_DIV | SHIFT_LS | SHIFT_ALPHA , CONTEXT_ANY,
                 KEYHANDLER_NAME(backslash)},
-    {KM_PRESS | KB_DIV | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA , CONTEXT_ANY,
+    {KM_PRESS | KB_DIV | SHIFT_LSHOLD | SHIFT_ALPHA , CONTEXT_ANY,
                 KEYHANDLER_NAME(backslash)},
 
 
@@ -7294,10 +7307,22 @@ int halDefaultKeyExists(BINT keymsg)
 
 int halProcessKey(BINT keymsg, int (*dokey)(BINT), BINT flags)
 {
+
+
+
+
+
     int wasProcessed;
 
-    if(!keymsg)
-        return 0;
+    if(!keymsg) return 0;
+
+        /*
+        // DEBUG ONLY
+             WORDPTR keyname=rplMsg2KeyName(keymsg);
+             if(keyname)  rplPushData(keyname);
+             else rplPushFalse();
+        // END DEBUG
+        */
 
     if(KM_MESSAGE(keymsg) == KM_SHIFT) {
         halScreenUpdated();
@@ -7418,68 +7443,7 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT), BINT flags)
         if(!wasProcessed)
             wasProcessed = halDoDefaultKey(keymsg);
 
-    // *************** DEBUG ONLY ************
-    /*
-       if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
 
-       // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
-       DRAWSURFACE scr;
-       ggl_initscr(&scr);
-       UNIFONT *fnt=halScreen.FontArray[FONT_STATUS];
-
-       // FOR DEBUG ONLY
-       int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);
-       int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-       // CLEAR STATUS AREA AND SHOW KEY THERE
-       ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-       DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
-       char *shiftstr;
-       switch(KM_SHIFTPLANE(keymsg))
-       {
-       case SHIFT_LS:
-       shiftstr="(LS)";
-       break;
-       case SHIFT_LS|SHIFT_LSHOLD:
-       shiftstr="(LSH)";
-       break;
-       case SHIFT_RS:
-       shiftstr="(RS)";
-       break;
-       case SHIFT_RS|SHIFT_RSHOLD:
-       shiftstr="(RSH)";
-       break;
-       case SHIFT_ALPHA:
-       shiftstr="(AL)";
-       break;
-       case SHIFT_ALPHA|SHIFT_ALPHAHOLD:
-       shiftstr="(ALH)";
-       break;
-       case SHIFT_ONHOLD:
-       shiftstr="(ONH)";
-       break;
-       case SHIFT_ALPHA|SHIFT_LS:
-       shiftstr="(AL-LS)";
-       break;
-       case SHIFT_ALPHA|SHIFT_RS:
-       shiftstr="(AL-RS)";
-       break;
-       case SHIFT_ALPHA|SHIFT_LSHOLD:
-       shiftstr="(AL-LSH)";
-       break;
-       case SHIFT_ALPHA|SHIFT_RSHOLD:
-       shiftstr="(AL-RSH)";
-       break;
-
-       default:
-       shiftstr="";
-       }
-       DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
-
-       if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
-
-       }
-
-     */
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     if(wasProcessed < 0)
         return 1;
@@ -7672,6 +7636,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
 
         }
         else {
+
             jobdone = isidle = 0;
         }
 

@@ -36,6 +36,7 @@ SOURCES +=\
     firmware/sys/target_prime1/timer.c \
     firmware/sys/target_prime1/mem.c \
     firmware/sys/target_prime1/rtc.c \
+    firmware/sys/target_prime1/touch.c \
     firmware/sys/target_prime1/usbdriver.c \
     firmware/sys/usbcommon.c \
     firmware/sys/target_prime1/fwupdate.c \

@@ -464,6 +464,14 @@ __ARM_MODE__ void cpu_off_die()
     *INFORM2=0x55aa;
 
     *PWRCFG = 0x28088;
+    // CLEAR SRCPEND, INTPEND BITS
+
+    *SRCPND1 = *SRCPND1;
+    *SRCPND2 = *SRCPND2;
+    *SUBSRCPND = *SUBSRCPND;    // SUB-SRCPND
+    *INTPND1 = *INTPND1;
+    *INTPND2 = *INTPND2;
+    *EINTPEND = *EINTPEND;
 
     *PWRMODE = 0x2bed;  // POWER OFF
     // DOES NOT RETURN

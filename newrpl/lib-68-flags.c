@@ -1489,6 +1489,16 @@ const BYTE const keytable[] = {
     '*', 0, KB_MUL,
     '+', 0, KB_ADD,
     '-', 0, KB_SUB,
+// HP Prime additional keys
+    'A', 'P', KB_APP,
+    'H', 'O', KB_HOM,
+    'S', 'Y', KB_SYM,
+    'P', 'L', KB_PLT,
+    'N', 'U', KB_NUM,
+    'H', 'L', KB_HLP,
+    'V', 'W', KB_VIE,
+    'M', 'E', KB_MEN,
+    'C', 'A', KB_CAS,
     0, 0, 0
 };
 
@@ -1688,10 +1698,13 @@ WORDPTR rplMsg2KeyName(BINT keymsg)
         }
         tblptr += 3;
     }
+    // EMPTY KEY VALUE IS OK FOR PURE KM_SHIFT CHANGE MESSAGES
+    /*
     if(!*tblptr) {
         rplError(ERR_INVALIDKEYNAME);
         return 0;
     }
+    */
 
     if(KEYSHIFT(keymsg)) {
         *keyptr++ = '.';
@@ -1739,10 +1752,6 @@ WORDPTR rplMsg2KeyName(BINT keymsg)
         case KM_LREPEAT:
             *keyptr++ = 'T';
             break;
-        default:
-            // ANY OTHER VALUES ARE ILLEGAL
-            rplError(ERR_INVALIDKEYNAME);
-            return 0;
         }
 
     }

@@ -103,7 +103,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 //  PROCESS KEYS FOR THE WAIT COMMAND (ON CAN INTERRUPT THE WAIT)
 int waitProcess(BINT keymsg)
 {
-    if(keymsg == (KM_KEYDN | KB_ON)) {
+    if(keymsg == (KM_PRESS | KB_ON)) {
         RetNum = 0;     // TERMINATE LOOP
         return -1;
     }
@@ -122,11 +122,13 @@ int waitKeyProcess(BINT keymsg)
         // CAPTURE THE KEY MESSAGE
         RetNum = keymsg;
         return -1;
+/*
     case KM_KEYDN:
         if(keymsg == (KM_KEYDN | KB_ON)) {
             RetNum = KM_PRESS | KB_ON;
             return -1;
         }
+*/
     default:
         return 1;
     }
@@ -349,7 +351,7 @@ void LIB_HANDLER()
         int k;
         for(k = 0; k < 63; ++k) {
             if(key & (1LL << k)) {
-                WORDPTR kn = rplMsg2KeyName(k);
+                WORDPTR kn = rplMsg2KeyName(KEYMAP_CODEFROMBIT(k));
 
                 if(!kn)
                     return;
