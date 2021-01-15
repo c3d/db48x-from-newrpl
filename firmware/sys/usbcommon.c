@@ -739,7 +739,7 @@ int usb_fileread(int fileid, BYTEPTR dest, int nbytes)
         int available = usb_waitfordata(nbytes);
 
         if(!available)
-            return 0;
+            return bytescopied;
 
         if(available >= nbytes)
             available = nbytes;

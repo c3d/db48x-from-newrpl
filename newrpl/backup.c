@@ -387,7 +387,7 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
         ++offset;
     }
 
-    // READ nitems, RESTORE FROM OFFSETS IF NOTE PRESENT (BACKWARDS COMPATIBLE WITH OLD BACKUP FORMAT)
+    // READ nitems, RESTORE FROM OFFSETS IF NOT PRESENT (BACKWARDS COMPATIBLE WITH OLD BACKUP FORMAT)
     for(k = 0; k < 10; ++k) {
         sections[k].nitems = readfunc(OpaqueArgument);
         ++offset;

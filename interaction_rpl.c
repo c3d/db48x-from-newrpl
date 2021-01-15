@@ -185,6 +185,7 @@ int usbremotefwupdatestart()
 int usbreceivearchive(uint32_t * buffer, int bufsize)
 {
     int count, bytesread;
+    int totalfilelen;
     int fileid;
     BYTEPTR bufptr;
 
@@ -194,39 +195,50 @@ int usbreceivearchive(uint32_t * buffer, int bufsize)
     fileid = usb_rxfileopen();
 
     if(usb_filetype(fileid) != 'B') {
-        usb_rxfileclose(fileid);
+        if(fileid) usb_rxfileclose(fileid);
         return 0;
     }
 
     count = 0;
+    totalfilelen=-1;
 
     bufptr = (BYTEPTR) buffer;
-    do {
+    while(!usb_eof(fileid)) {
 
-        bytesread = usb_fileread(fileid, bufptr, bufsize - count);
+        bytesread = usb_fileread(fileid, bufptr, 4);
 
-        if(bytesread > 0) {
-            bufptr += bytesread;
+        if(bytesread != 4) {
+            break;   // USB COMMUNICATIONS ERROR
         }
 
-        if(bytesread < bufsize - count) {
-            if(usb_eof(fileid)) {
-                // WE FINISHED THE FILE!
+
+        bufptr += bytesread;
+
+        count+=bytesread;
+
+        if((totalfilelen==-1)&&(count>84)) {
+            // CHECK FOR PROPER BACKUP HEADER
+            if(buffer[0]!=TEXT2WORD('N', 'R', 'P', 'B')) break;
+            // WE RECEIVED ENOUGH INFORMATION TO COMPUTE TOTAL FILE SIZE NEEDED
+            totalfilelen=(buffer[10]+buffer[20])*sizeof(WORD);
+            if( (totalfilelen<0)|| (totalfilelen<4096)) {
+                // INVALID FILE SIZE
                 break;
             }
         }
-        // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
+
 
     }
-    while(bytesread > 0);
 
-    if((!bytesread) && (!usb_eof(fileid)))
-        return -1;
+
     //  WE ARE DONE WITH THE TRANSMISSION
     if(!usb_rxfileclose(fileid))
         return -1;
 
-    return (bytesread + 3) >> 2;
+    // IF WE DIDN'T GET THE RIGTH NUMBER OF BYTES
+    if(count!=totalfilelen) return -1;
+
+    return (count + 3) >> 2;
 
 }
 
@@ -249,10 +261,7 @@ int usbsendarchive(uint32_t * buffer, int bufsize)
         bufsize = -1;
     }
 
-    if(!usb_txfileclose(fileid)) {
-        rplError(ERR_USBCOMMERROR);
-        bufsize = -1;
-    }
+    usb_txfileclose(fileid);            // DON'T CARE ABOUT ERRORS, IF THE WRITE WAS COMPLETED, THE CALC WILL PROCESS AND RESTART
 
     return bufsize;
 
