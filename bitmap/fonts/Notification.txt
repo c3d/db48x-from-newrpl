@@ -1,0 +1,13 @@
+// Notification icons as a font
+// Only the following characters are defined:
+
+
+0x52    // Letter "R" for right shift icon
+0x4c    // Letter "L" for left shift icon
+0x41    // Letter "A" for Alpha icon
+0x58    // Letter "X" for ((.)) alarm icon
+0x57    // Letter "W" for hourglass busy "wait" symbol
+0x55    // Letter "U" for USB comms active
+0x42    // Letter "B" for low Battery symbol
+0x43    // Letter "C" for Charging symbol
+0x44    // Letter "D" for Normal Battery symbol

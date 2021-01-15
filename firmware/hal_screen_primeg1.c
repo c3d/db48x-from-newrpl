@@ -24,19 +24,10 @@ void halSetNotification(enum halNotification type, int color)
     else
         halFlags &= ~(1 << (16 + type));
 
-    if(type < N_DATARECVD) {
-        unsigned char *scrptr = (unsigned char *)MEM_PHYS_SCREEN;
-        scrptr += ANN_X_COORD / (PIXELS_PER_WORD/4);
-        scrptr += type * (SCREEN_W / (PIXELS_PER_WORD/4));
-        *scrptr = (*scrptr & ~(((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD/4))))) | (color << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD/4))));
-        return;
-    }
-    else {
-        // TODO: DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
+// DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
         if((halFlags ^ old) & (1 << (16 + type))) {
             halScreen.DirtyFlag |= STAREA_DIRTY;        // REDRAW STATUS AS SOON AS POSSIBLE
         }
-    }
 }
 
 int halGetNotification(enum halNotification type)
@@ -1275,7 +1266,10 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         }
 
+        int xctracker=0;            // TRACK THE WIDTH OF THE INDICATORS TO MAKE SURE THEY ALL FIT
+
         // ANGLE MODE INDICATOR
+
 
         {
             BINT anglemode =
@@ -1290,19 +1284,28 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
             DrawTextBk(STATUSAREA_X + 1, ytop + 1, (char *)name[anglemode],
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
+
+            xctracker+=4+StringWidth((char *)name[anglemode],*halScreen.FontArray[FONT_STATUS]);
+
         }
 
         // COMPLEX MODE INDICATOR
 
-        if(rplTestSystemFlag(FL_COMPLEXMODE))
-            DrawTextBk(STATUSAREA_X + 14, ytop + 1, (char *)"C",
+        if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"C",
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
+            xctracker+=4+StringWidth((char *)"C",*halScreen.FontArray[FONT_STATUS]);
+
+        }
 
         // HALTED PROGRAM INDICATOR
 
-        if(halFlags & HAL_HALTED)
-            DrawTextBk(STATUSAREA_X + 20, ytop + 1, (char *)"H",
+        if(halFlags & HAL_HALTED) {
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"H",
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
+            xctracker+=4+StringWidth((char *)"H",*halScreen.FontArray[FONT_STATUS]);
+
+         }
 
         // FIRST 6 USER FLAGS
 
@@ -1316,8 +1319,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
                     color |= 0x00ff00;
                 if(*flags & 1)
                     color |= 0x0000ff;
-                ggl_rect(scr, STATUSAREA_X + 30, ytop + 1,
-                        STATUSAREA_X + 30 + 5, ytop + 2, color);
+                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 1,
+                        STATUSAREA_X + 1 + xctracker + 5, ytop + 2, color);
 
                 color = 0x66666666;
                 if(*flags & 32)
@@ -1326,8 +1329,10 @@ void halRedrawStatus(DRAWSURFACE * scr)
                     color |= 0x00ff00;
                 if(*flags & 8)
                     color |= 0x0000ff;
-                ggl_rect(scr, STATUSAREA_X + 30, ytop + 4,
-                        STATUSAREA_X + 30 + 5, ytop + 5, color);
+                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 4,
+                        STATUSAREA_X + 1 + xctracker + 5, ytop + 5, color);
+
+                xctracker+=7;
 
             }
 
@@ -1335,24 +1340,69 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
 
+        // ALARM
+
         if(halGetNotification(N_ALARM)) {
-            char txt[4];
-            txt[0] = 'A';
-            txt[1] = 'L';
-            txt[2] = 'M';
-            txt[3] = 0;
-            DrawTextBk(STATUSAREA_X + 38, ytop + 1, txt,
-                    *halScreen.FontArray[FONT_STATUS], 0xf, 0, scr);
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"X",
+                    (UNIFONT *)Font_Notifications, 0xf, 0, scr);
+            xctracker+=4+StringWidth((char *)"X",(UNIFONT *)Font_Notifications);
         }
-        else if(halGetNotification(N_DATARECVD)) {
-            char txt[4];
-            txt[0] = 'R';
-            txt[1] = 'X';
-            txt[2] = ' ';
-            txt[3] = 0;
-            DrawTextBk(STATUSAREA_X + 38, ytop + 1, txt,
-                    *halScreen.FontArray[FONT_STATUS], 0xf, 0, scr);
+
+        // USB CONNECTION - GRAYED = CONNECTED, BLACK = DATA RECEIVED
+        if(halGetNotification(N_CONNECTION)) {
+            int color;
+            if(halGetNotification(N_DATARECVD)) color=0xf; else color=0x8;
+
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"U",
+                    (UNIFONT *)Font_Notifications, color, 0, scr);
+            xctracker+=4+StringWidth((char *)"U",(UNIFONT *)Font_Notifications);
+
         }
+
+        // Keyboard
+        {
+           unsigned int keyplane=keyb_getshiftplane();
+
+
+        if(halGetNotification(N_LEFTSHIFT)) {
+           int color;
+            if((keyplane&SHIFT_LSHOLD) == SHIFT_LSHOLD) color=0xf; else color=0x8;
+
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"L",
+                    (UNIFONT *)Font_Notifications, color, 0, scr);
+            xctracker+=4+StringWidth((char *)"L",(UNIFONT *)Font_Notifications);
+        }
+        if(halGetNotification(N_RIGHTSHIFT)) {
+           int color;
+            if((keyplane&SHIFT_RSHOLD) == SHIFT_RSHOLD) color=0xf; else color=0x8;
+
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"R",
+                    (UNIFONT *)Font_Notifications, color, 0, scr);
+            xctracker+=4+StringWidth((char *)"R",(UNIFONT *)Font_Notifications);
+        }
+        if(halGetNotification(N_ALPHA)) {
+           int color;
+            if((keyplane&SHIFT_ALPHAHOLD) == SHIFT_ALPHAHOLD) color=0xf; else color=0x8;
+
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"A",
+                    (UNIFONT *)Font_Notifications, color, 0, scr);
+            xctracker+=4+StringWidth((char *)"A",(UNIFONT *)Font_Notifications);
+        }
+
+        }
+
+        // Busy
+
+        if(halGetNotification(N_HOURGLASS)) {
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"W",
+                    (UNIFONT *)Font_Notifications, 0xf, 0, scr);
+            xctracker+=4+StringWidth((char *)"W",(UNIFONT *)Font_Notifications);
+        }
+
+        // Battery notifications are handled as part of the battery handler - do not display here
+
+
+
 
 #ifndef CONFIG_NO_FSYSTEM
 
@@ -1388,17 +1438,19 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
             if(color) {
                 if(color == -1)
-                    DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
+                    DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
                             *halScreen.FontArray[FONT_STATUS], 0, 0xf, scr);
                 else {
                     if(color == -2)
-                        DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
+                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
                                 *halScreen.FontArray[FONT_STATUS], 0, 0x6, scr);
                     else
-                        DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
+                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
                                 *halScreen.FontArray[FONT_STATUS], color, 0x0,
                                 scr);
                 }
+                xctracker+=4+StringWidth(txt,*halScreen.FontArray[FONT_STATUS]);
+
             }
 
         }

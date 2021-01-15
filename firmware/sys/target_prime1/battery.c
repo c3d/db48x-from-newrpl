@@ -10,6 +10,7 @@
 WORD __battery __SYSTEM_GLOBAL__;
 WORD __bat_avg[8] __SCRATCH_MEMORY__;
 WORD __bat_avgidx __SCRATCH_MEMORY__;
+int __bat_readcnt __SCRATCH_MEMORY__;
 // SETUP ADC CONVERTERS TO READ BATTERY VOLTAGE
 void bat_setup()
 {

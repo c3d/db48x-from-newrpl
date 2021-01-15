@@ -16,80 +16,12 @@
 #define ADC_LOWBAT          (ADC_0_LIMIT+(ADC_100_LIMIT-ADC_0_LIMIT)/10)
 #define ADC_CRITICAL        (ADC_0_LIMIT+(ADC_100_LIMIT-ADC_0_LIMIT)/20)
 
+extern int __bat_readcnt;
 
 void battery_handler()
 {
 
     bat_read();
-
-
-    //halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
-
-
-       gglsurface scr;
-       ggl_initscr(&scr);
-
-       // THIS IS FOR DEBUG ONLY
-
-
-       int text,rot;
-       int k;
-
-       // EMPIRICAL PERCENTAGE SCALE:
-
-       // ADC VALUE = 0x370 --> 100% = 65536
-       // ADC_VALUE = 0X300 --> 0%   = 0
-       // 65536 = A*0X370-B
-       // 0 = A*0X300-B ---> A=B/0x300
-       // B = 65536/(0x370-0x300/0x300)
-       // B = 0x300 * 65536 / (0x370-0x300)
-
-       k=(65536/(ADC_100_LIMIT-ADC_0_LIMIT))*__battery- ((ADC_0_LIMIT<<16)/(ADC_100_LIMIT-ADC_0_LIMIT));  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
-
-       // STRICT BOUNDARIES SINCE VALUES ARE APPROXIMATED
-       if(k>65535) k=65535;
-       if(k<0) k=0;
-
-       if(__battery==0x400) text=0x676843;  // "Chg"
-
-        else {
-
-       text=0;
-       rot=0;
-       if(k>>16) { text='1'; k=0; rot+=8; }
-
-       k=(k&0xffff)*10;
-
-       text|=(((k>>16)+'0')&( (rot||(k>>16))? 0xff:0))<<rot;
-       if(text) rot+=8;
-
-       k=(k&0xffff)*10+32768;
-
-       text|=((k>>16)+'0')<<rot;
-       }
-
-
-       DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-20,(char *)&text,(UNIFONT *)Font_10A,0xf,0,&scr);
-
-       k=(__battery>>8)&0xf;
-       if(k>9) k+='A'-10;
-       else k+='0';
-
-       DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-10,(char *)&k,(UNIFONT *)Font_10A,0xf,0,&scr);
-
-       k=(__battery>>4)&0xf;
-       if(k>9) k+='A'-10;
-       else k+='0';
-       DrawTextBk(STATUSAREA_X+6,SCREEN_HEIGHT-10,(char *)&k,(UNIFONT *)Font_10A,0xf,0,&scr);
-
-       k=(__battery)&0xf;
-       if(k>9) k+='A'-10;
-       else k+='0';
-       // CAREFUL, INTEGER USED AS STRING IS ONLY VALID IN LITTLE ENDIAN!
-       DrawTextBk(STATUSAREA_X+12,SCREEN_HEIGHT-10,(char *)&k,(UNIFONT *)Font_10A,0xf,0,&scr);
-
-       // END OF DEBUG
-
 
 
     // THIS IS THE REAL HANDLER
@@ -112,10 +44,9 @@ void battery_handler()
             halFlags |= HAL_SLOWLOCK;
             halScreenUpdated();
         }
-        return;
-    }
 
-    if(__battery < ADC_LOWBAT) {
+    }
+    else if(__battery < ADC_LOWBAT) {
         // SHOW STATIC LOW BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST IS OK
@@ -130,7 +61,6 @@ void battery_handler()
             halSetNotification(N_LOWBATTERY, 0xf);
             halFlags |= HAL_SLOWLOCK;
         }
-        return;
     }
 
     if(__battery == ADC_PLUGGED) {
@@ -140,16 +70,90 @@ void battery_handler()
 
         halSetNotification(N_LOWBATTERY, 0x8);
         halFlags &= ~HAL_SLOWLOCK;
-        return;
     }
-
-    if(__battery >= ADC_LOWBAT) {
+    else if(__battery >= ADC_LOWBAT) {
         // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
         if(halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
         halSetNotification(N_LOWBATTERY, 0);
         halFlags &= ~HAL_SLOWLOCK;
     }
+
+
+
+
+
+    // Update notification icon
+    // only once every 4 seconds
+    // (4 interrupts)
+
+    ++__bat_readcnt;
+    __bat_readcnt&=7;
+
+    if(!__bat_readcnt) {
+
+       gglsurface scr;
+       ggl_initscr(&scr);
+
+       int text,rot;
+       int k;
+
+       // EMPIRICAL PERCENTAGE SCALE:
+
+       // ADC VALUE = 0x370 --> 100% = 65536
+       // ADC_VALUE = 0X300 --> 0%   = 0
+       // 65536 = A*0X370-B
+       // 0 = A*0X300-B ---> A=B/0x300
+       // B = 65536/(0x370-0x300/0x300)
+       // B = 0x300 * 65536 / (0x370-0x300)
+
+       k=(65536/(ADC_100_LIMIT-ADC_0_LIMIT))*__battery- ((ADC_0_LIMIT<<16)/(ADC_100_LIMIT-ADC_0_LIMIT));  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
+
+       // STRICT BOUNDARIES SINCE VALUES ARE APPROXIMATED
+       if(k>65535) k=65535;
+       if(k<0) k=0;
+
+       if(__battery==0x400) {
+           // Battery is charging - display charging icon
+           DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"C",
+                   (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+       }
+        else {
+            // Display Battery percentage below battery icon
+
+       text=0;
+       rot=0;
+       ++k;
+       if(k>>16) { text='1'; k=0; rot+=8; }
+
+       k=(k&0xffff)*10;
+
+       text|=(((k>>16)+'0')&( (rot||(k>>16))? 0xff:0))<<rot;
+       if(text) rot+=8;
+
+       k=(k&0xffff)*10+32768;
+
+       text|=((k>>16)+'0')<<rot;
+
+       rot+=8;
+       text|='%'<<rot;
+
+       // Display battery percentage
+       int percentwidth=StringWidthN((char *)&text,((char *)&text)+(rot>>3)+1,(UNIFONT *)Font_10A);
+       int batwidth=StringWidth((char *)"D",(UNIFONT *)Font_Notifications);
+       if(percentwidth>batwidth) {
+           batwidth=(percentwidth+batwidth)/2;
+       } else percentwidth=(percentwidth+batwidth)/2;
+
+       DrawTextBk(SCREEN_WIDTH-percentwidth
+                        ,SCREEN_HEIGHT-((UNIFONT *)Font_10A)->BitmapHeight-1,(char *)&text,(UNIFONT *)Font_10A,0xf,0,&scr);
+
+       DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-((UNIFONT *)Font_10A)->BitmapHeight-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"D",
+               (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+
+    }
+    }
+
 }
 
 void busy_handler()
@@ -157,6 +161,16 @@ void busy_handler()
     // THE CPU IS BUSY, SWITCH TO FAST SPEED!!
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
     halSetNotification(N_HOURGLASS, 0xf);
+
+    // Force Display the Hourglass
+    {
+    gglsurface scr;
+    ggl_initscr(&scr);
+    DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"W",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-3-((UNIFONT *)Font_10A)->BitmapHeight-2*((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"W",
+            (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+
+    }
+
     halScreenUpdated();
 
     halFlags |= HAL_HOURGLASS;

@@ -868,6 +868,7 @@ int keyb_anymsg();
 void keyb_flush();
 void keyb_flushnowait();
 int keyb_wasupdated();
+unsigned int keyb_getshiftplane();
 
 #define NUM_EVENTS  5   // NUMBER OF SIMULTANEOUS TIMED EVENTS
 
@@ -974,6 +975,10 @@ extern const unsigned int Font_8C[];
 extern const unsigned int Font_8D[];
 extern const unsigned int Font_10A[];
 extern const unsigned int Font_24[];
+
+// System font only needed on targets that don't have hardware notifications
+extern const unsigned int Font_Notifications[];
+
 
 //const unsigned int System5Font[];
 //const unsigned int System6Font[];

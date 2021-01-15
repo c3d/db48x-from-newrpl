@@ -12,7 +12,9 @@ TEMPLATE = app
 DEFINES += TARGET_PC TARGET_PC_PRIMEG1 "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += main.cpp\
+    firmware/hal_battery_primeg1.c \
     firmware/sys/Font24.c \
+    firmware/sys/FontNotification.c \
         mainwindow.cpp \
     newrpl/lib-112-asm.c \
     newrpl/lib-4081-tags.c \
@@ -42,7 +44,6 @@ SOURCES += main.cpp\
     firmware/ggl/ggl/ggl_scrollrt.c \
     firmware/ggl/ggl/ggl_scrollup.c \
     firmware/ggl/ggl/ggl_vline.c \
-    firmware/hal_battery.c \
     firmware/hal_keyboard_primeg1.c \
     firmware/hal_screen_primeg1.c \
     firmware/sys/graphics.c \

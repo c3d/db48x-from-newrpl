@@ -595,3 +595,8 @@ void keyb_setshiftplane(int leftshift, int rightshift, int alpha, int alphalock)
                 ((oldplane & ALPHALOCK) >> 16)));
 
 }
+
+unsigned int keyb_getshiftplane()
+{
+    return __keyplane &SHIFT_ANY;
+}
