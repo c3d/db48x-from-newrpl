@@ -150,7 +150,7 @@ void battery_handler()
 
        DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-((UNIFONT *)Font_10A)->BitmapHeight-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"D",
                (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
-
+        halScreenUpdated();
     }
     }
 

@@ -963,61 +963,154 @@ void halRedrawMenu1(DRAWSURFACE * scr)
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
 
-    ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-    ybottom = ytop + halScreen.Menu1 - 1;
-    // DRAW BACKGROUND
-    ggl_cliprect(scr, 0, ytop + 1, SCREEN_WIDTH - 1, ybottom - 1,
-            ggl_mkcolor(mcolor ^ 0xf));
-    ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(8));
-    ggl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(8));
-
-    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
     oldclipx = scr->clipx;
     oldclipx2 = scr->clipx2;
     oldclipy = scr->clipy;
     oldclipy2 = scr->clipy2;
 
-    BINT64 m1code = rplGetMenuCode(1);
-    WORDPTR MenuObj = uiGetLibMenu(m1code);
-    BINT nitems = uiCountMenuItems(m1code, MenuObj);
-    BINT k;
-    WORDPTR item;
+    if(halScreen.Menu2==0) {
 
-    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-    // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6)) {
-        m1code = SETMENUPAGE(m1code, 0);
-        rplSetMenuCode(1, m1code);
-    }
+        // Draw a one-line horizontal menu with no status area when Menu2 is disabled
 
-    // FIRST ROW
+        ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        ybottom = ytop + halScreen.Menu1 - 1;
+        // DRAW BACKGROUND
+        ggl_cliprect(scr, 0, ytop + 1, SCREEN_WIDTH - 1, ybottom - 1,
+                     ggl_mkcolor(mcolor ^ 0xf));
+        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(8));
+        ggl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(8));
 
-    scr->clipy = ytop + 1;
-    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
 
-    for(k = 0; k < 5; ++k) {
+
+        BINT64 m1code = rplGetMenuCode(1);
+        WORDPTR MenuObj = uiGetLibMenu(m1code);
+        BINT nitems = uiCountMenuItems(m1code, MenuObj);
+        BINT k;
+        WORDPTR item;
+
+        // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
+        // FOR EXAMPLE BY PURGING VARIABLES
+        if((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6)) {
+            m1code = SETMENUPAGE(m1code, 0);
+            rplSetMenuCode(1, m1code);
+        }
+
+        // FIRST ROW
+
+        scr->clipy = ytop + 1;
+        scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+
+        for(k = 0; k < 5; ++k) {
+            scr->clipx = MENU_TAB_WIDTH * k;
+            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+            item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
+            uiDrawMenuItem(item, mcolor, scr);
+        }
+
+        // NOW DO THE NXT KEY
         scr->clipx = MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-        item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-        uiDrawMenuItem(item, mcolor, scr);
-    }
 
-    // NOW DO THE NXT KEY
-    scr->clipx = MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+        if(nitems == 6) {
+            item = uiGetMenuItem(m1code, MenuObj, 5);
+            uiDrawMenuItem(item, mcolor, scr);
+        }
+        else {
+            if(nitems > 6) {
+                DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
+                         *halScreen.FontArray[FONT_MENU], mcolor, scr);
+            }
+        }
 
-    if(nitems == 6) {
-        item = uiGetMenuItem(m1code, MenuObj, 5);
-        uiDrawMenuItem(item, mcolor, scr);
+
     }
     else {
-        if(nitems > 6) {
-            DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
-                    *halScreen.FontArray[FONT_MENU], mcolor, scr);
-        }
-    }
 
+        // Draw a three-line menu with centered status area when Menu2 is enabled
+
+        ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
+        // DRAW BACKGROUND
+        ggl_cliprect(scr, 0, ytop, MENU1_ENDX - 1, ybottom,
+                ggl_mkcolor(mcolor ^ 0xf));
+        ggl_cliphline(scr, ytop , 0, MENU1_ENDX - 1,
+                ggl_mkcolor(0x8));
+        ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, 0, MENU1_ENDX - 1,
+                ggl_mkcolor(0x8));
+        ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, 0, MENU1_ENDX - 1,
+                ggl_mkcolor(0x8));
+        ggl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, ggl_mkcolor(halKeyMenuSwitch? 0xf:0x8));
+
+        // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
+
+        BINT64 m1code = rplGetMenuCode(1);
+        WORDPTR MenuObj = uiGetLibMenu(m1code);
+        BINT nitems = uiCountMenuItems(m1code, MenuObj);
+        BINT k;
+        WORDPTR item;
+
+        // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
+        // FOR EXAMPLE BY PURGING VARIABLES
+        if((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6)) {
+            m1code = SETMENUPAGE(m1code, 0);
+            rplSetMenuCode(1, m1code);
+        }
+
+        // FIRST ROW
+
+        scr->clipy = ytop + 1;
+        scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+
+
+        for(k = 0; k < 2; ++k) {
+            scr->clipx = MENU_TAB_WIDTH * k;
+            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+            item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
+            uiDrawMenuItem(item, mcolor, scr);
+        }
+
+        // SECOND ROW
+
+
+        scr->clipy = ytop + MENU1_HEIGHT ;
+        scr->clipy2 = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 2;
+
+        for(k = 0; k < 2; ++k) {
+            scr->clipx = MENU_TAB_WIDTH * k;
+            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+            item = uiGetMenuItem(m1code, MenuObj, k + 2 + MENUPAGE(m1code));
+            uiDrawMenuItem(item, mcolor, scr);
+        }
+
+        // THIRD ROW
+
+        scr->clipy = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
+        scr->clipy2 = ybottom - 1;
+
+        k=0;
+            scr->clipx = MENU_TAB_WIDTH * k;
+            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+            item = uiGetMenuItem(m1code, MenuObj, k + 4 + MENUPAGE(m1code));
+            uiDrawMenuItem(item, mcolor, scr);
+
+        // NOW DO THE NXT KEY
+        scr->clipx = MENU_TAB_WIDTH ;
+        scr->clipx2 = MENU_TAB_WIDTH  + (MENU_TAB_WIDTH-2);
+
+        if(nitems == 6) {
+            item = uiGetMenuItem(m1code, MenuObj, 5);
+            uiDrawMenuItem(item, mcolor, scr);
+        }
+        else {
+            if(nitems > 6) {
+                DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
+                        *halScreen.FontArray[FONT_MENU], mcolor, scr);
+            }
+        }
+
+
+    }
     scr->clipx = oldclipx;
     scr->clipx2 = oldclipx2;
     scr->clipy = oldclipy;
@@ -1049,28 +1142,30 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
 
-    ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
-    ybottom = ytop + halScreen.Menu2 - 1;
-    // DRAW BACKGROUND
-    ggl_cliprect(scr, 0, ytop, STATUSAREA_X - 1, ybottom,
-            ggl_mkcolor(mcolor ^ 0xf));
-    //ggl_clipvline(scr,21,ytop+1,ybottom,ggl_mkcolor(0x8));
-    //ggl_clipvline(scr,43,ytop+1,ybottom,ggl_mkcolor(0x8));
-    //ggl_clipvline(scr,STATUSAREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
-//    ggl_clipvline(scr,87,ytop,ybottom,0);
-//    ggl_clipvline(scr,109,ytop,ybottom,0);
-    //ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(0x8));
-    ggl_cliphline(scr, ytop + MENU2_HEIGHT / 2 - 1, 0, STATUSAREA_X - 2,
-            ggl_mkcolor(0x8));
-    ggl_cliphline(scr, ybottom, 0, STATUSAREA_X - 2, ggl_mkcolor(0x8));
-
-    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
     oldclipx = scr->clipx;
     oldclipx2 = scr->clipx2;
     oldclipy = scr->clipy;
     oldclipy2 = scr->clipy2;
+     // Draw a three-line menu with centered status area when Menu2 is enabled
+
+    ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+    ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
+    // DRAW BACKGROUND
+    ggl_cliprect(scr, MENU2_STARTX, ytop, MENU2_ENDX - 1, ybottom,
+            ggl_mkcolor(mcolor ^ 0xf));
+    ggl_cliphline(scr, ytop, MENU2_STARTX, MENU2_ENDX - 1,
+            ggl_mkcolor(0x8));
+    ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, MENU2_STARTX, MENU2_ENDX - 1,
+            ggl_mkcolor(0x8));
+    ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, MENU2_STARTX, MENU2_ENDX - 1,
+            ggl_mkcolor(0x8));
+    ggl_cliphline(scr, ybottom, MENU2_STARTX, MENU2_ENDX - 1, ggl_mkcolor(halKeyMenuSwitch? 0x8:0xf));
+
+    ggl_clipvline(scr, MENU2_ENDX, ytop,ybottom,ggl_mkcolor(0x8));
+    ggl_clipvline(scr, MENU2_STARTX-1, ytop,ybottom,ggl_mkcolor(0x8));
+
+    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
     BINT64 m2code = rplGetMenuCode(2);
     WORDPTR MenuObj = uiGetLibMenu(m2code);
@@ -1087,31 +1182,44 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     // FIRST ROW
 
-    scr->clipy = ytop;
-    scr->clipy2 = ytop + MENU2_HEIGHT / 2 - 2;
+    scr->clipy = ytop + 1;
+    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
 
-    for(k = 0; k < 3; ++k) {
-        scr->clipx = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+
+    for(k = 0; k < 2; ++k) {
+        scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
         uiDrawMenuItem(item, mcolor, scr);
     }
 
     // SECOND ROW
 
-    scr->clipy = ytop + MENU2_HEIGHT / 2;
-    scr->clipy2 = ybottom - 1;
+
+    scr->clipy = ytop + MENU1_HEIGHT;
+    scr->clipy2 = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
 
     for(k = 0; k < 2; ++k) {
-        scr->clipx = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-        item = uiGetMenuItem(m2code, MenuObj, k + 3 + MENUPAGE(m2code));
+        scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+        item = uiGetMenuItem(m2code, MenuObj, k + 2 + MENUPAGE(m2code));
         uiDrawMenuItem(item, mcolor, scr);
     }
 
+    // THIRD ROW
+
+    scr->clipy = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
+    scr->clipy2 = ybottom - 1;
+
+    k=0;
+        scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+        item = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
+        uiDrawMenuItem(item, mcolor, scr);
+
     // NOW DO THE NXT KEY
-    scr->clipx = MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+    scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH ;
+    scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH  + (MENU_TAB_WIDTH-2);
 
     if(nitems == 6) {
         item = uiGetMenuItem(m2code, MenuObj, 5);
@@ -1123,6 +1231,8 @@ void halRedrawMenu2(DRAWSURFACE * scr)
                     *halScreen.FontArray[FONT_MENU], mcolor, scr);
         }
     }
+
+
 
     scr->clipx = oldclipx;
     scr->clipx2 = oldclipx2;
@@ -1146,10 +1256,11 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
     if(halScreen.Menu2) {
         int ytop =
-                halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-                halScreen.Menu1;
-        ggl_cliprect(scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-                ytop + halScreen.Menu2 - 1, 0);
+                halScreen.Form + halScreen.Stack + halScreen.CmdLine ;
+
+        ggl_hline(scr,ytop,STATUSAREA_X,SCREEN_WIDTH -1,ggl_mkcolor(0x8));
+        ggl_cliprect(scr, STATUSAREA_X, ytop+1, SCREEN_WIDTH - 1,
+                ytop + halScreen.Menu1 + halScreen.Menu2 - 1, 0);
         BINT xc, yc;
         xc = scr->clipx;
         yc = scr->clipy;
@@ -1166,7 +1277,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
                 // SECOND LINE
                 if(!Exceptions) {
                     // BUT ONLY IF THERE WERE NO ERRORS
-                    BINT y = ytop + 1 +
+                    BINT y = ytop + 2 +
                             (*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
                     // FOR NOW JUST DISPLAY THE SELECTED TOKEN
                     WORDPTR cmdname =
@@ -1195,7 +1306,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
             BINT nnames, j, width, xst;
             WORDPTR pathnames[8], lastword;
             BYTEPTR start, end;
-            BINT y = ytop + 1 +
+            BINT y = ytop + 2 +
                     (*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
 
             nnames = rplGetFullPath(CurrentDir, pathnames, 8);
@@ -1282,7 +1393,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
                 "∡d"
             };
 
-            DrawTextBk(STATUSAREA_X + 1, ytop + 1, (char *)name[anglemode],
+            DrawTextBk(STATUSAREA_X + 1, ytop + 2, (char *)name[anglemode],
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
 
             xctracker+=4+StringWidth((char *)name[anglemode],*halScreen.FontArray[FONT_STATUS]);
@@ -1292,7 +1403,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
         // COMPLEX MODE INDICATOR
 
         if(rplTestSystemFlag(FL_COMPLEXMODE)) {
-            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"C",
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 2, (char *)"C",
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
             xctracker+=4+StringWidth((char *)"C",*halScreen.FontArray[FONT_STATUS]);
 
@@ -1301,7 +1412,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
         // HALTED PROGRAM INDICATOR
 
         if(halFlags & HAL_HALTED) {
-            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"H",
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 2, (char *)"H",
                     *halScreen.FontArray[FONT_STATUS], 0xf, 0x0, scr);
             xctracker+=4+StringWidth((char *)"H",*halScreen.FontArray[FONT_STATUS]);
 
@@ -1319,8 +1430,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
                     color |= 0x00ff00;
                 if(*flags & 1)
                     color |= 0x0000ff;
-                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 1,
-                        STATUSAREA_X + 1 + xctracker + 5, ytop + 2, color);
+                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 2,
+                        STATUSAREA_X + 1 + xctracker + 5, ytop + 3, color);
 
                 color = 0x66666666;
                 if(*flags & 32)
@@ -1329,8 +1440,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
                     color |= 0x00ff00;
                 if(*flags & 8)
                     color |= 0x0000ff;
-                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 4,
-                        STATUSAREA_X + 1 + xctracker + 5, ytop + 5, color);
+                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 5,
+                        STATUSAREA_X + 1 + xctracker + 5, ytop + 6, color);
 
                 xctracker+=7;
 
@@ -1340,6 +1451,66 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
 
+
+
+
+#ifndef CONFIG_NO_FSYSTEM
+
+        // SD CARD INSERTED INDICATOR
+        {
+            char txt[4];
+            int color;
+            txt[0] = 'S';
+            txt[1] = 'D';
+            txt[2] = ' ';
+            txt[3] = 0;
+            if(FSCardInserted())
+                color = 6;
+            else
+                color = 0;
+            if(FSIsInit()) {
+                if(FSVolumeMounted(FSGetCurrentVolume()))
+                    color = 0xf;
+                if(!FSCardInserted()) {
+                    txt[2] = '?';
+                    color = 6;
+                }
+                else if(FSCardIsSDHC()) {
+                    txt[0] = 'H';
+                    txt[1] = 'C';
+                }
+                int k = FSIsDirty();
+                if(k == 1)
+                    color = -1; // 1 =  DIRTY FS NEEDS FLUSH
+                if(k == 2)
+                    color = -2; // 2 =  FS IS FLUSHED BUT THERE'S OPEN FILES
+            }
+
+            if(color) {
+                if(color == -1)
+                    DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
+                            *halScreen.FontArray[FONT_STATUS], 0, 0xf, scr);
+                else {
+                    if(color == -2)
+                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
+                                *halScreen.FontArray[FONT_STATUS], 0, 0x6, scr);
+                    else
+                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
+                                *halScreen.FontArray[FONT_STATUS], color, 0x0,
+                                scr);
+                }
+                xctracker+=4+StringWidth(txt,*halScreen.FontArray[FONT_STATUS]);
+
+            }
+
+        }
+
+#endif
+
+        // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
+
+            xctracker=4;
+            ytop=SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight;
         // ALARM
 
         if(halGetNotification(N_ALARM)) {
@@ -1401,61 +1572,6 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         // Battery notifications are handled as part of the battery handler - do not display here
 
-
-
-
-#ifndef CONFIG_NO_FSYSTEM
-
-        // SD CARD INSERTED INDICATOR
-        {
-            char txt[4];
-            int color;
-            txt[0] = 'S';
-            txt[1] = 'D';
-            txt[2] = ' ';
-            txt[3] = 0;
-            if(FSCardInserted())
-                color = 6;
-            else
-                color = 0;
-            if(FSIsInit()) {
-                if(FSVolumeMounted(FSGetCurrentVolume()))
-                    color = 0xf;
-                if(!FSCardInserted()) {
-                    txt[2] = '?';
-                    color = 6;
-                }
-                else if(FSCardIsSDHC()) {
-                    txt[0] = 'H';
-                    txt[1] = 'C';
-                }
-                int k = FSIsDirty();
-                if(k == 1)
-                    color = -1; // 1 =  DIRTY FS NEEDS FLUSH
-                if(k == 2)
-                    color = -2; // 2 =  FS IS FLUSHED BUT THERE'S OPEN FILES
-            }
-
-            if(color) {
-                if(color == -1)
-                    DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-                            *halScreen.FontArray[FONT_STATUS], 0, 0xf, scr);
-                else {
-                    if(color == -2)
-                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-                                *halScreen.FontArray[FONT_STATUS], 0, 0x6, scr);
-                    else
-                        DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-                                *halScreen.FontArray[FONT_STATUS], color, 0x0,
-                                scr);
-                }
-                xctracker+=4+StringWidth(txt,*halScreen.FontArray[FONT_STATUS]);
-
-            }
-
-        }
-
-#endif
 
         // ADD OTHER INDICATORS HERE
 
@@ -1882,6 +1998,7 @@ void status_popup_handler()
     else {
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+        halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
     }
@@ -1992,7 +2109,7 @@ void halShowErrorMsg()
 
     BINT ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
+            1;
     // CLEAR MENU2 AND STATUS AREA
     ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ytop + halScreen.Menu2 - 1,
             0);
@@ -2109,7 +2226,7 @@ void halShowMsgN(char *Text, char *End)
 
     BINT ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
+            1;
     // CLEAR MENU2 AND STATUS AREA
     ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ytop + halScreen.Menu2 - 1,
             0);

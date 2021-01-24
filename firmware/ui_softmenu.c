@@ -365,15 +365,16 @@ void uiDrawMenuItem(WORDPTR item, BINT color, DRAWSURFACE * scr)
             pos = (scr->clipx2 + 1 + scr->clipx - w) >> 1;
 
         // FIRST LETTER GRAY BACKGROUND
-        ggl_clipvline(scr, pos, scr->clipy, scr->clipy2,
+        ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
+        /*
         ggl_clipvline(scr, pos + 1, scr->clipy, scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
         ggl_clipvline(scr, pos + 2, scr->clipy, scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
         ggl_clipvline(scr, pos + 3, scr->clipy, scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
-
+        */
         DrawTextN(pos, scr->clipy + 1, (char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
                 *halScreen.FontArray[FONT_MENU], color, scr);
@@ -423,7 +424,13 @@ void uiDrawMenuItem(WORDPTR item, BINT color, DRAWSURFACE * scr)
             //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
             //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
 
+
+
             // FIRST LETTER GRAY BACKGROUND
+            ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
+                    ggl_mkcolor((color) ? 0X4 : 0x8));
+
+            /*
             ggl_clipvline(scr, pos, scr->clipy, scr->clipy2,
                     ggl_mkcolor((color) ? 0X4 : 0x8));
             ggl_clipvline(scr, pos + 1, scr->clipy, scr->clipy2,
@@ -432,7 +439,7 @@ void uiDrawMenuItem(WORDPTR item, BINT color, DRAWSURFACE * scr)
                     ggl_mkcolor((color) ? 0X4 : 0x8));
             ggl_clipvline(scr, pos + 3, scr->clipy, scr->clipy2,
                     ggl_mkcolor((color) ? 0X4 : 0x8));
-
+            */
             // LOWER 2 LINES GRAY
             //ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));
             //ggl_cliphline(scr,scr->clipy2-1,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));
@@ -554,6 +561,9 @@ void uiDrawMenuItem(WORDPTR item, BINT color, DRAWSURFACE * scr)
         //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
         //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
 
+        ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
+                ggl_mkcolor((color) ? 0X4 : 0x8));
+        /*
         // FIRST LETTER GRAY BACKGROUND
         ggl_clipvline(scr, pos, scr->clipy, scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
@@ -563,7 +573,7 @@ void uiDrawMenuItem(WORDPTR item, BINT color, DRAWSURFACE * scr)
                 ggl_mkcolor((color) ? 0X4 : 0x8));
         ggl_clipvline(scr, pos + 3, scr->clipy, scr->clipy2,
                 ggl_mkcolor((color) ? 0X4 : 0x8));
-
+        */
         // LOWER 2 LINES GRAY
         //ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));
         //ggl_cliphline(scr,scr->clipy2-1,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));

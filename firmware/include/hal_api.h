@@ -128,10 +128,7 @@ enum halFonts
 #define MENU2_DIRTY 64
 #define STAREA_DIRTY 128
 
-// BASIC HEIGHT OF SCREEN AREAS IN PIXELS - THIS IS HARDWARE DEPENDENT
 
-#define MENU2_HEIGHT ((2*(1+(*halScreen.FontArray[FONT_MENU])->BitmapHeight))+2)
-#define MENU1_HEIGHT (((*halScreen.FontArray[FONT_MENU])->BitmapHeight)+3)
 
 // NUMBER OF ENTRIES IN THE RENDER CACHE
 
@@ -1122,6 +1119,7 @@ extern BINT halFlags;
 extern void (*halProcesses[3])(void);
 extern HEVENT halBusyEvent, halTimeoutEvent;
 extern BINT halLongKeyPending;
+extern BINT halKeyMenuSwitch;
 
 // HIGHER LEVEL HAL FUNCTIONS
 

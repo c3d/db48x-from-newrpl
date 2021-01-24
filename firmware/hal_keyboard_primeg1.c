@@ -106,6 +106,8 @@ BINT halWaitForKey()
                 halScreenUpdated();
             }
 
+
+
             if(!keyb_wasupdated() && wokeup)
                 return 0;       // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
 
@@ -167,6 +169,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
 
             }
 
+
             if(wokeup) {
                 if(halFlags & HAL_TIMEOUT) {
                     halFlags &= ~HAL_TIMEOUT;
@@ -174,6 +177,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
                 }
                 return 0;       // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
             }
+
 
             // LAST: GO INTO "WAIT FOR INTERRUPT"
             cpu_waitforinterrupt();
@@ -1171,6 +1175,12 @@ void transpcmdKeyHandler(WORD Opcode)
 
 void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
 {
+    // SWITCH MENUS
+    if(halKeyMenuSwitch) menunum= (menunum==2)? 1:2;
+
+
+
+
     if(KM_MESSAGE(keymsg) == KM_LPRESS) {
         // ENTER MENU HELP MODE
         // KILL ANY PENDING POPUPS
@@ -5207,6 +5217,9 @@ void switchmenukeysKeyHandler(BINT keymsg)
 
 
     // TODO: Just toggle a flag that the key handlers read and act on menu 1 or 2
+    halKeyMenuSwitch^=1;
+
+    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
 
     return;
 }
@@ -6487,37 +6500,37 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_LPRESS | KB_SYM, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
     {KM_KEYUP | KB_SYM, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
 
-    {KM_PRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_PLT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_PLT | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_PLT | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_PLT | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_LPRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_KEYUP | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_LPRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_KEYUP | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
 
-    {KM_PRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_NUM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_NUM | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_NUM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_NUM | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_LPRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_KEYUP | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_LPRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_KEYUP | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
 
-    {KM_PRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_HLP | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_HLP | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_HLP | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_HLP | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_LPRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_KEYUP | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_LPRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_KEYUP | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
 
-    {KM_PRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_VIE | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_VIE | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_VIE | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_VIE | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_LPRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_KEYUP | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_LPRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_KEYUP | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
 
     {KM_PRESS | KB_MEN, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
     {KM_PRESS | KB_MEN | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
@@ -6628,8 +6641,8 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_9 | SHIFT_ONHOLD, CONTEXT_ANY, &onDigitKeyHandler},
 
 
-    { KM_LPRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
     { KM_PRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
+    { KM_LPRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
     { KM_PRESS | KB_B | SHIFT_ONHOLD, CONTEXT_ANY, &onBKeyHandler},
 
 
@@ -6959,7 +6972,7 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
 
 // MENUS
     {KM_PRESS | KB_C | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(unitmenu)},
-    {KM_PRESS | KB_B, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
+    {KM_PRESS | KB_HOM, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
     {KM_PRESS | KB_2 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(libsmenu)},
     {KM_PRESS | KB_HOM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(timemenu)},
     {KM_PRESS | KB_HOM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(financemenu)},
@@ -7638,6 +7651,9 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
         else {
 
             jobdone = isidle = 0;
+            // Reset count of the battery display so it only updates when idling for a while (Prime Only)
+            extern int __bat_readcnt;
+            __bat_readcnt=1;
         }
 
         halSetBusyHandler();
@@ -7656,6 +7672,7 @@ void halInitKeyboard()
 {
     keyb_setalphalock(1);
     keyb_setshiftplane(0, 0, 0, 0);
+    halKeyMenuSwitch=0;
 }
 
 // API USED BY RPL PROGRAMS TO INSERT KEY SEQUENCES TO THE KEYBOARD

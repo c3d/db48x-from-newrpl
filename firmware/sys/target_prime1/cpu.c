@@ -282,8 +282,8 @@ __ARM_MODE__ void cpu_off_prepare()
     lcd_off();
 
     // SET GPB9 and GPF4 TO ZERO TO POWER DOWN THE LCD CHIP
-    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER UP THE LCD DRIVER CHIP
-    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER UP THE LCD DRIVER CHIP
+    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER DOWN THE LCD DRIVER CHIP
+    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER DOWN THE LCD DRIVER CHIP
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
