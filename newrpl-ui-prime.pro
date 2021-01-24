@@ -13,6 +13,7 @@ DEFINES += TARGET_PC TARGET_PC_PRIMEG1 "NEWRPL_BUILDNUM=$$system(git rev-list --
 
 SOURCES += main.cpp\
     firmware/hal_battery_primeg1.c \
+    firmware/sys/Font18.c \
     firmware/sys/Font24.c \
     firmware/sys/FontNotification.c \
         mainwindow.cpp \

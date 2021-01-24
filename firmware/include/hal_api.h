@@ -971,6 +971,7 @@ extern const unsigned int Font_8B[];
 extern const unsigned int Font_8C[];
 extern const unsigned int Font_8D[];
 extern const unsigned int Font_10A[];
+extern const unsigned int Font_18[];
 extern const unsigned int Font_24[];
 
 // System font only needed on targets that don't have hardware notifications

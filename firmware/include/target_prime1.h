@@ -679,7 +679,12 @@
 #define SCREEN_W 320
 #define SCREEN_H 240
 
-
+// Prime menu organization constants
+#define MENU1_ENDX  ((44*SCREEN_WIDTH)/131)
+#define MENU2_STARTX (MENU1_ENDX+1)
+#define MENU2_ENDX  (1+(88*SCREEN_WIDTH)/131)
+#undef  STATUSAREA_X
+#define STATUSAREA_X  (MENU2_ENDX+1)
 
 
 

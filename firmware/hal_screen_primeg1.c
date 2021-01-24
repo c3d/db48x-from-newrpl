@@ -1031,16 +1031,17 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
         ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
         ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
+        int selcolor=ggl_mkcolor(halKeyMenuSwitch? 0x8:0x0);
         // DRAW BACKGROUND
         ggl_cliprect(scr, 0, ytop, MENU1_ENDX - 1, ybottom,
                 ggl_mkcolor(mcolor ^ 0xf));
         ggl_cliphline(scr, ytop , 0, MENU1_ENDX - 1,
                 ggl_mkcolor(0x8));
         ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, 0, MENU1_ENDX - 1,
-                ggl_mkcolor(0x8));
+                selcolor);
         ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, 0, MENU1_ENDX - 1,
-                ggl_mkcolor(0x8));
-        ggl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, ggl_mkcolor(halKeyMenuSwitch? 0xf:0x8));
+                selcolor);
+        ggl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, selcolor);
 
         // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
@@ -1151,16 +1152,18 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
     ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
+    int selcolor=ggl_mkcolor(halKeyMenuSwitch? 0x0:0x8);
+
     // DRAW BACKGROUND
     ggl_cliprect(scr, MENU2_STARTX, ytop, MENU2_ENDX - 1, ybottom,
             ggl_mkcolor(mcolor ^ 0xf));
     ggl_cliphline(scr, ytop, MENU2_STARTX, MENU2_ENDX - 1,
             ggl_mkcolor(0x8));
     ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, MENU2_STARTX, MENU2_ENDX - 1,
-            ggl_mkcolor(0x8));
+            selcolor);
     ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, MENU2_STARTX, MENU2_ENDX - 1,
-            ggl_mkcolor(0x8));
-    ggl_cliphline(scr, ybottom, MENU2_STARTX, MENU2_ENDX - 1, ggl_mkcolor(halKeyMenuSwitch? 0x8:0xf));
+            selcolor);
+    ggl_cliphline(scr, ybottom, MENU2_STARTX, MENU2_ENDX - 1, selcolor);
 
     ggl_clipvline(scr, MENU2_ENDX, ytop,ybottom,ggl_mkcolor(0x8));
     ggl_clipvline(scr, MENU2_STARTX-1, ytop,ybottom,ggl_mkcolor(0x8));

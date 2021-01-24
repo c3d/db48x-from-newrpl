@@ -22,6 +22,7 @@ DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count H
 
 
 SOURCES +=\
+    firmware/sys/Font18.c \
     firmware/sys/FontNotification.c \
     firmware/sys/target_prime1/preamble_prime1.c \
     firmware/sys/target_prime1/boot_prime1.c \

@@ -368,13 +368,13 @@ void usb_hwsetup()
     *MPR = 8;      // USE 8-BYTE PACKETS
     *EP0CR = 0x0;  //
 
-    *INDEX_REG = 1;
+    *IR = 1;
     *MPR = 64;      // USE 64-BYTE PACKETS ON EP1
     *ECR = 0x841;        // IN ENDPOINT FIFO_FLUSH
 
 
     // TODO: DONE UP TO HERE
-
+/*
 
     *INDEX_REG = 2;
     *MAXP_REG = 8;      // USE 64-BYTE PACKETS ON EP2

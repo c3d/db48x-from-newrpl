@@ -186,12 +186,17 @@ ROMOBJECT fontplot_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fnt18_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('F', 'o', 'n', 't'),
+    TEXT2WORD('1', '8', 0, 0)
+};
+
 ROMOBJECT fnt24_ident[] = {
     MKPROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('2', '4', 0, 0)
 };
-
 
 
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
@@ -245,6 +250,8 @@ const WORDPTR const ROMPTR_TABLE[] = {
     (WORDPTR) Font_8D,
     (WORDPTR) fnt10a_ident,
     (WORDPTR) Font_10A,
+    (WORDPTR) fnt18_ident,
+    (WORDPTR) Font_18,
     (WORDPTR) fnt24_ident,
     (WORDPTR) Font_24,
 
