@@ -283,7 +283,6 @@ void main_virtual(unsigned int mode)
 
             // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
             if(!halCheckMemoryMap()) {
-                red_led_on();
                 // WIPEOUT MEMORY
                 halInitMemoryMap();
                 rplInitMemoryAllocator();
@@ -292,7 +291,6 @@ void main_virtual(unsigned int mode)
             }
             else {
                 if(!halCheckRplMemory()) {
-                    green_led_on();
                     // WIPEOUT MEMORY
                     halInitMemoryMap();
                     rplInitMemoryAllocator();
@@ -905,7 +903,7 @@ void startup(void)
 
     if(!prevstate)
     {
-        blue_led_on();
+        //blue_led_on();
 
 
         cpu_flushwritebuffers();   // Ensure MMU table values are written to actual RAM
@@ -918,7 +916,7 @@ void startup(void)
 
     }
     else {
-        green_led_on();
+        //green_led_on();
 
         cpu_flushwritebuffers();   // Ensure MMU table values are written to actual RAM
         cpu_flushicache();         // Ensure any old code is removed from caches
@@ -948,6 +946,7 @@ void startup(void)
 
     usb_init(1);
 
+    red_led_on();
 
     main_virtual(prevstate); // never returns
 }

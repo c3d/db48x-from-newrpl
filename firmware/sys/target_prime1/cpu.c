@@ -120,9 +120,14 @@ case 100:
 
 }
 
-// TODO: Also set the EPLL clocks although this clock doesn't change
-//*EPLLCON= 0x200102; // 96 MHz regardless of CPU speed
-//*CLKSRC=0x118;
+// Also set the EPLL clocks although this clock doesn't change
+*EPLLCON_K = 0;
+*EPLLCON= 0x200102; // 96 MHz regardless of CPU speed, EPLL ON
+
+
+*CLKDIV1 = (*CLKDIV1 & ~0x30) | 0x10;   // SET USBHOSTDIV = 1 (USBHOST_CLK = EPLL/2 = 48 MHz)
+
+*CLKSRC |= 0x40;      // enable EPLL output
 
 __tmr_fix();
 

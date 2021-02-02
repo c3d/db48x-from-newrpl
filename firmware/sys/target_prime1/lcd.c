@@ -60,75 +60,8 @@ void lcd_setcontrast(int level)
 
 
 
-// Setup TIMER 4 for delays in LCD chip communications
-#define LCDTIMER_FREQ 100000        // 100 kHz tick
 
 extern unsigned int __cpu_getPCLK();
-
-void lcd_setupdelay()
-{
-    unsigned int pclk = __cpu_getPCLK();
-
-    unsigned int divider, prescaler;
-
-    prescaler = (pclk << 3) / LCDTIMER_FREQ;
-    divider = 1;
-
-    while(prescaler > (1 << (11 + divider))) {
-        divider++;
-    }
-
-    prescaler += (1 << (2 + divider));
-    prescaler >>= divider + 3;
-
-//if(divider>4) PCLK TOO HIGH TO ACHIEVE TIMER FREQUENCY, USE HIGHER MULTIPLE
-    if(divider > 4)
-        divider = 4;
-
-// SET PRESCALER VALUES FOR TIMERS 2,3 AND 4
-    *TCFG0 = (*TCFG0 & (~0xFF00)) | ((prescaler - 1)<<8);
-    *TCFG1 =
-            (*TCFG1 & (~0xf0000)) | ((divider - 1) << 16);
-
-// SET COUNT VALUES TO MAXIMUM
-    *TCNTB4 = 0xffff;
-
-// Make sure no interrupts are fired by timer4
-    *INTMSK1 |= 0x4000;
-}
-
-// Do a single delay 100 usec
-void lcd_delay100us()
-{
-        *TCNTB4= (LCDTIMER_FREQ * 100) / 1000000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
-
-        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
-}
-
-// Do a single delay 100 usec
-void lcd_delay10ms()
-{
-        *TCNTB4= (LCDTIMER_FREQ * 10) / 1000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
-
-        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
-}
-
-// Do a single delay 100 usec
-void lcd_delay20ms()
-{
-        *TCNTB4= (LCDTIMER_FREQ * 20) / 1000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
-
-        while(*TCNTO4!=0);                          // And wait for the timer to count to zero
-}
-
-
-
 
 
 
@@ -144,9 +77,9 @@ void lcd_delay20ms()
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   lcd_delay100us()
-#define DELAY_10MS      lcd_delay10ms()
-#define DELAY_20MS      lcd_delay20ms()
+#define DELAY_ONETICK   __tmr_delay100us()
+#define DELAY_10MS      __tmr_delay10ms()
+#define DELAY_20MS      __tmr_delay20ms()
 
 
 
@@ -406,7 +339,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 void lcd_poweron()
 {
 
-    lcd_setupdelay();                           // SETUP TIMERS TO GET ACCURATE DELAYS
+    __tmr_setupdelay();                           // SETUP TIMERS TO GET ACCURATE DELAYS
 
     // Setup GPIO
 

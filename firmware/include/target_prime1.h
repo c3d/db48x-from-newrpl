@@ -747,16 +747,40 @@
 
 // Note: Regular CPU Stack should not be here
 
+// USB RELATED DEFINITIONS
+
+// MACRO TO READ GPIO INDICATING IF CABLE IS CONNECTED OR NOT
+#define CABLE_IS_CONNECTED  (*GPFDAT&0x8)
+
+// FIFO SIZE LIMITS
+#define EP0_FIFO_SIZE    8
+#define EP1_FIFO_SIZE    64
+#define EP2_FIFO_SIZE    64
 
 
 
+// BIT MASKS FOR VARIOUS HARDWARE REGISTERS
+
+// RSR = RX SUCCESSFULLY RECEIVED BIT
+#define EP0_RSR     1
+#define EP_RPS      1
+// TPS = TX PACKET SUCCESS BIT
+#define EP_TPS    2
+// TZLS = TX ZERO LENGTH SET BIT
+#define EP0_TZLS  1
+// SHT = STALL HANDHAKE TRANSMITTED BIT
+#define EP0_SHT 0x10
+// ESS = ENDPOINT STALL SET
+#define EP_ESS  2
+// FLUSH FIFO
+#define EP_FLUSH  0x40
 
 
+#define USB_DIRECTION   0x80
+#define USB_DEV_TO_HOST 0x80
 
-
-
-
-
+// Address of the serial number in this hardware
+#define SERIAL_NUMBER_ADDRESS "1234567890"
 
 
 
@@ -836,6 +860,21 @@ extern void ts_init();
 #define ANN_Y_COORD 0
 
 #define PIXELS_PER_WORD 8
+
+// LOW LEVEL TIMER FUNCTIONS FOR HARDWARE SETUP
+void __tmr_setupdelay();
+// Do a single delay 100 usec
+void __tmr_delay100us();
+// Do a single delay 10 msec
+void __tmr_delay10ms();
+// Do a single delay 20 msec
+void __tmr_delay20ms();
+
+
+
+
+
+
 
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
