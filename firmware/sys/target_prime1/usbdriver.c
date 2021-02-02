@@ -364,9 +364,9 @@ void usb_hwsetup()
     *HCLKCON |= 0x1000;    // AND SEND CLOCK TO USB DEVICE ONLY
 
 
-    *USB_PHYCTRL = 0;        // DEVICE MODE, USE EPLL, 48 MHz DISABLE EXTERNAL CLOCK INPUT
-    *USB_CLKCON = 4;          // USB HOST CLOCK CONTROL: DISABLED, DEVICE CLOCK: ENABLED
-    *USB_PHYPWR = 0x30;       // NORMAL OPERATION (manual shows must be 0x3 bits)
+    *PHYCTRL = 0;        // DEVICE MODE, USE EPLL, 48 MHz DISABLE EXTERNAL CLOCK INPUT
+    *UCLKCON = 4;          // USB HOST CLOCK CONTROL: DISABLED, DEVICE CLOCK: ENABLED
+    *PHYPWR = 0x30;       // NORMAL OPERATION (manual shows must be 0x3 bits)
 
     *MISCCR &= 0x1000;        // USB PADS TO NORMAL MODE
 
@@ -512,6 +512,8 @@ void usb_shutdown()
     if(!(__usb_drvstatus & USB_STATUS_INIT))
         return;
 
+
+
     // MASK INTERRUPT AND REMOVE HANDLER
     __irq_mask(25);
     __irq_mask(3);
@@ -528,6 +530,9 @@ void usb_shutdown()
 
 
     // POWER OFF THE PHY AND CLOCKS
+    *PHYPWR |= 0x1; // force usb suspend
+    *UCLKCON &= ~0x80000000; // disable pull-up on d+ line
+    *MISCCR |= 0x1000; // usb suspend mode
 
     *SCLKCON &= ~2;        // DISABLE USB HOST CLOCK
     *PWRCFG &= ~0x10;      // POWER OFF PHY
