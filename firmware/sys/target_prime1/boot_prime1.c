@@ -228,6 +228,8 @@ void setup_hardware()
     // Playing it safe for testing -
     NANDWriteProtect();
 
+    *PWRCFG |= 0x20000; // Enable Wait for Interrupt mode
+
 }
 
 
@@ -946,7 +948,7 @@ void startup(void)
 
     ts_init();
 
-    usb_init(1);
+    //usb_init(1);
 
     red_led_on();
 
