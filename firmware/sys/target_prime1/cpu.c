@@ -264,7 +264,105 @@ __ARM_MODE__ void cpu_waitforinterrupt()
     asm volatile ("mcr p15,0,%0,c7,c0,4"::"r" (var));
 }
 
+__ARM_MODE__ void reset_gpio()
+{
+    // GPB0 output low
+    // GPB1 output low
+    // GPB2 input pull-down
+    // GPB3 input
+    // GPB4 input
+    // GPB5 output high
+    // GPB6 output high
+    // GPB9 output low
+    // GPB10 output low
+    *GPBDAT = 0x060;
+    *GPBCON = 0x141405;
+    *GPBUDP = 0x000010;
+    *GPBSEL = 0x000000;
 
+    // GPC0-15 input pull-down
+    *GPCCON = 0x00000000;
+    *GPCUDP = 0x55555555;
+
+    // GPD0-15 input pull-down
+    *GPDCON = 0x00000000;
+    *GPDUDP = 0x55555555;
+
+    // GPE0-15 input pull-down
+    *GPECON = 0x00000000;
+    *GPEUDP = 0x55555555;
+    *GPESEL = 0x00000000;
+
+    // GPF0 input pull-down
+    // GPF1 input pull-down
+    // GPF2 input pull-down
+    // GPF3 EINT[3]
+    // GPF4 output low
+    // GPF5 input pull-down
+    // GPF6 EINT[6]
+    // GPF7 output ?
+    *GPFDAT &= 0x80;
+    *GPFCON = 0x6180;
+    *GPFUDP = 0x0415;
+
+    // GPG0 EINT[8] pull-down (ON key interrupt)
+    // GPG1-7 input pull-down
+    *GPGCON = 0x0002;
+    *GPGUDP = 0x5555;
+
+    // GPH0-6 input pull-down
+    // GPH7 output low
+    // GPH8-12 input pull-downb
+    // GPH13 output low
+    // GPH14 output low
+    *GPHDAT = 0x0000;
+    *GPHCON = 0x14004000;
+    *GPHUDP = 0x01551555;
+
+    // GPK0-15 input pull-down
+    *GPKCON = 0x00000000;
+    *GPKUDP = 0x55555555;
+    
+    // GPL0-3 input pull-down
+    // GPL8-9 input pull-down
+    // GPL13 output low
+    *GPLDAT = 0x0000;
+    *GPLCON = 0x04000000;
+    *GPLUDP = 0x00050055;
+
+    // GPM0 input
+    // GPM1 FRnB
+    *GPMCON = 0x8;
+    *GPMUDP = 0x0;
+
+    // SADDR output low
+    // SDATAL output low
+    // SDATAh output low
+    // nSCS0 output high
+    // nSCS1 output high
+    // SDR output high
+    // nSWE output high
+    // DQS output low
+    // DQML output high
+    // DQMH output low
+    // SCK output low
+    // nSCLK output high
+    *PDDMCON = 0x00411540;
+
+    // RADDR0 output low
+    // RADDRL output low
+    // RADDRH output low
+    // RDATA output low
+    // nRCS0 output high
+    // nRCS51 output high
+    // nRBE output high
+    // RSM output low
+    // nROE output high
+    // nRWE output high
+    // NF0 output low
+    // NF1 output high
+    *PDSMCON = 0x05451500;
+}
 
 __ARM_MODE__ void cpu_off_prepare()
 {
@@ -281,117 +379,16 @@ __ARM_MODE__ void cpu_off_prepare()
 
     lcd_off();
 
-    // SET GPB9 and GPF4 TO ZERO TO POWER DOWN THE LCD CHIP
-    *GPBDAT = (*GPBDAT & ~0x200);                 // GPB9 POWER DOWN THE LCD DRIVER CHIP
-    *GPFDAT = (*GPFDAT & ~0x10);                  // GPF4 POWER DOWN THE LCD DRIVER CHIP
+    // PREPARE ALL GPIO BLOCKS FOR POWEROFF
+
+    reset_gpio();
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // PREPARE ALL GPIO BLOCKS FOR POWEROFF
 
     // TIMERS
     *TCON = 0;  // STOP ALL RUNNING TIMERS
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-/*
-    // GPIO-A
-
-    *GPADAT = 0;
-    *GPACON = 0X7FFFFF;      //ALL FUNCTIONAL PINS
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-B
-
-    *GPBDAT = 0;
-    *GPBCON = 0x155555;   // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPBUDP = 0;      // ALL PULLUPS/PULLDOWN DISABLED
-    *GPBSEL = 0;
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-C
-
-    *GPCDAT = 0;
-    *GPCCON = 0x55555555; // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPCUDP = 0;     // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-D
-
-    *GPDDAT = 0;
-    *GPDCON = 0x55555555; // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPDUDP = 0;     // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-E
-
-    *GPEDAT = 0;
-    *GPECON = 0x55555555; // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPEUDP = 0;     // ALL PULLUPS DISABLED
-    *GPESEL = 0;
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-F
-
-    *GPFDAT = 0;
-    *GPFCON = 0x5555;     // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPFUDP = 0;       // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-G
-
-    *GPGDAT = 0;
-    *GPGCON = 0x5555; // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPGUDP = 0;     // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-H
-
-    *GPHDAT = 0;
-    *GPHCON = 0x15555555;   // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPHUDP = 0;      // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-K
-
-    *GPKDAT = 0;
-    *GPKCON = 0x55555555;   // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPKUDP = 0;      // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-L
-
-    *GPLDAT = 0;
-    *GPLCON = 0x4050055;   // ALL OUTPUTS AND ALL AT LOW STATE
-    *GPLUDP = 0;      // ALL PULLUPS DISABLED
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    // GPIO-M
-
-    *GPMDAT = 0;
-    *GPMCON = 0xA;   // SELECT FUNCTION (Flash/OneNAND related)
-    *GPMUDP = 0;      // ALL PULLUPS DISABLED
-*/
-
-    asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
-
-    //*DSC0 = 0x2aaaaaaa; // Reset values
-    //*DSC1 = 0x0aaaaaaa; // Reset values
-    //*DSC2 = 0x0aa8aaaa; // Reset values
-    //*DSC3 = 0x000002aa; // Reset values
-
-    //*PDDMCON = 0x00aaaaaa;  // All Hi-Z - We probably shouldn't be touching these
-    //*PDSMCON = 0x00aaaaaa;  // All Hi-Z - We probably shouldn't be touching these
-
 
      *MISCCR |= 0x1000;          // USB PORT INTO SUSPEND MODE
 
@@ -400,15 +397,18 @@ __ARM_MODE__ void cpu_off_prepare()
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
+    // EINT0 rising
+    // EINT1 both
+    // EINT2 rising
+    // EINT3 both
+    // EINT4 rising
+    // EINT5 both
+    // EINT6 both
+    // EINT7 rising
+    *EXTINT0 = 0x466464e4;
 
-
-
-    // SETUP ON KEY TO WAKE UP
-    // 01 01 01 01 01 01 01 10 =0x5556
-    //  7  6  5  4  3  2  1  0
-    *GPGCON = 0x5556;     // ONLY ENABLE EINT8, ALL OTHERS OUTPUT
-    *GPGUDP = 1;          // ENABLE PULLDOWN ON GPG0
-    *EXTINT1 = 6;         // BOTH EDGES TRIGGER EINT8
+    // EINT8-15 rising
+    *EXTINT1 = 0x44444444;
 
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
@@ -421,13 +421,29 @@ __ARM_MODE__ void cpu_off_prepare()
     *INTPND2 = *INTPND2;
     *EINTPEND = *EINTPEND;
 
-    *INTMSK1 = 0xffffffdf; // UNMASK ONLY THE ON KEY INTERRUPT
-    *EINTMASK = 0xfef0;    // UNMASK THE ON KEY INTERRUPT
+    // EINT8 enabled
+    *EINTMASK &= ~0x100;
+
+    // EINT1 available
+    // EINT8-15 available
+    *INTMSK1 &= 0x22;
+
+    // ADC standby mode
+    *ADCCON |= 0x4;
+
+    // RESERVED 3
+    // Power on retention
+    // RSTCNT = 0xfe
+    // PWRSETCNT = 0x80
+    *RSTCON = 0x7fe80;
+
+    // Set XTALWAIT for wakeup
+    *OSCSET = 0x1000;
+
     // TODO: SETUP ALARM TO WAKE UP
     // FLUSH ALL BUFFERS
 
     cpu_flushwritebuffers();
-
 }
 
 // WARNING: CALL THIS FUNCTION AFTER DISABLING MMU

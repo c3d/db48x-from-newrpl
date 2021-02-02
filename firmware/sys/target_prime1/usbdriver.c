@@ -484,6 +484,12 @@ void usb_shutdown()
 
     if(!(__usb_drvstatus & USB_STATUS_INIT))
         return;
+
+    *PHYPWR |= 0x1; // force usb suspend
+    *PWRCFG &= ~0x10; // usb power off
+    *UCLKCON &= ~0x80000000; // disable pull-up on d+ line
+    *MISCCR |= 0x1000; // usb suspend mode
+
     /* ::PRIME FIX::
 
     // MASK INTERRUPT AND REMOVE HANDLER
