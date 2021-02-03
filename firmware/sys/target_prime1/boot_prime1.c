@@ -230,6 +230,13 @@ void setup_hardware()
 
     *PWRCFG |= 0x20000; // Enable Wait for Interrupt mode
 
+    // Disable SoC blocks that we don't use
+
+    *HCLKCON &= ~0x18000;          // Disable HCLK into HSMMC0 and HSMMC1
+    *PCLKCON &= ~0x8034e;          // Disable PCLK going to SPI_HS0, AC97, I2S0, and PCM audio interfaces
+    *SCLKCON &= ~0xa05242;         // Disable special clocks to HSMMC0, I2S0, PCM0, SPI, USB Host
+
+
 }
 
 
@@ -950,7 +957,7 @@ void startup(void)
 
     //usb_init(1);
 
-    red_led_on();
+    //red_led_on();
 
     main_virtual(prevstate); // never returns
 }
@@ -1070,8 +1077,8 @@ void halEnterPowerOff()
     enable_interrupts();
 
     blue_led_off();
-    red_led_on();
-    green_led_off();
+    red_led_off();
+    green_led_on();
 
 
     cpu_off_die();
