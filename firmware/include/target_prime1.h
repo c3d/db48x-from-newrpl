@@ -871,6 +871,9 @@ void __tmr_delay10ms();
 void __tmr_delay20ms();
 
 
+// OTHER ADDITIONAL HARDWARE FUNCTIONS
+// Reset all GPIO to a known state (low power for sleep mode)
+void reset_gpio();
 
 
 

@@ -303,7 +303,7 @@ void uiSetCurrentLine(BINT line)
     // POSITION THE CURSOR IN THE NEW LINE, TRYING TO PRESERVE THE X COORDINATE
 
     BINT len = rplStrSize(CmdLineCurrentLine);
-    BINT targetx = halScreen.CursorX;
+    int targetx = halScreen.CursorX;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
             (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
@@ -1150,7 +1150,7 @@ void uiCursorPageRight()
 // POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
 
     BINT len = rplStrSize(CmdLineCurrentLine);
-    BINT targetx = halScreen.CursorX + SCREEN_WIDTH;
+    int targetx = halScreen.CursorX + SCREEN_WIDTH;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
             (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
@@ -1190,7 +1190,7 @@ void uiCursorPageLeft()
 // POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
 
     BINT len = rplStrSize(CmdLineCurrentLine);
-    BINT targetx = halScreen.CursorX - SCREEN_WIDTH;
+    int targetx = halScreen.CursorX - SCREEN_WIDTH;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
             (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,

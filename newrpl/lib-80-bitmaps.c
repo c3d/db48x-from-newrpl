@@ -366,7 +366,7 @@ void rplBMPRenderUdateState(WORDPTR * rstatusptr,
     renderst = (BMP_RENDERSTATE *) (PERSISTPTR(rstatus) + 1);
     *renderstptr = renderst;    // UPDATE render STATUS STRUCTURE
 
-    renderst->srf.addr = (BINT *) (ROBJPTR(rstatus) + 3);       // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
+    renderst->srf.addr = (int *) (ROBJPTR(rstatus) + 3);       // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
 
 }
 
@@ -416,7 +416,7 @@ void rplBMPRenderAllocPoint(WORDPTR * rstatusptr,
     *rstatusptr = newobj;       // UPDATE rstatus LIST
     *renderstptr = renderst;    // UPDATE render STATUS STRUCTURE
 
-    renderst->srf.addr = (BINT *) (ROBJPTR(rstatus) + 3);       // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
+    renderst->srf.addr = (int *) (ROBJPTR(rstatus) + 3);       // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
 
     rplOverwriteData(2, newobj);
 
@@ -517,7 +517,7 @@ void LIB_HANDLER()
             renderst->srf.clipx2 = w - 1;
             renderst->srf.clipy = 0;
             renderst->srf.clipy2 = h - 1;
-            renderst->srf.addr = (BINT *) (ROBJPTR(rstatus) + 3);
+            renderst->srf.addr = (int *) (ROBJPTR(rstatus) + 3);
             renderst->srf.width = w;
             renderst->srf.x = 0;
             renderst->srf.y = 0;

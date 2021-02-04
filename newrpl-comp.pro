@@ -40,6 +40,7 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
+    firmware/sys/Font18.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
     firmware/sys/target_pc/non-gui-stubs.c \

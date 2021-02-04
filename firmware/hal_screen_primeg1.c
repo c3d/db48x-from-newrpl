@@ -858,7 +858,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
                 0xf, scr);
         namew += 3 + StringWidth(": ", *halScreen.FontArray[FONT_STATUS]);
 
-        BINT xend;
+        int xend;
         BYTEPTR basetext = (BYTEPTR) (helptext + 1);
         BYTEPTR endoftext = basetext + rplStrSize(helptext);
         BYTEPTR nextline, endofline;
