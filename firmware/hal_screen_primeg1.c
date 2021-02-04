@@ -1976,10 +1976,11 @@ void halRedrawAll(DRAWSURFACE * scr)
         halRedrawStack(scr);
     if(halScreen.DirtyFlag & CMDLINE_ALLDIRTY)
         halRedrawCmdLine(scr);
-    if(halScreen.DirtyFlag & MENU1_DIRTY)
-        halRedrawMenu1(scr);
+
     if(!halScreen.SAreaTimer) {
         // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
+        if(halScreen.DirtyFlag & MENU1_DIRTY)
+            halRedrawMenu1(scr);
         if(halScreen.DirtyFlag & MENU2_DIRTY)
             halRedrawMenu2(scr);
         if(halScreen.DirtyFlag & STAREA_DIRTY)
@@ -2111,22 +2112,23 @@ void halShowErrorMsg()
     }
 
     BINT ytop =
-            halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            1;
+            halScreen.Form + halScreen.Stack + halScreen.CmdLine +1;
+    BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ytop + halScreen.Menu2 - 1,
+    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
             0);
     // DO SOME DECORATIVE ELEMENTS
     ggl_cliphline(&scr,
             ytop + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight + 1, 0,
             SCREEN_WIDTH - 1, ggl_mkcolor(8));
     //ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-    ggl_cliprect(&scr, 0, ytop, 4, ytop + halScreen.Menu2 - 1, ggl_mkcolor(8));
+    ggl_cliprect(&scr, 0, ytop, 4, ybot , ggl_mkcolor(8));
 
     scr.clipx = 1;
     scr.clipx2 = SCREEN_WIDTH - 2;
     scr.clipy = ytop;
-    scr.clipy2 = ytop + halScreen.Menu2 - 2;
+    scr.clipy2 = ybot - 1;
     // SHOW ERROR MESSAGE
 
     if(Exceptions != EX_ERRORCODE) {
@@ -2230,16 +2232,18 @@ void halShowMsgN(char *Text, char *End)
     BINT ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             1;
+    BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ytop + halScreen.Menu2 - 1,
+    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
             0);
     // DO SOME DECORATIVE ELEMENTS
     ggl_cliphline(&scr, ytop + 1, 1, SCREEN_WIDTH - 2, ggl_mkcolor(8));
-    ggl_cliphline(&scr, ytop + halScreen.Menu2 - 1, 1, SCREEN_WIDTH - 2,
+    ggl_cliphline(&scr, ybot, 1, SCREEN_WIDTH - 2,
             ggl_mkcolor(8));
-    ggl_clipvline(&scr, 1, ytop + 2, ytop + halScreen.Menu2 - 2,
+    ggl_clipvline(&scr, 1, ytop + 2, ybot - 1,
             ggl_mkcolor(8));
-    ggl_clipvline(&scr, SCREEN_WIDTH - 2, ytop + 2, ytop + halScreen.Menu2 - 2,
+    ggl_clipvline(&scr, SCREEN_WIDTH - 2, ytop + 2, ybot - 1,
             ggl_mkcolor(8));
 
     // SHOW MESSAGE

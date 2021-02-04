@@ -92,6 +92,9 @@ void battery_handler()
 
     if(!__bat_readcnt) {
 
+
+        if(halScreen.Menu2==0) return;  // Don't display battery in single menu mode
+
        gglsurface scr;
        ggl_initscr(&scr);
 
