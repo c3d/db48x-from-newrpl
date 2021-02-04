@@ -25,12 +25,11 @@ class QEmuScreen:public QGraphicsView
     QColor Grays[16];   // ARRAY WITH ALL THE DIFFERENT GRAY LEVELS
     QBrush GrayBrush[16];
     QPen BkgndPen;
-    QPixmap annHourglass, annComms, annAlpha, annBattery, annLShift, annRShift;
+    QPixmap annHourglass, annComms, annAlpha, annBattery, annLShift, annRShift,mainPixmap;
 
     QGraphicsScene scr;
 
-    QGraphicsRectItem **Pixels;
-    QGraphicsPixmapItem *Annunciators[6];
+    QGraphicsPixmapItem *Annunciators[6], *mainScreen;
 
     void setTimer(QTimer * tmr);
     void setPixel(int offset, int color);

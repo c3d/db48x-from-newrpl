@@ -350,29 +350,29 @@ macx: LIBS += -framework CoreFoundation -framework IOKit
 # End of HIDAPI
 
 DISTFILES += \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat
+    android-Prime/AndroidManifest.xml \
+    android-Prime/gradle/wrapper/gradle-wrapper.jar \
+    android-Prime/gradlew \
+    android-Prime/res/values/libs.xml \
+    android-Prime/build.gradle \
+    android-Prime/gradle/wrapper/gradle-wrapper.properties \
+    android-Prime/gradlew.bat \
+    android-Prime/AndroidManifest.xml \
+    android-Prime/gradle/wrapper/gradle-wrapper.jar \
+    android-Prime/gradlew \
+    android-Prime/res/values/libs.xml \
+    android-Prime/build.gradle \
+    android-Prime/gradle/wrapper/gradle-wrapper.properties \
+    android-Prime/gradlew.bat \
+    android-Prime/AndroidManifest.xml \
+    android-Prime/gradle/wrapper/gradle-wrapper.jar \
+    android-Prime/gradlew \
+    android-Prime/res/values/libs.xml \
+    android-Prime/build.gradle \
+    android-Prime/gradle/wrapper/gradle-wrapper.properties \
+    android-Prime/gradlew.bat
 
-ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android-Prime
 
 ANDROID_EXTRA_LIBS = $$PWD/external/libusb-1.0.22/android/libs/x86/libusb1.0.so $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
 

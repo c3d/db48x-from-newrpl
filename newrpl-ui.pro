@@ -12,7 +12,6 @@ TEMPLATE = app
 DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += main.cpp\
-    firmware/sys/Font24.c \
         mainwindow.cpp \
     newrpl/lib-112-asm.c \
     newrpl/lib-4081-tags.c \
@@ -176,6 +175,9 @@ SOURCES += main.cpp\
     firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
+    firmware/sys/Font10A.c \
+    firmware/sys/Font18.c \
+    firmware/sys/Font24.c \
     firmware/sys/keybcommon.c \
     newrpl/matrix.c \
     newrpl/decimal.c \
@@ -227,7 +229,6 @@ SOURCES += main.cpp\
     newrpl/lib-102-libptr.c \
     newrpl/lib-104-solvers.c \
     newrpl/lib-55-constants.c \
-    firmware/sys/Font10A.c \
     firmware/sys/target_pc/fwupdate.c
 
 
