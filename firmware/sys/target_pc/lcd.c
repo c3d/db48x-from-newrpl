@@ -16,8 +16,8 @@ int __lcd_mode = -1;
 int __lcd_needsupdate = 0;
 unsigned int *__lcd_buffer;
 // SIMULATED SCREEN MEMORY
-char PhysicalScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
-char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
+char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
+char ExceptionScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
 
 int __lcd_contrast __SYSTEM_GLOBAL__;
 

@@ -451,6 +451,8 @@ void usb_init(int force)
         if(!force)
             return;
     }
+    red_led_off();
+    green_led_on();
 
     //__usb_intcount=0;
 
@@ -511,7 +513,8 @@ void usb_shutdown()
     if(!(__usb_drvstatus & USB_STATUS_INIT))
         return;
 
-
+    red_led_on();
+    green_led_off();
 
     // MASK INTERRUPT AND REMOVE HANDLER
     __irq_mask(25);
@@ -587,31 +590,42 @@ void usb_ep0_transmit(int newtransmission)
 
         *EP0CR&= ~EP0_TZLS;   // CLEAR TRANSMIT ZERO PACKET BIT
 
-        *BWCR = __usb_ctlcount + __usb_ctlpadding ;        // TOTAL BYTES TO TRANSMIT
+        int total = __usb_ctlcount + __usb_ctlpadding ;
+        *BWCR = (total>EP0_FIFO_SIZE)? EP0_FIFO_SIZE : total ;        // BWCR = WRITE COUNT - IN BYTES DESPITE THE FIFO USING HALF-WORDS
 
         *EP0SR= EP_TPS;       // CLEAR TRANSMIT PACKET SUCCESS BIT (READY FOR NEXT PACKET)
 
-
         int cnt = 0;
-        while(__usb_ctlcount && (cnt < EP0_FIFO_SIZE)) {
-            *EP0BR = (WORD) * __usb_ctlbufptr;
-            ++__usb_ctlbufptr;
-            ++cnt;
-            --__usb_ctlcount;
+        int halfword;
+        while((__usb_ctlcount>1) && (cnt < EP0_FIFO_SIZE)) {
+            halfword = __usb_ctlbufptr[0] | (__usb_ctlbufptr[1]<<8);
+            *EP0BR = (WORD) halfword;
+            __usb_ctlbufptr+=2;
+            cnt+=2;
+            __usb_ctlcount-=2;
+        }
+
+        if(__usb_ctlcount == 1) {
+            halfword = __usb_ctlbufptr[0] ; // UPPER BYTE IS ZERO
+            *EP0BR = (WORD) halfword;
+            __usb_ctlbufptr++;
+            cnt+=2;
+            __usb_ctlcount--;
+            __usb_ctlpadding--;
         }
 
         if(__usb_ctlcount == 0) {
             // SEND ANY PADDING
-            while((__usb_ctlpadding != 0) && (cnt < EP0_FIFO_SIZE)) {
+            while((__usb_ctlpadding > 0) && (cnt < EP0_FIFO_SIZE)) {
                 *EP0BR = 0;
-                ++cnt;
-                --__usb_ctlpadding;
+                cnt+=2;
+                __usb_ctlpadding-=2;
             }
         }
 
         if((__usb_ctlcount == 0) && (__usb_ctlpadding == 0)) {
 
-            // SEND A 0-LENGTH PACKET
+            // SEND A 0-LENGTH PACKET TO INDICATE END OF TRANSMISSION
 
             *EP0CR |= EP0_TZLS;  // SEND A ZERO-LENGTH PACKET
 
@@ -649,12 +663,28 @@ void usb_ep0_receive(int newtransmission)
         }
 
         int cnt = 0;
+        int halfword;
+        int lwo = *EP0SR & EP0_LWO;   // GET THE LAST WORD ODD BIT BEFORE IT'S AUTOMATICALLY CLEARED
+
         while(__usb_ctlcount && (cnt < EP0_FIFO_SIZE) && (*BRCR&0x1ff)) {
-            *__usb_ctlbufptr = (BYTE) * EP0BR;
-            ++__usb_ctlbufptr;
-            --__usb_ctlcount;
-            ++cnt;
+            halfword=*EP0BR;
+            *__usb_ctlbufptr++ = (BYTE) halfword;
+            *__usb_ctlbufptr++ = (BYTE) (halfword>>8);
+            __usb_ctlcount-=2;
+            cnt+=2;
         }
+
+        if(lwo && (cnt>0) && !(*BRCR&0x1ff)) {
+            // DISCARD THE LAST BYTE IF THE LAST WORD WAS ODD
+            __usb_ctlcount++;
+            __usb_ctlbufptr--;
+            cnt--;
+        }
+
+        // THERE WAS EXTRA DATA IN THE PACKET??
+        // JUST IN CASE CLEAN THE FIFO
+        while(*BRCR) halfword=*EP0BR;
+
 
         *EP0SR = EP0_RSR;       // CLEAR PACKET RECEIVED
 
@@ -726,13 +756,13 @@ void ep0_irqservice()
         // READ ALL 8 BYTES FROM THE FIFO
 
         reqtype = *EP0BR;
-        request = *EP0BR;
+
+        request = reqtype >> 8;
+        reqtype &= 0xff;
+
         value = *EP0BR;
-        value |= (*EP0BR) << 8;
         index = *EP0BR;
-        index |= (*EP0BR) << 8;
         length = *EP0BR;
-        length |= (*EP0BR) << 8;
 
         if((reqtype & 0x60) == 0)       // STANDARD REQUESTS
         {
@@ -1486,6 +1516,7 @@ void usb_irqservice()
         return;
     __usb_drvstatus |= USB_STATUS_INSIDEIRQ;
 
+
     blue_led_on();
 
     *IR = 0;
@@ -1495,10 +1526,12 @@ void usb_irqservice()
         if(__usb_drvstatus & (USB_STATUS_EP0TX | USB_STATUS_EP0RX))
             ep0_irqservice();
         __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
+        *EIR = *EIR;
         return;
     }
 
     if(*EIR & 1) {
+
         ep0_irqservice();
         *EIR = 1;
 

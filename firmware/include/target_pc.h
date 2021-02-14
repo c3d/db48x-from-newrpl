@@ -71,7 +71,7 @@ extern int __usb_timeout;
 // USABLE SCREEN WINDOW SIZE
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
-#define PIXELS_PER_WORD 8
+#define PIXELS_PER_WORD 2
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
@@ -100,8 +100,8 @@ extern int __usb_timeout;
 #define HAL_USBCLOCK     48000000
 #define HAL_FASTCLOCK   192000000
 
-extern char PhysicalScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
-extern char ExceptionScreen[(SCREEN_W*SCREEN_H)/(PIXELS_PER_WORD/4)];
+extern char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
+extern char ExceptionScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
 
 typedef unsigned int INTERRUPT_TYPE;
 

@@ -9,7 +9,7 @@
 #define _HAL_API_H
 
 #include "newrpl.h"
-#include "ggl.h"
+#include "xgl.h"
 #include "usb.h"
 
 #ifndef EXTERN
