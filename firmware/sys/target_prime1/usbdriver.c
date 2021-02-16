@@ -475,7 +475,7 @@ void usb_init(int force)
 
     *GPFCON = (*GPFCON & ~0xc0) | 0x80;    // SET GPF3 AS EINT3
     *GPFUDP = (*GPFUDP & ~0xc0) | 0x40;     // PULL DOWN ENABLED
-    *EXTINT0 = (*EXTINT0 & ~0x7000) | ((*GPFDAT&0x8)? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
+    *EXTINT0 = (*EXTINT0 & ~0x7000) | (CABLE_IS_CONNECTED? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
 
 
 
@@ -546,7 +546,7 @@ void usb_shutdown()
 
     *GPFCON = (*GPFCON & ~0xc0) | 0x80;    // SET GPF3 AS EINT3
     *GPFUDP = (*GPFUDP & ~0xc0) | 0x40;     // PULL DOWN ENABLED
-    *EXTINT0 = (*EXTINT0 & ~0x7000) | ((*GPFDAT&0x8)? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
+    *EXTINT0 = (*EXTINT0 & ~0x7000) | (CABLE_IS_CONNECTED? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
 
     __irq_addhook(3, &usb_irqconnect);
 

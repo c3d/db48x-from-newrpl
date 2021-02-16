@@ -37,7 +37,7 @@ void bat_setup()
 void bat_read()
 {
 
-    if(*GPFDAT & 8) {
+    if(CABLE_IS_CONNECTED) {
         // GPF3 BIT SET INDICATES WE ARE ON USB POWER!!
         __battery = 0x400;
         return;
