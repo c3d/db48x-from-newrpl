@@ -347,6 +347,11 @@ void usb_hwsetup()
 
     __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
 
+    *GPFUDP &= ~0x3000; // gpf6 pull disable
+    *GPHCON &= ~0x30000000;
+    *GPHCON |= 0x10000000;
+    *GPHDAT |= 0x4000; // gph14 output high
+
     // MAKE SURE WE HAVE PCLK>20 MHz FOR USB COMMUNICATIONS TO WORK
     //if(__cpu_getPCLK() < 20000000)
     //    cpu_setspeed(HAL_USBCLOCK);
@@ -477,7 +482,7 @@ void usb_init(int force)
 
     *GPFCON = (*GPFCON & ~0xc0) | 0x80;    // SET GPF3 AS EINT3
     *GPFUDP = (*GPFUDP & ~0xc0) | 0x40;     // PULL DOWN ENABLED
-    *EXTINT0 = (*EXTINT0 & ~0x7000) | ((*GPFDAT&0x8)? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
+    *EXTINT0 = (*EXTINT0 & ~0x7000) | (CABLE_IS_CONNECTED? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
 
 
 
@@ -549,13 +554,17 @@ void usb_shutdown()
 
     *GPFCON = (*GPFCON & ~0xc0) | 0x80;    // SET GPF3 AS EINT3
     *GPFUDP = (*GPFUDP & ~0xc0) | 0x40;     // PULL DOWN ENABLED
-    *EXTINT0 = (*EXTINT0 & ~0x7000) | ((*GPFDAT&0x8)? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
+    *EXTINT0 = (*EXTINT0 & ~0x7000) | (CABLE_IS_CONNECTED? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
 
     __irq_addhook(3, &usb_irqconnect);
 
     __irq_clrpending(3);
 
     __irq_unmask(3);
+
+    *GPHCON &= ~0x30000000;
+    *GPHCON |= 0x10000000;
+    *GPHDAT &= ~0x4000; // gph14 output low
 }
 
 // TRANSMIT BYTES TO THE HOST IN EP0 ENDPOINT
