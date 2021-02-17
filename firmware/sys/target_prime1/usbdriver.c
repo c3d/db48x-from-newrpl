@@ -342,15 +342,61 @@ WORD usb_crc32roll(WORD oldcrc, BYTEPTR data, BINT len)
     return crc ^ 0xffffffff;
 }
 
+void usb_reset()
+{
+    __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
+        *URSTCON = 0x5;        // ASSERT RESET PHY AND DEVICE FUNCTION
+
+        __tmr_delay100us();
+
+        *URSTCON = 0;        // END RESET SIGNALING
+
+        __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
+
+
+        // AND COMPLETELY REPROGRAM THE DEVICE BLOCK
+
+        *SCR = 3;       // ENABLE RESET AND SUSPEND MODES
+        *FCON = 0;      // NO DMA
+        *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
+
+        *EDR = 2;       // ONLY ENDPOINT 1 IS IN (TX), ALL OTHERS RX
+
+
+        *IR = 0;     // SETUP ENDPOINT0
+        *MPR = 8;      // USE 8-BYTE PACKETS
+        *EP0CR = 0x0;
+
+
+        *IR = 1;
+        *MPR = 64;      // USE 64-BYTE PACKETS ON EP1
+        *ECR = 0x841;        // IN ENDPOINT FIFO_FLUSH
+        *DCR = 0;      // NO DMA
+
+
+        *IR = 2;
+        *MPR = 64;      // USE 64-BYTE PACKETS ON EP2
+        *ECR = 0x1041;  // OUT ENDPOINT FIFO_FLUSH INTERRUPT MODE
+        *DCR = 0;      // NO DMA
+
+        // SET WHICH INTERRUPTS WE WANT
+
+        *EIER = 0x7;                // ENABLE ONLY ENDPOINTS 0 1 AND 2 INTERRUPTS
+        *EIR = 0x1ff;               // CLEAR ALL INTERRUPTS
+
+}
+
+
+
 void usb_hwsetup()
 {
 
     __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
 
-    *GPFUDP &= ~0x3000; // gpf6 pull disable
-    *GPHCON &= ~0x30000000;
-    *GPHCON |= 0x10000000;
-    *GPHDAT |= 0x4000; // gph14 output high
+//    *GPFUDP &= ~0x3000; // gpf6 pull disable
+    *GPHCON = (*GPHCON & ~0x30000000) | 0x10000000; // SET GPH14 AS OUTPUT
+    *GPHUDP = (*GPHUDP & ~0x30000000);              // DISABLE PULLUP/DOWN
+    *GPHDAT |= 0x4000; // GPH14 = HIGH (TURN ON PHY POWER REGULATOR)
 
     // MAKE SURE WE HAVE PCLK>20 MHz FOR USB COMMUNICATIONS TO WORK
     //if(__cpu_getPCLK() < 20000000)
@@ -369,16 +415,19 @@ void usb_hwsetup()
 
 
     *PHYCTRL = 0;        // DEVICE MODE, USE EPLL, 48 MHz DISABLE EXTERNAL CLOCK INPUT
-    *UCLKCON = 0x80000004;          // PULL-UP ON D+, USB HOST CLOCK CONTROL: DISABLED, DEVICE CLOCK: ENABLED
+    *UCLKCON = 0x4;          // DON'T ENABLE PULL-UP ON D+ JUST YET, WAIT FOR FULL INITIALIZATION BEFORE DOING THAT
+                             // USB HOST CLOCK CONTROL: DISABLED, DEVICE CLOCK: ENABLED
     *PHYPWR = 0x30;       // NORMAL OPERATION (manual shows must be 0x3 bits)
 
     *MISCCR &= ~0x1000;        // USB PADS TO NORMAL MODE
 
     *PWRCFG |= 0x10;       // POWER ON PHY
 
+    __tmr_delay100us();
+
 //    *USB_RSTCON = 0x5;        // ASSERT RESET PHY AND DEVICE FUNCTION
 
-    __tmr_delay100us();
+//    __tmr_delay100us();
 
 //    *USB_RSTCON = 0;        // END RESET SIGNALING
 
@@ -411,6 +460,9 @@ void usb_hwsetup()
     *EIER = 0x7;                // ENABLE ONLY ENDPOINTS 0 1 AND 2 INTERRUPTS
     *EIR = 0x1ff;               // CLEAR ALL INTERRUPTS
 
+    __tmr_delay100us();
+
+    *UCLKCON |= 0x80000000;     // CONNECT PULL UP TO SIGNAL THE HOST A DEVICE HAS BEEN CONNECTED
 
 }
 
@@ -456,7 +508,7 @@ void usb_init(int force)
         if(!force)
             return;
     }
-    red_led_off();
+
     green_led_on();
 
     //__usb_intcount=0;
@@ -518,7 +570,6 @@ void usb_shutdown()
     if(!(__usb_drvstatus & USB_STATUS_INIT))
         return;
 
-    red_led_on();
     green_led_off();
 
     // MASK INTERRUPT AND REMOVE HANDLER
@@ -545,6 +596,9 @@ void usb_shutdown()
     *PWRCFG &= ~0x10;      // POWER OFF PHY
     *HCLKCON &= ~0x1800;   // REMOVE HCLK FROM BOTH DEVICE AND HOST
 
+    *GPHCON = (*GPHCON & ~0x30000000) | 0x10000000; // SET GPH14 AS OUTPUT
+    *GPHUDP = (*GPHUDP & ~0x30000000);              // DISABLE PULLUP/DOWN
+    *GPHDAT &= ~0x4000; // GPH14 = LOW (TURN OFF PHY POWER REGULATOR)
 
     __usb_fileid = 0;
     __usb_drvstatus = 0;        // MARK UNCONFIGURED
@@ -562,9 +616,7 @@ void usb_shutdown()
 
     __irq_unmask(3);
 
-    *GPHCON &= ~0x30000000;
-    *GPHCON |= 0x10000000;
-    *GPHDAT &= ~0x4000; // gph14 output low
+
 }
 
 // TRANSMIT BYTES TO THE HOST IN EP0 ENDPOINT
@@ -733,7 +785,6 @@ void inline usb_checkpipe()
 void ep0_irqservice()
 {
     *IR = 0;     // SELECT ENDPOINT 0
-
 
     usb_checkpipe();
 
@@ -1526,20 +1577,12 @@ void usb_irqservice()
     __usb_drvstatus |= USB_STATUS_INSIDEIRQ;
 
 
-    blue_led_on();
-
     *IR = 0;
 
-    if(!(*EIR & 7)) {
-        // WHAT ARE THESE INTERRUPTS FOR?
-        if(__usb_drvstatus & (USB_STATUS_EP0TX | USB_STATUS_EP0RX))
-            ep0_irqservice();
-        __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-        *EIR = *EIR;
-        return;
-    }
 
     if(*EIR & 1) {
+
+        blue_led_on();
 
         ep0_irqservice();
         *EIR = 1;
@@ -1571,12 +1614,32 @@ void usb_irqservice()
 
     if(*SSR & 1) {
         // RESET RECEIVED
+
             __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
-            usb_hwsetup();      // AND MAKE SURE THE HARDWARE IS IN KNOWN STATE, INCLUDING RESETTING THE PHY
         *SSR = 1;
         __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
         return;
     }
+
+   if(*SSR & 8) {
+       // SPEED DETECTION END RECEIVED
+       *SSR=8;
+
+       __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
+       return;
+   }
+
+
+   // WHAT ARE THESE INTERRUPTS FOR?
+        if(__usb_drvstatus & (USB_STATUS_EP0TX | USB_STATUS_EP0RX))
+            ep0_irqservice();
+
+   if(*SSR & 0xfc80) {
+       red_led_on();
+       *SSR = *SSR;    // CLEAR ERROR CONDITIONS
+       __usb_drvstatus|= USB_STATUS_ERROR;
+       return;
+   }
 
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
 }
