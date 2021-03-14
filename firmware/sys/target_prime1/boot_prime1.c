@@ -1078,7 +1078,7 @@ void halEnterPowerOff()
 
     blue_led_off();
     red_led_off();
-    green_led_on();
+    green_led_off();
 
 
     cpu_off_die();

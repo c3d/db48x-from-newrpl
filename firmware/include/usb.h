@@ -12,8 +12,8 @@
 
 // These 4 numbers identify your device.  Set these to
 // something that is (hopefully) not used by any others!
-#define VENDOR_ID       0x3f0    // VID of HP Inc.
-#define PRODUCT_ID      0x121   // ORIGINAL PID OF THE 50g/39gs/40g TARGET HARDWARE
+#define VENDOR_ID		0x3f0    // VID of HP Inc.
+#define PRODUCT_ID		0x121   // ORIGINAL VID/PID OF THE 50g/39gs/40g TARGET HARDWARE
 //#define PRODUCT_ID        0x441   // PID OF THE Prime UPDATE MODE [NW280AA, G8X92AA] TARGET HARDWARE
 //#define PRODUCT_ID        0x1541 // ORIGINAL PID OF Prime [NW280AA, G8X92AA] TARGET HARDWARE
 

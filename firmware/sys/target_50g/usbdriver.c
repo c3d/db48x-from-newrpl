@@ -785,7 +785,7 @@ void ep0_irqservice()
             }
             case GET_STATUS:
             {
-
+                __usb_ctlbufptr = __usb_ctlbuffer;
                 __usb_ctlbuffer[0] = __usb_ctlbuffer[1] = 0;
                 switch (reqtype) {
                 case 0x80:     // DEVICE GET STATUS
@@ -812,7 +812,6 @@ void ep0_irqservice()
                 *EP0_CSR |= EP0_SERVICED_OUT_PKT_RDY;
                 __usb_ctlcount = 2;
                 __usb_ctlpadding = 0;
-                __usb_ctlbufptr = __usb_ctlbuffer;
 
                 usb_ep0_transmit(1);    // SEND DATA STATUS STAGE
                 usb_checkpipe();
