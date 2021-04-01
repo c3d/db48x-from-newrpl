@@ -142,6 +142,14 @@ void lcd_restore(unsigned int *buf)
 #define CONT_BITREADY 0x2000
 #define CONT_TX 0x1000
 
+#ifdef CONFIG_USE_LCD_ALTERNATIVE_SETTINGS
+
+const unsigned short int const __lcdcontrast_table[16] = CONFIG_USE_LCD_ALTERNATIVE_SETTINGS ;
+
+#else
+
+//Default contrast settings for 50g hardware
+
 const unsigned short int const __lcdcontrast_table[16] = {
     0x43fc,
     0x43ff,
@@ -160,6 +168,7 @@ const unsigned short int const __lcdcontrast_table[16] = {
     0x47f8,
     0x47fc
 };
+#endif
 
 void __lcd_txbyte(int byte)
 {

@@ -253,6 +253,7 @@ HEADERS  += \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     firmware/include/usb.h \
+    firmware/include/xgl.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/newrpl_types.h \

@@ -27,4 +27,8 @@
 #include "ggl.h"
 #endif
 
+#ifdef TARGET_48GII
+#include "ggl.h"
+#endif
+
 #endif // XGL_H
