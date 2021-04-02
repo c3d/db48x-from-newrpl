@@ -30,7 +30,6 @@ DEFINES += TARGET_50G NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD
 
 
 SOURCES +=\
-    firmware/sys/Font18.c \
     firmware/sys/target_50g/preamble.c \
     firmware/sys/target_50g/boot.c \
     firmware/sys/target_50g/battery.c \
@@ -88,6 +87,7 @@ SOURCES +=\
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
     firmware/sys/Font10A.c \
+    firmware/sys/Font18.c \
     firmware/sys/Font24.c \
     firmware/sys/target_50g/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
