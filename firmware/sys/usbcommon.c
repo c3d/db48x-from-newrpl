@@ -288,7 +288,8 @@ void usb_receivecontrolpacket()
                 __usb_drvstatus &=
                         ~(USB_STATUS_TXDATA | USB_STATUS_TXCTL |
                         USB_STATUS_RXDATA | USB_STATUS_HALT | USB_STATUS_ERROR |
-                        USB_STATUS_RXCTL | USB_STATUS_EOF);
+                        USB_STATUS_RXCTL | USB_STATUS_EOF | USB_STATUS_WAIT_FOR_ACK |
+                        USB_STATUS_SEND_ZERO_LENGTH_PACKET);
 
                 // ABORT ALL TRANSACTIONS
                 __usb_fileid = 0;

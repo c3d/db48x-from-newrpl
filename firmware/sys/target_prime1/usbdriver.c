@@ -11,17 +11,6 @@
 // OTHER EXTERNAL FUNCTIONS NEEDED
 extern int __cpu_getPCLK();
 
-extern void green_led_on();
-extern void blue_led_on();
-extern void red_led_on();
-extern void tohex(uint32_t value, char *buffer);
-extern void printline(char *left_text, char *right_text);
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT TOSTRING(__LINE__)
-
-
-
 //********************************************************************
 // THE DESCRIPTOR DATA BELOW WAS COPIED AND PORTED FROM THE Teensy rawHID
 // EXAMPLE IN AGREEMENT WITH THE LICENSE BELOW:
@@ -87,16 +76,6 @@ extern void printline(char *left_text, char *right_text);
 #define EP_TYPE_INTERRUPT_OUT		0xC0
 #define EP_TYPE_ISOCHRONOUS_IN		0x41
 #define EP_TYPE_ISOCHRONOUS_OUT		0x40
-
-#define EP_SINGLE_BUFFER		0x02
-#define EP_DOUBLE_BUFFER		0x06
-
-#define EP_SIZE(s)	((s) > 32 ? 0x30 :	\
-            ((s) > 16 ? 0x20 :	\
-            ((s) > 8  ? 0x10 :	\
-                        0x00)))
-
-#define MAX_ENDPOINT		4
 
 #define LSB(n) (n & 255)
 #define MSB(n) ((n >> 8) & 255)
@@ -357,15 +336,18 @@ static void usb_set_endpoints(void)
     *IR = 0;     // SETUP ENDPOINT0
     *MPR = EP0_FIFO_SIZE;      // USE 64-BYTE PACKETS ON EP0
     *EP0CR = 0x0;
+    *EP0SR = 0x13; // CLEAR
 
     *IR = 1;
     *MPR = EP1_FIFO_SIZE;      // USE 64-BYTE PACKETS ON EP1
     *ECR = 0x841;        // IN ENDPOINT FIFO_FLUSH
+    *ESR = 0x762;
     *DCR = 0;      // NO DMA
 
     *IR = 2;
     *MPR = EP2_FIFO_SIZE;      // USE 64-BYTE PACKETS ON EP2
     *ECR = 0x1041;  // OUT ENDPOINT FIFO_FLUSH INTERRUPT MODE
+    *ESR = 0x762;
     *DCR = 0;      // NO DMA
 
     // SET WHICH INTERRUPTS WE WANT
@@ -377,11 +359,11 @@ static void usb_set_endpoints(void)
 void usb_reset()
 {
     __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
-    *URSTCON = 0x5;        // ASSERT RESET PHY AND DEVICE FUNCTION
+//    *URSTCON = 0x4;        // ASSERT RESET PHY AND DEVICE FUNCTION
 
     __tmr_delay100us();
 
-    *URSTCON = 0;        // END RESET SIGNALING
+//    *URSTCON = 0;        // END RESET SIGNALING
 
     __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
 
@@ -428,17 +410,7 @@ void usb_hwsetup()
 
     *PWRCFG |= 0x10;       // POWER ON PHY
 
-    __tmr_delay100us();
-
-//    *USB_RSTCON = 0x5;        // ASSERT RESET PHY AND DEVICE FUNCTION
-
-//    __tmr_delay100us();
-
-//    *USB_RSTCON = 0;        // END RESET SIGNALING
-
-    usb_set_endpoints();
-
-    __tmr_delay100us();
+    usb_reset();
 
     *UCLKCON |= 0x80000000;     // CONNECT PULL UP TO SIGNAL THE HOST A DEVICE HAS BEEN CONNECTED
 
@@ -446,21 +418,16 @@ void usb_hwsetup()
 
 void usb_hwsuspend()
 {
-/* ::PRIME FIX::
-    *MISCCR |= (USBSUSPND0 | USBSUSPND1);       // CHANGE TO SUSPEND MODE
-
-    *CLKSLOW |= 0x80;   // TURN OFF UPLL
-*/
+    //*PHYPWR = 0x31;
+    //*MISCCR |= 0x1000;
+    __usb_drvstatus |= USB_STATUS_SUSPEND;
 }
 
 void usb_hwresume()
 {
-    /* ::PRIME FIX::
-    *UPLLCON = 0x78023; // 48 MHZ CLOCK
-    *CLKSLOW &= ~0x80;  // MAKE SURE UPLL IS ON
-
-    *MISCCR &= ~(USBSUSPND0 | USBSUSPND1);      // CHANGE TO NORMAL MODE
-    */
+    //*PHYPWR = 0x30;
+    //*MISCCR &= ~0x1000;
+    __usb_drvstatus &= ~USB_STATUS_SUSPEND;
 }
 
 void usb_irqservice();
@@ -468,15 +435,13 @@ void usb_irqservice();
 void usb_irqdisconnect()
 {
     // CALLED WHEN THE CABLE IS DISCONNECTED
-       usb_shutdown();
-
+    usb_shutdown();
 }
 
 void usb_irqconnect()
 {
     // CALLED WHEN THE CABLE IS DISCONNECTED
     usb_init(0);
-
 }
 
 void usb_init(int force)
@@ -527,9 +492,8 @@ void usb_init(int force)
     __irq_addhook(3, &usb_irqdisconnect);
 
     // ELIMINATE PREVIOUS DISCONNECT INTERRUPTS CAUSED BY NOISE AND USB INTERRUPTS
-    *SRCPND1 = 0x02000008;                            // CLEAR PENDING INTERRUPTS
-    *INTPND1 = 0X02000008;
-
+    __irq_clrpending(25);
+    __irq_clrpending(3);
 
     __irq_unmask(25);
     __irq_unmask(3);
@@ -537,7 +501,6 @@ void usb_init(int force)
     __usb_drvstatus |= USB_STATUS_CONNECTED;
 
     // TODO: SETUP COMMUNICATIONS BUFFERS
-
 }
 
 void usb_shutdown()
@@ -557,8 +520,6 @@ void usb_shutdown()
     *EIER = 0;                  // DISABLE ALL INTERRUPTS
     *EIR = 0x1f;                // CLEAR ALL PENDING INTERRUPTS
 
-    __irq_clrpending(25);
-    __irq_clrpending(3);
 
 
     // POWER OFF THE PHY AND CLOCKS
@@ -586,38 +547,25 @@ void usb_shutdown()
 
     __irq_addhook(3, &usb_irqconnect);
 
-    __irq_clrpending(3);
-
     __irq_unmask(3);
-
-
 }
 
-static void inline usb_ep0_send_zero_length_packet(void)
-{
-    *BWCR = 0;
-}
-
-static void inline usb_epx_send_zero_length_packet(void)
-{
-    *BWCR = 0;
-    *ECR |= ECR_FLUSH;
-}
-
-static void inline usb_flush_fifo0(void) {
+static void inline usb_flush_fifo0(WORD halfwords) {
     uint32_t sink;
-    while (*BRCR & 0x3ff) {
+    while (halfwords > 0) {
         sink = *EP0BR;
+        --halfwords;
     }
     *EP0SR = EP0SR_RSR;          // CLEAR THAT WE RECEIVED THE PACKET
 }
 
-static void inline usb_flush_fifo2(void) {
+static void inline usb_flush_fifo2(WORD halfwords) {
     uint32_t sink;
-    while (*BRCR & 0x3ff) {
-        sink = (HALFWORD) *EP2BR;
+    while (halfwords > 0) {
+        sink = *EP2BR;
+        --halfwords;
     }
-    *ESR = ESR_RPS;      // RECEIVED THE PACKET
+    // ESR_RPS IS CLEARED AUTOMATICALLY
 }
 
 // IF __usb_ctlbufptr IS NULL, __usb_ctlcount ZEROES ARE SENT
@@ -657,9 +605,9 @@ static void usb_ep0_write_buffer(void)
 
 static void usb_ep1_write_ctrlbuffer(void)
 {
-    *BWCR = RAWHID_TX_SIZE;        // BWCR = WRITE COUNT - IN BYTES DESPITE THE FIFO USING HALF-WORDS
-    // Always sending even byte amount
-    *ESR &= ~ESR_LWO;
+    *IR = RAWHID_TX_ENDPOINT;
+
+    *BWCR = RAWHID_TX_SIZE; // BWCR = WRITE COUNT - IN BYTES TO BE ABLE TO INDICATE UNEVEN BYTES
 
     int cnt = 0;
     int halfword;
@@ -669,6 +617,16 @@ static void usb_ep1_write_ctrlbuffer(void)
     }
 
     __usb_drvstatus &= ~USB_STATUS_TXCTL;
+    __usb_drvstatus |= USB_STATUS_WAIT_FOR_ACK | USB_STATUS_SEND_ZERO_LENGTH_PACKET;
+}
+
+static void usb_ep1_send_zero_length_packet(void)
+{
+    *IR = RAWHID_TX_ENDPOINT;
+
+    *BWCR = 0;
+    __usb_drvstatus |= USB_STATUS_WAIT_FOR_ACK;
+    __usb_drvstatus &= ~USB_STATUS_SEND_ZERO_LENGTH_PACKET;
 }
 
 // TRANSMIT BYTES TO THE HOST IN EP0 ENDPOINT
@@ -682,7 +640,6 @@ void usb_ep0_transmit(BYTEPTR buffer, BINT count)
         return;
 
     if (__usb_drvstatus & (USB_STATUS_EP0TX | USB_STATUS_EP0RX)) {
-        printline(AT, "busy");
         // THERE IS STILL SENT DATA THAT WASN'T ACKed OR DATA TO RECEIVE
         // DO NOT OVERWRITE VARIABLES
         return;
@@ -706,18 +663,19 @@ static void usb_ep0_read_buffer(void)
     int lwo = *EP0SR & EP0SR_LWO;   // GET THE LAST WORD ODD BIT BEFORE IT'S AUTOMATICALLY CLEARED
 
         int total = __usb_ctlcount;
-        if (total > EP0_FIFO_SIZE) {
-            total = EP0_FIFO_SIZE;
-        }
-        int readcount = (*BRCR & 0x3ff) << 1; //BRCR HAS HALFWORDS
-        if (total > readcount) {
-            total = readcount;
-        }
-        int transfercount = total;
+    if (total > EP0_FIFO_SIZE) {
+        total = EP0_FIFO_SIZE;
+    }
+    int fifocount = *BRCR & 0x3ff; //BRCR HAS HALFWORDS
+    if (total > (fifocount << 1)) {
+        total = (fifocount << 1);
+    }
+    int transfercount = total;
 
-        while(transfercount > 0) {
-            halfword=*EP0BR;
+    while(transfercount > 0) {
+        halfword=*EP0BR;
         transfercount -= 2;
+        --fifocount;
 
         if (transfercount == 0 && lwo) {
             *__usb_ctlbufptr++ = LSB(halfword);
@@ -729,10 +687,10 @@ static void usb_ep0_read_buffer(void)
         }     
     }
 
-        // THERE WAS EXTRA DATA IN THE PACKET??
-        // JUST IN CASE CLEAN THE FIFO
-        // FIXME look if 2 packets are in fifo
-        usb_flush_fifo0();
+    // THERE WAS EXTRA DATA IN THE PACKET??
+    // JUST IN CASE CLEAN THE FIFO
+    // FIXME look if 2 packets are in fifo
+    usb_flush_fifo0(fifocount);
 
     if(__usb_ctlcount == 0) {
         __usb_drvstatus &= ~USB_STATUS_EP0RX;
@@ -819,21 +777,30 @@ void ep0_irqservice()
         BINT halfword;
 
         // READ ALL 8 BYTES FROM THE FIFO
+        WORD fifocount = *BRCR & 0x3ff;
 
         halfword = *EP0BR;
+        --fifocount;
         reqtype = MSB(halfword);
         request = LSB(halfword);
 
         halfword = *EP0BR;
+        --fifocount;
         value = MSB(halfword) | (LSB(halfword) << 8);
 
         halfword = *EP0BR;
+        --fifocount;
         index = MSB(halfword) | (LSB(halfword) << 8);
         
         halfword = *EP0BR;
+        --fifocount;
         length = MSB(halfword) | (LSB(halfword) << 8);
 
         *EP0SR = EP0SR_RSR;          // CLEAR THAT WE RECEIVED THE PACKET
+
+        // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+        // FIXME check if two packets
+        usb_flush_fifo0(fifocount);
 
         if((reqtype & 0x60) == 0)       // STANDARD REQUESTS
         {
@@ -1037,10 +1004,6 @@ void ep0_irqservice()
 
             // THIS IS AN INCOMING REQUEST WITH NO DATA STAGE
 
-            // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
-            // FIXME check if two packets
-            usb_flush_fifo0();
-
             __usb_ctlcount = 0;
             __usb_drvstatus &= ~(USB_STATUS_EP0RX | USB_STATUS_EP0TX);
             usb_checkpipe();
@@ -1090,8 +1053,6 @@ void ep0_irqservice()
 
                 return;
             }
-            // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
-            usb_flush_fifo0();
 
             __usb_ctlcount = 0;
             __usb_drvstatus &= ~(USB_STATUS_EP0RX | USB_STATUS_EP0TX);
@@ -1110,8 +1071,6 @@ void ep0_irqservice()
 
             return;
         }
-        // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
-        usb_flush_fifo0();
 
         __usb_ctlcount = 0;
         __usb_drvstatus &= ~(USB_STATUS_EP0RX | USB_STATUS_EP0TX);
@@ -1148,18 +1107,17 @@ void usb_ep1_transmit()
     if(!(__usb_drvstatus & USB_STATUS_CONNECTED))
         return;
 
-    *IR = RAWHID_TX_ENDPOINT;
+    if (__usb_drvstatus & USB_STATUS_WAIT_FOR_ACK) {
+        return;
+    }
 
-    // FIXME WHAT IF NOTHING HAS BEEN SENT YET?
-    if(!(*ESR & ESR_TPS)) {
-        // PREVIOUS PACKET IS STILL BEING SENT, DON'T PUSH IT
-        // WAIT FOR THE NEXT INTERRUPT
+    if (__usb_drvstatus & USB_STATUS_SEND_ZERO_LENGTH_PACKET) {
+        usb_ep1_send_zero_length_packet();
         return;
     }
 
     if(__usb_drvstatus & USB_STATUS_TXCTL) {
         // WE HAVE A CONTROL PACKET READY TO GO IN THE CONTROL BUFFER
-
         usb_ep1_write_ctrlbuffer();
         return;
     }
@@ -1167,10 +1125,12 @@ void usb_ep1_transmit()
     if(__usb_drvstatus & USB_STATUS_TXDATA) {
         // WE HAVE A DATA PACKET TO SEND
 
+        *IR = RAWHID_TX_ENDPOINT;
+
         if(__usb_drvstatus & USB_STATUS_HALT) {
             // REMOTE REQUESTED WE STOP SENDING DATA UNTIL IT PROCESSES IT
             // JUST REPLY WITH A ZERO DATA PACKET
-            usb_epx_send_zero_length_packet();
+            usb_ep1_send_zero_length_packet();
             return;
         }
 
@@ -1226,7 +1186,7 @@ void usb_ep1_transmit()
             if(bufbytes < USB_DATASIZE) {
                 // WAIT FOR MORE DATA TO FILL UP THE PACKET, NO NEED TO SEND IT NOW
                 // JUST REPLY WITH A ZERO DATA PACKET
-                usb_epx_send_zero_length_packet();
+                usb_ep1_send_zero_length_packet();
                 return;
             }
         }
@@ -1279,6 +1239,8 @@ void usb_ep1_transmit()
         __usb_offset += bufbytes;
         __usb_txseq = p_type & 0x1f;
 
+        __usb_drvstatus |= USB_STATUS_WAIT_FOR_ACK | USB_STATUS_SEND_ZERO_LENGTH_PACKET;
+
         if(eof) {
             usb_sendcontrolpacket(P_TYPE_ENDOFFILE);
             __usb_drvstatus &= ~USB_STATUS_TXDATA;
@@ -1301,9 +1263,9 @@ void usb_ep1_transmit()
     }
 
     // NOTHING TO TRANSMIT
-
-    // JUST REPLY WITH A ZERO DATA PACKET
-    usb_epx_send_zero_length_packet();
+    // usb_sendcontrolpacket() AND usb_filewrite() CAN'T START A TRANSMISSION,
+    // SO TRANSMIT ZERO LENGTH PACKET TO KEEP THE INTERRUPT MACHINERY RUNNING
+    usb_ep1_send_zero_length_packet();
 }
 
 // RECEIVE BYTES FROM THE HOST IN EP2 ENDPOINT
@@ -1327,7 +1289,7 @@ void usb_ep2_receive()
 
     if(fifocnt < 4 || (fifocnt == 4 && lwo)) { // LESS THAN 8 BYTES
         // IGNORE THE MALFORMED PACKET
-        usb_flush_fifo2();
+        usb_flush_fifo2(fifocnt);
         return;
     }
 
@@ -1338,7 +1300,7 @@ void usb_ep2_receive()
     // READ PACKET TYPE
     halfword = *EP2BR;
     --fifocnt;
-    int p_type = halfword >> 8;
+    int p_type = MSB(halfword);
  
     if(p_type & 0x80) {
         // THIS IS A CONTROL PACKET
@@ -1361,9 +1323,7 @@ void usb_ep2_receive()
                 rcvbuf += 2;
             }
         }
-
-        *ESR = ESR_RPS;      // RECEIVED THE PACKET
-
+        usb_flush_fifo2(fifocnt);
         usb_receivecontrolpacket();
         return;
     }
@@ -1393,7 +1353,7 @@ void usb_ep2_receive()
     if(P_FILEID(pptr) != __usb_fileid) {
         // DIFFERENT FILE? IGNORE
         // IGNORE THE PACKET
-        usb_flush_fifo2();
+        usb_flush_fifo2(fifocnt);
         return;
     }
 
@@ -1408,7 +1368,7 @@ void usb_ep2_receive()
         }
 
         // IGNORE THE PACKET
-        usb_flush_fifo2();
+        usb_flush_fifo2(fifocnt);
         return;
 
     }
@@ -1431,7 +1391,7 @@ void usb_ep2_receive()
             usb_sendcontrolpacket(P_TYPE_REPORT);
 
         // IGNORE THE PACKET
-        usb_flush_fifo2();
+        usb_flush_fifo2(fifocnt);
         return;
 
     }
@@ -1455,7 +1415,7 @@ void usb_ep2_receive()
     }
 
     // AND FLUSH ANY UNUSED BYTES
-    usb_flush_fifo2();
+    usb_flush_fifo2(fifocnt);
 
     // UPDATE THE BUFFERS
     __usb_offset += pptr->p_dataused;
@@ -1474,7 +1434,23 @@ void usb_ep2_receive()
 // SENDING INTERRUPT ENDPOINT
 inline void ep1_irqservice()
 {
-    usb_ep1_transmit();
+    *IR = RAWHID_TX_ENDPOINT;
+
+    // STALL CONDITION
+    if (*ESR & ESR_FSC) {
+        *ESR = ESR_FSC;
+        return;
+    }
+
+    if (__usb_drvstatus & USB_STATUS_WAIT_FOR_ACK) {
+        if (*ESR & ESR_TPS) {
+            *ESR = ESR_TPS;
+            __usb_drvstatus &= ~USB_STATUS_WAIT_FOR_ACK;
+        } else {
+            // WAIT
+            return;
+        }
+    }
 }
 
 // RECEIVING DATA ENDPOINT
@@ -1486,77 +1462,83 @@ void ep2_irqservice()
 
     *IR = RAWHID_RX_ENDPOINT;
 
+    // STALL SENT
+    if (*ESR & ESR_FSC) {
+        *ESR = ESR_FSC;
+        return;
+    }
+
+    // FLUSHED
+    if (*ESR & ESR_FFS) {
+        *ECR |= ECR_FLUSH;
+        return;
+    }
+
     // NOTHING TO RECEIVE?
     if(*ESR & ESR_RPS) {
         // WE HAVE A PACKET, GO PROCESS IT
         usb_ep2_receive();
         return;
     }
-
-    return;
 }
 
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
 void usb_irqservice()
 {
-
-
     if(!(__usb_drvstatus & USB_STATUS_INIT))
         return;
+
     __usb_drvstatus |= USB_STATUS_INSIDEIRQ;
 
+    uint32_t eir = *EIR & 0x01ff;
 
-    if(*EIR & 1) {
-        ep0_irqservice();
-        *EIR = 1;
-    }
+    // FILTERING OUT NON-CRITICAL EVENTS
+    // - SPEED DETECTION END
+    // THAT SHOULDN'T END INTERRUPT HANDLING
+    uint32_t ssr = *SSR & 0xfc87;
 
-    // ALWAYS SERVICE THE ENDPOINTS
-    ep1_irqservice();
-    ep2_irqservice();
-    *EIR = 6;
-
-    if(*SSR & 2) {
+    if (ssr & SSR_HFSUSP) {
         // ENTER SUSPEND MODE
         usb_hwsuspend();
-        *SSR = 2;
-        __usb_drvstatus |= USB_STATUS_SUSPEND;
-        __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-        return;
-    }
-
-    if(*SSR & 4) {
-        // RESUME FROM SUSPEND MODE
-        usb_hwresume();
-        *SSR = 4;
-        __usb_drvstatus &= ~USB_STATUS_SUSPEND;
-        __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-        return;
-    }
-
-    if(*SSR & 1) {
-        // RESET RECEIVED
-
-            __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
-        *SSR = 1;
-        __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-        return;
-    }
-
-   if(*SSR & 8) {
-       // SPEED DETECTION END RECEIVED
-       *SSR=8;
-
-       __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-        return;
-   }
-
-   if(*SSR & 0xfc80) {
-        *SSR = *SSR;    // CLEAR ERROR CONDITIONS
+            *SSR = SSR_HFSUSP;
+            goto out;
+        } else if (ssr & SSR_HFRM) {
+            // RESUME FROM SUSPEND MODE
+            usb_hwresume();
+            *SSR = SSR_HFRM;
+            goto out;
+        } else if (ssr & SSR_HFRES) {
+            // RESET RECEIVED
+            usb_reset();
+        __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
+        *SSR = SSR_HFRES;
+        goto out;
+    } else if (ssr) {
+        *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
         __usb_drvstatus|= USB_STATUS_ERROR;
-        __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
-       return;
-   }
+        goto out;
+    }
 
+    if (eir) {
+        if(eir & 1) {
+            ep0_irqservice();
+            *EIR = 1;
+        }
+
+        if (eir & 2) {
+            ep1_irqservice();
+            *EIR = 2;
+        }
+
+        if (eir & 4) {
+            ep2_irqservice();
+            *EIR = 4;
+        }
+    }
+
+    // MAYBE OUTGOING ENDPOINTS HAVE SOMETHING TO SEND
+    usb_ep1_transmit();
+
+out:
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
 }
