@@ -1263,9 +1263,6 @@ void usb_ep1_transmit()
     }
 
     // NOTHING TO TRANSMIT
-    // usb_sendcontrolpacket() AND usb_filewrite() CAN'T START A TRANSMISSION,
-    // SO TRANSMIT ZERO LENGTH PACKET TO KEEP THE INTERRUPT MACHINERY RUNNING
-    usb_ep1_send_zero_length_packet();
 }
 
 // RECEIVE BYTES FROM THE HOST IN EP2 ENDPOINT
@@ -1541,4 +1538,9 @@ void usb_irqservice()
 
 out:
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
+}
+
+void usb_init_data_transfer()
+{
+    usb_ep1_transmit();
 }

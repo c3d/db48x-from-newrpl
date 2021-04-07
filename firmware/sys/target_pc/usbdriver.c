@@ -722,3 +722,6 @@ void usb_irqservice()
 
     return;
 }
+
+void usb_init_data_transfer()
+{}

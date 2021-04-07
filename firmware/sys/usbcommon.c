@@ -174,6 +174,7 @@ void usb_sendcontrolpacket(int packet_type)
     }
     __usb_drvstatus |= USB_STATUS_TXCTL;        // INDICATE THE DRIVER WE HAVE TO SEND A CONTROL PACKET
     usb_mutex_unlock();
+    usb_init_data_transfer();
 }
 
 // CALLED WHEN A REPORT ARRIVED FROM THE OTHER SIDE, PROCESS DEPENDING ON WHAT WE ARE DOING
@@ -638,6 +639,7 @@ int usb_filewrite(int fileid, BYTEPTR data, int nbytes)
             usb_mutex_unlock();
             nbytes -= available;
             sent += available;
+            usb_init_data_transfer();
         }
 
     }
