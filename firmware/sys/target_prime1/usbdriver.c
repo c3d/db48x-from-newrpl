@@ -356,24 +356,24 @@ static void usb_set_endpoints(void)
     *EIR = 0x1ff;               // CLEAR ALL INTERRUPTS
 }
 
-void usb_reset()
+static void usb_reset(void)
 {
-    __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
-//    *URSTCON = 0x4;        // ASSERT RESET PHY AND DEVICE FUNCTION
-
-    __tmr_delay100us();
-
-//    *URSTCON = 0;        // END RESET SIGNALING
-
-    __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
-
-
-    // AND COMPLETELY REPROGRAM THE DEVICE BLOCK
-
+    // COMPLETELY REPROGRAM THE DEVICE BLOCK
     usb_set_endpoints();
+
+    __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
 }
 
+static void usb_reset_full(void)
+{
+    *URSTCON |= (URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
+    __tmr_delay100us();
+    
+    *URSTCON &= ~(URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
+    __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
 
+    usb_reset();
+}
 
 void usb_hwsetup()
 {
@@ -410,7 +410,7 @@ void usb_hwsetup()
 
     *PWRCFG |= 0x10;       // POWER ON PHY
 
-    usb_reset();
+    usb_reset_full();
 
     *UCLKCON |= 0x80000000;     // CONNECT PULL UP TO SIGNAL THE HOST A DEVICE HAS BEEN CONNECTED
 
@@ -1507,13 +1507,12 @@ void usb_irqservice()
         } else if (ssr & SSR_HFRES) {
             // RESET RECEIVED
             usb_reset();
-        __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
-        *SSR = SSR_HFRES;
-        goto out;
-    } else if (ssr) {
-        *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
-        __usb_drvstatus|= USB_STATUS_ERROR;
-        goto out;
+            *SSR = SSR_HFRES;
+            goto out;
+        } else if (ssr) {
+            *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
+            __usb_drvstatus|= USB_STATUS_ERROR;
+            goto out;
     }
 
     if (eir) {
