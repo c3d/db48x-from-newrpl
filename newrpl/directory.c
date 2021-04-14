@@ -1301,6 +1301,60 @@ void rplDoAutoEval(WORDPTR varname, WORDPTR * indir)
                         DSTop = stksave;
                         return;
                     }
+
+                    // CHECK IF THE VARIABLE HAS A PREFERRED UNIT
+                    if(attr & IDATTR_PREFUNIT) {
+                        WORDPTR *varcalc =
+                                rplFindGlobalPropInDir(*stkptr, IDPROP_UNIT, indir, 0);
+                        if(varcalc) {
+                            // FOUND PREFERRED UNIT
+                            rplPushData(varcalc[1]);
+
+                            rplRunAtomic(CMD_CONVERT);
+                            if(Exceptions) {
+                                if( (Exceptions & EX_ERRORCODE) && (ErrorCode == ERR_INCONSISTENTUNITS)) {
+
+                                    if(!(attr & IDATTR_FORCEUNIT) ) {
+                                    // DON'T CONVERT TO PREFERRED UNITS IF INCONSISTENT, BUT DON'T REPORT THE PROBLEM
+                                    rplClearErrors();
+                                    rplDropData(1);
+                                    }
+                                    else {
+                                        // UNITS ARE FORCED, APPLY THE UNIT IF THE RESULT DIDN'T HAVE ANY UNITS
+                                        if(!ISUNIT(*rplPeekData(2)))
+                                        {
+                                            rplClearErrors();
+                                            rplRunAtomic(CMD_OVR_MUL);
+                                        }
+                                        if(Exceptions) {
+                                        if(!((Exceptions & EX_ERRORCODE)
+                                                    && (ErrorCode == ERR_UNDEFINEDVARIABLE)))
+                                            rplBlameError(varcalc[0]);  // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                                        if(DSTop > stksave)
+                                            DSTop = stksave;
+                                        return;
+
+                                        }
+                                    }
+
+
+                                }
+
+                                else {
+                                if(!((Exceptions & EX_ERRORCODE)
+                                            && (ErrorCode == ERR_UNDEFINEDVARIABLE)))
+                                    rplBlameError(varcalc[0]);  // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                                if(DSTop > stksave)
+                                    DSTop = stksave;
+                                return;
+                                }
+                            }
+
+
+                        }
+
+                    }
+
                     // STORE THE NEW RESULT AND CONTINUE
                     var[1] = rplPopData();
                 }

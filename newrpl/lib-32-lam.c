@@ -1270,7 +1270,7 @@ void LIB_HANDLER()
 
             if((OPCODE(CurOpcode) == OPCODE_DECOMPEDIT)) {
                 WORD attr = rplGetIdentAttr(DecompileObject);
-                if(attr) {
+                if(attr&IDATTR_ALLHINTS) {
                     BINT noinf = 0;
                     // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
                     rplDecompAppendChar(':');

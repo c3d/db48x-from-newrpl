@@ -185,8 +185,12 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 #define IDPROP_UNIT TEXT2WORD('U','n','i','t')
 #define IDPROP_DEFN TEXT2WORD('D','e','f','n')
 
+#define IDATTR_ALLPROPS 0xffff0000
+
 // IDENTIFIER ATTRIBUTES USED BY THE CAS
+
 // LOWER 16 BITS ARE USED BY THE CAS
+#define IDATTR_ALLHINTS 0xffff
 
 #define IDATTR_ISNOTINF  1
 #define IDATTR_ISREAL 3

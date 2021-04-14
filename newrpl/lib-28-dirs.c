@@ -703,6 +703,9 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplDropData(5);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
 
         }
         else {
@@ -795,6 +798,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplDropData(5);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -887,6 +894,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplDropData(5);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -979,6 +990,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplDropData(5);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -1061,6 +1076,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE RESULT
             rplDropData(3);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -1142,6 +1161,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE RESULT
             rplDropData(3);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -1223,6 +1246,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE RESULT
             rplDropData(3);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -1315,6 +1342,10 @@ void LIB_HANDLER()
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplOverwriteData(4, rplPeekData(1));
             rplDropData(3);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -1407,6 +1438,10 @@ void LIB_HANDLER()
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplOverwriteData(4, rplPeekData(1));
             rplDropData(3);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -2244,6 +2279,10 @@ void LIB_HANDLER()
 
             *(var + 1) = rplPeekData(1);        // STORE THE INCREMENTED COUNTER
             rplDropData(5);
+            WORD valattr = rplGetIdentAttr(var[0]);
+            if(valattr & IDATTR_DEPEND)
+                rplDoAutoEval(var[0], rplGetDirfromGlobal(var));
+
 
         }
         else {
@@ -2388,6 +2427,20 @@ void LIB_HANDLER()
             rplDoAutoEval(var[0], CurrentDir);
             if(Exceptions)
                 return;
+
+        }
+
+        if(prop == IDPROP_UNIT) {
+            // SET THE ATTRIBUTE MARKER
+            varname = rplSetIdentAttr(var[0], IDATTR_PREFUNIT, IDATTR_PREFUNIT);
+            if(!varname) {
+                return;
+            }
+            var[0] = varname;
+
+            if(Exceptions)
+                return;
+            // AND TRIGGER AUTO EVALUATION
 
         }
 
@@ -2557,7 +2610,7 @@ void LIB_HANDLER()
         }
         return;
     case OVR_ISTRUE:
-        if(ISPACKEDDIR(rplPeekData(1))) {
+        if(ISPACKEDDIR(*rplPeekData(1))) {
            if(OBJSIZE(*rplPeekData(1))==0) {
                rplOverwriteData(1, (WORDPTR) zero_bint);
                return;

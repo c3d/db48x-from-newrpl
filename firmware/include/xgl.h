@@ -4,10 +4,11 @@
 // Select the proper library according to the target (4-bit grayscale or full color)
 
 #ifdef TARGET_PC
-#include "ggl.h"
-#endif
 #ifdef TARGET_PC_PRIMEG1
 #include "cgl.h"
+#else
+#include "ggl.h"
+#endif
 #endif
 
 #ifdef TARGET_PRIME1
