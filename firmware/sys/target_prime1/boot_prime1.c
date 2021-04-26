@@ -849,8 +849,27 @@ __ARM_MODE__ void disable_mmu()
 #define WAKEUP_ALARM    4
 #define WAKEUP_RESET    8
 
+char __SYSTEM_GLOBAL__ SERIAL_NUMBER_ADDRESS[11] = "1234567890";
 
+// Last block in NAND contains "BESTA TAD BLOCK" which contains the serial number of the unit
+void read_serial_number() {
+    uint8_t buffer[NAND_PAGE_SIZE];
 
+    if (NANDReadPage(0x0ffe0000, buffer) == 0) {
+        // Could not read page
+        return;
+    }
+
+    if (((uint32_t *)buffer)[0] != 0x54534542) {
+        // Block does not start with identification string "BEST"
+        return;
+    }
+
+    // Copy serial number
+    for (int i = 0; i < 11; ++i) {
+        SERIAL_NUMBER_ADDRESS[i] = buffer[i + 0x10e];
+    }
+}
 
 __ARM_MODE__ void startup(void) __attribute__((noreturn, naked));
 void startup(void)
@@ -954,6 +973,8 @@ void startup(void)
     __keyb_init();
 
     ts_init();
+
+    read_serial_number();
 
     usb_init(1);
 
@@ -1095,8 +1116,3 @@ int halExitOuterLoop()
 {
     return 0;
 }
-
-
-
-
-

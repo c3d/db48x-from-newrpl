@@ -795,7 +795,7 @@
 #define USB_DEV_TO_HOST 0x80
 
 // Address of the serial number in this hardware
-#define SERIAL_NUMBER_ADDRESS "1234567890"
+extern char SERIAL_NUMBER_ADDRESS[11];
 
 
 
