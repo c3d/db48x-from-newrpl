@@ -572,6 +572,9 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
         ++offset;
     }
 
+    // Do Not preserve HALTED status, KILL any application since all RStk Pointers are lost
+    HaltedIPtr = 0;
+
     if(includestack) {
         // OPTIONALLY EXTRACT THE DATA STACK
 
