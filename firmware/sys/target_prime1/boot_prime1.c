@@ -1028,6 +1028,9 @@ void halReset()
 
     cpu_off_prepare();
 
+    // MAKE SURE WE STAY IN NEWRPL AFTER RESET
+    *INFORM3 = NEWRPL_MAGIC;
+
     // TRIGGER A SOFTWARE RESET
     *SWRST = 0x533c2450;
 
