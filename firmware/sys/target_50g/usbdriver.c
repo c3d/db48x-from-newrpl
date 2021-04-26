@@ -1469,3 +1469,6 @@ void usb_irqservice()
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
 
 }
+
+void usb_init_data_transfer()
+{}

@@ -129,4 +129,7 @@ extern BYTEPTR __usb_ctlbufptr; // POINTER TO BUFFER DURING CONTROL CHANNEL TRAN
 extern BINT __usb_ctlcount;     // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 extern BINT __usb_ctlpadding;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
+// USED TO INITIATE DATA TRANSFER
+void usb_init_data_transfer(void);
+
 #endif

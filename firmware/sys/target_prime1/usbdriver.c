@@ -356,33 +356,33 @@ static void usb_set_endpoints(void)
     *EIR = 0x1ff;               // CLEAR ALL INTERRUPTS
 }
 
-void usb_reset()
+static void usb_reset(void)
 {
-    __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
-//    *URSTCON = 0x4;        // ASSERT RESET PHY AND DEVICE FUNCTION
-
-    __tmr_delay100us();
-
-//    *URSTCON = 0;        // END RESET SIGNALING
-
-    __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
-
-
-    // AND COMPLETELY REPROGRAM THE DEVICE BLOCK
-
+    // COMPLETELY REPROGRAM THE DEVICE BLOCK
     usb_set_endpoints();
+
+    __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
 }
 
+static void usb_reset_full(void)
+{
+    *URSTCON |= (URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
+    __tmr_delay100us();
+    
+    *URSTCON &= ~(URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
+    __tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
 
+    usb_reset();
+}
 
 void usb_hwsetup()
 {
 
     __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
 
-//    *GPFUDP &= ~0x3000; // gpf6 pull disable
+
     *GPHCON = (*GPHCON & ~0x30000000) | 0x10000000; // SET GPH14 AS OUTPUT
-    *GPHUDP = (*GPHUDP & ~0x30000000);              // DISABLE PULLUP/DOWN
+    *GPHUDP = (*GPHUDP & ~0x30000000) | 0x20000000; // ENABLE PULLUP
     *GPHDAT |= 0x4000; // GPH14 = HIGH (TURN ON PHY POWER REGULATOR)
 
     // MAKE SURE WE HAVE PCLK>20 MHz FOR USB COMMUNICATIONS TO WORK
@@ -401,7 +401,7 @@ void usb_hwsetup()
     *HCLKCON |= 0x1000;    // ENABLE HCLK INTO USB DEVICE
 
 
-    *PHYCTRL = 0;        // DEVICE MODE, USE EPLL, 48 MHz DISABLE EXTERNAL CLOCK INPUT
+    *PHYCTRL = 0x12;        // DEVICE MODE, USE INTERNAL PLL, 12 MHz, CRYSTAL ENABLE
     *UCLKCON = 0x4;          // DON'T ENABLE PULL-UP ON D+ JUST YET, WAIT FOR FULL INITIALIZATION BEFORE DOING THAT
                              // USB HOST CLOCK CONTROL: DISABLED, DEVICE CLOCK: ENABLED
     *PHYPWR = 0x30;       // NORMAL OPERATION (manual shows must be 0x3 bits)
@@ -410,7 +410,7 @@ void usb_hwsetup()
 
     *PWRCFG |= 0x10;       // POWER ON PHY
 
-    usb_reset();
+    usb_reset_full();
 
     *UCLKCON |= 0x80000000;     // CONNECT PULL UP TO SIGNAL THE HOST A DEVICE HAS BEEN CONNECTED
 
@@ -1263,9 +1263,6 @@ void usb_ep1_transmit()
     }
 
     // NOTHING TO TRANSMIT
-    // usb_sendcontrolpacket() AND usb_filewrite() CAN'T START A TRANSMISSION,
-    // SO TRANSMIT ZERO LENGTH PACKET TO KEEP THE INTERRUPT MACHINERY RUNNING
-    usb_ep1_send_zero_length_packet();
 }
 
 // RECEIVE BYTES FROM THE HOST IN EP2 ENDPOINT
@@ -1510,13 +1507,12 @@ void usb_irqservice()
         } else if (ssr & SSR_HFRES) {
             // RESET RECEIVED
             usb_reset();
-        __usb_drvstatus = USB_STATUS_INIT | USB_STATUS_CONNECTED;   // DECONFIGURE THE DEVICE
-        *SSR = SSR_HFRES;
-        goto out;
-    } else if (ssr) {
-        *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
-        __usb_drvstatus|= USB_STATUS_ERROR;
-        goto out;
+            *SSR = SSR_HFRES;
+            goto out;
+        } else if (ssr) {
+            *SSR = *SSR;    // CLEAR ALL ERROR CONDITIONS
+            __usb_drvstatus|= USB_STATUS_ERROR;
+            goto out;
     }
 
     if (eir) {
@@ -1541,4 +1537,9 @@ void usb_irqservice()
 
 out:
     __usb_drvstatus &= ~USB_STATUS_INSIDEIRQ;
+}
+
+void usb_init_data_transfer()
+{
+    usb_ep1_transmit();
 }
