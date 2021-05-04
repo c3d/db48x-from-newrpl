@@ -166,7 +166,7 @@ static void NANDChangeReadColumn(unsigned int column)
 // Returns 1 if ok, 0 if uncorrectable
 static int NANDECC4Correct(uint8_t *data)
 {
-    int count = (*NFECCERR0 >> 26) & 0x03;
+    int count = (*NFECCERR0 >> 26) & 0x07;
 
     if (count == 0) {
         return 1;
