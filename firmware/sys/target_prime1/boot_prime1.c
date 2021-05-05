@@ -253,6 +253,7 @@ unsigned int *data= (unsigned int *) (&__data_start);
 
 while(size>0) { *data++=0; size-=4; }
 
+
 }
 
 
@@ -849,14 +850,24 @@ __ARM_MODE__ void disable_mmu()
 #define WAKEUP_ALARM    4
 #define WAKEUP_RESET    8
 
-char __SYSTEM_GLOBAL__ SERIAL_NUMBER_ADDRESS[11] = "1234567890";
+char __SCRATCH_MEMORY__ SERIAL_NUMBER_ADDRESS[11];
 
 // Last block in NAND contains "BESTA TAD BLOCK" which contains the serial number of the unit
 void read_serial_number() {
     uint8_t buffer[NAND_PAGE_SIZE];
 
+
+    const char const noserial[]="NO SERIAL!";
+
+    // Copy dummy serial number
+    for (int i = 0; i < 10; ++i) {
+        SERIAL_NUMBER_ADDRESS[i] = noserial[i];
+    }
+    // Make sure it's null-terminated
+    SERIAL_NUMBER_ADDRESS[10]=0;
+
     if (NANDReadPage(0x0ffe0000, buffer) == 0) {
-        // Could not read page
+        // Could not read page, leave the dummy serial number
         return;
     }
 
@@ -866,9 +877,10 @@ void read_serial_number() {
     }
 
     // Copy serial number
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i < 10; ++i) {
         SERIAL_NUMBER_ADDRESS[i] = buffer[i + 0x10e];
     }
+
 }
 
 __ARM_MODE__ void startup(void) __attribute__((noreturn, naked));
@@ -974,7 +986,7 @@ void startup(void)
 
     ts_init();
 
-    read_serial_number();
+    //read_serial_number();
 
     usb_init(1);
 

@@ -60,10 +60,15 @@ extern const LIBHANDLER ROMLibs[];
 // USEFUL MACROS
 
 #define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
-#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
+//#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
+// PROPOSED "LARGE" IMPLEMENTATION - TAKES A SMALL SPEED PENALTY
+#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|0x80000 | ( (size>0x3ffff)? (0x40000|((((size)-0x40000)>>10)&0x3ffff)): ((size)&0x3FFFF)) )
 
 #define OPCODE(p) ( (p)&0x7FFFF)
-#define OBJSIZE(p) ((p)&0x3FFFF)
+//#define OBJSIZE(p) ((p)&0x3FFFF)
+// PROPOSED "LARGE" OBJECT IMPLEMENTATION - TAKES A SMALL SPEED PENALTY
+#define OBJSIZE(p) ( ((p)&0x40000)? (0x40000+(((p)&0x3ffff)<<10)) : ((p)&0x3ffff))
+
 #define LIBNUM(p) ((((WORD)(p))>>20)&0xFFF)
 #define SETLIBNUMBIT(p,bitmask) (((WORD)(p))|(((WORD)(bitmask))<<20))
 #define CLRLIBNUMBIT(p,bitmask) (((WORD)(p))&(~(((WORD)(bitmask))<<20)))

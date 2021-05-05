@@ -16,9 +16,14 @@ WORDPTR rplAllocTempOb(WORD size)
 {
     // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
 
-    if(TempObEnd + size + 1 + TEMPOBLARGESLACK > TempObSize) {
+    // LARGE OBJECT SUPPORT
+    WORD adjustedsize = (size>0x3ffff)? ((size+1+1023)&~0x3ff):size;     // ROUND TO WHOLE 4K PAGES WHEN LARGE SIZE REQUESTED, ALSO ALLOCATE 1 EXTRA WORD
+
+    if(adjustedsize>0xffffc00) return 0;                                // HARD LIMIT ON LARGE OBJECTS = 1_GiB - 4_kiB
+
+    if(TempObEnd + adjustedsize + 1 + TEMPOBLARGESLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + size + 1 + TEMPOBLARGESLACK);
+        growTempOb((BINT) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBLARGESLACK);
         if(Exceptions)
             return 0;
     }
@@ -28,7 +33,8 @@ WORDPTR rplAllocTempOb(WORD size)
         return 0;
 
     WORDPTR ptr = TempObEnd;
-    TempObEnd += size + 1;
+    TempObEnd += adjustedsize + 1;
+    if(size>0x3ffff) TempObEnd[-1]=size;                      // STORE REQUESTED SIZE AT THE LAST WORD OF THE LARGE BLOCK, SO GRANULARITY IS NOT LOST
     return ptr;
 }
 
@@ -37,9 +43,14 @@ WORDPTR rplAllocTempObLowMem(WORD size)
 {
     // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
 
-    if(TempObEnd + size + 1 + TEMPOBSLACK > TempObSize) {
+    // LARGE OBJECT SUPPORT
+    WORD adjustedsize = (size>0x3ffff)? ((size+1+1023)&~0x3ff):size;     // ROUND TO WHOLE 4K PAGES WHEN LARGE SIZE REQUESTED, ALSO ALLOCATE 1 EXTRA WORD
+
+    if(adjustedsize>0xffffc00) return 0;                                // HARD LIMIT ON LARGE OBJECTS = 1_GiB - 4_kiB
+
+    if(TempObEnd + adjustedsize + 1 + TEMPOBSLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + size + 1 + TEMPOBSLACK);
+        growTempOb((BINT) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBSLACK);
         if(Exceptions)
             return 0;
     }
@@ -49,7 +60,8 @@ WORDPTR rplAllocTempObLowMem(WORD size)
         return 0;
 
     WORDPTR ptr = TempObEnd;
-    TempObEnd += size + 1;
+    TempObEnd += adjustedsize + 1;
+    if(size>0x3ffff) TempObEnd[-1]=size;                      // STORE REQUESTED SIZE AT THE LAST WORD OF THE LARGE BLOCK, SO GRANULARITY IS NOT LOST
     return ptr;
 }
 
@@ -65,7 +77,18 @@ void rplTruncateLastObject(WORDPTR newend)
         TempObEnd = *TempBlocksEnd;
         return;
     }
-    TempObEnd = newend;
+
+    // LARGE BLOCK SUPPORT
+    if((TempObEnd-*(TempBlocksEnd-1))>0x40000) {
+        // THE LAST BLOCK IS A LARGE BLOCK, MAKE SURE AN EXTRA WORD IS ALLOCATED AND THE 4KB GRANULARITY IS RESPECTED
+        WORD newsize=newend - *(TempBlocksEnd-1);
+        WORD adjustedsize = (newsize>0x40000)? ((newsize+1+1023)&~0x3ff):newsize;     // ROUND TO WHOLE 4K PAGES WHEN LARGE SIZE REQUESTED, ALSO ALLOCATE 1 EXTRA WORD
+
+        TempObEnd= *(TempBlocksEnd-1)+adjustedsize;
+        if(newsize>0x40000) TempObEnd[-1]=newsize-1;
+
+    }
+    else TempObEnd = newend;
 }
 
 // RESIZE THE LAST OBJECT BY APPENDING WORDS AT THE END OF TEMPOB
@@ -74,14 +97,28 @@ void rplTruncateLastObject(WORDPTR newend)
 
 void rplResizeLastObject(WORD additionalsize)
 {
-    if(TempObEnd + additionalsize + TEMPOBSLACK > TempObSize) {
+
+
+    // LARGE OBJECT SUPPORT
+    WORD orgsize=TempObEnd-*(TempBlocksEnd-1);
+    if(orgsize>0x40000) orgsize=*(TempObEnd-1);     // GET THE ACTUAL ORIGINAL SIZE OF THE BLOCK AS RECORDED
+    WORD adjustedsize = ((orgsize+additionalsize)>0x3ffff)? ((orgsize+additionalsize+1+1023)&~0x3ff):(orgsize+additionalsize);     // ROUND TO WHOLE 4K PAGES WHEN LARGE SIZE REQUESTED, ALSO ALLOCATE 1 EXTRA WORD
+
+    if(adjustedsize>0xffffc00) {
+        rplException(EX_OUTOFMEM);
+        return;                                // HARD LIMIT ON LARGE OBJECTS = 1_GiB - 4_kiB
+    }
+
+    if(TempObEnd + (adjustedsize-orgsize) + TEMPOBSLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + additionalsize + TEMPOBSLACK);
+        growTempOb((BINT) (TempObEnd - TempOb) + (adjustedsize-orgsize) + TEMPOBSLACK);
         if(Exceptions)
             return;
     }
 
-    TempObEnd += additionalsize;
+    TempObEnd += (adjustedsize-orgsize);
+
+    if(orgsize+additionalsize>0x3FFFF) TempObEnd[-1]=orgsize+additionalsize;
 
 }
 
@@ -158,7 +195,23 @@ void shrinkTempOb(WORD newtotalsize)
         rplException(EX_OUTOFMEM);
         return;
     }
+    if(TempOb && (((WORDPTR *) TempOb) != newtempob)) {
+        // TEMPOB HAD TO BE MOVED IN MEMORY
+        // FIX ALL DSTK/RSTK/TEMPBLOCKS/DIRECTORIES/LAMS POINTERS
 
+        Patch(DStk, DSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // DATA STACK
+
+        Patch(RStk, RSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // RETURN STACK
+
+        Patch(LAMs, LAMTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // LOCAL VARIABLES
+
+        Patch(Directories, DirsTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // GLOBAL VARIABLES
+
+        Patch(GC_PTRUpdate, GC_PTRUpdate + MAX_GC_PTRUPDATE, TempOb, TempObSize + 1, newtempob - (WORDPTR *) TempOb);   // SYSTEM POINTERS, USE TempObSize+1 TO UPDATE POINTERS POINTING TO END OF TEMPOB TOO
+
+        Patch(TempBlocks, TempBlocksEnd, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);   // ALL TEMPBLOCK POINTERS
+
+    }
     TempOb = (WORDPTR) newtempob;
     TempObSize = TempOb + newtotalsize;
 }

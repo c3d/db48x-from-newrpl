@@ -110,6 +110,8 @@ __data_load = . ;
 
   . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
+  __total_file_size = . - 0x30000000 ;
+
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
 
 
@@ -174,7 +176,7 @@ __data_load = . ;
   . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
 
-  __total_file_size = . - 0x30000000 ;
+
 
 /* ADD CONFIG SECTION TO EXECUTABLE */
   .config          : { *(.config) }

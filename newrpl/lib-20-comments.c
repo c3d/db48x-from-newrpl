@@ -295,7 +295,7 @@ void LIB_HANDLER()
             }
 
             // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
-            *ScratchPointer3 = *ScratchPointer3 | OBJSIZE(newsize - 1);
+            *ScratchPointer3 = MKPROLOG( LIBNUM(*ScratchPointer3), newsize - 1);
 
         }
         while(DSTop != Stacksave);
