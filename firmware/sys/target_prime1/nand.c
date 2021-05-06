@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include "nand.h"
+#include "hal_api.h"
 #include "target_prime1.h"
 #include <newrpl.h>
 #include <stdint.h>
@@ -82,7 +82,8 @@ typedef struct {
     uint16_t locked_blocks[2816];
 }  __attribute__ ((packed)) BFX;
 
-static uint16_t nand_block_translation_table[NAND_NUM_BLOCKS];
+static uint16_t __SCRATCH_MEMORY__ nand_block_translation_table[NAND_NUM_BLOCKS];
+static uint8_t __SCRATCH_MEMORY__ nand_buffer[NAND_BLOCK_SIZE];
 
 void NANDWriteProtect(void)
 {
@@ -517,14 +518,12 @@ static uint32_t NANDTranslateVirtualAddress(uint32_t virtual_address)
 
 int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num_bytes)
 {
-    uint8_t buffer[NAND_PAGE_SIZE];
-
     while (num_bytes != 0) {
         uint32_t page_start = NAND_PAGE_START(virtual_address);
         uint32_t offset = virtual_address - page_start;
 
         uint32_t nand_read_address = NANDTranslateVirtualAddress(page_start);
-        if (NANDReadPage(nand_read_address, buffer) == 0) {
+        if (NANDReadPage(nand_read_address, nand_buffer) == 0) {
             return 0;
         }
 
@@ -533,12 +532,71 @@ int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num
             bytes_used = num_bytes;
         }
 
-        for (int i = 0; i < bytes_used; ++i) {
-            *target_address = buffer[i + offset];
-            ++target_address;
+        memcpyb(target_address, nand_buffer + offset, bytes_used);
+
+        virtual_address += bytes_used;
+        target_address += bytes_used;
+        num_bytes -= bytes_used;
+    }
+
+    return 1;
+}
+
+int NANDReadBlock(uint32_t nand_address, uint8_t *target_address)
+{
+    int retval = 1;
+    
+    for (int page = 0; page < NAND_PAGES_PER_BLOCK; ++page) {
+        if (NANDReadPage(nand_address + page * NAND_PAGE_SIZE, target_address + page * NAND_PAGE_SIZE) == 0) {
+            retval = 0;
+        }
+    }
+    
+    return retval;
+}
+
+int NANDWriteBlock(uint32_t nand_address, uint8_t const *source_address)
+{
+    for (int page = 0; page < NAND_PAGES_PER_BLOCK; ++page) {
+        if (NANDWritePage(nand_address + page * NAND_PAGE_SIZE, source_address + page * NAND_PAGE_SIZE) == 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned int num_bytes)
+{
+    while (num_bytes != 0) {
+        uint32_t block_start = NAND_BLOCK_START(virtual_address);
+        uint32_t offset = virtual_address - block_start;
+
+        uint32_t nand_write_address = NANDTranslateVirtualAddress(block_start);
+
+        if (offset != 0 || num_bytes < NAND_BLOCK_SIZE) {
+            if (NANDReadBlock(nand_write_address, nand_buffer) == 0) {
+                return 0;
+            }
+        }
+
+        int bytes_used = NAND_BLOCK_SIZE - offset;
+        if (num_bytes < bytes_used) {
+            bytes_used = num_bytes;
+        }
+
+        memcpyb(nand_buffer + offset, source_address, bytes_used);
+
+        if (NANDBlockErase(nand_write_address) == 0) {
+            return 0;
+        }
+
+        if (NANDWriteBlock(nand_write_address, nand_buffer) == 0) {
+            return 0;
         }
 
         virtual_address += bytes_used;
+        source_address += bytes_used;
         num_bytes -= bytes_used;
     }
 

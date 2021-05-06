@@ -44,7 +44,11 @@ int SDCardInserted()
 int SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
         SD_CARD * card)
 {
-	return 0;
+	if (NANDWrite(SDAddr + FS_VIRTUAL_FAT_ADDRESS, buffer, NumBytes) == 0) {
+		return 0;
+	}
+
+	return NumBytes;
 }
 
 int SDSelect(int RCA)

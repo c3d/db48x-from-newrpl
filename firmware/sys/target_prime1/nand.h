@@ -58,9 +58,21 @@ int NANDBlockErase(uint32_t nand_address);
 // Returns 1 on success, 0 on error.
 int NANDReadPage(uint32_t nand_address, uint8_t *target_address);
 
+// Reads whole aligned block at @nand_address into @target_address.
+// Tries to restore as much information as possible should error occur.
+// Does ECC error correction.
+// Returns 1 on success, 0 on error.
+int NANDReadBlock(uint32_t nand_address, uint8_t *target_address);
+
 // Writes data from @source_address to whole aligned page at @nand_address.
+// @nand_address needs to be erased before.
 // Returns 1 on success, 0 on error.
 int NANDWritePage(uint32_t nand_address, uint8_t const *source_address);
+
+// Writes data from @source_address to whole aligned block at @nand_address.
+// @nand_address needs to be erased before.
+// Returns 1 on success, 0 on error.
+int NANDWriteBlock(uint32_t nand_address, uint8_t const *source_address);
 
 // Reads @num_bytes from @virtual_address to @target_address
 // @virtual_address and @num_bytes need not be page aligned.
@@ -69,5 +81,12 @@ int NANDWritePage(uint32_t nand_address, uint8_t const *source_address);
 // Does ECC error correction.
 // Returns 1 on success, 0 on error.
 int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num_bytes);
+
+// Writes @num_bytes from @source_address to @virtual_address
+// @virtual_address and @num_bytes need not be page aligned.
+// Corrects block address according to BL2 block translation table.
+// Does Ecc error corection.
+// Returns 1 on success, 0 on error.
+int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned int num_bytes);
 
 #endif
