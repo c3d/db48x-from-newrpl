@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-INTERRUPT_TYPE __saveint;
+INTERRUPT_TYPE __saveint __SYSTEM_GLOBAL__;
 
 void cpu_intoff()
 {
