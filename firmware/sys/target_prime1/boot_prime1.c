@@ -986,7 +986,8 @@ void startup(void)
 
     ts_init();
 
-    //read_serial_number();
+    NANDInit();
+    read_serial_number();
 
     usb_init(1);
 

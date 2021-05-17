@@ -40,6 +40,7 @@
 #define NAND_CMD_READ_STATUS     0x70
 #define NAND_CMD_BLOCK_ERASE1st  0x60
 #define NAND_CMD_BLOCK_ERASE2nd  0xd0
+#define NAND_CMD_CHIP_RESET      0xff
 
 // Some registers are accessed with other data width than 32bit
 
@@ -472,6 +473,23 @@ static int NANDInitBlockTranslationTable(void)
 
 int NANDInit(void)
 {
+    // BASIC HARDWARE INITIALIZATION
+    *NFCONF = 0x1007770; // Set Page Size, TWRPH1=7, TWRPH0=7, TACLS=7, ECCType=4-bitECC, MesgLength=512-bytes
+    *NFCONT = 0Xf7;      // Disable Chip Select, NAND Controller Enabled, Init MECC and SECC, Lock MECC, SECC
+
+    *GPMCON =  (*GPMCON & ~0xc) | 0x8;  // Set GPM1 as FRnB (NAND ready/busy signal)
+
+    *NFSTAT = 0x70;     // Clear all flags
+
+    NANDEnableChipSelect();
+
+    *NFCMMD = NAND_CMD_CHIP_RESET;
+
+    NANDWaitReady();
+
+    NANDDisableChipSelect();
+
+
     if (NANDInitBlockTranslationTable() == 0) {
         return 0;
     }
