@@ -225,9 +225,6 @@ void setup_hardware()
 
     lcd_off();
 
-    // Playing it safe for testing -
-    NANDWriteProtect();
-
     *PWRCFG |= 0x20000; // Enable Wait for Interrupt mode
 
     // Disable SoC blocks that we don't use
@@ -236,6 +233,10 @@ void setup_hardware()
     *PCLKCON &= ~0x8034e;          // Disable PCLK going to SPI_HS0, AC97, I2S0, and PCM audio interfaces
     *SCLKCON &= ~0xa05242;         // Disable special clocks to HSMMC0, I2S0, PCM0, SPI, USB Host
 
+    *RTCCON = 0x10;                // RTC clock set to defaults, plus tick counter at 1/32768 second
+    *TICNT0 = 0x80;                // Enable tick interrupt, counter to zero (make TICKCNT tick at 32.768 kHz)
+    *TICNT1 = 0;                   // Counter to zero
+    *TICNT2 = 0;                   // Counter to zero
 
 }
 

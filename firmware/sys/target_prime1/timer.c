@@ -455,74 +455,57 @@ void tmr_eventkill(HEVENT event)
 // INDEPENDENT TIMING FUNCTIONS THAT DON'T DEPEND ON INTERRUPTS OR THE TIMER MODULE TO BE INITIALIZED TO WORK
 // USED MAINLY FOR HARDWARE SETUP THAT NEEDS ACCURATE TIMING
 
-// Setup TIMER 4 for delays in LCD chip communications
-#define __LLTIMER_FREQ 100000        // 100 kHz tick
-
-
-
-
-void __tmr_setupdelay()
-{
-    unsigned int pclk = __cpu_getPCLK();
-
-    unsigned int divider, prescaler;
-
-    prescaler = (pclk << 3) / __LLTIMER_FREQ;
-    divider = 1;
-
-    while(prescaler > (1 << (11 + divider))) {
-        divider++;
-    }
-
-    prescaler += (1 << (2 + divider));
-    prescaler >>= divider + 3;
-
-//if(divider>4) PCLK TOO HIGH TO ACHIEVE TIMER FREQUENCY, USE HIGHER MULTIPLE
-    if(divider > 4)
-        divider = 4;
-
-// SET PRESCALER VALUES FOR TIMERS 2,3 AND 4
-    *TCFG0 = (*TCFG0 & (~0xFF00)) | ((prescaler - 1)<<8);
-    *TCFG1 =
-            (*TCFG1 & (~0xf0000)) | ((divider - 1) << 16);
-
-// SET COUNT VALUES TO MAXIMUM
-    *TCNTB4 = 0xffff;
-
-// Make sure no interrupts are fired by timer4
-    *INTMSK1 |= 0x4000;
-}
+// Use RTC tick counter for delays in LCD chip communications
+#define __LLTIMER_FREQ 32768        // 32.768 kHz tick
 
 // Do a single delay 100 usec
 void __tmr_delay100us()
 {
-        *TCNTB4= (__LLTIMER_FREQ * 100) / 1000000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+    unsigned int start,end;
+        start = *TICKCNT;
+        end = *TICKCNT + (__LLTIMER_FREQ * 100) / 1000000;
 
-        while((*TCNTO4&0xffff)!=0);                          // And wait for the timer to count to zero
+        if(end<start) while(*TICKCNT>=start);         // Wait for the counter to wrap
+
+        while(*TICKCNT<end);                          // And wait for the timer count to reach the end
 }
 
-// Do a single delay 100 usec
+// Do a single delay 10 msec
 void __tmr_delay10ms()
 {
-        *TCNTB4= (__LLTIMER_FREQ * 10) / 1000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+    unsigned int start,end;
+        start = *TICKCNT;
+        end = *TICKCNT + (__LLTIMER_FREQ * 10) / 1000;
 
-        while((*TCNTO4&0xffff)!=0);                          // And wait for the timer to count to zero
+        if(end<start) while(*TICKCNT>=start);         // Wait for the counter to wrap
+
+        while(*TICKCNT<end);                          // And wait for the timer count to reach the end
 }
 
 // Do a single delay 100 usec
 void __tmr_delay20ms()
 {
-        *TCNTB4= (__LLTIMER_FREQ * 20) / 1000;
-        *TCON= (*TCON&~0x700000) | 0x200000;        // Update the count
-        *TCON= (*TCON&~0x700000) | 0x100000;        // Start the timer, single shot
+    unsigned int start,end;
+        start = *TICKCNT;
+        end = *TICKCNT + (__LLTIMER_FREQ * 20) / 1000;
 
-        while((*TCNTO4&0xffff)!=0);                          // And wait for the timer to count to zero
+        if(end<start) while(*TICKCNT>=start);         // Wait for the counter to wrap
+
+        while(*TICKCNT<end);                          // And wait for the timer count to reach the end
 }
 
+// Prepare for an open loop timeout
+void __tmr_setuptimeoutms(int delayms,unsigned int *start,unsigned int *end)
+{
+    *start = *TICKCNT;
+    *end = *TICKCNT + (__LLTIMER_FREQ * delayms) / 1000;
+}
 
+// Check if clock timed out or not
+int __tmr_timedout(unsigned int start,unsigned int end)
+{
+    if(end<start) if(*TICKCNT>=start) return 0;         // Wait for the counter to wrap
 
-
+    if(*TICKCNT>=end) return 1;                         // And wait for the timer count to reach the end
+    return 0;
+}

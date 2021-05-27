@@ -378,9 +378,6 @@ static void usb_reset_full(void)
 void usb_hwsetup()
 {
 
-    __tmr_setupdelay(); // SETUP SOME TIMERS TO GET ACCURATE DELAYS
-
-
     // POWER OFF FIRST TO CAUSE A FULL RESET OF THE USB BLOCK
 
     *UCLKCON &= ~0x80000000;     // SIGNAL THE HOST A DEVICE HAS BEEN DISCONNECTED

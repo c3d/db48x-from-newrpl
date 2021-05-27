@@ -877,13 +877,17 @@ extern void ts_init();
 #define PIXELS_PER_WORD 8
 
 // LOW LEVEL TIMER FUNCTIONS FOR HARDWARE SETUP
-void __tmr_setupdelay();
+
 // Do a single delay 100 usec
 void __tmr_delay100us();
 // Do a single delay 10 msec
 void __tmr_delay10ms();
 // Do a single delay 20 msec
 void __tmr_delay20ms();
+// Prepare for an open loop timeout
+void __tmr_setuptimeoutms(int delayms,unsigned int *start,unsigned int *end);
+// Check if clock timed out or not
+int __tmr_timedout(unsigned int start,unsigned int end);
 
 
 // OTHER ADDITIONAL HARDWARE FUNCTIONS

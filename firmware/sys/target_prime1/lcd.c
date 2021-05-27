@@ -339,8 +339,6 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 void lcd_poweron()
 {
 
-    __tmr_setupdelay();                           // SETUP TIMERS TO GET ACCURATE DELAYS
-
     // Setup GPIO
 
     *GPCCON = (*GPCCON&0xfc00) | 0xaaaa02aa;    // ALL GPC PINS SET FOR LCD FUNCTION

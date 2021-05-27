@@ -104,7 +104,12 @@ static inline void NANDEnableChipSelect(void)
 
 static inline void NANDWaitReady(void)
 {
-    while ((*NFSTAT & NFSTAT_RnB_TransDetect) == 0);
+    unsigned int start,end;
+    // Flash datasheet lists Block Erase as the longest operation with a max. 10 ms
+    // So in 12 ms it MUST have finished or there was an error.
+    __tmr_setuptimeoutms(12,&start,&end);
+
+    while ((*NFSTAT & NFSTAT_RnB_TransDetect) == 0) if(__tmr_timedout(start,end)) return;
 }
 
 static inline void NANDClearReady(void)
@@ -511,12 +516,17 @@ int NANDBlockErase(uint32_t nand_address)
 
     *NFCMMD = NAND_CMD_BLOCK_ERASE2nd;
 
+    red_led_on();
+
     NANDWaitReady();
+
+    blue_led_on();
 
     // NOTE BL2 does not check NFSTAT_IllegalAccess here
     if (NANDCheckWrite() == 0) {
         retval = 0;
     }
+    green_led_on();
 
     NANDDisableChipSelect();
 
@@ -592,7 +602,7 @@ int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned 
 
         uint32_t nand_write_address = NANDTranslateVirtualAddress(block_start);
 
-        if (offset != 0 || num_bytes < NAND_BLOCK_SIZE) {
+        if ( (offset != 0) || (num_bytes < NAND_BLOCK_SIZE)) {
             if (NANDReadBlock(nand_write_address, nand_buffer) == 0) {
                 return 0;
             }
