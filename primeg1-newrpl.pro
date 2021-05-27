@@ -337,7 +337,7 @@ QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld_newrpl.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -pad1280k -outNEWRPL.ROM $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -outNEWRPL.ROM $(TARGET)
 
 
 ## Additional RPL compiler, make sure it's in the PATH

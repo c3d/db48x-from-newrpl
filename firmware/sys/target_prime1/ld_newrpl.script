@@ -9,6 +9,34 @@ SECTIONS
 {
   . = 0x30000000;
 
+  /* STORE THE PREAMBLE FIRST */
+  .preamble ALIGN(4) : { *(.preamble) }
+
+  /* THEN THE ROM EXPORTED OBJECTS */
+  .romobjects ALIGN(4) : { *(.romobjects) }
+
+  .=ALIGN(0x1000);      /* ALIGN ROM LINKAGE TABLES TO A FULL 4K PAGE */
+
+  /* THEN THE ROM LINK TABLES */
+  .romlink : { *(.romlink) }
+
+  .=ALIGN(0x1000);      /* ALIGN CODE TO A FULL 4K PAGE */
+
+  /* NOW THE REST OF THE CODE */
+  .text           :
+  {
+    *(.text .stub .text.* .gnu.linkonce.t.*)
+    /* .gnu.warning sections are handled specially by elf32.em.  */
+    *(.gnu.warning)
+    *(.glue_7t) *(.glue_7)
+  } 
+
+  .rodata : { *(.rodata .rodata.* .gnu.linkonce.r.*) }
+
+  /* UP TO THIS POINT ONLY SECTIONS THAT ARE COPIED BY ELF2ROM */
+  
+  __total_file_size = . - 0x30000000 ;
+
 /* all other sections here */
   .interp         : { *(.interp) }
   .hash           : { *(.hash) }
@@ -47,27 +75,6 @@ SECTIONS
   } 
   .plt            : { *(.plt) }
 
-  /* STORE THE PREAMBLE FIRST */
-  .preamble ALIGN(4) : { *(.preamble) }
-
-  /* THEN THE ROM EXPORTED OBJECTS */
-  .romobjects ALIGN(4) : { *(.romobjects) }
-
-  .=ALIGN(0x1000);      /* ALIGN ROM LINKAGE TABLES TO A FULL 4K PAGE */
-
-  /* THEN THE ROM LINK TABLES */
-  .romlink : { *(.romlink) }
-
-  .=ALIGN(0x1000);      /* ALIGN CODE TO A FULL 4K PAGE */
-
-  /* NOW THE REST OF THE CODE */
-  .text           :
-  {
-    *(.text .stub .text.* .gnu.linkonce.t.*)
-    /* .gnu.warning sections are handled specially by elf32.em.  */
-    *(.gnu.warning)
-    *(.glue_7t) *(.glue_7)
-  } 
   .fini           :
   {
     KEEP (*(.fini))
@@ -80,7 +87,6 @@ SECTIONS
 
  
 
-  .rodata : { *(.rodata .rodata.* .gnu.linkonce.r.*) }
   .rodata1        : { *(.rodata1) }
   .eh_frame_hdr : { *(.eh_frame_hdr) }
 
@@ -109,9 +115,6 @@ SECTIONS
 __data_load = . ;
 
   . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
-
-
-  __total_file_size = . - 0x30000000 ;
 
 
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
