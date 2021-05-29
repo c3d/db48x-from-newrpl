@@ -140,7 +140,14 @@ int load_os(char *name)
 
     err = FSClose(fileptr);
     if (err != FS_OK) {
-        // Can't be closed due to missing write support
+        printline("Could not close file", (char *)FSGetErrorMsg(err));
+        while(1);
+    }
+
+    err = FSShutdown();
+    if (err != FS_OK) {
+        printline("Could not unmount filesystem", (char *)FSGetErrorMsg(err));
+        while(1);
     }
 
     return preamble.entrypoint;

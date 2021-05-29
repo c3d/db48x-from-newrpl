@@ -476,6 +476,16 @@ static int NANDInitBlockTranslationTable(void)
     return 1;
 }
 
+static int NANDReset()
+{
+    NANDEnableChipSelect();
+    NANDClearReady();
+    *NFCMMD = NAND_CMD_CHIP_RESET;
+    NANDWaitReady();
+    NANDDisableChipSelect();
+    return 1;
+}
+
 int NANDInit(void)
 {
     // BASIC HARDWARE INITIALIZATION
@@ -486,14 +496,7 @@ int NANDInit(void)
 
     *NFSTAT = 0x70;     // Clear all flags
 
-    NANDEnableChipSelect();
-
-    *NFCMMD = NAND_CMD_CHIP_RESET;
-
-    NANDWaitReady();
-
-    NANDDisableChipSelect();
-
+    NANDReset();
 
     if (NANDInitBlockTranslationTable() == 0) {
         return 0;
@@ -516,17 +519,12 @@ int NANDBlockErase(uint32_t nand_address)
 
     *NFCMMD = NAND_CMD_BLOCK_ERASE2nd;
 
-    red_led_on();
-
     NANDWaitReady();
-
-    blue_led_on();
 
     // NOTE BL2 does not check NFSTAT_IllegalAccess here
     if (NANDCheckWrite() == 0) {
         retval = 0;
     }
-    green_led_on();
 
     NANDDisableChipSelect();
 
