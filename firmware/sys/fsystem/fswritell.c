@@ -17,6 +17,16 @@ int FSWriteLL(unsigned char *buffer, int nbytes, FS_FILE * file, FS_VOLUME * fs)
     uint64_t currentaddr;
     FS_FRAGMENT *fr;
 
+    // ********
+    // DEBUG ONLY: REMOVE ASAP
+
+    if(nbytes && (fs->InitFlags & VOLFLAG_READONLY)) {
+        throw_dbgexception("Attempt to write Read-only volume",__EX_CONT | __EX_WARM | __EX_RESET);
+    }
+
+    // ********
+
+
     if(file->CurrentOffset + nbytes > file->FileSize) {
         if(file->Mode & FSMODE_NOGROW)
             return FS_DISKFULL; // FILE EXPANSION NOT ALLOWED

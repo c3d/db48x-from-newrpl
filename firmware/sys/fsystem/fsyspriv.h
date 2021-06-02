@@ -121,6 +121,7 @@ extern void FSGetDateTime(unsigned int *datetime, unsigned int *hundredths);
 
 // VOLUME FUNCTIONS
 extern int FSMountVolume(SD_CARD * Disk, FS_VOLUME * fs, int VolNumber);
+extern void FSMarkVolumeReadOnly();
 extern int FSVolumePresent(FS_VOLUME * fs);
 extern int FSCalcFreeSpace(FS_VOLUME * fs);
 extern int FSUpdateHints(FS_VOLUME * fs);

@@ -558,6 +558,17 @@ extern int FSGetVolumeSize(int Volnumber);
  */
 extern int FSGetVolumeFree(int Volnumber);
 
+/*!
+ * \brief Mark current volume as read-only. Use immediately after mount.
+ *
+ * Mark current volume as read-only. Use immediately after mount.
+ *
+ * \param Volnumber Number of the volume (0-3)
+ * \return Nothing.
+ * \sa FSSetCurrentVolume
+ */
+extern void FSMarkVolumeReadOnly();
+
 // DIRECTORY ACCESS FUNCTIONS
 
 /*!

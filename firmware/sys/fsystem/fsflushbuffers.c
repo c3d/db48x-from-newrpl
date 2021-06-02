@@ -44,14 +44,15 @@ int FSFlushBuffers(FS_FILE * file)
 
     }
 
-// WRITE UPDATED DIRECTORY ENTRY IF FILE HAS CHANGED
-    if(file->Dir) {
+    fs = FSystem.Volumes[file->Volume];
+
+// WRITE UPDATED DIRECTORY ENTRY IF FILE HAS CHANGED, BUT ONLY IF THE VOLUME IS NOT MOUNTED READ-ONLY
+    if((file->Dir) && !(fs->InitFlags&VOLFLAG_READONLY)) {
         error = FSUpdateDirEntry(file);
         if(error != FS_OK)
             return error;
     }
 
-    fs = FSystem.Volumes[file->Volume];
 
 // FLUSH ALL FAT CHAINS
     error = FSFlushFATCache(fs);

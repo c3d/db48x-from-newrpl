@@ -63,5 +63,5 @@ int SDIOSetup(SD_CARD * card, int shutdown)
 
 int SDCardWriteProtected()
 {
-    return TRUE;
+    return FALSE;
 }

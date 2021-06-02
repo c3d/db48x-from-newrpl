@@ -30,6 +30,8 @@
 #define NFECCERR0_ECCReady     0x40000000
 
 #define NAND_STATUS_FAIL         0x01
+#define NAND_STATUS_WRITEPROTECT 0x80
+#define NAND_STATUS_READY        0x40
 
 #define NAND_CMD_READ1st         0x00
 #define NAND_CMD_READ2nd         0x30
@@ -339,6 +341,7 @@ static void __attribute__ ((noinline)) busy_wait(unsigned int count)
 static int NANDCheckWrite(void)
 {
     if ((*NFSTAT & NFSTAT_IllegalAccess) != 0) {
+        throw_dbgexception("Illegal NAND access",__EX_CONT);
         return 0;
     }
 
@@ -347,10 +350,24 @@ static int NANDCheckWrite(void)
     busy_wait(3);
 
     for (int i = 0; i < 1024; ++i) {
+
+        // Make sure we are no longer busy
+        if ((*NFDATA_8 & NAND_STATUS_READY) == 0) {
+            continue;
+        }
+
+        // Also check for write protection
+        if ((*NFDATA_8 & NAND_STATUS_WRITEPROTECT) == 0) {
+            throw_dbgexception("NAND is write protected",__EX_CONT);
+            return 0;
+        }
+        // Finally, check for pass/fail
         if ((*NFDATA_8 & NAND_STATUS_FAIL) == 0) {
             return 1;
         }
     }
+    throw_dbgexception("NAND Block Erase Failed.",__EX_CONT);
+    // Should never happen
     return 0;
 }
 
@@ -493,6 +510,10 @@ int NANDInit(void)
     *NFCONT = 0Xf7;      // Disable Chip Select, NAND Controller Enabled, Init MECC and SECC, Lock MECC, SECC
 
     *GPMCON =  (*GPMCON & ~0xc) | 0x8;  // Set GPM1 as FRnB (NAND ready/busy signal)
+
+    *GPLCON = (*GPLCON & ~0x0C000000) | 0x4000000;  // Set GPL13 as output, connected to WP (NAND write protect)
+    *GPLUDP = (*GPLUDP & ~0x0C000000) ;               // Disable pull up/down
+    *GPLDAT |= 0x2000;                                // Active high = write enabled
 
     *NFSTAT = 0x70;     // Clear all flags
 

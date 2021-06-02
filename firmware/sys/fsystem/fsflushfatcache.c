@@ -48,6 +48,7 @@ int FSFlushFATCache(FS_VOLUME * fs)
         FSPatchFATBlock(sector, bl + 1, sectaddr, fs, TRUE);    // PATCH AND FLUSH ENTRIES
 
 // WRITE TO ALL ACTIVE FATS
+        if(!(fs->InitFlags&VOLFLAG_READONLY)) {
         for(f = fs->NumFATS - 1; f >= 0; --f) {
 
             error = SDDWrite((((uint64_t) fs->FirstFATAddr) << 9) + sectaddr +
@@ -58,6 +59,7 @@ int FSFlushFATCache(FS_VOLUME * fs)
                 simpfree(sector);
                 return FS_ERROR;
             }
+        }
         }
 
     }

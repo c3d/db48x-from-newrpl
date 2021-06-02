@@ -255,10 +255,12 @@ int FSMountVolume(SD_CARD * Disk, FS_VOLUME * fs, int VolNumber)
 }
 
 // UPDATE HINTS AS NEEDED AND MARK AS CLEAN
-int FSUpdateHints(FS_VOLUME * fs)
+int     FSUpdateHints(FS_VOLUME * fs)
 {
     unsigned char *TempData;
     int err, written = 0;
+    if(fs->InitFlags & VOLFLAG_READONLY)
+        return FS_OK;
 
     if(!(fs->InitFlags & VOLFLAG_HINTDIRTY))
         return FS_OK;
@@ -315,6 +317,14 @@ int FSUpdateHints(FS_VOLUME * fs)
 
     fs->InitFlags &= ~VOLFLAG_HINTDIRTY;
     return FS_OK;
+}
+
+
+void FSMarkVolumeReadOnly()
+{
+    FS_VOLUME *fs;
+    if(FSystem.Volumes[FSystem.CurrentVolume] != NULL)
+         FSystem.Volumes[FSystem.CurrentVolume]->InitFlags |= VOLFLAG_READONLY;
 }
 
 #endif

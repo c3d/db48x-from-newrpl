@@ -110,6 +110,8 @@ int load_os(char *name)
         while(1);
     }
 
+    FSMarkVolumeReadOnly();
+
     FS_FILE *fileptr;
 
     err = FSOpen(name, FSMODE_READ | FSMODE_NOCREATE, &fileptr);
