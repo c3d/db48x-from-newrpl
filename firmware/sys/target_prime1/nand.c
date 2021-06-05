@@ -29,9 +29,9 @@
 
 #define NFECCERR0_ECCReady     0x40000000
 
-#define NAND_STATUS_FAIL         0x01
-#define NAND_STATUS_WRITEPROTECT 0x80
-#define NAND_STATUS_READY        0x40
+#define NAND_STATUS_REGISTER_FAIL         0x01
+#define NAND_STATUS_REGISTER_WRITEPROTECT 0x80
+#define NAND_STATUS_REGISTER_READY        0x40
 
 #define NAND_CMD_READ1st         0x00
 #define NAND_CMD_READ2nd         0x30
@@ -104,14 +104,23 @@ static inline void NANDEnableChipSelect(void)
     *NFCONT &= ~NFCONT_Reg_nCE0;
 }
 
-static inline void NANDWaitReady(void)
+// Returns NAND_STATUS
+static int NANDWaitReady(void)
 {
     unsigned int start,end;
     // Flash datasheet lists Block Erase as the longest operation with a max. 10 ms
     // So in 12 ms it MUST have finished or there was an error.
     __tmr_setuptimeoutms(12,&start,&end);
 
-    while ((*NFSTAT & NFSTAT_RnB_TransDetect) == 0) if(__tmr_timedout(start,end)) return;
+    while (1) {
+        if ((*NFSTAT & NFSTAT_RnB_TransDetect) != 0) {
+            return NAND_STATUS_OK;
+        }
+
+        if (__tmr_timedout(start,end)) {
+            return NAND_STATUS_TIMEOUT;
+        }
+    }
 }
 
 static inline void NANDClearReady(void)
@@ -172,15 +181,15 @@ static void NANDChangeReadColumn(unsigned int column)
     *NFCMMD = NAND_CMD_RND_OUT2nd;
 }
 
-// Returns 1 if ok, 0 if uncorrectable
+// Returns NAND_STATUS
 static int NANDECC4Correct(uint8_t *data)
 {
     int count = (*NFECCERR0 >> 26) & 0x07;
 
     if (count == 0) {
-        return 1;
+        return NAND_STATUS_OK;
     } else if (count > 4) {
-        return 0;
+        return NAND_STATUS_UNCORRECTABLE;
     }
 
     volatile uint16_t *error_location = NFECCERR0_16;
@@ -193,7 +202,7 @@ static int NANDECC4Correct(uint8_t *data)
         --count;
     }
 
-    return 1;
+    return NAND_STATUS_OK;
 }
 
 static void NANDConfigureECC(void)
@@ -226,7 +235,8 @@ static void NANDWaitForECCDecoder(void)
 
 int NANDReadPage(uint32_t nand_address, uint8_t *target_address)
 {
-    int retval = 1;
+    int retval = NAND_STATUS_OK;
+    int result;
 
     NANDEnableChipSelect();
 
@@ -238,7 +248,10 @@ int NANDReadPage(uint32_t nand_address, uint8_t *target_address)
 
     *NFCMMD = NAND_CMD_READ2nd;
 
-    NANDWaitReady();
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
 
     NANDActivateECCDecoder();
 
@@ -267,8 +280,9 @@ int NANDReadPage(uint32_t nand_address, uint8_t *target_address)
 
         // Try to correct errors.
         // Return existance of uncorrectable bits but continue
-        if (NANDECC4Correct(target_address - NAND_PACKET_SIZE) == 0) {
-          retval = 0;
+        result = NANDECC4Correct(target_address - NAND_PACKET_SIZE);
+        if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+            retval = result;
         }
 
         // Change column to next packet
@@ -284,9 +298,13 @@ int NANDReadPage(uint32_t nand_address, uint8_t *target_address)
 
 // Reads first byte of spare area and checks it against validity conditions
 // taken from BXCBOOT0.BIN from 20140331 firmware.
-// Returns 1 if page @address lies in is bad, else 0.
+// Returns NAND_STATUS_OK if page is ok, NAND_STATUS_BAD if page is bad,
+// other NAND_STATUS on error.
 static int NANDIsPageBad(uint32_t nand_address)
 {
+    int retval = NAND_STATUS_OK;
+    int result;
+
     NANDEnableChipSelect();
 
     NANDClearReady();
@@ -297,35 +315,46 @@ static int NANDIsPageBad(uint32_t nand_address)
 
     *NFCMMD = NAND_CMD_READ2nd;
 
-    NANDWaitReady();
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
 
     uint8_t byte = *NFDATA_8;
 
     NANDDisableChipSelect();
 
-    return (byte == 0x00 || byte == 0xf0) ? 1 : 0;
+    if (retval != NAND_STATUS_OK) {
+        return retval;
+    }
+    return (byte == 0x00 || byte == 0xf0) ? NAND_STATUS_BAD : NAND_STATUS_OK;
 }
 
 // Checks first, second and last page in block. If any of these has bad marker
 // whole block is bad.
 int NANDIsBlockBad(uint32_t nand_address)
 {
+    int result;
+
     unsigned int page_0 = NAND_BLOCK_START(nand_address);
-    if (NANDIsPageBad(page_0)) {
-        return 1;
+    result = NANDIsPageBad(page_0);
+    if (result != NAND_STATUS_OK) {
+        return result;
     }
 
     unsigned int page_1 = page_0 + NAND_PAGE_SIZE;
-    if (NANDIsPageBad(page_1)) {
-        return 1;
+    result = NANDIsPageBad(page_1);
+    if (result != NAND_STATUS_OK) {
+        return result;
     }
 
     unsigned int page_last = page_0 + NAND_BLOCK_SIZE - NAND_PAGE_SIZE;
-    if (NANDIsPageBad(page_last)) {
-        return 1;
+    result = NANDIsPageBad(page_last);
+    if (result != NAND_STATUS_OK) {
+        return result;
     }
 
-    return 0;
+    return NAND_STATUS_OK;
 }
 
 static void __attribute__ ((noinline)) busy_wait(unsigned int count)
@@ -337,12 +366,11 @@ static void __attribute__ ((noinline)) busy_wait(unsigned int count)
     }
 }
 
-// Returns 1 on success, 0 on error.
+// Returns NAND_STATUS.
 static int NANDCheckWrite(void)
 {
     if ((*NFSTAT & NFSTAT_IllegalAccess) != 0) {
-        throw_dbgexception("Illegal NAND access",__EX_CONT);
-        return 0;
+        return NAND_STATUS_ILLEGAL_ACCESS;
     }
 
     *NFCMMD = NAND_CMD_READ_STATUS;
@@ -350,32 +378,34 @@ static int NANDCheckWrite(void)
     busy_wait(3);
 
     for (int i = 0; i < 1024; ++i) {
+        uint8_t data = *NFDATA_8;
 
         // Make sure we are no longer busy
-        if ((*NFDATA_8 & NAND_STATUS_READY) == 0) {
+        if ((data & NAND_STATUS_REGISTER_READY) == 0) {
             continue;
         }
 
         // Also check for write protection
-        if ((*NFDATA_8 & NAND_STATUS_WRITEPROTECT) == 0) {
-            throw_dbgexception("NAND is write protected",__EX_CONT);
-            return 0;
+        if ((data & NAND_STATUS_REGISTER_WRITEPROTECT) == 0) {
+            return NAND_STATUS_WRITE_PROTECT;
         }
+
         // Finally, check for pass/fail
-        if ((*NFDATA_8 & NAND_STATUS_FAIL) == 0) {
-            return 1;
+        if ((data & NAND_STATUS_REGISTER_FAIL) == 0) {
+            return NAND_STATUS_OK;
         }
     }
-    throw_dbgexception("NAND Block Erase Failed.",__EX_CONT);
-    // Should never happen
-    return 0;
+    
+    return NAND_STATUS_WRITE_FAIL;
 }
 
 // Sets bad marker in spare for first packet to 0x00.
-// Returns 1 on success, 0 on error.
+// Returns first error should errors occur.
+// Returns NAND_STATUS.
 static int NANDMarkPageBad(uint32_t nand_address)
 {
-    int retval = 1;
+    int retval = NAND_STATUS_OK;
+    int result;
 
     NANDEnableChipSelect();
 
@@ -389,10 +419,14 @@ static int NANDMarkPageBad(uint32_t nand_address)
 
     *NFCMMD = NAND_CMD_PAGE_PROGRAM2nd;
 
-    NANDWaitReady();
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
 
-    if (NANDCheckWrite() == 0) {
-        retval = 0;
+    result = NANDCheckWrite();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
     }
 
     NANDDisableChipSelect();
@@ -408,7 +442,8 @@ int NANDMarkBlockBad(uint32_t nand_address)
 int NANDWritePage(uint32_t nand_address, uint8_t const *source_address)
 {
     SparePage spare;
-    int retval = 1;
+    int retval = NAND_STATUS_OK;
+    int result;
 
     // initialize spare
     for (int i = 0; i < sizeof(SparePage); ++i) {
@@ -456,10 +491,14 @@ int NANDWritePage(uint32_t nand_address, uint8_t const *source_address)
 
     *NFCMMD = NAND_CMD_PAGE_PROGRAM2nd;
 
-    NANDWaitReady();
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
 
-    if (NANDCheckWrite() == 0) {
-        retval = 0;
+    result = NANDCheckWrite();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
     }
 
     NANDDisableChipSelect();
@@ -467,7 +506,7 @@ int NANDWritePage(uint32_t nand_address, uint8_t const *source_address)
     return retval;
 }
 
-// Returns 1 on success, 0 on error.
+// Returns NAND_STATUS.
 static int NANDInitBlockTranslationTable(void)
 {
     BFX bfx;
@@ -476,7 +515,7 @@ static int NANDInitBlockTranslationTable(void)
     }
 
     if (bfx.magic != 0x00584642) {
-        return 0;
+        return NAND_STATUS_NO_TABLE;
     }
 
     int l = 0;
@@ -490,21 +529,34 @@ static int NANDInitBlockTranslationTable(void)
         }
     }
 
-    return 1;
+    return NAND_STATUS_OK;
 }
 
+// Returns NAND_STATUS.
 static int NANDReset()
 {
+    int retval = NAND_STATUS_OK;
+    int result;
+
     NANDEnableChipSelect();
     NANDClearReady();
+
     *NFCMMD = NAND_CMD_CHIP_RESET;
-    NANDWaitReady();
+
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
+
     NANDDisableChipSelect();
-    return 1;
+
+    return retval;
 }
 
 int NANDInit(void)
 {
+    int result;
+
     // BASIC HARDWARE INITIALIZATION
     *NFCONF = 0x1007770; // Set Page Size, TWRPH1=7, TWRPH0=7, TACLS=7, ECCType=4-bitECC, MesgLength=512-bytes
     *NFCONT = 0Xf7;      // Disable Chip Select, NAND Controller Enabled, Init MECC and SECC, Lock MECC, SECC
@@ -517,18 +569,23 @@ int NANDInit(void)
 
     *NFSTAT = 0x70;     // Clear all flags
 
-    NANDReset();
-
-    if (NANDInitBlockTranslationTable() == 0) {
-        return 0;
+    result = NANDReset();
+    if (result != NAND_STATUS_OK) {
+        return result;
     }
 
-    return 1;
+    result = NANDInitBlockTranslationTable();
+    if (result != NAND_STATUS_OK) {
+        return result;
+    }
+
+    return NAND_STATUS_OK;
 }
 
 int NANDBlockErase(uint32_t nand_address)
 {
-    int retval = 1;
+    int retval = NAND_STATUS_OK;
+    int result;
 
     NANDEnableChipSelect();
 
@@ -540,11 +597,18 @@ int NANDBlockErase(uint32_t nand_address)
 
     *NFCMMD = NAND_CMD_BLOCK_ERASE2nd;
 
-    NANDWaitReady();
+    result = NANDWaitReady();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
+    }
 
+    // PRIME firmware does this but in combination with a more primitive write check routine
+    busy_wait(100);
+    
     // NOTE BL2 does not check NFSTAT_IllegalAccess here
-    if (NANDCheckWrite() == 0) {
-        retval = 0;
+    result = NANDCheckWrite();
+    if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+        retval = result;
     }
 
     NANDDisableChipSelect();
@@ -565,13 +629,17 @@ static uint32_t NANDTranslateVirtualAddress(uint32_t virtual_address)
 
 int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num_bytes)
 {
+    int retval = NAND_STATUS_OK;
+    int result;
+
     while (num_bytes != 0) {
         uint32_t page_start = NAND_PAGE_START(virtual_address);
         uint32_t offset = virtual_address - page_start;
 
         uint32_t nand_read_address = NANDTranslateVirtualAddress(page_start);
-        if (NANDReadPage(nand_read_address, nand_buffer) == 0) {
-            return 0;
+        result = NANDReadPage(nand_read_address, nand_buffer);
+        if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+            retval = result;
         }
 
         int bytes_used = NAND_PAGE_SIZE - offset;
@@ -586,16 +654,18 @@ int NANDRead(uint32_t virtual_address, uint8_t *target_address, unsigned int num
         num_bytes -= bytes_used;
     }
 
-    return 1;
+    return retval;
 }
 
 int NANDReadBlock(uint32_t nand_address, uint8_t *target_address)
 {
-    int retval = 1;
-    
+    int retval = NAND_STATUS_OK;
+    int result;
+
     for (int page = 0; page < NAND_PAGES_PER_BLOCK; ++page) {
-        if (NANDReadPage(nand_address + page * NAND_PAGE_SIZE, target_address + page * NAND_PAGE_SIZE) == 0) {
-            retval = 0;
+        result = NANDReadPage(nand_address + page * NAND_PAGE_SIZE, target_address + page * NAND_PAGE_SIZE);
+        if (result != NAND_STATUS_OK && retval == NAND_STATUS_OK) {
+            retval = result;
         }
     }
     
@@ -604,17 +674,22 @@ int NANDReadBlock(uint32_t nand_address, uint8_t *target_address)
 
 int NANDWriteBlock(uint32_t nand_address, uint8_t const *source_address)
 {
+    int result;
+
     for (int page = 0; page < NAND_PAGES_PER_BLOCK; ++page) {
-        if (NANDWritePage(nand_address + page * NAND_PAGE_SIZE, source_address + page * NAND_PAGE_SIZE) == 0) {
-            return 0;
+        result = NANDWritePage(nand_address + page * NAND_PAGE_SIZE, source_address + page * NAND_PAGE_SIZE);
+        if (result != NAND_STATUS_OK) {
+            return result;
         }
     }
 
-    return 1;
+    return NAND_STATUS_OK;
 }
 
 int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned int num_bytes)
 {
+    int result;
+
     while (num_bytes != 0) {
         uint32_t block_start = NAND_BLOCK_START(virtual_address);
         uint32_t offset = virtual_address - block_start;
@@ -622,8 +697,10 @@ int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned 
         uint32_t nand_write_address = NANDTranslateVirtualAddress(block_start);
 
         if ( (offset != 0) || (num_bytes < NAND_BLOCK_SIZE)) {
-            if (NANDReadBlock(nand_write_address, nand_buffer) == 0) {
-                return 0;
+            result = NANDReadBlock(nand_write_address, nand_buffer);
+            if (result != NAND_STATUS_OK) {
+                // Don't try to continue or wrong data would be written
+                return result;
             }
         }
 
@@ -634,12 +711,15 @@ int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned 
 
         memcpyb(nand_buffer + offset, source_address, bytes_used);
 
-        if (NANDBlockErase(nand_write_address) == 0) {
-            return 0;
+        result = NANDBlockErase(nand_write_address);
+        if (result != NAND_STATUS_OK) {
+            // Don't try to continue writing over unknown state
+            return result;
         }
 
-        if (NANDWriteBlock(nand_write_address, nand_buffer) == 0) {
-            return 0;
+        result = NANDWriteBlock(nand_write_address, nand_buffer);
+        if (result != NAND_STATUS_OK) {
+            return result;
         }
 
         virtual_address += bytes_used;
@@ -647,5 +727,5 @@ int NANDWrite(uint32_t virtual_address, uint8_t const *source_address, unsigned 
         num_bytes -= bytes_used;
     }
 
-    return 1;
+    return NAND_STATUS_OK;
 }

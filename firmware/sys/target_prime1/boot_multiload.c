@@ -164,9 +164,11 @@ __ARM_MODE__ __attribute__((noreturn)) void main()
     // Initialize screen earlier so we can print error messages
     line = -1;
 
-
-    if (NANDInit() == 0) {
-        printline("No BFX", NULL);
+    int result = NANDInit();
+    if (result != NAND_STATUS_OK) {
+        char buffer[9];
+        tohex(result, buffer);
+        printline("NANDInit status", buffer);
         while(1);
     }
 
