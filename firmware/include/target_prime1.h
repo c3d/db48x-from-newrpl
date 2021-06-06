@@ -797,7 +797,11 @@
 // Address of the serial number in this hardware
 extern char SERIAL_NUMBER_ADDRESS[11];
 
-
+// Override the device string on the USB bus
+#undef  STR_PRODUCT
+#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'P',0,'r',0,'G',0,'1',0}
+#undef  STR_PRODLENGTH
+#define STR_PRODLENGTH   22+2
 
 
 

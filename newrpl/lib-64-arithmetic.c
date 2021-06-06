@@ -404,7 +404,7 @@ void LIB_HANDLER()
         ipReal(&RReg[2], &rnum, 1);
         if(!(rnum.flags & F_NEGATIVE)) {
             RReg[2].data[0]++;
-            RReg[2].flags |= F_NEGATIVE;
+
             normalize(&RReg[2]);
         }
 

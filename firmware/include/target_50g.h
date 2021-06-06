@@ -176,6 +176,16 @@
 
 #define PREAMBLE_STRING "KINPOUPDATEIMAGE"
 
+// Override the device string on the USB bus
+#undef  STR_PRODUCT
+#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'5',0,'0',0,'g',0}
+#undef  STR_PRODLENGTH
+#define STR_PRODLENGTH   20+2
+
+
+
+
+
 // Address of the serial number in this hardware
 #define SERIAL_NUMBER_ADDRESS 0x3ff0
 

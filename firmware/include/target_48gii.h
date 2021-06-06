@@ -13,6 +13,13 @@
 #undef PREAMBLE_STRING
 #define PREAMBLE_STRING "KINPOHP48GIIMAGE"
 
+// Override the device string on the USB bus
+#undef  STR_PRODUCT
+#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'4',0,'8',0,'g',0,'2',0}
+#undef  STR_PRODLENGTH
+#define STR_PRODLENGTH   22+2
+
+
 #undef RAM_END_PHYSICAL
 #define RAM_END_PHYSICAL  0x08040000
 
