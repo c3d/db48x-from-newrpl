@@ -867,7 +867,7 @@ void read_serial_number() {
     // Make sure it's null-terminated
     SERIAL_NUMBER_ADDRESS[10]=0;
 
-    if (NANDReadPage(0x0ffe0000, buffer) == 0) {
+    if (NANDReadPage(0x0ffe0000, buffer) != NAND_STATUS_OK) {
         // Could not read page, leave the dummy serial number
         return;
     }
