@@ -11,15 +11,9 @@
 
 void ram_doreset()
 {
-    throw_dbgexception("Reset Requested",__EX_RESET);
+    throw_dbgexception("Calculator is about to reset",__EX_RESET | __EX_NOREG);
 
 }
-
-void ram_fwfinished()
-{
-    throw_dbgexception("Firmware received OK",__EX_CONT);
-}
-
 
 // FLASH PROGRAMMING PROTOCOL:
 // USES LONG TRANSMISSION PROTOCOL SAME AS USED FOR RAM BACKUP OBJECTS
@@ -41,6 +35,10 @@ void ram_receiveandflashfw(BINT flashsize)
     FS_FILE *newrplrom;
     int err;
 
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+
+
     err = FSOpen("NEWRPL.ROM", FSMODE_WRITE, &newrplrom);
     if (err != FS_OK) {
         throw_dbgexception("Cannot open file in flash",__EX_RESET | __EX_CONT | __EX_NOREG);
@@ -48,6 +46,10 @@ void ram_receiveandflashfw(BINT flashsize)
     }
 
 
+
+    ggl_hline(&scr,10,0,SCREEN_WIDTH-1,0xffffffff);
+    ggl_hline(&scr,21,0,SCREEN_WIDTH-1,0xffffffff);
+    ggl_rect(&scr,0,11,SCREEN_WIDTH-1,20,0);
 
     do {
 
@@ -125,29 +127,22 @@ void ram_receiveandflashfw(BINT flashsize)
             // SHOW SOME VISUALS
             int k;
             for(k = 0; k < flashsize - 0x4000; k += 0x1000) {
-                unsigned int *scrptr = (unsigned int *)MEM_PHYS_SCREEN;
+
                 int pixel = (k) >> 14;
-                scrptr[20 + (pixel >> 3)] &= ~(0xf << ((pixel & 7) << 2));
-                scrptr[40 + (pixel >> 3)] &= ~(0xf << ((pixel & 7) << 2));
-                scrptr[60 + (pixel >> 3)] &= ~(0xf << ((pixel & 7) << 2));
+                ggl_vline(&scr,pixel,11,20,0);
+
             }
 
-            for(; k >= 0; k -= 4) {
-                unsigned int *scrptr = (unsigned int *)MEM_PHYS_SCREEN;
+            for(; k >= 0; k -= 256) {
                 int pixel = (k) >> 14;
 
-                scrptr[20 + (pixel >> 3)] |= (0x6 << ((pixel & 7) << 2));
-                scrptr[40 + (pixel >> 3)] |= (0x6 << ((pixel & 7) << 2));
-                scrptr[60 + (pixel >> 3)] |= (0x6 << ((pixel & 7) << 2));
+                ggl_vline(&scr,pixel,11,20,0x66666666);
             }
 
-            for(k = 0; k < flashsize - 0x4000; k += 4) {
-                unsigned int *scrptr = (unsigned int *)MEM_PHYS_SCREEN;
+            for(k = 0; k < flashsize - 0x4000; k += 256) {
                 int pixel = (k) >> 14;
 
-                scrptr[20 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
-                scrptr[40 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
-                scrptr[60 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
+                ggl_vline(&scr,pixel,11,20,0xffffffff);
             }
 
             ram_doreset();      // HOST REQUESTED A RESET
@@ -185,11 +180,11 @@ void ram_receiveandflashfw(BINT flashsize)
 
 // SHOW SOME VISUAL FEEDBACK
         {
-            unsigned int *scrptr = (unsigned int *)MEM_PHYS_SCREEN;
+
             int pixel = (((WORD) flash_address) - 0x4000) >> 14;
-            scrptr[20 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
-            scrptr[40 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
-            scrptr[60 + (pixel >> 3)] |= (0xf << ((pixel & 7) << 2));
+
+            ggl_vline(&scr,pixel,11,20,0xffffffff);
+
         }
     }
     while(1);
