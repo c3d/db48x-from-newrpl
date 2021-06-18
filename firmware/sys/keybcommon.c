@@ -197,8 +197,9 @@ void __keyb_update()
     for(k=0;k<64;++k)
         ggl_rect(&scr, SCREEN_WIDTH-4*(k+2), 0, SCREEN_WIDTH-4*(k+1),4 ,
                    (a&(1LL<<k))? 0xffffffff:0x44444444);
-    //************ END DEBUG
+
     */
+    //************ END DEBUG
     // ANALYZE CHANGES
     if(b != 0) {
         // POST MESSAGE

@@ -76,6 +76,8 @@ BINT __usb_fileid __SYSTEM_GLOBAL__;    // CURRENT FILEID
 BINT __usb_fileid_seq __SYSTEM_GLOBAL__;        // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
 BINT __usb_offset __SYSTEM_GLOBAL__;    // CURRENT OFFSET WITHIN THE FILE
 WORD __usb_crc32 __SYSTEM_GLOBAL__;     // CURRENT CRC32 OF DATA RECEIVED
+BINT __usb_lastgood_offset __SYSTEM_GLOBAL__;    // LAST KNOWN GOOD OFFSET WITHIN THE FILE
+WORD __usb_lastgood_crc __SYSTEM_GLOBAL__;     // LAST KNOWN GOOD CRC32 OF DATA RECEIVED
 BYTE __usb_ctlbuffer[RAWHID_RX_SIZE + 1] __SYSTEM_GLOBAL__;     // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
 BYTE __usb_tmprxbuffer[RAWHID_RX_SIZE + 1] __SYSTEM_GLOBAL__;   // TEMPORARY BUFFER TO RECEIVE DATA
 BYTE __usb_ctlrxbuffer[RAWHID_RX_SIZE + 1] __SYSTEM_GLOBAL__;   // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
@@ -345,6 +347,11 @@ void usb_ep1_transmit()
             // DON'T SEND ANY DATA IF THE REMOTE REQUESTED HALT
             return;
         }
+        if(__usb_drvstatus & USB_STATUS_WAIT_FOR_ACK) {
+            // DON'T SEND ANY DATA IF WE ARE WAITING FOR AN ANSWER
+            return;
+        }
+
 
         // WE HAVE A DATA PACKET TO SEND
         if(__usb_drvstatus & USB_STATUS_ERROR) {
@@ -360,7 +367,7 @@ void usb_ep1_transmit()
                 int oldestdata = __usb_rxtxbottom - __usb_rxtxtop;
                 if(oldestdata < 0)
                     oldestdata += RING_BUFFER_SIZE;
-                if((bufoff < 0) || (bufoff > oldestdata)) {
+                if((bufoff < 0) || (bufoff > oldestdata) ) {
                     // WE DON'T HAVE THAT DATA STORED ANYMORE, ABORT THE FILE
                     usb_sendcontrolpacket(P_TYPE_ABORT);
 
@@ -396,7 +403,7 @@ void usb_ep1_transmit()
             }
             usb_mutex_lock();
             __usb_txseq = 0;    // RESTART BACK THE SEQUENCE NUMBER
-            __usb_crc32 = 0;    // RESET THE CRC FROM HERE ON
+            __usb_crc32 = __usb_lastgood_crc;    // RESET THE CRC FROM HERE ON
             __usb_drvstatus &= ~USB_STATUS_ERROR;       // REMOVE THE ERROR AND RESEND
             usb_mutex_unlock();
         }
@@ -428,6 +435,12 @@ void usb_ep1_transmit()
             p_type |= 0x40;
         if(p_type == 32)
             p_type = 0x40;
+
+        if(p_type==1) {
+            // SAVE AT THE BEGINNING OF EACH FRAGMENT
+            __usb_lastgood_offset = __usb_offset;
+            __usb_lastgood_crc = __usb_crc32;
+        }
 
         // SEND A FULL PACKET
         BYTE tmpbuf[RAWHID_TX_SIZE + 1];
@@ -591,7 +604,8 @@ void usb_ep2_receive()
         // GOT THE RIGHT OFFSET, RESET ERROR CONDITION IF ANY
         if(__usb_drvstatus & USB_STATUS_ERROR) {
             usb_mutex_lock();
-            __usb_crc32 = 0;
+            // CRC AND OFFSET SHOULD BE CORRECTLY SET BY NOW
+            // SO LIFT THE ERROR CONDITION
             __usb_drvstatus &= ~USB_STATUS_ERROR;
             usb_mutex_unlock();
         }
@@ -614,6 +628,13 @@ void usb_ep2_receive()
         // FLUSH THE FIFO, DISCARD THE DATA
         return;
 
+    }
+
+    // NEW PACKET IS READY TO BE RECEIVED, IF WE ARE STARTING A NEW FRAGMENT
+    // SAVE RESTORE POINT TO REQUEST THE FRAGMENT TO BE RESENT IF IT FAILS
+    if(p_type==1) {
+        __usb_lastgood_offset = __usb_offset;
+        __usb_lastgood_crc = __usb_crc32;
     }
 
     // WE HAVE NEW DATA, RECEIVE IT DIRECTLY AT THE BUFFER

@@ -15,6 +15,8 @@ int SDCardInit(SD_CARD * card)
 {
 	card->SysFlags = 0x1f;
 	card->Rca = 0x00010000;
+    card->CurrentBLen = card->MaxBlockLen = 9;
+    card->WriteBlockLen = 9;
 	return TRUE;
 }
 

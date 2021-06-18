@@ -803,7 +803,9 @@ extern char SERIAL_NUMBER_ADDRESS[11];
 #undef  STR_PRODLENGTH
 #define STR_PRODLENGTH   22+2
 
-
+// Override USB buffer size
+#undef LONG_BUFFER_SIZE
+#define LONG_BUFFER_SIZE        6*32*RAWHID_RX_SIZE
 
 
 

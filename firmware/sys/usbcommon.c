@@ -61,6 +61,7 @@
   4 BYTES = HIGHEST RECEIVED OFFSET SO FAR
   1 BYTES = 0 = OK TO RECEIVE MORE DATA, 1 = ONE BUFFER IS FULL, HALT DATA UNTIL IT PROGRAM READS IT (OTHER BUFFER IS STILL AVAILABLE TO RECEIVE PACKETS THAT WERE ALREADY SENT)
   1 BYTES = 0 = CRC32 OK SO FAR, 1 = CRC OR OTHER ERROR: RESEND FRAGMENTS FROM THE GIVEN OFFSET
+  1 BYTES = 1 = ALL BYTES IN THE FILE RECEIVED OK
 
   COMMUNICATION PROTOCOL:
 
@@ -136,8 +137,20 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_data[1] = (__usb_crc32 >> 8) & 0xff;
         p->p_data[2] = (__usb_crc32 >> 16) & 0xff;
         p->p_data[3] = (__usb_crc32 >> 24) & 0xff;
+
+        /*
+        // *************************************
+        // ** DEBUG ONLY: INTRODUCE A BAD CRC ON PURPOSE
+        // *************************************
+        if(__usb_offset==0xe00) {
+            if(!(__usb_drvstatus&(1<<22))) p->p_data[0]^=0xff;
+            __usb_drvstatus|=1<<22;
+        }
+        */
+
+
         __usb_drvstatus &= ~USB_STATUS_RXRCVD;
-        //__usb_drvstatus|=USB_STATUS_HALT;
+        __usb_drvstatus|=USB_STATUS_WAIT_FOR_REPORT;
         break;
 
     case P_TYPE_ENDOFFILE:
@@ -150,6 +163,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_data[2] = (__usb_crc32 >> 16) & 0xff;
         p->p_data[3] = (__usb_crc32 >> 24) & 0xff;
         __usb_drvstatus &= ~USB_STATUS_RXRCVD;
+        __usb_drvstatus|=USB_STATUS_WAIT_FOR_REPORT;
         break;
 
     case P_TYPE_ABORT:
@@ -162,10 +176,16 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_type = P_TYPE_REPORT;
         p->p_fileidLSB = (BYTE) (__usb_fileid & 0xff);
         p->p_fileidMSB = (BYTE) (__usb_fileid >> 8);
-        p->p_offset = __usb_offset;
+        p->p_offset = (__usb_drvstatus & USB_STATUS_ERROR) ? __usb_lastgood_offset : __usb_offset;
         p->p_data[0] = (__usb_drvstatus & USB_STATUS_HALT) ? 1 : 0;
         p->p_data[1] = (__usb_drvstatus & USB_STATUS_ERROR) ? 1 : 0;
         p->p_data[2] = (__usb_rxtotalbytes) ? 1 : 0;
+        WORD crc = (__usb_drvstatus & USB_STATUS_ERROR) ? __usb_lastgood_crc : __usb_crc32;
+        p->p_data[4] = crc & 0xff;
+        p->p_data[5] = (crc >> 8) & 0xff;
+        p->p_data[6] = (crc >> 16) & 0xff;
+        p->p_data[7] = (crc >> 24) & 0xff;
+
         break;
 
     default:
@@ -213,11 +233,9 @@ void usb_receivecontrolpacket()
             if(__usb_fileid == P_FILEID(ctl)) {
                 usb_mutex_lock();
 
-                if(__usb_drvstatus & USB_STATUS_ERROR) {
-                    // IGNORE THE CHECKPOINT, THERE WAS A PRIOR ERROR
-                    usb_mutex_unlock();
-                    break;
-                }
+                int previouserror= (__usb_drvstatus & USB_STATUS_ERROR);
+
+
                 __usb_drvstatus &= ~USB_STATUS_ERROR;   // REMOVE ERROR SIGNAL
 
                 int used = __usb_rxtxtop - __usb_rxtxbottom;
@@ -232,7 +250,8 @@ void usb_receivecontrolpacket()
                 crc |= ((WORD) ctl->p_data[2]) << 16;
                 crc |= ((WORD) ctl->p_data[3]) << 24;
                 if(__usb_crc32 != crc) {
-                    __usb_drvstatus |= USB_STATUS_ERROR;        // SIGNAL TO RESEND FROM CURRENT OFFSET
+                    if(!previouserror) __usb_drvstatus |= USB_STATUS_ERROR;        // SIGNAL TO RESEND FROM CURRENT OFFSET
+                    else __usb_crc32=crc;                                          // SYNC WITH THE CRC PROPOSED BY THE SENDER IF THERE WAS A PRIOR ERROR
                 }
 
                 usb_mutex_unlock();
@@ -268,8 +287,10 @@ void usb_receivecontrolpacket()
                     __usb_drvstatus |= USB_STATUS_ERROR;        // SIGNAL TO RESEND FROM CURRENT OFFSET
 
                 // SET TOTAL BYTES TO INDICATE WE RECEIVED THE LAST OF IT
-                if(!(__usb_drvstatus & USB_STATUS_ERROR))
-                    __usb_rxtotalbytes = ctl->p_offset;
+                if(!(__usb_drvstatus & USB_STATUS_ERROR)) {
+                    __usb_lastgood_offset = __usb_rxtotalbytes = ctl->p_offset;
+                    __usb_lastgood_crc = crc;
+                }
                 
                 usb_mutex_unlock();
 
@@ -290,7 +311,7 @@ void usb_receivecontrolpacket()
                         ~(USB_STATUS_TXDATA | USB_STATUS_TXCTL |
                         USB_STATUS_RXDATA | USB_STATUS_HALT | USB_STATUS_ERROR |
                         USB_STATUS_RXCTL | USB_STATUS_EOF | USB_STATUS_WAIT_FOR_ACK |
-                        USB_STATUS_SEND_ZERO_LENGTH_PACKET);
+                        USB_STATUS_SEND_ZERO_LENGTH_PACKET | USB_STATUS_WAIT_FOR_REPORT);
 
                 // ABORT ALL TRANSACTIONS
                 __usb_fileid = 0;
@@ -328,7 +349,13 @@ void usb_receivecontrolpacket()
                 if(ctl->p_data[1]) {
                     // SIGNAL THE ERROR AND LEAVE THE REQUESTED OFFSET AT rxoffset
                     __usb_drvstatus |= USB_STATUS_ERROR;
-                    __usb_rxoffset = ctl->p_offset;
+                    __usb_rxoffset = __usb_lastgood_offset = ctl->p_offset;
+                    // ALSO RECOVER THE CRC TO RESTART TRANSMISSION
+                    WORD crc = ctl->p_data[4];
+                    crc |= ((WORD) ctl->p_data[5]) << 8;
+                    crc |= ((WORD) ctl->p_data[6]) << 16;
+                    crc |= ((WORD) ctl->p_data[7]) << 24;
+                    __usb_lastgood_crc = crc;
                 }
                 else {
                     __usb_drvstatus &= ~USB_STATUS_ERROR;
@@ -347,6 +374,7 @@ void usb_receivecontrolpacket()
             }
 
             __usb_drvstatus |= USB_STATUS_RXRCVD;
+            __usb_drvstatus &= ~USB_STATUS_WAIT_FOR_REPORT;        // DON'T WAIT ANY LONGER, WE GOT OUR REPORT
 
             usb_mutex_unlock();
 
@@ -385,10 +413,18 @@ int usb_hasdata()
 {
     if((__usb_drvstatus & USB_STATUS_RXDATA)
             && (__usb_rxtxtop != __usb_rxtxbottom)) {
-        int bytesready = __usb_rxtxtop - __usb_rxtxbottom;
-        if(bytesready < 0)
-            bytesready += RING_BUFFER_SIZE;
-        return bytesready;
+
+        //int bytesready = __usb_rxtxtop - __usb_rxtxbottom;
+        //if(bytesready < 0)
+        //    bytesready += RING_BUFFER_SIZE;
+
+        // ONLY RETURN DATA THAT HAS BEEN CRC32 VERIFIED
+
+        int bytesverified = __usb_lastgood_offset - __usb_rxoffset;
+
+        if(bytesverified<0) return 0;
+
+        return bytesverified;
     }
     return 0;
 }
@@ -516,8 +552,8 @@ int usb_txfileopen(int file_type)
 
     __usb_rxtxtop = __usb_rxtxbottom = 0;
     __usb_txseq = 0;    // FIRST PACKET NUMBER
-    __usb_offset = 0;
-    __usb_crc32 = 0;    // RESET CRC32
+    __usb_lastgood_offset = __usb_offset = 0;
+    __usb_lastgood_crc = __usb_crc32 = 0;    // RESET CRC32
     __usb_txtotalbytes = 0;
     // CREATE A NEW FILEID
     ++__usb_fileid_seq;

@@ -560,25 +560,90 @@ void USBSelector::on_updateFirmware_clicked()
 
         file.close();
 
-        // THIS IS ONLY VALID FOR 50G AND COUSINS, FIX LATER
 
-        if((strncmp(filedata.constData(), "KINPOHP39G+IMAGE", 16) == 0) ||
-                (strncmp(filedata.constData(), "KINPOHP40G+IMAGE", 16) == 0) ||
-                (strncmp(filedata.constData(), "KINPOUPDATEIMAGE", 16) == 0)) {
+        const char *calc_types[]={
+            "newRPL Calc",
+            "newRPL 50g",
+            "newRPL 39gs",
+            "newRPL 40gs",
+            "newRPL 48g2",
+            "newRPL PrG1",
+            0
+        };
+
+        const char *preamble_strings[]={
+            "KINPOUPDATEIMAGE",
+            "KINPOUPDATEIMAGE",
+            "KINPOHP39G+IMAGE",
+            "KINPOHP40G+IMAGE",
+            "KINPOHP48GIIMAGE",
+            "2416",
+            0
+        };
+
+        const int preamble_offset[]={
+            0,
+            0,
+            0,
+            0,
+            0,
+            24,
+            0
+        };
+
+        // CHECK IF VALID FIRMWARE WAS SELECTED
+        int calcidx=0;
+
+        while(calc_types[calcidx]) {
+            if(SelectedDeviceName.startsWith(calc_types[calcidx])) break;
+            ++calcidx;
+        }
+
+        if(calc_types[calcidx]==nullptr) {
+            QMessageBox a(QMessageBox::Warning, "Device NOT Supported",
+                                SelectedDeviceName + ": Firmware update not supported on this device", QMessageBox::Ok, this);
+                        a.exec();
+                        // START REFRESHING THE LIST AGAIN
+                        norefresh = false;
+                        QTimer::singleShot(500, this, SLOT(refresh()));
+                        return;
+        }
+
+        // HERE WE HAVE THE INDEX OF A SUPPORTED DEVICE
+        //
+
+        // THIS IS ONLY VALID FOR 50G AND COUSINS, FIX LATER
+        const char *preamblestring = filedata.constData();
+        preamblestring+=preamble_offset[calcidx];
+        int bytelen=strlen(preamble_strings[calcidx]);
+
+        // CHECK IF SELECTED FIRMWARE IS VALID FOR THE TARGET
+
+        if( ((calcidx>0) && (strncmp(preamblestring,preamble_strings[calcidx],bytelen)!=0))     // DEVICES USING NEW FIRMWARES, FROM NOW ON
+                || ((calcidx==0) && (strncmp(preamblestring,preamble_strings[2],bytelen)!=0) &&
+                    (strncmp(preamblestring,preamble_strings[3],bytelen)!=0) &&
+                     (strncmp(preamblestring,preamble_strings[4],bytelen)!=0)) )                // HANDLE SPECIAL CASE OF OLD FIRMWARES USING "newRPL Calc" FOR ALL DEVICES
+        {
+            // THIS IS NOT A VALID FIRMWARE IMAGE
+                QMessageBox a(QMessageBox::Warning, "Invalid firmware image",
+                        "Selected file does not contain a valid image for this target device", QMessageBox::Ok, this);
+                a.exec();
+                // START REFRESHING THE LIST AGAIN
+                norefresh = false;
+                QTimer::singleShot(500, this, SLOT(refresh()));
+                return;
+
+            }
+
+
+
+
+
+
             address = 0x4000;
             nwords = filedata.size() >> 2;
 
-            filedata.replace(0, 16, "Kinposhcopyright");
-        }
-        else {
-            QMessageBox a(QMessageBox::Warning, "Invalid firmware image",
-                    "Invalid firmware image", QMessageBox::Ok, this);
-            a.exec();
-            // START REFRESHING THE LIST AGAIN
-            norefresh = false;
-            QTimer::singleShot(500, this, SLOT(refresh()));
-            return;
-        }
+            if(calcidx<5) filedata.replace(0, 16, "Kinposhcopyright");
 
         QMessageBox warn(QMessageBox::Warning, "Firmware update",
                 "Firmware on the remote device is about to be updated. Do NOT disconnect the device. OK to proceed?",

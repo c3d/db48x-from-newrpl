@@ -322,7 +322,6 @@ int     FSUpdateHints(FS_VOLUME * fs)
 
 void FSMarkVolumeReadOnly()
 {
-    FS_VOLUME *fs;
     if(FSystem.Volumes[FSystem.CurrentVolume] != NULL)
          FSystem.Volumes[FSystem.CurrentVolume]->InitFlags |= VOLFLAG_READONLY;
 }

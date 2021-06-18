@@ -619,7 +619,7 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        if(ISPROLOG(rplPeekData(1))) {
+        if(ISPROLOG(*rplPeekData(1))) {
             WORDPTR dataptr=rplPeekData(1);
             BINT size=OBJSIZE(*dataptr)-2;
             dataptr+=2;
