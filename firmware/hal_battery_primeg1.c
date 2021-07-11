@@ -96,7 +96,7 @@ void battery_handler()
         if(halScreen.Menu2==0) return;  // Don't display battery in single menu mode
 
        gglsurface scr;
-       ggl_initscr(&scr);
+       cgl_initscr(&scr);
 
        int text,rot;
        int k;
@@ -119,7 +119,7 @@ void battery_handler()
        if(__battery==0x400) {
            // Battery is charging - display charging icon
            DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"C",
-                   (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+                   (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
        }
         else {
             // Display Battery percentage below battery icon
@@ -149,10 +149,10 @@ void battery_handler()
        } else percentwidth=(percentwidth+batwidth)/2;
 
        DrawTextBk(SCREEN_WIDTH-percentwidth
-                        ,SCREEN_HEIGHT-((UNIFONT *)Font_10A)->BitmapHeight-1,(char *)&text,(UNIFONT *)Font_10A,0xf,0,&scr);
+                        ,SCREEN_HEIGHT-((UNIFONT *)Font_10A)->BitmapHeight-1,(char *)&text,(UNIFONT *)Font_10A,cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND),&scr);
 
        DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-((UNIFONT *)Font_10A)->BitmapHeight-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"D",
-               (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+               (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
         halScreenUpdated();
     }
     }
@@ -168,9 +168,9 @@ void busy_handler()
     // Force Display the Hourglass
     {
     gglsurface scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"W",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-3-((UNIFONT *)Font_10A)->BitmapHeight-2*((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"W",
-            (UNIFONT *)Font_Notifications, 0xf, 0, &scr);
+            (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     }
 

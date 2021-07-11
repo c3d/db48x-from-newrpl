@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
 unsigned int ggl_fltinvert(unsigned word, int param)
 {

@@ -5,41 +5,27 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-unsigned int ggl_opmask(unsigned int dest, unsigned int src, int tcol)
+unsigned int cgl_opmask(unsigned int dest, unsigned int src, unsigned int tcol)
 {
     // APPLY 100% TRANSPARENCY MASK
     // tcol = TRANSPARENT COLOR IN src
-    register int f;
-    register unsigned int res = 0;
-    for(f = 0; f < 8; ++f, src >>= 4, dest >>= 4) {
-        if((src & 0xf) == (unsigned int)tcol)
-            res |= dest & 0xf;
-        else
-            res |= src & 0xf;
-        res = (res >> 4) | (res << 28);
-
-    }
-    return res;
+if(src==tcol) return dest;
+return src;
 }
 
 // COPY src INTO dest, WITH tcol=TRANSPARENT COLOR IN src, AND THEN REPLACE BLACK COLOR IN src
 // WITH THE COLOR GIVEN IN newcolor
 
-unsigned int ggl_opmaskcol(unsigned int dest, unsigned int src, int tcol,
-        int newcolor)
+unsigned int cgl_opmaskcol(unsigned int dest, unsigned int src, unsigned int tcol,
+        unsigned int newcolor)
 {
     // APPLY 100% TRANSPARENCY MASK
     // tcol = TRANSPARENT COLOR IN src
-    register int f;
-    register unsigned int res = 0;
-    for(f = 0; f < 8; ++f, src >>= 4, dest >>= 4) {
-        if((src & 0xf) == (unsigned int)tcol)
-            res |= dest & 0xf;
-        else
-            res |= src & newcolor;
-        res = (res >> 4) | (res << 28);
-    }
-    return res;
+    // WHITE IN src replaced with newcolor (USEFUL IN FONTS)
+    if(src==tcol) return dest;
+    if(src==RGB_TO_RGB16(255,255,255)) return newcolor;
+    return src;
+
 }

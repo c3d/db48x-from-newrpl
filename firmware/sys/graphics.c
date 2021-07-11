@@ -358,7 +358,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
                 // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
 
                 ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
-                        drawsurf->x - 2 + (clipped & 0xff), ggl_mkcolor(color));
+                        drawsurf->x - 2 + (clipped & 0xff), color);
                 break;
             }
 
@@ -410,12 +410,12 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
             }
 
             ggl_rect(drawsurf, drawsurf->x, drawsurf->y, drawsurf->x + w - 1,
-                    drawsurf->y + h - 1, ggl_mkcolor(bkcolor & 0xf));
+                    drawsurf->y + h - 1, bkcolor);
             // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
-            if((color & 0xf) == 0xf)
-                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
-            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color & 0xf,
+            //if((color & 0xf) == 0xf)
+//                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
+//            else
+                ggl_monobitbltoper(drawsurf, &srf, w, h, color,
                         &gui_chgcolorfilter);
             drawsurf->x += w;
         }

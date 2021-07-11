@@ -5,8 +5,8 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
-
+#include <xgl.h>
+/*
 void ggl_hbltfilter(int *dest, int destoff, int npixels, int param,
         gglfilter filterfunc)
 {
@@ -43,4 +43,19 @@ void ggl_hbltfilter(int *dest, int destoff, int npixels, int param,
 
     *start = (*start & mr) | (((*filterfunc) (*start, param)) & (~mr));
 
+}
+*/
+void cgl_hbltfilter(int *dest, int destoff, int npixels, int param,
+                    gglfilter filterfunc)
+{
+
+// COPIES npixels NIBBLES FROM src TO dest
+// dest AND src ARE WORD ALIGNED ADDRESSES
+// destoff AND srcoff ARE OFFSETS IN NIBBLES (PIXELS) FROM dest AND src
+unsigned short int *pdest = (unsigned short int *)dest + destoff;
+
+while(npixels--) {
+    *pdest=(*filterfunc) (*pdest, param);
+    ++pdest;
+}
 }

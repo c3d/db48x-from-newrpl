@@ -56,7 +56,7 @@ mainPixmap(SCREEN_WIDTH,SCREEN_HEIGHT)
 
     scr.clear();
 
-    scr.setBackgroundBrush(QBrush(BkgndColor));
+    scr.setBackgroundBrush(/*QBrush(BkgndColor)*/ QBrush(Qt::black));
 
 
     mainPixmap.fill(Grays[8]);
@@ -260,6 +260,59 @@ void QEmuScreen::update()
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);
         }
 
+        mainScreen->setPixmap(mainPixmap);
+        QGraphicsView::update();
+        if(screentmr) {
+            screentmr->setSingleShot(true);
+            screentmr->start(20);
+        }
+
+        return;
+    }
+
+    if(__lcd_mode == 3) {
+        // RGB COLOR SCREEN (5-6-5)
+
+        QPainter pt(&mainPixmap);
+
+        QImage lcdimage((const unsigned char *)__lcd_buffer,screen_width,screen_height,(screen_width*4)/PIXELS_PER_WORD,QImage::Format_RGB16);
+
+        pt.drawImage(0,0,lcdimage,0,0,screen_width,screen_height,Qt::AutoColor);
+
+        pt.end();
+        /*
+        for(i = 0; i < screen_height; ++i) {
+            mask = 0xf;
+            ptr = __lcd_buffer + (LCD_W >> 3) * i;
+            for(j = 0; j < screen_width; ++j) {
+                color = (*ptr & mask) >> ((j & 7) * 4);
+                //Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
+                //Pixels[i * screen_width + j]->setPen(BkgndPen);
+                pt.setPen(Grays[color]);
+                pt.drawPoint(j,i);
+
+                mask <<= 4;
+                if(!mask) {
+                    mask = 0xf;
+                    ++ptr;
+                }
+            }
+        }
+
+        pt.end();
+        */
+
+        // RGB SCREENS DON'T HAVE SEPARATE ANNUNCIATORS TO UPDATE
+
+        /*
+        mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD))));
+        for(i = 0; i < 6; ++i) {
+            ptr = __lcd_buffer + ANN_X_COORD / (PIXELS_PER_WORD);
+            ptr += i * (SCREEN_W / PIXELS_PER_WORD);
+            color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD)));
+            Annunciators[i]->setOpacity(((qreal) color) / 15.0);
+        }
+        */
         mainScreen->setPixmap(mainPixmap);
         QGraphicsView::update();
         if(screentmr) {

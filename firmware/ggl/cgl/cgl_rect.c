@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_rect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
+void cgl_rect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
 {
 // DRAWS A RECTANGLE BETWEEN x1,y1 and x2,y2 ALL INCLUSIVE
 // color CAN BE AN 8-BIT PATTERN THAT REPEATS VERTICALLY
@@ -16,15 +16,15 @@ void ggl_rect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
 //        y2>=y1 && x2>=x1
 
     while(y1 <= y2) {
-        ggl_hline(srf, y1, x1, x2, color);
+        cgl_hline(srf, y1, x1, x2, color);
         ++y1;
     }
 
 }
 
-void ggl_cliprect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
+void cgl_cliprect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
 {
-    // SAME AS ggl_rect BUT WITH CLIPPING
+    // SAME AS cgl_rect BUT WITH CLIPPING
 
     if(x1 > x2) {
         int tmp;
@@ -64,7 +64,7 @@ void ggl_cliprect(gglsurface * srf, int x1, int y1, int x2, int y2, int color)
     //        y2>=y1 && x2>=x1
 
     while(y1 <= y2) {
-        ggl_hline(srf, y1, x1, x2, color);
+        cgl_hline(srf, y1, x1, x2, color);
         ++y1;
     }
 }

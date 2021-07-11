@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_scrolldn(gglsurface * dest, int width, int height, int npixels)
+void cgl_scrolldn(gglsurface * dest, int width, int height, int npixels)
 {
 
 // SCROLLS A RECTANGULAR REGION DOWN npixels
@@ -23,6 +23,6 @@ void ggl_scrolldn(gglsurface * dest, int width, int height, int npixels)
     srf.x = dest->x;
     srf.y = dest->y + npixels;
 
-    ggl_revblt(&srf, dest, width, height - npixels);
+    cgl_revblt(&srf, dest, width, height - npixels);
 
 }

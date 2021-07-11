@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_bitblt(gglsurface * dest, gglsurface * src, int width, int height)
+void cgl_bitblt(gglsurface * dest, gglsurface * src, int width, int height)
 {
 
 // COPIES A RECTANGULAR REGION FROM src TO dest
@@ -22,13 +22,13 @@ void ggl_bitblt(gglsurface * dest, gglsurface * src, int width, int height)
     soff = src->y * src->width + src->x;
 
     for(line = 0; line < height; ++line) {
-        ggl_hblt(dest->addr, doff, src->addr, soff, width);
+        cgl_hblt(dest->addr, doff, src->addr, soff, width);
         doff += dest->width;
         soff += src->width;
     }
 }
 
-void ggl_bitbltclip(gglsurface * dest, gglsurface * src, int width, int height)
+void cgl_bitbltclip(gglsurface * dest, gglsurface * src, int width, int height)
 {
     // SOURCE CLIPPING FIRST - REDUNDANT
     /*
@@ -62,6 +62,6 @@ void ggl_bitbltclip(gglsurface * dest, gglsurface * src, int width, int height)
     if(dest->y + height > dest->clipy2)
         height = dest->clipy2 - dest->y + 1;
 
-    ggl_bitblt(dest, src, width, height);
+    cgl_bitblt(dest, src, width, height);
 
 }

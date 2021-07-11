@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     firmware/ggl/cgl/cgl_hbltfilter.c \
     firmware/ggl/cgl/cgl_hline.c \
     firmware/ggl/cgl/cgl_initscr.c \
-    firmware/ggl/cgl/cgl_mkcolor.c \
     firmware/ggl/cgl/cgl_mkcolor32.c \
     firmware/ggl/cgl/cgl_opmask.c \
     firmware/ggl/cgl/cgl_optransp.c \

@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
 void ggl_scrolllf(gglsurface * dest, int width, int height, int npixels)
 {

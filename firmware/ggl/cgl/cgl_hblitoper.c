@@ -5,8 +5,8 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
-
+#include <xgl.h>
+/*
 void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels,
         int param, ggloperator foperator)
 {
@@ -240,5 +240,47 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff,
     }
 
     *dstart = (*dstart & mr) | (((*foperator) (*dstart, *ptr, param)) & (~mr));
+
+}
+
+*/
+void cgl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels,
+        int param, ggloperator foperator)
+{
+
+// COPIES npixels NIBBLES FROM src TO dest
+// dest AND src ARE WORD ALIGNED ADDRESSES
+// destoff AND srcoff ARE OFFSETS IN NIBBLES (PIXELS) FROM dest AND src
+if(src>dest) {
+unsigned short int *pdest = (unsigned short int *)dest + destoff;
+unsigned short int *psrc = (unsigned short int *)src + srcoff;
+
+while(npixels--) { *pdest=(*foperator)(*pdest,*psrc++,param); ++pdest; }
+}
+else {
+    unsigned short int *pdest = (unsigned short int *)dest + destoff+npixels-1;
+    unsigned short int *psrc = (unsigned short int *)src + srcoff+npixels-1;
+
+    while(npixels--) { *pdest=(*foperator)(*pdest,*psrc--,param); --pdest; }
+}
+}
+
+void cgl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, int npixels,
+        int param, ggloperator foperator)
+{
+
+// COPIES npixels NIBBLES FROM src TO dest
+// dest AND src ARE WORD ALIGNED ADDRESSES
+// destoff AND srcoff ARE OFFSETS IN NIBBLES (PIXELS) FROM dest AND src
+
+unsigned short int *pdest = (unsigned short int *)dest + destoff;
+unsigned char *psrc = (unsigned char *)src ;
+unsigned char mask= 1<<(srcoff&7);
+while(npixels--) {
+    *pdest=(*foperator)(*pdest,((psrc[srcoff>>3]&mask)? RGB_TO_RGB16(255,255,255):0),param);
+    ++pdest;
+    ++srcoff;
+    if(mask&0x80) mask=1; else mask<<=1;
+}
 
 }

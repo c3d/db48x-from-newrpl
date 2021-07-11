@@ -77,14 +77,17 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 // mode=0 -> Mono
 //     =1 -> 4-gray
 //     =2 -> 16-gray
+//     =3 -> 64k COLOR RGB 5-6-5
 // physbuf MUST be the physical address
 
-    int /*height=(lcdreg[3])>>8, */ pagewidth = LCD_W >> (4 - mode);
+    int pagewidth;
+
+    if(mode<3) pagewidth = LCD_W >> (3 - mode);
+    else pagewidth = LCD_W * 2;
 
     __lcd_buffer = physbuf;
-// TODO: POINT THE QT SCREEN INTO THE GIVEN BUFFER
     lcd_setcontrast(__lcd_contrast);
     __lcd_mode = mode;
 
-    return pagewidth << 1;
+    return pagewidth;
 }

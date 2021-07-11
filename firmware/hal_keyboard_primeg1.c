@@ -4179,20 +4179,20 @@ void onPlusKeyHandler(BINT keymsg)
 
     // INCREASE CONTRAST
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     int j;
     for(j = 0; j < 15; ++j) {
-        ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
-                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
-        ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
-                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, cgl_mkcolor(j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, cgl_mkcolor(15 - j));
     }
 
     __lcd_contrast++;
@@ -4216,20 +4216,20 @@ void onMinusKeyHandler(BINT keymsg)
 
     // DECREASE CONTRAST
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     int j;
     for(j = 0; j < 15; ++j) {
-        ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
-                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
-        ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
-                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, cgl_mkcolor(j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, cgl_mkcolor(15 - j));
     }
 
     __lcd_contrast--;
@@ -4280,19 +4280,19 @@ void onDotKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Format:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS], 0xf, 0,
+            (char *)options[option], *halScreen.FontArray[FONT_STATUS],cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND),
             &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4426,19 +4426,19 @@ void onSpcKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Mode:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS], 0xf, 0,
+            (char *)options[option], *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND),
             &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4523,20 +4523,20 @@ void onMulDivKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "ENG exponent:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
             (char *)onMulDivKeyHandler_options[option],
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     if(option)
         option += 7;
@@ -4605,19 +4605,19 @@ void onDigitKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Digits:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)&digits, *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            (char *)&digits, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4671,19 +4671,19 @@ void onUpDownKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "System precision:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            digits_string, *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            digits_string, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     halScreen.DirtyFlag |= STACK_DIRTY;
 
@@ -7499,7 +7499,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
     BINT64 offcounter = 0;
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     jobdone = isidle = 0;
     halTimeoutEvent = -1;
 

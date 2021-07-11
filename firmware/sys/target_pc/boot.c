@@ -36,11 +36,11 @@ void main_virtual()
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-        ggl_initscr(&scr);
+        cgl_initscr(&scr);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                ggl_mkcolor(4));
+        cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+                cgl_mkcolor(PAL_STKBACKGND));
 
         // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
         mode = (halCheckMemoryMap() == 2) ? 1 : 0;      // mode!=0 ONLY WHEN WAKING UP FROM POWEROFF
@@ -111,7 +111,7 @@ void main_virtual()
             tmr_eventkill(k);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 1, 0x11111111);
+        cgl_rect(&scr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_GRAY4));
 
         keyb_flushnowait();
 
@@ -157,7 +157,8 @@ void startup()
 
     // DONE WITH SYSTEM INITIALIZATION, SWITCH BACK TO USER MODE
 
-    lcd_setmode(2, (unsigned int *)MEM_PHYS_SCREEN);
+    // START IN FULL COLOR MODE BY DEFAULT
+    lcd_setmode(3, (unsigned int *)MEM_PHYS_SCREEN);
 
     main_virtual();
 

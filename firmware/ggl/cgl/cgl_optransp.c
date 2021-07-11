@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
 unsigned int ggl_optransp(unsigned int dest, unsigned int src, int weight)
 {

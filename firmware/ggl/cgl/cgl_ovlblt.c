@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_ovlblt(gglsurface * dest, gglsurface * src, int width, int height)
+void cgl_ovlblt(gglsurface * dest, gglsurface * src, int width, int height)
 {
 
 // SAME AS ggl_bitblt BUT WITH OVERLAPPING CHECK
@@ -33,7 +33,7 @@ void ggl_ovlblt(gglsurface * dest, gglsurface * src, int width, int height)
     //send=st+((height*src->width)>>3);
 
     if(dst >= st && dst <= dend)
-        ggl_revblt(dest, src, width, height);
+        cgl_revblt(dest, src, width, height);
     else
-        ggl_bitblt(dest, src, width, height);
+        cgl_bitblt(dest, src, width, height);
 }

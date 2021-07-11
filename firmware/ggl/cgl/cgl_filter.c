@@ -5,9 +5,9 @@
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
  */
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_filter(gglsurface * dest, int width, int height, int param,
+void cgl_filter(gglsurface * dest, int width, int height, int param,
         gglfilter filterfunc)
 {
 
@@ -22,7 +22,7 @@ void ggl_filter(gglsurface * dest, int width, int height, int param,
     doff = dest->y * dest->width + dest->x;
 
     for(line = 0; line < height; ++line) {
-        ggl_hbltfilter(dest->addr, doff, width, param, filterfunc);
+        cgl_hbltfilter(dest->addr, doff, width, param, filterfunc);
         doff += dest->width;
     }
 }

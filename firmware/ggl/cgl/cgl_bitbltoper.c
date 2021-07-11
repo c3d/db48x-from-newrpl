@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_bitbltoper(gglsurface * dest, gglsurface * src, int width, int height,
+void cgl_bitbltoper(gglsurface * dest, gglsurface * src, int width, int height,
         int param, ggloperator fop)
 {
 
@@ -23,13 +23,13 @@ void ggl_bitbltoper(gglsurface * dest, gglsurface * src, int width, int height,
     soff = src->y * src->width + src->x;
 
     for(line = 0; line < height; ++line) {
-        ggl_hbltoper(dest->addr, doff, src->addr, soff, width, param, fop);
+        cgl_hbltoper(dest->addr, doff, src->addr, soff, width, param, fop);
         doff += dest->width;
         soff += src->width;
     }
 }
 
-void ggl_monobitbltoper(gglsurface * dest, gglsurface * src, int width,
+void cgl_monobitbltoper(gglsurface * dest, gglsurface * src, int width,
         int height, int param, ggloperator fop)
 {
 
@@ -46,7 +46,7 @@ void ggl_monobitbltoper(gglsurface * dest, gglsurface * src, int width,
     soff = src->y * src->width + src->x;
 
     for(line = 0; line < height; ++line) {
-        ggl_monohbltoper(dest->addr, doff, (unsigned char *)(src->addr), soff,
+        cgl_monohbltoper(dest->addr, doff, (unsigned char *)(src->addr), soff,
                 width, param, fop);
         doff += dest->width;
         soff += src->width;

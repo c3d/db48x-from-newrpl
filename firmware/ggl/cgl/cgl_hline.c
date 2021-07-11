@@ -5,13 +5,13 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
 // VERSION DRAWS HORIZONTAL LINES IN A COLOR BITMAP
 // Supports 16-bit per pixel RGB555
 // Color is a single color, no pattern supported
 
-void ggl_hline(gglsurface * srf, int y, int xl, int xr, int color)
+void cgl_hline(gglsurface * srf, int y, int xl, int xr, int color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -20,33 +20,16 @@ void ggl_hline(gglsurface * srf, int y, int xl, int xr, int color)
     // RESTRICTIONS: xr>=xl
     //                 y MUST BE VALID
 
-    int loff = (y * srf->width + xl);
-    int roff = (y * srf->width + xr);
-    register int *left = (int *)srf->addr + (loff >> 3);
-    register int *right = (int *)srf->addr + (roff >> 3);
-    int ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
+unsigned short int *ptr=(unsigned short int *)srf->addr+y*srf->width+xl;
 
-
-
-    if(left == right) {
-        // single word operation
-        ml |= mr;
-        *left = (*left & ml) | (color & (~ml));
-        return;
-    }
-
-    *left = (*left & ml) | (color & (~ml));
-    ++left;
-    while(left != right) {
-        *left = color;
-        ++left;
-    }
-
-    *right = (*right & mr) | (color & (~mr));
+while(xl<=xr) {
+    *ptr++=color;
+    ++xl;
+}
 
 }
 
-void ggl_cliphline(gglsurface * srf, int y, int xl, int xr, int color)
+void cgl_cliphline(gglsurface * srf, int y, int xl, int xr, int color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -69,26 +52,5 @@ void ggl_cliphline(gglsurface * srf, int y, int xl, int xr, int color)
     if(xr > srf->clipx2)
         xr = srf->clipx2;
 
-    int loff = (y * srf->width + xl);
-    int roff = (y * srf->width + xr);
-    register int *left = (int *)srf->addr + (loff >> 3);
-    register int *right = (int *)srf->addr + (roff >> 3);
-    int ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
-
-    if(left == right) {
-        // single word operation
-        ml |= mr;
-        *left = (*left & ml) | (color & (~ml));
-        return;
-    }
-
-    *left = (*left & ml) | (color & (~ml));
-    ++left;
-    while(left != right) {
-        *left = color;
-        ++left;
-    }
-
-    *right = (*right & mr) | (color & (~mr));
-
+    cgl_hline(srf,y,xl,xr,color);
 }

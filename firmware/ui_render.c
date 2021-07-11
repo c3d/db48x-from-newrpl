@@ -14,8 +14,8 @@
 
 #define INC_NEXT_ENTRY ((halCacheEntry+1)&(0xffff0000|(MAX_RENDERCACHE_ENTRIES-1)))
 
-#define MAX_BMP_WIDTH 524       // MAXIMUM WIDTH OF A BITMAP TO RENDER AN OBJECT = 4 SCREENS
-#define MAX_BMP_HEIGHT 320      // MAXIMUM HEIGHT OF A BITMAP TO RENDER AN OBJECT = 4 SCREENS
+#define MAX_BMP_WIDTH (4*SCREEN_WIDTH)       // MAXIMUM WIDTH OF A BITMAP TO RENDER AN OBJECT = 4 SCREENS
+#define MAX_BMP_HEIGHT (4*SCREEN_HEIGHT)      // MAXIMUM HEIGHT OF A BITMAP TO RENDER AN OBJECT = 4 SCREENS
 
 // INVALIDATE ALL CACHE ENTRIES
 void uiClearRenderCache()
@@ -148,7 +148,7 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font)
     BYTEPTR charptr = (BYTEPTR) (string + 1);
 
     DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, *font,
-            15, scr);
+            ggl_mkcolor(PAL_STKITEMS), scr);
 
 }
 
@@ -192,8 +192,6 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
         string = ScratchPointer1;
         charptr = (BYTEPTR) (string + 1);
 
-        // CLEAR THE BITMAP FIRST
-        memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
         DRAWSURFACE tsurf;
@@ -207,7 +205,12 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
         tsurf.x = 0;
         tsurf.y = 0;
 
-        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, *font, 15,
+        // CLEAR THE BITMAP FIRST
+        ggl_rect(&tsurf,0,0,numwidth,(*font)->BitmapHeight - 1,ggl_mkcolor(PAL_STKBACKGND));
+        //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
+
+
+        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, *font, ggl_mkcolor(PAL_STKITEMS),
                 &tsurf);
 
         // AND ADD TO CACHE
@@ -252,6 +255,6 @@ void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
         BYTEPTR charptr = (BYTEPTR) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
-                *halScreen.FontArray[FONT_STACK], 15, scr);
+                *halScreen.FontArray[FONT_STACK], ggl_mkcolor(PAL_STKITEMS), scr);
     }
 }

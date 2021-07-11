@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_revblt(gglsurface * dest, gglsurface * src, int width, int height)
+void cgl_revblt(gglsurface * dest, gglsurface * src, int width, int height)
 {
 // REVERSE bitblt
 // COPIES A RECTANGULAR REGION FROM src TO dest
@@ -28,7 +28,7 @@ void ggl_revblt(gglsurface * dest, gglsurface * src, int width, int height)
     for(line = 0; line < height; ++line) {
         doff -= dest->width;
         soff -= src->width;
-        ggl_hblt(dest->addr, doff, src->addr, soff, width);
+        cgl_hblt(dest->addr, doff, src->addr, soff, width);
     }
 
 }

@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
 void ggl_rectp(gglsurface * srf, int x1, int y1, int x2, int y2, int *color)
 {

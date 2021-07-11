@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#include <cgl.h>
+#include <xgl.h>
 
-void ggl_vline(gglsurface * srf, int x, int yt, int yb, int color)
+void cgl_vline(gglsurface * srf, int x, int yt, int yb, int color)
 {
     // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
     // color=number from 0 to 15
@@ -15,16 +15,17 @@ void ggl_vline(gglsurface * srf, int x, int yt, int yb, int color)
 
     int offset = srf->width * yt + x;
 
+    unsigned short *ptr=(unsigned short *)srf->addr+offset;
     while(yt <= yb) {
-        ggl_pltnib(srf->addr, offset, color >> ((yt & 7) << 2));
-        offset += srf->width;
+        *ptr=(unsigned short int)color;
+        ptr += srf->width;
         ++yt;
     }
 
 }
 
 // SAME AS VLINE BU WITH CLIPPING
-void ggl_clipvline(gglsurface * srf, int x, int yt, int yb, int color)
+void cgl_clipvline(gglsurface * srf, int x, int yt, int yb, int color)
 {
     // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
     // color=number from 0 to 15
@@ -45,12 +46,6 @@ void ggl_clipvline(gglsurface * srf, int x, int yt, int yb, int color)
     if(x > srf->clipx2)
         return;
 
-    int offset = srf->width * yt + x;
-
-    while(yt <= yb) {
-        ggl_pltnib(srf->addr, offset, color >> ((yt & 7) << 2));
-        offset += srf->width;
-        ++yt;
-    }
+   cgl_vline(srf,x,yt,yb,color);
 
 }

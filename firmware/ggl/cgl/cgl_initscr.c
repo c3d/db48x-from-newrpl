@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-void ggl_initscr(gglsurface * srf)
+void cgl_initscr(gglsurface * srf)
 {
     srf->addr = (int *)MEM_PHYS_SCREEN;
     srf->width = LCD_W;
@@ -15,4 +15,8 @@ void ggl_initscr(gglsurface * srf)
     srf->clipx = srf->clipy = 0;
     srf->clipx2 = SCREEN_WIDTH - 1;
     srf->clipy2 = SCREEN_HEIGHT - 1;
+    srf->isgray = 0;
 }
+
+// Global palette, can be used for grayscale conversion or for themes
+int cgl_palette[PALETTESIZE] __SYSTEM_GLOBAL__;
