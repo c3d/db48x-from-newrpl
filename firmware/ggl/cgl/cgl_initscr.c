@@ -15,7 +15,12 @@ void cgl_initscr(gglsurface * srf)
     srf->clipx = srf->clipy = 0;
     srf->clipx2 = SCREEN_WIDTH - 1;
     srf->clipy2 = SCREEN_HEIGHT - 1;
-    srf->isgray = 0;
+    srf->actbuffer = 0;
+#if SCREEN_BUFFERS > 0
+    srf->actbuffer = lcd_getactivebuffer();
+    srf->addr+=SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD*srf->actbuffer;
+#endif
+
 }
 
 // Global palette, can be used for grayscale conversion or for themes

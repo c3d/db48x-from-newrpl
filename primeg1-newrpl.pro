@@ -42,33 +42,32 @@ SOURCES +=\
     firmware/sys/target_prime1/usbdriver.c \
     firmware/sys/usbcommon.c \
     firmware/sys/target_prime1/fwupdate.c \
-    firmware/ggl/ggl/ggl_bitblt.c \
-    firmware/ggl/ggl/ggl_bitbltoper.c \
-    firmware/ggl/ggl/ggl_filter.c \
-    firmware/ggl/ggl/ggl_fltdarken.c \
-    firmware/ggl/ggl/ggl_fltlighten.c \
-    firmware/ggl/ggl/ggl_fltinvert.c \
-    firmware/ggl/ggl/ggl_getnib.c \
-    firmware/ggl/ggl/ggl_hblt.c \
-    firmware/ggl/ggl/ggl_hbltfilter.c \
-    firmware/ggl/ggl/ggl_hbltoper.c \
-    firmware/ggl/ggl/ggl_hline.c \
-    firmware/ggl/ggl/ggl_initscr.c \
-    firmware/ggl/ggl/ggl_mkcolor.c \
-    firmware/ggl/ggl/ggl_mkcolor32.c \
-    firmware/ggl/ggl/ggl_opmask.c \
-    firmware/ggl/ggl/ggl_optransp.c \
-    firmware/ggl/ggl/ggl_ovlblt.c \
-    firmware/ggl/ggl/ggl_pltnib.c \
-    firmware/ggl/ggl/ggl_rect.c \
-    firmware/ggl/ggl/ggl_rectp.c \
-    firmware/ggl/ggl/ggl_revblt.c \
-    firmware/ggl/ggl/ggl_scrolldn.c \
-    firmware/ggl/ggl/ggl_scrolllf.c \
-    firmware/ggl/ggl/ggl_scrollrt.c \
-    firmware/ggl/ggl/ggl_scrollup.c \
-    firmware/ggl/ggl/ggl_vline.c \
-    firmware/ggl/ggl/ggl_fltreplace.c \
+    firmware/ggl/cgl/cgl_bitblt.c \
+    firmware/ggl/cgl/cgl_bitbltoper.c \
+    firmware/ggl/cgl/cgl_filter.c \
+    firmware/ggl/cgl/cgl_fltdarken.c \
+    firmware/ggl/cgl/cgl_fltlighten.c \
+    firmware/ggl/cgl/cgl_fltinvert.c \
+    firmware/ggl/cgl/cgl_getnib.c \
+    firmware/ggl/cgl/cgl_hblt.c \
+    firmware/ggl/cgl/cgl_hbltoper.c \
+    firmware/ggl/cgl/cgl_hbltfilter.c \
+    firmware/ggl/cgl/cgl_hline.c \
+    firmware/ggl/cgl/cgl_initscr.c \
+    firmware/ggl/cgl/cgl_mkcolor32.c \
+    firmware/ggl/cgl/cgl_opmask.c \
+    firmware/ggl/cgl/cgl_optransp.c \
+    firmware/ggl/cgl/cgl_ovlblt.c \
+    firmware/ggl/cgl/cgl_pltnib.c \
+    firmware/ggl/cgl/cgl_rect.c \
+    firmware/ggl/cgl/cgl_rectp.c \
+    firmware/ggl/cgl/cgl_revblt.c \
+    firmware/ggl/cgl/cgl_scrolldn.c \
+    firmware/ggl/cgl/cgl_scrolllf.c \
+    firmware/ggl/cgl/cgl_scrollrt.c \
+    firmware/ggl/cgl/cgl_scrollup.c \
+    firmware/ggl/cgl/cgl_vline.c \
+    firmware/ggl/cgl/cgl_fltreplace.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
     firmware/sys/Font5A.c \
@@ -243,6 +242,7 @@ SOURCES +=\
 
 HEADERS  += \
     firmware/include/ggl.h \
+    firmware/include/xgl.h \
     firmware/include/target_prime1.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \

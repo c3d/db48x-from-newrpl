@@ -7,7 +7,6 @@
 
 #include <newrpl.h>
 #include <hal_api.h>
-#include <ggl.h>
 #include <stdio.h>
 #include "fsystem.h"
 #include "nand.h"
@@ -16,7 +15,7 @@
 
 #define lineheight 12
 #define font (UNIFONT const *)Font_10A
-#define black 0xffffffff
+#define black RGB_TO_RGB16(0,0,0)
 #define left 0
 #define right 160
 
@@ -45,11 +44,11 @@ void printline(char *left_text, char *right_text) {
 
     if(line==-1) {
         lcd_poweron();
-        lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+        lcd_setmode(BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
         lcd_on();
 
-        ggl_initscr(&surface);
-        ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+        cgl_initscr(&surface);
+        cgl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, RGB_TO_RGB16(255,255,192));
         line =0;
     }
 

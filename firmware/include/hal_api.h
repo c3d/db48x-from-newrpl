@@ -1018,6 +1018,9 @@ void lcd_setcontrast(int level);
 int lcd_setmode(int mode, unsigned int *physbuf);
 void lcd_save(unsigned int *buf);
 void lcd_restore(unsigned int *buf);
+int lcd_scanline();
+void lcd_setactivebuffer(int buffer);
+int lcd_getactivebuffer();
 
 // BASIC LOW-LEVEL INTERRUPT HANDLERS
 void __exception_install();

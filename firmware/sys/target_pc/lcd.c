@@ -14,9 +14,10 @@
 // SIMULATED SYSTEM REGISTERS
 int __lcd_mode = -1;
 int __lcd_needsupdate = 0;
+int __lcd_activebuffer = 0;
 unsigned int *__lcd_buffer;
 // SIMULATED SCREEN MEMORY
-char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
+char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD*SCREEN_BUFFERS];
 char ExceptionScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
 
 int __lcd_contrast __SYSTEM_GLOBAL__;
@@ -88,6 +89,22 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     __lcd_buffer = physbuf;
     lcd_setcontrast(__lcd_contrast);
     __lcd_mode = mode;
+    __lcd_activebuffer = 0;
 
     return pagewidth;
+}
+
+int lcd_scanline()
+{
+    return SCREEN_HEIGHT+1;
+}
+
+void lcd_setactivebuffer(int buffer)
+{
+    __lcd_activebuffer=buffer;
+}
+
+int lcd_getactivebuffer()
+{
+    return __lcd_activebuffer;
 }

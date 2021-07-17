@@ -16,3 +16,6 @@ void ggl_initscr(gglsurface * srf)
     srf->clipx2 = SCREEN_WIDTH - 1;
     srf->clipy2 = SCREEN_HEIGHT - 1;
 }
+
+// Global palette, can be used for grayscale conversion or for themes
+int cgl_palette[PALETTESIZE] __SYSTEM_GLOBAL__;

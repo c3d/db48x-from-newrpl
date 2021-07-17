@@ -16,9 +16,18 @@
 // Extract RGB blue component from RGB16 color (bit expand to 0-255 range)
 #define RGBBLUE(rgb16) ( ((rgb16)&0x10)? ((((rgb16)<<3)&0xff)|7) : ((rgb16)<<3)&0xfc)
 
+// Extract RGB components from a 16-grays color value
+#define G2RGBRED(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+#define G2RGBGREEN(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+#define G2RGBBLUE(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+
+// Convert from RGB (0-255) to GRAY16(4-bit)
+#define RGB_TO_GRAY16(red,green,blue) ((( (red)+(green)+(green)+(blue)) >> 6)&0xf)
+
+
 #define REPEAT_NIBBLE(nib) (((nib)&0xf)|(((nib)&0xf)<<4))
 #define REPEAT_BYTE(byte) (((byte)&0xff)|(((byte)&0xff)<<8))
-#define REPEAT_HALFWORD(hword) (((byte)&0xffff)|(((byte)&0xffff)<<16))
+#define REPEAT_HALFWORD(hword) (((hword)&0xffff)|(((hword)&0xffff)<<16))
 
 #define PATTERN_SOLID(gray) REPEAT_HALFWORD(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
 #define PATTERN_2COL(dot1,dot2) REPEAT_HALFWORD(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
@@ -43,6 +52,27 @@ extern int cgl_palette[PALETTESIZE];
 #ifdef TARGET_PC_PRIMEG1
 #include "cgl.h"
 #else
+
+
+// Add some stub functions to map cgl to ggl
+#define cgl_initscr ggl_initscr
+#define cgl_rect ggl_rect
+#define cgl_cliprect ggl_cliprect
+#define cgl_cliphline ggl_cliphline
+#define cgl_clipvline ggl_clipvline
+#define cgl_bitbltclip ggl_bitbltclip
+
+#define cgl_filter ggl_filter
+
+#define cgl_fltreplace ggl_fltreplace
+
+// Use a palette entry
+#define cgl_mkcolor(color) (cgl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define cgl_setpalette(index,color) { cgl_palette[(index)&PALETTEMASK]=(color); }
+
+
 #include "ggl.h"
 #endif
 #endif
@@ -53,18 +83,94 @@ extern int cgl_palette[PALETTESIZE];
 #endif
 
 #ifdef TARGET_50G
+
+// Add some stub functions to map cgl to ggl
+#define cgl_initscr ggl_initscr
+#define cgl_rect ggl_rect
+#define cgl_cliprect ggl_cliprect
+#define cgl_cliphline ggl_cliphline
+#define cgl_clipvline ggl_clipvline
+#define cgl_bitbltclip ggl_bitbltclip
+
+#define cgl_filter ggl_filter
+
+#define cgl_fltreplace ggl_fltreplace
+
+// Use a palette entry
+#define cgl_mkcolor(color) (cgl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define cgl_setpalette(index,color) { cgl_palette[(index)&PALETTEMASK]=(color); }
+
 #include "ggl.h"
 #endif
 
 #ifdef TARGET_39GS
+
+// Add some stub functions to map cgl to ggl
+#define cgl_initscr ggl_initscr
+#define cgl_rect ggl_rect
+#define cgl_cliprect ggl_cliprect
+#define cgl_cliphline ggl_cliphline
+#define cgl_clipvline ggl_clipvline
+#define cgl_bitbltclip ggl_bitbltclip
+
+#define cgl_filter ggl_filter
+
+#define cgl_fltreplace ggl_fltreplace
+
+// Use a palette entry
+#define cgl_mkcolor(color) (cgl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define cgl_setpalette(index,color) { cgl_palette[(index)&PALETTEMASK]=(color); }
+
 #include "ggl.h"
 #endif
 
 #ifdef TARGET_40GS
+
+// Add some stub functions to map cgl to ggl
+#define cgl_initscr ggl_initscr
+#define cgl_rect ggl_rect
+#define cgl_cliprect ggl_cliprect
+#define cgl_cliphline ggl_cliphline
+#define cgl_clipvline ggl_clipvline
+#define cgl_bitbltclip ggl_bitbltclip
+
+#define cgl_filter ggl_filter
+
+#define cgl_fltreplace ggl_fltreplace
+
+// Use a palette entry
+#define cgl_mkcolor(color) (cgl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define cgl_setpalette(index,color) { cgl_palette[(index)&PALETTEMASK]=(color); }
+
 #include "ggl.h"
 #endif
 
 #ifdef TARGET_48GII
+
+// Add some stub functions to map cgl to ggl
+#define cgl_initscr ggl_initscr
+#define cgl_rect ggl_rect
+#define cgl_cliprect ggl_cliprect
+#define cgl_cliphline ggl_cliphline
+#define cgl_clipvline ggl_clipvline
+#define cgl_bitbltclip ggl_bitbltclip
+
+#define cgl_filter ggl_filter
+
+#define cgl_fltreplace ggl_fltreplace
+
+// Use a palette entry
+#define cgl_mkcolor(color) (cgl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define cgl_setpalette(index,color) { cgl_palette[(index)&PALETTEMASK]=(color); }
+
 #include "ggl.h"
 #endif
 

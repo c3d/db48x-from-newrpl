@@ -183,7 +183,7 @@ void __uicursorupdate()
     halScreen.CursorState ^= 0x8000;    // FLIP STATE BIT
     halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     halRedrawCmdLine(&scr);
 }
 

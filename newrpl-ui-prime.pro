@@ -20,9 +20,9 @@ SOURCES += main.cpp\
     firmware/ggl/cgl/cgl_fltlighten.c \
     firmware/ggl/cgl/cgl_fltreplace.c \
     firmware/ggl/cgl/cgl_getnib.c \
-    firmware/ggl/cgl/cgl_hblitoper.c \
     firmware/ggl/cgl/cgl_hblt.c \
     firmware/ggl/cgl/cgl_hbltfilter.c \
+    firmware/ggl/cgl/cgl_hbltoper.c \
     firmware/ggl/cgl/cgl_hline.c \
     firmware/ggl/cgl/cgl_initscr.c \
     firmware/ggl/cgl/cgl_mkcolor32.c \

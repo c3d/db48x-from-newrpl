@@ -7,7 +7,7 @@
 
 #include <newrpl.h>
 #include <hal_api.h>
-#include <ggl.h>
+#include <xgl.h>
 #include "nand.h"
 #include "../fsystem/fsyspriv.h"
 
@@ -17,8 +17,8 @@
 #define left 0
 #define right 160
 
-static int line;
-static gglsurface surface;
+//static int line;
+//static gglsurface surface;
 
 // DEBUG ONLY - TURN ON LEDS
 
@@ -60,7 +60,7 @@ void red_led_off()
     *GPCDAT&=~(1<<7) ;
 }
 
-
+/*
 
 void tohex(uint32_t value, char *buffer) {
     buffer[8] = 0;
@@ -91,7 +91,7 @@ void printline(char *left_text, char *right_text) {
         ++line;
     }
 }
-
+*/
 __ARM_MODE__ void enable_interrupts()
 {
     asm volatile (
@@ -264,11 +264,11 @@ void main_virtual(unsigned int mode)
 
 
     // Initialize screen earlier so we can print error messages
-    line = 0;
+    //line = 0;
 
 
-    ggl_initscr(&surface);
-    ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+    //cgl_initscr(&surface);
+    //cgl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_STKBACKGND));
 
      // INITIALIZE SOME SYSTEM VARIABLES
 
@@ -282,10 +282,10 @@ void main_virtual(unsigned int mode)
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-        ggl_initscr(&scr);
+        cgl_initscr(&scr);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0);
+        cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_STKBACKGND));
 
 
             // CHECK FOR MAGIC KEY COMBINATION
@@ -349,7 +349,7 @@ void main_virtual(unsigned int mode)
 
         tmr_eventkill(event);
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, 0x11111111);
+        cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,  cgl_mkcolor(PAL_GRAY4));
 
         keyb_flushnowait();
 
@@ -362,7 +362,7 @@ void main_virtual(unsigned int mode)
     while(halFlags & HAL_RESET);
 
 
-    printline("What?", "Meditate infinitely...");
+    //printline("What?", "Meditate infinitely...");
 
     while(1);
 }
@@ -936,7 +936,7 @@ void startup(void)
 
     // Start the LCD as early as possible, even before the MMU is up and running
     lcd_poweron();
-    lcd_setmode(BPPMODE_4BPP, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_setmode((DEFAULTBITMAPMODE==BITMAP_RAW16G)? BPPMODE_4BPP:BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 
 

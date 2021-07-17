@@ -6,15 +6,17 @@
  */
 #include <ggl.h>
 
-// param = 0xMN where M is the color to replace, N is the color to replace with.
+// param = 0xMMMMNNNN where M is the color to replace, N is the color to replace with.
+// For compatibility with color graphics, takes the upper 4 bits of the 5-bit blue component
+// of an RGB16 color
 unsigned ggl_fltreplace(unsigned word, int param)
 {
     register int f;
     register unsigned int res = 0;
     for(f = 0; f < 8; ++f, word >>= 4) {
         // filter the pixel here
-        if(((word & 0xf) == ((param >> 4) & 0xf)))
-            res |= (param & 0xf);
+        if(((word & 0xf) == ((param >> 17) & 0xf)))
+            res |= ((param>>1) & 0xf);
         else
             res |= (word & 0xf);
 

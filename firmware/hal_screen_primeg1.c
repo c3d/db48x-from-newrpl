@@ -306,6 +306,8 @@ void halRedrawForm(DRAWSURFACE * scr)
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
     int ystart = 0, yend = ystart + halScreen.Form;
 
+
+
     oldclipx = scr->clipx;
     oldclipy = scr->clipy;
     oldclipx2 = scr->clipx2;
@@ -316,7 +318,7 @@ void halRedrawForm(DRAWSURFACE * scr)
     form = rplGetSettings((WORDPTR) currentform_ident);
 
     if(!form) {
-        ggl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, 0x12488421);       // CLEAR RECTANGLE
+        cgl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, cgl_mkcolor(PAL_FORMBACKGND));       // CLEAR RECTANGLE
         halScreen.DirtyFlag &= ~FORM_DIRTY;
         return;
     }
@@ -324,7 +326,7 @@ void halRedrawForm(DRAWSURFACE * scr)
     bmp = uiFindCacheEntry(form, halScreen.FontArray[FONT_FORMS]);
 
     if(!bmp) {
-        ggl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, 0x12488421);       // CLEAR RECTANGLE
+        cgl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, cgl_mkcolor(PAL_FORMBACKGND));       // CLEAR RECTANGLE
         halScreen.DirtyFlag &= ~FORM_DIRTY;
         return;
     }
@@ -352,11 +354,11 @@ void halRedrawForm(DRAWSURFACE * scr)
 
     if(yend > viewport.clipy2 + 1) {
         // CLEAR THE BACKGROUND
-        ggl_cliprect(scr, scr->clipx, viewport.clipy2 + 1, scr->clipx2, yend - 1, 0);   // CLEAR RECTANGLE
+        cgl_cliprect(scr, scr->clipx, viewport.clipy2 + 1, scr->clipx2, yend - 1, 0);   // CLEAR RECTANGLE
     }
 
     // DRAW THE VIEWPORT
-    ggl_bitbltclip(scr, &viewport, viewport.width, viewport.clipy2 + 1);
+    cgl_bitbltclip(scr, &viewport, viewport.width, viewport.clipy2 + 1);
     halScreen.DirtyFlag &= ~FORM_DIRTY;
 
     scr->clipx = oldclipx;
@@ -387,6 +389,9 @@ void halRedrawStack(DRAWSURFACE * scr)
     oldclipy = scr->clipy;
     oldclipx2 = scr->clipx2;
     oldclipy2 = scr->clipy2;
+
+
+
 
     stknum_w=((*halScreen.FontArray[FONT_STACK])->BitmapHeight*192)/256;    // ESTIMATE NUMBER WIDTH AT 75% OF THE FONT HEIGHT
     if(halScreen.KeyContext & CONTEXT_INTSTACK) {
@@ -468,7 +473,7 @@ void halRedrawStack(DRAWSURFACE * scr)
     cgl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, cgl_mkcolor(PAL_STKBACKGND));    // CLEAR RECTANGLE
 
     if(depth > 0)
-        ggl_clipvline(scr, xright, ystart, yend - 1, ggl_mkcolor(PAL_STKVLINE));
+        cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
 
     while(y > ystart) {
         if(level == 1)
@@ -535,7 +540,7 @@ void halRedrawStack(DRAWSURFACE * scr)
                 if(halScreen.StkSelStart > halScreen.StkPointer) {
                     if((level >= halScreen.StkPointer)
                             && (level <= halScreen.StkSelStart))
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1,
+                        cgl_cliprect(scr, 0, ytop, xright - 1, y - 1,
                                 cgl_mkcolor(PAL_STKSELBKGND));
                     if(level == halScreen.StkSelStart)
                         DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], cgl_mkcolor(PAL_STKCURSOR), scr);
@@ -543,7 +548,7 @@ void halRedrawStack(DRAWSURFACE * scr)
                 else {
                     if((level >= halScreen.StkSelStart)
                             && (level <= halScreen.StkPointer))
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1,
+                        cgl_cliprect(scr, 0, ytop, xright - 1, y - 1,
                                 cgl_mkcolor(PAL_STKSELBKGND));
                     if(level == halScreen.StkSelStart)
                         DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], cgl_mkcolor(PAL_STKCURSOR), scr);
@@ -553,7 +558,7 @@ void halRedrawStack(DRAWSURFACE * scr)
                 // BOTH START AND END SELECTED
                 if((level >= halScreen.StkSelStart)
                         && (level <= halScreen.StkSelEnd))
-                    ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, cgl_mkcolor(PAL_STKSELBKGND));
+                    cgl_cliprect(scr, 0, ytop, xright - 1, y - 1, cgl_mkcolor(PAL_STKSELBKGND));
                 if(level == halScreen.StkSelStart)
                     DrawText(2, ytop, "▶", *halScreen.FontArray[FONT_STACK], cgl_mkcolor(PAL_STKCURSOR), scr);
                 if(level == halScreen.StkSelEnd)
@@ -778,6 +783,20 @@ void halSetupTheme(WORDPTR palette)
         cgl_setpalette( PAL_STAANNPRESS, THEME_STAANNPRESS);
         cgl_setpalette( PAL_STAANN, THEME_STAANN);
         cgl_setpalette( PAL_STABAT, THEME_STABAT);
+        cgl_setpalette( PAL_STAUFLAG0, THEME_STAUFLAG0);
+        cgl_setpalette( PAL_STAUFLAG1, THEME_STAUFLAG1);
+
+        // Theme colors for help and popup messages
+        cgl_setpalette( PAL_HLPBACKGND, THEME_HLPBACKGND);
+        cgl_setpalette( PAL_HLPTEXT, THEME_HLPTEXT);
+        cgl_setpalette( PAL_HLPLINES,THEME_HLPLINES);
+
+        // Theme colors for Forms
+        cgl_setpalette( PAL_FORMBACKGND, THEME_FORMBACKGND);
+        cgl_setpalette( PAL_FORMTEXT, THEME_FORMTEXT);
+        cgl_setpalette( PAL_FORMSELTEXT, THEME_FORMSELTEXT);
+        cgl_setpalette( PAL_FORMSELBACKGND, THEME_FORMSELBACKGND);
+        cgl_setpalette( PAL_FORMCURSOR, THEME_FORMCURSOR);
 
         // More default colors here
 
@@ -858,6 +877,9 @@ void halRedrawHelp(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
+
+
+
     WORDPTR helptext;
     BINT64 m1code = rplGetMenuCode(halScreen.HelpMode >> 16);
     WORDPTR MenuObj = uiGetLibMenu(m1code);
@@ -919,9 +941,9 @@ void halRedrawHelp(DRAWSURFACE * scr)
         BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot, 0);
+        cgl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot, cgl_mkcolor(PAL_HLPBACKGND));
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, 0xf4f4f4f4);
+        cgl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, cgl_mkcolor(PAL_HLPLINES));
 
         // SHOW 3 LINES ONLY
 
@@ -933,9 +955,9 @@ void halRedrawHelp(DRAWSURFACE * scr)
         // SHOW THE NAME OF THE VARIABLE
         DrawTextN(3, ytop + 2, (char *)(var[0] + 1),
                 ((char *)(var[0] + 1)) + rplGetIdentLength(var[0]),
-                *halScreen.FontArray[FONT_STATUS], 0xf, scr);
+                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
         DrawText(3 + namew, ytop + 2, ": ", *halScreen.FontArray[FONT_STATUS],
-                0xf, scr);
+                cgl_mkcolor(PAL_HLPTEXT), scr);
         namew += 3 + StringWidth(": ", *halScreen.FontArray[FONT_STATUS]);
 
         int xend;
@@ -969,7 +991,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
                     ytop + 2 +
                     k * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
                     (char *)basetext, (char *)endofline,
-                    *halScreen.FontArray[FONT_STATUS], 0xf, scr);
+                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
             basetext = nextline;
             namew = 3;
         }
@@ -984,9 +1006,9 @@ void halRedrawHelp(DRAWSURFACE * scr)
         BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot, 0);
+        cgl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot,  cgl_mkcolor(PAL_HLPBACKGND));
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, 0xf4f4f4f4);
+        cgl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1,cgl_mkcolor(PAL_HLPLINES));
 
         // SHOW MESSAGE'S FIRST 3 LINES ONLY
         BINT currentline = 0, nextline;
@@ -999,7 +1021,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
             DrawTextN(3,
                     ytop + 2 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight + k * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
                     (char *)basetext + currentline, (char *)basetext + nextline,
-                    *halScreen.FontArray[FONT_STATUS], 0xf, scr);
+                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
 
             currentline = nextline;
         }
@@ -1011,7 +1033,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
         scr->clipy2 =
                 ytop + 1 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight;
 
-        uiDrawMenuItem(item, 0xf, scr);
+        uiDrawMenuItem(item, PAL_HLPTEXT, scr);
 
         scr->clipy = oldclipy;
         scr->clipy2 = oldclipy2;
@@ -1038,6 +1060,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
+
     int mcolor,bcolor,mpalette;
 
     if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
@@ -1062,7 +1085,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
         cgl_cliprect(scr, 0, ytop + 1, SCREEN_WIDTH - 1, ybottom - 1,
                      bcolor);
         cgl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, cgl_mkcolor(PAL_MENUHLINE));
-        cgl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENUHLINE));
+        cgl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, cgl_mkcolor(PAL_MENUHLINE));
 
 
 
@@ -1116,15 +1139,15 @@ void halRedrawMenu1(DRAWSURFACE * scr)
         ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
         int selcolor=cgl_mkcolor(halKeyMenuSwitch? PAL_MENUHLINE:PAL_MENUFOCUSHLINE);
         // DRAW BACKGROUND
-        ggl_cliprect(scr, 0, ytop, MENU1_ENDX - 1, ybottom,
+        cgl_cliprect(scr, 0, ytop, MENU1_ENDX - 1, ybottom,
                 bcolor);
-        ggl_cliphline(scr, ytop , 0, MENU1_ENDX - 1,
+        cgl_cliphline(scr, ytop , 0, MENU1_ENDX - 1,
                 cgl_mkcolor(PAL_MENUHLINE));
-        ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, 0, MENU1_ENDX - 1,
+        cgl_cliphline(scr, ytop + halScreen.Menu1 - 1, 0, MENU1_ENDX - 1,
                 selcolor);
-        ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, 0, MENU1_ENDX - 1,
+        cgl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, 0, MENU1_ENDX - 1,
                 selcolor);
-        ggl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, selcolor);
+        cgl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, selcolor);
 
         // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
@@ -1220,6 +1243,9 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     }
 
     halScreenUpdated();
+
+
+
 
     int mcolor,bcolor,mpalette;
 
@@ -1342,6 +1368,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
     }
 
     halScreenUpdated();
+
+
 
     if(halScreen.Menu2) {
         int ytop =
@@ -1616,7 +1644,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
                                 *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STABACKGND), cgl_mkcolor(PAL_STATEXT), scr);
                     else
                         DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-                                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), 0x0,
+                                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND),
                                 scr);
                 }
                 xctracker+=4+StringWidth(txt,*halScreen.FontArray[FONT_STATUS]);
@@ -1660,7 +1688,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if((keyplane&SHIFT_LSHOLD) == SHIFT_LSHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"L",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), 0, scr);
+                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
             xctracker+=4+StringWidth((char *)"L",(UNIFONT *)Font_Notifications);
         }
         if(halGetNotification(N_RIGHTSHIFT)) {
@@ -1668,7 +1696,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if((keyplane&SHIFT_RSHOLD) == SHIFT_RSHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"R",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), 0, scr);
+                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
             xctracker+=4+StringWidth((char *)"R",(UNIFONT *)Font_Notifications);
         }
         if(halGetNotification(N_ALPHA)) {
@@ -1676,7 +1704,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if((keyplane&SHIFT_ALPHAHOLD) == SHIFT_ALPHAHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"A",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), 0, scr);
+                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
             xctracker+=4+StringWidth((char *)"A",(UNIFONT *)Font_Notifications);
         }
 
@@ -1707,8 +1735,12 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 {
     halScreenUpdated();
 
+
+
     if(halScreen.CmdLine) {
         int ytop = halScreen.Form + halScreen.Stack;
+
+
         if((halScreen.DirtyFlag & CMDLINE_ALLDIRTY) == CMDLINE_ALLDIRTY) {
             //ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
             cgl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, cgl_mkcolor(PAL_DIVLINE));
@@ -2072,8 +2104,39 @@ void halUpdateFonts()
 
 }
 
+
+// PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
+void halPrepareBuffer(DRAWSURFACE *scr)
+{
+    DRAWSURFACE altbuffer;
+    if(scr->actbuffer) altbuffer.addr=scr->addr-(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
+    else altbuffer.addr=scr->addr+(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
+    altbuffer.x=0;
+    altbuffer.y=0;
+    altbuffer.width=scr->width;
+
+    scr->x=0;
+    scr->y=0;
+    // Copy current screen data to the new buffer
+    //cgl_bitblt(&altbuffer,scr,SCREEN_WIDTH,SCREEN_HEIGHT);
+    memmovew(altbuffer.addr,scr->addr,(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD);
+
+    scr->addr=altbuffer.addr;
+    scr->actbuffer^=1;
+
+}
+
+void halSwapBuffer(DRAWSURFACE *scr)
+{
+    // Show new buffer on the screen
+    lcd_setactivebuffer(scr->actbuffer);
+    halScreenUpdated();
+}
+
+
 void halForceRedrawAll(DRAWSURFACE * scr)
 {
+    halPrepareBuffer(scr);
     halUpdateFonts();
     halRedrawForm(scr);
     halRedrawStack(scr);
@@ -2081,12 +2144,24 @@ void halForceRedrawAll(DRAWSURFACE * scr)
     halRedrawMenu1(scr);
     halRedrawMenu2(scr);
     halRedrawStatus(scr);
+    halSwapBuffer(scr);
 }
+
+
+
+
+
 
 void halRedrawAll(DRAWSURFACE * scr)
 {
+
+
+
     if(halScreen.DirtyFlag)
+    {
         halUpdateFonts();
+        halPrepareBuffer(scr);
+
     if(halScreen.DirtyFlag & FORM_DIRTY)
         halRedrawForm(scr);
     if(halScreen.DirtyFlag & STACK_DIRTY)
@@ -2103,6 +2178,8 @@ void halRedrawAll(DRAWSURFACE * scr)
         if(halScreen.DirtyFlag & STAREA_DIRTY)
             halRedrawStatus(scr);
     }
+    halSwapBuffer(scr);
+    }
 }
 
 // MARK STATUS AREA FOR IMMEDIATE UPDATE
@@ -2118,10 +2195,12 @@ void status_popup_handler()
     }
     else {
         DRAWSURFACE scr;
-        ggl_initscr(&scr);
+        cgl_initscr(&scr);
+        halPrepareBuffer(&scr);
         halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
+        halSwapBuffer(&scr);
     }
     halScreen.SAreaTimer = 0;
 }
@@ -2220,7 +2299,7 @@ void halShowErrorMsg()
     halErrorPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
 
     if(!halScreen.Menu2) {
         // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
@@ -2233,14 +2312,14 @@ void halShowErrorMsg()
     BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
-            0);
+    cgl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
+            cgl_mkcolor(PAL_HLPBACKGND));
     // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr,
+    cgl_cliphline(&scr,
             ytop + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight + 1, 0,
-            SCREEN_WIDTH - 1, ggl_mkcolor(8));
+            SCREEN_WIDTH - 1, cgl_mkcolor(PAL_HLPLINES));
     //ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-    ggl_cliprect(&scr, 0, ytop, 4, ybot , ggl_mkcolor(8));
+    cgl_cliprect(&scr, 0, ytop, 4, ybot , cgl_mkcolor(PAL_HLPLINES));
 
     scr.clipx = 1;
     scr.clipx2 = SCREEN_WIDTH - 2;
@@ -2261,13 +2340,13 @@ void halShowErrorMsg()
                         StringWidthN((char *)start, (char *)end,
                         *halScreen.FontArray[FONT_STATUS]);
                 DrawTextN(scr.clipx + 6, scr.clipy + 1, (char *)start,
-                        (char *)end, *halScreen.FontArray[FONT_STATUS], 0xf,
+                        (char *)end, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
                         &scr);
                 xstart += 4;
             }
         }
         DrawText(xstart, scr.clipy + 1, "Exception:",
-                *halScreen.FontArray[FONT_STATUS], 0xf, &scr);
+                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
 
         BINT ecode;
         for(errbit = 0; errbit < 8; ++errbit)   // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -2285,7 +2364,7 @@ void halShowErrorMsg()
                             scr.clipy + 3 +
                             (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
                             (char *)msgstart, (char *)msgend,
-                            *halScreen.FontArray[FONT_STATUS], 0xf, &scr);
+                            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
                 }
                 break;
             }
@@ -2305,13 +2384,13 @@ void halShowErrorMsg()
                         StringWidthN((char *)start, (char *)end,
                         *halScreen.FontArray[FONT_STATUS]);
                 DrawTextN(scr.clipx + 6, scr.clipy + 1, (char *)start,
-                        (char *)end, *halScreen.FontArray[FONT_STATUS], 0xf,
+                        (char *)end, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
                         &scr);
                 xstart += 4;
             }
         }
         DrawText(xstart, scr.clipy + 1, "Error:",
-                *halScreen.FontArray[FONT_STATUS], 0xf, &scr);
+                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
         // GET NEW TRANSLATABLE MESSAGES
 
         WORDPTR message = uiGetLibMsg(ErrorCode);
@@ -2325,7 +2404,7 @@ void halShowErrorMsg()
                     scr.clipy + 3 +
                     (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
                     (char *)msgstart, (char *)msgend,
-                    *halScreen.FontArray[FONT_STATUS], 0xf, &scr);
+                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
         }
 
     }
@@ -2338,7 +2417,7 @@ void halShowMsgN(char *Text, char *End)
     halErrorPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
 
     if(!halScreen.Menu2) {
         // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
@@ -2352,20 +2431,20 @@ void halShowMsgN(char *Text, char *End)
     BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
-            0);
+    cgl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot,
+            cgl_mkcolor(PAL_HLPBACKGND));
     // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + 1, 1, SCREEN_WIDTH - 2, ggl_mkcolor(8));
-    ggl_cliphline(&scr, ybot, 1, SCREEN_WIDTH - 2,
-            ggl_mkcolor(8));
-    ggl_clipvline(&scr, 1, ytop + 2, ybot - 1,
-            ggl_mkcolor(8));
-    ggl_clipvline(&scr, SCREEN_WIDTH - 2, ytop + 2, ybot - 1,
-            ggl_mkcolor(8));
+    cgl_cliphline(&scr, ytop + 1, 1, SCREEN_WIDTH - 2, cgl_mkcolor(PAL_HLPLINES));
+    cgl_cliphline(&scr, ybot, 1, SCREEN_WIDTH - 2,
+            cgl_mkcolor(PAL_HLPLINES));
+    cgl_clipvline(&scr, 1, ytop + 2, ybot - 1,
+            cgl_mkcolor(PAL_HLPLINES));
+    cgl_clipvline(&scr, SCREEN_WIDTH - 2, ytop + 2, ybot - 1,
+            cgl_mkcolor(PAL_HLPLINES));
 
     // SHOW MESSAGE
 
-    DrawTextN(3, ytop + 3, Text, End, *halScreen.FontArray[FONT_STATUS], 0xf,
+    DrawTextN(3, ytop + 3, Text, End, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
             &scr);
 
 }
