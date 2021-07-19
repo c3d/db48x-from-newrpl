@@ -54,7 +54,10 @@
     CMD(EDLEND,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(EDTOKEN,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(EDACTOKEN,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EDMODE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(EDMODE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETTHEME,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GETTHEME,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -85,6 +88,12 @@ ROMOBJECT clipbd_ident[] = {
     TEXT2WORD('B', 'd', 0, 0)
 };
 
+ROMOBJECT theme_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('U', 'I', 'T', 'h'),
+    TEXT2WORD('e', 'm', 'e', 0)
+};
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[] = {
@@ -96,6 +105,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 
     (WORDPTR) clipbd_ident,
     (WORDPTR) invalid_string,
+    (WORDPTR) theme_ident,
 
     0
 };
@@ -720,6 +730,59 @@ void LIB_HANDLER()
             }
 
         }
+        rplDropData(1);
+
+        return;
+
+    }
+    case SETTHEME:
+    {
+        //@SHORT_DESC=Set system color theme
+        //@NEW
+
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplStripTagStack(1);
+
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+
+
+        // Take a list of 64 integers and use them as palette entries
+        // Also store the list in .Settings for permanent use
+
+
+        if(rplListLength(rplPeekData(1))<PALETTESIZE) {
+            rplError(ERR_INVALIDLISTSIZE);
+            return;
+        }
+
+        int k;
+        WORDPTR obj=rplPeekData(1)+1;
+        WORD palette[PALETTESIZE];
+        UBINT64 color;
+
+        for(k=0;k<PALETTESIZE;++k)
+        {
+            color=rplReadNumberAsBINT(obj);
+            if(Exceptions) return;
+            palette[k]=(WORD)color;
+            obj=rplSkipOb(obj);
+        }
+
+        // Here we were able to read all numbers without any errors, so it's a valid palette
+
+        halSetupTheme(palette);
+
+        // Store the list in .Settings for future use on poweron
+
+        rplStoreSettings((WORDPTR) theme_ident, rplPeekData(1));
+
         rplDropData(1);
 
         return;

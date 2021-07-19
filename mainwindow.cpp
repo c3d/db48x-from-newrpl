@@ -18,6 +18,7 @@
 #include "usbselector.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "qpaletteeditor.h"
 
 // ONLY REQUIRED UNDER MINGW
 #ifdef DrawText
@@ -70,7 +71,7 @@ extern "C" int change_autorcv(int newfl);
 extern "C" void setExceptionPoweroff();
 
 MainWindow::MainWindow(QWidget * parent):
-QMainWindow(parent), rpl(this), usbdriver(this), ui(new Ui::MainWindow)
+QMainWindow(parent), rpl(this), usbdriver(this), ui(new Ui::MainWindow), themeEdit(this)
 {
 
     QCoreApplication::setOrganizationName("newRPL");
@@ -1878,4 +1879,11 @@ void usb_mutex_lock_implementation(void)
 void usb_mutex_unlock_implementation(void)
 {
     usb_mutex.unlock();
+}
+
+void MainWindow::on_actionColor_Theme_Editor_triggered()
+{
+    themeEdit.setModal(false);
+    themeEdit.ReadPalette();
+    themeEdit.show();
 }

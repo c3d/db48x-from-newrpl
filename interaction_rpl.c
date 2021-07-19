@@ -25,6 +25,11 @@ uint32_t *getrplstackobject(int level, int *size)
     return rplPeekData(level);
 }
 
+int getrplobjsize(uint32_t *object)
+{
+ return (int)rplObjSize((WORDPTR) object);
+}
+
 void removestackobject(int level, int nitems)
 {
     if(rplDepthData() >= level + nitems - 1)
@@ -285,4 +290,51 @@ int change_autorcv(int newfl)
     else
         rplClrSystemFlag(FL_NOAUTORECV);
     return fl;
+}
+
+
+void fullscreenupdate()
+{
+    uiClearRenderCache();
+    halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+}
+
+// Make a list with the color theme palette vlaues (64 BINTs)
+// size contains the buffer maximum size, if palette doesn't fit it returns size=0
+// if it fits, it returns size = actual object size in words
+// and the object is stored at the buffer (list)
+void palette2list(uint32_t *list,int *size)
+{
+    int k;
+    if(*size<PALETTESIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT BINT, PLUS PROLOG AND ENDLIST
+
+    list[0]=MKPROLOG(DOLIST, PALETTESIZE * 3 + 1);
+    for(k=0;k<PALETTESIZE;++k)
+    {
+        list[1+3*k]=MKPROLOG(HEXBINT,2);
+        list[2+3*k]=cgl_palette[k];
+        list[3+3*k]=0;
+    }
+    list[1+3*k]=CMD_ENDLIST;
+
+    *size=PALETTESIZE*3+2;
+
+}
+
+void list2palette(uint32_t *list)
+{
+    int k;
+    WORDPTR ptr=list+1;
+    for(k=0;k<PALETTESIZE;++k)
+    {
+        if(*ptr==CMD_ENDLIST) break;
+        if(ISBINT(*ptr)) cgl_palette[k]=ptr[1];
+        ptr=rplSkipOb(ptr);
+    }
+}
+
+// Get the size of the palette to outside the RPL world
+int palettesize()
+{
+    return PALETTESIZE;
 }

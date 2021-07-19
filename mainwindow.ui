@@ -163,7 +163,7 @@ border-width: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>583</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -192,7 +192,7 @@ border-width: 0px;</string>
     <addaction name="separator"/>
     <addaction name="actionSimulate_Alarm"/>
     <addaction name="actionTake_Screenshot"/>
-    <addaction name="actionShow_LCD_grid"/>
+    <addaction name="actionColor_Theme_Editor"/>
    </widget>
    <widget class="QMenu" name="menuStack">
     <property name="title">
@@ -349,6 +349,11 @@ border-width: 0px;</string>
   <action name="actionPaste_and_compile">
    <property name="text">
     <string>Paste and Compile</string>
+   </property>
+  </action>
+  <action name="actionColor_Theme_Editor">
+   <property name="text">
+    <string>Color Theme Editor</string>
    </property>
   </action>
  </widget>

@@ -1157,6 +1157,7 @@ int halCheckSystemAlarm();
 
 // SCREEN FUNCTIONS
 void halInitScreen();
+void halSetupTheme(WORDPTR palette);
 void halSetNotification(enum halNotification type, int color);
 int halGetNotification(enum halNotification type);
 void halShowErrorMsg();

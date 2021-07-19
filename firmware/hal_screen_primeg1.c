@@ -470,7 +470,8 @@ void halRedrawStack(DRAWSURFACE * scr)
     if(depth >= 10000)
         xright += stknum_w;
 
-    cgl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, cgl_mkcolor(PAL_STKBACKGND));    // CLEAR RECTANGLE
+    cgl_cliprect(scr, 0, ystart, xright-1, yend - 1, cgl_mkcolor(PAL_STKIDXBACKGND));    // CLEAR RECTANGLE
+    cgl_cliprect(scr, xright+1, ystart, SCREEN_WIDTH-1, yend - 1, cgl_mkcolor(PAL_STKBACKGND));    // CLEAR RECTANGLE
 
     if(depth > 0)
         cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
@@ -750,7 +751,7 @@ void halSetupTheme(WORDPTR palette)
         cgl_setpalette( PAL_STKBACKGND, THEME_STKBACKGND);
         cgl_setpalette( PAL_STKINDEX, THEME_STKINDEX);
         cgl_setpalette( PAL_STKVLINE, THEME_STKVLINE);
-        cgl_setpalette( PAL_STKITEM1, THEME_STKITEM1);
+        cgl_setpalette( PAL_STKIDXBACKGND, THEME_STKIDXBACKGND);
         cgl_setpalette( PAL_STKITEMS, THEME_STKITEMS);
         cgl_setpalette( PAL_STKSELBKGND, THEME_STKSELBKGND);
         cgl_setpalette( PAL_STKSELITEM, THEME_STKSELITEM);
@@ -812,6 +813,9 @@ void halSetupTheme(WORDPTR palette)
         cgl_setpalette(k,palette[k]);
     }
 
+    // Make sure all items are rendered again using the new colors
+
+    uiClearRenderCache();
 
 }
 

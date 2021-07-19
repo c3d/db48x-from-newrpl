@@ -246,6 +246,40 @@ void halWakeUp()
 {
     WORDPTR saved;
 
+// RESTORE UI THEME
+
+    saved = rplGetSettings((WORDPTR) theme_ident);
+    if(saved) {
+        int error = 0;
+        if(!ISLIST(*saved)) {
+           error=1;
+        }
+
+        // Take a list of 64 integers and use them as palette entries
+
+        if(!error && (rplListLength(saved)<PALETTESIZE)) error=1;
+
+        int k;
+        WORDPTR obj=saved+1;
+        WORD palette[PALETTESIZE];
+        UBINT64 color;
+
+        if(!error) {
+        for(k=0;k<PALETTESIZE;++k)
+        {
+            color=rplReadNumberAsBINT(obj);
+            if(Exceptions) { rplClearErrors(); error=1; break; }
+            palette[k]=(WORD)color;
+            obj=rplSkipOb(obj);
+        }
+        }
+        // Here we were able to read all numbers without any errors, so it's a valid palette
+
+        if(!error) halSetupTheme(palette);
+           else rplPurgeSettings((WORDPTR)theme_ident);
+    }
+
+
 // RESTORE THE FLAGS
 
     saved = rplGetSettings((WORDPTR) savedflags_ident);

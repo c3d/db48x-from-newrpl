@@ -537,6 +537,7 @@ extern const WORD stksave_ident[];
 extern const WORD editwidth_ident[];
 extern const WORD currentform_ident[];
 extern const WORD screenconfig_ident[];
+extern const WORD theme_ident[];
 extern const WORD error_reenter_seco[];
 extern const WORD invalid_string[];
 

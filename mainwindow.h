@@ -11,6 +11,8 @@
 #include <QMainWindow>
 #include <QFile>
 #include "rplthread.h"
+#include "qpaletteeditor.h"
+
 namespace Ui
 {
     class MainWindow;
@@ -33,7 +35,10 @@ class MainWindow:public QMainWindow
     QString currentusb, currentusbpath;
     RPLThread rpl;
     USBThread usbdriver;
+    QPaletteEditor themeEdit;
     bool nousbupdate;
+
+  friend QPaletteEditor;
 
   public:
         QFile * fileptr;
@@ -95,7 +100,9 @@ class MainWindow:public QMainWindow
     public slots:void usbupdate();
     private slots: void on_actionPaste_and_compile_triggered();
 
-  private:
+    void on_actionColor_Theme_Editor_triggered();
+
+private:
     int OpenFile(QString fname);
     void SaveFile(QString fname);
     QString getDocumentsLocation();

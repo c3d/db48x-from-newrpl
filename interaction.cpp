@@ -2,6 +2,7 @@
 #include <QtCore>
 #include <QClipboard>
 
+
 extern "C"
 {
 // DECLARATIONS SPLIT TO AVOID CONFLICT OF TYPES
@@ -12,6 +13,11 @@ extern "C"
     void pushtext(char *data, int sizebytes);
     void removestackobject(int level, int nitems);
     int compileobject();
+    void fullscreenupdate();
+    void palette2list(uint32_t *buffer,int *size);
+    void list2palette(uint32_t *buffer);
+    int getrplobjsize(uint32_t *object);
+    int palettesize();
 }
 
 // COPY OBJECT FROM THE STACK INTO THE HOST CLIPBOARD
@@ -137,6 +143,33 @@ int SaveRPLObject(QString & filename, int level)
 
 }
 
+int SaveRPLObjectbyPointer(QString & filename, uint32_t * obj)
+{
+    int size;
+
+
+    if(!obj)
+        return 0;
+
+    size=getrplobjsize(obj);
+
+    QFile f(filename);
+
+    if(!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return 0;
+    }
+
+    const char *fileprolog = "NRPL";
+    f.write(fileprolog, 4);
+    f.write((const char *)obj, size * 4);
+    f.close();
+
+    return 1;
+
+}
+
+
+
 int LoadRPLObject(QString & filename)
 {
 
@@ -163,4 +196,46 @@ int LoadRPLObject(QString & filename)
 
     return 1;
 
+}
+
+void FullScreenUpdate()
+{
+    fullscreenupdate();
+}
+
+int SaveColorTheme(QString & filename)
+{
+    int palette_size = palettesize();
+    uint32_t buffer[palette_size*3+2];
+    int size=palette_size*3+2;
+    palette2list(buffer,&size);
+    if(size) return SaveRPLObjectbyPointer(filename,buffer);
+    return 0;
+}
+
+int LoadColorTheme(QString & filename)
+{
+        int size;
+
+        QFile f(filename);
+
+        if(!f.open(QIODevice::ReadOnly)) {
+            return 0;
+        }
+
+        size = f.size();
+        if(size & 3)
+            return 0;
+        QByteArray data = f.read(f.size());
+
+        if((data.at(0) != 'N') || (data.at(1) != 'R') || (data.at(2) != 'P')
+                || (data.at(3) != 'L'))
+            return 0;
+
+        list2palette(((uint32_t *)data.constData())+1);
+
+        f.close();
+
+        FullScreenUpdate();
+        return 1;
 }

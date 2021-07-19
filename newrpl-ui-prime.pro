@@ -165,6 +165,7 @@ SOURCES += main.cpp\
     newrpl/tempob.c \
     firmware/sys/target_pc/mem.c \
     firmware/sys/target_pc/boot.c \
+    qpaletteeditor.cpp \
     rplthread.cpp \
     firmware/ui_cmdline.c \
     newrpl/utf8lib.c \
@@ -243,6 +244,7 @@ HEADERS  += mainwindow.h \
     newrpl/newrpl.h \
     newrpl/newrpl_types.h \
     newrpl/sysvars.h \
+    qpaletteeditor.h \
     rplthread.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
@@ -303,6 +305,7 @@ INCLUDEPATH += firmware/include newrpl
 LIBS += -L/usr/local/lib
 
 FORMS    += mainwindow.ui \
+    qpaletteeditor.ui \
     usbselector.ui
 
 RESOURCES += \
