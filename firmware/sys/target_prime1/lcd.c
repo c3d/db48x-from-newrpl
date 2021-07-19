@@ -207,24 +207,24 @@ void lcd_initspidisplay()
 
 // As per ILI9322 datasheet: Back porch is 241 ticks. Needs correction to 240 using register 9 to make it multiple of 3.
 // Total then is 240/3 = 80 (includes the sync pulse).
-// Using a 1 pulse for sync, the value to use for VIDTCON is HBPD=78 (+1+sync)
-// HFPD should then be: 1359 - 3*320 - 240 = 159; HFPD=159/3 = 52 (+1)
+// Using a 1 pulse for sync, the value to use for VIDTCON is HBPD=79 (+sync)
+// HFPD should then be: 1560 - 3*320 - 240 = 360; HFPD=360/3 = 119 (+1)
 
-// Vertical back porch = 4 lines (incl. 1 line for VSYNC), hence VBPD = 2 (+1)
-// Front porch and sync should be 1 line only (VFPD = 0 (+1), VSPW = 0 (+1))
+// Vertical back porch = 18 lines (incl. 1 line for VSYNC), hence VBPD = 17 (+1)
+// Front porch is 4 typical and sync should be 1 line only (VFPD = 3 (+1) , VSPW = 0 (+1))
 
-// Total lines: 240 + 1 (sync) + 1 (front porch) + 3 (back porch) = 245 lines
+// Total lines: 240 + 1 (sync) + 17 (front porch) + 4 (back porch) = 262 lines
 
-// Total ticks per frame = (320+80+53) * 245 = 110985 ticks * 3 (serial RGB interface takes 3 ticks per pixel) = 332955 ticks total
+// Total ticks per frame = (320+80+120) * 262 = 136240 ticks * 3 (serial RGB interface takes 3 ticks per pixel) = 408720 ticks total
 
-// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 332955 = 19,977,300 Hz
+// Vertical refresh rate of 60 Hz would require a RGB_VCLK = 60 * 408720 = 24,523,200 Hz
 
 #define LCD_TARGET_REFRESH      55
 
 // UPDATE THE LCD CLOCK WHEN THE CPU CLOCK CHANGES
 void __lcd_fix()
 {
-    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -245,7 +245,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *VIDCON0 = *VIDCON0 & 0xFFFFFFFC;
 
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
+    int clkdiv=(__cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -254,8 +254,8 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *VIDCON1 = 0x80; // All pulses normal, use VCLK rising edge
 
 
-    *VIDTCON0 = 0x030000;    // Set Vertical Front/Back porch and sync
-    *VIDTCON1 = 0x4e3400;   // Set Horizontal Front/Back porch and sync
+    *VIDTCON0 = 0x110300;    // Set Vertical Front/Back porch and sync (17 + 4 + 1)
+    *VIDTCON1 = 0x4f7700;   // Set Horizontal Front/Back porch and sync (79 + 120 + 1)
     *VIDTCON2 = 0x7793f;    // Set screen size 320x240
 
     *VIDOSD1A = *VIDOSD0A = 0;          // Window 0/1 top left corner = (0,0)
