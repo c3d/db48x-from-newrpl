@@ -755,7 +755,7 @@ void halSetupTheme(WORDPTR palette)
         cgl_setpalette( PAL_STKBACKGND, GTHEME_STKBACKGND);
         cgl_setpalette( PAL_STKINDEX, GTHEME_STKINDEX);
         cgl_setpalette( PAL_STKVLINE, GTHEME_STKVLINE);
-        cgl_setpalette( PAL_STKITEM1, GTHEME_STKITEM1);
+        cgl_setpalette( PAL_STKIDXBACKGND, GTHEME_STKIDXBACKGND);
         cgl_setpalette( PAL_STKITEMS, GTHEME_STKITEMS);
         cgl_setpalette( PAL_STKSELBKGND, GTHEME_STKSELBKGND);
         cgl_setpalette( PAL_STKSELITEM, GTHEME_STKSELITEM);
