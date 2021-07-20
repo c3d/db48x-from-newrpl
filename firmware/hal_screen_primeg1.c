@@ -1689,7 +1689,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         if(halGetNotification(N_LEFTSHIFT)) {
            int color;
-            if((keyplane&SHIFT_LSHOLD) == SHIFT_LSHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
+            if(halGetNotification(N_INTERNALSHIFTHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"L",
                     (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
@@ -1697,7 +1697,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
         }
         if(halGetNotification(N_RIGHTSHIFT)) {
            int color;
-            if((keyplane&SHIFT_RSHOLD) == SHIFT_RSHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
+           if(halGetNotification(N_INTERNALSHIFTHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"R",
                     (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
@@ -1705,7 +1705,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
         }
         if(halGetNotification(N_ALPHA)) {
            int color;
-            if((keyplane&SHIFT_ALPHAHOLD) == SHIFT_ALPHAHOLD) color=PAL_STAANNPRESS; else color=PAL_STAANN;
+           if(halGetNotification(N_INTERNALALPHAHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"A",
                     (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);

@@ -103,7 +103,9 @@ enum halNotification
     N_LOWBATTERY,
     N_HOURGLASS,
     N_DATARECVD,
-    N_ALARM
+    N_ALARM,
+    N_INTERNALSHIFTHOLD,
+    N_INTERNALALPHAHOLD
 };
 
 enum halFonts

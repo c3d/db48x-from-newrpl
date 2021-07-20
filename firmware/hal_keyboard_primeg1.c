@@ -7343,28 +7343,52 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT), BINT flags)
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
         if(KM_SHIFTPLANE(keymsg) & SHIFT_LS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+            {
                 halSetNotification(N_LEFTSHIFT, 0xf);
+                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+            }
             else
+            {
                 halSetNotification(N_LEFTSHIFT, 0x8);
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            }
         }
         else
+        {
             halSetNotification(N_LEFTSHIFT, 0);
+            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD)) halSetNotification(N_INTERNALSHIFTHOLD,0);
+        }
         if(KM_SHIFTPLANE(keymsg) & SHIFT_RS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+            {
                 halSetNotification(N_RIGHTSHIFT, 0xf);
+                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+            }
             else
+            {
                 halSetNotification(N_RIGHTSHIFT, 0x8);
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            }
         }
-        else
+        else {
             halSetNotification(N_RIGHTSHIFT, 0);
+            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD)) halSetNotification(N_INTERNALSHIFTHOLD,0);
+        }
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_ALHOLD))
+            {
                 halSetNotification(N_ALPHA, 0xf);
-            else
+                halSetNotification(N_INTERNALALPHAHOLD,0xf);
+            }
+            else {
                 halSetNotification(N_ALPHA, 0x8);
+                halSetNotification(N_INTERNALALPHAHOLD,0);
+            }
         }
-        else
+        else {
             halSetNotification(N_ALPHA, 0);
+            halSetNotification(N_INTERNALALPHAHOLD,0);
+        }
 
         // UPDATE EDITOR MODE ACCORDINGLY
         int oldplane = OLDKEYSHIFT(keymsg);
