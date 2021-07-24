@@ -448,7 +448,7 @@ int main(int argc, char **argv)
     printf("Written %d bytes\n", out_size);
 
     if(dopadding) {
-        unsigned int value=0xff;
+        unsigned int value=0xffffffff;
         printf("Padding %d bytes with FF\n", dopadding-out_size);
         while(out_size<=(dopadding-4)) {
             fwrite(&value,4,1,out);

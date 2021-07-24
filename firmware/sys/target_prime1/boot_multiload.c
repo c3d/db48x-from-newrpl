@@ -48,7 +48,7 @@ void printline(char *left_text, char *right_text) {
         lcd_on();
 
         cgl_initscr(&surface);
-        cgl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, RGB_TO_RGB16(255,255,192));
+        cgl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, RGB_TO_RGB16(255,0,0));
         line =0;
     }
 
