@@ -311,7 +311,8 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     annunciators-prime.qrc
 
-
+# Set application icon for the windows applications - this is target-specific
+win32: RC_ICONS = bitmap/newRPL.ico
 
 # gcc and Clang don't like double const specifiers, but are needed for firmware: disable the warning
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough

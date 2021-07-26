@@ -120,3 +120,6 @@ RESOURCES += \
 
 DISTFILES += \
     thirdparty/LICENSE.md5
+
+# Set application icon for the windows applications - this is target-specific
+win32: RC_ICONS = bitmap/newRPL.ico
