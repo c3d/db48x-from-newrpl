@@ -22,6 +22,13 @@ Name: "gcclibs"; Description: "Gcc needed DLL libraries"; Types: full custom; Fl
 Name: "primeinstaller"; Description: "Initial firmware installer for Prime G1 target"; Types: full
 Name: "desktop50g"; Description: "newRPL Desktop - 50g look"; Types: full
 Name: "desktopprime"; Description: "newRPL Desktop - Prime look"; Types: full
+Name: "desktopprime\samplethemes"; Description: "Sample color themes"; Types: full
+
+[Dirs]
+Name: "{autodocs}\newRPL Files"; Components: desktop50g desktopprime
+Name: "{autodocs}\newRPL Files\Sample Themes"; Components: desktopprime\samplethemes
+
+
 
 [Files]
 Source: "Qt5Core.dll"; DestDir: "{app}"; Components: qtlibs
@@ -36,8 +43,16 @@ Source: "newRPL Desktop-50g.exe"; DestDir: "{app}"; Components: desktop50g
 Source: "newRPL Desktop-Prime.exe"; DestDir: "{app}"; Components: desktopprime
 Source: "newRPL-Prime Firmware Bundler.exe"; DestDir: "{app}"; Components: primeinstaller
 
+Source: "sample themes\Color_Theme_AmberCRT.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
+Source: "sample themes\Color_Theme_Default.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
+Source: "sample themes\Color_Theme_GreenCRT.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
+Source: "sample themes\Color_Theme_Red.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
+
+
+
+
 [Icons]
-Name: "{group}\newRPL Desktop (50g look)"; Filename: "{app}\newRPL Desktop-50g.exe"; WorkingDir: "{userdocs}/newRPL Files"; Components: desktop50g;
-Name: "{group}\newRPL Desktop (Prime look)"; Filename: "{app}\newRPL Desktop-Prime.exe"; WorkingDir: "{userdocs}/newRPL Files"; Components: desktopprime;
+Name: "{group}\newRPL Desktop (50g look)"; Filename: "{app}\newRPL Desktop-50g.exe"; WorkingDir: "{userdocs}\newRPL Files"; Components: desktop50g;
+Name: "{group}\newRPL Desktop (Prime look)"; Filename: "{app}\newRPL Desktop-Prime.exe"; WorkingDir: "{userdocs}\newRPL Files"; Components: desktopprime;
 Name: "{group}\newRPL Prime Firmware Bundler"; Filename: "{app}\newRPL-Prime Firmware Bundler.exe"; Components: primeinstaller
 Name: "{group}\Uninstall newRPL"; Filename: "{uninstallexe}"
