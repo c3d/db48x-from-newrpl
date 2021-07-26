@@ -15,7 +15,7 @@ extern unsigned int RPLLastOpcode;
 
 // EXCEPTIONS SCREEN AREA RIGHT AFTER THE SCREEN, RESERVE SPACE FOR 16-BIT COLOR MODE
 #define MEM_SCREENSIZE ((((*VIDTCON2)>>11)+1)*(((*VIDW00ADD2B0)&0x1fff)+((*VIDW00ADD2B0)>>13)))
-#define MEM_PHYS_EXSCREEN (MEM_PHYS_SCREEN+MEM_SCREENSIZE)
+#define MEM_PHYS_EXSCREEN (MEM_PHYS_SCREEN+2*MEM_SCREENSIZE)
 #define FNT_HEIGHT 12
 #define FNT_AVGW   7
 #define BTN_WIDTH  52
@@ -30,7 +30,7 @@ void __ex_print(int x,int y,char *str)
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
 
-    DrawText(x,y,str,(UNIFONT *)Font_10A,0xf,&dr);
+    DrawText(x,y,str,(UNIFONT *)Font_10A,cgl_mkcolor(PAL_GRAY15),&dr);
 }
 
 void __ex_clrscreen()
@@ -42,7 +42,7 @@ void __ex_clrscreen()
     dr.clipx=dr.clipy=0;
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
-    ggl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,0x00000000);
+    cgl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,cgl_mkcolor(PAL_GRAY0));
 }
 
 void __ex_hline(int y)
@@ -54,7 +54,7 @@ void __ex_hline(int y)
     dr.clipx=dr.clipy=0;
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
-    ggl_hline(&dr,y,dr.x,dr.clipx2-1,0xf0f0f0f0);
+    cgl_hline(&dr,y,dr.x,dr.clipx2-1,cgl_mkcolor(PAL_GRAY8));
 }
 
 inline int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_10A); }
