@@ -1850,7 +1850,7 @@ QString MainWindow::getDocumentsLocation()
 
     if(currentfile.isEmpty()) {
         path = QStandardPaths::locate(QStandardPaths::DocumentsLocation,
-                "newRPL", QStandardPaths::LocateDirectory);
+                "newRPL Files", QStandardPaths::LocateDirectory);
         if(path.isEmpty())
             path = QStandardPaths::writableLocation(QStandardPaths::
                     DocumentsLocation);

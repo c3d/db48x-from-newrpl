@@ -11,6 +11,7 @@ OutputBaseFilename=newRPL Desktop Installer
 SourceDir=userdocs:deploy-newRPL-Desktop
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
+LicenseFile=license\LICENSE.txt
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -47,6 +48,7 @@ Source: "sample themes\Color_Theme_AmberCRT.nrpl"; DestDir: "{autodocs}\newRPL F
 Source: "sample themes\Color_Theme_Default.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
 Source: "sample themes\Color_Theme_GreenCRT.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
 Source: "sample themes\Color_Theme_Red.nrpl"; DestDir: "{autodocs}\newRPL Files\Sample Themes"; Components: "desktopprime\samplethemes"
+Source: "license\LICENSE.txt"; DestDir: "{app}"; Components: desktopprime desktop50g primeinstaller
 
 
 
