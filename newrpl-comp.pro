@@ -271,7 +271,8 @@ QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough
 
 
 install_bin.path = $$PWD/tools-bin
-install_bin.files = $$OUT_PWD/newrpl-comp
+!win32: install_bin.files = $$OUT_PWD/newrpl-comp
+win32: install_bin.files = $$OUT_PWD/release/newrpl-comp.exe
 INSTALLS += install_bin
 
 

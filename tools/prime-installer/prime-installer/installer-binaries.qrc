@@ -2,4 +2,7 @@
     <qresource prefix="/bin">
         <file>binaries/MultiBoot.bin</file>
     </qresource>
+    <qresource prefix="/bitmap">
+        <file>bitmap/icon.png</file>
+    </qresource>
 </RCC>

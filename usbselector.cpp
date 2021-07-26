@@ -796,7 +796,7 @@ static QString send_package(int nwords, int offset)
     if(!usb_txfileclose(fileid)) {
        return "Could not finalize package transmission";
     }
-    return NULL;
+    return QString();
 }
 
 static QString send_reset()
@@ -821,7 +821,7 @@ static QString send_reset()
         return "Could not initiate reset";
     }
 
-    return NULL;
+    return QString();
 }
 
 void FWThread::run()
@@ -846,7 +846,7 @@ void FWThread::run()
     while(nwords > 0) {
         int size = std::min(1024, nwords);
         QString error = send_package(size, __fwupdate_progress);
-        if (error != NULL) {
+        if (!error.isEmpty()) {
             emit FirmwareUpdateError(error);
             // still going to reset the device...
             break;
@@ -859,7 +859,7 @@ void FWThread::run()
     busywait(2000);
 
     QString error = send_reset();
-    if (error != NULL) {
+    if (!error.isEmpty()) {
         emit FirmwareUpdateError(error);
     }
 }

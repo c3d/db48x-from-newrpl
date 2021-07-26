@@ -55,7 +55,7 @@ typedef union
 {
     UBINT64 w;
     WORD w32[2];
-} UWORD;
+} UWORDUNION;
 
 typedef struct __REAL
 {
@@ -80,7 +80,7 @@ typedef struct
     BINT precdigits;
     WORD alloc_bmp;
     BINT regdata[REAL_REGISTER_STORAGE * TOTAL_REGISTERS];
-} CONTEXT;
+} DECIMAL_CONTEXT;
 
 enum ContextFlags
 {

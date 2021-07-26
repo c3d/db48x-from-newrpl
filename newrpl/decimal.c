@@ -517,7 +517,7 @@ void finalize(REAL * number)
 
 void add_single64(BINT * start, BINT64 number)
 {
-    UWORD tmp;
+    UWORDUNION tmp;
     BINT lo, hi;
 
     if(number < 0) {
@@ -589,7 +589,7 @@ void add_single64(BINT * start, BINT64 number)
 void add_karatsuba(BINT * start, BINT * a, BINT * b)
 {
     BINT64 hi, lo, mid;
-    UWORD tmp1, tmp2, tmp3;
+    UWORDUNION tmp1, tmp2, tmp3;
     BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
     lo = a[0] * (BINT64) b[0];
@@ -1165,7 +1165,7 @@ BINT shift_right(BINT word, BINT digits)
         return word;
     BINT *consts = (BINT *) shift_constants + (shift << 1);
 
-    UWORD tmp;
+    UWORDUNION tmp;
 
     tmp.w = word * (UBINT64) * consts;
 
@@ -1195,7 +1195,7 @@ BINT64 shift_split(BINT word, BINT digits)
         return word;
     BINT *consts = (BINT *) shift_constants + (shift << 1);
 
-    UWORD tmp;
+    UWORDUNION tmp;
 
     tmp.w = word * (UBINT64) * consts;
 
@@ -1226,7 +1226,7 @@ BINT lo_digits(BINT word, BINT digits)
         return word;
     BINT *consts = (BINT *) shift_constants + (shift << 1);
 
-    UWORD tmp;
+    UWORDUNION tmp;
 
     tmp.w = word * (UBINT64) * consts;
 
@@ -1256,7 +1256,7 @@ BINT hi_digits(BINT word, BINT digits)
         return word;
     BINT *consts = (BINT *) shift_constants + (shift << 1);
 
-    UWORD tmp;
+    UWORDUNION tmp;
 
     tmp.w = word * (UBINT64) * consts;
 
@@ -1289,7 +1289,7 @@ BINT hi_digits_rounded(BINT word, BINT digits)
         return word;    // WARNING: THIS IS NOT ROUNDED! digits==0 IS AN INVALID ARGUMENT
     BINT *consts = (BINT *) shift_constants + (shift << 1);
 
-    UWORD tmp;
+    UWORDUNION tmp;
     word += 5 * shift_constants[((digits & 7) << 1) - 1];
     tmp.w = word * (UBINT64) * consts;
 
@@ -1383,7 +1383,7 @@ void add_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
 
-    UWORD tmp;
+    UWORDUNION tmp;
     UBINT64 a;
 
     while(nwords) {
@@ -1410,7 +1410,7 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
 
-    UWORD tmp;
+    UWORDUNION tmp;
     UBINT64 a;
     BINT *nptr;
     nptr = n1start + nwords;
@@ -1621,7 +1621,7 @@ void sub_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
 
-    UWORD tmp;
+    UWORDUNION tmp;
     UBINT64 a;
 
     while(nwords) {
@@ -2124,7 +2124,7 @@ void mul_real(REAL * r, REAL * a, REAL * b)
 {
     REAL c, *result = r;
     BINT64 hi, lo, mid;
-    UWORD tmp1, tmp2, tmp3;
+    UWORDUNION tmp1, tmp2, tmp3;
     BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
     if((result->data == a->data) || (result->data == b->data)) {

@@ -7,5 +7,6 @@
         <file>bitmap/ann_battery.xbm</file>
         <file>bitmap/ann_alpha.xbm</file>
         <file>bitmap/keyboard.png</file>
+        <file>bitmap/icon.png</file>
     </qresource>
 </RCC>

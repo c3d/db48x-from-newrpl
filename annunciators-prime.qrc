@@ -7,5 +7,6 @@
         <file>bitmap/ann_battery.xbm</file>
         <file>bitmap/ann_alpha.xbm</file>
         <file alias="bitmap/keyboard.png">bitmap/keyboard-primeg1.png</file>
+        <file>bitmap/icon.png</file>
     </qresource>
 </RCC>
