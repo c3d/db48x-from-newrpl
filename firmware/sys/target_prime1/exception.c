@@ -6,7 +6,7 @@
  */
 
 #include <hal_api.h>
-
+#include <ui.h>
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 

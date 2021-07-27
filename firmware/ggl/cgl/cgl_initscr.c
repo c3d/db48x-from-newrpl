@@ -16,7 +16,7 @@ void cgl_initscr(gglsurface * srf)
     srf->clipx2 = SCREEN_WIDTH - 1;
     srf->clipy2 = SCREEN_HEIGHT - 1;
     srf->actbuffer = 0;
-#if SCREEN_BUFFERS > 0
+#if SCREEN_BUFFERS > 1
     srf->actbuffer = lcd_getactivebuffer();
     srf->addr+=SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD*srf->actbuffer;
 #endif

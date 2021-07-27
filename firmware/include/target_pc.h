@@ -60,7 +60,7 @@ extern int __usb_timeout;
 #define SCREEN_HEIGHT 80
 #define PIXELS_PER_WORD 8
 
-#define SCREEN_BUFFERS 0
+#define SCREEN_BUFFERS 1
 
 
 // DEFAULT COLOR MODE OF THE SYSTEM
