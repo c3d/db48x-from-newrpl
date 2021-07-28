@@ -1,7 +1,7 @@
 [Setup]
 AppName=newRPL Desktop
 AppPublisher=The newRPL Team
-AppVersion=Build 1480
+AppVersion=Build 1487
 WizardStyle=modern
 DefaultDirName={autopf}\newRPL Desktop
 DefaultGroupName=newRPL Desktop
@@ -26,6 +26,7 @@ Name: "desktopprime"; Description: "newRPL Desktop - Prime look"; Types: full
 Name: "desktopprime\samplethemes"; Description: "Sample color themes"; Types: full
 
 [Dirs]
+Name: "{app}\platforms"; Components: qtlibs
 Name: "{autodocs}\newRPL Files"; Components: desktop50g desktopprime
 Name: "{autodocs}\newRPL Files\Sample Themes"; Components: desktopprime\samplethemes
 
@@ -35,6 +36,8 @@ Name: "{autodocs}\newRPL Files\Sample Themes"; Components: desktopprime\sampleth
 Source: "Qt5Core.dll"; DestDir: "{app}"; Components: qtlibs
 Source: "Qt5Gui.dll"; DestDir: "{app}"; Components: qtlibs
 Source: "Qt5Widgets.dll"; DestDir: "{app}"; Components: qtlibs
+Source: "platforms\qwindows.dll"; DestDir: "{app}\platforms"; Components: qtlibs
+
 
 Source: "libgcc_s_dw2-1.dll"; DestDir: "{app}"; Components: gcclibs
 Source: "libstdc++-6.dll"; DestDir: "{app}"; Components: gcclibs
