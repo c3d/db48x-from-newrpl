@@ -117,6 +117,8 @@ enum halFonts
     FONT_STATUS,
     FONT_PLOT,
     FONT_FORMS,
+    FONT_HLPTEXT,
+    FONT_HLPTITLE,
     FONTS_NUM
 };
 
@@ -129,7 +131,8 @@ enum halFonts
 #define MENU1_DIRTY 32
 #define MENU2_DIRTY 64
 #define STAREA_DIRTY 128
-
+#define BUFFER_LOCK  16384
+#define BUFFER_ALT   32768
 
 
 // NUMBER OF ENTRIES IN THE RENDER CACHE

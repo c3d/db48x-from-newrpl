@@ -688,6 +688,15 @@ void halUpdateFontArray(WORDPTR const ** fontarray)
             if(ISFONT(*var[1]))
                 fontarray[FONT_PLOT] = var + 1;
         }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_HLPTEXT])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_HLPTEXT] = var + 1;
+        }
+        else if(rplCompareIDENT(var[0], rplGetFontRomPtrTableAddress()[FONT_IDENTS_ROMPTR_INDEX + FONT_HLPTITLE])) {
+            if(ISFONT(*var[1]))
+                fontarray[FONT_HLPTITLE] = var + 1;
+        }
+
 
         var = rplFindNext(var);
     }
@@ -720,7 +729,13 @@ void halUpdateFontArray(WORDPTR const ** fontarray)
         fontarray[FONT_FORMS] =
                 halGetSystemFontbyHeight(DEF_FNTFORM_HEIGHT);
     }
-
+    if (fontarray[FONT_HLPTEXT] == 0) {
+        fontarray[FONT_HLPTEXT] =
+                halGetSystemFontbyHeight(DEF_FNTHELP_HEIGHT);
+    }    if (fontarray[FONT_HLPTITLE] == 0) {
+        fontarray[FONT_HLPTITLE] =
+                halGetSystemFontbyHeight(DEF_FNTHLPT_HEIGHT);
+    }
     return;
 }
 
@@ -954,15 +969,15 @@ void halRedrawHelp(DRAWSURFACE * scr)
         BINT namew =
                 StringWidthN((char *)(var[0] + 1),
                 ((char *)(var[0] + 1)) + rplGetIdentLength(var[0]),
-                *halScreen.FontArray[FONT_STATUS]);
+                *halScreen.FontArray[FONT_HLPTITLE]);
 
         // SHOW THE NAME OF THE VARIABLE
         DrawTextN(3, ytop + 2, (char *)(var[0] + 1),
                 ((char *)(var[0] + 1)) + rplGetIdentLength(var[0]),
-                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
-        DrawText(3 + namew, ytop + 2, ": ", *halScreen.FontArray[FONT_STATUS],
+                *halScreen.FontArray[FONT_HLPTITLE], cgl_mkcolor(PAL_HLPTEXT), scr);
+        DrawText(3 + namew, ytop + 2, ": ", *halScreen.FontArray[FONT_HLPTITLE],
                 cgl_mkcolor(PAL_HLPTEXT), scr);
-        namew += 3 + StringWidth(": ", *halScreen.FontArray[FONT_STATUS]);
+        namew += 3 + StringWidth(": ", *halScreen.FontArray[FONT_HLPTITLE]);
 
         int xend;
         BYTEPTR basetext = (BYTEPTR) (helptext + 1);
@@ -973,7 +988,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
             xend = SCREEN_WIDTH - 1 - namew;
             endofline =
                     (BYTEPTR) StringCoordToPointer((char *)basetext,
-                    (char *)endoftext, *halScreen.FontArray[FONT_STATUS],
+                    (char *)endoftext, *halScreen.FontArray[FONT_HLPTEXT],
                     &xend);
             if(endofline < endoftext) {
                 // BACK UP TO THE NEXT WHITE CHARACTER
@@ -992,10 +1007,10 @@ void halRedrawHelp(DRAWSURFACE * scr)
 
             // DRAW THE TEXT
             DrawTextN(namew,
-                    ytop + 2 +
-                    k * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+                    ytop + 2 + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight +
+                    (k-1) * (*halScreen.FontArray[FONT_HLPTEXT])->BitmapHeight,
                     (char *)basetext, (char *)endofline,
-                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
+                    *halScreen.FontArray[FONT_HLPTEXT], cgl_mkcolor(PAL_HLPTEXT), scr);
             basetext = nextline;
             namew = 3;
         }
@@ -1023,9 +1038,9 @@ void halRedrawHelp(DRAWSURFACE * scr)
                 nextline = rplStrSize(helptext);
             }
             DrawTextN(3,
-                    ytop + 2 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight + k * (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+                    ytop + 2 + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight + k * (*halScreen.FontArray[FONT_HLPTEXT])->BitmapHeight,
                     (char *)basetext + currentline, (char *)basetext + nextline,
-                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), scr);
+                    *halScreen.FontArray[FONT_HLPTEXT], cgl_mkcolor(PAL_HLPTEXT), scr);
 
             currentline = nextline;
         }
@@ -1035,7 +1050,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
 
         scr->clipy = ytop + 1;
         scr->clipy2 =
-                ytop + 1 + (*halScreen.FontArray[FONT_MENU])->BitmapHeight;
+                ytop + 1 + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight;
 
         uiDrawMenuItem(item, PAL_HLPTEXT, scr);
 
@@ -2098,6 +2113,10 @@ void halUpdateFonts()
             case FONT_FORMS:
                 halScreen.DirtyFlag |= FORM_DIRTY;
                 break;
+            case FONT_HLPTITLE:
+            case FONT_HLPTEXT:
+                break;
+
             }
 
         }
@@ -2123,7 +2142,17 @@ void halPrepareBuffer(DRAWSURFACE *scr)
     scr->y=0;
     // Copy current screen data to the new buffer
     //cgl_bitblt(&altbuffer,scr,SCREEN_WIDTH,SCREEN_HEIGHT);
+
+    // Avoid background processes from writing to the buffer while we copy it
+    halScreen.DirtyFlag|=BUFFER_LOCK;
+
     memmovew(altbuffer.addr,scr->addr,(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD);
+
+    // Let background processes know to use the alternative buffer
+    halScreen.DirtyFlag|=BUFFER_ALT;
+
+    // Remove the lock
+    halScreen.DirtyFlag&=~BUFFER_LOCK;
 
     scr->addr=altbuffer.addr;
     scr->actbuffer^=1;
@@ -2133,7 +2162,15 @@ void halPrepareBuffer(DRAWSURFACE *scr)
 void halSwapBuffer(DRAWSURFACE *scr)
 {
     // Show new buffer on the screen
+    // Avoid background processes from writing to the buffer while we copy it
+    halScreen.DirtyFlag|=BUFFER_LOCK;
+
     lcd_setactivebuffer(scr->actbuffer);
+    halScreen.DirtyFlag&=~BUFFER_ALT;
+
+    // Remove the lock
+    halScreen.DirtyFlag&=~BUFFER_LOCK;
+
     halScreenUpdated();
 }
 
@@ -2198,6 +2235,8 @@ void status_popup_handler()
         halSetMenu2Height(0);
     }
     else {
+        halScreen.DirtyFlag|=STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+        /*
         DRAWSURFACE scr;
         cgl_initscr(&scr);
         halPrepareBuffer(&scr);
@@ -2205,6 +2244,8 @@ void status_popup_handler()
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
         halSwapBuffer(&scr);
+        halScreenUpdated();
+        */
     }
     halScreen.SAreaTimer = 0;
 }
@@ -2320,7 +2361,7 @@ void halShowErrorMsg()
             cgl_mkcolor(PAL_HLPBACKGND));
     // DO SOME DECORATIVE ELEMENTS
     cgl_cliphline(&scr,
-            ytop + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight + 1, 0,
+            ytop + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight + 1, 0,
             SCREEN_WIDTH - 1, cgl_mkcolor(PAL_HLPLINES));
     //ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
     cgl_cliprect(&scr, 0, ytop, 4, ybot , cgl_mkcolor(PAL_HLPLINES));
@@ -2342,15 +2383,15 @@ void halShowErrorMsg()
 
                 xstart +=
                         StringWidthN((char *)start, (char *)end,
-                        *halScreen.FontArray[FONT_STATUS]);
+                        *halScreen.FontArray[FONT_HLPTITLE]);
                 DrawTextN(scr.clipx + 6, scr.clipy + 1, (char *)start,
-                        (char *)end, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
+                        (char *)end, *halScreen.FontArray[FONT_HLPTITLE], cgl_mkcolor(PAL_HLPTEXT),
                         &scr);
                 xstart += 4;
             }
         }
         DrawText(xstart, scr.clipy + 1, "Exception:",
-                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
+                *halScreen.FontArray[FONT_HLPTITLE], cgl_mkcolor(PAL_HLPTEXT), &scr);
 
         BINT ecode;
         for(errbit = 0; errbit < 8; ++errbit)   // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -2366,9 +2407,9 @@ void halShowErrorMsg()
 
                     DrawTextN(scr.clipx + 6,
                             scr.clipy + 3 +
-                            (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+                            (*halScreen.FontArray[FONT_HLPTEXT])->BitmapHeight,
                             (char *)msgstart, (char *)msgend,
-                            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
+                            *halScreen.FontArray[FONT_HLPTEXT], cgl_mkcolor(PAL_HLPTEXT), &scr);
                 }
                 break;
             }
@@ -2386,15 +2427,15 @@ void halShowErrorMsg()
 
                 xstart +=
                         StringWidthN((char *)start, (char *)end,
-                        *halScreen.FontArray[FONT_STATUS]);
+                        *halScreen.FontArray[FONT_HLPTITLE]);
                 DrawTextN(scr.clipx + 6, scr.clipy + 1, (char *)start,
-                        (char *)end, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
+                        (char *)end, *halScreen.FontArray[FONT_HLPTITLE], cgl_mkcolor(PAL_HLPTEXT),
                         &scr);
                 xstart += 4;
             }
         }
         DrawText(xstart, scr.clipy + 1, "Error:",
-                *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
+                *halScreen.FontArray[FONT_HLPTITLE], cgl_mkcolor(PAL_HLPTEXT), &scr);
         // GET NEW TRANSLATABLE MESSAGES
 
         WORDPTR message = uiGetLibMsg(ErrorCode);
@@ -2406,9 +2447,9 @@ void halShowErrorMsg()
 
             DrawTextN(scr.clipx + 6,
                     scr.clipy + 3 +
-                    (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+                    (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight,
                     (char *)msgstart, (char *)msgend,
-                    *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT), &scr);
+                    *halScreen.FontArray[FONT_HLPTEXT], cgl_mkcolor(PAL_HLPTEXT), &scr);
         }
 
     }
@@ -2448,7 +2489,7 @@ void halShowMsgN(char *Text, char *End)
 
     // SHOW MESSAGE
 
-    DrawTextN(3, ytop + 3, Text, End, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_HLPTEXT),
+    DrawTextN(3, ytop + 3, Text, End, *halScreen.FontArray[FONT_HLPTEXT], cgl_mkcolor(PAL_HLPTEXT),
             &scr);
 
 }

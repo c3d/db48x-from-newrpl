@@ -47,7 +47,12 @@
     ECMD(STOFNTCMDL,"→FNTCMDL",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     ECMD(STOFNTSTAT,"→FNTSTAT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     ECMD(STOFNTPLOT,"→FNTPLOT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTFORM,"→FNTFORM",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    ECMD(STOFNTFORM,"→FNTFORM",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTHELP,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTHLPT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTHELP,"→FNTHELP",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTHLPT,"→FNTHLPT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -168,6 +173,18 @@ ROMOBJECT fontform_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fonthelptitle_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('H', 'l', 'p', 'T'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
+ROMOBJECT fonthelp_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('H', 'e', 'l', 'p'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
 ROMOBJECT fontcmdline_ident[] = {
     MKPROLOG(DOIDENT, 2),
     TEXT2WORD('C', 'm', 'd', 'l'),
@@ -220,8 +237,8 @@ const WORDPTR const ROMPTR_TABLE[] = {
     (WORDPTR) fontstarea_ident,
     (WORDPTR) fontplot_ident,
     (WORDPTR) fontform_ident,
-    (WORDPTR) zero_bint,
-    (WORDPTR) zero_bint,
+    (WORDPTR) fonthelp_ident,
+    (WORDPTR) fonthelptitle_ident,
     (WORDPTR) zero_bint,
     (WORDPTR) zero_bint,
     (WORDPTR) zero_bint,
@@ -346,7 +363,9 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
             (WORDPTR) fontmenu_ident,
             (WORDPTR) fontstarea_ident,
             (WORDPTR) fontplot_ident,
-            (WORDPTR) fontform_ident
+            (WORDPTR) fontform_ident,
+            (WORDPTR) fonthelp_ident,
+            (WORDPTR) fonthelptitle_ident
         };
 
         int k;
@@ -605,6 +624,13 @@ void rplSetCurrentFont(BINT area, WORDPTR ident)
     case FONT_FORMS:
         fntid = (WORDPTR) fontform_ident;
         break;
+    case FONT_HLPTEXT:
+        fntid = (WORDPTR) fonthelp_ident;
+        break;
+    case FONT_HLPTITLE:
+        fntid = (WORDPTR) fonthelptitle_ident;
+        break;
+
     default:
         return;
     }
@@ -637,6 +663,12 @@ WORDPTR rplGetCurrentFont(BINT area)
         break;
     case FONT_FORMS:
         fntid = (WORDPTR) fontform_ident;
+        break;
+    case FONT_HLPTEXT:
+        fntid = (WORDPTR) fonthelp_ident;
+        break;
+    case FONT_HLPTITLE:
+        fntid = (WORDPTR) fonthelptitle_ident;
         break;
     default:
         return 0;
@@ -1003,6 +1035,67 @@ void LIB_HANDLER()
         rplDropData(1);
         return;
     }
+
+
+    case FNTHELP:
+    {
+        //@SHORT_DESC=Recall name of current font for help
+        //@NEW
+        WORDPTR fntid = rplGetCurrentFont(FONT_HLPTEXT);
+        if(fntid)
+            rplPushData(fntid);
+        return;
+    }
+    case FNTHLPT:
+    {
+        //@SHORT_DESC=Recall name of current font for help title
+        //@NEW
+        WORDPTR fntid = rplGetCurrentFont(FONT_HLPTITLE);
+        if(fntid)
+            rplPushData(fntid);
+        return;
+    }
+
+    case STOFNTHELP:
+        // CHANGE CURRENT FONT
+    {
+        //@SHORT_DESC=Change current font for help text
+        //@NEW
+
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplStripTagStack(1);
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_HLPTEXT, rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+    case STOFNTHLPT:
+        // CHANGE CURRENT FONT
+    {
+        //@SHORT_DESC=Change current font for help title
+        //@NEW
+
+        if(rplDepthData() < 1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplStripTagStack(1);
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_HLPTITLE, rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+
 
         // STANDARIZED OPCODES:
         // --------------------

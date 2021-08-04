@@ -620,7 +620,8 @@ void USBSelector::on_updateFirmware_clicked()
         // CHECK IF SELECTED FIRMWARE IS VALID FOR THE TARGET
 
         if( ((calcidx>0) && (strncmp(preamblestring,preamble_strings[calcidx],bytelen)!=0))     // DEVICES USING NEW FIRMWARES, FROM NOW ON
-                || ((calcidx==0) && (strncmp(preamblestring,preamble_strings[2],bytelen)!=0) &&
+                || ((calcidx==0) && (strncmp(preamblestring,preamble_strings[1],bytelen)!=0) &&
+                    (strncmp(preamblestring,preamble_strings[2],bytelen)!=0) &&
                     (strncmp(preamblestring,preamble_strings[3],bytelen)!=0) &&
                      (strncmp(preamblestring,preamble_strings[4],bytelen)!=0)) )                // HANDLE SPECIAL CASE OF OLD FIRMWARES USING "newRPL Calc" FOR ALL DEVICES
         {
