@@ -1709,11 +1709,12 @@ void LIB_HANDLER()
                 swapReal(&RReg[0], &RReg[9]);
 
                 hyp_ln(&re);
-                normalize(&RReg[0]);
+                finalize(&RReg[0]);
+                finalize(&RReg[9]);
 
                 // SINCE LN() MAPS FROM POLAR TO CARTESIAN PLANE, ALWAYS RETURN CARTESIAN COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
+                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
