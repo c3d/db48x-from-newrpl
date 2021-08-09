@@ -39,10 +39,30 @@ void lcd_on()
 
 void lcd_save(unsigned int *buf)
 {
+    buf[0]=*WINCON0;        // SAVE STATE OF WINDOW 0
+    buf[1]=*VIDW00ADD0B0;
+    buf[2]=*VIDW00ADD1B0;
+    buf[3]=*VIDW00ADD2B0;
+    buf[4]=*VIDW00ADD0B1;
+    buf[5]=*VIDW00ADD1B1;
+    buf[6]=*VIDW00ADD2B1;
+    buf[7]=*VIDOSD0A;
+    buf[8]=*VIDOSD0B;
+
 }
 
 void lcd_restore(unsigned int *buf)
 {
+    *WINCON0&=~1;            // WINDOW 0 OFF
+    *VIDW00ADD0B0=buf[1];
+    *VIDW00ADD1B0=buf[2];
+    *VIDW00ADD2B0=buf[3];
+    *VIDW00ADD0B1=buf[4];
+    *VIDW00ADD1B1=buf[5];
+    *VIDW00ADD2B1=buf[6];
+    *VIDOSD0A=buf[7];
+    *VIDOSD0B=buf[8];
+    *WINCON0=buf[0];        // RESTORE WINDOW 0
 }
 
 void lcd_setcontrast(int level)

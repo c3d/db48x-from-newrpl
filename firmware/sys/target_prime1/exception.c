@@ -109,7 +109,7 @@ int f,j;
 
 lcd_save(lcd_buffer);
 
-*WINCON0&=~1;   // Window 0 off
+*WINCON0&=~0x800001;   // Window 0 off, switch to buffer 0
 // Move Window 0 to the exception buffer
 *VIDW00ADD0B0=MEM_PHYS_EXSCREEN;
 *VIDW00ADD1B0=(MEM_PHYS_EXSCREEN+MEM_SCREENSIZE)&0x00ffffff;
@@ -522,12 +522,6 @@ if( KEYVALUE(f)==KB_HLP )	break;
 } while(1);
 
 __keyb_waitrelease();
-
-*WINCON0&=~1;   // Window 0 off
-// Move Window 0 to the regular buffer
-*VIDW00ADD0B0=MEM_PHYS_SCREEN;
-*VIDW00ADD1B0=(MEM_PHYS_SCREEN+MEM_SCREENSIZE)&0x00ffffff;
-*WINCON0|=1;   // Window 0 on
 
 lcd_restore(lcd_buffer);
 

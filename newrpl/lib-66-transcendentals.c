@@ -1441,18 +1441,22 @@ void LIB_HANDLER()
             // (1 - im^2) - i*re*(1+im+1-im) - re^2
             // = 1 - im^2 - 2*i*re - re^2
             // = (1-im^2-re^2) - i*2*re
-            // Denominator = (1-im^2) - (i*re)^2
-            // = 1-im^2+re^2 (real number)
+            // Denominator = (1-im)^2 - (i*re)^2
+            // = 1+im^2-2*1*im+re^2 (real number)
+            // = 1+im^2+re^2-2im
             // RESULT:
-            // Re(1-i*Z)/(1+i*Z) = (1-im^2-re^2)/(1-im^2+re^2)
-            // Im(1-i*Z)/(1+i*Z) = -2*re/(1-im^2+re^2)
+            // Re(1-i*Z)/(1+i*Z) = (1-im^2-re^2)/(1+im^2+re^2-2im)
+            // Im(1-i*Z)/(1+i*Z) = -2*re/(1+im^2+re^2-2im)
+
 
             // WARNING, THERE COULD BE LOSS OF PRECISION HERE WHEN im^2+re^2 IS CLOSE TO ONE
-            mulReal(&RReg[0], &im, &im);
-            mulReal(&RReg[1], &re, &re);
-            subReal(&RReg[2], &one, &RReg[0]);  // 1-im^2
-            subReal(&RReg[3], &RReg[2], &RReg[1]);      // 1-im^2-re^2
-            addReal(&RReg[4], &RReg[2], &RReg[1]);      // 1-im^2+re^2
+            mulReal(&RReg[0], &im, &im);        // im^2
+            mulReal(&RReg[1], &re, &re);        // re^2
+            addReal(&RReg[2],&RReg[0],&RReg[1]);    // re^2+im^2
+            addReal(&RReg[1], &im, &im);  // 2*im
+            subReal(&RReg[3], &one, &RReg[2]);      // 1-im^2-re^2 = q
+            addReal(&RReg[0], &one, &RReg[2]);      // 1+im^2+re^2
+            subReal(&RReg[4],&RReg[0],&RReg[1]);    // 1+im^2+re^2-2*im
             addReal(&RReg[5], &re, &re);        // 2*re
             RReg[5].flags ^= F_NEGATIVE;
 

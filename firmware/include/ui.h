@@ -331,7 +331,7 @@ WORDPTR uiGetLibMenu(BINT64 MenuCode);
 WORDPTR uiGetMenuItem(BINT64 MenuCode, WORDPTR menu, BINT item);
 WORDPTR uiGetMenuItemAction(WORDPTR item, BINT shift);
 WORDPTR uiGetMenuItemHelp(WORDPTR item);
-void uiDrawMenuItem(WORDPTR item, BINT palette_color, DRAWSURFACE * scr);
+void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAWSURFACE * scr);
 
 WORDPTR uiGetLibHelp(WORDPTR Object);
 

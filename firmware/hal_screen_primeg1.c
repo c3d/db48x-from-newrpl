@@ -354,7 +354,7 @@ void halRedrawForm(DRAWSURFACE * scr)
 
     if(yend > viewport.clipy2 + 1) {
         // CLEAR THE BACKGROUND
-        cgl_cliprect(scr, scr->clipx, viewport.clipy2 + 1, scr->clipx2, yend - 1, 0);   // CLEAR RECTANGLE
+        cgl_cliprect(scr, scr->clipx, viewport.clipy2 + 1, scr->clipx2, yend - 1, cgl_mkcolor(PAL_FORMBACKGND));   // CLEAR RECTANGLE
     }
 
     // DRAW THE VIEWPORT
@@ -472,9 +472,7 @@ void halRedrawStack(DRAWSURFACE * scr)
 
     cgl_cliprect(scr, 0, ystart, xright-1, yend - 1, cgl_mkcolor(PAL_STKIDXBACKGND));    // CLEAR RECTANGLE
     cgl_cliprect(scr, xright+1, ystart, SCREEN_WIDTH-1, yend - 1, cgl_mkcolor(PAL_STKBACKGND));    // CLEAR RECTANGLE
-
-    if(depth > 0)
-        cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
+    cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
 
     while(y > ystart) {
         if(level == 1)
@@ -1052,7 +1050,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
         scr->clipy2 =
                 ytop + 1 + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight;
 
-        uiDrawMenuItem(item, PAL_HLPTEXT, scr);
+        uiDrawMenuItem(item, PAL_HLPTEXT, PAL_HLPBACKGND, scr);
 
         scr->clipy = oldclipy;
         scr->clipy2 = oldclipy2;
@@ -1080,10 +1078,10 @@ void halRedrawMenu1(DRAWSURFACE * scr)
     halScreenUpdated();
 
 
-    int mcolor,bcolor,mpalette;
+    int mcolor,bcolor,mpalette,bpalette;
 
-    if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
-    else { mpalette=PAL_MENUTEXT; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
+    if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
+    else { mpalette=PAL_MENUTEXT; bpalette=PAL_MENUBACKGND; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
 
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
@@ -1130,7 +1128,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
             scr->clipx = MENU_TAB_WIDTH * k;
             scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
             item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
 
         // NOW DO THE NXT KEY
@@ -1139,7 +1137,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
         if(nitems == 6) {
             item = uiGetMenuItem(m1code, MenuObj, 5);
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
         else {
             if(nitems > 6) {
@@ -1193,7 +1191,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
             scr->clipx = MENU_TAB_WIDTH * k;
             scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
             item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
 
         // SECOND ROW
@@ -1206,7 +1204,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
             scr->clipx = MENU_TAB_WIDTH * k;
             scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
             item = uiGetMenuItem(m1code, MenuObj, k + 2 + MENUPAGE(m1code));
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
 
         // THIRD ROW
@@ -1218,7 +1216,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
             scr->clipx = MENU_TAB_WIDTH * k;
             scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
             item = uiGetMenuItem(m1code, MenuObj, k + 4 + MENUPAGE(m1code));
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
 
         // NOW DO THE NXT KEY
         scr->clipx = MENU_TAB_WIDTH ;
@@ -1226,7 +1224,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
         if(nitems == 6) {
             item = uiGetMenuItem(m1code, MenuObj, 5);
-            uiDrawMenuItem(item, mpalette, scr);
+            uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
         else {
             if(nitems > 6) {
@@ -1266,10 +1264,10 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
 
 
-    int mcolor,bcolor,mpalette;
+    int mcolor,bcolor,mpalette,bpalette;
 
-    if(rplTestSystemFlag(FL_MENU2WHITE)) { mpalette=PAL_MENUINVTEXT; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
-    else { mpalette=PAL_MENUTEXT; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
+    if(rplTestSystemFlag(FL_MENU2WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
+    else { mpalette=PAL_MENUTEXT; bpalette=PAL_MENUBACKGND; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
 
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
@@ -1324,7 +1322,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
         scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // SECOND ROW
@@ -1337,7 +1335,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
         scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + 2 + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // THIRD ROW
@@ -1349,7 +1347,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
         scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
 
     // NOW DO THE NXT KEY
     scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH ;
@@ -1357,7 +1355,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     if(nitems == 6) {
         item = uiGetMenuItem(m2code, MenuObj, 5);
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
     else {
         if(nitems > 6) {

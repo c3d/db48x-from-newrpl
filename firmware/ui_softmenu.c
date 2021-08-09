@@ -292,7 +292,7 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
 // DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
 // DOES NOT CLEAR BACKGROUND
 
-void uiDrawMenuItem(WORDPTR item, BINT palette_color, DRAWSURFACE * scr)
+void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAWSURFACE * scr)
 {
     WORDPTR ptr;
     BINT flags = 0;
@@ -362,9 +362,22 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, DRAWSURFACE * scr)
         else { color=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); dircolor=cgl_mkcolor(PAL_MENUINVDIRMARK); }
     }
     else {
+        if(palette_color==PAL_MENUTEXT) {
         // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
         if(flags&2) { color=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); dircolor=cgl_mkcolor(PAL_MENUINVDIRMARK); }
         else { color=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); dircolor=cgl_mkcolor(PAL_MENUDIRMARK); }
+        }
+        else {
+          // JUST USE THE SPECIFIC COLORS REQUESTED BY CALLER, SWAP COLORS IF INVERTED BY FLAGS
+            if(flags&2) {
+                dircolor=bcolor=cgl_mkcolor(palette_color);
+                color=cgl_mkcolor(palette_bkcolor);
+            }
+            else {
+                    color=cgl_mkcolor(palette_color);
+                    dircolor=bcolor=cgl_mkcolor(palette_bkcolor);
+            }
+        }
     }
 
     if(ISLIBRARY(*ptr)) {
