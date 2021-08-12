@@ -53,7 +53,10 @@
     CMD(THENERR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(ELSEERR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(ENDERR,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(QSEMI,"»",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2))
+    ECMD(QSEMI,"»",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FORUP,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FORDN,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 #define ERROR_LIST \
@@ -907,6 +910,200 @@ void LIB_HANDLER()
         return;
     }
 
+    case FORUP:
+    {
+        //@SHORT_DESC=Loop FORUP ... NEXT/STEP statement
+        //@NEW
+        // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
+
+        if(rplDepthData() < 2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+      forup_recheck:
+        // MAKE SURE LOOP LIMITS ARE NUMERIC
+        if(((!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1))))
+                || ((!ISNUMBERORUNIT(*rplPeekData(2)))
+                    && (!ISANGLE(*rplPeekData(2))))) {
+            if(rplStripTagStack(2))
+                goto forup_recheck;
+            rplError(ERR_INVALIDLOOPLIMITS);
+            return;
+        }
+
+        // FIND OUT THE DIRECTION OF THE LOOP
+        // MAKE 2DUP
+        ScratchPointer3 = (WORDPTR) DSTop;
+        rplPushData(rplPeekData(2));
+        rplPushData(rplPeekData(2));
+        rplCallOvrOperator(OVR_CMP);
+
+
+        if(Exceptions) {
+            DSTop = (WORDPTR *) ScratchPointer3;
+            return;
+        }
+
+        BINT upordn = (BINT)rplReadNumberAsBINT(rplPeekData(1));
+
+
+        ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
+        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+            ScratchPointer3 = rplSkipOb(ScratchPointer3);
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORUP))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORDN))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+                --depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+                --depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
+                IPtr = ScratchPointer3 - 1;
+                return;
+            }
+            if(*ScratchPointer3 == CMD_SEMI) {
+                rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
+                IPtr = ScratchPointer3 - 1;
+                return;
+            }
+
+        }
+
+        // EARLY CHECK FOR EXIT
+        if(upordn>0) {
+            // DON'T EVEN ENTER THE LOOP
+            IPtr = ScratchPointer3;
+            CurOpcode = *IPtr;      // ADVANCE THE POINTER TO THE NEXT OR STEP, TO BE SKIPPED
+
+            // CLEAN THE STACK
+            rplDropData(3);
+            return;
+        }
+
+        // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
+        rplCreateLAMEnvironment(ScratchPointer3);
+        rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
+        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR)one_bint);   // FORCED LOOP DIRECTION UP
+        rplCreateLAM(IPtr + 1, rplPeekData(3)); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
+
+        // CLEAN THE STACK
+        rplDropData(3);
+
+        ++IPtr;
+        CurOpcode = *IPtr;      // ADVANCE THE POINTER TO THE IDENT TO BE SKIPPED
+        rplPushRet(IPtr);       // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
+
+        return;
+    }
+
+    case FORDN:
+    {
+        //@SHORT_DESC=Loop FORUP ... NEXT/STEP statement
+        //@NEW
+        // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
+
+        if(rplDepthData() < 2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+      fordn_recheck:
+        // MAKE SURE LOOP LIMITS ARE NUMERIC
+        if(((!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1))))
+                || ((!ISNUMBERORUNIT(*rplPeekData(2)))
+                    && (!ISANGLE(*rplPeekData(2))))) {
+            if(rplStripTagStack(2))
+                goto fordn_recheck;
+            rplError(ERR_INVALIDLOOPLIMITS);
+            return;
+        }
+
+        // FIND OUT THE DIRECTION OF THE LOOP
+        // MAKE 2DUP
+        ScratchPointer3 = (WORDPTR) DSTop;
+        rplPushData(rplPeekData(2));
+        rplPushData(rplPeekData(2));
+        rplCallOvrOperator(OVR_CMP);
+
+
+        if(Exceptions) {
+            DSTop = (WORDPTR *) ScratchPointer3;
+            return;
+        }
+
+        BINT upordn = (BINT)rplReadNumberAsBINT(rplPeekData(1));
+
+
+        ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
+        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+            ScratchPointer3 = rplSkipOb(ScratchPointer3);
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORUP))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORDN))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+                ++depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+                --depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+                --depth;
+            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
+                IPtr = ScratchPointer3 - 1;
+                return;
+            }
+            if(*ScratchPointer3 == CMD_SEMI) {
+                rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
+                IPtr = ScratchPointer3 - 1;
+                return;
+            }
+
+        }
+
+        // EARLY CHECK FOR EXIT
+        if(upordn<0) {
+            // DON'T EVEN ENTER THE LOOP
+            IPtr = ScratchPointer3;
+            CurOpcode = *IPtr;      // ADVANCE THE POINTER TO THE NEXT OR STEP, TO BE SKIPPED
+
+            // CLEAN THE STACK
+            rplDropData(3);
+            return;
+        }
+
+        // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
+        rplCreateLAMEnvironment(ScratchPointer3);
+        rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
+        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR)minusone_bint);   // FORCED LOOP DIRECTION DOWN
+        rplCreateLAM(IPtr + 1, rplPeekData(3)); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
+
+        // CLEAN THE STACK
+        rplDropData(3);
+
+        ++IPtr;
+        CurOpcode = *IPtr;      // ADVANCE THE POINTER TO THE IDENT TO BE SKIPPED
+        rplPushRet(IPtr);       // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
+
+        return;
+    }
+
         // STANDARIZED OPCODES:
         // --------------------
         // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
@@ -1253,6 +1450,23 @@ void LIB_HANDLER()
         }
 
         if((TokenLen == 5)
+                && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "FORUP",
+                        5))) {
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, FORUP));
+            RetNum = OK_NEEDMORESTARTCONST;
+            return;
+        }
+
+        if((TokenLen == 5)
+                && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "FORDN",
+                        5))) {
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, FORDN));
+            RetNum = OK_NEEDMORESTARTCONST;
+            return;
+        }
+
+
+        if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "START",
                         5))) {
             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, START));
@@ -1269,6 +1483,8 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "NEXT",
                         4))) {
             if((CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FOR))
+                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORUP))
+                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORDN))
                     && (CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, START))) {
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1285,6 +1501,8 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "STEP",
                         4))) {
             if((CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FOR))
+                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORUP))
+                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORDN))
                     && (CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, START))) {
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1400,6 +1618,36 @@ void LIB_HANDLER()
             return;
         }
 
+        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORUP)) {
+
+            rplDecompAppendString((BYTEPTR) "FORUP");
+
+            // CREATE A NEW ENVIRONMENT
+            rplCreateLAMEnvironment(DecompileObject);
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject), (WORDPTR) zero_bint);      // LAM COUNTER
+
+            RetNum = OK_STARTCONSTRUCT;
+            return;
+        }
+
+        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORDN)) {
+
+            rplDecompAppendString((BYTEPTR) "FORDN");
+
+            // CREATE A NEW ENVIRONMENT
+            rplCreateLAMEnvironment(DecompileObject);
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject), (WORDPTR) zero_bint);      // LAM COUNTER
+
+            RetNum = OK_STARTCONSTRUCT;
+            return;
+        }
+
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, START)) {
 
             rplDecompAppendString((BYTEPTR) "START");
@@ -1418,7 +1666,9 @@ void LIB_HANDLER()
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, NEXT)) {
             // NEXT
             if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FOR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))) {
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString((BYTEPTR) "NEXT");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1433,7 +1683,9 @@ void LIB_HANDLER()
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, STEP)) {
             // STEP
             if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FOR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))) {
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
+                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString((BYTEPTR) "STEP");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1639,6 +1891,8 @@ void LIB_HANDLER()
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             switch (OPCODE(*ObjectPTR)) {
             case FOR:
+            case FORUP:
+            case FORDN:
                 DecompHints = HINT_ADDINDENTAFTER;
                 break;
             case DO:
