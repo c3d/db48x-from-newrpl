@@ -912,10 +912,16 @@ int __tmr_timedout(unsigned int start,unsigned int end);
 // Reset all GPIO to a known state (low power for sleep mode)
 void reset_gpio();
 
+// We use only 1 finger, nt11002 is capable of 4?
+#define TS_FINGERS 1
+#define TS_FINGER_INVALID -1
+#define TS_STAT_DATAREADY   1
+#define TS_STAT_DATAMISSED  2
 
-
-
-
+// To be atomic this returns x coordinate in upper halfword
+// and y coordinate in lower halfword.
+// Returns TS_FINGER_INVALID if no valid value is available
+uint32_t ts_get_finger(void);
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
