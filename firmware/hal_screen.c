@@ -476,9 +476,7 @@ void halRedrawStack(DRAWSURFACE * scr)
 
     cgl_cliprect(scr, 0, ystart, xright-1, yend - 1, cgl_mkcolor(PAL_STKIDXBACKGND));    // CLEAR RECTANGLE
     cgl_cliprect(scr, xright+1, ystart, SCREEN_WIDTH-1, yend - 1, cgl_mkcolor(PAL_STKBACKGND));    // CLEAR RECTANGLE
-
-    if(depth > 0)
-        cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
+    cgl_clipvline(scr, xright, ystart, yend - 1, cgl_mkcolor(PAL_STKVLINE));
 
     while(y > ystart) {
         if(level == 1)
@@ -767,56 +765,56 @@ void halSetupTheme(WORDPTR palette)
         cgl_setpalette(PAL_GRAY15,THEME_GRAY15);
 
         // Theme colors for the stack
-        cgl_setpalette( PAL_STKBACKGND, THEME_STKBACKGND);
-        cgl_setpalette( PAL_STKINDEX, THEME_STKINDEX);
-        cgl_setpalette( PAL_STKVLINE, THEME_STKVLINE);
-        cgl_setpalette( PAL_STKIDXBACKGND, THEME_STKIDXBACKGND);
-        cgl_setpalette( PAL_STKITEMS, THEME_STKITEMS);
-        cgl_setpalette( PAL_STKSELBKGND, THEME_STKSELBKGND);
-        cgl_setpalette( PAL_STKSELITEM, THEME_STKSELITEM);
-        cgl_setpalette( PAL_STKCURSOR, THEME_STKCURSOR);
+        cgl_setpalette( PAL_STKBACKGND, GTHEME_STKBACKGND);
+        cgl_setpalette( PAL_STKINDEX, GTHEME_STKINDEX);
+        cgl_setpalette( PAL_STKVLINE, GTHEME_STKVLINE);
+        cgl_setpalette( PAL_STKIDXBACKGND, GTHEME_STKIDXBACKGND);
+        cgl_setpalette( PAL_STKITEMS, GTHEME_STKITEMS);
+        cgl_setpalette( PAL_STKSELBKGND, GTHEME_STKSELBKGND);
+        cgl_setpalette( PAL_STKSELITEM, GTHEME_STKSELITEM);
+        cgl_setpalette( PAL_STKCURSOR, GTHEME_STKCURSOR);
 
         // Theme colors for the command line
-        cgl_setpalette( PAL_CMDBACKGND, THEME_CMDBACKGND);
-        cgl_setpalette( PAL_CMDTEXT, THEME_CMDTEXT);
-        cgl_setpalette( PAL_CMDSELBACKGND, THEME_CMDSELBACKGND);
-        cgl_setpalette( PAL_CMDSELTEXT, THEME_CMDSELTEXT);
-        cgl_setpalette( PAL_CMDCURSORBACKGND, THEME_CMDCURSORBACKGND);
-        cgl_setpalette( PAL_CMDCURSOR, THEME_CMDCURSOR);
-        cgl_setpalette( PAL_DIVLINE, THEME_DIVLINE);
+        cgl_setpalette( PAL_CMDBACKGND, GTHEME_CMDBACKGND);
+        cgl_setpalette( PAL_CMDTEXT, GTHEME_CMDTEXT);
+        cgl_setpalette( PAL_CMDSELBACKGND, GTHEME_CMDSELBACKGND);
+        cgl_setpalette( PAL_CMDSELTEXT, GTHEME_CMDSELTEXT);
+        cgl_setpalette( PAL_CMDCURSORBACKGND, GTHEME_CMDCURSORBACKGND);
+        cgl_setpalette( PAL_CMDCURSOR, GTHEME_CMDCURSOR);
+        cgl_setpalette( PAL_DIVLINE, GTHEME_DIVLINE);
 
         // Theme colors for menu
-        cgl_setpalette( PAL_MENUBACKGND, THEME_MENUBACKGND);
-        cgl_setpalette( PAL_MENUINVBACKGND, THEME_MENUINVBACKGND);
-        cgl_setpalette( PAL_MENUTEXT, THEME_MENUTEXT);
-        cgl_setpalette( PAL_MENUINVTEXT, THEME_MENUINVTEXT);
-        cgl_setpalette( PAL_MENUDIRMARK, THEME_MENUDIRMARK);
-        cgl_setpalette( PAL_MENUINVDIRMARK, THEME_MENUINVDIRMARK);
-        cgl_setpalette( PAL_MENUHLINE, THEME_MENUHLINE);
-        cgl_setpalette( PAL_MENUFOCUSHLINE, THEME_MENUFOCUSHLINE);
-        cgl_setpalette( PAL_MENUPRESSBACKGND, THEME_MENUPRESSBACKGND);
-        cgl_setpalette( PAL_MENUPRESSINVBACKGND, THEME_MENUPRESSINVBACKGND);
+        cgl_setpalette( PAL_MENUBACKGND, GTHEME_MENUBACKGND);
+        cgl_setpalette( PAL_MENUINVBACKGND, GTHEME_MENUINVBACKGND);
+        cgl_setpalette( PAL_MENUTEXT, GTHEME_MENUTEXT);
+        cgl_setpalette( PAL_MENUINVTEXT, GTHEME_MENUINVTEXT);
+        cgl_setpalette( PAL_MENUDIRMARK, GTHEME_MENUDIRMARK);
+        cgl_setpalette( PAL_MENUINVDIRMARK, GTHEME_MENUINVDIRMARK);
+        cgl_setpalette( PAL_MENUHLINE, GTHEME_MENUHLINE);
+        cgl_setpalette( PAL_MENUFOCUSHLINE, GTHEME_MENUFOCUSHLINE);
+        cgl_setpalette( PAL_MENUPRESSBACKGND, GTHEME_MENUPRESSBACKGND);
+        cgl_setpalette( PAL_MENUPRESSINVBACKGND, GTHEME_MENUPRESSINVBACKGND);
 
         // Theme colors for status area
-        cgl_setpalette( PAL_STABACKGND, THEME_STABACKGND);
-        cgl_setpalette( PAL_STATEXT, THEME_STATEXT);
-        cgl_setpalette( PAL_STAANNPRESS, THEME_STAANNPRESS);
-        cgl_setpalette( PAL_STAANN, THEME_STAANN);
-        cgl_setpalette( PAL_STABAT, THEME_STABAT);
-        cgl_setpalette( PAL_STAUFLAG0, THEME_STAUFLAG0);
-        cgl_setpalette( PAL_STAUFLAG1, THEME_STAUFLAG1);
+        cgl_setpalette( PAL_STABACKGND, GTHEME_STABACKGND);
+        cgl_setpalette( PAL_STATEXT, GTHEME_STATEXT);
+        cgl_setpalette( PAL_STAANNPRESS, GTHEME_STAANNPRESS);
+        cgl_setpalette( PAL_STAANN, GTHEME_STAANN);
+        cgl_setpalette( PAL_STABAT, GTHEME_STABAT);
+        cgl_setpalette( PAL_STAUFLAG0, GTHEME_STAUFLAG0);
+        cgl_setpalette( PAL_STAUFLAG1, GTHEME_STAUFLAG1);
 
         // Theme colors for help and popup messages
-        cgl_setpalette( PAL_HLPBACKGND, THEME_HLPBACKGND);
-        cgl_setpalette( PAL_HLPTEXT, THEME_HLPTEXT);
-        cgl_setpalette( PAL_HLPLINES,THEME_HLPLINES);
+        cgl_setpalette( PAL_HLPBACKGND, GTHEME_HLPBACKGND);
+        cgl_setpalette( PAL_HLPTEXT, GTHEME_HLPTEXT);
+        cgl_setpalette( PAL_HLPLINES,GTHEME_HLPLINES);
 
         // Theme colors for Forms
-        cgl_setpalette( PAL_FORMBACKGND, THEME_FORMBACKGND);
-        cgl_setpalette( PAL_FORMTEXT, THEME_FORMTEXT);
-        cgl_setpalette( PAL_FORMSELTEXT, THEME_FORMSELTEXT);
-        cgl_setpalette( PAL_FORMSELBACKGND, THEME_FORMSELBACKGND);
-        cgl_setpalette( PAL_FORMCURSOR, THEME_FORMCURSOR);
+        cgl_setpalette( PAL_FORMBACKGND, GTHEME_FORMBACKGND);
+        cgl_setpalette( PAL_FORMTEXT, GTHEME_FORMTEXT);
+        cgl_setpalette( PAL_FORMSELTEXT, GTHEME_FORMSELTEXT);
+        cgl_setpalette( PAL_FORMSELBACKGND, GTHEME_FORMSELBACKGND);
+        cgl_setpalette( PAL_FORMCURSOR, GTHEME_FORMCURSOR);
 
         // More default colors here
 
@@ -1053,7 +1051,7 @@ void halRedrawHelp(DRAWSURFACE * scr)
         scr->clipy2 =
                 ytop + 1 + (*halScreen.FontArray[FONT_HLPTITLE])->BitmapHeight;
 
-        uiDrawMenuItem(item, PAL_HLPTEXT, scr);
+        uiDrawMenuItem(item, PAL_HLPTEXT, PAL_HLPBACKGND, scr);
 
         scr->clipy = oldclipy;
         scr->clipy2 = oldclipy2;
@@ -1080,10 +1078,10 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
-    int mcolor,bcolor,mpalette;
+    int mcolor,bcolor,mpalette,bpalette;
 
-    if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
-    else { mpalette=PAL_MENUTEXT; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
+    if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
+    else { mpalette=PAL_MENUTEXT; bpalette=PAL_MENUBACKGND; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
 
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
@@ -1125,7 +1123,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
         scr->clipx = MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // NOW DO THE NXT KEY
@@ -1134,7 +1132,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
     if(nitems == 6) {
         item = uiGetMenuItem(m1code, MenuObj, 5);
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
     else {
         if(nitems > 6) {
@@ -1169,10 +1167,10 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
-    int mcolor,bcolor,mpalette;
+    int mcolor,bcolor,mpalette,bpalette;
 
-    if(rplTestSystemFlag(FL_MENU2WHITE)) { mpalette=PAL_MENUINVTEXT; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
-    else { mpalette=PAL_MENUTEXT; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
+    if(rplTestSystemFlag(FL_MENU2WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); }
+    else { mpalette=PAL_MENUTEXT; bpalette=PAL_MENUBACKGND; mcolor=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); }
 
 
     int ytop, ybottom;
@@ -1223,7 +1221,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
         scr->clipx = MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // SECOND ROW
@@ -1235,7 +1233,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
         scr->clipx = MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + 3 + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // NOW DO THE NXT KEY
@@ -1244,7 +1242,7 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     if(nitems == 6) {
         item = uiGetMenuItem(m2code, MenuObj, 5);
-        uiDrawMenuItem(item, mpalette, scr);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
     else {
         if(nitems > 6) {
