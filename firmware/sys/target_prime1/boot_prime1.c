@@ -284,6 +284,8 @@ void main_virtual(unsigned int mode)
 
         cgl_initscr(&scr);
 
+        halSetupTheme(NULL);
+
         //   CLEAR SCREEN
         cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_STKBACKGND));
 
