@@ -637,13 +637,13 @@ void LIB_HANDLER()
             switch (cclass1) {
             case CPLX_ZERO:
             {
-                if(OPCODE(CurOpcode) == OVR_SUB) {
+                /*if(OPCODE(CurOpcode) == OVR_SUB) {
                     if(!iszeroReal(&Rarg2))
                         Rarg2.flags ^= F_NEGATIVE;
                     if(amode2 == ANGLENONE)
                         if(!iszeroReal(&Iarg2))
                             Iarg2.flags ^= F_NEGATIVE;
-                }
+                }*/
                 rplNewComplexPush(&Rarg2, &Iarg2, amode2);
                 if(Exceptions)
                     return;
