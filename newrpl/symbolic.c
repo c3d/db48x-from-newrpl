@@ -16,7 +16,7 @@
 #define num_min(a,b) ((a)<(b)? (a):(b))
 
 // THIS IS FOR DEBUGGING ONLY - *MUST* BE REMOVED FOR RELEASE
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 /* COMPILING A SYMBOLIC:
  *
@@ -5425,7 +5425,7 @@ BINT rplSymbRuleMatch()
                     printf("  right=%s", strbyte);
                 }
             }
-            ("\n");
+            printf("\n");
             fflush(stdout);
 #endif
             // ******************************************************
@@ -7071,6 +7071,39 @@ BINT rplSymbGetAttr(WORDPTR object)
             }
             else if(ISIDENT(*ptr)) {
                 attr = rplGetIdentAttr(ptr);
+            }
+            else if(ISCONSTANT(*ptr)) {
+
+                switch(TI_TYPE(rplSymbGetTokenInfo(ptr)))
+                {
+                case TITYPE_REAL:
+                    attr = IDATTR_ISREAL | IDATTR_GTEZERO | IDATTR_NOTZERO;
+                    break;
+                case TITYPE_REALINF:
+                    attr = IDATTR_ISINFREAL ;
+                    break;
+                case TITYPE_REALNEG:
+                    attr = IDATTR_ISREAL | IDATTR_LTEZERO | IDATTR_NOTZERO;
+                    break;
+                case TITYPE_COMPLEX:
+                    attr = IDATTR_ISCPLX | IDATTR_NOTZERO;
+                    break;
+                case TITYPE_COMPLEXINF:
+                    attr = IDATTR_ISINFCPLX ;
+                    break;
+                case TITYPE_MATRIX:
+                    attr = IDATTR_ISMATRIX;
+                    break;
+                case TITYPE_UNIT:
+                    attr = 0;
+                    break;
+                default:
+                    attr = 0;
+                    break;
+
+                }
+
+
             }
             else if(ISSYMBOLIC(*ptr)) {
                 // RECURSE

@@ -304,7 +304,7 @@ void rplCheckResultAndError(REAL * real)
         rplError(ERR_UNDEFINEDRESULT);
     }
     if(real->flags & F_INFINITY) {
-        if(!rplTestSystemFlag(FL_INIFINITEERROR))
+        if(!rplTestSystemFlag(FL_INFINITEERROR))
             rplError(ERR_INFINITERESULT);
         else
             rplSetSystemFlag(FL_INFINITE);

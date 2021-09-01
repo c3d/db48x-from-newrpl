@@ -275,17 +275,26 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // FOR CONSTANTS: TYPE=55 (CONSTANT), SUBTYPE = 0.10 = REAL, 0.11 = NEGATIVE REAL, 0.12 = INFINITE REAL, 0.20 = COMPLEX, 0.22 = INF COMPLEX, 0.30 = MATRIX, 0.40 = UNIT (ASSUMED REAL VALUE)
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
             libGetInfo2(ObjectPTR[1], (char **)LIB_NAMES,
                     (BINT *) LIB_TOKENINFO, LIB_NUMBEROFCMDS);
             if(TI_TYPE(RetNum) == TITYPE_REAL)
-                TypeInfo += DOREAL;
+                TypeInfo += 10;
+            else if(TI_TYPE(RetNum) == TITYPE_REALNEG)
+                TypeInfo += 11;
+            else if(TI_TYPE(RetNum) == TITYPE_REALINF)
+                TypeInfo += 12;
             else if(TI_TYPE(RetNum) == TITYPE_COMPLEX)
-                TypeInfo += DOCMPLX;
+                TypeInfo += 20;
+            else if(TI_TYPE(RetNum) == TITYPE_COMPLEXINF)
+                TypeInfo += 22;
+            else if(TI_TYPE(RetNum) == TITYPE_UNIT)
+                TypeInfo += 40;
             else if(TI_TYPE(RetNum) == TITYPE_MATRIX)
-                TypeInfo += DOMATRIX;
+                TypeInfo += 30;
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0

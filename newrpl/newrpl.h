@@ -741,7 +741,7 @@ struct date
 #define FL_ANGLEMODE2     -18
 #define FL_UNDERFLOWERROR -20
 #define FL_OVERFLOWERROR  -21
-#define FL_INIFINITEERROR -22
+#define FL_INFINITEERROR  -22
 #define FL_NEGUNDERFLOW   -23
 #define FL_POSUNDERFLOW   -24
 #define FL_OVERFLOW       -25

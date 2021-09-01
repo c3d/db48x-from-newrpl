@@ -3493,7 +3493,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NUMBER, 0, 1);
+            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_UNIT, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0

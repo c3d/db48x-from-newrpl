@@ -926,10 +926,11 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
         obj[2] = CMD_QSEMI;     // THIS IS FOR SAFETY REASONS
 
         BINT rsave, lamsave, nlambase, retvalue;
+        BINT rplmode;
         WORD exceptsave, errcodesave;
         // PRESERVE VARIOUS STACK POINTERS
 
-        exceptsave = Exceptions;
+         exceptsave = Exceptions;
         errcodesave = ErrorCode;
 
         rplSetExceptionHandler(0);      // SAVE CURRENT EXCEPTION HANDLERS
@@ -992,7 +993,7 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
         }
         rplRemoveSnapshot(1);   // AND CLEANUP
 
-        // RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
+         // RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
         Exceptions = exceptsave;
         ErrorCode = errcodesave;
 
@@ -1010,7 +1011,7 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
     return 0;
 }
 
-// RESTURE THE STACK TO WHAT IT WAS AT THE GIVEN LEVEL
+// RESTORE THE STACK TO WHAT IT WAS AT THE GIVEN LEVEL
 // LEVEL 1 = MOST IMMEDIATE ... LEVEL StkUndoLevel = OLDEST
 // SPECIAL CASE: LEVEL 0 = USER'S CURRENT STACK
 BINT uiRestoreUndoLevel(BINT level)

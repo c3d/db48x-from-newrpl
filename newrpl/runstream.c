@@ -305,10 +305,10 @@ BINT rplRun(void)
     LIBHANDLER han;
     // CLEAR TEMPORARY SYSTEM FLAG ON EVERY SEPARATE EXECUTION
     rplClrSystemFlag(FL_FORCED_RAD);
-    BINT rpnmode =
-            rplTestSystemFlag(FL_MODERPN) | (rplTestSystemFlag(FL_EXTENDEDRPN)
-            << 1);
 
+        BINT rpnmode =
+                rplTestSystemFlag(FL_MODERPN) | (rplTestSystemFlag(FL_EXTENDEDRPN)
+                << 1);
     if(!rpnmode) {
         do {
             RPLLastOpcode = CurOpcode = *IPtr;
@@ -325,6 +325,7 @@ BINT rplRun(void)
             Exceptions |= HWExceptions; // COPY HARDWARE EXCEPTIONS INTO EXCEPTIONS AT THIS POINT TO AVOID
             // STOPPING IN THE MIDDLE OF A COMMAND
             if(Exceptions) {
+
                 if(HWExceptions)
                     HWExceptions &= EX_HWBKPOINT;       // CLEAR ANY EXCEPTIONS EXCEPT CHECK FOR BREAKPOINTS
 
@@ -598,6 +599,13 @@ BINT rplRun(void)
     else {
         if(!LastRegisterT)
             LastRegisterT = (WORDPTR) zero_bint;
+        if(DStkProtect!=DStkBottom) {
+            // STACK IS NOT SETUP FOR RPN, NEEDS TO BE FILLED
+            // PROVIDE RPN-MODE STACK BEHAVIOR
+            BINT nlevels = (rpnmode & 2) ? 8 : 4;
+            if(DSTop-DStkBottom>=nlevels) DStkProtect=DSTop-nlevels;
+            else DStkProtect=DStkBottom;
+        }
 
         do {
             RPLLastOpcode = CurOpcode = *IPtr;
@@ -614,6 +622,8 @@ BINT rplRun(void)
             Exceptions |= HWExceptions; // COPY HARDWARE EXCEPTIONS INTO EXCEPTIONS AT THIS POINT TO AVOID
             // STOPPING IN THE MIDDLE OF A COMMAND
             if(Exceptions) {
+
+
                 if(HWExceptions)
                     HWExceptions &= EX_HWBKPOINT;       // CLEAR ANY EXCEPTIONS EXCEPT CHECK FOR BREAKPOINTS
 
@@ -885,14 +895,16 @@ BINT rplRun(void)
                 rplRemoveAtData(nlevels + 1, rplDepthData() - nlevels); // TRIM THE STACK IF MORE THAN 8 LEVELS
             if(rplDepthData() < nlevels)        // FILL THE STACK WITH THE T REGISTER IF LESS THAN 8 NUMBERS
             {
-                rplExpandStack(nlevels - rplDepthData());
+                BINT offset=nlevels-rplDepthData();
+                rplExpandStack(offset);
                 // DISREGARD OF EXCEPTIONS, IF OUT OF MOEMORY WE SHOULD STILL HAVE ENOUGH SLACK IN THE STACK
+                DSTop+=offset;
                 BINT k;
-                for(k = 1; k <= rplDepthData(); ++k)
-                    DStkProtect[nlevels - k] = DSTop[-k];
+                DStkProtect=DSTop-nlevels;
+                for(k = 1; k <= nlevels-offset; ++k)
+                    DSTop[- k] = DSTop[-k-offset];
                 for(; k <= nlevels; ++k)
-                    DStkProtect[nlevels - k] = LastRegisterT;
-                DSTop = DStkProtect + nlevels;
+                    DSTop[- k] = LastRegisterT;
             }
             LastRegisterT = DStkProtect[0];
 
@@ -904,6 +916,7 @@ BINT rplRun(void)
         while(1);
 
     }
+
 }
 
 // EXECUTES ONE RPL COMMAND ATOMICALLY, RETURNS ONLY WHEN DONE

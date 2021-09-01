@@ -61,7 +61,8 @@
     CMD(STKPOP,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STKDROP,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(STKPICK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STKDEPTH,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(STKDEPTH,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STKNEW,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -674,6 +675,15 @@ void LIB_HANDLER()
         return;
 
     }
+    case STKNEW:
+    {
+        //@SHORT_DESC=Push a snapshot of the current stack on the undo stack and clears the current stack
+        //@NEW
+        // PUSH CURRENT STACK AND CLEAR
+        rplTakeSnapshotAndClear();
+        return;
+    }
+
 
         // STANDARIZED OPCODES:
         // --------------------

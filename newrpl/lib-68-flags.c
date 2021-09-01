@@ -402,10 +402,10 @@ BINT rplSetSystemFlag(BINT flag)
         return -1;
     if(!ISBINDATA(*SystemFlags))
         return -2;
-
     WORDPTR low64 = SystemFlags + 1;
     flag = -flag - 1;
     low64[flag >> 5] |= 1 << (flag & 31);
+
 
     return 0;
 }

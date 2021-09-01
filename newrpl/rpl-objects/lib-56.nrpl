@@ -129,7 +129,7 @@ R → A<fraction>"
 '.mX₂₁*INV(.mX₂₁):→1'                                 @ CANCEL OUT TERMS WITHOUT ANY EXPONENTS (COMMUTATIVE, REALS ONLY, NON-ZERO)
 '.mX₄₁*INV(.mX₄₁):→1'                                 @ CANCEL OUT TERMS WITHOUT ANY EXPONENTS (COMMUTATIVE, COMPLEX ONLY,NON-ZERO)
 
-
+'CONJ(і+.NN):→.NN-і'                                @ COMPLEX CONJUGATE
 }
 
 @ GROUP 3 = CANCEL TERMS IN DIVISION (MAY REMOVE POLES)
