@@ -57,7 +57,7 @@
 
 @#name lib104_menu
 {
-NUMINT ROOT MSOLVE "" ""
+NUMINT ROOT MSOLVE { "" } { "" }
 { { "Finan" 1 } { ::   #06801000h TMENULST ; ::   #06801000h TMENUOTHR ; } }
 }
 

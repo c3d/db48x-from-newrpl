@@ -1706,7 +1706,18 @@ void LIB_HANDLER()
                 // ONLY ACCEPT THE ANGLE IN RADIANS
                 trig_convertangle(&im, angmode, ANGLERAD);
 
-                swapReal(&RReg[0], &RReg[9]);
+                // CHECK IF NOT NORMALIZED
+                if(re.flags&F_NEGATIVE) {
+                   re.flags^=F_NEGATIVE;
+
+                   // ADD/SUBTRACT PI TO THE ANGLE
+
+                   REAL pi;
+                   decconst_PI(&pi);
+                   if(im.flags&F_NEGATIVE) addReal(&RReg[9],&RReg[0],&pi);
+                   else subReal(&RReg[9],&RReg[0],&pi);
+                }
+                else swapReal(&RReg[0], &RReg[9]);
 
                 hyp_ln(&re);
                 finalize(&RReg[0]);

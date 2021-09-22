@@ -7262,7 +7262,7 @@ void LIB_HANDLER()
                 return;
             }
             // CHECK IF IMAGINARY PART IS A VALID NUMBER
-            if(!ISNUMBER(*imag)) {
+            if(!ISNUMBERORANGLE(*imag)) {
                 RetNum = ERR_INVALID;
                 return;
             }

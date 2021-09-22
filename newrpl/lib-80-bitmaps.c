@@ -303,6 +303,160 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     }
 #endif
 
+#if DEFAULTBITMAPMODE == BITMAP_RAW64KC
+    switch (type) {
+    case BITMAP_RAWMONO:
+
+    {
+        HALFWORDPTR destptr;
+        BYTEPTR srcptr;
+
+        BINT mask = 1;
+        BINT pixel;
+
+        srcptr = (BYTEPTR) (bitmap + 3);
+        destptr = (HALFWORDPTR) (newbmp + 3);
+
+        while(npixels) {
+
+            // READ A PIXEL FROM SOURCE
+            pixel = *srcptr & mask;
+            // CONVERT TO PROPER FORMAT
+            if(pixel)
+                pixel = RGB_TO_RGB16(0,0,0);            // ASSUME MONOCHROME GRAPHICS ARE BLACK ON WHITE (SAME AS 50G OR A FAX)
+            else
+                pixel = RGB_TO_RGB16(255,255,255);
+
+            // WRITE TO DESTINATION
+                *destptr = (HALFWORD) pixel;
+
+            //INCREASE SOURCE POINTER
+            mask <<= 1;
+            if(mask > 128) {
+                ++srcptr;
+                mask >>= 8;
+            }
+
+            // INCREASE DEST PTR
+                ++destptr;
+            --npixels;
+        }
+        break;
+
+    }
+
+    case BITMAP_RAW16G:
+    {
+        HALFWORDPTR destptr;
+        BYTEPTR srcptr;
+
+        BINT mask = 0xf,rot=4;
+        BINT pixel;
+
+        srcptr = (BYTEPTR) (bitmap + 3);
+        destptr = (HALFWORDPTR) (newbmp + 3);
+
+        while(npixels) {
+
+            // READ A PIXEL FROM SOURCE
+            pixel = 0xf0 - ((*srcptr & mask) << rot);
+            if(pixel&0x80) pixel|=0xf;
+
+            // CONVERT TO PROPER FORMAT
+                pixel = RGB_TO_RGB16(pixel,pixel,pixel);            // ASSUME GRAY16 GRAPHICS ARE BLACK ON WHITE (SAME AS 50G BITMAPS)
+
+            // WRITE TO DESTINATION
+                *destptr = (HALFWORD) pixel;
+
+            //INCREASE SOURCE POINTER
+            mask <<= 4;
+            rot^=4;
+            if(mask > 0xf0) {
+                ++srcptr;
+                mask >>= 8;
+            }
+
+            // INCREASE DEST PTR
+                ++destptr;
+            --npixels;
+        }
+        break;
+
+    }
+    case BITMAP_RAW256G:
+
+    {
+
+        HALFWORDPTR destptr;
+        BYTEPTR srcptr;
+
+        BINT pixel;
+
+        srcptr = (BYTEPTR) (bitmap + 3);
+        destptr = (HALFWORDPTR) (newbmp + 3);
+
+        while(npixels) {
+
+            // READ A PIXEL FROM SOURCE
+            pixel = *srcptr;
+            // CONVERT TO PROPER FORMAT
+            pixel = RGB_TO_RGB16(pixel,pixel,pixel);
+
+            // WRITE TO DESTINATION
+            *destptr = (HALFWORD)pixel;
+
+            //INCREASE SOURCE POINTER
+            ++srcptr;
+
+            ++destptr;
+
+            --npixels;
+        }
+        break;
+    }
+    case BITMAP_RAW64KC:
+
+    {
+        break;
+    }
+
+    case BITMAP_RAWARGB:
+
+    {
+
+        HALFWORDPTR destptr;
+        WORDPTR srcptr;
+
+        BINT destmask = 0;
+        WORD pixel;
+
+        srcptr = (WORDPTR) (bitmap + 3);
+        destptr = (HALFWORDPTR) (newbmp + 3);
+
+        while(npixels) {
+
+            // READ A PIXEL FROM SOURCE
+            pixel=*srcptr;
+
+            // CONVERT TO PROPER FORMAT
+            pixel = RGB_TO_RGB16((pixel>>16)&0xff,(pixel>>8)&0xff,(pixel)&0xff);
+
+            *destptr = (HALFWORD) pixel;
+
+            //INCREASE SOURCE POINTER
+            srcptr++;
+
+            // INCREASE DEST PTR
+            ++destptr;
+
+            --npixels;
+        }
+        break;
+    }
+
+    }
+#endif
+
     // ALL PIXELS CONVERTED
 
     return newbmp;

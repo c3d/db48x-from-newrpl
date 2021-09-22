@@ -2181,7 +2181,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
         if(ISPROLOG(*ObjectPTR)) {
-            if(OBJSIZE(*ObjectPTR) < 2) {
+            if(OBJSIZE(*ObjectPTR) < 1) {
                 RetNum = ERR_INVALID;
                 return;
             }

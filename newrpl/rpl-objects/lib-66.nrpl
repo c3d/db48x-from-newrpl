@@ -30,7 +30,7 @@
 
 @#name lib66_trig
 {
-SIN COS TAN { "" :: ; } { { "Angles" 1 } ::  #03000000h TMENULST ; }
+SIN COS TAN { "" } { { "Angles" 1 } ::  #03000000h TMENULST ; }
 ASIN ACOS ATAN ATAN2
 }
 

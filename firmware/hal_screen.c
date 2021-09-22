@@ -1979,6 +1979,7 @@ void status_popup_handler()
     else {
         DRAWSURFACE scr;
         cgl_initscr(&scr);
+        halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
     }

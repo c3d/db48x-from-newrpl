@@ -6942,9 +6942,9 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
                 KEYHANDLER_NAME(backslash)},
 
 
-    {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
+    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
                 KEYHANDLER_NAME(rulesep)},
-    {KM_PRESS | KB_0 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
+    {KM_PRESS | KB_SPC | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
                 KEYHANDLER_NAME(rulesep)},
 
 

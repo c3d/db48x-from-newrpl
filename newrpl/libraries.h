@@ -317,6 +317,7 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 #define ISSECO(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==SECO))
 #define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
+#define ISNUMBERORANGLE(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISANGLE(prolog)||ISREALCONSTANT(prolog))
 #define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog)||ISCONSTANT(prolog))
 #define ISSTRING(prolog) (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
 
