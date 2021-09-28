@@ -6,7 +6,7 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QCloseEvent>
-
+#include <QDateTime>
 #include "hidapi.h"
 #include "usbselector.h"
 #include "ui_usbselector.h"
@@ -44,6 +44,7 @@ QDialog(parent), update_thread(this), ui(new Ui::USBSelector)
     SelectedDevicePath.clear();
     SelectedDeviceName.clear();
     ui->updateFirmware->hide();
+    ui->syncTime->hide();
     ui->updateProgress->hide();
     ui->USBtreeWidget->clear();
     ui->USBtreeWidget->hideColumn(1);
@@ -109,6 +110,7 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
         SelectedDeviceName.clear();
         ui->selectedCalc->setText(QString("No device selected."));
         ui->updateFirmware->hide();
+        ui->syncTime->hide();
 
     }
     else {
@@ -121,6 +123,7 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
                 newitem->text(2).right(4) + QString("]");
         ui->selectedCalc->setText(SelectedDeviceName);
         ui->updateFirmware->show();
+        ui->syncTime->show();
 
     }
 
@@ -278,6 +281,7 @@ void USBSelector::RefreshList()
                                     setText(QString("No device selected."));
                             ui->USBtreeWidget->clearSelection();
                             ui->updateFirmware->hide();
+                            ui->syncTime->hide();
                         }
                         QTreeWidgetItem *pparent = item->parent();
                         if(pparent)
@@ -513,6 +517,146 @@ void USBSelector::refresh()
     QTimer::singleShot(500, this, SLOT(refresh()));
 
 }
+
+void USBSelector::on_syncTime_clicked()
+{
+    // STOP REFRESHING THE LIST
+    norefresh = true;
+
+    // PROGRAM TO SET THE CURRENT DATE
+    uint32_t setdate[22] = {
+        MKPROLOG(SECO, 21),      // ACTUAL DATA
+        0,0,0,                  // PLACEHOLDERS FOR YEAR MONTH DAY
+        MAKESINT(FL_DATEFORMAT),
+        CMD_IF,
+        CMD_FCTEST,
+        CMD_THEN,
+        CMD_SWAP,               // IF FLAG CLEAR MEANS MM.DDYYYY
+        CMD_ENDIF,
+        CMD_SWAP,
+        MAKESINT(100),
+        CMD_OVR_DIV,
+        CMD_OVR_ADD,
+        CMD_SWAP,
+        MAKESINT(10000),
+        CMD_OVR_DIV,
+        MAKESINT(100),
+        CMD_OVR_DIV,
+        CMD_OVR_ADD,
+        CMD_SETDATE,
+        CMD_QSEMI
+    };
+
+    // PROGRAM TO SET THE CURRENT DATE
+    uint32_t settime[12] = {
+        MKPROLOG(SECO, 11),      // ACTUAL DATA
+        0,0,0,                  // PLACEHOLDERS FOR HOUR, MINUTES, SECONDS
+        MAKESINT(100),
+        CMD_OVR_DIV,
+        CMD_OVR_ADD,
+        MAKESINT(100),
+        CMD_OVR_DIV,
+        CMD_OVR_ADD,
+        CMD_SETTIME,
+        CMD_QSEMI
+    };
+
+    // Get system date
+
+    QDateTime t=QDateTime::currentDateTime();
+
+
+
+
+
+    // SET THE DATE INSIDE THE PROGRAM
+    setdate[1]=MAKESINT(t.date().year());
+    setdate[2]=MAKESINT(t.date().month());
+    setdate[3]=MAKESINT(t.date().day());
+
+    settime[1]=MAKESINT(t.time().hour());
+    settime[2]=MAKESINT(t.time().minute());
+    settime[3]=MAKESINT(t.time().second());
+
+    if(safe_stringcpy(__usb_devicepath, 8192,
+                SelectedDevicePath.toUtf8().constData()))
+        __usb_devicepath[0] = 0;
+
+    __usb_paused=0;
+    usb_init(0);
+
+
+    tmr_t start, end;
+    // WAIT FOR THE CONNECTION TO BE ESTABLISHED
+    start = tmr_ticks();
+    int res = 1;
+    while(1) {
+
+        if(usb_isconnected())
+            break;
+
+        QThread::yieldCurrentThread();
+
+        end = tmr_ticks();
+        if(tmr_ticks2ms(start, end) > __usb_timeout) {
+            res = 0;
+            break;
+        }
+    }
+
+    if(!res)
+        goto failed;
+
+
+    // SEND THE PROGRAM
+    int fileid;
+    res = fileid = usb_txfileopen('O');
+    if(!res)
+        goto failed;
+
+    res = usb_filewrite(fileid, (BYTEPTR) setdate,
+            22 * sizeof(uint32_t));
+
+    if(!res)
+        goto failed;
+
+    res = usb_txfileclose(fileid);
+
+    if(!res)
+        goto failed;
+
+
+    // SEND THE PROGRAM
+    res = fileid = usb_txfileopen('O');
+    if(!res)
+        goto failed;
+
+    res = usb_filewrite(fileid, (BYTEPTR) settime,
+            12 * sizeof(uint32_t));
+
+    if(!res)
+        goto failed;
+
+    res = usb_txfileclose(fileid);
+
+
+
+failed:
+    // PUT THE USB DRIVER TO REST
+    __usb_paused = 1;
+    while(__usb_paused >= 0);
+
+    usb_shutdown();
+
+    // START REFRESHING THE LIST AGAIN
+    norefresh = false;
+    QTimer::singleShot(500, this, SLOT(refresh()));
+
+
+
+}
+
+
 
 extern "C" int usbremotefwupdatestart();
 extern "C" int usbsendtoremote(uint32_t * data, int nwords);
@@ -864,3 +1008,5 @@ void FWThread::run()
         emit FirmwareUpdateError(error);
     }
 }
+
+

@@ -32,11 +32,11 @@
      <property name="allColumnsShowFocus">
       <bool>true</bool>
      </property>
-     <attribute name="headerDefaultSectionSize">
-      <number>150</number>
-     </attribute>
      <attribute name="headerMinimumSectionSize">
       <number>64</number>
+     </attribute>
+     <attribute name="headerDefaultSectionSize">
+      <number>150</number>
      </attribute>
      <column>
       <property name="text">
@@ -75,6 +75,13 @@
        <widget class="QLabel" name="selectedCalc">
         <property name="text">
          <string>No device selected</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="syncTime">
+        <property name="text">
+         <string>Sync Time and Date</string>
         </property>
        </widget>
       </item>

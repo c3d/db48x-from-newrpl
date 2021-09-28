@@ -75,6 +75,11 @@ const WORDPTR const ROMPTR_TABLE[] = {
     0
 };
 
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -962,19 +967,7 @@ void LIB_HANDLER()
                 break;
             }
 
-            // ************************* DEBUG ONLY ***************************
-            /*
-               char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-               rplReadNumberAsReal(rplPeekData(3),&x1);
-               rplReadNumberAsReal(rplPeekData(2),&x2);
-               rplReadNumberAsReal(rplPeekData(1),&fx);
-               *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-               printf("INI: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-             */
-            // ************************* DEBUG ONLY ***************************
 
             // NOW CREATE THE POINT VECTOR
             WORDPTR newpoint = rplCreateListN(nvars + 1, 1, 1);
@@ -988,6 +981,32 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE N+1 POINTS AS LISTS { X1 ... XN F(X) }
+#ifdef DEBUG_MEAD_NELDER
+        // ************************* DEBUG ONLY ***************************
+        {
+        REAL num;
+        printf("Initial point set:\n");
+        char Buffer0[5000],*chrptr=Buffer0;
+        int lf,lk;
+        for(lf=nvars+1;lf>=1;--lf) {
+        chrptr=Buffer0;
+        sprintf(chrptr,"%02d: [ ",lf);
+        chrptr+=6;
+        for(lk=1;lk<=nvars+1;++lk) {
+        rplReadNumberAsReal(rplGetListElement(rplPeekData(lf),lk),&num);
+        chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+        *chrptr++=' ';
+        }
+
+        sprintf(chrptr," ]\n");
+        chrptr+=3;
+        *chrptr=0;
+        printf("%s",Buffer0);
+        fflush(stdout);
+        }
+        }
+        // ************************* DEBUG ONLY ***************************
+#endif
 
         // 1.2 - SORT THE POINTS FROM LOW TO HIGH F(X), HIGHEST F(X) AT STACK LEVEL 1
 
@@ -1006,406 +1025,47 @@ void LIB_HANDLER()
             }
         }
 
-#define USE_ORIGINAL_SIMPLEX_METHOD 0
 
-#if USE_ORIGINAL_SIMPLEX_METHOD
-        // MAIN LOOP:
-        BINT loopcount = 1;
-        do {
-
-            //printf("Pass=%d\n",loopcount);
-            //loopcount++;
-
-            // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
-            BINT weight = 1;
-            rplPushDataNoGrow(rplPeekData(2));
-            // STARTING WEIGHT IS 1
-            for(j = 4; j <= nvars + 2; ++j) {
-                rplPushData(rplPeekData(j));
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-
-                weight += j - 2;
-                //++weight;
-                rplNewBINTPush(j - 2, DECBINT);
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-                rplRunAtomic(CMD_OVR_MUL);
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-                rplRunAtomic(CMD_OVR_ADD);
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-            }
-            rplNewBINTPush(weight, DECBINT);
-            rplRunAtomic(CMD_OVR_DIV);
-            if(Exceptions) {
-                DSTop = stksave;
-                return;
-            }
-
-            // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-C) < TOLERANCE
-
-            rplReadNumberAsReal(*toler, &tolerance);
-            tolerance.flags &= ~F_NEGATIVE;
-
-            // PRIME CRITERIA: THERE'S NO PROGRESS BETWEEN WORST AND BEST POINTS
-            rplReadNumberAsReal(rplGetListElement(pointarray[0], nvars + 1),
-                    &x1);
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars], nvars + 1),
-                    &x2);
-
-            subReal(&RReg[0], &x1, &x2);
-            RReg[0].flags &= ~F_NEGATIVE;
-            RReg[0].exp += 3;   // COMPARE WITH TOLERANCE/1000
-
-            // BREAK IF THERE'S NO PROGRESS BUT NOT IF WE ARE CLOSE TO ZERO (GUARANTEED GLOBAL MINIMUM)
-            if(lteReal(&RReg[0], &tolerance)
-                    && (intdigitsReal(&x1) > intdigitsReal(&tolerance)))
-                break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
-
-            if(nvars >= 2) {
-                // GENERAL CASE, CHECK THE DISTANCE BETWEEN THE CENTROID AND THE BEST POINT
-                for(j = 1; j <= nvars; ++j) {
-                    rplReadNumberAsReal(rplGetListElement(rplPeekData(nvars +
-                                    2), j), &x1);
-                    rplReadNumberAsReal(rplGetListElement(rplPeekData(1), j),
-                            &x2);
-                    subReal(&RReg[0], &x1, &x2);
-                    RReg[0].flags &= ~F_NEGATIVE;
-
-                    if(gtReal(&RReg[0], &tolerance))
-                        break;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
-                }
-                if(j > nvars)
-                    break;      // ALL COMPONENTS WITHIN TOLERANCE, BREAK OUT OF THE MAIN LOOP
-            }
-            else {
-                // SPECIAL CASE FOR SINGLE-VARIABLE PROBLEMS
-                // CHECK THE DISTANCE BETWEEN THE BEST AND WORST POINTS
-                rplReadNumberAsReal(rplGetListElement(rplPeekData(2), 1), &x1);
-                rplReadNumberAsReal(rplGetListElement(rplPeekData(1), 1), &x2);
-                subReal(&RReg[0], &x1, &x2);
-                RReg[0].flags &= ~F_NEGATIVE;
-
-                if(lteReal(&RReg[0], &tolerance))
-                    break;      // WITHIN TOLERANCE, EXIT MAIN LOOP
-
-            }
-
-            // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = C+(C-W)
-
-            for(j = 1; j <= nvars; ++j) {
-                rplReadNumberAsReal(rplGetListElement(pointarray[nvars + 1], j), &x1);  // C(j)
-                rplReadNumberAsReal(rplGetListElement(pointarray[nvars], j), &x2);      // W(j)
-
-                addReal(&RReg[0], &x1, &x1);
-                subReal(&RReg[1], &RReg[0], &x2);       // P(j)=2*C(j)-W(j)
-                rplNewRealFromRRegPush(1);
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-            }
-
-            // 1.6 - CALCULATE SCALAR VALUE AT P:
-
-            rplEvalMultiUserFunc(listofeq, listofvars, nvars, 1);       // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
-            if(Exceptions) {
-                DSTop = stksave;
-                return;
-            }
-
-            //                                    IF F(P) IS BETWEEN F(X0) AND F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
-
-            rplReadNumberAsReal(rplGetListElement(pointarray[0], nvars + 1), &x1);      // F(X0)
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars - 1], nvars + 1), &x2);      // F(Xn)
-            rplReadNumberAsReal(rplPeekData(1), &fx);   // F(P)
-
-            if(gteReal(&fx, &x1) && ltReal(&fx, &x2)) {
-                // REPLACE POINT AND CONTINUE
-                /*
-                   // ************************* DEBUG ONLY ***************************
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                   // ************************* DEBUG ONLY ***************************
-                 */
-
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
-                if(!newpt) {
-                    DSTop = stksave;
-                    return;
-                }
-                // UPDATE SINCE IT COULD'VE MOVED
-                rplReadNumberAsReal(rplGetListElement(newpt, nvars + 1), &fx);  // F(P)
-
-                // INSERT IN THE PROPER PLACE IN THE LIST
-                for(j = nvars - 1; j >= 0; --j) {
-                    rplReadNumberAsReal(rplGetListElement(pointarray[j], nvars + 1), &x1);      // F(Xj)
-                    if(gtReal(&fx, &x1)) {
-                        pointarray[j + 1] = newpt;
-                        break;
-                    }
-                    else
-                        pointarray[j + 1] = pointarray[j];
-                }
-                if(j < 0)
-                    pointarray[0] = newpt;
-
-                rplDropData(1); // DROP CENTROID
-                continue;
-
-            }
-
-            //                                    IF F(P)<F(X0) --> GET ANOTHER P' AT TWICE THE DISTANCE FROM C IN THE SAME DIRECTION: P'=P+(P-C), IF F(P')<F(P) USE P', OTHERWISE USE P, REPLACE AND LOOP
-
-            if(ltReal(&fx, &x1)) {
-
-                // P'=2P-C
-                for(j = 1; j <= nvars; ++j) {
-                    rplReadNumberAsReal(rplGetListElement(pointarray[nvars + 1], j), &x2);      // C(j)
-                    rplReadNumberAsReal(rplPeekData(nvars + 1), &x1);   // P(j)
-
-                    addReal(&RReg[0], &x1, &x1);
-                    subReal(&RReg[1], &RReg[0], &x2);   // P'(j)=2*P(j)-C(j)
-                    rplNewRealFromRRegPush(1);
-                    if(Exceptions) {
-                        DSTop = stksave;
-                        return;
-                    }
-                }
-
-                // F(P')
-                rplEvalMultiUserFunc(listofeq, listofvars, nvars, 1);   // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-
-                rplReadNumberAsReal(rplPeekData(1), &fx);       // F(P')
-                rplReadNumberAsReal(rplPeekData(nvars + 2), &x1);       // F(P)
-
-                if(ltReal(&fx, &x1))
-                    rplRemoveAtData(nvars + 2, nvars + 1);      // KEEP P'
-                else
-                    rplDropData(nvars + 1);     // OR KEEP P
-
-                // NOW REPLACE WORST POINT WITH P
-
-                /*
-                   // ************************* DEBUG ONLY ***************************
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                   // ************************* DEBUG ONLY ***************************
-                 */
-                // REPLACE POINT AND CONTINUE
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
-                if(!newpt) {
-                    DSTop = stksave;
-                    return;
-                }
-                // UPDATE SINCE IT COULD'VE MOVED
-                rplReadNumberAsReal(rplGetListElement(newpt, nvars + 1), &fx);  // F(P)
-
-                // INSERT IN THE PROPER PLACE IN THE LIST
-                for(j = nvars - 1; j >= 0; --j) {
-                    rplReadNumberAsReal(rplGetListElement(pointarray[j], nvars + 1), &x1);      // F(Xj)
-                    if(gtReal(&fx, &x1)) {
-                        pointarray[j + 1] = newpt;
-                        break;
-                    }
-                    else
-                        pointarray[j + 1] = pointarray[j];
-                }
-                if(j < 0)
-                    pointarray[0] = newpt;
-
-                rplDropData(1); // DROP CENTROID
-
-                continue;
-
-            }
-
-            //                                    IF F(P)>=F(XN) (NOT N+1)! --> GET ANOTHER P''= C + (W-C)/2 BETWEEN THE CENTROID AND WORST POINT, IF F(P'')<F(XN+1) USE P'', REPLACE AND LOOP
-            //                                                                 ELSE OF F(P'') IS NO BETTER THAN THE WORST POINT, SHRINK ALL POINTS TOWARDS THE BEST
-            //                                                                 Xi=X0+(Xi-X0)/2
-
-            // IF WE ARE HERE, IT IS GUARANTEED THAT F(P)>=F(XN)
-
-            // P''=(C+W)/2
-            for(j = 1; j <= nvars; ++j) {
-                rplReadNumberAsReal(rplGetListElement(pointarray[nvars + 1], j), &x2);  // C(j)
-                rplReadNumberAsReal(rplGetListElement(pointarray[nvars], j), &x1);      // W(j)
-
-                addReal(&RReg[0], &x1, &x2);
-                newRealFromBINT(&RReg[2], 5, -1);
-                mulReal(&RReg[1], &RReg[0], &RReg[2]);  //  (C(j)+W(j))/2
-                rplNewRealFromRRegPush(1);
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-            }
-
-            // F(P'')
-            rplEvalMultiUserFunc(listofeq, listofvars, nvars, 1);       // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
-            if(Exceptions) {
-                DSTop = stksave;
-                return;
-            }
-
-            rplReadNumberAsReal(rplPeekData(1), &fx);   // F(P'')
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars], nvars + 1), &x1);  // F(W)
-
-            if(ltReal(&fx, &x1)) {
-
-                rplRemoveAtData(nvars + 2, nvars + 1);  // KEEP P''
-
-                /*
-                   // ************************* DEBUG ONLY ***************************
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                   // ************************* DEBUG ONLY ***************************
-                 */
-
-                // REPLACE POINT AND CONTINUE
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
-                if(!newpt) {
-                    DSTop = stksave;
-                    return;
-                }
-                // UPDATE SINCE IT COULD'VE MOVED
-                rplReadNumberAsReal(rplGetListElement(newpt, nvars + 1), &fx);  // F(P)
-
-                // INSERT IN THE PROPER PLACE IN THE LIST
-                for(j = nvars - 1; j >= 0; --j) {
-                    rplReadNumberAsReal(rplGetListElement(pointarray[j], nvars + 1), &x1);      // F(Xj)
-                    if(gtReal(&fx, &x1)) {
-                        pointarray[j + 1] = newpt;
-                        break;
-                    }
-                    else
-                        pointarray[j + 1] = pointarray[j];
-                }
-                if(j < 0)
-                    pointarray[0] = newpt;
-
-                rplDropData(1);
-                continue;
-
-            }
-
-            // P'' IS WORSE, WE ARE GOING NOWHERE. SHRINK ENTIRE GROUP OF POINTS TOWARDS THE BEST VALUE
-
-            rplDropData((nvars + 1) * 2 + 1);   // DROP P(i), F(P), P'', F(P'') AND THE C POINT LIST
-
-            for(j = 1; j <= nvars; ++j) {
-                newRealFromBINT(&RReg[4], 5, -1);       // 1/2
-
-                for(i = 1; i <= nvars; ++i) {
-                    rplReadNumberAsReal(rplGetListElement(pointarray[0], i), &x1);      // X0(i)
-                    rplReadNumberAsReal(rplGetListElement(pointarray[j], i), &x2);      // Xj(i)
-
-                    addReal(&RReg[0], &x1, &x2);
-                    mulReal(&RReg[1], &RReg[0], &RReg[4]);      // (X0(i)+Xj(i))/2
-
-                    rplNewRealFromRRegPush(1);
-                    if(Exceptions) {
-                        DSTop = stksave;
-                        return;
-                    }
-                }
-
-                rplEvalMultiUserFunc(listofeq, listofvars, nvars, 1);   // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
-                if(Exceptions) {
-                    DSTop = stksave;
-                    return;
-                }
-
-                /*
-                   // ************************* DEBUG ONLY ***************************
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                   // ************************* DEBUG ONLY ***************************
-                 */
-                // REPLACE POINT
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
-                if(!newpt) {
-                    DSTop = stksave;
-                    return;
-                }
-
-                pointarray[j] = newpt;  // REPLACE THE POINTS WITH THE NEW POINT
-
-            }
-
-            // SORT THE POINTS AGAIN
-            // 1.2 - SORT THE POINTS FROM LOW TO HIGH F(X), HIGHEST F(X) AT STACK LEVEL 1
-
-            for(i = 1; i <= nvars; ++i) {
-                for(j = nvars; j >= i; --j) {
-                    rplReadNumberAsReal(rplGetListElement(rplPeekData(j),
-                                nvars + 1), &x1);
-                    rplReadNumberAsReal(rplGetListElement(rplPeekData(j + 1),
-                                nvars + 1), &x2);
-                    if(ltReal(&x1, &x2)) {
-                        // SWAP
-                        WORDPTR tmp = rplPeekData(j + 1);
-                        rplOverwriteData(j + 1, rplPeekData(j));
-                        rplOverwriteData(j, tmp);
-                    }
-                }
-            }
-
+#ifdef DEBUG_MEAD_NELDER
+        // ************************* DEBUG ONLY ***************************
+        {
+        REAL num;
+        printf("Sorted point set:\n");
+        char Buffer0[5000],*chrptr=Buffer0;
+        int lf,lk;
+        for(lf=nvars+1;lf>=1;--lf) {
+        chrptr=Buffer0;
+        sprintf(chrptr,"%02d: [ ",lf);
+        chrptr+=6;
+        for(lk=1;lk<=nvars+1;++lk) {
+        rplReadNumberAsReal(rplGetListElement(rplPeekData(lf),lk),&num);
+        chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+        *chrptr++=' ';
         }
-        while(1);
 
-#else
+        sprintf(chrptr," ]\n");
+        chrptr+=3;
+        *chrptr=0;
+        printf("%s",Buffer0);
+        fflush(stdout);
+        }
+        }
+        // ************************* DEBUG ONLY ***************************
+#endif
 
         // PHAM IMPROVEMENT TO NELDER-MEAD METHOD - QUASI GRADIENTS
 
         // MAIN LOOP:
-        BINT noprogress = 0;    //loopcount=1;
+        BINT noprogress = 0;
+#ifdef DEBUG_MEAD_NELDER
+        int loopcount=1;
+#endif
         do {
 
-            //printf("Pass=%d\n",loopcount);
-            //loopcount++;
+#ifdef DEBUG_MEAD_NELDER
+            printf("Pass=%d\n",loopcount);
+            loopcount++;
+#endif
 
             // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
             BINT weight = 1;
@@ -1442,7 +1102,6 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
-
             // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-C) < TOLERANCE
 
             rplReadNumberAsReal(*toler, &tolerance);
@@ -1462,7 +1121,13 @@ void LIB_HANDLER()
             if(lteReal(&RReg[0], &tolerance)
                     && (intdigitsReal(&x1) > intdigitsReal(&tolerance))) {
                 if(noprogress > 3)
+                {
+#ifdef DEBUG_MEAD_NELDER
+                    printf("No progress between worst and best points. Exiting the loop.\n");
+                    fflush(stdout);
+#endif
                     break;      // WITHIN TOLERANCE, EXIT MAIN LOOP
+                }
                 ++noprogress;
             }
             else
@@ -1470,6 +1135,11 @@ void LIB_HANDLER()
 
             if(nvars >= 2) {
                 // GENERAL CASE, CHECK THE DISTANCE BETWEEN THE CENTROID AND THE BEST POINT
+
+                // SAVE IN RReg[9] THE AVERAGE DISTANCE FROM X0 AND CENTROID
+                rplZeroToRReg(9);
+                int outoftolerance=0;
+
                 for(j = 1; j <= nvars; ++j) {
                     rplReadNumberAsReal(rplGetListElement(rplPeekData(nvars +
                                     2), j), &x1);
@@ -1478,11 +1148,30 @@ void LIB_HANDLER()
                     subReal(&RReg[0], &x1, &x2);
                     RReg[0].flags &= ~F_NEGATIVE;
 
+                    addReal(&RReg[9],&RReg[9],&RReg[0]);        // ACCUMULATE IN RReg[9]
+
+                    // NOW COMPUTE DIFFERENCE WITH WORST POINT
+                    rplReadNumberAsReal(rplGetListElement(rplPeekData(2), j), &x1);
+
+                    subReal(&RReg[0], &x1, &x2);
+                    RReg[0].flags &= ~F_NEGATIVE;
+
                     if(gtReal(&RReg[0], &tolerance))
-                        break;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
+                        outoftolerance=1;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
                 }
-                if(j > nvars)
+
+                rplBINTToRReg(1,nvars);
+                swapReal(&RReg[0],&RReg[9]);
+                divReal(&RReg[9],&RReg[0],&RReg[1]);    // RReg[9]= AVERAGE COMPONENT DISTANCE FROM X0 TO C, TO BE USED DURING GRADIENT STEP
+
+                if(!outoftolerance)
+                {
+#ifdef DEBUG_MEAD_NELDER
+                    printf("Worst point and centroid close to tolerance. Exitting...\n");
+                    fflush(stdout);
+#endif
                     break;      // ALL COMPONENTS WITHIN TOLERANCE, BREAK OUT OF THE MAIN LOOP
+                }
             }
             else {
                 // SPECIAL CASE FOR SINGLE-VARIABLE PROBLEMS
@@ -1492,10 +1181,34 @@ void LIB_HANDLER()
                 subReal(&RReg[0], &x1, &x2);
                 RReg[0].flags &= ~F_NEGATIVE;
 
+                copyReal(&RReg[9],&RReg[0]);    // RReg[9]= AVERAGE COMPONENT DISTANCE FROM X0 TO C, TO BE USED DURING GRADIENT STEP
+
                 if(lteReal(&RReg[0], &tolerance))
+                {
+#ifdef DEBUG_MEAD_NELDER
+                    printf("Best point and centroid close to tolerance. Exitting...\n");
+                    fflush(stdout);
+#endif
                     break;      // WITHIN TOLERANCE, EXIT MAIN LOOP
+                }
 
             }
+
+#ifdef DEBUG_MEAD_NELDER
+            // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("Average distance from centroid to X0: ");
+            char Buffer0[5000],*chrptr=Buffer0;
+            chrptr=formatReal(&RReg[9],chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr=0;
+            printf("%s\n",Buffer0);
+            fflush(stdout);
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
+
 
             // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = C+(C-W)
 
@@ -1512,6 +1225,8 @@ void LIB_HANDLER()
                 }
             }
 
+
+
             // 1.6 - CALCULATE SCALAR VALUE AT P:
 
             rplEvalMultiUserFunc(listofeq, listofvars, nvars, 1);       // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
@@ -1519,6 +1234,34 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
+
+#ifdef DEBUG_MEAD_NELDER
+            // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("Point P=C-(C-W):\n");
+            char Buffer0[5000],*chrptr=Buffer0;
+            int lf,lk;
+            for(lf=1;lf>=1;--lf) {
+            chrptr=Buffer0;
+            sprintf(chrptr,"P : [ ");
+            chrptr+=6;
+            for(lk=1;lk<=nvars+1;++lk) {
+            rplReadNumberAsReal(rplPeekData(nvars+2-lk),&num);
+            chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr++=' ';
+            }
+
+            sprintf(chrptr," ]\n");
+            chrptr+=3;
+            *chrptr=0;
+            printf("%s",Buffer0);
+            fflush(stdout);
+            }
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
 
             rplReadNumberAsReal(rplGetListElement(pointarray[0], nvars + 1), &x1);      // F(X0)
             rplReadNumberAsReal(rplGetListElement(pointarray[nvars - 1], nvars + 1), &x2);      // F(Xn)
@@ -1559,21 +1302,6 @@ void LIB_HANDLER()
 
                 // NOW REPLACE WORST POINT WITH P
 
-                // ************************* DEBUG ONLY ***************************
-                /*
-                   {
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                   }
-                 */
-                // ************************* DEBUG ONLY ***************************
 
                 // REPLACE POINT AND CONTINUE
                 WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
@@ -1603,19 +1331,6 @@ void LIB_HANDLER()
 
             }
 
-            // ************************* DEBUG ONLY ***************************
-            /*
-               char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-               rplReadNumberAsReal(rplPeekData(3),&x1);
-               rplReadNumberAsReal(rplPeekData(2),&x2);
-               rplReadNumberAsReal(rplPeekData(1),&fx);
-               *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-               printf("P??: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-             */
-            // ************************* DEBUG ONLY ***************************
 
             // REFLECTION DIDN'T IMPROVE ON OUR BEST POINT, FIND A POINT THROUGH GRADIENTS TO SEE IF WE CAN DO BETTER
 
@@ -1635,6 +1350,36 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
+
+
+#ifdef DEBUG_MEAD_NELDER
+            // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("Diagonal point:\n");
+            char Buffer0[5000],*chrptr=Buffer0;
+            int lf,lk;
+            for(lf=1;lf>=1;--lf) {
+            chrptr=Buffer0;
+            sprintf(chrptr,"D : [ ");
+            chrptr+=6;
+            for(lk=1;lk<=nvars+1;++lk) {
+            rplReadNumberAsReal(rplPeekData(nvars+2-lk),&num);
+            chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr++=' ';
+            }
+
+            sprintf(chrptr," ]\n");
+            chrptr+=3;
+            *chrptr=0;
+            printf("%s",Buffer0);
+            fflush(stdout);
+            }
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
+
 
             rplReadNumberAsReal(rplPeekData(1), &fx);   // READ F(e)
             // COMPUTE THE QUASI-GRADIENTS
@@ -1666,14 +1411,23 @@ void LIB_HANDLER()
 
                 if(gtReal(&RReg[0], &RReg[8])) {
                     swapReal(&RReg[0], &RReg[8]);       // SAVE THE MAXIMUM ABS. VALUE
-                    swapReal(&RReg[1], &RReg[7]);       // AND SAVE THE DELTA THAT PRODUCED IT
+                    //swapReal(&RReg[1], &RReg[7]);       // AND SAVE THE DELTA THAT PRODUCED IT
                 }
             }
 
             if(!iszeroReal(&RReg[8])) {
-                RReg[7].flags &= ~F_NEGATIVE;
+                //RReg[7].flags &= ~F_NEGATIVE;
                 // NORMALIZE THE GRADIENT VECTOR TO THE COORDINATE WITH MAXIMUM ABSOLUTE VALUE
-                divReal(&RReg[2], &RReg[7], &RReg[8]);
+                //divReal(&RReg[2], &RReg[7], &RReg[8]);
+                // AND APPLY A UNIT LENGTH = AVERAGE DISTANCE FROM X0 TO THE CENTROID
+
+                // TEST ONLY:
+                swapReal(&RReg[9],&RReg[0]);
+                addReal(&RReg[9],&RReg[0],&RReg[0]);    // TWICE AVERAGE DISTANCE
+
+
+                divReal(&RReg[2], &RReg[9], &RReg[8]);
+
                 for(j = 1; j <= nvars; ++j) {
                     rplReadNumberAsReal(rplPeekData(nvars + 2 - j), &x1);
                     if(iszeroReal(&x1)) {
@@ -1693,6 +1447,34 @@ void LIB_HANDLER()
             }
 
             // HERE WE HAVE P, F(P), G
+
+#ifdef DEBUG_MEAD_NELDER
+            // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("Gradient vector G:\n");
+            char Buffer0[5000],*chrptr=Buffer0;
+            int lf,lk;
+            for(lf=1;lf>=1;--lf) {
+            chrptr=Buffer0;
+            sprintf(chrptr,"G : [ ");
+            chrptr+=6;
+            for(lk=1;lk<=nvars+1;++lk) {
+            rplReadNumberAsReal(rplPeekData(nvars+2-lk),&num);
+            chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr++=' ';
+            }
+
+            sprintf(chrptr," ]\n");
+            chrptr+=3;
+            *chrptr=0;
+            printf("%s",Buffer0);
+            fflush(stdout);
+            }
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
 
             // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = X0 - G
 
@@ -1720,55 +1502,64 @@ void LIB_HANDLER()
                 return;
             }
 
-            // ************************* DEBUG ONLY ***************************
-            /*
-               {
-               char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-               rplReadNumberAsReal(rplPeekData(3),&x1);
-               rplReadNumberAsReal(rplPeekData(2),&x2);
-               rplReadNumberAsReal(rplPeekData(1),&fx);
-               *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-               *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-               printf("GR?: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-               }
-             */
+
+ #ifdef DEBUG_MEAD_NELDER
             // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("New point G'=X0-G:\n");
+            char Buffer0[5000],*chrptr=Buffer0;
+            int lf,lk;
+            for(lf=1;lf>=1;--lf) {
+            chrptr=Buffer0;
+            sprintf(chrptr,"G': [ ");
+            chrptr+=6;
+            for(lk=1;lk<=nvars+1;++lk) {
+            rplReadNumberAsReal(rplPeekData(nvars+2-lk),&num);
+            chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr++=' ';
+            }
+
+            sprintf(chrptr," ]\n");
+            chrptr+=3;
+            *chrptr=0;
+            printf("%s",Buffer0);
+            fflush(stdout);
+            }
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
+
+
 
             rplReadNumberAsReal(rplPeekData(1), &x1);   // F(G')
             rplReadNumberAsReal(rplPeekData(nvars + 2), &fx);   // F(P)
             rplReadNumberAsReal(rplGetListElement(pointarray[nvars - 1], nvars + 1), &x2);      // F(Xn)
 
-            if(ltReal(&x1, &x2)) {
+            if(ltReal(&x1, &fx)) {
                 // F(G')<F(P) --> WE FOUND A BETTER POINT, KEEP IT
                 rplRemoveAtData(nvars + 2, nvars + 1);
                 swapReal(&x1, &fx);
-                //printf("Chose Gradient\n");
+#ifdef DEBUG_MEAD_NELDER
+                printf("Chose Gradient point G'\n");
+#endif
             }
             else
+            {
                 rplDropData(nvars + 1); // OTHERWISE KEEP THE ORIGINAL POINT P
+#ifdef DEBUG_MEAD_NELDER
+                printf("Gradient didn't improve on P, keeping P.\n");
+#endif
+            }
 
             //  IF F(P)< F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
 
             if(ltReal(&fx, &x2)) {
                 // REPLACE POINT AND CONTINUE
 
-                // ************************* DEBUG ONLY ***************************
-                /*
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                 */
-                // ************************* DEBUG ONLY ***************************
-
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
+                 WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
                     DSTop = stksave;
                     return;
@@ -1790,6 +1581,33 @@ void LIB_HANDLER()
                     pointarray[0] = newpt;
 
                 rplDropData(1); // DROP CENTROID
+
+#ifdef DEBUG_MEAD_NELDER
+                // ************************* DEBUG ONLY ***************************
+                {
+                REAL num;
+                printf("UPDATED point set:\n");
+                char Buffer0[5000],*chrptr=Buffer0;
+                int lf,lk;
+                for(lf=nvars+1;lf>=1;--lf) {
+                chrptr=Buffer0;
+                sprintf(chrptr,"%02d: [ ",lf);
+                chrptr+=6;
+                for(lk=1;lk<=nvars+1;++lk) {
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(lf),lk),&num);
+                chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+                *chrptr++=' ';
+                }
+
+                sprintf(chrptr," ]\n");
+                chrptr+=3;
+                *chrptr=0;
+                printf("%s",Buffer0);
+                fflush(stdout);
+                }
+                }
+                // ************************* DEBUG ONLY ***************************
+#endif
                 continue;
 
             }
@@ -1829,19 +1647,6 @@ void LIB_HANDLER()
 
                 rplRemoveAtData(nvars + 2, nvars + 1);  // KEEP P''
 
-                // ************************* DEBUG ONLY ***************************
-                /*
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                 */
-                // ************************* DEBUG ONLY ***************************
 
                 // REPLACE POINT AND CONTINUE
                 WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
@@ -1866,6 +1671,36 @@ void LIB_HANDLER()
                     pointarray[0] = newpt;
 
                 rplDropData(1);
+
+#ifdef DEBUG_MEAD_NELDER
+                // ************************* DEBUG ONLY ***************************
+                {
+                REAL num;
+                printf("UPDATED point set:\n");
+                char Buffer0[5000],*chrptr=Buffer0;
+                int lf,lk;
+                for(lf=nvars+1;lf>=1;--lf) {
+                chrptr=Buffer0;
+                sprintf(chrptr,"%02d: [ ",lf);
+                chrptr+=6;
+                for(lk=1;lk<=nvars+1;++lk) {
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(lf),lk),&num);
+                chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+                *chrptr++=' ';
+                }
+
+                sprintf(chrptr," ]\n");
+                chrptr+=3;
+                *chrptr=0;
+                printf("%s",Buffer0);
+                fflush(stdout);
+                }
+                }
+                // ************************* DEBUG ONLY ***************************
+#endif
+
+
+
                 continue;
 
             }
@@ -1897,20 +1732,6 @@ void LIB_HANDLER()
                     return;
                 }
 
-                // ************************* DEBUG ONLY ***************************
-                /*
-                   char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-                   rplReadNumberAsReal(rplPeekData(3),&x1);
-                   rplReadNumberAsReal(rplPeekData(2),&x2);
-                   rplReadNumberAsReal(rplPeekData(1),&fx);
-                   *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-                   *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-                   printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-                 */
-                // ************************* DEBUG ONLY ***************************
-
                 // REPLACE POINT
                 WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
@@ -1940,13 +1761,41 @@ void LIB_HANDLER()
                 }
             }
 
+#ifdef DEBUG_MEAD_NELDER
+            // ************************* DEBUG ONLY ***************************
+            {
+            REAL num;
+            printf("P didn't improve - Shrink Simplex\nUPDATED point set:\n");
+            char Buffer0[5000],*chrptr=Buffer0;
+            int lf,lk;
+            for(lf=nvars+1;lf>=1;--lf) {
+            chrptr=Buffer0;
+            sprintf(chrptr,"%02d: [ ",lf);
+            chrptr+=6;
+            for(lk=1;lk<=nvars+1;++lk) {
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(lf),lk),&num);
+            chrptr=formatReal(&num,chrptr,FMT_DIGITS(6),MAKELOCALE('.',' ',' ',','));
+            *chrptr++=' ';
+            }
+
+            sprintf(chrptr," ]\n");
+            chrptr+=3;
+            *chrptr=0;
+            printf("%s",Buffer0);
+            fflush(stdout);
+            }
+            }
+            // ************************* DEBUG ONLY ***************************
+#endif
+
         }
         while(1);
 
-#endif
 
         // HERE WE HAVE A SOLUTION!!
-        //printf("Solution @ Pass=%d",loopcount);
+#ifdef DEBUG_MEAD_NELDER
+        printf("Solution @ Pass=%d",loopcount);
+#endif
         // IN THE STACK WE HAVE ORIGINAL 4 ARGUMENTS
         // THEN N+1 POINTS AND THEIR CENTROID
 

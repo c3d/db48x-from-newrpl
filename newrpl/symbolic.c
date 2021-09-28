@@ -16,7 +16,7 @@
 #define num_min(a,b) ((a)<(b)? (a):(b))
 
 // THIS IS FOR DEBUGGING ONLY - *MUST* BE REMOVED FOR RELEASE
-#define RULEDEBUG 1
+//#define RULEDEBUG 1
 
 /* COMPILING A SYMBOLIC:
  *

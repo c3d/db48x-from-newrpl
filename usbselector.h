@@ -59,7 +59,9 @@ class USBSelector:public QDialog
 
     virtual void reject();
 
-  private:
+    void on_syncTime_clicked();
+
+private:
         Ui::USBSelector * ui;
 
 };
