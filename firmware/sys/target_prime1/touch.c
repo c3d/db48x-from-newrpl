@@ -21,6 +21,12 @@
 // GPF2 is configured as EINT[2] with which the slave signals to the master that data is available (INT line of NT11002)
 // GPF0 probably VCC
 
+#define NT11002_EVENT_START 1
+#define NT11002_EVENT_CONTINUE 2
+#define NT11002_EVENT_END 3
+#define NT11002_EVENT_MASK 0x07
+#define NT11002_TRACK_ID_MASK 0xf8
+
 extern unsigned int __cpu_getPCLK();
 
 typedef struct {
@@ -38,7 +44,10 @@ typedef struct ts_t {
     uint8_t addr;
     void (*reset)(struct ts_t const *ts);
     void (*get_properties)(struct ts_t *ts);
-    void (*get_data)(struct ts_t const *ts);
+
+    // Returns 0 if no new valid data available
+    int (*get_data)(struct ts_t const *ts);
+
     int resolution_width;
     int resolution_height;
 } ts_t;
@@ -219,32 +228,41 @@ static void nt11002_get_properties(ts_t *ts)
     // max_fingers = buffer[9];
 }
 
-static void nt11002_get_data(ts_t const *ts)
+static int nt11002_get_data(ts_t const *ts)
 {
+    int result = 0;
     uint8_t buffer[TS_FINGERS * 6];
     i2c_read(0x00, ts->addr, (uint8_t *)&ts_fingers, sizeof(buffer));
     for (int f = 0; f < TS_FINGERS; ++f) {
         uint8_t *finger = buffer + f * 6;
-        uint8_t track_id = ((finger[0] >> 3) & 0x1f) - 1;
-        if (track_id == f) {
+        uint8_t track_id = ((finger[0] & NT11002_TRACK_ID_MASK) >> 3) - 1;
+        uint8_t event = finger[0] & NT11002_EVENT_MASK;
+        if (track_id != f) {
+            // No event for this finger
+            ts_fingers.finger[f].x = TS_FINGER_INVALID;
+            ts_fingers.finger[f].y = TS_FINGER_INVALID;
+        } else if (event == NT11002_EVENT_START) {
+            // Only register first finger contact in a row of events
             int x = ((int)finger[1] << 4) | (finger[3] >> 4);
             int y = ((int)finger[2] << 4) | (finger[3] & 0x0f);
             ts_fingers.finger[f].x = x * SCREEN_WIDTH / ts->resolution_width;
             ts_fingers.finger[f].y = y * SCREEN_HEIGHT / ts->resolution_height;
-        } else {
-            ts_fingers.finger[f].x = TS_FINGER_INVALID;
-            ts_fingers.finger[f].y = TS_FINGER_INVALID;
-        }
+            result = 1;
+        } // Ignore if it's not the first event for this finger
     }
+    return result;
 }
 
 // IRQ handler
 // Read all registers from the touchscreen
 static void ts_update()
 {
-    if (ts_status & TS_STAT_DATAREADY) ts_status |= TS_STAT_DATAMISSED;
-    touchscreen->get_data(touchscreen);
-    ts_status |= TS_STAT_DATAREADY;
+    if (touchscreen->get_data(touchscreen)) {
+        if (ts_status & TS_STAT_DATAREADY) {
+            ts_status |= TS_STAT_DATAMISSED;
+        }
+        ts_status |= TS_STAT_DATAREADY;
+    }
 }
 
 void ts_init()
