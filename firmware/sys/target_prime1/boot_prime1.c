@@ -17,9 +17,6 @@
 #define left 0
 #define right 160
 
-//static int line;
-//static gglsurface surface;
-
 // DEBUG ONLY - TURN ON LEDS
 
 __ARM_MODE__ void blue_led_on();
@@ -60,38 +57,6 @@ void red_led_off()
     *GPCDAT&=~(1<<7) ;
 }
 
-/*
-
-void tohex(uint32_t value, char *buffer) {
-    buffer[8] = 0;
-
-    for (int i = 7; i >= 0; --i) {
-        buffer[i] = "0123456789ABCDEF"[value % 16];
-        value = value / 16;
-    }
-}
-
-static void tobin(uint32_t value, char *buffer) {
-    buffer[32] = 0;
-
-    for (int i = 31; i >= 0; --i) {
-        buffer[i] = "01"[value % 2];
-        value = value / 2;
-    }
-}
-
-void printline(char *left_text, char *right_text) {
-    if (left_text) {
-        DrawText(left, line * lineheight, left_text, font, black, &surface);
-    }
-    if (right_text) {
-        DrawText(right, line * lineheight, right_text, font, black, &surface);
-    }
-    if (left_text || right_text) {
-        ++line;
-    }
-}
-*/
 __ARM_MODE__ void enable_interrupts()
 {
     asm volatile (
@@ -995,6 +960,8 @@ void startup(void)
     usb_init(1);
 
     //red_led_on();
+
+    uart_init();
 
     main_virtual(prevstate); // never returns
 }
