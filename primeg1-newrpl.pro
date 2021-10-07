@@ -40,6 +40,7 @@ SOURCES +=\
     firmware/sys/target_prime1/rtc.c \
     firmware/sys/target_prime1/touch.c \
     firmware/sys/target_prime1/usbdriver.c \
+    firmware/sys/target_prime1/uart.c \
     firmware/sys/usbcommon.c \
     firmware/sys/target_prime1/fwupdate.c \
     firmware/ggl/cgl/cgl_bitblt.c \

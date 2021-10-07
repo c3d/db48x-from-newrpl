@@ -922,4 +922,7 @@ void reset_gpio();
 // Magic word "NRPL"
 #define NEWRPL_MAGIC   0x4c50524e
 
+void uart_init(void);
+void debug_print_hex(char *key, uint32_t value);
+
 #endif // TARGET_PRIME1_H
