@@ -85,7 +85,7 @@ void memcpyw(void *dest, const void *source, int nwords)
 {
     int *destint = (int *)dest;
     int *sourceint = (int *)source;
-    while(nwords) {
+    while(nwords > 0) {
         *destint = *sourceint;
         ++destint;
         ++sourceint;
@@ -99,7 +99,7 @@ void memcpywd(void *dest, const void *source, int nwords)
 {
     int *destint = ((int *)dest) + nwords;
     int *sourceint = ((int *)source) + nwords;
-    while(nwords) {
+    while(nwords > 0) {
         *--destint = *--sourceint;
         --nwords;
     }
@@ -110,19 +110,22 @@ void memcpywd(void *dest, const void *source, int nwords)
 void memmovew(void *dest, const void *source, int nwords)
 {
     int offset = ((int *)dest) - ((int *)source);
-    int *ptr = (int *)source;
+
     if(offset > 0) {
-        ptr += nwords - 1;
+        int *destint = ((int *)dest) + nwords;
+        int *sourceint = ((int *)source) + nwords;
         while(nwords > 0) {
-            ptr[offset] = *ptr;
-            --ptr;
+            *--destint = *--sourceint;
             --nwords;
         }
     }
     else {
+        int *destint = (int *)dest;
+        int *sourceint = (int *)source;
         while(nwords > 0) {
-            ptr[offset] = *ptr;
-            ++ptr;
+            *destint = *sourceint;
+            ++destint;
+            ++sourceint;
             --nwords;
         }
     }

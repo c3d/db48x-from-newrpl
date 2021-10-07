@@ -4447,21 +4447,43 @@ void onSpcKeyHandler(BINT keymsg)
     default:
     case 0:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
         break;
     case 1:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_TRAILINGZEROS;
+        fmt.BigFmt |=  FMT_TRAILINGZEROS;
+        fmt.SmallFmt |= FMT_TRAILINGZEROS;
+
         break;
     case 2:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_SCI;
+        fmt.BigFmt |= FMT_SCI;
+        fmt.SmallFmt |= FMT_SCI;
         break;
     case 3:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_SCI | FMT_ENG;
+        fmt.BigFmt |= FMT_SCI | FMT_ENG;
+        fmt.SmallFmt |= FMT_SCI | FMT_ENG;
         if((PREFERRED_EXPRAW(fmt.MiddleFmt) == 0)
                 || (PREFERRED_EXPRAW(fmt.MiddleFmt) == 8))
+        {
             fmt.MiddleFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+            fmt.BigFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+            fmt.SmallFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        }
 
         break;
     }
@@ -4546,8 +4568,16 @@ void onMulDivKeyHandler(BINT keymsg)
 
     fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
     fmt.MiddleFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
+    fmt.BigFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
+    fmt.BigFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
+    fmt.SmallFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
+    fmt.SmallFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
     if((option == 0) || (option == 8))
+    {
         fmt.MiddleFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        fmt.BigFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        fmt.SmallFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+    }
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4563,7 +4593,7 @@ void onDigitKeyHandler(BINT keymsg)
 
     switch (KM_KEY(keymsg)) {
     case KB_0:
-        digits = 0;
+        digits = 0xfff;
         break;
     case KB_1:
         digits = 1;
@@ -4596,12 +4626,22 @@ void onDigitKeyHandler(BINT keymsg)
 
     fmt.MiddleFmt &= ~FMT_NUMDIGITS;
     fmt.MiddleFmt |= FMT_DIGITS(digits);
+
+
     fmt.BigFmt &= ~FMT_NUMDIGITS;
     fmt.BigFmt |= FMT_DIGITS(digits);
     fmt.SmallFmt &= ~FMT_NUMDIGITS;
     fmt.SmallFmt |= FMT_DIGITS(digits);
 
-    digits += '0';
+
+
+    fmt.SmallLimit.data=fmt.SmallLimitData;
+    newRealFromBINT(&fmt.SmallLimit,1,(digits==0xfff)? -12:-digits);
+
+
+
+    if(digits==0xfff) digits= TEXT2WORD('A','l','l',0);
+      else digits += '0';
 
     halStatusAreaPopup();
 

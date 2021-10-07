@@ -1117,7 +1117,7 @@ void LIB_HANDLER()
                 arg2 = rplPeekData(1);
             }
 
-            if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1) == (CMD_OVR_ADD)) {
+            if((ISSYMBOLIC(*arg1)||ISIDENT(*arg1)||ISCONSTANT(*arg1)) && rplSymbMainOperator(arg1) == (CMD_OVR_ADD)) {
                 // EXPLODE ALL ARGUMENTS ON THE STACK
                 ScratchPointer1 = rplSymbUnwrap(arg1);
                 ScratchPointer2 = rplSkipOb(ScratchPointer1);
@@ -1137,7 +1137,7 @@ void LIB_HANDLER()
                 argtype |= 1;
             }
             else {
-                if(ISSYMBOLIC(*arg1) || ISIDENT(*arg1))
+                if((ISSYMBOLIC(*arg1)||ISIDENT(*arg1)||ISCONSTANT(*arg1)) || ISIDENT(*arg1))
                     argtype |= 4;
                 rplPushData(arg1);
             }
@@ -1145,7 +1145,7 @@ void LIB_HANDLER()
             arg2 = rplPeekData(rplDepthData() - initdepth + 1);
 
             // EXPLODE THE SECOND ARGUMENT EXACTLY THE SAME
-            if(ISSYMBOLIC(*arg2) && rplSymbMainOperator(arg2) == (CMD_OVR_ADD)) {
+            if((ISSYMBOLIC(*arg2)||ISIDENT(*arg2)||ISCONSTANT(*arg2)) && rplSymbMainOperator(arg2) == (CMD_OVR_ADD)) {
                 // EXPLODE ALL ARGUMENTS ON THE STACK
                 ScratchPointer1 = rplSymbUnwrap(arg2);
                 ScratchPointer2 = rplSkipOb(ScratchPointer1);
@@ -1165,7 +1165,7 @@ void LIB_HANDLER()
                 argtype |= 2;
             }
             else {
-                if(ISSYMBOLIC(*arg2) || ISIDENT(*arg2))
+                if((ISSYMBOLIC(*arg2)||ISIDENT(*arg2)||ISCONSTANT(*arg2)) || ISIDENT(*arg2))
                     argtype |= 8;
                 rplPushData(arg2);
             }
@@ -2621,7 +2621,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISSYMBOLIC(*arg1) || ISSYMBOLIC(*arg2)) {
+        if((ISSYMBOLIC(*arg1)||ISIDENT(*arg1)||ISCONSTANT(*arg1)) || (ISSYMBOLIC(*arg2)||ISIDENT(*arg2)||ISCONSTANT(*arg2))) {
             // MAKE SURE WE KEEP THE EQUALITY WHEN EVAL'd
             rplSymbApplyOperator(CurOpcode, 2);
         }

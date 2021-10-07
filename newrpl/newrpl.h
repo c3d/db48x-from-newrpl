@@ -35,6 +35,8 @@ extern "C"
         BINT BigFmt;
         REAL SmallLimit;
         REAL BigLimit;
+        BINT SmallLimitData[4];
+        BINT BigLimitData[4];
     } NUMFORMAT;
 
     typedef union

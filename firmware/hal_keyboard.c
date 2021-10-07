@@ -4416,19 +4416,19 @@ void onSpcKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Mode:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS], 0xf, 0,
+            (char *)options[option], *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND),
             &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4436,21 +4436,43 @@ void onSpcKeyHandler(BINT keymsg)
     default:
     case 0:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
         break;
     case 1:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_TRAILINGZEROS;
+        fmt.BigFmt |=  FMT_TRAILINGZEROS;
+        fmt.SmallFmt |= FMT_TRAILINGZEROS;
+
         break;
     case 2:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_SCI;
+        fmt.BigFmt |= FMT_SCI;
+        fmt.SmallFmt |= FMT_SCI;
         break;
     case 3:
         fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.BigFmt &= FMT_SCI | FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+        fmt.SmallFmt &= FMT_SCI |FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS | FMT_PREFEXPMSK;  // PRESERVE ALL THESE
+
         fmt.MiddleFmt |= FMT_SCI | FMT_ENG;
+        fmt.BigFmt |= FMT_SCI | FMT_ENG;
+        fmt.SmallFmt |= FMT_SCI | FMT_ENG;
         if((PREFERRED_EXPRAW(fmt.MiddleFmt) == 0)
                 || (PREFERRED_EXPRAW(fmt.MiddleFmt) == 8))
+        {
             fmt.MiddleFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+            fmt.BigFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+            fmt.SmallFmt |= FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        }
 
         break;
     }
@@ -4513,20 +4535,20 @@ void onMulDivKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "ENG exponent:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
             (char *)onMulDivKeyHandler_options[option],
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     if(option)
         option += 7;
@@ -4535,8 +4557,16 @@ void onMulDivKeyHandler(BINT keymsg)
 
     fmt.MiddleFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
     fmt.MiddleFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
+    fmt.BigFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
+    fmt.BigFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
+    fmt.SmallFmt &= FMT_NUMSEPARATOR | FMT_FRACSEPARATOR | FMT_GROUPDIGITSMSK | FMT_USECAPITALS | FMT_NUMDIGITS;       // PRESERVE ALL THESE
+    fmt.SmallFmt |= FMT_SCI | FMT_ENG | FMT_PREFEREXPRAW(option);
     if((option == 0) || (option == 8))
+    {
         fmt.MiddleFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        fmt.BigFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+        fmt.SmallFmt |= FMT_SUPRESSEXP;        // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+    }
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4552,7 +4582,7 @@ void onDigitKeyHandler(BINT keymsg)
 
     switch (KM_KEY(keymsg)) {
     case KB_0:
-        digits = 0;
+        digits = 0xfff;
         break;
     case KB_1:
         digits = 1;
@@ -4585,29 +4615,39 @@ void onDigitKeyHandler(BINT keymsg)
 
     fmt.MiddleFmt &= ~FMT_NUMDIGITS;
     fmt.MiddleFmt |= FMT_DIGITS(digits);
+
+
     fmt.BigFmt &= ~FMT_NUMDIGITS;
     fmt.BigFmt |= FMT_DIGITS(digits);
     fmt.SmallFmt &= ~FMT_NUMDIGITS;
     fmt.SmallFmt |= FMT_DIGITS(digits);
 
-    digits += '0';
+
+
+    fmt.SmallLimit.data=fmt.SmallLimitData;
+    newRealFromBINT(&fmt.SmallLimit,1,(digits==0xfff)? -12:-digits);
+
+
+
+    if(digits==0xfff) digits= TEXT2WORD('A','l','l',0);
+      else digits += '0';
 
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
-    ggl_initscr(&scr);
+    cgl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Digits:",
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)&digits, *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+            (char *)&digits, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();

@@ -75,7 +75,9 @@
     CMD(RCLF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(VTYPE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VTYPEE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(VTYPEE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FMTSTR,"FMT→STR",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -684,6 +686,30 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
                 fmt->BigLimit.exp = 12;
             }
 
+            // Move SmallLimit and BigLimit numbers data into the structure, truncate to 32 digits maximum (these limits are typically 1Exxx, no need for many digits)
+
+            if(fmt->SmallLimit.len>4) {
+            memmovew(fmt->SmallLimitData,fmt->SmallLimit.data+fmt->SmallLimit.len-4,4);
+            fmt->SmallLimit.data=fmt->SmallLimitData;
+            fmt->SmallLimit.exp+=8*(fmt->SmallLimit.len-4);
+            fmt->SmallLimit.len=4;
+            }
+            else {
+                memmovew(fmt->SmallLimitData,fmt->SmallLimit.data,fmt->SmallLimit.len);
+                fmt->SmallLimit.data=fmt->SmallLimitData;
+            }
+
+            if(fmt->BigLimit.len>4) {
+            memmovew(fmt->BigLimitData,fmt->BigLimit.data+fmt->BigLimit.len-4,4);
+            fmt->BigLimit.data=fmt->BigLimitData;
+            fmt->BigLimit.exp+=8*(fmt->BigLimit.len-4);
+            fmt->BigLimit.len=4;
+            }
+            else {
+                memmovew(fmt->BigLimitData,fmt->BigLimit.data,fmt->BigLimit.len);
+                fmt->BigLimit.data=fmt->BigLimitData;
+            }
+
             return;
 
         }
@@ -693,22 +719,20 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
     fmt->SmallFmt = 12 | FMT_SCI | FMT_SUPRESSEXP | FMT_USECAPITALS;
     fmt->MiddleFmt = 12 | FMT_USECAPITALS;
     fmt->BigFmt = 12 | FMT_SCI | FMT_SUPRESSEXP | FMT_USECAPITALS;
-    rplReadNumberAsReal((WORDPTR) one_bint, &(fmt->SmallLimit));
-    fmt->SmallLimit.exp = -12;
-    rplReadNumberAsReal((WORDPTR) one_bint, &(fmt->BigLimit));
-    fmt->BigLimit.exp = 12;
+
+    fmt->SmallLimit.data = fmt->SmallLimitData;
+    newRealFromBINT(&fmt->SmallLimit,1,-12);
+
+    fmt->BigLimit.data=fmt->BigLimitData;
+    newRealFromBINT(&fmt->BigLimit,1,12);
 }
 
 // SETS THE SYSTEM SETTING NUMFORMAT TO THE GIVEN STRUCTURE
-// CAN TRIGGER GC, USES RREG[0], RREG[1] AND SCRATCHPOINTERS
+// CAN TRIGGER GC, USES AND SCRATCHPOINTERS
 void rplSetSystemNumberFormat(NUMFORMAT * fmt)
 {
     // CREATE THE LIST WITH THE NUMFORMAT
     WORDPTR *savestk = DSTop;
-
-    // COPY TO RReg TO PROTECT FROM GARBAGE COLLECTION
-    copyReal(&RReg[0], &(fmt->SmallLimit));
-    copyReal(&RReg[1], &(fmt->BigLimit));
 
     // MAKE THE LOCALE STRING
 
@@ -761,12 +785,12 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         DSTop = savestk;
         return;
     }
-    rplNewRealFromRRegPush(0);
+    rplNewRealPush(&fmt->SmallLimit);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewRealFromRRegPush(1);
+    rplNewRealPush(&fmt->BigLimit);
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -988,6 +1012,7 @@ BINT rplNumFormatFromString(WORDPTR string)
             return fmt;
         }
     }
+    else return -1;
 
     // NUMBER OF FIGURES
 
@@ -1063,7 +1088,7 @@ BINT rplNumFormatFromString(WORDPTR string)
         // NO ADDITIONAL ZERO, CHECK IF THE PREVIOUS ONE WAS A ZERO
         if(str[-1] == '0') {
             fmt |= FMT_TRAILINGZEROS;
-            ++str;
+
         }
     }
 
@@ -3179,6 +3204,15 @@ void LIB_HANDLER()
         return;
     }
 
+    case FMTSTR:
+    {
+        //@SHORT_DESC=Do →STR using a specific numeric format
+        //@NEW
+
+
+
+
+    }
         // ADD MORE OPCODES HERE
 
         // STANDARIZED OPCODES:

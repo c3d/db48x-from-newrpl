@@ -183,11 +183,11 @@ void LIB_HANDLER()
 
         }
 
-        if(!ISNUMBERCPLX(*rplPeekData(3)) || !ISNUMBERCPLX(*rplPeekData(2))) {
+        if(!(ISNUMBERCPLX(*rplPeekData(3))||ISANGLE(*rplPeekData(3))) || !(ISNUMBERCPLX(*rplPeekData(2))||ISANGLE(*rplPeekData(2)))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
-        if(!ISNUMBER(*rplPeekData(1))) {
+        if(!ISNUMBERORANGLE(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;
         }

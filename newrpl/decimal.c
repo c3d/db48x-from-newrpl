@@ -3156,6 +3156,7 @@ char *formatReal(REAL * number, char *buffer, BINT format, UBINT64 chars)
         leftzeros = 0;
         wantzeros = 0;
         dotpos = integer;
+        if(format & FMT_CODE) { if(wantdigits>integer) wantdigits -= integer; else wantdigits=0; }
     }
     frac = totaldigits - integer;
 

@@ -331,7 +331,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISSYMBOLIC(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
             rplSymbApplyOperator(CurOpcode, 1);
             return;
         }
@@ -380,7 +380,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISSYMBOLIC(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
             rplSymbApplyOperator(CurOpcode, 1);
             return;
         }
@@ -432,7 +432,7 @@ void LIB_HANDLER()
         if(ISBINT(*arg))
             return;
 
-        if(ISSYMBOLIC(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
             // CHECK IF THE EXPRESSION IS NUMERIC
             if(rplSymbIsNumeric(arg)) {
                 // COMPUTE THE EXPRESSION AND TAKE THE INTEGER PART, BUT DO IT IN RPL
@@ -505,7 +505,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISSYMBOLIC(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
             // CHECK IF THE EXPRESSION IS NUMERIC
             if(rplSymbIsNumeric(arg)) {
                 // COMPUTE THE EXPRESSION AND TAKE THE FRACTION PART, BUT DO IT IN RPL

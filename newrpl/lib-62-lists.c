@@ -790,7 +790,7 @@ void LIB_HANDLER()
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
-                    rplError(ERR_LISTEXPECTED);
+                    rplError(ERR_PROGRAMEXPECTED);
 
                     return;
                 }
