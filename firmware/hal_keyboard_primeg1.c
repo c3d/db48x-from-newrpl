@@ -175,7 +175,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
             if(wokeup) {
                 if(halFlags & HAL_TIMEOUT) {
                     halFlags &= ~HAL_TIMEOUT;
-                    return -1;
+                    return 0xffffffff;
                 }
                 return 0;       // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
             }
@@ -6377,7 +6377,7 @@ typedef void (*handlerfunc_t)(WORD keymsg);
 // STRUCTURE FOR DEFAULT KEYBOARD HANDLERS
 struct keyhandler_t
 {
-    BINT message;
+    WORD message;
     BINT context;
     handlerfunc_t action;
 };
@@ -7150,7 +7150,8 @@ int halDoCustomKey(WORD keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
-    BINT msg, ctx, keepgoing, hanoffset;
+    BINT ctx, keepgoing, hanoffset;
+    WORD msg;
 
     // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
     rplClrSystemFlag(FL_DODEFAULTKEY);
@@ -7270,7 +7271,8 @@ int halCustomKeyExists(WORD keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable);
-    BINT msg, ctx;
+    BINT ctx;
+    WORD msg;
 
     while(ptr < endoftable) {
         msg = rplReadNumberAsBINT(ptr);
@@ -7632,7 +7634,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
         keymsg = halWaitForKeyTimeout(timeoutms);
         timeoutms = 0;
 
-        if(keymsg < 0) {
+        if(keymsg == 0xffffffff) {
             // TIMED OUT!
             if(halTimeoutEvent >= 0)
                 tmr_eventkill(halTimeoutEvent);
