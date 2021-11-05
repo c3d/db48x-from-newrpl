@@ -16,7 +16,7 @@ extern void __keyb_update();
 #define DEBOUNCE  16    // 10 SEEMS TO BE ADEQUATE EVEN AT 75 MHz
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned short int __keyb_buffer[KEYB_BUFFER];
+extern unsigned int __keyb_buffer[KEYB_BUFFER];
 extern volatile int __keyb_lock;
 extern int __keyflags;
 extern int __kused, __kcurrent;

@@ -1601,11 +1601,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while(result < powersof10[digit])
+                while((UBINT64)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while(result >= powersof10[digit]) {
+                    while((UBINT64)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }
@@ -1662,11 +1662,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while(result < powersof10[digit])
+                while((UBINT64)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while(result >= powersof10[digit]) {
+                    while((UBINT64)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }
@@ -1722,11 +1722,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while(result < powersof10[digit])
+                while((UBINT64)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while(result >= powersof10[digit]) {
+                    while((UBINT64)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }

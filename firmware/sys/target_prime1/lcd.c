@@ -97,7 +97,7 @@ extern unsigned int __cpu_getPCLK();
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   __tmr_delay100us()
+#define DELAY_ONETICK   __tmr_delay100us(); __tmr_delay100us()
 #define DELAY_10MS      __tmr_delay10ms()
 #define DELAY_20MS      __tmr_delay20ms()
 
@@ -183,7 +183,6 @@ void lcd_sendi2c(int cmd,int data)
 
 void lcd_initspidisplay()
 {
-
     lcd_sendi2c(0x1,0x14);      // Set VCOM amplitude to x1.10
     lcd_sendi2c(0x2,0x34);      // Set VCOM High voltage to x0.89
 

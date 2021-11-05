@@ -232,6 +232,7 @@ enum
 #define __EX_WIPEOUT 32 // FULL MEMORY WIPEOUT AND WARMSTART
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
 #define __EX_RPLEXIT 128        // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+#define __EX_MEMDUMP 256        // SHOW A MEMORY DUMP OF THE ADDRESS PASSED UP AS THE EXCEPTION MESSAGE
 
 /*!
     \brief Throw a user exception
@@ -749,6 +750,9 @@ int keyb_getkey(int wait);
 #define KM_KEYUP  0xA000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_SHIFT 0xc000
+//! \brief Keyboard message constant, special message from a touch device
+#define KM_TOUCH 0xe000
+
 
 //! \brief Mask to isolate the key shift plane bits
 #define KM_SHIFTMASK SHIFT_ANYLOCK
@@ -756,6 +760,23 @@ int keyb_getkey(int wait);
 #define KM_KEYMASK  0x003f
 //! \brief Mask to isolate the key message bits
 #define KM_MSGMASK  0xe000
+
+//! \brief Mask to isolate the X coordinate in a touch message
+#define KM_TOUCHXMASK 0xfff
+//! \brief Mask to isolate the Y coordinate in a touch message
+#define KM_TOUCHYMASK 0xfff0000
+//! \brief Mask to isolate the finger ID in a touch message
+#define KM_TOUCHFINGERMASK 0x30000000
+//! \brief Mask to isolate the touch event in a touch message
+#define KM_TOUCHEVENTMASK  0xc0000000
+
+//! \brief Touch event finger down (start touching)
+#define KM_FINGERDOWN       0x40000000
+//! \brief Touch event finger dragged
+#define KM_FINGERMOVE       0x80000000
+//! \brief Touch event finger up (stop touching)
+#define KM_FINGERUP         0xc0000000
+
 
 //! \brief Keyboard message queue size (# of messages)
 #define KEYB_BUFFER 128
@@ -770,6 +791,20 @@ int keyb_getkey(int wait);
 #define KM_SHIFTEDKEY(a) ( (a) & (KM_KEYMASK|KM_SHIFTMASK))
 //! \brief Convenience macro to extract shift plane from a message
 #define KM_SHIFTPLANE(a) ( (a) & KM_SHIFTMASK)
+
+
+//! \brief Convenience macro to extract touch coordinates from a message
+#define KM_TOUCHX(a) ( (a) & KM_TOUCHXMASK)
+//! \brief Convenience macro to extract touch coordinates from a message
+#define KM_TOUCHY(a) (( (a) & KM_TOUCHYMASK)>>16)
+//! \brief Convenience macro to extract finger ID from a message
+#define KM_TOUCHFINGER(a) (( (a) & KM_TOUCHFINGERMASK)>>28)
+//! \brief Convenience macro to extract finger ID from a message
+#define KM_TOUCHEVENT(a) ( (a) & KM_TOUCHEVENTMASK)
+
+//! \brief Convenience macro to compose a touch message
+#define KM_MAKETOUCHMSG(ev,finger,x,y) ( (ev) | (((finger)<<28)&KM_TOUCHFINGERMASK) \
+                                        | ((x)&KM_TOUCHXMASK) | (((y)<<16)&KM_TOUCHYMASK) | KM_TOUCH)
 
 /*!
  * \brief Inserts a key message into the keyboard buffer.
@@ -1207,7 +1242,7 @@ void halSwitch2Stack();
 #define OL_EXITONERROR  256     // EXIT THE POL IF THERE ARE ANY EXCEPTIONS
 
 // OUTER LOOP
-void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
+void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
         BINT flags);
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
 int halExitOuterLoop();
@@ -1216,9 +1251,9 @@ int halExitOuterLoop();
 void halInitKeyboard();
 BINT halWaitForKey();
 BINT halWaitForKeyTimeout(BINT timeoutms);
-void halPostKeyboardMessage(BINT keymsg);
-int halDoDefaultKey(BINT keymsg);
-int halDoCustomKey(BINT keymsg);
+void halPostKeyboardMessage(WORD keymsg);
+int halDoDefaultKey(WORD keymsg);
+int halDoCustomKey(WORD keymsg);
 
 // IDLE PROCESSES
 void halDeferProcess(void (*function)(void));

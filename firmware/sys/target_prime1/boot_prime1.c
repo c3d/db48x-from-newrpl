@@ -18,7 +18,7 @@
 #define right 160
 
 // DEBUG ONLY - TURN ON LEDS
-
+extern uint8_t ts_buffer[256];
 __ARM_MODE__ void blue_led_on();
 void blue_led_on()
 {
@@ -260,6 +260,7 @@ void main_virtual(unsigned int mode)
                 throw_exception("Wipeout requested",
                         __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
             }
+
 
             // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
             if(!halCheckMemoryMap()) {
@@ -945,23 +946,28 @@ void startup(void)
 
     enable_interrupts();
 
+    // Setup Default color palette for early exception handlers only, just in case
+    cgl_setpalette(PAL_GRAY0,THEME_GRAY0);
+    cgl_setpalette(PAL_GRAY8,THEME_GRAY8);
+    cgl_setpalette(PAL_GRAY15,THEME_GRAY15);
 
     tmr_setup();
 
-
-
     __keyb_init();
-
-    ts_init();
 
     NANDInit();
     read_serial_number();
 
     usb_init(1);
 
-    //red_led_on();
-
     uart_init();
+
+
+
+
+
+
+    ts_init();
 
     main_virtual(prevstate); // never returns
 }

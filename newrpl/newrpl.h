@@ -690,8 +690,8 @@ struct date
     void rplSkipNextAlarm();
 
 // KEYBOARD FUNCTIONS
-    WORDPTR rplMsg2KeyName(BINT keymsg);
-    BINT rplKeyName2Msg(WORDPTR keyname);
+    WORDPTR rplMsg2KeyName(WORD keymsg);
+    WORD rplKeyName2Msg(WORDPTR keyname);
 
 // FONT FUNCTIONS
     #define FONT_IDENTS_ROMPTR_INDEX 4

@@ -255,7 +255,7 @@ void halForceAlphaModeOff()
 }
 
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
-void dummyKeyhandler(BINT keymsg)
+void dummyKeyhandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
     return;
@@ -522,7 +522,7 @@ void endCmdLine()
 // *******************    DEFAULT KEY HANDLERS     **************************
 // **************************************************************************
 
-void numberKeyHandler(BINT keymsg)
+void numberKeyHandler(WORD keymsg)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -1169,7 +1169,7 @@ void transpcmdKeyHandler(WORD Opcode)
 
 }
 
-void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
+void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 {
     if(KM_MESSAGE(keymsg) == KM_LPRESS) {
         // ENTER MENU HELP MODE
@@ -2245,7 +2245,7 @@ void varsKeyHandler(BINT keymsg, BINT menunum, BINT varnum)
 
 }
 
-void symbolKeyHandler(BINT keymsg, BYTEPTR symbol, BINT separate)
+void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, BINT separate)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2272,7 +2272,7 @@ void symbolKeyHandler(BINT keymsg, BYTEPTR symbol, BINT separate)
 
 }
 
-void alphasymbolKeyHandler(BINT keymsg, BYTEPTR Lsymbol, BYTEPTR Csymbol)
+void alphasymbolKeyHandler(WORD keymsg, BYTEPTR Lsymbol, BYTEPTR Csymbol)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2298,7 +2298,7 @@ void alphasymbolKeyHandler(BINT keymsg, BYTEPTR Lsymbol, BYTEPTR Csymbol)
 
 }
 
-void VarMenuKeyHandler(BINT keymsg)
+void VarMenuKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2310,7 +2310,7 @@ void VarMenuKeyHandler(BINT keymsg)
 
 }
 
-void newlineKeyHandler(BINT keymsg)
+void newlineKeyHandler(WORD keymsg)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2343,7 +2343,7 @@ void newlineKeyHandler(BINT keymsg)
 
 }
 
-void decimaldotKeyHandler(BINT keymsg)
+void decimaldotKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
@@ -2374,7 +2374,7 @@ void decimaldotKeyHandler(BINT keymsg)
 
 }
 
-void enterKeyHandler(BINT keymsg)
+void enterKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2424,7 +2424,7 @@ void enterKeyHandler(BINT keymsg)
     }
 }
 
-void cutclipKeyHandler(BINT keymsg)
+void cutclipKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2578,7 +2578,7 @@ void cutclipKeyHandler(BINT keymsg)
     }
 }
 
-void copyclipKeyHandler(BINT keymsg)
+void copyclipKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2689,7 +2689,7 @@ void copyclipKeyHandler(BINT keymsg)
     }
 }
 
-void pasteclipKeyHandler(BINT keymsg)
+void pasteclipKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2781,7 +2781,7 @@ void pasteclipKeyHandler(BINT keymsg)
     }
 }
 
-void backspKeyHandler(BINT keymsg)
+void backspKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2949,7 +2949,7 @@ void backspKeyHandler(BINT keymsg)
     }
 }
 
-void deleteKeyHandler(BINT keymsg)
+void deleteKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -2959,7 +2959,7 @@ void deleteKeyHandler(BINT keymsg)
     }
 }
 
-void leftKeyHandler(BINT keymsg)
+void leftKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3125,7 +3125,7 @@ void leftKeyHandler(BINT keymsg)
     }
 }
 
-void rsleftKeyHandler(BINT keymsg)
+void rsleftKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3144,7 +3144,7 @@ void rsleftKeyHandler(BINT keymsg)
     }
 }
 
-void rsholdleftKeyHandler(BINT keymsg)
+void rsholdleftKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3164,7 +3164,7 @@ void rsholdleftKeyHandler(BINT keymsg)
     }
 }
 
-void lsleftKeyHandler(BINT keymsg)
+void lsleftKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3181,7 +3181,7 @@ void lsleftKeyHandler(BINT keymsg)
     }
 }
 
-void rightKeyHandler(BINT keymsg)
+void rightKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3341,7 +3341,7 @@ void rightKeyHandler(BINT keymsg)
     }
 }
 
-void rsrightKeyHandler(BINT keymsg)
+void rsrightKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3359,7 +3359,7 @@ void rsrightKeyHandler(BINT keymsg)
     }
 }
 
-void lsrightKeyHandler(BINT keymsg)
+void lsrightKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3376,7 +3376,7 @@ void lsrightKeyHandler(BINT keymsg)
     }
 }
 
-void rsholdrightKeyHandler(BINT keymsg)
+void rsholdrightKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3394,7 +3394,7 @@ void rsholdrightKeyHandler(BINT keymsg)
     }
 }
 
-void alphaholdrightKeyHandler(BINT keymsg)
+void alphaholdrightKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3412,7 +3412,7 @@ void alphaholdrightKeyHandler(BINT keymsg)
     }
 }
 
-void downKeyHandler(BINT keymsg)
+void downKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3490,7 +3490,7 @@ void downKeyHandler(BINT keymsg)
     }
 }
 
-void rsholddownKeyHandler(BINT keymsg)
+void rsholddownKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3521,7 +3521,7 @@ void rsholddownKeyHandler(BINT keymsg)
     }
 }
 
-void rsdownKeyHandler(BINT keymsg)
+void rsdownKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3551,7 +3551,7 @@ void rsdownKeyHandler(BINT keymsg)
     }
 }
 
-void alphaholddownKeyHandler(BINT keymsg)
+void alphaholddownKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3568,7 +3568,7 @@ void alphaholddownKeyHandler(BINT keymsg)
     }
 }
 
-void upKeyHandler(BINT keymsg)
+void upKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3617,7 +3617,7 @@ void upKeyHandler(BINT keymsg)
     }
 }
 
-void rsholdupKeyHandler(BINT keymsg)
+void rsholdupKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3648,7 +3648,7 @@ void rsholdupKeyHandler(BINT keymsg)
     }
 }
 
-void rsupKeyHandler(BINT keymsg)
+void rsupKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3677,7 +3677,7 @@ void rsupKeyHandler(BINT keymsg)
     }
 }
 
-void alphaholdupKeyHandler(BINT keymsg)
+void alphaholdupKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3694,7 +3694,7 @@ void alphaholdupKeyHandler(BINT keymsg)
     }
 }
 
-void chsKeyHandler(BINT keymsg)
+void chsKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -3958,7 +3958,7 @@ void chsKeyHandler(BINT keymsg)
     }
 }
 
-void eexKeyHandler(BINT keymsg)
+void eexKeyHandler(WORD keymsg)
 {
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
@@ -4067,7 +4067,7 @@ void eexKeyHandler(BINT keymsg)
 }
 
 // COMMON FUNCTION FOR AL "BRACKET TYPES"
-void bracketKeyHandler(BINT keymsg, BYTEPTR string)
+void bracketKeyHandler(WORD keymsg, BYTEPTR string)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_INTSTACK)
@@ -4092,7 +4092,7 @@ void bracketKeyHandler(BINT keymsg, BYTEPTR string)
 
 }
 
-void curlyBracketKeyHandler(BINT keymsg)
+void curlyBracketKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
@@ -4104,7 +4104,7 @@ void curlyBracketKeyHandler(BINT keymsg)
 
 }
 
-void squareBracketKeyHandler(BINT keymsg)
+void squareBracketKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
@@ -4114,7 +4114,7 @@ void squareBracketKeyHandler(BINT keymsg)
 
 }
 
-void secoBracketKeyHandler(BINT keymsg)
+void secoBracketKeyHandler(WORD keymsg)
 {
     bracketKeyHandler(keymsg, (BYTEPTR) "«  »");
 
@@ -4123,13 +4123,13 @@ void secoBracketKeyHandler(BINT keymsg)
 
 }
 
-void parenBracketKeyHandler(BINT keymsg)
+void parenBracketKeyHandler(WORD keymsg)
 {
     bracketKeyHandler(keymsg, (BYTEPTR) "()");
 
 }
 
-void textBracketKeyHandler(BINT keymsg)
+void textBracketKeyHandler(WORD keymsg)
 {
     bracketKeyHandler(keymsg, (BYTEPTR) "\"\"");
 
@@ -4139,7 +4139,7 @@ void textBracketKeyHandler(BINT keymsg)
 
 }
 
-void ticksKeyHandler(BINT keymsg)
+void ticksKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
         bracketKeyHandler(keymsg, (BYTEPTR) "''");
@@ -4149,7 +4149,7 @@ void ticksKeyHandler(BINT keymsg)
         symbolKeyHandler(keymsg, (BYTEPTR) "'", 0);
 }
 
-void tagKeyHandler(BINT keymsg)
+void tagKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
         bracketKeyHandler(keymsg, (BYTEPTR) "::");
@@ -4161,7 +4161,7 @@ void tagKeyHandler(BINT keymsg)
 
 }
 
-void onPlusKeyHandler(BINT keymsg)
+void onPlusKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4198,7 +4198,7 @@ void onPlusKeyHandler(BINT keymsg)
     Exceptions = savedex;
 }
 
-void onMinusKeyHandler(BINT keymsg)
+void onMinusKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4234,7 +4234,7 @@ void onMinusKeyHandler(BINT keymsg)
     Exceptions = savedex;
 }
 
-void onDotKeyHandler(BINT keymsg)
+void onDotKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4388,7 +4388,7 @@ void onDotKeyHandler(BINT keymsg)
 
 }
 
-void onSpcKeyHandler(BINT keymsg)
+void onSpcKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4502,7 +4502,7 @@ const char const *const onMulDivKeyHandler_options[] = {
     "m = -3"
 };
 
-void onMulDivKeyHandler(BINT keymsg)
+void onMulDivKeyHandler(WORD keymsg)
 {
 
     // CYCLE BETWEEN VARIOUS OPTIONS
@@ -4574,7 +4574,7 @@ void onMulDivKeyHandler(BINT keymsg)
 
 }
 
-void onDigitKeyHandler(BINT keymsg)
+void onDigitKeyHandler(WORD keymsg)
 {
     NUMFORMAT fmt;
     BINT digits = 0;
@@ -4655,7 +4655,7 @@ void onDigitKeyHandler(BINT keymsg)
 
 }
 
-void onUpDownKeyHandler(BINT keymsg)
+void onUpDownKeyHandler(WORD keymsg)
 {
     BINT precision = Context.precdigits;
 
@@ -4720,7 +4720,7 @@ void onUpDownKeyHandler(BINT keymsg)
 }
 
 // SHOW/HIDE THE SECOND MENU WHEN PRESSED
-void onVarKeyHandler(BINT keymsg)
+void onVarKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
     if(halScreen.Menu2) {
@@ -4734,7 +4734,7 @@ void onVarKeyHandler(BINT keymsg)
 
 }
 
-void onBKeyHandler(BINT keymsg)
+void onBKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4742,7 +4742,7 @@ void onBKeyHandler(BINT keymsg)
 
 }
 
-void alphaKeyHandler(BINT keymsg)
+void alphaKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4761,7 +4761,7 @@ void alphaKeyHandler(BINT keymsg)
     }
 }
 
-void shiftedalphaKeyHandler(BINT keymsg)
+void shiftedalphaKeyHandler(WORD keymsg)
 {
     // CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
     UNUSED_ARGUMENT(keymsg);
@@ -4783,7 +4783,7 @@ void shiftedalphaKeyHandler(BINT keymsg)
 
 }
 
-void changemenuKeyHandler(BINT keymsg, BINT64 menucode)
+void changemenuKeyHandler(WORD keymsg, BINT64 menucode)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4804,7 +4804,7 @@ void changemenuKeyHandler(BINT keymsg, BINT64 menucode)
 
 }
 
-void backmenuKeyHandler(BINT keymsg, WORD menu)
+void backmenuKeyHandler(WORD keymsg, WORD menu)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4823,18 +4823,18 @@ void backmenuKeyHandler(BINT keymsg, WORD menu)
 
 }
 
-void backmenu1KeyHandler(BINT keymsg)
+void backmenu1KeyHandler(WORD keymsg)
 {
     backmenuKeyHandler(keymsg, 1);
 }
 
-void backmenu2KeyHandler(BINT keymsg)
+void backmenu2KeyHandler(WORD keymsg)
 {
     backmenuKeyHandler(keymsg, 2);
 }
 
 // CUSTOM KEY DEFINITIONS - LOWER LEVEL HANDLER
-void customKeyHandler(BINT keymsg, WORDPTR action)
+void customKeyHandler(WORD keymsg, WORDPTR action)
 {
     if(!action)
         return;
@@ -5225,7 +5225,7 @@ void customKeyHandler(BINT keymsg, WORDPTR action)
 
 }
 
-void formswitcherKeyHandler(BINT keymsg)
+void formswitcherKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5240,7 +5240,7 @@ void formswitcherKeyHandler(BINT keymsg)
     return;
 }
 
-void basecycleKeyHandler(BINT keymsg)
+void basecycleKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5374,34 +5374,34 @@ void basecycleKeyHandler(BINT keymsg)
     }
 }
 
-#define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(WORD keymsg) \
 { \
     UNUSED_ARGUMENT(keymsg); \
     transpcmdKeyHandler(opcode); \
     }
 
-#define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(WORD keymsg) \
 { \
     UNUSED_ARGUMENT(keymsg); \
     cmdKeyHandler(opcode,(BYTEPTR)string,issymbfunc); \
     }
 
-#define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(WORD keymsg) \
 { \
     varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
     }
 
-#define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(WORD keymsg) \
 { \
     changemenuKeyHandler(keymsg,(BINT64)(menucode)); \
     }
 
-#define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(WORD keymsg) \
 { \
     alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
     }
 
-#define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(WORD keymsg) \
 { \
     symbolKeyHandler(keymsg,(BYTEPTR)(symbol),(sep)); \
     }
@@ -5498,7 +5498,7 @@ DECLARE_KEYHANDLER(a, "a", "A")
         DECLARE_VARKEYHANDLER(var4, 2, 3)
         DECLARE_VARKEYHANDLER(var5, 2, 4)
         DECLARE_VARKEYHANDLER(var6, 2, 5)
-     void underscoreKeyHandler(BINT keymsg)
+     void underscoreKeyHandler(WORD keymsg)
 {
     symbolKeyHandler(keymsg, (BYTEPTR) "_", 0);
 
@@ -5509,7 +5509,7 @@ DECLARE_KEYHANDLER(a, "a", "A")
     }
 }
 
-void spcKeyHandler(BINT keymsg)
+void spcKeyHandler(WORD keymsg)
 {
     if(halGetContext() & CONTEXT_INTSTACK) {
 
@@ -5557,7 +5557,7 @@ void spcKeyHandler(BINT keymsg)
 }
 
 // INTERACTIVE STACK ONLY
-void tolistKeyHandler(BINT keymsg)
+void tolistKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5682,7 +5682,7 @@ void tolistKeyHandler(BINT keymsg)
     return;
 }
 
-void tomatKeyHandler(BINT keymsg)
+void tomatKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5808,7 +5808,7 @@ void tomatKeyHandler(BINT keymsg)
 }
 
 // INTERACTIVE STACK ONLY
-void tocplxKeyHandler(BINT keymsg)
+void tocplxKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5973,7 +5973,7 @@ void tocplxKeyHandler(BINT keymsg)
     return;
 }
 
-void explodeKeyHandler(BINT keymsg)
+void explodeKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -6302,7 +6302,7 @@ DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
         DECLARE_MENUKEYHANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0))
         DECLARE_MENUKEYHANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0))
         DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
-     void cancelKeyHandler(BINT keymsg)
+     void cancelKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -6342,12 +6342,12 @@ DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
 // ******************* END OF DEFAULT KEY HANDLERS **************************
 // **************************************************************************
 
-typedef void (*handlerfunc_t)(BINT keymsg);
+typedef void (*handlerfunc_t)(WORD keymsg);
 
 // STRUCTURE FOR DEFAULT KEYBOARD HANDLERS
 struct keyhandler_t
 {
-    BINT message;
+    WORD message;
     BINT context;
     handlerfunc_t action;
 };
@@ -7078,7 +7078,7 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
 // A LIST IN THE FORM { [COMMAND] }: THE COMMAND WILL BE EXECUTED USING cmdKeyHandler()
 // A LIST IN THE FORM { [STRING] }:
 
-int halDoCustomKey(BINT keymsg)
+int halDoCustomKey(WORD keymsg)
 {
     if(rplTestSystemFlag(FL_NOCUSTOMKEYS))
         return 0;       // DON'T USE CUSTOM KEYS IF DISABLED PER FLAG
@@ -7095,7 +7095,8 @@ int halDoCustomKey(BINT keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
-    BINT msg, ctx, keepgoing, hanoffset;
+    BINT ctx, keepgoing, hanoffset;
+    WORD msg;
 
     // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
     rplClrSystemFlag(FL_DODEFAULTKEY);
@@ -7202,7 +7203,7 @@ int halDoCustomKey(BINT keymsg)
 }
 
 // RETURN TRUE/FALSE IF A CUSTOM HANDLER EXISTS
-int halCustomKeyExists(BINT keymsg)
+int halCustomKeyExists(WORD keymsg)
 {
     WORDPTR keytable;
 
@@ -7215,7 +7216,8 @@ int halCustomKeyExists(BINT keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable);
-    BINT msg, ctx;
+    BINT ctx;
+    WORD msg;
 
     while(ptr < endoftable) {
         msg = rplReadNumberAsBINT(ptr);
@@ -7261,7 +7263,7 @@ int halCustomKeyExists(BINT keymsg)
 // IF CONTEXT DOESN'T HAVE A SUBCONTEXT (SUBCONTEXT_ANY), THEN IT MATCHES ALL SUBCONTEXTS WITHIN
 // THE GIVEN MAIN CONTEXT.
 
-int halDoDefaultKey(BINT keymsg)
+int halDoDefaultKey(WORD keymsg)
 {
     struct keyhandler_t *ptr = (struct keyhandler_t *)__keydefaulthandlers;
 
@@ -7282,7 +7284,7 @@ int halDoDefaultKey(BINT keymsg)
 }
 
 // RETURN TRUE/FALSE IF A DEFAULT HANDLER EXISTS
-int halDefaultKeyExists(BINT keymsg)
+int halDefaultKeyExists(WORD keymsg)
 {
     struct keyhandler_t *ptr = (struct keyhandler_t *)__keydefaulthandlers;
 
@@ -7306,7 +7308,7 @@ int halDefaultKeyExists(BINT keymsg)
 
 // RETURNS 0 IF THE LOOP HAS TO CONTINUE, 1 TO TERMINATE OUTER LOOP
 
-int halProcessKey(BINT keymsg, int (*dokey)(BINT), BINT flags)
+int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
 {
     int wasProcessed;
 
@@ -7529,7 +7531,7 @@ void halDoDeferredProcess()
 
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
-void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int(*doidle)(BINT),
+void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
         BINT flags)
 {
     int keymsg = 0, isidle, jobdone;
@@ -7709,7 +7711,7 @@ void halInitKeyboard()
 
 // API USED BY RPL PROGRAMS TO INSERT KEY SEQUENCES TO THE KEYBOARD
 
-void halPostKeyboardMessage(BINT keymsg)
+void halPostKeyboardMessage(WORD keymsg)
 {
     //  POST A COMPLETE KEY SEQUENCE TO PREVENT PROBLEMS.
 

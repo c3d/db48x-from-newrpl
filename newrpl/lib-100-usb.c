@@ -75,7 +75,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
     0
 };
 
-int exitOnUBSData(BINT useless)
+int exitOnUBSData(WORD useless)
 {
     UNUSED_ARGUMENT(useless);
     if(usb_hasdata())
@@ -142,7 +142,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
     }
 }
 
-extern int waitProcess(BINT);
+extern int waitProcess(WORD);
 
 void LIB_HANDLER()
 {

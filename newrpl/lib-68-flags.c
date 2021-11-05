@@ -1542,7 +1542,7 @@ const BYTE const modiftable[] = {
     0, 0, 0, 0
 };
 
-BINT rplKeyName2Msg(WORDPTR keyname)
+WORD rplKeyName2Msg(WORDPTR keyname)
 {
     BYTEPTR ptr, tblptr;
     BINT key, shifts, msg, len;
@@ -1706,13 +1706,54 @@ BINT rplKeyName2Msg(WORDPTR keyname)
 
 // CREATE A STRING OBJECT FROM A KEYBOARD MESSAGE
 
-WORDPTR rplMsg2KeyName(BINT keymsg)
+WORDPTR rplMsg2KeyName(WORD keymsg)
 {
 
     BYTEPTR tblptr = (BYTEPTR) keytable, keyptr;
-    BYTE keytext[8];
+    BYTE keytext[16];
 
     keyptr = keytext;
+
+    if(KM_MESSAGE(keymsg)==KM_TOUCH) {
+        *keyptr++='T';
+        *keyptr++=KM_TOUCHFINGER(keymsg)+'0';
+        switch(KM_TOUCHEVENT(keymsg))
+        {
+        case 0:
+            *keyptr++='?';
+            break;
+        case KM_FINGERDOWN:
+            *keyptr++='D';
+            break;
+        case KM_FINGERMOVE:
+            *keyptr++='M';
+            break;
+        case KM_FINGERUP:
+            *keyptr++='U';
+        }
+        *keyptr++='.';
+
+        int x=KM_TOUCHX(keymsg),startnum=0;
+
+        if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
+        if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
+        if((x>=10)||startnum) { *keyptr++='0'+(x/10); x%=10; startnum=1; }
+        *keyptr++='0'+x;
+
+        *keyptr++='.';
+        startnum=0;
+        x=KM_TOUCHY(keymsg);
+        if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
+        if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
+        if((x>=10)||startnum) { *keyptr++='0'+(x/10); x%=10; startnum=1; }
+        *keyptr++='0'+x;
+
+
+    }
+
+
+    else {
+
 
     while(*tblptr) {
         if(tblptr[2] == (KEYVALUE(keymsg))) {
@@ -1779,6 +1820,7 @@ WORDPTR rplMsg2KeyName(BINT keymsg)
             break;
         }
 
+    }
     }
 
     // NOW BUILD A STRING OBJECT AND RETURN

@@ -111,7 +111,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 };
 
 //  PROCESS KEYS FOR THE WAIT COMMAND (ON CAN INTERRUPT THE WAIT)
-int waitProcess(BINT keymsg)
+int waitProcess(WORD keymsg)
 {
     if(keymsg == (KM_PRESS | KB_ON)) {
         RetNum = 0;     // TERMINATE LOOP
@@ -122,7 +122,7 @@ int waitProcess(BINT keymsg)
 
 // ONLY BREAK ON PRESS AND LPRESS MESSAGES
 // LEAVES THE KEYMSG IN ObjectPTR
-int waitKeyProcess(BINT keymsg)
+int waitKeyProcess(WORD keymsg)
 {
     switch (KM_MESSAGE(keymsg)) {
     case KM_PRESS:
@@ -273,7 +273,7 @@ void LIB_HANDLER()
         timeout.exp += 3;       // CONVERT FROM SECONDS TO MILLISECONDS
         BINT64 mstimeout = getBINT64Real(&timeout);
 
-        BINT keymsg;
+        WORD keymsg;
 
         RetNum = 0;
 

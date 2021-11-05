@@ -13,7 +13,7 @@ void __cpu_inton(INTERRUPT_TYPE state);
 void __tmr_eventreschedule();
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
+unsigned int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
 volatile int __keyb_lock __SYSTEM_GLOBAL__;
 int __keyflags __SYSTEM_GLOBAL__;
 int __kused __SYSTEM_GLOBAL__, __kcurrent __SYSTEM_GLOBAL__;

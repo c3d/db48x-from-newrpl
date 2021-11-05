@@ -131,10 +131,44 @@ if(options&__EX_NOREG) {
 
 }
 else {
+    if(!(options&__EX_MEMDUMP)) {
     __ex_print(0,0,"Exception: ");
     __ex_print(11*FNT_AVGW,0,exstr);
+    }
 
-    if(options&__EX_RPLREGS) {
+    if(options&__EX_MEMDUMP) {
+        __ex_print(0,0,"Exception: MEMORY DUMP REQUESTED");
+        __ex_hline(FNT_HEIGHT*2-4);
+    // SHOW MEMORY DUMP INSTEAD
+        int i;
+        for(i=0;i<10;++i) {
+        a[8]=':';
+        a[9]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)(exstr+i*8))>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+
+        // PRINT OFFSET OF MEMORY DUMP
+        __ex_print(0,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
+
+        for(f=0;f<8;++f) {
+        a[2]=0;
+        for(j=1;j>=0;j--)
+         {
+         a[1-j]=(((exstr[f+i*8])>>(j<<2))&0xf)+48;
+          if(a[1-j]>'9') a[1-j]+=7;
+         }
+        __ex_print(10*FNT_AVGW+f*3*FNT_AVGW,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
+        }
+
+        }
+
+
+
+    }
+    else if(options&__EX_RPLREGS) {
         __ex_hline(FNT_HEIGHT*2-4);
     // SHOW RPL CORE INFORMATION INSTEAD
         __ex_print(0,FNT_HEIGHT*2,"IP: ");
