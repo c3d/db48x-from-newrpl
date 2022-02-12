@@ -12,7 +12,6 @@
 void ram_doreset()
 {
     throw_dbgexception("Calculator is about to reset",__EX_RESET | __EX_NOREG);
-
 }
 
 // FLASH PROGRAMMING PROTOCOL:
@@ -28,24 +27,21 @@ void ram_doreset()
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
 void ram_receiveandflashfw(BINT flashsize)
 {
-    int pass = 1, result, fileid;
+    int pass = 1, fileid;
     WORDPTR flash_address;
     WORD flash_nwords, data;
     WORD receivedwords;
     FS_FILE *newrplrom;
     int err;
 
+    // Going the easy way storing the firmware image in ram at a fixed start address
+    // between this code and stack. From here on the machine gets reset anyway.
+    unsigned char * const ram_fw_start = (unsigned char *)RAM_BASE_PHYSICAL + 0x1000000;
+    unsigned char *ram_fw_pointer = ram_fw_start;
+    int fw_size = 0;
+
     DRAWSURFACE scr;
     ggl_initscr(&scr);
-
-
-    err = FSOpen("NEWRPL.ROM", FSMODE_WRITE, &newrplrom);
-    if (err != FS_OK) {
-        throw_dbgexception("Cannot open file in flash",__EX_RESET | __EX_CONT | __EX_NOREG);
-        return;
-    }
-
-
 
     ggl_hline(&scr,10,0,SCREEN_WIDTH-1,0xffffffff);
     ggl_hline(&scr,21,0,SCREEN_WIDTH-1,0xffffffff);
@@ -57,52 +53,51 @@ void ram_receiveandflashfw(BINT flashsize)
         while(!usb_hasdata())
             cpu_waitforinterrupt();
 
-        result = fileid = usb_rxfileopen();
-        if((!result) || usb_filetype(fileid) != 'W') {
+        fileid = usb_rxfileopen();
+        if (!fileid) {
+            continue;
+        }
+
+        if(usb_filetype(fileid) != 'W') {
             usb_rxfileclose(fileid);
             continue;
         }
 
         data = 0xffffffff;
 
-// RECEIVE THE ENTIRE FILE, GET THE TOTAL NUMBER OF BYTES RECEIVED
-// THIS WAY WE AVOID IRQS DURING FLASHING
+        // RECEIVE THE ENTIRE FILE, GET THE TOTAL NUMBER OF BYTES RECEIVED
+        // THIS WAY WE AVOID IRQS DURING FLASHING
         do {
-        receivedwords = (usb_waitfordata(6000) + 3) >> 2;
+            receivedwords = (usb_waitfordata(6000) + 3) >> 2;
 
-        if(!receivedwords) {
-            // COMMUNICATIONS MUST'VE TIMED OUT OR WE ARE HALTED
-            throw_dbgexception("USB Comms timed out",__EX_RESET | __EX_CONT | __EX_NOREG);
-            continue;
-        } else break;
+            if(!receivedwords) {
+                // COMMUNICATIONS MUST'VE TIMED OUT OR WE ARE HALTED
+                throw_dbgexception("USB Comms timed out",__EX_RESET | __EX_CONT | __EX_NOREG);
+                continue;
+            } else break;
         } while(!receivedwords);
 
         if(usb_fileread(fileid, (BYTEPTR) & data, 4) < 4) {
-            FSClose(newrplrom);
             throw_dbgexception("Read less than 4 bytes-signature",__EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(data != TEXT2WORD('F', 'W', 'U', 'P')) {
-            FSClose(newrplrom);
             throw_dbgexception("Bad FWUP signature",__EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(usb_fileread(fileid, (BYTEPTR) & flash_address, 4) < 4) {
-            FSClose(newrplrom);
             throw_dbgexception("Read less than 4 bytes-address",__EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(usb_fileread(fileid, (BYTEPTR) & flash_nwords, 4) < 4) {
-            FSClose(newrplrom);
             throw_dbgexception("Read less than 4 bytes-nwords",__EX_RESET);
             ram_doreset();
         }
 
         if(flash_nwords + 3 != receivedwords) {
-            FSClose(newrplrom);
             throw_dbgexception("Words received mismatch",__EX_RESET);
             ram_doreset();
         }
@@ -111,6 +106,20 @@ void ram_receiveandflashfw(BINT flashsize)
 
             // FINISH RECEIVING THE COMMAND
             usb_rxfileclose(fileid);
+
+            // Write the whole file at once
+            err = FSOpen("NEWRPL.ROM", FSMODE_WRITE, &newrplrom);
+            if (err != FS_OK) {
+                throw_dbgexception("Cannot open file in flash",__EX_RESET | __EX_CONT | __EX_NOREG);
+                return;
+            }
+
+            err=FSWrite(ram_fw_start, fw_size, newrplrom);
+            if(err!=fw_size) {
+                FSClose(newrplrom);
+                throw_dbgexception("Write to flash failed",__EX_RESET);
+                ram_doreset();
+            }
 
             // CLOSE THE FILE
             err = FSClose(newrplrom);
@@ -122,7 +131,6 @@ void ram_receiveandflashfw(BINT flashsize)
             // UNMOUNT THE VOLUME AND PROPERLY CLOSE THE FILE SYSTEM
             // ENSURE ALL BUFFERS WERE WRITTEN TO FLASH
             FSShutdown();
-
 
             // SHOW SOME VISUALS
             int k;
@@ -148,37 +156,16 @@ void ram_receiveandflashfw(BINT flashsize)
             ram_doreset();      // HOST REQUESTED A RESET
         }
 
-        if((WORD) (flash_address + flash_nwords) > flashsize) {
-            FSClose(newrplrom);
-
-            throw_dbgexception("Attempt to write beyond end of flash",__EX_RESET);
-
-            ram_doreset();
-        }
-
-        if(((WORD) flash_address < 0x4000)) {
-            FSClose(newrplrom);
-
-            throw_dbgexception("Attempt to overwrite bootloader",__EX_RESET);
-
-            ram_doreset();      // PROTECT THE BOOTLOADER AT ALL COSTS
-        }
-
-
-        unsigned char * dataptr = (unsigned char *) (__usb_rxtxbuffer + __usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
-
-        err=FSWrite(dataptr,flash_nwords*sizeof(WORD),newrplrom);
-        if(err!=flash_nwords*sizeof(WORD)) {
-            FSClose(newrplrom);
-            throw_dbgexception("Write to flash failed",__EX_RESET);
-            ram_doreset();      // PROTECT THE BOOTLOADER AT ALL COSTS
-        }
-
-// WE FINISHED PROGRAMMING THE FLASH!
+        // Accumulating the firmware in RAM
+        const unsigned char * dataptr = (unsigned char *) (__usb_rxtxbuffer + __usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
+        int flash_nbytes = flash_nwords * sizeof(WORD);
+        memcpyb(ram_fw_pointer, dataptr, flash_nbytes);
+        ram_fw_pointer += flash_nbytes;
+        fw_size += flash_nbytes;
 
         usb_rxfileclose(fileid);
 
-// SHOW SOME VISUAL FEEDBACK
+        // SHOW SOME VISUAL FEEDBACK
         {
 
             int pixel = (((WORD) flash_address) - 0x4000) >> 14;
@@ -188,9 +175,7 @@ void ram_receiveandflashfw(BINT flashsize)
         }
     }
     while(1);
-//ram_doreset();
-
-// NEVER RETURNS
+    // NEVER RETURNS
 }
 
 
