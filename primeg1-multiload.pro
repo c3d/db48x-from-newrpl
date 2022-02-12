@@ -33,6 +33,7 @@ SOURCES +=\
     firmware/sys/target_prime1/sddriver.c \
     firmware/sys/target_prime1/stdlib.c \
     firmware/sys/target_prime1/timer.c \
+    firmware/sys/target_prime1/uart.c \
     firmware/sys/keybcommon.c \
     firmware/sys/target_prime1/keyboard.c \
     firmware/sys/fsystem/fatconvert.c \

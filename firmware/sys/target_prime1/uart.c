@@ -41,7 +41,7 @@ static void uart_write_char(char character)
     *UTXH0 = character;
 }
 
-static void uart_write_string(char *string)
+static void uart_write_string(const char *string)
 {
     while (*string != 0) {
         uart_write_char(*string);
@@ -60,7 +60,7 @@ static void tohex(uint32_t value, char *buffer)
     }
 }
 
-void debug_print_hex(char *key, uint32_t value)
+void debug_print_hex(const char *key, uint32_t value)
 {
     char value_string[9];
     tohex(value, value_string);
@@ -69,4 +69,9 @@ void debug_print_hex(char *key, uint32_t value)
     uart_write_string(value_string);
     // write carriage return and newline to be compatible to BL1
     uart_write_string("\r\n");
+}
+
+void debug_print(const char *string)
+{
+    uart_write_string(string);
 }
