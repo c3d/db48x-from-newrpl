@@ -7,9 +7,9 @@
 # UNCOMMENT BELOW TO COMPILE IN THUMB MODE
 THUMB_MODE=-mthumb
 
-include(newrpl-fw.pro)
+include(hp50-firmware.pro)
 
-TARGET = newrpl39.elf
+TARGET = hp39-firmware.elf
 
 DEFINES -= TARGET_50G
 DEFINES += TARGET_39GS
@@ -17,3 +17,4 @@ DEFINES += TARGET_39GS
 HEADERS += \
     firmware/include/target_39gs.h
 
+OBJECTS_DIR = build/hp39-firmware

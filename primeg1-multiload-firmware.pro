@@ -18,7 +18,7 @@ CONFIG = debug static ordered
 
 DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
-OBJECTS_DIR = build/primeg1_multiload
+OBJECTS_DIR = build/primeg1-multiload-firmware
 
 # DO NOT ALTER THE ORDER OF THESE MODULES
 

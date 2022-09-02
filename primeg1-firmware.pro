@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 
-TARGET = newrplfw.elf
+TARGET = primeg1_newrpl.elf
 TEMPLATE = app
 
 CONFIG(release, debug|release) {
@@ -16,64 +16,61 @@ CONFIG = debug static ordered
 
 }
 
-DEFINES += TARGET_50G NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
-# UNCOMMENT BELOW TO COMPILE IN THUMB MODE
-#THUMB_MODE=-mthumb
-
-#UNCOMMENT BELOW TO GENERATE DETAILED ASSEMBLY OUTPUT OF EACH FILE
-#DEVEL_OPTIONS=-Wa,-adhln=$@.s
-
-
+OBJECTS_DIR = build/primeg1-firmware
 
 # DO NOT ALTER THE ORDER OF THESE MODULES
 
 
 SOURCES +=\
-    firmware/sys/target_50g/preamble.c \
-    firmware/sys/target_50g/boot.c \
-    firmware/sys/target_50g/battery.c \
-    firmware/sys/target_50g/cpu.c \
-    firmware/sys/target_50g/exception.c \
-    firmware/sys/target_50g/irq.c \
-    firmware/sys/target_50g/keyboard.c \
+    firmware/sys/Font18.c \
+    firmware/sys/FontNotification.c \
+    firmware/sys/target_prime1/preamble_prime1.c \
+    firmware/sys/target_prime1/boot_prime1.c \
+    firmware/sys/target_prime1/nand.c \
+    firmware/sys/target_prime1/battery.c \
+    firmware/sys/target_prime1/cpu.c \
+    firmware/sys/target_prime1/exception.c \
+    firmware/sys/target_prime1/irq.c \
+    firmware/sys/target_prime1/keyboard.c \
     firmware/sys/keybcommon.c \
-    firmware/sys/target_50g/lcd.c \
-    firmware/sys/target_50g/stdlib.c \
-    firmware/sys/target_50g/timer.c \
-    firmware/sys/target_50g/mem.c \
-    firmware/sys/target_50g/flash.c \
-    firmware/sys/target_50g/rtc.c \
+    firmware/sys/target_prime1/lcd.c \
+    firmware/sys/target_prime1/stdlib.c \
+    firmware/sys/target_prime1/timer.c \
+    firmware/sys/target_prime1/mem.c \
+    firmware/sys/target_prime1/rtc.c \
+    firmware/sys/target_prime1/touch.c \
+    firmware/sys/target_prime1/usbdriver.c \
+    firmware/sys/target_prime1/uart.c \
     firmware/sys/usbcommon.c \
-    firmware/sys/target_50g/usbdriver.c \
-    firmware/sys/target_50g/fwupdate.c \
-    firmware/ggl/ggl/ggl_bitblt.c \
-    firmware/ggl/ggl/ggl_bitbltoper.c \
-    firmware/ggl/ggl/ggl_filter.c \
-    firmware/ggl/ggl/ggl_fltdarken.c \
-    firmware/ggl/ggl/ggl_fltlighten.c \
-    firmware/ggl/ggl/ggl_fltinvert.c \
-    firmware/ggl/ggl/ggl_getnib.c \
-    firmware/ggl/ggl/ggl_hblt.c \
-    firmware/ggl/ggl/ggl_hbltfilter.c \
-    firmware/ggl/ggl/ggl_hbltoper.c \
-    firmware/ggl/ggl/ggl_hline.c \
-    firmware/ggl/ggl/ggl_initscr.c \
-    firmware/ggl/ggl/ggl_mkcolor.c \
-    firmware/ggl/ggl/ggl_mkcolor32.c \
-    firmware/ggl/ggl/ggl_opmask.c \
-    firmware/ggl/ggl/ggl_optransp.c \
-    firmware/ggl/ggl/ggl_ovlblt.c \
-    firmware/ggl/ggl/ggl_pltnib.c \
-    firmware/ggl/ggl/ggl_rect.c \
-    firmware/ggl/ggl/ggl_rectp.c \
-    firmware/ggl/ggl/ggl_revblt.c \
-    firmware/ggl/ggl/ggl_scrolldn.c \
-    firmware/ggl/ggl/ggl_scrolllf.c \
-    firmware/ggl/ggl/ggl_scrollrt.c \
-    firmware/ggl/ggl/ggl_scrollup.c \
-    firmware/ggl/ggl/ggl_vline.c \
-    firmware/ggl/ggl/ggl_fltreplace.c \
+    firmware/sys/target_prime1/fwupdate.c \
+    firmware/ggl/cgl/cgl_bitblt.c \
+    firmware/ggl/cgl/cgl_bitbltoper.c \
+    firmware/ggl/cgl/cgl_filter.c \
+    firmware/ggl/cgl/cgl_fltdarken.c \
+    firmware/ggl/cgl/cgl_fltlighten.c \
+    firmware/ggl/cgl/cgl_fltinvert.c \
+    firmware/ggl/cgl/cgl_getnib.c \
+    firmware/ggl/cgl/cgl_hblt.c \
+    firmware/ggl/cgl/cgl_hbltoper.c \
+    firmware/ggl/cgl/cgl_hbltfilter.c \
+    firmware/ggl/cgl/cgl_hline.c \
+    firmware/ggl/cgl/cgl_initscr.c \
+    firmware/ggl/cgl/cgl_mkcolor32.c \
+    firmware/ggl/cgl/cgl_opmask.c \
+    firmware/ggl/cgl/cgl_optransp.c \
+    firmware/ggl/cgl/cgl_ovlblt.c \
+    firmware/ggl/cgl/cgl_pltnib.c \
+    firmware/ggl/cgl/cgl_rect.c \
+    firmware/ggl/cgl/cgl_rectp.c \
+    firmware/ggl/cgl/cgl_revblt.c \
+    firmware/ggl/cgl/cgl_scrolldn.c \
+    firmware/ggl/cgl/cgl_scrolllf.c \
+    firmware/ggl/cgl/cgl_scrollrt.c \
+    firmware/ggl/cgl/cgl_scrollup.c \
+    firmware/ggl/cgl/cgl_vline.c \
+    firmware/ggl/cgl/cgl_fltreplace.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
     firmware/sys/Font5A.c \
@@ -87,9 +84,8 @@ SOURCES +=\
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
     firmware/sys/Font10A.c \
-    firmware/sys/Font18.c \
     firmware/sys/Font24.c \
-    firmware/sys/target_50g/sddriver.c \
+    firmware/sys/target_prime1/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
     firmware/sys/fsystem/fscalcfreespace.c \
@@ -166,12 +162,12 @@ SOURCES +=\
     firmware/sys/fsystem/fsallocator.c \
     firmware/hal_cpu.c \
     firmware/hal_globals.c \
+    firmware/hal_battery_primeg1.c \
+    firmware/hal_screen_primeg1.c \
     firmware/ui_cmdline.c \
     firmware/ui_softmenu.c \
-    firmware/hal_battery.c \
     firmware/hal_clock.c \
-    firmware/hal_keyboard.c \
-    firmware/hal_screen.c \
+    firmware/hal_keyboard_primeg1.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
     firmware/ui_forms.c \
@@ -249,11 +245,11 @@ SOURCES +=\
 
 HEADERS  += \
     firmware/include/ggl.h \
-    firmware/include/target_50g.h \
+    firmware/include/xgl.h \
+    firmware/include/target_prime1.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     firmware/include/usb.h \
-    firmware/include/xgl.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/newrpl_types.h \
@@ -272,7 +268,6 @@ HEADERS  += \
     newrpl/fastmath.h \
     newrpl/render.h \
     firmware/include/firmware.h
-
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
@@ -325,22 +320,15 @@ INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -lgcc
 
-FORMS    +=
-
 DISTFILES += \
-    firmware/sys/target_50g/ld.script
-
-RESOURCES +=
+    firmware/sys/target_prime1/ld_newrpl.script
 
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
-#QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
-#QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
 
-
-QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
-QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
+QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm926ej-s -mcpu=arm926ej-s -march=armv5tej -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns -fno-isolate-erroneous-paths-dereference
+QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm926ej-s -mcpu=arm926ej-s -march=armv5tej -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns -fno-isolate-erroneous-paths-dereference
 QMAKE_CFLAGS_SHLIB =
 QMAKE_CFLAGS_MT =
 QMAKE_CFLAGS_MT_DBG =
@@ -350,9 +338,9 @@ QMAKE_CFLAGS_APP =
 QMAKE_LFLAGS_DEBUG =
 QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
-QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
+QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_prime1/ld_newrpl.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom -outNEWRPL.ROM $(TARGET)
 
 
 ## Additional RPL compiler, make sure it's in the PATH

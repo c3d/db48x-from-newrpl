@@ -4,19 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui quick widgets quickcontrols2 quickwidgets
-
-TARGET = newrpl-ui
+TARGET = newrpl-comp
 TEMPLATE = app
+CONFIG += console c++11
+CONFIG -= app_bundle
+CONFIG -= qt
 
-DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+DEFINES += TARGET_PC NO_RPL_OBJECTS "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    newrpl/lib-112-asm.c \
-    newrpl/lib-4081-tags.c \
-    qemuscreen.cpp \
-    firmware/ggl/ggl/ggl_bitblt.c \
+OBJECTS_DIR = build/newrpl-comp
+
+SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
     firmware/ggl/ggl/ggl_fltdarken.c \
@@ -44,8 +42,10 @@ SOURCES += main.cpp\
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
+    firmware/sys/Font18.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
+    firmware/sys/target_pc/non-gui-stubs.c \
     firmware/sys/target_pc/battery.c \
     firmware/sys/target_pc/cpu.c \
     firmware/sys/target_pc/exception.c \
@@ -161,26 +161,16 @@ SOURCES += main.cpp\
     newrpl/tempob.c \
     firmware/sys/target_pc/mem.c \
     firmware/sys/target_pc/boot.c \
-    qpaletteeditor.cpp \
-    rplthread.cpp \
     firmware/ui_cmdline.c \
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
-    firmware/sys/Font5A.c \
-    firmware/sys/Font5B.c \
     firmware/sys/Font5C.c \
     firmware/sys/Font6A.c \
-    firmware/sys/Font6m.c \
+    firmware/sys/keybcommon.c \
     firmware/sys/Font7A.c \
-    firmware/sys/Font8A.c \
-    firmware/sys/Font8B.c \
+    newrpl/matrix.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
-    firmware/sys/Font10A.c \
-    firmware/sys/Font18.c \
-    firmware/sys/Font24.c \
-    firmware/sys/keybcommon.c \
-    newrpl/matrix.c \
     newrpl/decimal.c \
     newrpl/backup.c \
     newrpl/sanity.c \
@@ -197,55 +187,64 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/flash.c \
     firmware/ui_softmenu.c \
     firmware/ggl/ggl/ggl_fltinvert.c \
+    newrpl-comp.c \
+    newrpl/lib-4079-rpl2c.c \
     newrpl/lib-48-angles.c \
     newrpl/lib-74-sdcard.c \
+    firmware/sys/Font8B.c \
+    firmware/sys/Font8A.c \
+    firmware/sys/Font6m.c \
+    firmware/sys/Font5B.c \
+    firmware/sys/Font5A.c \
+    firmware/sys/Font10A.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
     firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c \
+    newrpl/lib-77-libdata.c \
     newrpl/lib-zero-messages.c \
+    newrpl/lib-78-fonts.c \
+    newrpl/lib-80-bitmaps.c \
     firmware/ui_forms.c \
     firmware/ui_render.c \
-    newrpl/lib-80-bitmaps.c \
     newrpl/lib-88-plot.c \
     newrpl/fastmath.c \
-    newrpl/lib-77-libdata.c \
     newrpl/render.c \
     newrpl/lib-96-composites.c \
+    newrpl/lib-98-statistics.c \
     newrpl/atan_ltables.c \
     newrpl/lighttranscend.c \
     newrpl/ln_ltables.c \
-    interaction.cpp \
-    interaction_rpl.c \
-    newrpl/lib-78-fonts.c \
     newrpl/solvers.c \
     newrpl/rng.c \
-    newrpl/lib-98-statistics.c \
-    firmware/hal_cpu.c \
-    firmware/sys/target_pc/usbdriver.c \
-    firmware/sys/usbcommon.c \
-    usbselector.cpp \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
     newrpl/lib-104-solvers.c \
+    firmware/sys/target_pc/usbdriver.c \
+    firmware/sys/usbcommon.c \
+    firmware/hal_cpu.c \
     newrpl/lib-55-constants.c \
-    firmware/sys/target_pc/fwupdate.c
+    newrpl/lib-4081-tags.c \
+    newrpl/lib-112-asm.c \
+    firmware/sys/target_pc/fwupdate.c \
+    firmware/sys/Font24.c
 
 
-HEADERS  += mainwindow.h \
-    firmware/include/usb.h \
-    firmware/include/xgl.h \
-    qemuscreen.h \
-    firmware/include/ggl.h \
+
+
+
+
+
+HEADERS  += firmware/include/ggl.h \
+    firmware/include/firmware.h \
+    firmware/include/target_pc.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/newrpl_types.h \
     newrpl/sysvars.h \
-    qpaletteeditor.h \
-    rplthread.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
     newrpl/arithmetic.h \
@@ -258,75 +257,25 @@ HEADERS  += mainwindow.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
     newrpl/fastmath.h \
-    newrpl/render.h \
-    firmware/include/target_pc.h \
-    firmware/include/firmware.h \
-    usbselector.h \
-    menuwidget.h
+    newrpl/render.h
 
-RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
-                newrpl/rpl-objects/lib-9.nrpl \
-                newrpl/rpl-objects/lib-10.nrpl \
-                newrpl/rpl-objects/lib-12.nrpl \
-                newrpl/rpl-objects/lib-20.nrpl \
-                newrpl/rpl-objects/lib-24.nrpl \
-                newrpl/rpl-objects/lib-28.nrpl \
-                newrpl/rpl-objects/lib-30.nrpl \
-                newrpl/rpl-objects/lib-32.nrpl \
-                newrpl/rpl-objects/lib-48.nrpl \
-                newrpl/rpl-objects/lib-62.nrpl \
-                newrpl/rpl-objects/lib-64.nrpl \
-                newrpl/rpl-objects/lib-65.nrpl \
-                newrpl/rpl-objects/lib-66.nrpl \
-                newrpl/rpl-objects/lib-68.nrpl \
-                newrpl/rpl-objects/lib-70.nrpl \
-                newrpl/rpl-objects/lib-72.nrpl \
-                newrpl/rpl-objects/lib-74.nrpl \
-                newrpl/rpl-objects/lib-76.nrpl \
-                newrpl/rpl-objects/lib-0.nrpl \
-                newrpl/rpl-objects/lib-8.nrpl \
-                newrpl/rpl-objects/lib-52.nrpl \
-                newrpl/rpl-objects/lib-55.nrpl \
-                newrpl/rpl-objects/lib-56.nrpl \
-                newrpl/rpl-objects/lib-77.nrpl \
-                newrpl/rpl-objects/lib-78.nrpl \
-                newrpl/rpl-objects/lib-80.nrpl \
-                newrpl/rpl-objects/lib-88.nrpl \
-                newrpl/rpl-objects/lib-96.nrpl \
-                newrpl/rpl-objects/lib-98.nrpl \
-                newrpl/rpl-objects/lib-100.nrpl \
-                newrpl/rpl-objects/lib-102.nrpl \
-                newrpl/rpl-objects/lib-104.nrpl \
-                newrpl/rpl-objects/lib-4081.nrpl \
-                newrpl/rpl-objects/version.nrpl
 
 INCLUDEPATH += firmware/include newrpl
 
 LIBS += -L/usr/local/lib
 
-FORMS    += mainwindow.ui \
-    qpaletteeditor.ui \
-    usbselector.ui
+DISTFILES +=
 
-RESOURCES += \
-    annunciators.qrc
-
-# Set application icon for the windows applications - this is target-specific
-win32: RC_ICONS = bitmap/newRPL.ico
-
-
-# gcc and Clang don't like double const specifiers, but are needed for firmware: disable the warning
+# Clang doesn't like double const specifiers, but are needed for firmware: disable the warning
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough
 
 
 
-# Additional RPL compiler, make sure it's in the PATH
-rpl_compiler.output = auto_${QMAKE_FILE_BASE}.c
-rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
-rpl_compiler.input = RPL_OBJECTS
-rpl_compiler.variable_out = SOURCES
 
-QMAKE_EXTRA_COMPILERS += rpl_compiler
+install_bin.path = $$PWD/tools-bin
+!win32: install_bin.files = $$OUT_PWD/newrpl-comp
+win32: install_bin.files = $$OUT_PWD/release/newrpl-comp.exe
+INSTALLS += install_bin
 
 
 # Additional external library HIDAPI linked statically into the code
@@ -339,46 +288,13 @@ HEADERS += external/hidapi/hidapi/hidapi.h
 win32: SOURCES += external/hidapi/windows/hid.c
 win32: LIBS += -lsetupapi
 
-android: SOURCES += external/hidapi/libusb/hid.c
-android: INCLUDEPATH += external/libusb-1.0.22/libusb/
-android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a -L$$PWD/external/libusb-1.0.22/android/libs/x86 -lusb1.0
-
 freebsd: SOURCES += external/hidapi/libusb/hid.c
 freebsd: LIBS += -lusb -lthr -liconv
 
-unix:!macx:!freebsd:!android: SOURCES += external/hidapi/linux/hid.c
-unix:!macx:!freebsd:!android: LIBS += -ludev
+unix:!macx:!freebsd: SOURCES += external/hidapi/linux/hid.c
+unix:!macx:!freebsd: LIBS += -ludev
 
 macx: SOURCES += external/hidapi/mac/hid.c
 macx: LIBS += -framework CoreFoundation -framework IOKit
 
 # End of HIDAPI
-
-DISTFILES += \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat \
-    android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat
-
-ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
-
-ANDROID_EXTRA_LIBS = $$PWD/external/libusb-1.0.22/android/libs/x86/libusb1.0.so $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
-
-

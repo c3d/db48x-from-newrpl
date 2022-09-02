@@ -6,48 +6,46 @@
 
 QT       += core gui quick widgets quickcontrols2 quickwidgets
 
-TARGET = newrpl-ui
+TARGET = hp50-simulator
 TEMPLATE = app
 
-DEFINES += TARGET_PC TARGET_PC_PRIMEG1 "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+
+OBJECTS_DIR = build/hp50g-simulator
 
 SOURCES += main.cpp\
-    firmware/ggl/cgl/cgl_bitblt.c \
-    firmware/ggl/cgl/cgl_bitbltoper.c \
-    firmware/ggl/cgl/cgl_filter.c \
-    firmware/ggl/cgl/cgl_fltdarken.c \
-    firmware/ggl/cgl/cgl_fltinvert.c \
-    firmware/ggl/cgl/cgl_fltlighten.c \
-    firmware/ggl/cgl/cgl_fltreplace.c \
-    firmware/ggl/cgl/cgl_getnib.c \
-    firmware/ggl/cgl/cgl_hblt.c \
-    firmware/ggl/cgl/cgl_hbltfilter.c \
-    firmware/ggl/cgl/cgl_hbltoper.c \
-    firmware/ggl/cgl/cgl_hline.c \
-    firmware/ggl/cgl/cgl_initscr.c \
-    firmware/ggl/cgl/cgl_mkcolor32.c \
-    firmware/ggl/cgl/cgl_opmask.c \
-    firmware/ggl/cgl/cgl_optransp.c \
-    firmware/ggl/cgl/cgl_ovlblt.c \
-    firmware/ggl/cgl/cgl_pltnib.c \
-    firmware/ggl/cgl/cgl_rect.c \
-    firmware/ggl/cgl/cgl_rectp.c \
-    firmware/ggl/cgl/cgl_revblt.c \
-    firmware/ggl/cgl/cgl_scrolldn.c \
-    firmware/ggl/cgl/cgl_scrolllf.c \
-    firmware/ggl/cgl/cgl_scrollrt.c \
-    firmware/ggl/cgl/cgl_scrollup.c \
-    firmware/ggl/cgl/cgl_vline.c \
-    firmware/hal_battery_primeg1.c \
-    firmware/sys/Font18.c \
-    firmware/sys/Font24.c \
-    firmware/sys/FontNotification.c \
         mainwindow.cpp \
     newrpl/lib-112-asm.c \
     newrpl/lib-4081-tags.c \
     qemuscreen.cpp \
-    firmware/hal_keyboard_primeg1.c \
-    firmware/hal_screen_primeg1.c \
+    firmware/ggl/ggl/ggl_bitblt.c \
+    firmware/ggl/ggl/ggl_bitbltoper.c \
+    firmware/ggl/ggl/ggl_filter.c \
+    firmware/ggl/ggl/ggl_fltdarken.c \
+    firmware/ggl/ggl/ggl_fltlighten.c \
+    firmware/ggl/ggl/ggl_getnib.c \
+    firmware/ggl/ggl/ggl_hblt.c \
+    firmware/ggl/ggl/ggl_hbltfilter.c \
+    firmware/ggl/ggl/ggl_hbltoper.c \
+    firmware/ggl/ggl/ggl_hline.c \
+    firmware/ggl/ggl/ggl_initscr.c \
+    firmware/ggl/ggl/ggl_mkcolor.c \
+    firmware/ggl/ggl/ggl_mkcolor32.c \
+    firmware/ggl/ggl/ggl_opmask.c \
+    firmware/ggl/ggl/ggl_optransp.c \
+    firmware/ggl/ggl/ggl_ovlblt.c \
+    firmware/ggl/ggl/ggl_pltnib.c \
+    firmware/ggl/ggl/ggl_rect.c \
+    firmware/ggl/ggl/ggl_rectp.c \
+    firmware/ggl/ggl/ggl_revblt.c \
+    firmware/ggl/ggl/ggl_scrolldn.c \
+    firmware/ggl/ggl/ggl_scrolllf.c \
+    firmware/ggl/ggl/ggl_scrollrt.c \
+    firmware/ggl/ggl/ggl_scrollup.c \
+    firmware/ggl/ggl/ggl_vline.c \
+    firmware/hal_battery.c \
+    firmware/hal_keyboard.c \
+    firmware/hal_screen.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
     firmware/sys/target_pc/battery.c \
@@ -180,6 +178,9 @@ SOURCES += main.cpp\
     firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
+    firmware/sys/Font10A.c \
+    firmware/sys/Font18.c \
+    firmware/sys/Font24.c \
     firmware/sys/keybcommon.c \
     newrpl/matrix.c \
     newrpl/decimal.c \
@@ -197,11 +198,13 @@ SOURCES += main.cpp\
     newrpl/lib-20-comments.c \
     firmware/sys/target_pc/flash.c \
     firmware/ui_softmenu.c \
+    firmware/ggl/ggl/ggl_fltinvert.c \
     newrpl/lib-48-angles.c \
     newrpl/lib-74-sdcard.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
     firmware/hal_alarm.c \
+    firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c \
     newrpl/lib-zero-messages.c \
     firmware/ui_forms.c \
@@ -229,15 +232,14 @@ SOURCES += main.cpp\
     newrpl/lib-102-libptr.c \
     newrpl/lib-104-solvers.c \
     newrpl/lib-55-constants.c \
-    firmware/sys/Font10A.c \
     firmware/sys/target_pc/fwupdate.c
 
 
 HEADERS  += mainwindow.h \
-    firmware/include/cgl.h \
     firmware/include/usb.h \
     firmware/include/xgl.h \
     qemuscreen.h \
+    firmware/include/ggl.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     newrpl/libraries.h \
@@ -309,10 +311,11 @@ FORMS    += mainwindow.ui \
     usbselector.ui
 
 RESOURCES += \
-    annunciators-prime.qrc
+    annunciators.qrc
 
 # Set application icon for the windows applications - this is target-specific
 win32: RC_ICONS = bitmap/newRPL.ico
+
 
 # gcc and Clang don't like double const specifiers, but are needed for firmware: disable the warning
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough
@@ -354,30 +357,28 @@ macx: LIBS += -framework CoreFoundation -framework IOKit
 # End of HIDAPI
 
 DISTFILES += \
-    android-Prime/AndroidManifest.xml \
-    android-Prime/gradle/wrapper/gradle-wrapper.jar \
-    android-Prime/gradlew \
-    android-Prime/res/values/libs.xml \
-    android-Prime/build.gradle \
-    android-Prime/gradle/wrapper/gradle-wrapper.properties \
-    android-Prime/gradlew.bat \
-    android-Prime/AndroidManifest.xml \
-    android-Prime/gradle/wrapper/gradle-wrapper.jar \
-    android-Prime/gradlew \
-    android-Prime/res/values/libs.xml \
-    android-Prime/build.gradle \
-    android-Prime/gradle/wrapper/gradle-wrapper.properties \
-    android-Prime/gradlew.bat \
-    android-Prime/AndroidManifest.xml \
-    android-Prime/gradle/wrapper/gradle-wrapper.jar \
-    android-Prime/gradlew \
-    android-Prime/res/values/libs.xml \
-    android-Prime/build.gradle \
-    android-Prime/gradle/wrapper/gradle-wrapper.properties \
-    android-Prime/gradlew.bat
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat
 
-ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android-Prime
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 
 ANDROID_EXTRA_LIBS = $$PWD/external/libusb-1.0.22/android/libs/x86/libusb1.0.so $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
-
-
