@@ -12,7 +12,9 @@ CONFIG -= qt
 
 DEFINES += TARGET_PC NO_RPL_OBJECTS "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
-OBJECTS_DIR = build/newrpl-comp
+OS_NAME = $$system(uname -s)
+
+OBJECTS_DIR = build/newrpl-comp-$$OS_NAME
 
 SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
