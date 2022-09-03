@@ -49,6 +49,8 @@
 #include <iconv.h>
 #endif
 
+#include <recorder,h>
+
 #include "hidapi.h"
 
 #ifdef __ANDROID__
@@ -112,15 +114,13 @@ static int pthread_barrier_wait(pthread_barrier_t *barrier)
 
 #endif
 
+RECORDER(usb_hid, 16, "USB Human Interface Devices");
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef DEBUG_PRINTF
-#define LOG(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define LOG(...) do {} while (0)
-#endif
+#define LOG(...) record(usb_hid, __VA_ARGS__)
 
 #ifndef __FreeBSD__
 #define DETACH_KERNEL_DRIVER
@@ -254,7 +254,7 @@ static int get_usage(uint8_t *report_descriptor, size_t size,
 		int key = report_descriptor[i];
 		int key_cmd = key & 0xfc;
 
-		//printf("key: %02hhx\n", key);
+		record(usb_hid, "key: %02hhx\n", key);
 
 		if ((key & 0xf0) == 0xf0) {
 			/* This is a Long Item. The next byte contains the
@@ -294,12 +294,12 @@ static int get_usage(uint8_t *report_descriptor, size_t size,
 		if (key_cmd == 0x4) {
 			*usage_page  = get_bytes(report_descriptor, size, data_len, i);
 			usage_page_found = 1;
-			//printf("Usage Page: %x\n", (uint32_t)*usage_page);
+			record(usb_hid, "Usage Page: %x\n", (uint32_t)*usage_page);
 		}
 		if (key_cmd == 0x8) {
 			*usage = get_bytes(report_descriptor, size, data_len, i);
 			usage_found = 1;
-			//printf("Usage: %x\n", (uint32_t)*usage);
+			record("Usage: %x\n", (uint32_t)*usage);
 		}
 
 		if (usage_page_found && usage_found)
