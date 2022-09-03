@@ -128,6 +128,7 @@ SOURCES += \
 # Graphics
 !newrpl_color:NEWRPL_GRAPHICS=ggl
 newrpl_color:NEWRPL_GRAPHICS=cgl
+newrpl_color:DEFINES += NEWRPL_COLOR
 
 SOURCES += \
         firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_bitblt.c \
