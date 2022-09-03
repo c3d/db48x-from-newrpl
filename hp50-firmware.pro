@@ -275,7 +275,7 @@ HEADERS  += \
     newrpl/render.h \
     firmware/include/firmware.h
 
-include(newrpl-libs.pri)
+include(newrpl.pri)
 
 # Cross compiler dependent
 

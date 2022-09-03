@@ -271,7 +271,7 @@ HEADERS  += \
         rplthread.h \
         usbselector.h \
 
-include(newrpl-libs.pri)
+include(newrpl.pri)
 
 INCLUDEPATH += firmware/include newrpl
 
