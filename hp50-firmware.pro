@@ -47,3 +47,5 @@ CONFIG(debug, debug|release) {
 DEFINES += TARGET_50G
 
 include(firmware.pri)
+
+DISTFILES += firmware/sys/target_50g/ld.script
