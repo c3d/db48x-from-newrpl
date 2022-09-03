@@ -33,7 +33,7 @@
 #  along with BD48X.  If not, see <https://www.gnu.org/licenses/>.
 #******************************************************************************
 
-newrpl_color:NEWRPL_CONFIG=newrpl_color
+newrpl_color:NEWRPL_CONFIG += newrpl_color
 
 # Strip the configuratoin to the strictest minimim
 CONFIG(debug, debug|release) {

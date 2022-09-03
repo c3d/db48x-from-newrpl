@@ -267,6 +267,9 @@ SOURCES += \
         firmware/ui_render.c \
         firmware/ui_softmenu.c \
 
+newrpl_primeg1:SOURCES += \
+        firmware/sys/FontNotification.c \
+
 
 # Headers for the newRPL core
 HEADERS += \

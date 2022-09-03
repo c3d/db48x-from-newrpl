@@ -59,7 +59,6 @@ SOURCES += \
         firmware/sys/target_prime1/uart.c \
         firmware/sys/target_prime1/fwupdate.c \
         firmware/sys/target_prime1/sddriver.c \
-        firmware/sys/FontNotification.c \
 
 include(firmware.pri)
 
