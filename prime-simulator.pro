@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 CONFIG += newrpl_color
-NEWRPL_HAL = prime
+NEWRPL_HAL = primeg1
 
 include(simulator.pri)
 

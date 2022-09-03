@@ -118,12 +118,19 @@ SOURCES += \
 # Hardware abstraction layer (HAL)
 SOURCES += \
         firmware/hal_alarm.c \
-        firmware/hal_battery.c \
         firmware/hal_clock.c \
         firmware/hal_cpu.c \
         firmware/hal_globals.c \
+
+!newrpl_primeg1:SOURCES += \
+        firmware/hal_battery.c \
         firmware/hal_keyboard.c \
         firmware/hal_screen.c \
+
+newrpl_primeg1:SOURCES += \
+        firmware/hal_battery_primeg1.c \
+        firmware/hal_keyboard_primeg1.c \
+        firmware/hal_screen_primeg1.c \
 
 # Graphics
 !newrpl_color:NEWRPL_GRAPHICS=ggl
@@ -259,7 +266,7 @@ SOURCES += \
         firmware/ui_softmenu.c \
 
 
-prime:SOURCES += \
+newrpl_primeg1:SOURCES += \
         firmware/sys/FontNotification.c \
 
 
