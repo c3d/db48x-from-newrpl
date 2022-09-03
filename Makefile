@@ -11,6 +11,8 @@
 ##       % make all:             Build simulators and firmwares
 ##       % make <name>-sim:      Build one simulator
 ##       % make <name>-fw:       Build one firmware
+##       % make debug-<target>   Build with debugging enabled
+##       % make release-<target> Build release, debugging disabled
 ##       % make help:            Show this message
 #
 #
@@ -41,6 +43,7 @@
 
 SIMULATORS=hp50 prime
 FIRMWARES=hp39 hp40 hp48 hp50 primeg1 primeg1-multiload
+CONFIG=debug
 
 sim simulators: $(SIMULATORS:%=%-simulator)
 fw firmwares:  $(FIRMWARES:%=%-firmware)
@@ -65,6 +68,13 @@ tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	$(MAKE) -f $<
 
 %.mak: %.pro
-	qmake $< -o $@
+	qmake $< CONFIG+=$(CONFIG) -o $@
+
+debug-% %-debug:
+	$(MAKE) CONFIG=debug $*
+release-% %-release:
+	$(MAKE) CONFIG=release $*
+debug: debug-sim
+release: release-all
 
 .PRECIOUS: %.mak

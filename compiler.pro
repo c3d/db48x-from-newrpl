@@ -12,9 +12,19 @@ CONFIG -= qt
 
 DEFINES += TARGET_PC NO_RPL_OBJECTS "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
+# Build directory
+CONFIG(debug, debug|release) {
+    NEWRPL_BUILD=debug
+    DEFINES += DEBUG
+    DEFINES -= NDEBUG
+} else {
+    NEWRPL_BUILD=release
+    DEFINES -= DEBUG
+    DEFINES += NDEBUG
+}
 OS_NAME = $$system(uname -s)
 
-OBJECTS_DIR = build/newrpl-comp-$$OS_NAME
+OBJECTS_DIR = build/$$OS_NAME/$$NEWRPL_BUILD/$$TARGET
 
 SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
@@ -233,11 +243,6 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/Font24.c
 
 
-
-
-
-
-
 HEADERS  += firmware/include/ggl.h \
     firmware/include/firmware.h \
     firmware/include/target_pc.h \
@@ -272,8 +277,6 @@ DISTFILES +=
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough
 
 
-
-
 install_bin.path = $$PWD/tools-bin
 !win32: install_bin.files = $$OUT_PWD/newrpl-comp
 win32: install_bin.files = $$OUT_PWD/release/newrpl-comp.exe
@@ -281,8 +284,6 @@ INSTALLS += install_bin
 
 
 # Additional external library HIDAPI linked statically into the code
-
-
 INCLUDEPATH += external/hidapi/hidapi
 
 HEADERS += external/hidapi/hidapi/hidapi.h

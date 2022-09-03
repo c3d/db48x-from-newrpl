@@ -43,8 +43,20 @@ DEFINES += "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 # Include paths for the firmware and new RPL core
 INCLUDEPATH += newrpl firmware/hal/$$NEWRPL_HAL firmware/include
 
+# Build directory
+CONFIG(debug, debug|release) {
+    NEWRPL_BUILD=debug
+    DEFINES += DEBUG
+    DEFINES -= NDEBUG
+} else {
+    NEWRPL_BUILD=release
+    DEFINES -= DEBUG
+    DEFINES += NDEBUG
+}
+OS_NAME = $$system(uname -s)
+
 # Put objects in separate directories for parallel builds
-OBJECTS_DIR = build/$$TARGET
+OBJECTS_DIR = build/$$OS_NAME/$$NEWRPL_BUILD/$$TARGET
 
 # Core of newRPL
 SOURCES += \
