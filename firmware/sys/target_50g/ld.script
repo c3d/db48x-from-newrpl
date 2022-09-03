@@ -13,7 +13,7 @@ OUTPUT_ARCH(arm)
 ENTRY(_boot)
 
 
-SEARCH_DIR("."); 
+SEARCH_DIR(".");
 
 /* ALL MODULES WILL BE PRELINKED */
 
@@ -61,7 +61,7 @@ SECTIONS
   .init           :
   {
     KEEP (*(.init))
-  } 
+  }
   .plt            : { *(.plt) }
 
   /* STORE THE PREAMBLE FIRST */
@@ -71,32 +71,28 @@ SECTIONS
   /* THEN THE ROM EXPORTED OBJECTS */
   .romobjects ALIGN(4) : { *(.romobjects) }
 
-  .=ALIGN(0x1000);      /* ALIGN ROM LINKAGE TABLES TO A FULL 4K PAGE */
+  /* THEN THE ROM LINKAGE TABLES, ALIGNED TO A FULL 4K PAGE */
+  .romlink ALIGN(0x1000) : { *(.romlink) }
 
-  /* THEN THE ROM LINK TABLES */
-  .romlink : { *(.romlink) }
-
-  .=ALIGN(0x1000);      /* ALIGN CODE TO A FULL 4K PAGE */
-
-  /* NOW THE REST OF THE CODE */
-  .text           :
+  /* NOW THE REST OF THE CODE, ALIGN TO A FULL 4K PAGE */
+  .text ALIGN(0x1000) :
   {
     *(.text .stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
     *(.glue_7t) *(.glue_7)
-  } 
+  }
   .fini           :
   {
     KEEP (*(.fini))
-  } 
+  }
 
 
 /* MOVE THE .GOT TABLE TO A POSITION BEFORE THE ACTUAL DATA */
   .got  :
    { *(.got.plt) *(.got) }
 
- 
+
 
   .rodata : { *(.rodata .rodata.* .gnu.linkonce.r.*) }
   .rodata1        : { *(.rodata1) }
@@ -131,7 +127,7 @@ SECTIONS
 
  __data_start = . ;
 
- 
+
   . = 0x02005000;
 
   __tmp_datastart = . ;
@@ -150,7 +146,7 @@ SECTIONS
   .data_3 ALIGN(4) : { * (.data_3) }
 
 
-  .data ALIGN(4) : 
+  .data ALIGN(4) :
   {
     *(.data .data.* .gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
@@ -181,7 +177,7 @@ SECTIONS
   __last_used_byte = .;
 
  /* CREATE VARIABLE _bss_size */
- 
+
   __bss_size = SIZEOF( .bss );
 
 
@@ -190,7 +186,7 @@ SECTIONS
 
 /* ADD CONFIG SECTION TO EXECUTABLE */
   .config          : { *(.config) }
- 
+
   .data1          : { *(.data1) }
   .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }
   .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
@@ -273,4 +269,3 @@ SECTIONS
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }
   /DISCARD/ : { *(.note.GNU-stack) }
 }
-
