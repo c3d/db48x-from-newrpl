@@ -34,10 +34,32 @@
 #******************************************************************************
 
 NEWRPL_HAL = primeg1
+CONFIG += newrpl_color
 
 TARGET = primeg1-newrpl.elf
 
 DEFINES += TARGET_PRIME1
+
+SOURCES += \
+        firmware/sys/target_prime1/preamble_prime1.c \
+        firmware/sys/target_prime1/boot_prime1.c \
+        firmware/sys/target_prime1/nand.c \
+        firmware/sys/target_prime1/battery.c \
+        firmware/sys/target_prime1/cpu.c \
+        firmware/sys/target_prime1/exception.c \
+        firmware/sys/target_prime1/irq.c \
+        firmware/sys/target_prime1/keyboard.c \
+        firmware/sys/target_prime1/lcd.c \
+        firmware/sys/target_prime1/stdlib.c \
+        firmware/sys/target_prime1/timer.c \
+        firmware/sys/target_prime1/mem.c \
+        firmware/sys/target_prime1/rtc.c \
+        firmware/sys/target_prime1/touch.c \
+        firmware/sys/target_prime1/usbdriver.c \
+        firmware/sys/target_prime1/uart.c \
+        firmware/sys/target_prime1/fwupdate.c \
+        firmware/sys/target_prime1/sddriver.c \
+        firmware/sys/FontNotification.c \
 
 include(firmware.pri)
 
