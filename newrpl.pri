@@ -58,6 +58,11 @@ OS_NAME = $$system(uname -s)
 # Put objects in separate directories for parallel builds
 OBJECTS_DIR = build/$$OS_NAME/$$NEWRPL_BUILD/$$TARGET
 
+# Flight recorder
+SOURCES += recorder/recorder.c recorder/recorder_ring.c
+HEADERS += recorder/recorder.h
+INCLUDEPATH += recorder
+
 # Core of newRPL
 SOURCES += \
         newrpl/arithmetic.c \
@@ -281,7 +286,6 @@ SOURCES += \
 
 newrpl_primeg1:SOURCES += \
         firmware/sys/FontNotification.c \
-
 
 # Headers for the newRPL core
 HEADERS += \

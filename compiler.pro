@@ -26,6 +26,8 @@ OS_NAME = $$system(uname -s)
 
 OBJECTS_DIR = build/$$OS_NAME/$$NEWRPL_BUILD/$$TARGET
 
+INCLUDEPATH += recorder
+
 SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
@@ -240,8 +242,9 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/lib-4081-tags.c \
     newrpl/lib-112-asm.c \
     firmware/sys/target_pc/fwupdate.c \
-    firmware/sys/Font24.c
-
+    firmware/sys/Font24.c \
+    recorder/recorder.c \
+    recorder/recorder_ring.c \
 
 HEADERS  += firmware/include/ggl.h \
     firmware/include/firmware.h \

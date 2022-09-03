@@ -11,9 +11,17 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QWindow>
+#include <recorder.h>
+
+RECORDER(main, 8, "Main entry point of the simulator");
 
 int main(int argc, char *argv[])
 {
+    const char *traces = getenv("NEWRPL_TRACES");
+    if (traces)
+        recorder_trace_set(traces);
+    recorder_dump_on_common_signals(0, 0);
+
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication a(argc, argv);
