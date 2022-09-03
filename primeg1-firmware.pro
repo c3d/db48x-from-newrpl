@@ -8,13 +8,6 @@
 TARGET = primeg1_newrpl.elf
 TEMPLATE = app
 
-CONFIG(release, debug|release) {
-CONFIG = static ordered
-}
-CONFIG(debug, debug|release) {
-CONFIG = debug static ordered
-
-}
 
 DEFINES += TARGET_PRIME1 NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
