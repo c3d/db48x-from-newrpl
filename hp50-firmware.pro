@@ -320,10 +320,10 @@ GCC_LIBDIR = $$system(arm-none-eabi-gcc -print-file-name=)
 INCLUDEPATH += $$GCC_LIBDIR/include
 QMAKE_LIBDIR += $$GCC_LIBDIR
 
+INCLUDEPATH += firmware/include newrpl
 
-
-
-INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
+## FIXME - We need this for a #include_next <stdint.h>, but we should not
+INCLUDEPATH += /usr/include
 
 LIBS += -lgcc
 
