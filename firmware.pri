@@ -44,7 +44,10 @@ CONFIG += newrpl_firmware
 
 TEMPLATE = app
 
-DEFINES += TARGET_CALC
+DEFINES += TARGET_FIRMWARE
+
+# FIXME: Currently forcing NDEBUG in the code e.g. for PROTECT_WRITE_AREA
+DEFINES += NDEBUG
 
 # Uncomment below to compile in thumb mode
 #THUMB_MODE=-mthumb
@@ -62,17 +65,19 @@ SOURCES +=\
     firmware/sys/target_50g/exception.c \
     firmware/sys/target_50g/irq.c \
     firmware/sys/target_50g/keyboard.c \
-    firmware/sys/keybcommon.c \
     firmware/sys/target_50g/lcd.c \
     firmware/sys/target_50g/stdlib.c \
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
     firmware/sys/target_50g/flash.c \
     firmware/sys/target_50g/rtc.c \
-    firmware/sys/usbcommon.c \
     firmware/sys/target_50g/usbdriver.c \
     firmware/sys/target_50g/fwupdate.c \
     firmware/sys/target_50g/sddriver.c \
+
+# ARM-specific optimizations
+SOURCES += \
+    newrpl/mul_real_arm.c \
 
 include(newrpl.pri)
 
