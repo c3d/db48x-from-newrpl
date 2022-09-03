@@ -33,6 +33,8 @@
 #  along with BD48X.  If not, see <https://www.gnu.org/licenses/>.
 #******************************************************************************
 
+isEmpty(NEWRPL_HAL): error(Cannot build newRPL without setting a HAL)
+
 CONFIG += newrpl_$${NEWRPL_HAL}
 
 # Record build number
@@ -264,10 +266,6 @@ SOURCES += \
         firmware/ui_forms.c \
         firmware/ui_render.c \
         firmware/ui_softmenu.c \
-
-
-newrpl_primeg1:SOURCES += \
-        firmware/sys/FontNotification.c \
 
 
 # Headers for the newRPL core
