@@ -44,6 +44,8 @@
 SIMULATORS=hp50 prime
 FIRMWARES=hp39 hp40 hp48 hp50 primeg1 primeg1-multiload
 CONFIG=debug
+OS=$(shell uname -s)
+TAG=$(OS)-$(CONFIG)
 
 sim simulators: $(SIMULATORS:%=%-simulator)
 fw firmwares:  $(FIRMWARES:%=%-firmware)
@@ -54,7 +56,7 @@ help:
 	@echo "    Available simulators: $(SIMULATORS)"
 	@echo "    Available firmwares:  $(FIRMWARES)"
 
-compiler: compiler-$(CONFIG).mak recorder
+compiler: compiler-$(TAG).mak recorder
 	$(MAKE) -f $< install
 elf2rom: tools-bin/elf2rom
 tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
@@ -62,12 +64,12 @@ tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
 tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	cd tools/elf2rom && qmake $(<F) -o $(@F)
 
-%-sim %-simulator: %-simulator-$(CONFIG).mak compiler recorder .ALWAYS
+%-sim %-simulator: %-simulator-$(TAG).mak compiler recorder .ALWAYS
 	$(MAKE) -f $<
-%-fw %-firmware: %-firmware-$(CONFIG).mak compiler elf2rom .ALWAYS
+%-fw %-firmware: %-firmware-$(TAG).mak compiler elf2rom .ALWAYS
 	$(MAKE) -f $<
 
-%-$(CONFIG).mak: %.pro
+%-$(TAG).mak: %.pro
 	qmake $< CONFIG+=$(CONFIG) -o $@
 
 recorder: recorder/config.h
