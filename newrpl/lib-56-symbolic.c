@@ -1170,59 +1170,61 @@ void LIB_HANDLER()
                 rplPushData(arg2);
             }
 
-            /*
-               if( (argtype==0) || (argtype&3)) {
-               // ONE OR MORE ARGUMENTS WERE EXPLODED IN THE STACK
-               // OR BOTH ARGUMENTS ARE NON-SYMBOLIC
+            if ((argtype==0) || (argtype&3)) {
+#if 0 // c3d: Was disabled by a comment, leading to a warning about argtype not being used
+                // ONE OR MORE ARGUMENTS WERE EXPLODED IN THE STACK
+                // OR BOTH ARGUMENTS ARE NON-SYMBOLIC
 
-               // SORT ARGUMENTS BY LIBRARY NUMBER
-               WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
-               WORDPTR *left,*right;
+                // SORT ARGUMENTS BY LIBRARY NUMBER
+                WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
+                WORDPTR *left,*right;
 
-               startlimit=DSTop-(rplDepthData()-initdepth)+1;    // POINT TO SECOND ELEMENT IN THE LIST
-               endlimit=DSTop;           // POINT AFTER THE LAST ELEMENT
+                startlimit=DSTop-(rplDepthData()-initdepth)+1;    // POINT TO SECOND ELEMENT IN THE LIST
+                endlimit=DSTop;           // POINT AFTER THE LAST ELEMENT
 
-               for(ptr=startlimit;ptr<endlimit;++ptr)
-               {
-               save=*ptr;
+                for(ptr=startlimit;ptr<endlimit;++ptr)
+                {
+                    save=*ptr;
 
-               left=startlimit-1;
-               right=ptr-1;
-               if(SYMBITEMCOMPARE(*right,save)>0) {
-               if(SYMBITEMCOMPARE(save,*left)>0) {
-               while(right-left>1) {
-               if(SYMBITEMCOMPARE(*(left+(right-left)/2),save)>0) {
-               right=left+(right-left)/2;
-               }
-               else {
-               left=left+(right-left)/2;
-               }
-               }
-               } else right=left;
-               // INSERT THE POINTER RIGHT BEFORE right
-               for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
-               //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
-               *right=save;
-               }
-               }
+                    left=startlimit-1;
+                    right=ptr-1;
+                    if(SYMBITEMCOMPARE(*right,save)>0) {
+                        if(SYMBITEMCOMPARE(save,*left)>0) {
+                            while(right-left>1) {
+                                if(SYMBITEMCOMPARE(*(left+(right-left)/2),save)>0) {
+                                    right=left+(right-left)/2;
+                                }
+                                else {
+                                    left=left+(right-left)/2;
+                                }
+                            }
+                        } else right=left;
+                        // INSERT THE POINTER RIGHT BEFORE right
+                        for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
+                        //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
+                        *right=save;
+                    }
+                }
 
-               // TODO: REPLACE THIS WITH A NON-RECURSIVE SOLUTION
-               while(rplDepthData()-initdepth>1) {
-               rplCallOvrOperator(CurOpcode);
-               if(ISSYMBOLIC(*rplPeekData(1))) {
-               if(rplDepthData()-initdepth>1) rplSymbApplyOperator(CurOpcode,rplDepthData()-initdepth);
-               rplOverwriteData(3,rplPeekData(1));
-               rplDropData(2);
-               return;
 
-               }
-               }
+                // TODO: REPLACE THIS WITH A NON-RECURSIVE SOLUTION
+                while(rplDepthData()-initdepth>1) {
+                    rplCallOvrOperator(CurOpcode);
+                    if(ISSYMBOLIC(*rplPeekData(1))) {
+                        if(rplDepthData()-initdepth>1) rplSymbApplyOperator(CurOpcode,rplDepthData()-initdepth);
+                        rplOverwriteData(3,rplPeekData(1));
+                        rplDropData(2);
+                        return;
 
-               rplOverwriteData(3,rplPeekData(1));
-               rplDropData(2);
-               return;
-               }
-             */
+                    }
+                }
+
+                rplOverwriteData(3,rplPeekData(1));
+                rplDropData(2);
+                return;
+#endif // 0
+            }
+
             // OTHERWISE DO THE SYMBOLIC OPERATION
 
             //rplSymbApplyOperator(CurOpcode,2);
@@ -1231,7 +1233,6 @@ void LIB_HANDLER()
             rplOverwriteData(3, rplPeekData(1));
             rplDropData(2);
             return;
-
         }
 
             break;
