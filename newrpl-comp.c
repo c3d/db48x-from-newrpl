@@ -10,6 +10,7 @@
 #include "ui.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern void lib4079_handler();

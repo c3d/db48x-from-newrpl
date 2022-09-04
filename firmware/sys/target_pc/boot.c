@@ -7,6 +7,7 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include <stdlib.h>
 #include "../fsystem/fsyspriv.h"
 
 int __pc_terminate;
