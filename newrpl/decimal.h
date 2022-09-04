@@ -10,11 +10,6 @@
 
 #include "newrpl_types.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 // CONSTANTS COMMENTED OUT ARE DEFINED BY THE RPL CORE
 // TO USE THE LIBRARY AS STAND-ALONE, THEY ARE REQUIRED.
 
@@ -38,7 +33,13 @@ extern "C"
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#include "recorder.h"
 #define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=(WORDPTR)Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
+#endif
+
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
 #ifdef __ENABLE_ARM_ASSEMBLY__

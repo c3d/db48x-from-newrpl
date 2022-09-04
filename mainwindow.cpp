@@ -20,6 +20,8 @@
 #include "ui_mainwindow.h"
 #include "qpaletteeditor.h"
 
+#include "recorder.h"
+
 // ONLY REQUIRED UNDER MINGW
 #ifdef DrawText
 #undef DrawText

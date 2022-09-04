@@ -6,7 +6,11 @@
  */
 
 #include <ui.h>
+#include "recorder.h"
 #include "../fsystem/fsyspriv.h"
+
+
+RECORDER(boot, 16, "Information about system boot, reset and shutdown");
 
 #define enter_mode(mode) call_swi(mode)
 

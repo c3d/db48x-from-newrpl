@@ -5,9 +5,9 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include <stdio.h>
 #include <newrpl.h>
 #include <hal_api.h>
-#include <stdio.h>
 #include "fsystem.h"
 #include "nand.h"
 #include "hal_api.h"
@@ -210,15 +210,6 @@ __ARM_MODE__ __attribute__((noreturn)) void startup(int prevstate)
 //************************************************************************************
 //****** THESE ARE STUBS FROM NEWRPL, REMOVE AS SOON AS THEY ARE IMPLEMENTED *********
 
-int halGetFreePages()
-{
-    return 1;
-}
-int halGetTotalPages()
-{
-    return 1;
-}
-
 void halReset()
 {
     while(1);
@@ -234,7 +225,19 @@ void halWarmStart()
     while(1);
 }
 
-uint32_t RPLLastOpcode;
+// ENTER POWER OFF MODE
+void halEnterPowerOff()
+{
+    while(1);
+}
+
+// NEVER EXIT, THIS IS NOT AN APP, IT'S A FIRMWARE
+int halExitOuterLoop()
+{
+    return 0;
+}
+
+char __SCRATCH_MEMORY__ SERIAL_NUMBER_ADDRESS[11];
 
 //********* END OF STUBS *************************************************************
 //************************************************************************************

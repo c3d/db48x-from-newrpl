@@ -12,4 +12,6 @@
 
 FS_PUBLIC FSystem __SYSTEM_GLOBAL__;
 
+RECORDER_DEFINE(fs_errors, 16, "File system errors");
+
 #endif

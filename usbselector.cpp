@@ -10,6 +10,7 @@
 #include "hidapi.h"
 #include "usbselector.h"
 #include "ui_usbselector.h"
+#include "recorder.h"
 
 // ONLY REQUIRED UNDER MINGW
 #ifdef DrawText
@@ -1008,5 +1009,3 @@ void FWThread::run()
         emit FirmwareUpdateError(error);
     }
 }
-
-

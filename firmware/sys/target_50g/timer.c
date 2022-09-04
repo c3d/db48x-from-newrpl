@@ -346,6 +346,11 @@ tmr_t tmr_ticks()
     return ticks1 + 0x10000 - before;
 }
 
+uintptr_t recorder_tick()
+{
+    return tmr_ticks();
+}
+
 // RETURN DELAY IN MILLISECONDS
 int tmr_ticks2ms(tmr_t before, tmr_t after)
 {

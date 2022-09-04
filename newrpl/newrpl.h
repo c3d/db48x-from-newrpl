@@ -15,6 +15,7 @@
 #include "decimal.h"
 #include "fastmath.h"
 #include "sysvars.h"
+#include "recorder.h"
 
 // BUILD SYSTEM PROVIDES NEWRPL_BUILDNUM MACRO WITH THE COMMIT NUMBER
 

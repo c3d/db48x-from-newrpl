@@ -72,6 +72,6 @@ void memmovew(void *dest, const void *source, int nwords)
     }
 }
 
-#endif
+#endif // TARGET_PC
 
 // FOR OTHER TARGETS, THIS FUNCTION WILL BE SUPPLIED BY THE FIRMWARE

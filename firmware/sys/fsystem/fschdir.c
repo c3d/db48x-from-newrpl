@@ -6,10 +6,13 @@
 */
 
 #include "fsyspriv.h"
+#include <recorder.h>
 
 #ifndef CONFIG_NO_FSYSTEM
 
 // CHANGE CURRENT DIRECTORY
+
+RECORDER(fs_chdir, 4, "FSChdir function");
 
 int FSChdir(char *name)
 {
@@ -44,7 +47,7 @@ int FSChdir(char *name)
 
     if(error == FS_OK) {
 // NEWLY OPENED DIR
-//printf("chdir to new dir\n");
+        record(fs_chdir, "chdir to new dir\n");
         if(!(entry->Attr & FSATTR_DIR)) {
 // CLEANUP PROCEDURE
             while(entry != NULL)

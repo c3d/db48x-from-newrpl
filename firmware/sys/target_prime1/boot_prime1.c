@@ -181,7 +181,7 @@ void sram_startup()
 void setup_hardware()
 {
     reset_gpio();
-    
+
     *RSTCON|=0x10000;   // Clear POWEROFF_SLP bit to disable GPIO retention if we woke up from sleep
     *WDTCON=0;       // Disable Watchdog just in case
 

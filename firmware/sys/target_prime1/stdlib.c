@@ -315,3 +315,59 @@ int raise(int sig)
     UNUSED_ARGUMENT(sig);
     return 0;
 }
+
+void *memcpy(void *restrict dst, const void *restrict src, size_t len)
+{
+    char *restrict d = dst;
+    const char *restrict s = src;
+    while(len--)
+        *d++ = *s++;
+    return dst;
+}
+
+void *memset(void *buff, int c, size_t len)
+{
+    char *p = buff;
+    char b = (char) c;
+    while(len--)
+        *p = b;
+}
+
+int snprintf(char * restrict str, size_t size, const char * restrict format, ...)
+{
+    // NOT IMPLEMENTED YET
+    return 0;
+}
+
+size_t write(int fildes, const void *buf, size_t nbyte)
+{
+    // NOT IMPLEMENTED YET
+    return 0;
+}
+
+#ifdef NDEBUG
+#define FILE void
+#endif
+
+int fileno(FILE *)
+{
+    // NOT IMPLEMENTED YET
+    return 0;
+}
+
+char *strstr(const char *haystack, const char *needle)
+{
+    while (*haystack)
+    {
+        const char *n = needle;
+        const char *h = haystack;
+        while (*n && *h && *n++ == *h++)
+            ;
+        if (!*n)
+            return (char *) haystack;
+        if (!*h)
+            return NULL;
+        haystack++;
+    }
+    return NULL;
+}

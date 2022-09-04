@@ -15,6 +15,8 @@
 
 #include <fsystem.h>
 
+#include <recorder.h>
+
 #include "../sddriver.h"
 
 // MAXIMUM NUMBER OF FILES OPENED AT THE SAME TIME PER VOLUME
@@ -182,5 +184,7 @@ extern char *__fsfindcharrev(char *strstart, char *strend, char *chars);
 
 // PUBLIC DATA STRUCTURE
 extern FS_PUBLIC FSystem;
+
+RECORDER_DECLARE(fs_errors);
 
 #endif

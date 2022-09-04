@@ -7,6 +7,10 @@
 
 #include <hal_api.h>
 #include <ui.h>
+#include "recorder.h"
+
+RECORDER(exceptions, 16, "System exceptions");
+
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 
@@ -81,8 +85,8 @@ asm volatile ("msr cpsr,%0" : "=r" (tmp2));
 asm volatile ("mrs %0,spsr" : "=r" (tmp));
 
 hi_reg[7]=tmp;
-	
-return;	
+
+return;
 }
 
 
@@ -125,7 +129,7 @@ if(options&__EX_NOREG) {
     __ex_print(SCREEN_WIDTH/2-7*FNT_AVGW,FNT_HEIGHT*2,"-- EXCEPTION --");
     __ex_hline(FNT_HEIGHT*2-4);
     __ex_hline(FNT_HEIGHT*3+4);
-	
+
     __ex_print(SCREEN_WIDTH/2-(__ex_width(exstr)>>1),FNT_HEIGHT*5,exstr);
 
 
@@ -359,13 +363,13 @@ else {
 	else { a[0]='1'; a[1]=f-2+48; }
     __ex_print(SCREEN_WIDTH/2+1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 	}
-	
+
     __ex_hline(2*FNT_HEIGHT-4);
-	
+
 	a[8]=0;
-	
+
 	// DISPLAY REGISTERS
-	
+
 	for(f=0;f<8;++f)
 	{
 		for(j=7;j>=0;j--)
@@ -374,14 +378,14 @@ else {
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
         __ex_print(4*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
-		
+
 	}
 
 
 	// DISPLAY BANKED REGISTERS
-	// GET BANKED REGISTERS	
+	// GET BANKED REGISTERS
 	__ex_gethireg(hi_reg);
-	
+
 	for(f=0;f<7;++f)
 	{
 
@@ -391,7 +395,7 @@ else {
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
         __ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
-	
+
 	}
 
 		// PC
@@ -401,26 +405,26 @@ else {
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
         __ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,9*FNT_HEIGHT,a);
-		
+
 		// FLAGS
         if(hi_reg[7]&0x80000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,2*FNT_HEIGHT,"N");  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"MI");} else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"PL");
         if(hi_reg[7]&0x40000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,3*FNT_HEIGHT,"Z"); __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"EQ"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"NE");
         if(hi_reg[7]&0x20000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,4*FNT_HEIGHT,"C"); __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CS"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CC");
         if(hi_reg[7]&0x10000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,5*FNT_HEIGHT,"V");  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VS");} else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VC");
         if( (hi_reg[7]&0x60000000)==0x20000000) { __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"HI"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"LS");
-		if(  (hi_reg[7] ^ (hi_reg[7]>>3) )&0x10000000) { 
+		if(  (hi_reg[7] ^ (hi_reg[7]>>3) )&0x10000000) {
             __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"LT");
 			}
         else { if(!(hi_reg[7]&0x40000000)) __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"GT"); }
-		
+
 		if((hi_reg[7]&0x40)) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,8*FNT_HEIGHT,"F" );
 		}
 		if((hi_reg[7]&0x80)) {
         __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,8*FNT_HEIGHT,"I" );
 		}
-		
-		
+
+
 		if((hi_reg[7]&0x1f)==0x10) {
         __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"USER" );
 		}
@@ -467,7 +471,7 @@ else {
         if(hi_reg[7]&0x20) __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,10*FNT_HEIGHT,"Thumb"); else  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,10*FNT_HEIGHT,"ARM");
 }
         __ex_hline(11*FNT_HEIGHT+4*FNT_AVGW);
-		
+
 }
 
 if(options&__EX_CONT) {
@@ -515,7 +519,7 @@ if(options&__EX_RESET) {
         //pnewb[(SCREEN_HEIGHT-1)*5+3]|=0xffffffff;
         //pnewb[(SCREEN_HEIGHT-1)*5+2]|=0xc0000000;
 }
-		
+
 // WARMSTART AND RESET REQUIRE SIMULTANEOUS SHIFT OR ALPHA KEYPRESS
 
 // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
@@ -587,17 +591,17 @@ __ARM_MODE__ void __handler_dabort(void)
 
 	// RETURN TO THE NEXT INSTRUCTION AFTER DATA FAILED (DON'T RETRY)
     asm volatile ("subs pc, r14,#4");
-    
+
 	}
-	
+
 	asm volatile (".Ldohandlerexit:");
 
     /*
 	if(f==__EX_EXIT) {
-		
+
 	asm volatile ("ldr lr, .Lexit");
 	asm volatile ("b .Lretexit");
-    
+
 	}
     */
 
@@ -631,18 +635,18 @@ __ARM_MODE__ void __handler_dabort(void)
 	asm volatile ("bic %0,%1,#0xff" : "=r" (tmp) : "r" (tmp));		// CLEAN STATE BITS
     asm volatile ("orr %0,%1, #0x1f" : "=r" (tmp) : "r" (tmp));		// SET SYSTEM CPU MODE W/IRQ AND FIQ ENABLED, ARM MODE
 	asm volatile ("msr spsr,%0" : "=r" (tmp));						// SAVE USER MODE STATUS
-	
-	
+
+
 	// RESTORE ALL REGISTERS
 	asm volatile ("add sp,sp,#4");
     asm volatile ("ldmfd sp!, {r0-r12}");
 	asm volatile ("add sp,sp,#4");
 
     asm volatile ("mov r0,#-1"); 	// EXIT WITH CODE -1
-    
+
 	// RETURN DIRECTLY INTO THE exit FUNCTION
     asm volatile ("movs pc, r14");
-    
+
     asm volatile (".Lexitwarm: .word halWarmStart");
     asm volatile (".Lexitreset: .word halReset");
     asm volatile (".Lexitwipeout: .word halWipeoutWarmStart");
@@ -675,11 +679,11 @@ register unsigned int *stackptr asm("sp");
 
 	// RETURN TO THE NEXT INSTRUCTION AFTER DATA FAILED (DON'T RETRY)
     asm volatile ("movs pc, r14");
-    
+
 	}
 
 	asm volatile ("b .Ldohandlerexit");
-     
+
 }
 
 __ARM_MODE__ void __handler_und(void) __attribute__ ((naked));
@@ -697,8 +701,8 @@ register unsigned int value asm("r0");
     asm volatile ("mrs r0,spsr");
     asm volatile ("ands r0,r0,#0x20");
     asm volatile ("add r14,r14,r0,LSR #4");		// ADD 2 IF IN THUMB MODE (PC+2)
-    
-   
+
+
     asm volatile ("str r14,[sp,#-4]!");
 
     // DO NOT LOAD ANY VALUE IF IN THUMB MODE
@@ -731,11 +735,11 @@ register unsigned int value asm("r0");
 
 	// RETURN TO THE NEXT INSTRUCTION AFTER DATA FAILED (DON'T RETRY)
     asm volatile ("movs pc, r14");
-    
+
 	}
-	
+
 	asm volatile ("b .Ldohandlerexit");
-	
+
 
 }
 
@@ -788,3 +792,12 @@ void __attribute__ ((noinline)) throw_dbgexception(char * message, unsigned int 
 {
  asm volatile (".word 0xE6DDDD10");
 }
+
+
+#ifndef NDEBUG
+void exit(int rc)
+{
+    record(exceptions, "exit(%d), reseting system", rc);
+    halReset();
+}
+#endif // NDEBUG

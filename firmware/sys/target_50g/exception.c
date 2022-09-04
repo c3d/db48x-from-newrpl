@@ -7,6 +7,10 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include "recorder.h"
+
+
+RECORDER(exceptions, 16, "System exceptions");
 
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
@@ -726,3 +730,12 @@ __ARM_MODE__ void throw_dbgexception(char *message, unsigned int options)
 {
     asm volatile (".word 0xE6DDDD10");
 }
+
+
+#ifndef NDEBUG
+void exit(int rc)
+{
+    record(exceptions, "exit(%d), reseting system", rc);
+    halReset();
+}
+#endif // NDEBUG

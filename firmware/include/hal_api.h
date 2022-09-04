@@ -11,6 +11,7 @@
 #include "newrpl.h"
 #include "xgl.h"
 #include "usb.h"
+#include "recorder.h"
 
 #ifndef EXTERN
 #define EXTERN extern
@@ -1276,5 +1277,8 @@ WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT const ** font);
 void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font);
 WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font);
 void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr);
+
+
+RECORDER_DECLARE(hal_api);
 
 #endif
