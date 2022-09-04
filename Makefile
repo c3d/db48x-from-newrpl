@@ -54,7 +54,7 @@ help:
 	@echo "    Available simulators: $(SIMULATORS)"
 	@echo "    Available firmwares:  $(FIRMWARES)"
 
-compiler: compiler.mak recorder
+compiler: compiler-$(CONFIG).mak recorder
 	$(MAKE) -f $< install
 elf2rom: tools-bin/elf2rom
 tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
@@ -62,12 +62,12 @@ tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
 tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	cd tools/elf2rom && qmake $(<F) -o $(@F)
 
-%-sim %-simulator: %-simulator.mak compiler recorder
+%-sim %-simulator: %-simulator-$(CONFIG).mak compiler recorder .ALWAYS
 	$(MAKE) -f $<
-%-fw %-firmware: %-firmware.mak compiler elf2rom
+%-fw %-firmware: %-firmware-$(CONFIG).mak compiler elf2rom .ALWAYS
 	$(MAKE) -f $<
 
-%.mak: %.pro
+%-$(CONFIG).mak: %.pro
 	qmake $< CONFIG+=$(CONFIG) -o $@
 
 recorder: recorder/config.h
@@ -82,3 +82,4 @@ debug: debug-sim
 release: release-all
 
 .PRECIOUS: %.mak
+.ALWAYS:
