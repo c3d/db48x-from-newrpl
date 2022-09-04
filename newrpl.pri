@@ -140,15 +140,14 @@ SOURCES += \
         firmware/hal_clock.c \
         firmware/hal_cpu.c \
         firmware/hal_globals.c \
+        firmware/hal_keyboard.c \
 
 !newrpl_primeg1:SOURCES += \
         firmware/hal_battery.c \
-        firmware/hal_keyboard.c \
         firmware/hal_screen.c \
 
 newrpl_primeg1:SOURCES += \
         firmware/hal_battery_primeg1.c \
-        firmware/hal_keyboard_primeg1.c \
         firmware/hal_screen_primeg1.c \
 
 # Graphics

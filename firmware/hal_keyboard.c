@@ -6,6 +6,7 @@
  */
 
 // THIS IS THE MAIN STABLE API FOR KEYBOARD ACCESS
+// KEYBOARD RESPONSE IS CUSTOMIZED FOR HP PRIME G1 TARGET
 
 #include <cmdcodes.h>
 #include <fsystem.h>
@@ -76,7 +77,8 @@ static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, BINT flags, BY
 
 BINT halWaitForKey()
 {
-    int keymsg, wokeup;
+    unsigned keymsg;
+    int wokeup;
 
     if(!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0)) {
         tmr_eventkill(halBusyEvent);
@@ -128,7 +130,8 @@ void timeouthandler()
 
 BINT halWaitForKeyTimeout(BINT timeoutms)
 {
-    int keymsg, wokeup;
+    unsigned keymsg;
+    int wokeup;
 
     if(!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0)) {
         tmr_eventkill(halBusyEvent);
@@ -1171,6 +1174,11 @@ void transpcmdKeyHandler(WORD Opcode)
 
 void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 {
+#ifdef TARGET_PRIME1
+    // SWITCH MENUS
+    if(halKeyMenuSwitch)
+        menunum = (menunum==2) ? 1 : 2;
+#endif /* TARGET_PRIME1 */
     if(KM_MESSAGE(keymsg) == KM_LPRESS) {
         // ENTER MENU HELP MODE
         // KILL ANY PENDING POPUPS
@@ -4169,20 +4177,36 @@ void onPlusKeyHandler(WORD keymsg)
 
     // INCREASE CONTRAST
     DRAWSURFACE scr;
+#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
+#else /* TARGET_PRIME1 */
+    cgl_initscr(&scr);
+#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
+#ifndef TARGET_PRIME1
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
             ytop + halScreen.Menu2 - 1, 0);
+#else /* TARGET_PRIME1 */
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
+#endif /* TARGET_PRIME1 */
 
     int j;
     for(j = 0; j < 15; ++j) {
+#ifndef TARGET_PRIME1
         ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
                 STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
         ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
                 STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+#else /* TARGET_PRIME1 */
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, cgl_mkcolor(j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, cgl_mkcolor(15 - j));
+#endif /* TARGET_PRIME1 */
     }
 
     __lcd_contrast++;
@@ -4206,20 +4230,36 @@ void onMinusKeyHandler(WORD keymsg)
 
     // DECREASE CONTRAST
     DRAWSURFACE scr;
+#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
+#else /* TARGET_PRIME1 */
+    cgl_initscr(&scr);
+#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
+#ifndef TARGET_PRIME1
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
             ytop + halScreen.Menu2 - 1, 0);
+#else /* TARGET_PRIME1 */
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
+#endif /* TARGET_PRIME1 */
 
     int j;
     for(j = 0; j < 15; ++j) {
+#ifndef TARGET_PRIME1
         ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
                 STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
         ggl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
                 STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+#else /* TARGET_PRIME1 */
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop + 7,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 12, cgl_mkcolor(j));
+        cgl_rect(&scr, STATUSAREA_X + 1 + 3 * j, ytop,
+                STATUSAREA_X + 1 + 3 * j + 2, ytop + 5, cgl_mkcolor(15 - j));
+#endif /* TARGET_PRIME1 */
     }
 
     __lcd_contrast--;
@@ -4270,19 +4310,36 @@ void onDotKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
+#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
+#else /* TARGET_PRIME1 */
+    cgl_initscr(&scr);
+#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
+#ifndef TARGET_PRIME1
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
             ytop + halScreen.Menu2 - 1, 0);
+#else /* TARGET_PRIME1 */
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
+#endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Format:",
+#ifndef TARGET_PRIME1
             *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+#else /* TARGET_PRIME1 */
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+#endif /* TARGET_PRIME1 */
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+#ifndef TARGET_PRIME1
             (char *)options[option], *halScreen.FontArray[FONT_STATUS], 0xf, 0,
+#else /* TARGET_PRIME1 */
+            (char *)options[option], *halScreen.FontArray[FONT_STATUS],cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND),
+#endif /* TARGET_PRIME1 */
             &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4701,19 +4758,36 @@ void onUpDownKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     DRAWSURFACE scr;
+#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
+#else /* TARGET_PRIME1 */
+    cgl_initscr(&scr);
+#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
+#ifndef TARGET_PRIME1
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
             ytop + halScreen.Menu2 - 1, 0);
+#else /* TARGET_PRIME1 */
+    cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
+            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
+#endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "System precision:",
+#ifndef TARGET_PRIME1
             *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+#else /* TARGET_PRIME1 */
+            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND), &scr);
+#endif /* TARGET_PRIME1 */
     DrawTextBk(STATUSAREA_X + 1,
             ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+#ifndef TARGET_PRIME1
             digits_string, *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+#else /* TARGET_PRIME1 */
+            digits_string, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+#endif /* TARGET_PRIME1 */
 
     halScreen.DirtyFlag |= STACK_DIRTY;
 
@@ -5239,6 +5313,22 @@ void formswitcherKeyHandler(WORD keymsg)
     halSwitch2Form();
     return;
 }
+
+#ifdef TARGET_PRIME1
+void switchmenukeysKeyHandler(WORD keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+
+    // TODO: Just toggle a flag that the key handlers read and act on menu 1 or 2
+    halKeyMenuSwitch^=1;
+
+    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
+
+    return;
+}
+#endif /* TARGET_PRIME1 */
+
 
 void basecycleKeyHandler(WORD keymsg)
 {
@@ -6227,92 +6317,105 @@ void explodeKeyHandler(WORD keymsg)
 }
 
 DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
-        DECLARE_SYMBKEYHANDLER(hash, "#", 0)
-        DECLARE_SYMBKEYHANDLER(equal, "=", 1)
-        DECLARE_SYMBKEYHANDLER(notequal, "≠", 1)
-        DECLARE_SYMBKEYHANDLER(ls, "<", 1)
-        DECLARE_SYMBKEYHANDLER(gt, ">", 1)
-        DECLARE_SYMBKEYHANDLER(le, "≤", 1)
-        DECLARE_SYMBKEYHANDLER(ge, "≥", 1)
-        DECLARE_SYMBKEYHANDLER(sadd, "+", 0)
-        DECLARE_SYMBKEYHANDLER(ssub, "-", 0)
-        DECLARE_SYMBKEYHANDLER(smul, "*", 0)
-        DECLARE_SYMBKEYHANDLER(sdiv, "/", 0)
-        DECLARE_SYMBKEYHANDLER(spow, "^", 0)
-        DECLARE_KEYHANDLER(sub0, "₀", "⁰")
-        DECLARE_KEYHANDLER(sub1, "₁", "¹")
-        DECLARE_KEYHANDLER(sub2, "₂", "²")
-        DECLARE_KEYHANDLER(sub3, "₃", "³")
-        DECLARE_KEYHANDLER(sub4, "₄", "⁴")
-        DECLARE_KEYHANDLER(sub5, "₅", "⁵")
-        DECLARE_KEYHANDLER(sub6, "₆", "⁶")
-        DECLARE_KEYHANDLER(sub7, "₇", "⁷")
-        DECLARE_KEYHANDLER(sub8, "₈", "⁸")
-        DECLARE_KEYHANDLER(sub9, "₉", "⁹")
-        DECLARE_SYMBKEYHANDLER(keyx, "X", 0)
-        DECLARE_CMDKEYHANDLER(clear, CMD_CLEAR, "CLEAR", -1)
-        DECLARE_CMDKEYHANDLER(add, (CMD_OVR_ADD), "+", 0)
-        DECLARE_CMDKEYHANDLER(sub, (CMD_OVR_SUB), "-", 0)
-        DECLARE_CMDKEYHANDLER(div, (CMD_OVR_DIV), "/", 0)
-        DECLARE_CMDKEYHANDLER(mul, (CMD_OVR_MUL), "*", 0)
-        DECLARE_CMDKEYHANDLER(fact, (CMD_FACTORIAL), "!", 0)
-        DECLARE_CMDKEYHANDLER(inv, (CMD_OVR_INV), "INV", 1)
-        DECLARE_CMDKEYHANDLER(sin, CMD_SIN, "SIN", 1)
-        DECLARE_CMDKEYHANDLER(asin, CMD_ASIN, "ASIN", 1)
-        DECLARE_CMDKEYHANDLER(sinh, CMD_SINH, "SINH", 1)
-        DECLARE_CMDKEYHANDLER(asinh, CMD_ASINH, "ASINH", 1)
-        DECLARE_CMDKEYHANDLER(cos, CMD_COS, "COS", 1)
-        DECLARE_CMDKEYHANDLER(acos, CMD_ACOS, "ACOS", 1)
-        DECLARE_CMDKEYHANDLER(cosh, CMD_COSH, "COSH", 1)
-        DECLARE_CMDKEYHANDLER(acosh, CMD_ACOSH, "ACOSH", 1)
-        DECLARE_CMDKEYHANDLER(tan, CMD_TAN, "TAN", 1)
-        DECLARE_CMDKEYHANDLER(atan, CMD_ATAN, "ATAN", 1)
-        DECLARE_CMDKEYHANDLER(tanh, CMD_TANH, "TANH", 1)
-        DECLARE_CMDKEYHANDLER(atanh, CMD_ATANH, "ATANH", 1)
-        DECLARE_CMDKEYHANDLER(eval, (CMD_OVR_EVAL), "EVAL", -1)
-        DECLARE_CMDKEYHANDLER(eval1, (CMD_OVR_EVAL1), "EVAL1", -1)
-        DECLARE_CMDKEYHANDLER(tonum, (CMD_OVR_NUM), "→NUM", -1)
-        DECLARE_CMDKEYHANDLER(tofrac, (CMD_TOFRACTION), "→Q", -1)
-        DECLARE_CMDKEYHANDLER(sqrt, CMD_SQRT, "√", 0)
-        DECLARE_CMDKEYHANDLER(pow, (CMD_OVR_POW), "^", 0)
-        DECLARE_CMDKEYHANDLER(ln, CMD_LN, "LN", 1)
-        DECLARE_CMDKEYHANDLER(exp, CMD_EXP, "EXP", 1)
-        DECLARE_CMDKEYHANDLER(log, CMD_LOG, "LOG", 1)
-        DECLARE_CMDKEYHANDLER(alog, CMD_ALOG, "ALOG", 1)
-        DECLARE_CMDKEYHANDLER(sq, CMD_SQ, "SQ", 1)
-        DECLARE_CMDKEYHANDLER(xroot, (CMD_OVR_XROOT), "XROOT", 1)
-        DECLARE_CMDKEYHANDLER(sto, CMD_STO, "STO", 2)
-        DECLARE_CMDKEYHANDLER(rcl, CMD_RCL, "RCL", 2)
-        DECLARE_CMDKEYHANDLER(purge, CMD_PURGE, "PURGE", -1)
-        DECLARE_CMDKEYHANDLER(abs, CMD_OVR_ABS, "ABS", 1)
-        DECLARE_CMDKEYHANDLER(arg, CMD_ARG, "ARG", 1)
-        DECLARE_CMDKEYHANDLER(convert, CMD_CONVERT, "CONVERT", -1)
-        DECLARE_CMDKEYHANDLER(cont, CMD_CONT, "CONT", -1)
-        DECLARE_TRANSPCMDKEYHANDLER(updir, CMD_UPDIR)
-        DECLARE_TRANSPCMDKEYHANDLER(home, CMD_HOME)
-        DECLARE_TRANSPCMDKEYHANDLER(menuswap, CMD_MENUSWAP)
-        DECLARE_MENUKEYHANDLER(unitmenu, MKMENUCODE(0, DOUNIT, 0, 0))
-        DECLARE_MENUKEYHANDLER(prgmenu, MKMENUCODE(0, 68, 3, 0))
-        DECLARE_MENUKEYHANDLER(varsmenu, MKMENUCODE(1, 0, 0, 0))
-        DECLARE_MENUKEYHANDLER(mainmenu, MKMENUCODE(0, 68, 2, 0))
-        DECLARE_MENUKEYHANDLER(arithmenu, MKMENUCODE(0, 64, 0, 0))
-        DECLARE_MENUKEYHANDLER(cplxmenu, MKMENUCODE(0, 30, 0, 0))
-        DECLARE_MENUKEYHANDLER(timemenu, MKMENUCODE(0, 65, 0, 0))
-        DECLARE_MENUKEYHANDLER(basemenu, MKMENUCODE(0, 70, 0, 0))
-        DECLARE_MENUKEYHANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0))
-        DECLARE_MENUKEYHANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0))
-        DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
-     void cancelKeyHandler(WORD keymsg)
+DECLARE_SYMBKEYHANDLER(hash, "#", 0)
+DECLARE_SYMBKEYHANDLER(equal, "=", 1)
+DECLARE_SYMBKEYHANDLER(notequal, "≠", 1)
+DECLARE_SYMBKEYHANDLER(ls, "<", 1)
+DECLARE_SYMBKEYHANDLER(gt, ">", 1)
+DECLARE_SYMBKEYHANDLER(le, "≤", 1)
+DECLARE_SYMBKEYHANDLER(ge, "≥", 1)
+DECLARE_SYMBKEYHANDLER(sadd, "+", 0)
+DECLARE_SYMBKEYHANDLER(ssub, "-", 0)
+DECLARE_SYMBKEYHANDLER(smul, "*", 0)
+DECLARE_SYMBKEYHANDLER(sdiv, "/", 0)
+DECLARE_SYMBKEYHANDLER(spow, "^", 0)
+DECLARE_KEYHANDLER(sub0, "₀", "⁰")
+DECLARE_KEYHANDLER(sub1, "₁", "¹")
+DECLARE_KEYHANDLER(sub2, "₂", "²")
+DECLARE_KEYHANDLER(sub3, "₃", "³")
+DECLARE_KEYHANDLER(sub4, "₄", "⁴")
+DECLARE_KEYHANDLER(sub5, "₅", "⁵")
+DECLARE_KEYHANDLER(sub6, "₆", "⁶")
+DECLARE_KEYHANDLER(sub7, "₇", "⁷")
+DECLARE_KEYHANDLER(sub8, "₈", "⁸")
+DECLARE_KEYHANDLER(sub9, "₉", "⁹")
+DECLARE_SYMBKEYHANDLER(keyx, "X", 0)
+DECLARE_CMDKEYHANDLER(clear, CMD_CLEAR, "CLEAR", -1)
+DECLARE_CMDKEYHANDLER(add, (CMD_OVR_ADD), "+", 0)
+DECLARE_CMDKEYHANDLER(sub, (CMD_OVR_SUB), "-", 0)
+DECLARE_CMDKEYHANDLER(div, (CMD_OVR_DIV), "/", 0)
+DECLARE_CMDKEYHANDLER(mul, (CMD_OVR_MUL), "*", 0)
+DECLARE_CMDKEYHANDLER(fact, (CMD_FACTORIAL), "!", 0)
+DECLARE_CMDKEYHANDLER(inv, (CMD_OVR_INV), "INV", 1)
+DECLARE_CMDKEYHANDLER(sin, CMD_SIN, "SIN", 1)
+DECLARE_CMDKEYHANDLER(asin, CMD_ASIN, "ASIN", 1)
+DECLARE_CMDKEYHANDLER(sinh, CMD_SINH, "SINH", 1)
+DECLARE_CMDKEYHANDLER(asinh, CMD_ASINH, "ASINH", 1)
+DECLARE_CMDKEYHANDLER(cos, CMD_COS, "COS", 1)
+DECLARE_CMDKEYHANDLER(acos, CMD_ACOS, "ACOS", 1)
+DECLARE_CMDKEYHANDLER(cosh, CMD_COSH, "COSH", 1)
+DECLARE_CMDKEYHANDLER(acosh, CMD_ACOSH, "ACOSH", 1)
+DECLARE_CMDKEYHANDLER(tan, CMD_TAN, "TAN", 1)
+DECLARE_CMDKEYHANDLER(atan, CMD_ATAN, "ATAN", 1)
+DECLARE_CMDKEYHANDLER(tanh, CMD_TANH, "TANH", 1)
+DECLARE_CMDKEYHANDLER(atanh, CMD_ATANH, "ATANH", 1)
+DECLARE_CMDKEYHANDLER(eval, (CMD_OVR_EVAL), "EVAL", -1)
+DECLARE_CMDKEYHANDLER(eval1, (CMD_OVR_EVAL1), "EVAL1", -1)
+DECLARE_CMDKEYHANDLER(tonum, (CMD_OVR_NUM), "→NUM", -1)
+DECLARE_CMDKEYHANDLER(tofrac, (CMD_TOFRACTION), "→Q", -1)
+DECLARE_CMDKEYHANDLER(sqrt, CMD_SQRT, "√", 0)
+DECLARE_CMDKEYHANDLER(pow, (CMD_OVR_POW), "^", 0)
+DECLARE_CMDKEYHANDLER(ln, CMD_LN, "LN", 1)
+DECLARE_CMDKEYHANDLER(exp, CMD_EXP, "EXP", 1)
+DECLARE_CMDKEYHANDLER(log, CMD_LOG, "LOG", 1)
+DECLARE_CMDKEYHANDLER(alog, CMD_ALOG, "ALOG", 1)
+DECLARE_CMDKEYHANDLER(sq, CMD_SQ, "SQ", 1)
+DECLARE_CMDKEYHANDLER(xroot, (CMD_OVR_XROOT), "XROOT", 1)
+DECLARE_CMDKEYHANDLER(sto, CMD_STO, "STO", 2)
+DECLARE_CMDKEYHANDLER(rcl, CMD_RCL, "RCL", 2)
+DECLARE_CMDKEYHANDLER(purge, CMD_PURGE, "PURGE", -1)
+DECLARE_CMDKEYHANDLER(abs, CMD_OVR_ABS, "ABS", 1)
+DECLARE_CMDKEYHANDLER(arg, CMD_ARG, "ARG", 1)
+DECLARE_CMDKEYHANDLER(convert, CMD_CONVERT, "CONVERT", -1)
+DECLARE_CMDKEYHANDLER(cont, CMD_CONT, "CONT", -1)
+DECLARE_TRANSPCMDKEYHANDLER(updir, CMD_UPDIR)
+DECLARE_TRANSPCMDKEYHANDLER(home, CMD_HOME)
+DECLARE_TRANSPCMDKEYHANDLER(menuswap, CMD_MENUSWAP)
+DECLARE_MENUKEYHANDLER(unitmenu, MKMENUCODE(0, DOUNIT, 0, 0))
+DECLARE_MENUKEYHANDLER(prgmenu, MKMENUCODE(0, 68, 3, 0))
+DECLARE_MENUKEYHANDLER(varsmenu, MKMENUCODE(1, 0, 0, 0))
+DECLARE_MENUKEYHANDLER(mainmenu, MKMENUCODE(0, 68, 2, 0))
+DECLARE_MENUKEYHANDLER(arithmenu, MKMENUCODE(0, 64, 0, 0))
+DECLARE_MENUKEYHANDLER(cplxmenu, MKMENUCODE(0, 30, 0, 0))
+DECLARE_MENUKEYHANDLER(timemenu, MKMENUCODE(0, 65, 0, 0))
+DECLARE_MENUKEYHANDLER(basemenu, MKMENUCODE(0, 70, 0, 0))
+DECLARE_MENUKEYHANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0))
+DECLARE_MENUKEYHANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0))
+DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
+
+#ifdef TARGET_PRIME1
+void powerOffKeyHandler(WORD keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+    // SHIFT-ON MEANS POWER OFF!
+    halPreparePowerOff();
+    halEnterPowerOff();
+    return;
+}
+#endif /* TARGET_PRIME1 */
+
+void cancelKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
+#ifndef TARGET_PRIME1
     if(halGetNotification(N_RIGHTSHIFT)) {
         // SHIFT-ON MEANS POWER OFF!
         halPreparePowerOff();
         halEnterPowerOff();
         return;
-
     }
+#endif /* TARGET_PRIME1 */
 
     if(halGetNotification(N_LEFTSHIFT)) {
         // THIS IS CONTINUE
@@ -6337,6 +6440,7 @@ DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
     }
 
 }
+
 
 // **************************************************************************
 // ******************* END OF DEFAULT KEY HANDLERS **************************
@@ -6381,7 +6485,19 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_DOT | SHIFT_ALPHA, CONTEXT_ANY, &decimaldotKeyHandler},
 
 // BASIC ON AND SHIFTS
+#ifndef TARGET_PRIME1
     {KM_KEYDN | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_LS, CONTEXT_ANY, &cancelKeyHandler},
+    {KM_PRESS | KB_ON | SHIFT_RS, CONTEXT_ANY, &cancelKeyHandler},
+
+    {KM_PRESS | KB_RSHIFT | SHIFT_ONHOLD, CONTEXT_ANY, &powerOffKeyHandler},
+    {KM_PRESS | KB_RSHIFT | SHIFT_ONHOLD | SHIFT_ALPHA, CONTEXT_ANY, &powerOffKeyHandler},
+#endif /* TARGET_PRIME1 */
 
     {KM_PRESS | KB_ALPHA | SHIFT_RS, CONTEXT_ANY, &shiftedalphaKeyHandler},
     {KM_PRESS | KB_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, &shiftedalphaKeyHandler},
@@ -6472,12 +6588,17 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_DN | SHIFT_ALPHAHOLD | SHIFT_ALPHA, CONTEXT_ANY,
                 &alphaholddownKeyHandler},
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_DOT | SHIFT_RS, CONTEXT_ANY, &newlineKeyHandler},
     {KM_PRESS | KB_DOT | SHIFT_RSHOLD, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                &newlineKeyHandler},
+    {KM_PRESS | KB_DOT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
+    {KM_PRESS | KB_DOT | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ENT | SHIFT_RS, CONTEXT_ANY, &newlineKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RSHOLD, CONTEXT_ANY, &newlineKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
+#endif /* TARGET_PRIME1 */
 
 // BASIC OPERATORS
     {KM_PRESS | KB_ADD, CONTEXT_ANY, &addKeyHandler},
@@ -6486,12 +6607,16 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_MUL, CONTEXT_ANY, &mulKeyHandler},
     {KM_PRESS | KB_ADD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sadd)},
     {KM_PRESS | KB_SUB | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ssub)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY,
-                KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(sdiv)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_MUL | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(smul)},
 
+#ifndef TARGET_PRIME1
 // VARS MENU KEYS
     {KM_PRESS | KB_G, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
     {KM_PRESS | KB_G | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
@@ -6588,63 +6713,161 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_F | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
     {KM_LPRESS | KB_F, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
     {KM_KEYUP | KB_F, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+#else /* TARGET_PRIME1 */
+
+// VARS MENU KEYS - Variant #2 - only 6 keys for 1 menu
+
+    {KM_PRESS | KB_SYM, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_PRESS | KB_SYM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_PRESS | KB_SYM | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_PRESS | KB_SYM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_PRESS | KB_SYM | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_LPRESS | KB_SYM, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+    {KM_KEYUP | KB_SYM, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
+
+    {KM_PRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_PRESS | KB_PLT | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_LPRESS | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+    {KM_KEYUP | KB_PLT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
+
+    {KM_PRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_PRESS | KB_NUM | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_LPRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+    {KM_KEYUP | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
+
+    {KM_PRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_PRESS | KB_HLP | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_LPRESS | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+    {KM_KEYUP | KB_HLP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
+
+    {KM_PRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_PRESS | KB_VIE | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_LPRESS | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+    {KM_KEYUP | KB_VIE, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
+
+    {KM_PRESS | KB_MEN, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_PRESS | KB_MEN | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_PRESS | KB_MEN | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_PRESS | KB_MEN | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_PRESS | KB_MEN | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_LPRESS | KB_MEN, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+    {KM_KEYUP | KB_MEN, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
+
+    {KM_PRESS | KB_CAS, CONTEXT_ANY, KEYHANDLER_NAME(switchmenukeys)},
+
+#endif /* TARGET_PRIME1 */
 
 // NORMAL COMMANDS/FUNCTIONS
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Y, CONTEXT_ANY, &invKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_N, CONTEXT_ANY, &invKeyHandler},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_SPC, CONTEXT_ANY, &spcKeyHandler},
     {KM_REPEAT | KB_SPC, CONTEXT_ANY, &spcKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_ALPHA, CONTEXT_ANY, &spcKeyHandler},
     {KM_REPEAT | KB_SPC | SHIFT_ALPHA, CONTEXT_ANY, &spcKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_ALPHAHOLD, CONTEXT_ANY, &thinspcKeyHandler},
     {KM_REPEAT | KB_SPC | SHIFT_ALPHAHOLD, CONTEXT_ANY, &thinspcKeyHandler},
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_W, CONTEXT_ANY, &chsKeyHandler},
     {KM_PRESS | KB_V, CONTEXT_ANY, &eexKeyHandler},
     {KM_PRESS | KB_ADD | SHIFT_LS, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &curlyBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &curlyBracketKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_M, CONTEXT_ANY, &chsKeyHandler},
+    {KM_PRESS | KB_P, CONTEXT_ANY, &eexKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_LS, CONTEXT_ANY, &curlyBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &curlyBracketKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_ADD | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &secoBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
     {KM_PRESS | KB_SUB | SHIFT_LS, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_SUB | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &parenBracketKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &parenBracketKeyHandler},
     {KM_PRESS | KB_MUL | SHIFT_LS, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &squareBracketKeyHandler},
+    {KM_PRESS | KB_MUL | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &squareBracketKeyHandler},
     {KM_PRESS | KB_MUL | SHIFT_RS, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &textBracketKeyHandler},
+    {KM_PRESS | KB_MUL | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &textBracketKeyHandler},
     {KM_PRESS | KB_O, CONTEXT_ANY, &ticksKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY,
-                &secoBracketKeyHandler},
-    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &secoBracketKeyHandler},
-    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                &parenBracketKeyHandler},
-    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &parenBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY,
-                &textBracketKeyHandler},
-    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &textBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &curlyBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &curlyBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_8 | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &curlyBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &curlyBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_8 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &secoBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &secoBracketKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &parenBracketKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &parenBracketKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_N | SHIFT_LS, CONTEXT_ANY, &parenBracketKeyHandler},
+    {KM_PRESS | KB_N | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &parenBracketKeyHandler},
+    {KM_PRESS | KB_N | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &parenBracketKeyHandler},
+    {KM_PRESS | KB_N | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &parenBracketKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &squareBracketKeyHandler},
+    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &squareBracketKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_5 | SHIFT_LS, CONTEXT_ANY, &squareBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &squareBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, &squareBracketKeyHandler},
+    {KM_PRESS | KB_5 | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &squareBracketKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &textBracketKeyHandler},
+    {KM_PRESS | KB_MUL | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &textBracketKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_0 | SHIFT_RS, CONTEXT_ANY, &textBracketKeyHandler},
+    {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &textBracketKeyHandler},
+    {KM_PRESS | KB_0 | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &textBracketKeyHandler},
+    {KM_PRESS | KB_0 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &textBracketKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifdef TARGET_PRIME1
+    {KM_PRESS | KB_O, CONTEXT_ANY, &ticksKeyHandler},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_O | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &ticksKeyHandler},
-    {KM_PRESS | KB_O | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &ticksKeyHandler},
+    {KM_PRESS | KB_O | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &ticksKeyHandler},
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_DOT | SHIFT_LS, CONTEXT_ANY, &tagKeyHandler},
     {KM_PRESS | KB_DOT | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &tagKeyHandler},
-    {KM_PRESS | KB_DOT | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                KEYHANDLER_NAME(colon)},
-    {KM_PRESS | KB_DOT | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(colon)},
+    {KM_PRESS | KB_DOT | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
+    {KM_PRESS | KB_DOT | SHIFT_ALPHA | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SUB | SHIFT_RS, CONTEXT_ANY, &tagKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &tagKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
+    {KM_PRESS | KB_SUB | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
+#endif /* TARGET_PRIME1 */
 
     {KM_PRESS | KB_ADD | SHIFT_ONHOLD, CONTEXT_ANY, &onPlusKeyHandler},
     {KM_PRESS | KB_SUB | SHIFT_ONHOLD, CONTEXT_ANY, &onMinusKeyHandler},
@@ -6652,7 +6875,11 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_DOT | SHIFT_ONHOLD, CONTEXT_ANY, &onDotKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_ONHOLD, CONTEXT_ANY, &onSpcKeyHandler},
     {KM_PRESS | KB_MUL | SHIFT_ONHOLD, CONTEXT_ANY, &onMulDivKeyHandler},
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Z | SHIFT_ONHOLD, CONTEXT_ANY, &onMulDivKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_DIV | SHIFT_ONHOLD, CONTEXT_ANY, &onMulDivKeyHandler},
+#endif /* TARGET_PRIME1 */
 
     {KM_PRESS | KB_UP | SHIFT_ONHOLD, CONTEXT_ANY, &onUpDownKeyHandler},
     {KM_REPEAT | KB_UP | SHIFT_ONHOLD, CONTEXT_ANY, &onUpDownKeyHandler},
@@ -6670,29 +6897,62 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_8 | SHIFT_ONHOLD, CONTEXT_ANY, &onDigitKeyHandler},
     {KM_PRESS | KB_9 | SHIFT_ONHOLD, CONTEXT_ANY, &onDigitKeyHandler},
 
+#ifndef TARGET_PRIME1
     {KM_LPRESS | KB_J | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
     {KM_PRESS | KB_J | SHIFT_ONHOLD, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
     {KM_PRESS | KB_B | SHIFT_ONHOLD, CONTEXT_ANY, &onBKeyHandler},
+#endif /* ! TARGET_PRIME1 */
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_0 | SHIFT_LS, CONTEXT_ANY, &infinityKeyHandler},
-    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                &undinfinityKeyHandler},
-    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                &infinityKeyHandler},
-    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                &undinfinityKeyHandler},
+    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &undinfinityKeyHandler},
+#else /* TARGET_PRIME1 */
+    { KM_PRESS  | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
+    { KM_LPRESS | KB_MEN | SHIFT_ONHOLD, CONTEXT_ANY, &onVarKeyHandler},
+    { KM_PRESS  | KB_B | SHIFT_ONHOLD, CONTEXT_ANY, &onBKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, &infinityKeyHandler},
+    {KM_PRESS | KB_0 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, &undinfinityKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler},
+    {KM_PRESS | KB_9 | SHIFT_LS, CONTEXT_ANY, &infinityKeyHandler},
+    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &undinfinityKeyHandler},
+    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, &undinfinityKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_0 | SHIFT_RS, CONTEXT_ANY, &arrowKeyHandler},
     {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_RS, CONTEXT_ANY, &commaKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &commaKeyHandler},
     {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &semiKeyHandler},
-    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                &semiKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, &semiKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SPC | SHIFT_RS, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RSHOLD, CONTEXT_ANY, &arrowKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
+
+    {KM_PRESS | KB_O | SHIFT_RS, CONTEXT_ANY, &commaKeyHandler},
+    {KM_PRESS | KB_O | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &commaKeyHandler},
+
+    {KM_PRESS | KB_ADD | SHIFT_RS , CONTEXT_ANY, &semiKeyHandler},
+    {KM_PRESS | KB_ADD | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &semiKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_SUB | SHIFT_RS, CONTEXT_ANY, &underscoreKeyHandler},
-    {KM_PRESS | KB_SUB | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &underscoreKeyHandler},
-    {KM_PRESS | KB_SUB | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                &underscoreKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &underscoreKeyHandler},
+    {KM_PRESS | KB_SUB | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, &underscoreKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SPC | SHIFT_LS, CONTEXT_ANY, &underscoreKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &underscoreKeyHandler},
+    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, &underscoreKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_S, CONTEXT_ANY, &sinKeyHandler},
     {KM_PRESS | KB_T, CONTEXT_ANY, &cosKeyHandler},
     {KM_PRESS | KB_U, CONTEXT_ANY, &tanKeyHandler},
@@ -6715,74 +6975,166 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_N, CONTEXT_ANY, &evalKeyHandler},
     {KM_LPRESS | KB_N, CONTEXT_ANY, &eval1KeyHandler},
     {KM_PRESS | KB_ENT | SHIFT_RS, CONTEXT_ANY, &tonumKeyHandler},
-    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                &tonumKeyHandler},
+    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &tonumKeyHandler},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_G, CONTEXT_ANY, &sinKeyHandler},
+    {KM_PRESS | KB_H, CONTEXT_ANY, &cosKeyHandler},
+    {KM_PRESS | KB_I, CONTEXT_ANY, &tanKeyHandler},
+    {KM_PRESS | KB_G | SHIFT_LS, CONTEXT_ANY, &asinKeyHandler},
+    {KM_PRESS | KB_H | SHIFT_LS, CONTEXT_ANY, &acosKeyHandler},
+    {KM_PRESS | KB_I | SHIFT_LS, CONTEXT_ANY, &atanKeyHandler},
+    {KM_PRESS | KB_G | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &asinKeyHandler},
+    {KM_PRESS | KB_H | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &acosKeyHandler},
+    {KM_PRESS | KB_I | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &atanKeyHandler},
+    {KM_LPRESS | KB_G, CONTEXT_ANY, &sinhKeyHandler},
+    {KM_LPRESS | KB_H, CONTEXT_ANY, &coshKeyHandler},
+    {KM_LPRESS | KB_I, CONTEXT_ANY, &tanhKeyHandler},
+    {KM_LPRESS | KB_G | SHIFT_LS, CONTEXT_ANY, &asinhKeyHandler},
+    {KM_LPRESS | KB_H | SHIFT_LS, CONTEXT_ANY, &acoshKeyHandler},
+    {KM_LPRESS | KB_I | SHIFT_LS, CONTEXT_ANY, &atanhKeyHandler},
+    {KM_LPRESS | KB_G | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &asinhKeyHandler},
+    {KM_LPRESS | KB_H | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &acoshKeyHandler},
+    {KM_LPRESS | KB_I | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &atanhKeyHandler},
+
+    {KM_PRESS | KB_B, CONTEXT_ANY, &evalKeyHandler},
+    {KM_LPRESS | KB_B, CONTEXT_ANY, &eval1KeyHandler},
+
+    {KM_PRESS | KB_E | SHIFT_RS, CONTEXT_ANY, &tonumKeyHandler},
+    {KM_PRESS | KB_E | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, &tonumKeyHandler},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_ENT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
-    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(tofrac)},
+    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
 
     {KM_PRESS | KB_R, CONTEXT_ANY, &sqrtKeyHandler},
     {KM_PRESS | KB_Q, CONTEXT_ANY, &powKeyHandler},
     {KM_PRESS | KB_Q | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &powKeyHandler},
-    {KM_PRESS | KB_Q | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                KEYHANDLER_NAME(econst)},
-    {KM_PRESS | KB_Q | SHIFT_ALPHA | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(econst)},
+    {KM_PRESS | KB_Q | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_E , CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
+
+    {KM_PRESS | KB_F, CONTEXT_ANY, &powKeyHandler},
+    {KM_PRESS | KB_F | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, &powKeyHandler},
+    {KM_PRESS | KB_F | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
+    {KM_PRESS | KB_F | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
+
+    {KM_PRESS | KB_J | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_Q | SHIFT_ALPHA | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_J | SHIFT_ALPHA | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Q | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(exp)},
-    {KM_PRESS | KB_Q | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(exp)},
+    {KM_PRESS | KB_Q | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(exp)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_J | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(exp)},
+    {KM_PRESS | KB_J | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(exp)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Q | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(ln)},
-    {KM_PRESS | KB_Q | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(ln)},
+    {KM_PRESS | KB_Q | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(ln)},
 
     {KM_PRESS | KB_M, CONTEXT_ANY, KEYHANDLER_NAME(sto)},
     {KM_LPRESS | KB_M, CONTEXT_ANY, KEYHANDLER_NAME(purge)},
     {KM_PRESS | KB_M | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
-    {KM_PRESS | KB_M | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(rcl)},
+    {KM_PRESS | KB_M | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_J , CONTEXT_ANY, KEYHANDLER_NAME(ln)},
+    {KM_PRESS | KB_J | SHIFT_RS , CONTEXT_ANY, KEYHANDLER_NAME(econst)},
+    {KM_PRESS | KB_J | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
 
+
+    {KM_PRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(sto)},
+    {KM_LPRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(purge)},
+    {KM_PRESS | KB_A | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
+    {KM_PRESS | KB_A | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
+#endif /* TARGET_PRIME1 */
+
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_V | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
-    {KM_PRESS | KB_V | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(alog)},
+    {KM_PRESS | KB_V | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
+#else /* TARGET_PRIME1 */
+
+    {KM_PRESS | KB_K , CONTEXT_ANY, KEYHANDLER_NAME(log)},
+    {KM_PRESS | KB_K | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
+    {KM_PRESS | KB_K | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_V | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(log)},
-    {KM_PRESS | KB_V | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(log)},
+    {KM_PRESS | KB_V | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(log)},
 
     {KM_PRESS | KB_R | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(sq)},
-    {KM_PRESS | KB_R | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(sq)},
+    {KM_PRESS | KB_R | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sq)},
     {KM_PRESS | KB_R | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
-    {KM_PRESS | KB_R | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(xroot)},
+    {KM_PRESS | KB_R | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
+#endif /* ! TARGET_PRIME1 */
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Z | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
-    {KM_PRESS | KB_Z | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(abs)},
+    {KM_PRESS | KB_Z | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_L | SHIFT_LS, CONTEXT_ANY, &sqrtKeyHandler},
+    {KM_PRESS | KB_L | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, &sqrtKeyHandler},
+    {KM_PRESS | KB_L , CONTEXT_ANY, KEYHANDLER_NAME(sq)},
+
+    {KM_PRESS | KB_M | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
+    {KM_PRESS | KB_M | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Z | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
-    {KM_PRESS | KB_Z | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(arg)},
+    {KM_PRESS | KB_Z | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
+#else /* TARGET_PRIME1 */
 
+    {KM_PRESS | KB_M | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
+    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
+#endif /* TARGET_PRIME1 */
+
+
+#ifdef TARGET_PRIME1
+    // Directory navigation keys
+
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_UP | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(updir)},
-    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(updir)},
-    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(home)},
-    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(home)},
+    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(updir)},
+    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(home)},
+    {KM_PRESS | KB_UP | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(home)},
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_X, CONTEXT_ANY, KEYHANDLER_NAME(keyx)},
+#endif /* ! TARGET_PRIME1 */
 
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_6 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
-    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(convert)},
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_D, CONTEXT_ANY, KEYHANDLER_NAME(keyx)},
 
-    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(basecycle)},
-    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(basecycle)},
+    {KM_PRESS | KB_C | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
+    {KM_PRESS | KB_C | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SUB | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SUB | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
+#endif /* TARGET_PRIME1 */
 
 // LETTERS
-
     {KM_PRESS | KB_A | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(a)},
     {KM_PRESS | KB_B | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(b)},
     {KM_PRESS | KB_C | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(c)},
@@ -6799,6 +7151,7 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_N | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(n)},
     {KM_PRESS | KB_O | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(o)},
     {KM_PRESS | KB_P | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(p)},
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Q | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
     {KM_PRESS | KB_R | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
     {KM_PRESS | KB_S | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
@@ -6808,6 +7161,37 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_W | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
     {KM_PRESS | KB_X | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
     {KM_PRESS | KB_Y | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_Q | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(q)},
+    {KM_PRESS | KB_R | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(r)},
+    {KM_PRESS | KB_S | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(s)},
+    {KM_PRESS | KB_T | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(t)},
+    {KM_PRESS | KB_U | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(u)},
+    {KM_PRESS | KB_V | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(v)},
+    {KM_PRESS | KB_W | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(w)},
+    {KM_PRESS | KB_X | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(x)},
+    {KM_PRESS | KB_Y | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(z)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HOM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
+    {KM_PRESS | KB_NUM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
+    {KM_PRESS | KB_MEN | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
+    {KM_PRESS | KB_CAS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
+    {KM_PRESS | KB_APP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
+    {KM_PRESS | KB_PLT | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
+    {KM_PRESS | KB_VIE | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
+    {KM_PRESS | KB_SYM | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
+    {KM_PRESS | KB_HLP | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_HOM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(q)},
+    {KM_PRESS | KB_NUM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(r)},
+    {KM_PRESS | KB_MEN | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(s)},
+    {KM_PRESS | KB_CAS | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(t)},
+    {KM_PRESS | KB_APP | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(u)},
+    {KM_PRESS | KB_PLT | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(v)},
+    {KM_PRESS | KB_VIE | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(w)},
+    {KM_PRESS | KB_SYM | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(x)},
+    {KM_PRESS | KB_HLP | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(y)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(z)},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_DIV | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
     {KM_PRESS | KB_A | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(a)},
     {KM_PRESS | KB_B | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(b)},
@@ -6825,121 +7209,213 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_N | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(n)},
     {KM_PRESS | KB_O | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(o)},
     {KM_PRESS | KB_P | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(p)},
-    {KM_PRESS | KB_Q | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_R | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_S | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_T | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_U | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_V | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_W | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_X | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_Y | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(z)},
 
     {KM_PRESS | KB_ALPHA | SHIFT_ALPHAHOLD, CONTEXT_ANY, &alphaKeyHandler},
 
+
 // SYMBOLS
-    {KM_PRESS | KB_9 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(openquestion)},
-    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(delta)},
-    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(delta)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_9 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openquestion)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_7 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(question)},
+    {KM_PRESS | KB_7 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openquestion)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_8 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(openexclamation)},
-    {KM_PRESS | KB_1 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(approx)},
-    {KM_PRESS | KB_1 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(percent)},
-    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(exclamation)},
-    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(exclamation)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_P | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_9 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_P | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_8 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openexclamation)},
+    {KM_PRESS | KB_1 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(approx)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(approx)},
+#endif /* TARGET_PRIME1 */
+
+    {KM_PRESS | KB_1 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(percent)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_9 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openexclamation)},
+    {KM_PRESS | KB_9 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_2 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
-    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(fact)},
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_9 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
+    {KM_PRESS | KB_9 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_3 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_3 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(question)},
-    {KM_PRESS | KB_4 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(euro)},
-    {KM_PRESS | KB_4 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(dollar)},
-    {KM_PRESS | KB_5 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(pound)},
-    {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(angle)},
-    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(degree)},
-    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(degree)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_3 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(question)},
+#endif /* TARGET_PRIME1 */
+    {KM_PRESS | KB_4 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(euro)},
+    {KM_PRESS | KB_4 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(dollar)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_5 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pound)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_4 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pound)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_7 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(iconst)},
-    {KM_PRESS | KB_7 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(jconst)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_MUL | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
+    {KM_PRESS | KB_MUL | SHIFT_LS , CONTEXT_ANY, KEYHANDLER_NAME(angle)},
+#endif /* TARGET_PRIME1 */
 
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_MUL | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
+    {KM_PRESS | KB_E | SHIFT_LS , CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+    {KM_PRESS | KB_E | SHIFT_LS | SHIFT_LSHOLD , CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+    {KM_PRESS | KB_E | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+    {KM_PRESS | KB_E | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_7 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_2 | SHIFT_LS , CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_7 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD , CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
+    {KM_PRESS | KB_2 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_SPC | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(pi)},
+    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+    {KM_PRESS | KB_SPC | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_3 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(and)},
-    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(at)},
-    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(and)},
-    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(at)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
+#endif /* TARGET_PRIME1 */
 
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ADD | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_ENT | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
+    {KM_PRESS | KB_ENT | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_ADD | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_W | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
-    {KM_PRESS | KB_W | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(equal)},
+    {KM_PRESS | KB_W | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
+#else /* TARGET_PRIME1 */
+
+    {KM_PRESS | KB_DOT | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
+    {KM_PRESS | KB_DOT | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_W | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
-    {KM_PRESS | KB_W | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(notequal)},
+    {KM_PRESS | KB_W | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_DOT | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
+    {KM_PRESS | KB_DOT | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_X | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
-    {KM_PRESS | KB_X | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(ls)},
+    {KM_PRESS | KB_X | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_6 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Y | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
-    {KM_PRESS | KB_Y | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(gt)},
+    {KM_PRESS | KB_Y | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_6 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
+    {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_X | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(le)},
-    {KM_PRESS | KB_X | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(le)},
+    {KM_PRESS | KB_X | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(le)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(le)},
+    {KM_PRESS | KB_6 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(le)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_Y | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
-    {KM_PRESS | KB_Y | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(ge)},
+    {KM_PRESS | KB_Y | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
+    {KM_PRESS | KB_6 | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY,
-                KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY,
-                KEYHANDLER_NAME(backslash)},
-    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_LSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(backslash)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
+    {KM_PRESS | KB_DIV | SHIFT_ALPHA | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_DIV | SHIFT_LS | SHIFT_ALPHA , CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
+    {KM_PRESS | KB_DIV | SHIFT_LSHOLD | SHIFT_ALPHA , CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(rulesep)},
-    {KM_PRESS | KB_0 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(rulesep)},
-    {KM_PRESS | KB_2 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(giventhat)},
-    {KM_PRESS | KB_2 | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY,
-                KEYHANDLER_NAME(giventhat)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_0 | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SPC | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_0 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_SPC | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
+#endif /* TARGET_PRIME1 */
+
+    {KM_PRESS | KB_2 | SHIFT_ALPHA | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(giventhat)},
+    {KM_PRESS | KB_2 | SHIFT_ALPHA | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(giventhat)},
+
 
 // NUMBERS
 
@@ -6955,103 +7431,165 @@ const struct keyhandler_t const __keydefaulthandlers[] = {
     {KM_PRESS | KB_9 | SHIFT_ALPHAHOLD, CONTEXT_ANY, KEYHANDLER_NAME(sub9)},
 
 // MENUS
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_6 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(unitmenu)},
     {KM_PRESS | KB_N | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(prgmenu)},
     {KM_PRESS | KB_P, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
     {KM_PRESS | KB_1 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(arithmenu)},
     {KM_PRESS | KB_1 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_C | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(unitmenu)},
+    {KM_PRESS | KB_HOM, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_2 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(libsmenu)},
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_9 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(timemenu)},
     {KM_PRESS | KB_9 | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(financemenu)},
     {KM_PRESS | KB_3 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(basemenu)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HOM | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(timemenu)},
+    {KM_PRESS | KB_HOM | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(financemenu)},
+    {KM_PRESS | KB_HOM | SHIFT_LS | SHIFT_LSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(arithmenu)},
+    {KM_PRESS | KB_HOM | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu)},
+    {KM_LPRESS | KB_HOM , CONTEXT_ANY, KEYHANDLER_NAME(prgmenu)},
+
+    {KM_PRESS | KB_SUB | SHIFT_LS, CONTEXT_ANY, KEYHANDLER_NAME(basemenu)},
+#endif /* TARGET_PRIME1 */
     {KM_PRESS | KB_7 | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(numsolvermenu)},
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_M | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
-    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(backmenu1)},
-    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY,
-                KEYHANDLER_NAME(backmenu2)},
-    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(backmenu2)},
+    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_A | SHIFT_RS, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
+    {KM_PRESS | KB_A | SHIFT_RS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_A | SHIFT_RS | SHIFT_RSHOLD, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_M | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_A | SHIFT_RS | SHIFT_RSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
+#endif /* TARGET_PRIME1 */
+
 
 // FORM SWITCHER
+#ifndef TARGET_PRIME1
     {KM_LPRESS | KB_P, CONTEXT_ANY, KEYHANDLER_NAME(formswitcher)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_APP, CONTEXT_ANY, KEYHANDLER_NAME(formswitcher)},
+#endif /* TARGET_PRIME1 */
 
 // GREEK LETTERS
 
-    {KM_PRESS | KB_A | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekalpha)},
+    {KM_PRESS | KB_A | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekalpha)},
     {KM_PRESS | KB_A | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekalpha)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_B | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekbeta)},
+    {KM_PRESS | KB_B | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekbeta)},
     {KM_PRESS | KB_B | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekbeta)}, // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_C | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekgamma)},
+    {KM_PRESS | KB_C | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekgamma)},
     {KM_PRESS | KB_C | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekgammacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_D | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekdelta)},
+    {KM_PRESS | KB_D | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekdelta)},
     {KM_PRESS | KB_D | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_E | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekepsilon)},
+    {KM_PRESS | KB_E | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekepsilon)},
     {KM_PRESS | KB_E | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekepsilon)},      // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_F | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekphi)},
+    {KM_PRESS | KB_F | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekphi)},
     {KM_PRESS | KB_F | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekphicap)},       // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_G | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greeketa)},
+    {KM_PRESS | KB_G | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeketa)},
     {KM_PRESS | KB_G | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeketa)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_K | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekkappa)},
+    {KM_PRESS | KB_K | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekkappa)},
     {KM_PRESS | KB_K | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekkappa)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_L | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greeklambda)},
+    {KM_PRESS | KB_L | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeklambda)},
     {KM_PRESS | KB_L | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeklambdacap)},    // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_N | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekmu)},
+    {KM_PRESS | KB_N | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekmu)},
     {KM_PRESS | KB_N | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekmu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_O | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekomega)},
+    {KM_PRESS | KB_O | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekomega)},
     {KM_PRESS | KB_O | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekomegacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_P | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(pi)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_P | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
     {KM_PRESS | KB_P | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekpicap)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_3 | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekpicap)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_R | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greekrho)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_R | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HLP | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_R | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HLP | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_S | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greeksigma)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_S | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigma)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_VIE | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigma)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_S | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigmacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_VIE | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigmacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_T | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greektheta)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_T | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektheta)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_MEN | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektheta)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_T | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekthetacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_MEN | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekthetacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_U | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greektau)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_U | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_APP | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_U | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_APP | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_V | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greeknu)},
+#ifndef TARGET_PRIME1
+    {KM_PRESS | KB_V | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HOM | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},
+#endif /* TARGET_PRIME1 */
+
+#ifndef TARGET_PRIME1
     {KM_PRESS | KB_V | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
 
-    {KM_PRESS | KB_T | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(greektau)},
+    {KM_PRESS | KB_T | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
     {KM_PRESS | KB_T | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#else /* TARGET_PRIME1 */
+    {KM_PRESS | KB_HOM | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
+#endif /* TARGET_PRIME1 */
 
-    {KM_PRESS | KB_M | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY,
-                KEYHANDLER_NAME(micro)},
+    {KM_PRESS | KB_M | SHIFT_LS | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(micro)},
     {KM_PRESS | KB_M | SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(micro)},     // MICRO OR MICRON SYMBOL (SIMILAR TO GREEK LETTER MU)
 
     {0, 0, 0}
@@ -7315,34 +7853,75 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
     if(!keymsg)
         return 0;
 
+#ifdef TARGET_PRIME1
+    if(KM_MESSAGE(keymsg) == KM_TOUCH) {
+        // TODO: Convert touch events into keys or gestures
+        WORDPTR keyname=rplMsg2KeyName(keymsg);
+        if(keyname)
+            rplPushData(keyname);
+        else
+            rplPushFalse();
+    }
+#endif /* TARGET_PRIME1 */
+
     if(KM_MESSAGE(keymsg) == KM_SHIFT) {
         halScreenUpdated();
 
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
         if(KM_SHIFTPLANE(keymsg) & SHIFT_LS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+            {
                 halSetNotification(N_LEFTSHIFT, 0xf);
+                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+            }
             else
+            {
                 halSetNotification(N_LEFTSHIFT, 0x8);
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            }
         }
         else
+        {
             halSetNotification(N_LEFTSHIFT, 0);
+            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+        }
+
         if(KM_SHIFTPLANE(keymsg) & SHIFT_RS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+            {
                 halSetNotification(N_RIGHTSHIFT, 0xf);
+                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+            }
             else
+            {
                 halSetNotification(N_RIGHTSHIFT, 0x8);
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            }
         }
         else
+        {
             halSetNotification(N_RIGHTSHIFT, 0);
+            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+                halSetNotification(N_INTERNALSHIFTHOLD,0);
+        }
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_ALHOLD))
+            {
                 halSetNotification(N_ALPHA, 0xf);
+                halSetNotification(N_INTERNALALPHAHOLD,0xf);
+            }
             else
+            {
                 halSetNotification(N_ALPHA, 0x8);
+                halSetNotification(N_INTERNALALPHAHOLD,0);
+            }
         }
         else
+        {
             halSetNotification(N_ALPHA, 0);
+            halSetNotification(N_INTERNALALPHAHOLD,0);
+        }
 
         // UPDATE EDITOR MODE ACCORDINGLY
         int oldplane = OLDKEYSHIFT(keymsg);
@@ -7434,6 +8013,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
         if(!wasProcessed)
             wasProcessed = halDoDefaultKey(keymsg);
 
+#ifndef TARGET_PRIME1
     // *************** DEBUG ONLY ************
     /*
        if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
@@ -7494,8 +8074,8 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
        if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
 
        }
-
      */
+#endif /* ! TARGET_PRIME1 */
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     if(wasProcessed < 0)
         return 1;
@@ -7531,14 +8111,27 @@ void halDoDeferredProcess()
 
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
+#ifndef TARGET_PRIME1
 void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
+#else /* TARGET_PRIME1 */
+void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
+#endif /* TARGET_PRIME1 */
         BINT flags)
 {
+#ifndef TARGET_PRIME1
     int keymsg = 0, isidle, jobdone;
+#else /* TARGET_PRIME1 */
+    WORD keymsg = 0;
+    int isidle, jobdone;
+#endif /* TARGET_PRIME1 */
     BINT64 offcounter = 0;
 
     DRAWSURFACE scr;
+#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
+#else /* TARGET_PRIME1 */
+    cgl_initscr(&scr);
+#endif /* TARGET_PRIME1 */
     jobdone = isidle = 0;
     halTimeoutEvent = -1;
 
@@ -7595,7 +8188,11 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
         keymsg = halWaitForKeyTimeout(timeoutms);
         timeoutms = 0;
 
+#ifndef TARGET_PRIME1
         if(keymsg < 0) {
+#else /* TARGET_PRIME1 */
+        if(keymsg == 0xffffffff) {
+#endif /* TARGET_PRIME1 */
             // TIMED OUT!
             if(halTimeoutEvent >= 0)
                 tmr_eventkill(halTimeoutEvent);
@@ -7689,6 +8286,11 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
         }
         else {
             jobdone = isidle = 0;
+#ifdef TARGET_PRIME1
+            // Reset count of the battery display so it only updates when idling for a while (Prime Only)
+            extern int __bat_readcnt;
+            __bat_readcnt=1;
+#endif /* TARGET_PRIME1 */
         }
 
         halSetBusyHandler();
@@ -7707,6 +8309,9 @@ void halInitKeyboard()
 {
     keyb_setalphalock(1);
     keyb_setshiftplane(0, 0, 0, 0);
+#ifdef TARGET_PRIME1
+    halKeyMenuSwitch=0;
+#endif /* TARGET_PRIME1 */
 }
 
 // API USED BY RPL PROGRAMS TO INSERT KEY SEQUENCES TO THE KEYBOARD
@@ -7737,3 +8342,10 @@ void halPostKeyboardMessage(WORD keymsg)
     }
 
 }
+
+#ifdef TARGET_PRIME1
+void halTouch2KeyMsg()
+{
+    // TODO: Check for touch events and simulate key presses
+}
+#endif /* TARGET_PRIME1 */
