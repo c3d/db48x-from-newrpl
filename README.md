@@ -11,6 +11,7 @@ user experience.
 DB stands for "Dave and Bill".
 Dave and Bill are more commonly known as Hewlett and Packard.
 One of their great legacy is a legendary series of calculators.
+The HP48SX remains one of my favorites, and this project aims at recreating it.
 
 
 ## How to build this project
@@ -52,3 +53,13 @@ Mac, or firmware for real calculators.
 An additional target is `make compiler`, which builds a newRPL compiler intended
 to run on a computer, and places that compiler under the directory `tools-bin`.
 The compiler is automatically built if you build a simulator.
+
+
+## Credits
+
+This project heavily borrows from a number of existing projects, including:
+
+- [newRPL](https://sourceforge.net/projects/newrpl/) by Claudio Lapilli
+- [WP43S](https://gitlab.com/Over_score/wp43s) and [WP43C](https://gitlab.com/Jaymos/wp43c) for [SwissMicros DM42](https://www.swissmicros.com/product/dm42) support
+- [Emu48](http://emu48mac.sourceforge.net) for Saturn emulation
+- [HPDS 3.0](https://github.com/c3d/HPDS) for HP48 source code, including [PacMan](https://github.com/c3d/HPDS/blob/master/HP48%20Sources/Pac%20Man/PacLib.48S) and [Lemmings](https://github.com/c3d/HPDS/blob/master/HP48%20Sources/Lemmings/Lemmings%202.48S)
