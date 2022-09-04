@@ -319,7 +319,7 @@ HEADERS  += \
 
 
 #  List of RPL objects, shared by all variants
-RPL_OBJECTS = \
+!newrpl_compiler:RPL_OBJECTS = \
         newrpl/rpl-objects/lib-0.nrpl \
         newrpl/rpl-objects/lib-10.nrpl \
         newrpl/rpl-objects/lib-100.nrpl \
@@ -363,7 +363,7 @@ rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QM
 rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
-QMAKE_EXTRA_COMPILERS += rpl_compiler
+!newrpl_compiler:QMAKE_EXTRA_COMPILERS += rpl_compiler
 
 
 
