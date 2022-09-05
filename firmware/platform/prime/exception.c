@@ -798,6 +798,7 @@ void __attribute__ ((noinline)) throw_dbgexception(char * message, unsigned int 
 void exit(int rc)
 {
     record(exceptions, "exit(%d), reseting system", rc);
-    halReset();
+    while(1)
+        halReset();
 }
 #endif // NDEBUG

@@ -32,6 +32,7 @@ int *__error()
 void abort()
 {
     throw_exception("ABORT CALLED", __EX_EXIT | __EX_RESET);
+    while(1);                   // Silence [noreturn] compiler warning
 }
 
 void *memcpyb(void *trg, const void *src, int n)

@@ -737,5 +737,6 @@ void exit(int rc)
 {
     record(exceptions, "exit(%d), reseting system", rc);
     halReset();
+    while(1);
 }
 #endif // NDEBUG
