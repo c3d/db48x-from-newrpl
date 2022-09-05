@@ -142,12 +142,7 @@ SOURCES += \
         firmware/hal_globals.c \
         firmware/hal_keyboard.c \
         firmware/hal_screen.c \
-
-!newrpl_primeg1:SOURCES += \
         firmware/hal_battery.c \
-
-newrpl_primeg1:SOURCES += \
-        firmware/hal_battery_primeg1.c \
 
 # Graphics
 !newrpl_color:NEWRPL_GRAPHICS=ggl
