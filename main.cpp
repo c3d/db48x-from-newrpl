@@ -13,7 +13,7 @@
 #include <QWindow>
 #include <recorder.h>
 
-RECORDER(main, 8, "Main entry point of the simulator");
+RECORDER(main, 16, "Main entry point of the simulator");
 
 int main(int argc, char *argv[])
 {
@@ -21,6 +21,15 @@ int main(int argc, char *argv[])
     if (traces)
         recorder_trace_set(traces);
     recorder_dump_on_common_signals(0, 0);
+    record(main,
+           "Simulator build %u invoked as %+s with %d arguments",
+           NEWRPL_BUILDNUM, argv[0], argc-1);
+    for (int a = 1; a < argc; a++)
+    {
+        record(main, "  %u: %+s", a, argv[a]);
+        if (argv[a][0] == '-' && argv[a][1] == 't')
+            recorder_trace_set(argv[a]+2);
+    }
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
