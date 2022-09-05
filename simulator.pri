@@ -19,6 +19,8 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
+isEmpty(HOST):HOST = pc
+
 # WARNING: Cannot use 'simulator' here, used by Qt itself
 CONFIG += newrpl_simulator
 
@@ -28,24 +30,6 @@ TEMPLATE = app
 include(newrpl.pri)
 
 DEFINES += TARGET_PC
-
-# Support for the PC target
-SOURCES += \
-        firmware/sys/target_pc/battery.c \
-        firmware/sys/target_pc/boot.c \
-        firmware/sys/target_pc/cpu.c \
-        firmware/sys/target_pc/exception.c \
-        firmware/sys/target_pc/flash.c \
-        firmware/sys/target_pc/fwupdate.c \
-        firmware/sys/target_pc/irq.c \
-        firmware/sys/target_pc/keyboard.c \
-        firmware/sys/target_pc/lcd.c \
-        firmware/sys/target_pc/mem.c \
-        firmware/sys/target_pc/rtc.c \
-        firmware/sys/target_pc/sddriver.c \
-        firmware/sys/target_pc/stdlib.c \
-        firmware/sys/target_pc/timer.c \
-        firmware/sys/target_pc/usbdriver.c \
 
 # Qt support code
 SOURCES += \
@@ -57,10 +41,6 @@ SOURCES += \
         qpaletteeditor.cpp \
         rplthread.cpp \
         usbselector.cpp \
-
-# Headers for the PC support in the firmware
-HEADERS += \
-        firmware/include/target_pc.h \
 
 # Headers for PC GUI support
 HEADERS  += \
@@ -78,7 +58,7 @@ FORMS    += \
         usbselector.ui
 
 # Resources for the target platform
-RESOURCES += annunciators-$${NEWRPL_HAL}.qrc
+RESOURCES += annunciators-$${PLATFORM}.qrc
 
 # Set application icon for the windows applications - this is target-specific
 win32: RC_ICONS = bitmap/newRPL.ico

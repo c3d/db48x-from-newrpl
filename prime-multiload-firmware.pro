@@ -1,5 +1,5 @@
 #******************************************************************************
-# primeg1-multiload-firmware.pro                                  DB48X project
+# prime-multiload-firmware.pro                                  DB48X project
 #******************************************************************************
 #
 #  File Description:

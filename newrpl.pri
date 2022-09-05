@@ -8,9 +8,11 @@
 #    It is altered by various CONFIG settings, and included by the
 #    top-level .pro files
 #
+#    This file is configured with the variables HOST and PLATFORM.
+#    - PLATFORM can be one of: 50g, 39gs, 40gs, 48gii or prime
+#    - HOST can be one of: hardware, pc, compiler (future: android, ios)
 #
-#
-#
+#    When HOST is hardware, we are building native firwmare for PLATFORM
 #
 #
 #******************************************************************************
@@ -19,15 +21,21 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-isEmpty(NEWRPL_HAL): error(Cannot build newRPL without setting a HAL)
+isEmpty(PLATFORM): error(Cannot build newRPL without selecting a platform)
+isEmpty(HOST):     error(Cannot build newRPL without selecting a host)
 
-CONFIG += newrpl_$${NEWRPL_HAL}
+CONFIG += newrpl_$$PLATFORM newrpl_$$HOST
 
 # Record build number
 DEFINES += "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+DEFINES += PLATFORM_$$PLATFORM
+DEFINES += HOST_$$HOST
 
 # Include paths for the firmware and new RPL core
-INCLUDEPATH += newrpl firmware/hal/$$NEWRPL_HAL firmware/include
+INCLUDEPATH += newrpl
+INCLUDEPATH += firmware/host/$$HOST
+INCLUDEPATH += firmware/platform/$$PLATFORM
+INCLUDEPATH += firmware/include firmware
 
 # Build directory
 CONFIG(debug, debug|release) {
@@ -44,10 +52,24 @@ OS_NAME = $$system(uname -s)
 # Put objects in separate directories for parallel builds
 OBJECTS_DIR = build/$$OS_NAME/$$NEWRPL_BUILD/$$TARGET
 
-# Flight recorder
-SOURCES += recorder/recorder.c recorder/recorder_ring.c
-HEADERS += recorder/recorder.h
-INCLUDEPATH += recorder
+# Preamble and boot code needs to be placed first
+SOURCES += \
+        firmware/sys/preamble.c \
+        firmware/sys/boot.c \
+        firmware/sys/battery.c \
+        firmware/sys/cpu.c \
+        firmware/sys/exception.c \
+        firmware/sys/irq.c \
+        firmware/sys/keyboard.c \
+        firmware/sys/lcd.c \
+        firmware/sys/stdlib.c \
+        firmware/sys/timer.c \
+        firmware/sys/mem.c \
+        firmware/sys/flash.c \
+        firmware/sys/rtc.c \
+        firmware/sys/usbdriver.c \
+        firmware/sys/fwupdate.c \
+        firmware/sys/sddriver.c \
 
 # Core of newRPL
 SOURCES += \
@@ -180,6 +202,7 @@ SOURCES += \
         firmware/sys/Font8B.c \
         firmware/sys/Font8C.c \
         firmware/sys/Font8D.c \
+        firmware/sys/FontNotification.c \
         firmware/sys/fsystem/fatconvert.c \
         firmware/sys/fsystem/fsallocator.c \
         firmware/sys/fsystem/fsattr.c \
@@ -263,8 +286,10 @@ SOURCES += \
         firmware/ui_render.c \
         firmware/ui_softmenu.c \
 
-newrpl_primeg1:SOURCES += \
-        firmware/sys/FontNotification.c \
+# Flight recorder
+SOURCES += recorder/recorder.c recorder/recorder_ring.c
+HEADERS += recorder/recorder.h
+INCLUDEPATH += recorder
 
 # Headers for the newRPL core
 HEADERS += \
@@ -295,6 +320,10 @@ HEADERS  += \
         firmware/include/xgl.h \
         firmware/sys/fsystem/fsyspriv.h \
         firmware/sys/sddriver.h \
+
+# Platform-dependent header:
+HEADERS += \
+	firmware/platform/$$PLATFORM/target.h \
 
 
 #  List of RPL objects, shared by all variants

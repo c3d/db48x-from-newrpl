@@ -19,14 +19,13 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-include(hp50-firmware.pro)
+isEmpty(PLATFORM):PLATFORM=40gs
+isEmpty(TARGET):TARGET = hp40-firmware.elf
 
-TARGET = hp40-firmware.elf
+include(hp50-firmware.pro)
 
 DEFINES -= TARGET_50G
 DEFINES += TARGET_40GS
 
-HEADERS += \
-    firmware/include/target_40gs.h
-
-OBJECTS_DIR = build/hp40-firmware
+# Let's find the various platform .c files from the hp50g
+INCLUDEPATH += firmware/platform/50g

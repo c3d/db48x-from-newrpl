@@ -19,7 +19,7 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-NEWRPL_HAL = hp50
+isEmpty(PLATFORM):PLATFORM = 50g
 
 include(simulator.pri)
 

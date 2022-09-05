@@ -19,17 +19,16 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-# UNCOMMENT BELOW TO COMPILE IN THUMB MODE
+isEmpty(TARGET):TARGET = hp39-firmware.elf
+
+# Compile in thumb mode
 THUMB_MODE=-mthumb
 
+isEmpty(PLATFORM):PLATFORM=39gs
 include(hp50-firmware.pro)
-
-TARGET = hp39-firmware.elf
 
 DEFINES -= TARGET_50G
 DEFINES += TARGET_39GS
 
-HEADERS += \
-    firmware/include/target_39gs.h
-
-OBJECTS_DIR = build/hp39-firmware
+# Let's find the various platform .c files from the hp50g
+INCLUDEPATH += firmware/platform/50g

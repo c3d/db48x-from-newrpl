@@ -20,7 +20,8 @@
 #******************************************************************************
 
 TARGET = newrpl-comp
-NEWRPL_HAL = compiler
+isEmpty(HOST):HOST = compiler
+isEmpty(PLATFORM):PLATFORM = dummy
 
 include(newrpl.pri)
 
@@ -32,22 +33,7 @@ CONFIG -= qt
 DEFINES += TARGET_PC NO_RPL_OBJECTS
 
 SOURCES += \
-    firmware/sys/target_pc/non-gui-stubs.c \
-    firmware/sys/target_pc/battery.c \
-    firmware/sys/target_pc/boot.c \
-    firmware/sys/target_pc/cpu.c \
-    firmware/sys/target_pc/exception.c \
-    firmware/sys/target_pc/flash.c \
-    firmware/sys/target_pc/fwupdate.c \
-    firmware/sys/target_pc/irq.c \
-    firmware/sys/target_pc/keyboard.c \
-    firmware/sys/target_pc/lcd.c \
-    firmware/sys/target_pc/mem.c \
-    firmware/sys/target_pc/rtc.c \
-    firmware/sys/target_pc/sddriver.c \
-    firmware/sys/target_pc/stdlib.c \
-    firmware/sys/target_pc/timer.c \
-    firmware/sys/target_pc/usbdriver.c \
+    firmware/host/compiler/non-gui-stubs.c \
     newrpl/lib-4079-rpl2c.c \
     newrpl-comp.c
 

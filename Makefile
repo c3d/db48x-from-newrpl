@@ -23,7 +23,7 @@
 #******************************************************************************
 
 SIMULATORS=hp50 prime
-FIRMWARES=hp39 hp40 hp48 hp50 primeg1 primeg1-multiload
+FIRMWARES=hp39 hp40 hp48 hp50 prime prime-multiload
 CONFIG=debug
 OS=$(shell uname -s)
 TAG=$(OS)-$(CONFIG)

@@ -20,14 +20,13 @@
 #******************************************************************************
 
 CONFIG += newrpl_color
-NEWRPL_HAL = primeg1
+isEmpty(PLATFORM):PLATFORM = prime
 
 include(simulator.pri)
 
 TARGET = prime-simulator
 
 DEFINES += TARGET_PC_PRIMEG1 TARGET_PRIME1
-
 
 HEADERS  += \
         firmware/include/cgl.h \

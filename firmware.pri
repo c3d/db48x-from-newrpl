@@ -19,6 +19,8 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
+isEmpty(HOST):HOST = hardware
+
 newrpl_color:NEWRPL_CONFIG += newrpl_color
 
 # Strip the configuratoin to the strictest minimim
@@ -35,21 +37,17 @@ TEMPLATE = app
 DEFINES += TARGET_FIRMWARE
 DEFINES += RECORDER_STANDALONE RECORDER_STANDALONE_PRINTF RECORDER_NO_ATOMICS
 
-# FIXME: Currently forcing NDEBUG in the code e.g. for PROTECT_WRITE_AREA
-DEFINES += NDEBUG
-
 # Uncomment below to compile in thumb mode
 #THUMB_MODE=-mthumb
 
 # Uncomment below to generate detailed assembly output of each file
 #DEVEL_OPTIONS=-Wa,-adhln=$@.s
 
+include(newrpl.pri)
+
 # ARM-specific optimizations
 SOURCES += \
     newrpl/mul_real_arm.c \
-
-include(newrpl.pri)
-
 
 # Cross compiler
 GCC_LIBDIR = $$system(arm-none-eabi-gcc -print-file-name=)
@@ -64,7 +62,7 @@ INCLUDEPATH += /usr/include
 
 LIBS += -lgcc
 
-DISTFILES += firmware/sys/target_50g/ld.script
+DISTFILES += firmware/platform/$$PLATFORM/ld.script
 
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
@@ -74,6 +72,6 @@ QMAKE_LINK = arm-none-eabi-gcc
 QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
 QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
 
-QMAKE_LFLAGS = -g -T$$PWD/firmware/sys/target_50g/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
+QMAKE_LFLAGS = -g -T$$PWD/firmware/platform/$$PLATFORM/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
 QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
