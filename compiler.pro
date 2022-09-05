@@ -15,7 +15,7 @@
 #
 #******************************************************************************
 #  (C) 2022 Christophe de Dinechin <christophe@dinechin.org>
-#  (C) 2014-2022 Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
+#  (C) 2022 Claudio Lapilli and the newRPL team
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
