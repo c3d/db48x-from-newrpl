@@ -23,6 +23,10 @@
 isEmpty(PLATFORM):PLATFORM = 50g
 isEmpty(TARGET):TARGET = hp50-firmware.elf
 
+MACHINE_CPU  = arm926ej-s
+MACHINE_TUNE = $$MACHINE_CPU
+MACHINE_ARCH = armv5tej
+
 CONFIG(release, debug|release) {
     CONFIG = static ordered
 }

@@ -21,9 +21,6 @@
 
 isEmpty(TARGET):TARGET = hp39-firmware.elf
 
-# Compile in thumb mode
-THUMB_MODE=-mthumb
-
 isEmpty(PLATFORM):PLATFORM=39gs
 include(hp50-firmware.pro)
 
