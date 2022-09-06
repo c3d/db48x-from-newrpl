@@ -27,7 +27,7 @@ int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
 	if (status != NAND_STATUS_OK) {
 		// Calling functions don't always check for errors, so at least inform
 		// the user here
-		throw_dbgexception("Failed NAND read access",__EX_CONT); // FIXME include status in output, but there's no sprintf
+		throw_dbgexception("Failed NAND read access",EX_CONT); // FIXME include status in output, but there's no sprintf
 		return 0;
 	}
 
@@ -54,7 +54,7 @@ int SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
 	if (status != NAND_STATUS_OK) {
 		// Calling functions don't always check for errors, so at least inform
 		// the user here
-		throw_dbgexception("Failed NAND write access",__EX_CONT); // FIXME include status in output, but there's no sprintf
+		throw_dbgexception("Failed NAND write access",EX_CONT); // FIXME include status in output, but there's no sprintf
 		return 0;
 	}
 

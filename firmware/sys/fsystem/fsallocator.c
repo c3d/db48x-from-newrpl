@@ -116,7 +116,7 @@ unsigned int *simpmalloc(int words)
 
     // TODO: AGGRESIVELY TRY TO RELEASE MEMORY FROM OPEN FILES (READ BUFFERS)
 
-    throw_dbgexception("Failed to allocate", __EX_CONT);
+    throw_dbgexception("Failed to allocate", EX_CONT);
     SimpAllocData.mutex = 0;
 
     return 0;

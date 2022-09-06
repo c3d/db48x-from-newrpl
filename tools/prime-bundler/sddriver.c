@@ -20,14 +20,14 @@
 #include <stdio.h>
 #include <string.h>
 
-volatile int __sd_inserted;
-volatile int __sd_nsectors;     // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
-volatile int __sd_RCA;
-volatile unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
+volatile int sd_inserted;
+volatile int sd_nsectors;     // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+volatile int sd_RCA;
+volatile unsigned char *sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
 int SDCardInserted()
 {
-    return __sd_inserted;
+    return sd_inserted;
 }
 
 int SDCardWriteProtected()
@@ -42,7 +42,7 @@ int SDCardWriteProtected()
 int SDInit(SD_CARD * card)
 {
     UNUSED_ARGUMENT(card);
-    if(__sd_inserted)
+    if(sd_inserted)
         return TRUE;
     return FALSE;
 }
@@ -65,7 +65,7 @@ void SDPowerUp()
 
 int SDSelect(int RCA)
 {
-    if(RCA == __sd_RCA)
+    if(RCA == sd_RCA)
         return TRUE;
     return 0;
 }
@@ -80,9 +80,9 @@ int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
     UNUSED_ARGUMENT(SDAddr);
     UNUSED_ARGUMENT(NumBytes);
     UNUSED_ARGUMENT(buffer);
-    if(__sd_inserted && __sd_RCA) {
+    if(sd_inserted && sd_RCA) {
         // NO ARGUMENT CHECKS!
-        memmove(buffer, (unsigned char *)__sd_buffer + SDAddr, NumBytes);
+        memmove(buffer, (unsigned char *)sd_buffer + SDAddr, NumBytes);
         return NumBytes;
     }
     return FALSE;
@@ -91,14 +91,14 @@ int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
 int SDCardInit(SD_CARD * card)
 {
     UNUSED_ARGUMENT(card);
-    if(__sd_inserted) {
+    if(sd_inserted) {
         card->SysFlags = 31;    // 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK, 16=SDHC
-        card->Rca = __sd_RCA = 0x10;
+        card->Rca = sd_RCA = 0x10;
         card->BusWidth = 4;
         card->MaxBlockLen = 9;
         card->WriteBlockLen = 9;
         card->CurrentBLen = 9;
-        card->CardSize = __sd_nsectors;
+        card->CardSize = sd_nsectors;
         card->CID[0] = 0;
         card->CID[1] = 0;
         card->CID[2] = 0;
@@ -121,15 +121,15 @@ int SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
     UNUSED_ARGUMENT(buffer);
 
     // DEBUG ONLY
-    if(SDAddr > ((uint64_t) __sd_nsectors << 9))
+    if(SDAddr > ((uint64_t) sd_nsectors << 9))
         return 0;
 
-    if(SDAddr + NumBytes > ((uint64_t) __sd_nsectors << 9))
+    if(SDAddr + NumBytes > ((uint64_t) sd_nsectors << 9))
         return 0;
 
-    if(__sd_inserted && __sd_RCA) {
+    if(sd_inserted && sd_RCA) {
         // NO ARGUMENT CHECKS!
-        memmoveb((unsigned char *)__sd_buffer + SDAddr, buffer, NumBytes);
+        memmoveb((unsigned char *)sd_buffer + SDAddr, buffer, NumBytes);
         return NumBytes;
     }
 

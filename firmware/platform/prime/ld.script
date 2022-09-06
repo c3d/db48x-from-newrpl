@@ -31,7 +31,7 @@ SECTIONS
 
   /* UP TO THIS POINT ONLY SECTIONS THAT ARE COPIED BY ELF2ROM */
 
-  __total_file_size = . - 0x30000000 ;
+  total_file_size = . - 0x30000000 ;
 
 /* all other sections here */
   .interp         : { *(.interp) }
@@ -99,16 +99,16 @@ SECTIONS
 
     .ARM.exidx :
     {
-    __exidx_start = .;
+    exidx_start = .;
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    __exidx_end = .;
+    exidx_end = .;
     }
 
 
 
 	. = ALIGN(4);
 
-__data_load = . ;
+data_load = . ;
 
   . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
@@ -118,7 +118,7 @@ __data_load = . ;
 
   . = ALIGN(0x1000);      /* ALIGN DATA TO A FULL 4K PAGE */
 
-  __data_start = . ;
+  data_start = . ;
 
   __tmp_datastart = . ;
 
@@ -147,7 +147,7 @@ __data_load = . ;
 
 
 /* OUTPUT THE SIZE OF THE DATA SEGMENT */
-  __data_size = . - __tmp_datastart;
+  data_size = . - __tmp_datastart;
 
 /* NO NEED TO COPY THE BSS SECTION, BUT OBTAIN THE SIZE */
 
@@ -165,7 +165,7 @@ __data_load = . ;
   }
   . = ALIGN(32 / 8);
   _end = .;
-  __last_used_byte = .;
+  last_used_byte = .;
 
 
 

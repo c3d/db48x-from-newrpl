@@ -12,8 +12,8 @@
 
 // GENERAL HARDWARE REGISTER MACRO
 #define HWREG(base,off) ( (volatile uint32_t *) (((uint32_t)base+(uint32_t)off)))
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
-#define __ARM_MODE_INLINE__ __attribute__((target("arm")))
+#define ARM_MODE __attribute__((target("arm"))) __attribute__((noinline))
+#define ARM_MODE_INLINE __attribute__((target("arm")))
 
 
 #define DRAMC_BASE  0x48000000
@@ -811,14 +811,14 @@ extern char SERIAL_NUMBER_ADDRESS[11];
 
 
 // SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
-#define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
-#define __DATAORDER1__ __attribute__((section (".data_1")))
-#define __DATAORDER2__ __attribute__((section (".data_2")))
-#define __DATAORDER3__ __attribute__((section (".data_3")))
-#define __DATAORDERLAST__ __attribute__((section (".data_last")))
-#define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
-#define __ROMOBJECT__ __attribute__((section (".romobjects")))
-#define __ROMLINK__  __attribute__((section (".romlink")))
+#define SYSTEM_GLOBAL __attribute__((section (".system_globals")))
+#define DATAORDER1 __attribute__((section (".data_1")))
+#define DATAORDER2 __attribute__((section (".data_2")))
+#define DATAORDER3 __attribute__((section (".data_3")))
+#define DATAORDERLAST __attribute__((section (".data_last")))
+#define SCRATCH_MEMORY __attribute__((section (".scratch_memory")))
+#define ROMOBJECTS __attribute__((section (".romobjects")))
+#define ROMLINK  __attribute__((section (".romlink")))
 
 typedef struct {
 	uint32_t mask1;
@@ -850,12 +850,12 @@ struct Preamble {
 
 
 // Matrix to KeyCode mapping - Defined in keyboard.c for this target
-extern unsigned char const __keyb_codefrombit[64];
-extern unsigned char const __keyb_bitfromcode[64];
+extern unsigned char const keyb_irq_codefrombit[64];
+extern unsigned char const keyb_irq_bitfromcode[64];
 
 // Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (__keyb_codefrombit[bit])
-#define KEYMAP_BITFROMCODE(code) (__keyb_bitfromcode[code])
+#define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
+#define KEYMAP_BITFROMCODE(code) (keyb_irq_bitfromcode[code])
 
 
 // Touchscreen related functions
@@ -897,15 +897,15 @@ extern void ts_init();
 // LOW LEVEL TIMER FUNCTIONS FOR HARDWARE SETUP
 
 // Do a single delay 100 usec
-void __tmr_delay100us();
+void tmr_delay100us();
 // Do a single delay 10 msec
-void __tmr_delay10ms();
+void tmr_delay10ms();
 // Do a single delay 20 msec
-void __tmr_delay20ms();
+void tmr_delay20ms();
 // Prepare for an open loop timeout
-void __tmr_setuptimeoutms(int delayms,unsigned int *start,unsigned int *end);
+void tmr_setuptimeoutms(int delayms,unsigned int *start,unsigned int *end);
 // Check if clock timed out or not
-int __tmr_timedout(unsigned int start,unsigned int end);
+int tmr_timedout(unsigned int start,unsigned int end);
 
 
 // OTHER ADDITIONAL HARDWARE FUNCTIONS
@@ -917,7 +917,7 @@ void reset_gpio();
 #define TS_STAT_INIT    1
 #define TS_STAT_DATAMISSED 2
 
-#define __ENABLE_ARM_ASSEMBLY__ 1
+#define ENABLE_ARM_ASSEMBLY 1
 
 // Magic word "NRPL"
 #define NEWRPL_MAGIC   0x4c50524e

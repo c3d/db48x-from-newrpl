@@ -104,7 +104,7 @@ void FSPackShortName(char *name, char *direntry)
     if(direntry[12] & 0x8) {
         for(count = 0; count <= f; ++count) {
             if(!(direntry[count] & 0x80)) {
-                *ptr++ = __LOWER(direntry[count]);
+                *ptr++ = LOWER(direntry[count]);
                 continue;
             }
             // INTERPRET AS A CP850 CHARACTER, CONVERT TO UNICODE
@@ -139,7 +139,7 @@ void FSPackShortName(char *name, char *direntry)
         for(f = 8; f < 11; ++f) {
             if(direntry[f] != 0x20) {
                 if(!(direntry[f] & 0x80)) {
-                    *ptr = (direntry[12] & 0x10) ? __LOWER(direntry[f]) :
+                    *ptr = (direntry[12] & 0x10) ? LOWER(direntry[f]) :
                             direntry[f];
                     ++ptr;
                 }

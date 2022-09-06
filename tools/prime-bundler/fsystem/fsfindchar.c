@@ -9,7 +9,7 @@
 
 // FILENAME PARSING FUNCTIONS
 
-char *__fsfindchar(char *strstart, char *strend, char *chars)
+char *fsfindchar(char *strstart, char *strend, char *chars)
 {
     char a, *ptr;
     while(strstart != strend) {
@@ -27,7 +27,7 @@ char *__fsfindchar(char *strstart, char *strend, char *chars)
     return NULL;
 }
 
-char *__fsfindcharrev(char *strstart, char *strend, char *chars)
+char *fsfindcharrev(char *strstart, char *strend, char *chars)
 {
     char a, *ptr;
     if(strend == NULL) {

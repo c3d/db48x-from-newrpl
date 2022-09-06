@@ -25,10 +25,10 @@ extern "C"
 #include "libraries.h"
 #include "newrpl.h"
 
-    extern hid_device *__usb_curdevice;
-    extern char __usb_devicepath[8192];
+    extern hid_device *usb_curdevice;
+    extern char usb_devicepath[8192];
 
-    extern volatile int __usb_paused;
+    extern volatile int usb_paused;
     int __fwupdate_progress;
     int __fwupdate_address;
     int __fwupdate_nwords;
@@ -298,15 +298,15 @@ void USBSelector::RefreshList()
                     tmp.detach();
 
                     // STOP THE DRIVER AND REINITIALIZE COMPLETELY
-                    __usb_paused = 1;
-                    while(__usb_paused >= 0);
+                    usb_paused = 1;
+                    while(usb_paused >= 0);
 
                     usb_shutdown();
                     // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
-                    if(safe_stringcpy(__usb_devicepath, 8192,
+                    if(safe_stringcpy(usb_devicepath, 8192,
                                 tmp.toUtf8().constData()))
-                        __usb_devicepath[0] = 0;
-                    __usb_timeout = 200;        // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
+                        usb_devicepath[0] = 0;
+                    usb_timeout = 200;        // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
                     usb_init(0);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
 
                     if(usb_isconnected()) {
@@ -314,7 +314,7 @@ void USBSelector::RefreshList()
                         int res;
                         int available = 0;
 
-                        __usb_paused = 0;
+                        usb_paused = 0;
 
                         do {
 
@@ -324,9 +324,9 @@ void USBSelector::RefreshList()
                             // WAIT FOR THE CONTROL PACKET TO BE SENT
                             start = tmr_ticks();
                             res = 1;
-                            while(__usb_drvstatus & USB_STATUS_TXCTL) {
+                            while(usb_drvstatus & USB_STATUS_TXCTL) {
 
-                                if((__usb_drvstatus & (USB_STATUS_CONFIGURED |
+                                if((usb_drvstatus & (USB_STATUS_CONFIGURED |
                                                 USB_STATUS_INIT |
                                                 USB_STATUS_CONNECTED)) !=
                                         (USB_STATUS_CONFIGURED | USB_STATUS_INIT
@@ -336,7 +336,7 @@ void USBSelector::RefreshList()
                                 QThread::yieldCurrentThread();
 
                                 end = tmr_ticks();
-                                if(tmr_ticks2ms(start, end) > __usb_timeout) {
+                                if(tmr_ticks2ms(start, end) > usb_timeout) {
                                     res = 0;
                                     break;
                                 }
@@ -355,18 +355,18 @@ void USBSelector::RefreshList()
                             if(P_FILEID(pkt) != 0) {
 
                                 // REQUEST UNCONDITIONAL ABORT
-                                __usb_fileid = 0xffff;
+                                usb_fileid = 0xffff;
                                 usb_sendcontrolpacket(P_TYPE_ABORT);
-                                __usb_fileid = 0;
+                                usb_fileid = 0;
 
                                 tmr_t start, end;
 
                                 // WAIT FOR THE CONTROL PACKET TO BE SENT
                                 start = tmr_ticks();
 
-                                while(__usb_drvstatus & USB_STATUS_TXCTL) {
+                                while(usb_drvstatus & USB_STATUS_TXCTL) {
 
-                                    if((__usb_drvstatus & (USB_STATUS_CONFIGURED
+                                    if((usb_drvstatus & (USB_STATUS_CONFIGURED
                                                     | USB_STATUS_INIT |
                                                     USB_STATUS_CONNECTED)) !=
                                             (USB_STATUS_CONFIGURED |
@@ -376,7 +376,7 @@ void USBSelector::RefreshList()
 
                                     QThread::yieldCurrentThread();
                                     end = tmr_ticks();
-                                    if(tmr_ticks2ms(start, end) > __usb_timeout) {
+                                    if(tmr_ticks2ms(start, end) > usb_timeout) {
                                         res = 0;
                                         break;
                                     }
@@ -390,7 +390,7 @@ void USBSelector::RefreshList()
                             if(!res)
                                 break;
                             // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
-                            if(__usb_drvstatus & (USB_STATUS_HALT |
+                            if(usb_drvstatus & (USB_STATUS_HALT |
                                         USB_STATUS_ERROR)) {
                                 res = 0;
                                 break;
@@ -427,7 +427,7 @@ void USBSelector::RefreshList()
                             res = 1;
                             while(!usb_hasdata()) {
 
-                                if((__usb_drvstatus & (USB_STATUS_CONFIGURED |
+                                if((usb_drvstatus & (USB_STATUS_CONFIGURED |
                                                 USB_STATUS_INIT |
                                                 USB_STATUS_CONNECTED)) !=
                                         (USB_STATUS_CONFIGURED | USB_STATUS_INIT
@@ -436,7 +436,7 @@ void USBSelector::RefreshList()
 
                                 QThread::yieldCurrentThread();
                                 end = tmr_ticks();
-                                if(tmr_ticks2ms(start, end) > __usb_timeout) {
+                                if(tmr_ticks2ms(start, end) > usb_timeout) {
                                     res = 0;
                                     break;
                                 }
@@ -471,11 +471,11 @@ void USBSelector::RefreshList()
                         }
                         while(!available);
 
-                        __usb_paused = 1;
-                        while(__usb_paused >= 0);
+                        usb_paused = 1;
+                        while(usb_paused >= 0);
                         usb_shutdown();
-                        __usb_curdevice = 0;
-                        __usb_timeout = 5000;   // SET TIMEOUT TO THE DEFAULT 5000ms
+                        usb_curdevice = 0;
+                        usb_timeout = 5000;   // SET TIMEOUT TO THE DEFAULT 5000ms
 
                         if(!available) {
                             tmp = "[Device not responding]";
@@ -491,7 +491,7 @@ void USBSelector::RefreshList()
             }
         }
 
-        __usb_timeout = 5000;   // MAKE SURE WE LEAVE THE TIMEOUT TO THE DEFAULT VALUE
+        usb_timeout = 5000;   // MAKE SURE WE LEAVE THE TIMEOUT TO THE DEFAULT VALUE
 
     }
 
@@ -579,11 +579,11 @@ void USBSelector::on_syncTime_clicked()
     settime[2]=MAKESINT(t.time().minute());
     settime[3]=MAKESINT(t.time().second());
 
-    if(safe_stringcpy(__usb_devicepath, 8192,
+    if(safe_stringcpy(usb_devicepath, 8192,
                 SelectedDevicePath.toUtf8().constData()))
-        __usb_devicepath[0] = 0;
+        usb_devicepath[0] = 0;
 
-    __usb_paused=0;
+    usb_paused=0;
     usb_init(0);
 
 
@@ -599,7 +599,7 @@ void USBSelector::on_syncTime_clicked()
         QThread::yieldCurrentThread();
 
         end = tmr_ticks();
-        if(tmr_ticks2ms(start, end) > __usb_timeout) {
+        if(tmr_ticks2ms(start, end) > usb_timeout) {
             res = 0;
             break;
         }
@@ -644,8 +644,8 @@ void USBSelector::on_syncTime_clicked()
 
 failed:
     // PUT THE USB DRIVER TO REST
-    __usb_paused = 1;
-    while(__usb_paused >= 0);
+    usb_paused = 1;
+    while(usb_paused >= 0);
 
     usb_shutdown();
 
@@ -821,12 +821,12 @@ void USBSelector::on_updateFirmware_clicked()
     ui->buttonBox->setEnabled(false);
 
     // CONNECT TO THE USB DEVICE
-    __usb_paused = 1;
-    while(__usb_paused >= 0);
+    usb_paused = 1;
+    while(usb_paused >= 0);
     usb_shutdown();
-    if(safe_stringcpy(__usb_devicepath, 8192,
+    if(safe_stringcpy(usb_devicepath, 8192,
                 SelectedDevicePath.toUtf8().constData()))
-        __usb_devicepath[0] = 0;
+        usb_devicepath[0] = 0;
     usb_init(0);
 
     __fwupdate_progress = 0;
@@ -859,8 +859,8 @@ void USBSelector::finishedupdate()
 {
 
     // PUT THE USB DRIVER TO REST
-    __usb_paused = 1;
-    while(__usb_paused >= 0);
+    usb_paused = 1;
+    while(usb_paused >= 0);
 
     usb_shutdown();
 
@@ -976,7 +976,7 @@ void FWThread::run()
     __fwupdate_progress = 0;
 
     // START USB DRIVER
-    __usb_paused = 0;
+    usb_paused = 0;
 
     // WAIT 200ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     busywait(200);

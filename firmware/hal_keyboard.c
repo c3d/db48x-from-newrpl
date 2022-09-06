@@ -273,7 +273,7 @@ BINT endCmdLineAndCompile()
     WORDPTR text = uiGetCmdLineText();
     if(!text) {
         throw_dbgexception("No memory for command line",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         return 0;
     }
     BINT len = rplStrSize(text);
@@ -4209,14 +4209,14 @@ void onPlusKeyHandler(WORD keymsg)
 #endif /* TARGET_PRIME1 */
     }
 
-    __lcd_contrast++;
-    if(__lcd_contrast > 0xf)
-        __lcd_contrast = 0xf;
+    lcd_contrast++;
+    if(lcd_contrast > 0xf)
+        lcd_contrast = 0xf;
 
-    lcd_setcontrast(__lcd_contrast);
+    lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(__lcd_contrast, DECBINT);
+    WORDPTR contrast = rplNewSINT(lcd_contrast, DECBINT);
     if(contrast)
         rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -4262,13 +4262,13 @@ void onMinusKeyHandler(WORD keymsg)
 #endif /* TARGET_PRIME1 */
     }
 
-    __lcd_contrast--;
-    if(__lcd_contrast < 0)
-        __lcd_contrast = 0;
-    lcd_setcontrast(__lcd_contrast);
+    lcd_contrast--;
+    if(lcd_contrast < 0)
+        lcd_contrast = 0;
+    lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(__lcd_contrast, DECBINT);
+    WORDPTR contrast = rplNewSINT(lcd_contrast, DECBINT);
     if(contrast)
         rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -6457,7 +6457,7 @@ struct keyhandler_t
 };
 
 // LIST OF HANDLERS, END WITH action=NULL
-const struct keyhandler_t const __keydefaulthandlers[] = {
+const struct keyhandler_t const keydefaulthandlers[] = {
 
     // BASIC NUMBERS
     {KM_PRESS | KB_1, CONTEXT_ANY, &numberKeyHandler},
@@ -7803,7 +7803,7 @@ int halCustomKeyExists(WORD keymsg)
 
 int halDoDefaultKey(WORD keymsg)
 {
-    struct keyhandler_t *ptr = (struct keyhandler_t *)__keydefaulthandlers;
+    struct keyhandler_t *ptr = (struct keyhandler_t *)keydefaulthandlers;
 
     while(ptr->action) {
         if(ptr->message == keymsg) {
@@ -7824,7 +7824,7 @@ int halDoDefaultKey(WORD keymsg)
 // RETURN TRUE/FALSE IF A DEFAULT HANDLER EXISTS
 int halDefaultKeyExists(WORD keymsg)
 {
-    struct keyhandler_t *ptr = (struct keyhandler_t *)__keydefaulthandlers;
+    struct keyhandler_t *ptr = (struct keyhandler_t *)keydefaulthandlers;
 
     while(ptr->action) {
         if(ptr->message == keymsg) {
@@ -8288,8 +8288,8 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
             jobdone = isidle = 0;
 #ifdef TARGET_PRIME1
             // Reset count of the battery display so it only updates when idling for a while (Prime Only)
-            extern int __bat_readcnt;
-            __bat_readcnt=1;
+            extern int bat_readcnt;
+            bat_readcnt=1;
 #endif /* TARGET_PRIME1 */
         }
 

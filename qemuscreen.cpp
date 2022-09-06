@@ -12,10 +12,10 @@
 #include <QBitmap>
 #include <QTimer>
 
-extern int __lcd_mode;
-extern int __lcd_needsupdate;
-extern int __lcd_activebuffer;
-extern unsigned int *__lcd_buffer;
+extern int lcd_mode;
+extern int lcd_needsupdate;
+extern int lcd_activebuffer;
+extern unsigned int *lcd_buffer;
 
 #define min(a,b) (((a)>(b))? (b):(a))
 
@@ -167,8 +167,8 @@ void QEmuScreen::setScale(qreal _scale)
 void QEmuScreen::update()
 {
 
-    if(__lcd_needsupdate)
-        __lcd_needsupdate = 0;
+    if(lcd_needsupdate)
+        lcd_needsupdate = 0;
     else {
         if(screentmr) {
             screentmr->setSingleShot(true);
@@ -180,7 +180,7 @@ void QEmuScreen::update()
     int i, j;
     unsigned int color;
 
-    if(__lcd_mode == 0) {
+    if(lcd_mode == 0) {
         // MONOCHROME SCREEN
 
         scr.setBackgroundBrush(QBrush(BkgndColor));
@@ -188,7 +188,7 @@ void QEmuScreen::update()
 
         unsigned int *ptr,*buffer;
         int mask;
-        buffer=__lcd_buffer+(__lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+        buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
         for(i = 0; i < screen_height; ++i) {
             mask = 1;
             ptr = buffer + (LCD_W >> 5) * i;
@@ -227,10 +227,10 @@ void QEmuScreen::update()
         return;
     }
 
-    if(__lcd_mode == 2) {
+    if(lcd_mode == 2) {
         // 16-GRAYS SCREEN
         unsigned int *ptr,*buffer;
-        buffer=__lcd_buffer+(__lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+        buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
         int mask;
         scr.setBackgroundBrush(QBrush(BkgndColor));
         QPainter pt(&mainPixmap);
@@ -274,12 +274,12 @@ void QEmuScreen::update()
         return;
     }
 
-    if(__lcd_mode == 3) {
+    if(lcd_mode == 3) {
         // RGB COLOR SCREEN (5-6-5)
 
            scr.setBackgroundBrush(QBrush(Qt::black));
            QPainter pt(&mainPixmap);
-           unsigned int *buffer=__lcd_buffer+(__lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+           unsigned int *buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
 
         QImage lcdimage((const unsigned char *)buffer,screen_width,screen_height,(screen_width*4)/PIXELS_PER_WORD,QImage::Format_RGB16);
 
@@ -289,7 +289,7 @@ void QEmuScreen::update()
         /*
         for(i = 0; i < screen_height; ++i) {
             mask = 0xf;
-            ptr = __lcd_buffer + (LCD_W >> 3) * i;
+            ptr = lcd_buffer + (LCD_W >> 3) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = (*ptr & mask) >> ((j & 7) * 4);
                 //Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
@@ -313,7 +313,7 @@ void QEmuScreen::update()
         /*
         mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD))));
         for(i = 0; i < 6; ++i) {
-            ptr = __lcd_buffer + ANN_X_COORD / (PIXELS_PER_WORD);
+            ptr = lcd_buffer + ANN_X_COORD / (PIXELS_PER_WORD);
             ptr += i * (SCREEN_W / PIXELS_PER_WORD);
             color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD)));
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);

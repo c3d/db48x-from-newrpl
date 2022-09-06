@@ -44,15 +44,15 @@
 
 #ifndef _UINTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
-#ifndef __uintptr_t_defined
-#define __uintptr_t_defined
+#ifndef uintptr_t_defined
+#define uintptr_t_defined
 #undef uintptr_t
 #ifdef _WIN64
   typedef unsigned __int64 uintptr_t;
 #else
   typedef unsigned int uintptr_t;
 #endif /* _WIN64 */
-#endif /* __uintptr_t_defined */
+#endif /* uintptr_t_defined */
 #endif /* _UINTPTR_T_DEFINED */
 
 #ifndef _PTRDIFF_T_DEFINED

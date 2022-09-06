@@ -325,26 +325,26 @@
 // NEGATIVE RESULT ==> INVALID FILENAME
 
 // CASE INSENSITIVITY MACRO
-#define __ICASE(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
-#define __UPPER(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
-#define __LOWER(a) ( ((a>64)&&(a<91))? (a|0x20):a)
+#define ICASE(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
+#define UPPER(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
+#define LOWER(a) ( ((a>64)&&(a<91))? (a|0x20):a)
 
 // TYPE DEFINITIONS
 
-struct __frag;
-typedef struct __frag FS_FRAGMENT;
-struct __buffer;
-typedef struct __buffer FS_BUFFER;
-struct __file;
-typedef struct __file FS_FILE;
+struct frag;
+typedef struct frag FS_FRAGMENT;
+struct buffer;
+typedef struct buffer FS_BUFFER;
+struct file;
+typedef struct file FS_FILE;
 
-struct __frag
+struct frag
 {
     unsigned int StartAddr, EndAddr;
     FS_FRAGMENT *NextFragment;
 };
 
-struct __buffer
+struct buffer
 {
     unsigned char *Data;
     unsigned int Offset;
@@ -359,7 +359,7 @@ struct __buffer
  *
  */
 
-struct __file
+struct file
 {
     /*!
      * File name, including period and file extension, NULL terminated

@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include "sys/fsystem/fsyspriv.h"
 
-int __pc_terminate;
-extern int __memmap_intact;
+int pc_terminate;
+extern int memmap_intact;
 
 void setup_hardware()
 {
@@ -50,7 +50,7 @@ void main_virtual()
             // CHECK FOR MAGIC KEY COMBINATION
             if(keyb_isAnyKeyPressed()) {
                 throw_exception("Wipeout requested",
-                        __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
+                        EX_WARM | EX_WIPEOUT | EX_EXIT);
             }
 
             // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
@@ -118,7 +118,7 @@ void main_virtual()
 
         if(halFlags & HAL_RESET) {
             rplWarmInit();
-            __memmap_intact = 2;
+            memmap_intact = 2;
         }
 
     }
@@ -139,18 +139,18 @@ void startup()
     // ALSO WE ENTER IN SUPERVISOR MODE
 
     // CLEAR THE REQUEST TO TERMINATE THE THREAD
-    __pc_terminate = 0;
+    pc_terminate = 0;
 
     setup_hardware();   // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
 
     clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
 
-    __exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
+    exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
 
     tmr_setup();
-    __keyb_init();
+    keyb_irq_init();
 
-    __lcd_contrast = 7;
+    lcd_contrast = 7;
 
     // ADD MORE HARDWARE INITIALIZATION HERE
 
@@ -194,7 +194,7 @@ void halReset()
 
     // DUMMY FUNCTION ON PC-TARGET, RESET NOT ALLOWED
     halFlags |= HAL_RESET;
-    __memmap_intact = 2;
+    memmap_intact = 2;
 
 }
 
@@ -202,10 +202,10 @@ void halEnterPowerOff()
 {
     // TODO: NOT IDEAL, BUT INDICATE WE WANT TO EXIT THE APPLICATION
 
-    __pc_terminate = 2;
+    pc_terminate = 2;
 }
 
 int halExitOuterLoop()
 {
-    return __pc_terminate;
+    return pc_terminate;
 }

@@ -17,24 +17,24 @@
 #define TEMPBLK_SIZE  32768     //  TEMP BLOCKS
 
 // ALL MEMORY IS ALLOCATED STATICALLY FOR THE SIMULATOR
-WORDPTR __dstk_memory[DSTK_SIZE];
-WORDPTR __rstk_memory[RSTK_SIZE];
-WORD __dir_memory[DIR_SIZE];
-WORD __lam_memory[LAM_SIZE];
-WORD __tempob_memory[TEMPOB_SIZE];
-WORDPTR __tempblk_memory[TEMPBLK_SIZE];
-BINT __dstk_used, __rstk_used, __dir_used, __lam_used, __tempob_used,
-        __tempblk_used;
-BINT __memmap_intact = 0;
+WORDPTR dstk_memory[DSTK_SIZE];
+WORDPTR rstk_memory[RSTK_SIZE];
+WORD dir_memory[DIR_SIZE];
+WORD lam_memory[LAM_SIZE];
+WORD tempob_memory[TEMPOB_SIZE];
+WORDPTR tempblk_memory[TEMPBLK_SIZE];
+BINT dstk_used, rstk_used, dir_used, lam_used, tempob_used,
+        tempblk_used;
+BINT memmap_intact = 0;
 
 int halGetFreePages()
 {
-    return ((DSTK_SIZE >> 10) - __dstk_used
-            + (RSTK_SIZE >> 10) - __rstk_used
-            + (DIR_SIZE >> 10) - __dir_used
-            + (LAM_SIZE >> 10) - __lam_used
-            + (TEMPOB_SIZE >> 10) - __tempob_used
-            + (TEMPBLK_SIZE >> 10) - __tempblk_used);
+    return ((DSTK_SIZE >> 10) - dstk_used
+            + (RSTK_SIZE >> 10) - rstk_used
+            + (DIR_SIZE >> 10) - dir_used
+            + (LAM_SIZE >> 10) - lam_used
+            + (TEMPOB_SIZE >> 10) - tempob_used
+            + (TEMPBLK_SIZE >> 10) - tempblk_used);
 }
 
 int halGetTotalPages()
@@ -58,33 +58,33 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
     switch (zone) {
 
     case MEM_AREA_RSTK:
-        base = (WORDPTR *) __rstk_memory;
-        current = &__rstk_used;
+        base = (WORDPTR *) rstk_memory;
+        current = &rstk_used;
         maxpages = RSTK_SIZE >> 10;
         break;
     case MEM_AREA_DSTK:
-        base = (WORDPTR *) __dstk_memory;
-        current = &__dstk_used;
+        base = (WORDPTR *) dstk_memory;
+        current = &dstk_used;
         maxpages = DSTK_SIZE >> 10;
         break;
     case MEM_AREA_DIR:
-        base = (WORDPTR *) __dir_memory;
-        current = &__dir_used;
+        base = (WORDPTR *) dir_memory;
+        current = &dir_used;
         maxpages = DIR_SIZE >> 10;
         break;
     case MEM_AREA_LAM:
-        base = (WORDPTR *) __lam_memory;
-        current = &__lam_used;
+        base = (WORDPTR *) lam_memory;
+        current = &lam_used;
         maxpages = LAM_SIZE >> 10;
         break;
     case MEM_AREA_TEMPOB:
-        base = (WORDPTR *) __tempob_memory;
-        current = &__tempob_used;
+        base = (WORDPTR *) tempob_memory;
+        current = &tempob_used;
         maxpages = TEMPOB_SIZE >> 10;
         break;
     case MEM_AREA_TEMPBLOCKS:
-        base = (WORDPTR *) __tempblk_memory;
-        current = &__tempblk_used;
+        base = (WORDPTR *) tempblk_memory;
+        current = &tempblk_used;
         maxpages = TEMPBLK_SIZE >> 10;
         break;
     default:
@@ -125,24 +125,24 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
     return base;
 }
 
-int __last_used_byte;
+int last_used_byte;
 
 // INITIALIZE THE MEMORY AFTER A TOTAL RESET
 void halInitMemoryMap()
 {
-    __dstk_used = __rstk_used = __dir_used = __lam_used = __tempob_used =
-            __tempblk_used = 0;
+    dstk_used = rstk_used = dir_used = lam_used = tempob_used =
+            tempblk_used = 0;
 // MAKE DSTK MEMORY DIRTY WITH KNOWN STATE
-    memsetw(__dstk_memory, 0xbaadf00d,
+    memsetw(dstk_memory, 0xbaadf00d,
             DSTK_SIZE * sizeof(WORDPTR) / sizeof(WORD));
-    memsetw(__tempob_memory, 0xbaadf00d, TEMPOB_SIZE);
+    memsetw(tempob_memory, 0xbaadf00d, TEMPOB_SIZE);
 
 }
 
 // RETURN TRUE IF MEMORY MAPS ARE INTACT, ZERO IF THEY ARE BAD OR INEXISTENT
 int halCheckMemoryMap()
 {
-    return __memmap_intact;
+    return memmap_intact;
 }
 
 // RETURN THE NUMBER OF ALLOCATED PAGES FOR A SPECIFIC MEMORY AREA
@@ -151,17 +151,17 @@ int halCountUsedPages(int zone)
     switch (zone) {
 
     case MEM_AREA_RSTK:
-        return __rstk_used;
+        return rstk_used;
     case MEM_AREA_DSTK:
-        return __dstk_used;
+        return dstk_used;
     case MEM_AREA_DIR:
-        return __dir_used;
+        return dir_used;
     case MEM_AREA_LAM:
-        return __lam_used;
+        return lam_used;
     case MEM_AREA_TEMPOB:
-        return __tempob_used;
+        return tempob_used;
     case MEM_AREA_TEMPBLOCKS:
-        return __tempblk_used;
+        return tempblk_used;
     }
     return 0;
 

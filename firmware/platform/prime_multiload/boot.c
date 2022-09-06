@@ -81,17 +81,17 @@ int esc_pressed() {
 
 // Initialize global variables region to zero
 // Any globals that need to have a value must be initialized at run time or be declared read-only.
-extern const int __data_start;
-extern const int __data_size;
+extern const int data_start;
+extern const int data_size;
 void clear_globals()
 {
-    int size=(unsigned int) (&__data_size);
-    unsigned int *data= (unsigned int *) (&__data_start);
+    int size=(unsigned int) (&data_size);
+    unsigned int *data= (unsigned int *) (&data_start);
 
     while(size>0) { *data++=0; size-=4; }
 }
 
-__ARM_MODE__  __attribute__((naked)) void start_os(int entrypoint)
+ARM_MODE  __attribute__((naked)) void start_os(int entrypoint)
 {
     // No prerequisites yet
     // r0 is entrypoint according to calling convention
@@ -154,7 +154,7 @@ int load_os(char *name)
     return preamble.entrypoint;
 }
 
-__ARM_MODE__ __attribute__((noreturn)) void main()
+ARM_MODE __attribute__((noreturn)) void main()
 {
     initContext(32);
     Context.alloc_bmp = EMPTY_STORAGEBMP;
@@ -196,7 +196,7 @@ __ARM_MODE__ __attribute__((noreturn)) void main()
     while(1);
 }
 
-__ARM_MODE__ __attribute__((noreturn)) void startup(int prevstate)
+ARM_MODE __attribute__((noreturn)) void startup(int prevstate)
 {
     clear_globals();
 
@@ -237,7 +237,7 @@ int halExitOuterLoop()
     return 0;
 }
 
-char __SCRATCH_MEMORY__ SERIAL_NUMBER_ADDRESS[11];
+char SCRATCH_MEMORY SERIAL_NUMBER_ADDRESS[11];
 
 //********* END OF STUBS *************************************************************
 //************************************************************************************

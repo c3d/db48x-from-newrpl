@@ -78,7 +78,7 @@ void SDSetClock(int sdclk)
 #ifndef CONFIG_NO_FSYSTEM
 
 // IRQ HANDLER FOR CARD INSERTION/REMOVAL
-void __SD_irqeventinsert()
+void SD_irqeventinsert()
 {
     halUpdateStatus();
 
@@ -150,7 +150,7 @@ int SDIOSetup(SD_CARD * card, int shutdown)
         else
             *EXTINT0 = ((*EXTINT0) & (~0x7000)) | (0x4000);
 
-        __irq_addhook(3, &__SD_irqeventinsert); // INSTALL IRQ HANDLER
+        irq_addhook(3, &SD_irqeventinsert); // INSTALL IRQ HANDLER
 
         *GPF(CON) = (*GPF(CON) & (~0xc0)) | (0X80);     // SET PIN FUNCTION TO EINT3
 
@@ -162,7 +162,7 @@ int SDIOSetup(SD_CARD * card, int shutdown)
 
         *HWREG(CLK_REGS, 0xc) = *HWREG(CLK_REGS, 0xc) | 0x200;  // ENABLE CLOCK TO SD INTERFACE
 
-        __irq_unmask(3);        // ENABLE INTERRUPT ON THIS PIN
+        irq_unmask(3);        // ENABLE INTERRUPT ON THIS PIN
 
         if(card)
             card->SysFlags |= 1;

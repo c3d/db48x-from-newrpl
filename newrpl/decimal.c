@@ -238,7 +238,7 @@ void normalize(REAL * number)
     }
 
     number->len = end - start + 1;
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
 
     carry = carry_correct_arm(start, dest, end, (char *)carry_table);
     dest += end - start + 1;
@@ -1816,7 +1816,7 @@ void add_real(REAL * r, REAL * a, REAL * b)
         // ADD ONLY IF NUMBERS OVERLAP
         if(smallshift) {
             if((a->flags ^ b->flags) & F_NEGATIVE) {
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
                 sub_long_mul_shift_arm(result->data + totalwords - alen +
                         wordshift + skipbwords, b->data + skipbwords,
                         b->len - skipbwords, (smallshift << 16) | 1);
@@ -1827,7 +1827,7 @@ void add_real(REAL * r, REAL * a, REAL * b)
 #endif
             }
             else {
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
                 add_long_mul_shift_arm(result->data + totalwords - alen +
                         wordshift + skipbwords, b->data + skipbwords,
                         b->len - skipbwords, (smallshift << 16) | 1);
@@ -1982,7 +1982,7 @@ void add_real_mul(REAL * r, REAL * a, REAL * b, BINT mult)
     if(apos + wordshift + b->len > -1) {
         // ADD ONLY IF NUMBERS OVERLAP
         if((a->flags ^ b->flags) & F_NEGATIVE) {
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
             sub_long_mul_shift_arm(result->data + apos + wordshift,
                     b->data + skipbwords, b->len - skipbwords,
                     (smallshift << 16) | mult);
@@ -1994,7 +1994,7 @@ void add_real_mul(REAL * r, REAL * a, REAL * b, BINT mult)
 #endif
         }
         else {
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
             add_long_mul_shift_arm(result->data + apos + wordshift,
                     b->data + skipbwords, b->len - skipbwords,
                     (smallshift << 16) | mult);
@@ -2148,7 +2148,7 @@ void mul_real(REAL * r, REAL * a, REAL * b)
         b = tmp;
     }
 
-#ifdef __ENABLE_ARM_ASSEMBLY__
+#ifdef ENABLE_ARM_ASSEMBLY
 
     mul_real_arm(result->data, a->data, b->data, (a->len << 16) | (b->len));
 

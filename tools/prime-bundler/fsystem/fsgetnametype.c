@@ -33,7 +33,7 @@ int FSGetNameType(char *name)
     char *ptr, *partial;
 
     partial = name;
-    if(__fsfindchar(partial, NULL, ILLEGAL))
+    if(fsfindchar(partial, NULL, ILLEGAL))
         return -1;      // NAME CANNOT CONTAIN ILLEGAL CHARACTERS
     while(*partial)
         if(*partial < 32)
@@ -41,7 +41,7 @@ int FSGetNameType(char *name)
         else
             ++partial;  // CHARACTERS <32 ARE ILLEGAL
     partial = name;
-    while((ptr = __fsfindchar(partial, NULL, SEPARATORS))) {
+    while((ptr = fsfindchar(partial, NULL, SEPARATORS))) {
 
 // FILE NAME INCLUDES DRIVE/PATH
         if(*ptr == ':') {

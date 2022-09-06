@@ -83,7 +83,7 @@ int FSFindFile(char *name, FS_FILE * entry, int dirsvalid)
     if(ntype & 2) {
 // CRAWL DIRECTORIES UNTIL WE REACH THE FINAL NAME
 //printf("start crawl\n");
-        while((ptrend = __fsfindchar(ptr, NULL, (char *)"/\\"))) {
+        while((ptrend = fsfindchar(ptr, NULL, (char *)"/\\"))) {
 // EXTRACT DIRECTORY NAME
             memmoveb(temp, ptr, ptrend - ptr);
             temp[ptrend - ptr] = 0;

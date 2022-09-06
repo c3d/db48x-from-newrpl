@@ -8,15 +8,15 @@
 #include <ui.h>
 
 // IRQ AND CPU LOW LEVEL
-unsigned int irq_table[32] __SYSTEM_GLOBAL__;
+unsigned int irq_table[32] SYSTEM_GLOBAL;
 
-__ARM_MODE__ void __irq_dummy(void)
+ARM_MODE void irq_dummy(void)
 {
     return;
 }
 
-void __irq_service() __attribute__((naked));
-__ARM_MODE__ void __irq_service()
+void irq_service() __attribute__((naked));
+ARM_MODE void irq_service()
 {
     asm volatile ("stmfd sp!, {r0-r12,lr}");
     asm volatile ("mov r0,sp");
@@ -40,7 +40,7 @@ __ARM_MODE__ void __irq_service()
     asm volatile ("subs pc,lr,#4");
 }
 
-void __irq_install()
+void irq_install()
 {
     int f;
 
@@ -51,16 +51,16 @@ void __irq_install()
 
 // SET ALL IRQ SERVICES TO DUMMY
     for(f = 0; f < 32; ++f) {
-        irq_table[f] = (unsigned int)&__irq_dummy;
+        irq_table[f] = (unsigned int)&irq_dummy;
     }
 
 // HOOK INTERRUPT SERVICE ROUTINE
 // ORIGINAL SAVED W/EXCEPTION HANDLERS
-    *((unsigned int *)0x08000018) = (unsigned int)&__irq_service;
+    *((unsigned int *)0x08000018) = (unsigned int)&irq_service;
 
 }
 
-void __irq_addhook(int service_number, __interrupt__ serv_routine)
+void irq_addhook(int service_number, __interrupt__ serv_routine)
 {
     if(service_number < 0 || service_number > 31)
         return;
@@ -68,19 +68,19 @@ void __irq_addhook(int service_number, __interrupt__ serv_routine)
 
 }
 
-void __irq_releasehook(int service_number)
+void irq_releasehook(int service_number)
 {
     if(service_number < 0 || service_number > 31)
         return;
-    irq_table[service_number] = (unsigned int)&__irq_dummy;
+    irq_table[service_number] = (unsigned int)&irq_dummy;
 }
 
-void __irq_mask(int service_number)
+void irq_mask(int service_number)
 {
     *HWREG(INT_REGS, 0x8) |= 1 << service_number;
 }
 
-void __irq_unmask(int service_number)
+void irq_unmask(int service_number)
 {
     *HWREG(INT_REGS, 0x8) &= ~(1 << service_number);
 }

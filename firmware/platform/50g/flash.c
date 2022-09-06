@@ -8,7 +8,7 @@
 // LOW-LEVEL FLASH DRIVER FOR SST 36VF1601 CHIPSET
 
 // ENTER QUERY MODE AND COPY INFORMATION
-__ARM_MODE__ void flash_CFIQuery(unsigned short *ptr)
+ARM_MODE void flash_CFIQuery(unsigned short *ptr)
 {
     asm volatile ("push {r0,r1,r2,r3,r4,r5}");
 
@@ -75,7 +75,7 @@ __ARM_MODE__ void flash_CFIQuery(unsigned short *ptr)
 }
 
 // ENTER QUERY MODE AND COPY INFORMATION
-__ARM_MODE__ void flash_ProgramWord(unsigned short *ptr, unsigned int data)
+ARM_MODE void flash_ProgramWord(unsigned short *ptr, unsigned int data)
 {
     asm volatile ("push {r0,r1,r2,r3,r4,r5}");
 
@@ -123,7 +123,7 @@ unsigned int __attribute__((section(".text"))) flash_code_end[] = { 0 };
 // COPIES CFI INFORMATION FROM ADDRESS 10H TO 34H
 // INTO BUFFER AT ptr
 
-__ARM_MODE__ void flash_CFIRead(unsigned short *ptr)
+ARM_MODE void flash_CFIRead(unsigned short *ptr)
 {
 
     flash_prepareforwriting();
@@ -161,7 +161,7 @@ __ARM_MODE__ void flash_CFIRead(unsigned short *ptr)
 
 }
 
-__ARM_MODE__ void flash_Write(unsigned short *ptr, unsigned int data)
+ARM_MODE void flash_Write(unsigned short *ptr, unsigned int data)
 {
     unsigned int buffer[400], *copy;
     void (*funcquery)(unsigned short *, unsigned int);
@@ -214,7 +214,7 @@ __ARM_MODE__ void flash_Write(unsigned short *ptr, unsigned int data)
 #define MMU_MAP_PAGE(phys,virt) ( ( (unsigned int *)(mmu_base[MMU_LEVEL1_INDEX(virt)]&0xfffffc00))[MMU_LEVEL2_INDEX(virt)]=MMU_PAGE(phys))
 
 // SETUP FLASH MEMORY AS UNCACHED, UNBUFFERED SO THE CACHES DON'T INTERFERE WITH PROGRAMMING
-__ARM_MODE__ void flash_prepareforwriting()
+ARM_MODE void flash_prepareforwriting()
 {
     unsigned int *mmu_base = (unsigned int *)0x08008000;
 
@@ -235,7 +235,7 @@ __ARM_MODE__ void flash_prepareforwriting()
 }
 
 // ENABLE CACHING AND BUFFERS AGAIN ON THE ROM
-__ARM_MODE__ void flash_donewriting()
+ARM_MODE void flash_donewriting()
 {
     unsigned int *mmu_base = (unsigned int *)0x08008000;
 

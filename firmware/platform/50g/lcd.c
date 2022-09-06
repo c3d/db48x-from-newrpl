@@ -10,9 +10,9 @@
 #define LCD_TARGET_FREQ 500000
 #define HOZVAL ((LCD_W>>2)-1)
 
-int __lcd_contrast __SYSTEM_GLOBAL__;
+int lcd_contrast SYSTEM_GLOBAL;
 
-void __lcd_fix()
+void lcd_fix()
 {
     volatile unsigned int *CLKPTR = (unsigned int *)CLK_REGS;
     volatile unsigned int *LCDPTR = (unsigned int *)LCD_REGS;
@@ -144,13 +144,13 @@ void lcd_restore(unsigned int *buf)
 
 #ifdef CONFIG_USE_LCD_ALTERNATIVE_SETTINGS
 
-const unsigned short int const __lcdcontrast_table[16] = CONFIG_USE_LCD_ALTERNATIVE_SETTINGS ;
+const unsigned short int const lcdcontrast_table[16] = CONFIG_USE_LCD_ALTERNATIVE_SETTINGS ;
 
 #else
 
 //Default contrast settings for 50g hardware
 
-const unsigned short int const __lcdcontrast_table[16] = {
+const unsigned short int const lcdcontrast_table[16] = {
     0x43fc,
     0x43ff,
     0x44f8,
@@ -170,7 +170,7 @@ const unsigned short int const __lcdcontrast_table[16] = {
 };
 #endif
 
-void __lcd_txbyte(int byte)
+void lcd_txbyte(int byte)
 {
     int f;
     *IO_GPDDAT &= ~CONT_TXSTOP; // CLEAR STOP BIT
@@ -196,14 +196,14 @@ void lcd_setcontrast(int level)
     if(level > 15 || level < 0)
         level = 7;
 
-    value = __lcdcontrast_table[level];
-    __lcd_txbyte((value >> 8) & 0xff);
-    __lcd_txbyte(value & 0xff);
+    value = lcdcontrast_table[level];
+    lcd_txbyte((value >> 8) & 0xff);
+    lcd_txbyte(value & 0xff);
     return;
 
 }
 
-int __lcd_setmode(int mode, unsigned int *physbuf)
+int lcd_setmode_internal(int mode, unsigned int *physbuf)
 {
     // mode=0 -> Mono
     //     =1 -> 4-gray
@@ -256,31 +256,31 @@ int __lcd_setmode(int mode, unsigned int *physbuf)
 
 int lcd_setmode(int mode, unsigned int *physbuf)
 {
-    int pagewidth = __lcd_setmode(mode, physbuf);
+    int pagewidth = lcd_setmode_internal(mode, physbuf);
 
     // fix CLKVAL and other clock dependent constants
     // and turn on
-    __lcd_fix();
+    lcd_fix();
 
-    lcd_setcontrast(__lcd_contrast);
+    lcd_setcontrast(lcd_contrast);
 
     return pagewidth;
 }
 
 void lcd_poweron()
 {
-    __lcd_setmode(2, (int *)MEM_PHYS_SCREEN);   // set default values
+    lcd_setmode_internal(2, (int *)MEM_PHYS_SCREEN);   // set default values
 
     *IO_GPDDAT = 0x300;
 
 // send unknown init commands to lcd
-    __lcd_txbyte(0);
-    __lcd_txbyte(0x27);
-    __lcd_txbyte(0x65);
+    lcd_txbyte(0);
+    lcd_txbyte(0x27);
+    lcd_txbyte(0x65);
 
-    lcd_setcontrast(__lcd_contrast);
+    lcd_setcontrast(lcd_contrast);
 
-    __lcd_fix();        // fix frequency and enable video
+    lcd_fix();        // fix frequency and enable video
 
     lcd_on();
 

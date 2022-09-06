@@ -7,15 +7,15 @@
 
 #include <ui.h>
 
-INTERRUPT_TYPE __saveint __SYSTEM_GLOBAL__;
+INTERRUPT_TYPE saveint SYSTEM_GLOBAL;
 
 void cpu_intoff()
 {
     //ARM ints off
 
-    if(!__saveint) {
+    if(!saveint) {
 
-        __saveint = *INTMSK;
+        saveint = *INTMSK;
         *INTMSK = 0xffffffff;   //mask all interrupts
 
     }
@@ -23,7 +23,7 @@ void cpu_intoff()
 
 // LOW-LEVEL VERSION, RETURN PREVIOUS STATE
 // USED BY THE EXCEPTION HANDLERS
-INTERRUPT_TYPE __cpu_intoff()
+INTERRUPT_TYPE cpu_intoff_nosave()
 {
     //ARM ints off
     INTERRUPT_TYPE previous = *INTMSK;
@@ -35,25 +35,25 @@ void cpu_inton()
 {
     //ARM ints on
 
-    if(__saveint)
-        *INTMSK = __saveint;
+    if(saveint)
+        *INTMSK = saveint;
 }
 
 // LOW-LEVEL VERSION USED BY THE EXCEPTION HANDLERS
 // RESTORES A PREVIOUSLY SAVED INTERRUPT STATE
-void __cpu_inton(INTERRUPT_TYPE state)
+void cpu_inton_nosave(INTERRUPT_TYPE state)
 {
     //ARM ints on
 
     *INTMSK = state;
 }
 
-EXTERN void __tmr_fix();
+EXTERN void tmr_fix();
 
 EXTERN int SDGetClock();
 EXTERN void SDSetClock(int clock);
 
-int __cpu_getFCLK()
+int cpu_getFCLK()
 {
     int clkslow = *CLKSLOW;
     int FCLK = 12000000;
@@ -74,18 +74,18 @@ int __cpu_getFCLK()
     return FCLK;
 }
 
-int __cpu_getHCLK()
+int cpu_getHCLK()
 {
-    int FCLK = __cpu_getFCLK();
+    int FCLK = cpu_getFCLK();
     int CLKDIVN = *HWREG(CLK_REGS, 0x14);
     if(CLKDIVN & 2)
         FCLK >>= 1;
     return FCLK;
 }
 
-int __cpu_getPCLK()
+int cpu_getPCLK()
 {
-    int FCLK = __cpu_getFCLK();
+    int FCLK = cpu_getFCLK();
     int CLKDIVN = *HWREG(CLK_REGS, 0x14);
     if(CLKDIVN & 2)
         FCLK >>= 1;
@@ -96,10 +96,10 @@ int __cpu_getPCLK()
 
 int cpu_getspeed()
 {
-    return __cpu_getFCLK();
+    return cpu_getFCLK();
 }
 
-int __cpu_setspeed(int PLLCON)
+int cpu_setspeed_internal(int PLLCON)
 {
 
     lcd_sync();
@@ -122,10 +122,10 @@ int __cpu_setspeed(int PLLCON)
         *HWREG(MEM_REGS, 0x8) = (*HWREG(MEM_REGS, 0x8) & (~0x700)) | 0x300;
 
         // FIX TIMERS OPERATION
-        __tmr_fix();
+        tmr_fix();
 
         // FIX LCD OPERATION
-        __lcd_fix();
+        lcd_fix();
 
         // FIX SD CARD OPERATION
         SDSetClock(sdclk);
@@ -176,10 +176,10 @@ int __cpu_setspeed(int PLLCON)
     *HWREG(CLK_REGS, 0x10) = (*HWREG(CLK_REGS, 0x10) & (~0x37));
 
     // FIX LCD TIMING
-    __lcd_fix();
+    lcd_fix();
 
     // FIX TIMERS
-    __tmr_fix();
+    tmr_fix();
 
     // FIX SD CARD OPERATION
     SDSetClock(sdclk);
@@ -191,23 +191,23 @@ int __cpu_setspeed(int PLLCON)
 int cpu_setspeed(int mhz)
 {
     if(mhz >= 192000000)
-        return __cpu_setspeed(CLK_192MHZ);
+        return cpu_setspeed_internal(CLK_192MHZ);
     if(mhz >= 152000000)
-        return __cpu_setspeed(CLK_152MHZ);
+        return cpu_setspeed_internal(CLK_152MHZ);
     if(mhz >= 120000000)
-        return __cpu_setspeed(CLK_120MHZ);
+        return cpu_setspeed_internal(CLK_120MHZ);
     if(mhz >= 75000000)
-        return __cpu_setspeed(CLK_75MHZ);
+        return cpu_setspeed_internal(CLK_75MHZ);
     if(mhz >= 48000000)
-        return __cpu_setspeed(CLK_48MHZ);
+        return cpu_setspeed_internal(CLK_48MHZ);
     if(mhz >= 12000000)
-        return __cpu_setspeed(CLK_12MHZ);
-//if(mhz>=  6000000) return __cpu_setspeed(CLK_6MHZ);
-    return __cpu_setspeed(CLK_6MHZ);
+        return cpu_setspeed_internal(CLK_12MHZ);
+//if(mhz>=  6000000) return cpu_setspeed_internal(CLK_6MHZ);
+    return cpu_setspeed_internal(CLK_6MHZ);
 }
 
 // PUT THE CPU IN "DOZE" MODE
-__ARM_MODE__ void cpu_waitforinterrupt()
+ARM_MODE void cpu_waitforinterrupt()
 {
     register unsigned int var = 0;
     asm volatile ("mcr p15,0,%0,c7,c0,4"::"r" (var));
@@ -216,14 +216,14 @@ __ARM_MODE__ void cpu_waitforinterrupt()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-__ARM_MODE__ int cpu_getlock(int lockvar, volatile int *lock_ptr)
+ARM_MODE int cpu_getlock(int lockvar, volatile int *lock_ptr)
 {
     asm volatile ("swp %1,%1,[%2];":"=r" (lockvar):"r"(lockvar), "r"(lock_ptr));
 
     return lockvar;
 }
 
-__ARM_MODE__ void cpu_flushwritebuffers(void)
+ARM_MODE void cpu_flushwritebuffers(void)
 {
     register unsigned int counter asm("r2");
     register unsigned int cacheaddr asm("r3");
@@ -240,7 +240,7 @@ __ARM_MODE__ void cpu_flushwritebuffers(void)
 
 }
 
-__ARM_MODE__ void cpu_flushicache(void)
+ARM_MODE void cpu_flushicache(void)
 {
     register unsigned int value;
 
@@ -249,7 +249,7 @@ __ARM_MODE__ void cpu_flushicache(void)
 
 }
 
-__ARM_MODE__ void cpu_flushTLB(void)
+ARM_MODE void cpu_flushTLB(void)
 {
     register unsigned int value;
 
@@ -258,7 +258,7 @@ __ARM_MODE__ void cpu_flushTLB(void)
 
 }
 
-__ARM_MODE__ void cpu_off_prepare()
+ARM_MODE void cpu_off_prepare()
 {
     // TODO: CHECK FOR SERIAL TRANSMISSIONS, SD CARD WRITE OPERATIONS, ETC BEFORE GOING DOWN
 
@@ -387,7 +387,7 @@ __ARM_MODE__ void cpu_off_prepare()
 
 #define PHYS_CLK_REGS 0x4c000000
 
-__ARM_MODE__ void cpu_off_die()
+ARM_MODE void cpu_off_die()
 {
     // GO OFF!
     asm volatile ("mov r0,r0");

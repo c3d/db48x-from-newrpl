@@ -393,7 +393,7 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 // ROMPTR ID ENCODES UP TO 63 ROM OBJECTS, WITH MAXIMUM SIZE OF 31 WORDS EACH
 
 // SPECIAL TYPE DEFINITION FOR RPL OBJECTS STORED IN ROM
-#define ROMOBJECT const WORD const __ROMOBJECT__
+#define ROMOBJECT const WORD const ROMOBJECTS
 
 #define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)&0x3f)<<5)|(((off)&0x1f))) )
 #define ROMPTRID_IDX(id) ((BINT)((id)>>5)&0x3f)

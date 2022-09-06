@@ -225,15 +225,15 @@ enum
 
 // MAIN EXCEPTION PROCESSOR
 
-#define __EX_CONT 1     // SHOW CONTINUE OPTION
-#define __EX_EXIT 2     // SHOW EXIT OPTION
-#define __EX_WARM 4     // SHOW WARMSTART OPTION
-#define __EX_RESET 8    // SHOW RESET OPTION
-#define __EX_NOREG 16   // DON'T SHOW REGISTERS
-#define __EX_WIPEOUT 32 // FULL MEMORY WIPEOUT AND WARMSTART
-#define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
-#define __EX_RPLEXIT 128        // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
-#define __EX_MEMDUMP 256        // SHOW A MEMORY DUMP OF THE ADDRESS PASSED UP AS THE EXCEPTION MESSAGE
+#define EX_CONT 1     // SHOW CONTINUE OPTION
+#define EX_EXIT 2     // SHOW EXIT OPTION
+#define EX_WARM 4     // SHOW WARMSTART OPTION
+#define EX_RESET 8    // SHOW RESET OPTION
+#define EX_NOREG 16   // DON'T SHOW REGISTERS
+#define EX_WIPEOUT 32 // FULL MEMORY WIPEOUT AND WARMSTART
+#define EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define EX_RPLEXIT 128        // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+#define EX_MEMDUMP 256        // SHOW A MEMORY DUMP OF THE ADDRESS PASSED UP AS THE EXCEPTION MESSAGE
 
 /*!
     \brief Throw a user exception
@@ -242,11 +242,11 @@ enum
 
     \param message The string that will be displayed.
     \param options One or more of the following constants:
-    \li __EX_CONT Display the "Continue" option, allowing the program to continue.
-    \li __EX_EXIT Display the "Exit" option, which immediately exits the program.
-    \li __EX_WARM Display the "Warmstart" option, which exits the program and causes a
+    \li EX_CONT Display the "Continue" option, allowing the program to continue.
+    \li EX_EXIT Display the "Exit" option, which immediately exits the program.
+    \li EX_WARM Display the "Warmstart" option, which exits the program and causes a
                   restart of the calculator, similar to On-C.
-    \li __EX_RESET Display the "Reset" option, which exits the program and then reset the calculator
+    \li EX_RESET Display the "Reset" option, which exits the program and then reset the calculator
                    in a way equivalent to a paperclip. It is similar to a Warmstart but also restarts
                    all the ARM hardware.
     \note If the options parameter is passed as 0, the calculator will display the exception message
@@ -309,10 +309,10 @@ void throw_dbgexception(char *message, unsigned int options);
 \liEINT1    = [1]
 \liEINT0    = [0] [Used for exception handler, do not use]
 
- \sa __irq_releasehook
+ \sa irq_releasehook
 */
 
-void __irq_addhook(int service_number, __interrupt__ serv_routine);
+void irq_addhook(int service_number, __interrupt__ serv_routine);
 
 /*!
     \brief Uninstall an IRQ handler
@@ -323,18 +323,18 @@ void __irq_addhook(int service_number, __interrupt__ serv_routine);
 
     \param service_number Identifies the device that is causing the interrupt. It's a
     					  number from 0 to 31 according to the list below (see Samsung S3C2410X manual).
-    \note See __irq_addhook for a list of interrupt service numbers
+    \note See irq_addhook for a list of interrupt service numbers
 
- \sa __irq_addhook
+ \sa irq_addhook
 */
 
-void __irq_releasehook(int service_number);
+void irq_releasehook(int service_number);
 
-void __irq_mask(int service_number);
-void __irq_unmask(int service_number);
-void __irq_clrpending(int service_number);
+void irq_mask(int service_number);
+void irq_unmask(int service_number);
+void irq_clrpending(int service_number);
 
-// Saves __usb_drvstatus
+// Saves usb_drvstatus
 void usb_mutex_lock(void);
 void usb_mutex_unlock(void);
 
@@ -994,11 +994,11 @@ void tmr_eventkill(HEVENT event);
 
 void bat_setup();
 void battery_handler();
-// READ THE BATTERY LEVEL AND STORE IT IN __battery
+// READ THE BATTERY LEVEL AND STORE IT IN battery
 void bat_read();
 
 // VARIABLE WHERE THE BATTERY STATUS IS STORED
-extern WORD __battery;
+extern WORD battery;
 
 // SYSTEM FONTS
 extern const unsigned int Font_5A[];
@@ -1049,9 +1049,9 @@ void cpu_inton();
 
 // LCD LOW-LEVEL HARDWARE API
 
-extern int __lcd_contrast;
+extern int lcd_contrast;
 void lcd_sync();
-void __lcd_fix();
+void lcd_fix();
 void lcd_off();
 void lcd_on();
 void lcd_poweron();
@@ -1064,9 +1064,9 @@ void lcd_setactivebuffer(int buffer);
 int lcd_getactivebuffer();
 
 // BASIC LOW-LEVEL INTERRUPT HANDLERS
-void __exception_install();
-void __irq_install();
-void __keyb_init();
+void exception_install();
+void irq_install();
+void keyb_irq_init();
 
 // LOW-LEVEL MEMORY MANAGEMENT
 void create_mmu_tables();
@@ -1116,7 +1116,7 @@ int usb_rxfileclose(int fileid);
 #define usb_filetype(fileid) ((fileid)>>8)
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
-void __keyb_waitrelease();
+void keyb_irq_waitrelease();
 
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
@@ -1138,9 +1138,9 @@ void rtc_getalarm(struct date *dt, struct time *tm, int *enabled);
 int rtc_setalarm(struct date dt, struct time tm, int enabled);
 int rtc_chkalrm();
 void rtc_setaie(int enabled);
-void __rtc_poweron();
-void __rtc_poweroff();
-void __rtc_reset();
+void rtc_poweron();
+void rtc_poweroff();
+void rtc_reset();
 
 // LOW-LEVEL HARDWARE DRIVERS - USB
 void usb_init(int force);

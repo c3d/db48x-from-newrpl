@@ -2367,7 +2367,7 @@ void LIB_HANDLER()
             GCFlags = GC_COMPLETED;     // MARK THAT GC WAS COMPLETED
             FSShutdown();
             throw_dbgexception("Memory lost during restore",
-                    __EX_WIPEOUT | __EX_RESET | __EX_NOREG);
+                    EX_WIPEOUT | EX_RESET | EX_NOREG);
             // THIS WON'T RETURN, ONLY A RESET IS ACCEPTABLE AT THIS POINT
             return;
         case 0:

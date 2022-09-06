@@ -108,7 +108,7 @@ BINT uiSetCmdLineText(WORDPTR text)
 
     if(Exceptions) {
         throw_dbgexception("No memory for command line",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
         //CmdLineText=(WORDPTR)empty_string;
@@ -176,7 +176,7 @@ void uiEnsureCursorVisible()
 
 }
 
-void __uicursorupdate()
+void uicursorupdate()
 {
     if(halScreen.CursorState & 0x4000)
         return; // DON'T UPDATE IF LOCKED
@@ -235,7 +235,7 @@ void uiOpenCmdLine(BINT mode)
     }
 
     halScreen.XVisible = 0;
-    halScreen.CursorTimer = tmr_eventcreate(&__uicursorupdate, 700, 1);
+    halScreen.CursorTimer = tmr_eventcreate(&uicursorupdate, 700, 1);
     halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
 
 }
@@ -291,7 +291,7 @@ void uiSetCurrentLine(BINT line)
 
     if(Exceptions) {
         throw_dbgexception("No memory for command line",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
         //CmdLineText=(WORDPTR)empty_string;
@@ -349,7 +349,7 @@ BINT uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -366,7 +366,7 @@ BINT uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
         WORDPTR newobj = rplAllocTempObLowMem(lenwords);
         if(!newobj) {
             throw_dbgexception("No memory to insert text",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -391,7 +391,7 @@ BINT uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
             WORDPTR newobj = rplAllocTempObLowMem(lenwords);
             if(!newobj) {
                 throw_dbgexception("No memory to insert text",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
                 //CmdLineText=(WORDPTR)empty_string;
@@ -406,7 +406,7 @@ BINT uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
     }
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
         //CmdLineText=(WORDPTR)empty_string;
@@ -545,7 +545,7 @@ void uiRemoveCharacters(BINT length)
             WORDPTR newobj = rplAllocTempObLowMem(OBJSIZE(*CmdLineCurrentLine));
             if(!newobj) {
                 throw_dbgexception("No memory to insert text",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
                 //CmdLineText=(WORDPTR)empty_string;
@@ -651,7 +651,7 @@ void uiSeparateToken()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -683,7 +683,7 @@ void uiModifyLine(int dontaddnewline)
 
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
         //CmdLineText=(WORDPTR)empty_string;
@@ -759,7 +759,7 @@ void uiExtractLine(BINT line)
 
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",
-                __EX_CONT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
         //CmdLineText=(WORDPTR)empty_string;
@@ -789,7 +789,7 @@ BINT uiGetIndentLevel(BINT * isemptyline)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -829,7 +829,7 @@ void uiMoveCursor(BINT offset)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -879,7 +879,7 @@ void uiCursorLeft(BINT nchars)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -939,7 +939,7 @@ void uiCursorLeft(BINT nchars)
             uiExtractLine(halScreen.LineCurrent);
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
                 //CmdLineText=(WORDPTR)empty_string;
@@ -982,7 +982,7 @@ void uiCursorRight(BINT nchars)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -1047,7 +1047,7 @@ void uiCursorRight(BINT nchars)
             uiExtractLine(halScreen.LineCurrent);
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
                 //CmdLineText=(WORDPTR)empty_string;
@@ -1137,7 +1137,7 @@ void uiCursorPageRight()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -1176,7 +1176,7 @@ void uiCursorPageLeft()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
 
@@ -1238,7 +1238,7 @@ BYTEPTR uiFindNumberStart(BYTEPTR * endofnum, BINT * flagsptr)
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
 
@@ -1493,7 +1493,7 @@ void uiAutocompleteUpdate()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
 
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
@@ -1566,7 +1566,7 @@ void uiAutocompNext()
 
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
 
@@ -1600,7 +1600,7 @@ void uiAutocompPrev()
 
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",
-                        __EX_CONT | __EX_WARM | __EX_RESET);
+                        EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
 
@@ -1668,7 +1668,7 @@ BYTEPTR uiAutocompStringStart()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -1691,7 +1691,7 @@ BYTEPTR uiAutocompStringEnd()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -1715,7 +1715,7 @@ BYTEPTR uiAutocompStringTokEnd()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+                    EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
             //CmdLineText=(WORDPTR)empty_string;
@@ -2143,7 +2143,7 @@ BINT halRestoreCmdLine(WORDPTR data)
     halScreen.LineIsModified = -1;      // LINE IS EXISTING BUT NEEDS TO BE EXTRACTED
 
     // START THE TIMER
-    halScreen.CursorTimer = tmr_eventcreate(&__uicursorupdate, 700, 1);
+    halScreen.CursorTimer = tmr_eventcreate(&uicursorupdate, 700, 1);
 
     // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;

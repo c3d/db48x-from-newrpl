@@ -24,4 +24,4 @@ void cgl_initscr(gglsurface * srf)
 }
 
 // Global palette, can be used for grayscale conversion or for themes
-int cgl_palette[PALETTESIZE] __SYSTEM_GLOBAL__;
+int cgl_palette[PALETTESIZE] SYSTEM_GLOBAL;

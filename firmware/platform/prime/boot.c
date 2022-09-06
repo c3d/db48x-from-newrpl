@@ -19,45 +19,45 @@
 
 // DEBUG ONLY - TURN ON LEDS
 extern uint8_t ts_buffer[256];
-__ARM_MODE__ void blue_led_on();
+ARM_MODE void blue_led_on();
 void blue_led_on()
 {
     *GPCCON= (*GPCCON&~0xc00) | 0x400; // GPC5 TO OUTPUT
     *GPCDAT|= 1<<5 ;
 }
-__ARM_MODE__ void blue_led_off();
+ARM_MODE void blue_led_off();
 void blue_led_off()
 {
     *GPCCON= (*GPCCON&~0xc00) | 0x400; // GPC5 TO OUTPUT
     *GPCDAT&=~(1<<5) ;
 }
 
-__ARM_MODE__ void green_led_on();
+ARM_MODE void green_led_on();
 void green_led_on()
 {
     *GPCCON= (*GPCCON&~0x3000) | 0x1000; // GPC6 TO OUTPUT
     *GPCDAT|= 1<<6 ;
 }
-__ARM_MODE__ void green_led_off();
+ARM_MODE void green_led_off();
 void green_led_off()
 {
     *GPCCON= (*GPCCON&~0x3000) | 0x1000; // GPC6 TO OUTPUT
     *GPCDAT&=~(1<<6) ;
 }
-__ARM_MODE__ void red_led_on();
+ARM_MODE void red_led_on();
 void red_led_on()
 {
     *GPCCON= (*GPCCON&~0xc000) | 0x4000; // GPC7 TO OUTPUT
     *GPCDAT|= 1<<7 ;
 }
-__ARM_MODE__ void red_led_off();
+ARM_MODE void red_led_off();
 void red_led_off()
 {
     *GPCCON= (*GPCCON&~0xc000) | 0x4000; // GPC7 TO OUTPUT
     *GPCDAT&=~(1<<7) ;
 }
 
-__ARM_MODE__ void enable_interrupts()
+ARM_MODE void enable_interrupts()
 {
     asm volatile (
         "mrs r1,cpsr_all;"
@@ -66,7 +66,7 @@ __ARM_MODE__ void enable_interrupts()
         ::: "r1");
 }
 
-__ARM_MODE__ void disable_interrupts()
+ARM_MODE void disable_interrupts()
 {
     asm volatile (
         "mrs r1,cpsr_all;"
@@ -75,7 +75,7 @@ __ARM_MODE__ void disable_interrupts()
         ::: "r1");
 }
 
-__ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
+ARM_MODE void set_stack(unsigned int *) __attribute__((naked));
 void set_stack(unsigned int *newstackptr)
 {
 
@@ -85,7 +85,7 @@ void set_stack(unsigned int *newstackptr)
         );
 }
 
-__ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
+ARM_MODE void switch_mode(int mode) __attribute__((naked));
 void switch_mode(int mode)
 {
     asm volatile (
@@ -118,7 +118,7 @@ void switch_mode(int mode)
 // SYS: 0x31ff7c00  // Stack below the MMU table with 1kbytes buffer in case of underrun
 // Stay in SYS mode, with supervisor privileges but using no banked registers
 
-__ARM_MODE__ void set_stackall() __attribute__((naked));
+ARM_MODE void set_stackall() __attribute__((naked));
 void set_stackall()
 {
     register unsigned int lr_copy;
@@ -209,13 +209,13 @@ void setup_hardware()
 
 // Initialize global variables region to zero
 // Any globals that need to have a value must be initialized at run time or be declared read-only.
-extern const int __data_start;
-extern const int __data_size;
-__ARM_MODE__ void clear_globals();
+extern const int data_start;
+extern const int data_size;
+ARM_MODE void clear_globals();
 void clear_globals()
 {
-int size=(unsigned int) (&__data_size);
-unsigned int *data= (unsigned int *) (&__data_start);
+int size=(unsigned int) (&data_size);
+unsigned int *data= (unsigned int *) (&data_start);
 
 while(size>0) { *data++=0; size-=4; }
 
@@ -223,7 +223,7 @@ while(size>0) { *data++=0; size-=4; }
 }
 
 
-__ARM_MODE__ void main_virtual() __attribute__((noreturn));
+ARM_MODE void main_virtual() __attribute__((noreturn));
 void main_virtual(unsigned int mode)
 {
 
@@ -258,7 +258,7 @@ void main_virtual(unsigned int mode)
             // CHECK FOR MAGIC KEY COMBINATION
             if(keyb_isAnyKeyPressed()) {
                 throw_exception("Wipeout requested",
-                        __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
+                        EX_WARM | EX_WIPEOUT | EX_EXIT);
             }
 
 
@@ -359,9 +359,9 @@ void main_virtual(unsigned int mode)
 
 #define MMU_MAP_PAGE(phys,virt) ( ( (unsigned int *)(mmu_base[MMU_LEVEL1_INDEX(virt)]&0xfffffc00))[MMU_LEVEL2_INDEX(virt)]=MMU_PAGE(phys))
 
-extern int __last_used_byte;
+extern int last_used_byte;
 
-static const WORD const __crctable[256] = {
+static const WORD const crctable[256] = {
     0, 0x77073096, 0xEE0E612C, 0x990951BA,
     0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
     0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -434,7 +434,7 @@ static WORD crc32(WORD oldcrc, BYTEPTR data, BINT len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
-        crc = __crctable[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
+        crc = crctable[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
     return crc ^ 0xffffffff;
 }
 
@@ -473,7 +473,7 @@ static WORD crc32(WORD oldcrc, BYTEPTR data, BINT len)
 
 #define COMPUTE_MMU_CRC()  crc32(0,(BYTEPTR)MMU_REVERSE_TABLE_ADDR,MMU_TOTAL_TABLE_SIZE)
 
-__ARM_MODE__ int check_and_create_mmu_tables(WORD oldcrc32);
+ARM_MODE int check_and_create_mmu_tables(WORD oldcrc32);
 int check_and_create_mmu_tables(WORD oldcrc32)
 {
 
@@ -774,7 +774,7 @@ int check_and_create_mmu_tables(WORD oldcrc32)
 
 
 
-__ARM_MODE__ void enable_mmu()
+ARM_MODE void enable_mmu()
 {
     asm volatile (
         "mov r0,#0x32000000;"
@@ -794,7 +794,7 @@ __ARM_MODE__ void enable_mmu()
 }
 
 // ALL CACHES AND TLB MUST BE FLUSHED BEFORE DISABLING MMU
-__ARM_MODE__ void disable_mmu()
+ARM_MODE void disable_mmu()
 {
     asm volatile (
         "mrc p15, 0, r0, c1, c0, 0;"
@@ -819,7 +819,7 @@ __ARM_MODE__ void disable_mmu()
 #define WAKEUP_ALARM    4
 #define WAKEUP_RESET    8
 
-char __SCRATCH_MEMORY__ SERIAL_NUMBER_ADDRESS[11];
+char SCRATCH_MEMORY SERIAL_NUMBER_ADDRESS[11];
 
 // Last block in NAND contains "BESTA TAD BLOCK" which contains the serial number of the unit
 void read_serial_number() {
@@ -852,7 +852,7 @@ void read_serial_number() {
 
 }
 
-__ARM_MODE__ void startup(void) __attribute__((noreturn, naked));
+ARM_MODE void startup(void) __attribute__((noreturn, naked));
 void startup(void)
 {
     // Initialize board - after bootloader
@@ -936,7 +936,7 @@ void startup(void)
         enable_mmu();           // Now we are in virtual mode, but still executing from the physical 1:1 map
     }
 
-    __exception_install();
+    exception_install();
 
     cpu_flushwritebuffers();   // Ensure exception handlers are written to RAM
     cpu_flushicache();         // Ensure any old code is removed from caches
@@ -953,7 +953,7 @@ void startup(void)
 
     tmr_setup();
 
-    __keyb_init();
+    keyb_irq_init();
 
     NANDInit();
     read_serial_number();
@@ -1061,13 +1061,13 @@ void halEnterPowerOff()
     FSShutdown();
 #endif
 
-    __rtc_poweroff();
+    rtc_poweroff();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);
 
     // WAIT FOR ALL KEYS TO BE RELEASED
-    __keyb_waitrelease();
+    keyb_irq_waitrelease();
 
     disable_interrupts();
 

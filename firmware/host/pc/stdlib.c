@@ -9,14 +9,14 @@
 
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 #ifndef errno
-int errno __SYSTEM_GLOBAL__;
+int errno SYSTEM_GLOBAL;
 
-int *__errno()
+int *errno_address()
 {
     return &errno;
 }
 
-#define errno (*__errno())
+#define errno (*errno_address())
 
 #endif
 
@@ -27,7 +27,7 @@ int *__errno()
 
 void abort()
 {
-    throw_exception("ABORT CALLED", __EX_RESET);
+    throw_exception("ABORT CALLED", EX_RESET);
     while(1);
 }
 

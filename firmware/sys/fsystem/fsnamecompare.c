@@ -57,7 +57,7 @@ int FSNameCompare(char *name1, char *name2, int caseflags)
 
     case FSCASE_INSENS:
 // CASE-INSENSITIVE
-        while(__ICASE(*name1) == __ICASE(*name2)) {
+        while(ICASE(*name1) == ICASE(*name2)) {
             if(*name1 == 0)
                 return TRUE;
             ++name1;
@@ -83,7 +83,7 @@ int FSNameCompare(char *name1, char *name2, int caseflags)
                 (int)(n1 - (unsigned char *)name1))
             return FALSE;       // FALSE IF STRINGS ARE NOT THE SAME LENGTH
 
-        while(__ICASE(*n1) == __ICASE(*n2)) {
+        while(ICASE(*n1) == ICASE(*n2)) {
             if(n1 == (unsigned char *)name1)
                 return TRUE;
             --n1;
@@ -115,7 +115,7 @@ int FSNameCompareRoot(char *shentry, char *newname)
         ++ext2;
 
     while(*ext2 && *ext1) {
-        if(__ICASE(*ext1) != __ICASE(*ext2))
+        if(ICASE(*ext1) != ICASE(*ext2))
             return -1;  // RETURN IF EXTENSIONS DIFFER
         ++ext1;
         ++ext2;
@@ -166,7 +166,7 @@ int FSNameCompareRoot(char *shentry, char *newname)
 
         }
 
-        if(__ICASE(*shentry) != __ICASE(*newname))
+        if(ICASE(*shentry) != ICASE(*newname))
             return -1;
 
         ++shentry;

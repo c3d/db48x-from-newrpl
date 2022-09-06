@@ -11,7 +11,7 @@
 
 void ram_doreset()
 {
-    throw_dbgexception("Calculator is about to reset",__EX_RESET | __EX_NOREG);
+    throw_dbgexception("Calculator is about to reset",EX_RESET | EX_NOREG);
 }
 
 // FLASH PROGRAMMING PROTOCOL:
@@ -72,33 +72,33 @@ void ram_receiveandflashfw(BINT flashsize)
 
             if(!receivedwords) {
                 // COMMUNICATIONS MUST'VE TIMED OUT OR WE ARE HALTED
-                throw_dbgexception("USB Comms timed out",__EX_RESET | __EX_CONT | __EX_NOREG);
+                throw_dbgexception("USB Comms timed out",EX_RESET | EX_CONT | EX_NOREG);
                 continue;
             } else break;
         } while(!receivedwords);
 
         if(usb_fileread(fileid, (BYTEPTR) & data, 4) < 4) {
-            throw_dbgexception("Read less than 4 bytes-signature",__EX_RESET);
+            throw_dbgexception("Read less than 4 bytes-signature",EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(data != TEXT2WORD('F', 'W', 'U', 'P')) {
-            throw_dbgexception("Bad FWUP signature",__EX_RESET);
+            throw_dbgexception("Bad FWUP signature",EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(usb_fileread(fileid, (BYTEPTR) & flash_address, 4) < 4) {
-            throw_dbgexception("Read less than 4 bytes-address",__EX_RESET);
+            throw_dbgexception("Read less than 4 bytes-address",EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
         if(usb_fileread(fileid, (BYTEPTR) & flash_nwords, 4) < 4) {
-            throw_dbgexception("Read less than 4 bytes-nwords",__EX_RESET);
+            throw_dbgexception("Read less than 4 bytes-nwords",EX_RESET);
             ram_doreset();
         }
 
         if(flash_nwords + 3 != receivedwords) {
-            throw_dbgexception("Words received mismatch",__EX_RESET);
+            throw_dbgexception("Words received mismatch",EX_RESET);
             ram_doreset();
         }
 
@@ -110,21 +110,21 @@ void ram_receiveandflashfw(BINT flashsize)
             // Write the whole file at once
             err = FSOpen("NEWRPL.ROM", FSMODE_WRITE, &newrplrom);
             if (err != FS_OK) {
-                throw_dbgexception("Cannot open file in flash",__EX_RESET | __EX_CONT | __EX_NOREG);
+                throw_dbgexception("Cannot open file in flash",EX_RESET | EX_CONT | EX_NOREG);
                 return;
             }
 
             err=FSWrite(ram_fw_start, fw_size, newrplrom);
             if(err!=fw_size) {
                 FSClose(newrplrom);
-                throw_dbgexception("Write to flash failed",__EX_RESET);
+                throw_dbgexception("Write to flash failed",EX_RESET);
                 ram_doreset();
             }
 
             // CLOSE THE FILE
             err = FSClose(newrplrom);
             if (err != FS_OK) {
-                throw_dbgexception("Cannot close file in flash",__EX_RESET | __EX_CONT | __EX_NOREG);
+                throw_dbgexception("Cannot close file in flash",EX_RESET | EX_CONT | EX_NOREG);
                 return;
             }
 
@@ -157,7 +157,7 @@ void ram_receiveandflashfw(BINT flashsize)
         }
 
         // Accumulating the firmware in RAM
-        const unsigned char * dataptr = (unsigned char *) (__usb_rxtxbuffer + __usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
+        const unsigned char * dataptr = (unsigned char *) (usb_rxtxbuffer + usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
         int flash_nbytes = flash_nwords * sizeof(WORD);
         memcpyb(ram_fw_pointer, dataptr, flash_nbytes);
         ram_fw_pointer += flash_nbytes;
@@ -179,7 +179,7 @@ void ram_receiveandflashfw(BINT flashsize)
 }
 
 
-__ARM_MODE__ void ram_startfwupdate()
+ARM_MODE void ram_startfwupdate()
 {
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED
     // THIS ROUTINE WILL UPDATE THE FIRMWARE

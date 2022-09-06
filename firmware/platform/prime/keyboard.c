@@ -7,23 +7,23 @@
 
 #include <ui.h>
 
-extern INTERRUPT_TYPE __cpu_intoff();
-extern void __cpu_inton(INTERRUPT_TYPE state);
-extern void __tmr_eventreschedule();
+extern INTERRUPT_TYPE cpu_intoff_nosave();
+extern void cpu_inton_nosave(INTERRUPT_TYPE state);
+extern void tmr_eventreschedule();
 
-extern void __keyb_update();
+extern void keyb_irq_update();
 
 #define DEBOUNCE  16    // 10 SEEMS TO BE ADEQUATE EVEN AT 75 MHz
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned int __keyb_buffer[KEYB_BUFFER];
-extern volatile int __keyb_lock;
-extern int __keyflags;
-extern int __kused, __kcurrent;
-extern keymatrix __kmat;
-extern int __keyplane;
-extern int __keynumber, __keycount;
-extern int __keyb_repeattime, __keyb_longpresstime, __keyb_debounce;
+extern unsigned int keyb_irq_buffer[KEYB_BUFFER];
+extern volatile int keyb_irq_lock;
+extern int keyflags;
+extern int kused, kcurrent;
+extern keymatrix kmat;
+extern int keyplane;
+extern int keynumber, keycount;
+extern int keyb_irq_repeattime, keyb_irq_longpresstime, keyb_irq_debounce;
 
 
 /*
@@ -77,7 +77,7 @@ Bit set means key is pressed.
 
 
 // Matrix to KeyCode mapping - Defined in keyboard.c for this target
-const unsigned char const __keyb_codefrombit[64] = {
+const unsigned char const keyb_irq_codefrombit[64] = {
      0, KB_P, KB_BKS, KB_M,KB_NUM, KB_9, KB_O, KB_ENT, 8, KB_0,
     KB_D,KB_L,KB_PLT,KB_CAS,KB_8,KB_RT,16,KB_DIV,KB_C,KB_K,
     KB_SYM,KB_MEN,KB_7,23,24,KB_MUL,KB_ALPHA,KB_J,KB_HOM,KB_VIE,
@@ -86,7 +86,7 @@ const unsigned char const __keyb_codefrombit[64] = {
     KB_G,KB_LSHIFT,KB_ON,KB_DOT,KB_3,55,56,KB_LF,KB_B,KB_F,
     KB_N,KB_HLP,KB_2, KB_RSHIFT
 };
-const unsigned char const __keyb_bitfromcode[64] = {
+const unsigned char const keyb_irq_bitfromcode[64] = {
 
 
 //    BKS U   /   *   -  +  ENT APP P
@@ -125,7 +125,7 @@ const unsigned char const __keyb_bitfromcode[64] = {
 // LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
 // HANDLERS ONLY
 
-keymatrix __keyb_getmatrix()
+keymatrix keyb_irq_getmatrix()
 {
     unsigned int c;
     uint32_t v;
@@ -210,25 +210,25 @@ keymatrix __keyb_getmatrix()
 // WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
 // NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
 
-keymatrix __keyb_getmatrixEX()
+keymatrix keyb_irq_getmatrixEX()
 {
-    INTERRUPT_TYPE saved = __cpu_intoff();
-    keymatrix m = __keyb_getmatrix();
-    __cpu_inton(saved);
+    INTERRUPT_TYPE saved = cpu_intoff_nosave();
+    keymatrix m = keyb_irq_getmatrix();
+    cpu_inton_nosave(saved);
     return m;
 }
 
-void __keyb_waitrelease()
+void keyb_irq_waitrelease()
 {
     keymatrix m = 1;
     while(m != 0LL) {
-        m = __keyb_getmatrixEX();
+        m = keyb_irq_getmatrixEX();
     }
 }
 
-#define LONG_KEYPRESSTIME (__keyb_longpresstime)
-#define REPEAT_KEYTIME (__keyb_repeattime)
-#define BOUNCE_KEYTIME (__keyb_debounce)
+#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
+#define REPEAT_KEYTIME (keyb_irq_repeattime)
+#define BOUNCE_KEYTIME (keyb_irq_debounce)
 
 #define KF_RUNNING   1
 #define KF_ALPHALOCK 2
@@ -239,40 +239,40 @@ void __keyb_waitrelease()
 // MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
 keymatrix keyb_getmatrix()
 {
-    if(__keyflags & KF_RUNNING)
-        return __kmat;
+    if(keyflags & KF_RUNNING)
+        return kmat;
     else
-        return __keyb_getmatrix();
+        return keyb_irq_getmatrix();
 }
 
 // ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
 
-void __keyb_int_handler()
+void keyb_irq_int_handler()
 {
 
     *EINTMASK |= 0xff00;
 
-    __keyb_update();
+    keyb_irq_update();
 
     *EINTPEND |= 0xff00;
     *EINTMASK &= ~0xff00;
 
 }
 
-void __keyb_init()
+void keyb_irq_init()
 {
-    __keyflags = KF_RUNNING;
-    __keyplane = 0;
-    __kused = __kcurrent = 0;
-    __keynumber = 0;
-    __kmat = 0LL;
-    __keyb_repeattime = 100 / KEYB_SCANSPEED;
-    __keyb_longpresstime = 1000 / KEYB_SCANSPEED;
-    __keyb_debounce = 20 / KEYB_SCANSPEED;
-    __keyb_lock = 0;
+    keyflags = KF_RUNNING;
+    keyplane = 0;
+    kused = kcurrent = 0;
+    keynumber = 0;
+    kmat = 0LL;
+    keyb_irq_repeattime = 100 / KEYB_SCANSPEED;
+    keyb_irq_longpresstime = 1000 / KEYB_SCANSPEED;
+    keyb_irq_debounce = 20 / KEYB_SCANSPEED;
+    keyb_irq_lock = 0;
 // INITIALIZE TIMER EVENT 0
 
-    tmr_events[0].eventhandler = __keyb_update;
+    tmr_events[0].eventhandler = keyb_irq_update;
     tmr_events[0].delay = (KEYB_SCANSPEED * tmr_getsysfreq()) / 1000;
 
     tmr_events[0].status = 0;
@@ -294,22 +294,22 @@ void __keyb_init()
     *EINTMASK = (*EINTMASK & ~0x00ff00);       // UNMASK 8-15
     *EINTPEND = 0xfff0;     // CLEAR ALL PENDING INTERRUPTS
 
-    __irq_addhook(5, &__keyb_int_handler);
+    irq_addhook(5, &keyb_irq_int_handler);
 
-    __irq_clrpending(5);    // REMOVE ANY PENDING REQUESTS
-    __irq_unmask(5);     // UNMASK EXTERNAL INTERRUPTS
+    irq_clrpending(5);    // REMOVE ANY PENDING REQUESTS
+    irq_unmask(5);     // UNMASK EXTERNAL INTERRUPTS
 
 }
 
-void __keyb_stop()
+void keyb_irq_stop()
 {
 
     tmr_events[0].status = 0;
 
 // DISABLE INTERRUPTS, STATUS WILL BE FULLY RESTORED ON EXIT
-    __irq_mask(5);     // MASK EXTERNAL INTERRUPTS
+    irq_mask(5);     // MASK EXTERNAL INTERRUPTS
     *EINTMASK |= 0xFF00;    // MASK GPIO INTERRUPT REGISTERS
-    __irq_releasehook(5);
+    irq_releasehook(5);
 
-    __keyflags &= ~KF_RUNNING;
+    keyflags &= ~KF_RUNNING;
 }

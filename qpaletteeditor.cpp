@@ -11,13 +11,13 @@ extern "C" {
 #include "xgl.h"
 }
 
-extern "C" int __lcd_needsupdate;
+extern "C" int lcd_needsupdate;
 extern void FullScreenUpdate();
 extern int SaveRPLObject(QString & filename, int level);
 extern int LoadRPLObject(QString & filename);
 extern int SaveColorTheme(QString & filename);
 extern int LoadColorTheme(QString & filename);
-extern volatile int __cpu_idle;
+extern volatile int cpu_idle;
 
 
 const char *pal_descriptions[]={
@@ -168,10 +168,10 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
 
                 //if(!fname.endsWith(".nrpl")) fname+=".nrpl";
 
-                while(!__cpu_idle)
+                while(!cpu_idle)
                     QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-                __cpu_idle = 2; // BLOCK REQUEST
+                cpu_idle = 2; // BLOCK REQUEST
 
                 if(!SaveColorTheme(fname)) {
                     QMessageBox a(QMessageBox::Warning, "Error while saving",
@@ -179,7 +179,7 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
                     a.exec();
                     return;
                 }
-                __cpu_idle = 0;     // LET GO THE SIMULATOR
+                cpu_idle = 0;     // LET GO THE SIMULATOR
             }
        return;
     }
@@ -195,10 +195,10 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
             if(!mw->rpl.isRunning())
                 return;     // DO NOTHING
 
-            while(!__cpu_idle)
+            while(!cpu_idle)
                 QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-            __cpu_idle = 2; // BLOCK REQUEST
+            cpu_idle = 2; // BLOCK REQUEST
 
             // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
             if(!LoadColorTheme(fname)) {
@@ -211,7 +211,7 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
 
         }
 
-        __cpu_idle = 0;     // LET GO THE SIMULATOR
+        cpu_idle = 0;     // LET GO THE SIMULATOR
         return;
     }
 }

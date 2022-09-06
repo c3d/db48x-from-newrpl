@@ -39,30 +39,30 @@ MainWindow *myMainWindow;
 
 // CAN'T INCLUDE THE HEADERS DIRECTLY DUE TO CONFLICTING TYPES ON WINDOWS ONLY...
 
-extern unsigned long long __pckeymatrix;
-extern int __pc_terminate;
-extern int __memmap_intact;
-extern volatile int __cpu_idle;
-extern hid_device *__usb_curdevice;
-extern char __usb_devicepath[8192];
-extern volatile int __usb_paused;
+extern unsigned long long pckeymatrix;
+extern int pc_terminate;
+extern int memmap_intact;
+extern volatile int cpu_idle;
+extern hid_device *usb_curdevice;
+extern char usb_devicepath[8192];
+extern volatile int usb_paused;
 
 extern "C" void usb_irqservice();
 extern "C" void usb_irqdisconnect();
 extern "C" void usb_irqconnect();
 extern "C" int usb_isconnected();
 
-extern "C" void __keyb_update();
+extern "C" void keyb_irq_update();
 // BACKUP/RESTORE
 extern "C" int rplBackup(int (*writefunc)(unsigned int, void *), void *);
 extern "C" int rplRestoreBackup(int, unsigned int (*readfunc)(void *), void *);
 extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)(void *), void *);      // DEBUG ONLY
-extern "C" void __SD_irqeventinsert();
+extern "C" void SD_irqeventinsert();
 
-extern int __sd_inserted;
-extern int __sd_nsectors;       // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
-extern int __sd_RCA;
-extern unsigned char *__sd_buffer;      // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
+extern int sd_inserted;
+extern int sd_nsectors;       // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+extern int sd_RCA;
+extern unsigned char *sd_buffer;      // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
 extern "C" int usbremotearchivestart();
 extern "C" int usbreceivearchive(uint32_t * buffer, int bufsize);
@@ -89,9 +89,9 @@ QMainWindow(parent), rpl(this), usbdriver(this), ui(new Ui::MainWindow), themeEd
     ui->EmuScreen->installEventFilter(this);
 
     nousbupdate = true; // DON'T UPDATE THE ON-SCREEN USB CONNECTION STATUS
-    __usb_devicepath[0] = 0;    // NULL PATH
-    __usb_curdevice = 0;        // USB IS INITIALLY DISCONNECTED
-    __usb_paused = 1;   // PAUSE THE USB THREAD
+    usb_devicepath[0] = 0;    // NULL PATH
+    usb_curdevice = 0;        // USB IS INITIALLY DISCONNECTED
+    usb_paused = 1;   // PAUSE THE USB THREAD
     currentusb.clear();
     currentusbpath.clear();
 
@@ -103,11 +103,11 @@ QMainWindow(parent), rpl(this), usbdriver(this), ui(new Ui::MainWindow), themeEd
     ui->EmuScreen->connect(screentmr, SIGNAL(timeout()), ui->EmuScreen,
             SLOT(update()));
     connect(screentmr, SIGNAL(timeout()), this, SLOT(usbupdate()));
-    __memmap_intact = 0;
-    __sd_inserted = 0;
-    __sd_RCA = 0;
-    __sd_nsectors = 0;
-    __sd_buffer = NULL;
+    memmap_intact = 0;
+    sd_inserted = 0;
+    sd_RCA = 0;
+    sd_nsectors = 0;
+    sd_buffer = NULL;
     ui->actionEject_SD_Card_Image->setEnabled(false);
     ui->actionInsert_SD_Card_Image->setEnabled(true);
 
@@ -181,21 +181,21 @@ void MainWindow::on_EmuScreen_destroyed()
     QMainWindow::close();
 }
 
-extern volatile long long __pcsystmr;
-int __tmr_singleshot_running = 0;
-volatile unsigned long long __tmr1_msec;
+extern volatile long long pcsystmr;
+int tmr_singleshot_running = 0;
+volatile unsigned long long tmr1_msec;
 
-extern "C" void __tmr_newirqeventsvc();
+extern "C" void tmr_newirqeventsvc();
 
 extern "C" void stop_singleshot()
 {
-    __tmr_singleshot_running = 0;
+    tmr_singleshot_running = 0;
 }
 
 extern "C" void timer_singleshot(int msec)
 {
-    __tmr1_msec = msec;
-    __tmr_singleshot_running = 1;
+    tmr1_msec = msec;
+    tmr_singleshot_running = 1;
 }
 
 
@@ -604,16 +604,16 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
     }
 
     if(ev->key() == Qt::Key_F12) {
-        __pckeymatrix = (1ULL << 63) | (1ULL << 41) | (1ULL << 43);
-        __keyb_update();
+        pckeymatrix = (1ULL << 63) | (1ULL << 41) | (1ULL << 43);
+        keyb_irq_update();
         ev->accept();
         return;
     }
 
     for(i = 0; keyMap[i] != 0; i += 2) {
         if(ev->key() == keyMap[i]) {
-            __pckeymatrix |= 1ULL << (keyMap[i + 1]);
-            __keyb_update();
+            pckeymatrix |= 1ULL << (keyMap[i + 1]);
+            keyb_irq_update();
             ev->accept();
             return;
         }
@@ -632,8 +632,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
     }
 
     if(ev->key() == Qt::Key_F12) {
-        __pckeymatrix &= ~((1ULL << 63) | (1ULL << 41) | (1ULL << 43));
-        __keyb_update();
+        pckeymatrix &= ~((1ULL << 63) | (1ULL << 41) | (1ULL << 43));
+        keyb_irq_update();
         ev->accept();
         return;
     }
@@ -642,8 +642,8 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
 
     for(i = 0; keyMap[i] != 0; i += 2) {
         if(mykey == keyMap[i]) {
-            __pckeymatrix &= ~(1ULL << (keyMap[i + 1]));
-            __keyb_update();
+            pckeymatrix &= ~(1ULL << (keyMap[i + 1]));
+            keyb_irq_update();
             ev->accept();
             return;
         }
@@ -662,16 +662,16 @@ void MainWindow::on_actionExit_triggered()
 {
 
     // CLEANUP SD CARD EMULATION
-    if(__sd_inserted) {
+    if(sd_inserted) {
         // STOP RPL ENGINE
         screentmr->stop();
         if(rpl.isRunning()) {
-            __cpu_idle = 0;
-            __pc_terminate = 1;
-            __pckeymatrix ^= (1ULL << 63);
-            __keyb_update();
+            cpu_idle = 0;
+            pc_terminate = 1;
+            pckeymatrix ^= (1ULL << 63);
+            keyb_irq_update();
             while(rpl.isRunning()) {
-                __pc_terminate = 1;
+                pc_terminate = 1;
             }
 
         }
@@ -692,18 +692,18 @@ void MainWindow::on_actionExit_triggered()
     // STOP RPL ENGINE
     screentmr->stop();
     if(rpl.isRunning()) {
-        __cpu_idle = 0;
-        __pc_terminate = 1;
-        __pckeymatrix ^= (1ULL << 63);
-        __keyb_update();
+        cpu_idle = 0;
+        pc_terminate = 1;
+        pckeymatrix ^= (1ULL << 63);
+        keyb_irq_update();
         while(rpl.isRunning()) {
-            __pc_terminate = 1;
+            pc_terminate = 1;
         }
     }
 
     // STOP THE USB DRIVER THREAD
-    __usb_paused = 2;
-    while(usbdriver.isRunning() && (__usb_paused >= 0));
+    usb_paused = 2;
+    while(usbdriver.isRunning() && (usb_paused >= 0));
 
     QSettings settings;
 
@@ -771,8 +771,8 @@ void MainWindow::on_actionOpen_triggered()
     if(!OpenFile(fname)) {
         if(!rpl.isRunning()) {
             // RESTART RPL ENGINE
-            __pc_terminate = 0;
-            __pckeymatrix = 0;
+            pc_terminate = 0;
+            pckeymatrix = 0;
 
             rpl.start();
             screentmr->setSingleShot(true);
@@ -806,23 +806,23 @@ void MainWindow::on_actionNew_triggered()
     // STOP RPL ENGINE
     screentmr->stop();
     if(rpl.isRunning()) {
-        __cpu_idle = 0;
-        __pc_terminate = 1;
-        __pckeymatrix ^= (1ULL << 63);
-        __keyb_update();
+        cpu_idle = 0;
+        pc_terminate = 1;
+        pckeymatrix ^= (1ULL << 63);
+        keyb_irq_update();
         while(rpl.isRunning()) {
             usbupdate();
-            __pc_terminate = 1;
+            pc_terminate = 1;
         }
     }
 
     currentfile.clear();
     setWindowTitle("newRPL - [Unnamed]");
-    __memmap_intact = 0;
+    memmap_intact = 0;
 
     // RESTART RPL ENGINE
-    __pc_terminate = 0;
-    __pckeymatrix = 0;
+    pc_terminate = 0;
+    pckeymatrix = 0;
 
     rpl.start();
 
@@ -848,15 +848,15 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
             return;
         }
 
-        __sd_inserted = 0;
-        __sd_RCA = 0;
-        __sd_nsectors = 0;
-        if(__sd_buffer != NULL)
-            free(__sd_buffer);
+        sd_inserted = 0;
+        sd_RCA = 0;
+        sd_nsectors = 0;
+        if(sd_buffer != NULL)
+            free(sd_buffer);
 
         // FILE IS OPEN AND READY FOR READING
-        __sd_buffer = (unsigned char *)malloc(sdcard.size());
-        if(__sd_buffer == NULL) {
+        sd_buffer = (unsigned char *)malloc(sdcard.size());
+        if(sd_buffer == NULL) {
             QMessageBox a(QMessageBox::Warning, "Error while opening",
                     "Not enough memory to read SD Image", QMessageBox::Ok,
                     this);
@@ -864,18 +864,18 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
             return;
         }
 
-        if(sdcard.read((char *)__sd_buffer, sdcard.size()) != sdcard.size()) {
+        if(sdcard.read((char *)sd_buffer, sdcard.size()) != sdcard.size()) {
             QMessageBox a(QMessageBox::Warning, "Error while opening",
                     "Can't read SD Image", QMessageBox::Ok, this);
             a.exec();
             return;
         }
 
-        __sd_nsectors = sdcard.size() / 512;
-        __sd_inserted = 1;
+        sd_nsectors = sdcard.size() / 512;
+        sd_inserted = 1;
         sdcard.close();
         // SIMULATE AN IRQ
-        __SD_irqeventinsert();
+        SD_irqeventinsert();
 
         ui->actionEject_SD_Card_Image->setEnabled(true);
         ui->actionInsert_SD_Card_Image->setEnabled(false);
@@ -888,7 +888,7 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
 
 void MainWindow::on_actionEject_SD_Card_Image_triggered()
 {
-    if(__sd_inserted) {
+    if(sd_inserted) {
         // SAVE THE CONTENTS BACK BEFORE EJECTING
         if(!sdcard.open(QIODevice::WriteOnly)) {
             QMessageBox a(QMessageBox::Warning,
@@ -898,20 +898,20 @@ void MainWindow::on_actionEject_SD_Card_Image_triggered()
             a.exec();
         }
         else {
-            sdcard.write((char *)__sd_buffer, (qint64) __sd_nsectors * 512LL);
+            sdcard.write((char *)sd_buffer, (qint64) sd_nsectors * 512LL);
             sdcard.close();
         }
     }
-    __sd_inserted = 0;
-    __sd_RCA = 0;
-    __sd_nsectors = 0;
-    if(__sd_buffer != NULL) {
-        free(__sd_buffer);
-        __sd_buffer = NULL;
+    sd_inserted = 0;
+    sd_RCA = 0;
+    sd_nsectors = 0;
+    if(sd_buffer != NULL) {
+        free(sd_buffer);
+        sd_buffer = NULL;
     }
 
     // SIMULATE AN IRQ
-    __SD_irqeventinsert();
+    SD_irqeventinsert();
 
     ui->actionEject_SD_Card_Image->setEnabled(false);
     ui->actionInsert_SD_Card_Image->setEnabled(true);
@@ -924,25 +924,25 @@ void MainWindow::on_actionPower_ON_triggered()
     // STOP RPL ENGINE
     screentmr->stop();
     if(rpl.isRunning()) {
-        __cpu_idle = 0;
-        __pc_terminate = 1;
-        __pckeymatrix ^= (1ULL << 63);
-        __keyb_update();
+        cpu_idle = 0;
+        pc_terminate = 1;
+        pckeymatrix ^= (1ULL << 63);
+        keyb_irq_update();
         while(rpl.isRunning()) {
-            __pc_terminate = 1;
+            pc_terminate = 1;
         }
     }
 
-    if(__pc_terminate == 2) {
+    if(pc_terminate == 2) {
         // IT WAS POWERED OFF
-        __memmap_intact = 2;
+        memmap_intact = 2;
     }
     else
-        __memmap_intact = 1;
+        memmap_intact = 1;
 
     // RESTART RPL ENGINE
-    __pc_terminate = 0;
-    __pckeymatrix = 0;
+    pc_terminate = 0;
+    pckeymatrix = 0;
 
     rpl.start();
     screentmr->setSingleShot(true);
@@ -984,15 +984,15 @@ void MainWindow::on_actionCopy_Level_1_triggered()
     if(!rpl.isRunning())
         return; // DO NOTHING
 
-    while(!__cpu_idle)
+    while(!cpu_idle)
         QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-    __cpu_idle = 2;     // BLOCK REQUEST
+    cpu_idle = 2;     // BLOCK REQUEST
 
     // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
     Stack2Clipboard(1, 0);
 
-    __cpu_idle = 0;     // LET GO THE SIMULATOR
+    cpu_idle = 0;     // LET GO THE SIMULATOR
 }
 
 void MainWindow::on_actionPaste_to_Level_1_triggered()
@@ -1000,15 +1000,15 @@ void MainWindow::on_actionPaste_to_Level_1_triggered()
     if(!rpl.isRunning())
         return; // DO NOTHING
 
-    while(!__cpu_idle)
+    while(!cpu_idle)
         QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-    __cpu_idle = 2;     // BLOCK REQUEST
+    cpu_idle = 2;     // BLOCK REQUEST
 
     // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
     Clipboard2Stack();
 
-    __cpu_idle = 0;     // LET GO THE SIMULATOR
+    cpu_idle = 0;     // LET GO THE SIMULATOR
 
 }
 
@@ -1017,15 +1017,15 @@ void MainWindow::on_actionCut_Level_1_triggered()
     if(!rpl.isRunning())
         return; // DO NOTHING
 
-    while(!__cpu_idle)
+    while(!cpu_idle)
         QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-    __cpu_idle = 2;     // BLOCK REQUEST
+    cpu_idle = 2;     // BLOCK REQUEST
 
     // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
     Stack2Clipboard(1, 1);
 
-    __cpu_idle = 0;     // LET GO THE SIMULATOR
+    cpu_idle = 0;     // LET GO THE SIMULATOR
     halScreenUpdated();
 }
 
@@ -1062,10 +1062,10 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
         if(!rpl.isRunning())
             return;     // DO NOTHING
 
-        while(!__cpu_idle)
+        while(!cpu_idle)
             QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-        __cpu_idle = 2; // BLOCK REQUEST
+        cpu_idle = 2; // BLOCK REQUEST
 
         // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
         if(!LoadRPLObject(fname)) {
@@ -1078,7 +1078,7 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 
     }
 
-    __cpu_idle = 0;     // LET GO THE SIMULATOR
+    cpu_idle = 0;     // LET GO THE SIMULATOR
     halScreenUpdated();
 
 }
@@ -1100,19 +1100,19 @@ void MainWindow::usbupdate()
             if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
                 halScreenUpdated();
                 // ATTEMPT TO RECONNECT
-                __usb_paused = 1;
-                while(__usb_paused >= 0);
+                usb_paused = 1;
+                while(usb_paused >= 0);
                 usb_shutdown();
-                if(safe_stringcpy(__usb_devicepath, 8192,
+                if(safe_stringcpy(usb_devicepath, 8192,
                             currentusbpath.toUtf8().constData()))
-                    __usb_devicepath[0] = 0;
+                    usb_devicepath[0] = 0;
                 usb_init(0);
                 if(!usb_isconnected()) {
                     return;
                 }
                 else {
                     ui->usbconnectButton->setText(currentusb);
-                    __usb_paused = 0;   // AND RESUME THE DRIVER
+                    usb_paused = 0;   // AND RESUME THE DRIVER
                     return;
                 }
             }
@@ -1130,15 +1130,15 @@ void MainWindow::on_usbconnectButton_clicked()
     nousbupdate = true;
 
     // PAUSE THE USB DRIVER
-    __usb_paused = 1;
-    while(__usb_paused >= 0);
+    usb_paused = 1;
+    while(usb_paused >= 0);
 
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
         // ATTEMPT TO RECONNECT
         usb_shutdown();
-        if(safe_stringcpy(__usb_devicepath, 8192,
+        if(safe_stringcpy(usb_devicepath, 8192,
                     currentusbpath.toUtf8().constData()))
-            __usb_devicepath[0] = 0;
+            usb_devicepath[0] = 0;
         usb_init(0);
         if(!usb_isconnected()) {
             currentusb.clear();
@@ -1146,7 +1146,7 @@ void MainWindow::on_usbconnectButton_clicked()
         }
         else {
             ui->usbconnectButton->setText(currentusb);
-            __usb_paused = 0;   // AND RESUME THE DRIVER
+            usb_paused = 0;   // AND RESUME THE DRIVER
             halScreenUpdated();
             nousbupdate = false;
             return;
@@ -1168,16 +1168,16 @@ void MainWindow::on_usbconnectButton_clicked()
 
     int oldflag;
     if(rpl.isRunning())
-        while(!__cpu_idle)
+        while(!cpu_idle)
             QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-    __cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+    cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
     oldflag = change_autorcv(1);
 
-    __cpu_idle = 0;
+    cpu_idle = 0;
     if(rpl.isRunning())
-        while(!__cpu_idle)
+        while(!cpu_idle)
             QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
     USBSelector seldlg;
@@ -1185,9 +1185,9 @@ void MainWindow::on_usbconnectButton_clicked()
     if(seldlg.exec() == QDialog::Accepted) {
         if(!seldlg.getSelectedDevicePath().isEmpty()) {
             usb_shutdown();
-            if(safe_stringcpy(__usb_devicepath, 8192,
+            if(safe_stringcpy(usb_devicepath, 8192,
                         seldlg.getSelectedDevicePath().toUtf8().constData()))
-                __usb_devicepath[0] = 0;
+                usb_devicepath[0] = 0;
             usb_init(0);
             if(usb_isconnected()) {
                 currentusbpath = seldlg.getSelectedDevicePath();
@@ -1204,20 +1204,20 @@ void MainWindow::on_usbconnectButton_clicked()
     else {
         ui->usbconnectButton->setText(currentusb);
         nousbupdate = false;
-        __usb_paused = 0;
+        usb_paused = 0;
     }
 
     if(rpl.isRunning()) {
 
-        while(!__cpu_idle)
+        while(!cpu_idle)
             QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-        __cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+        cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
     }
     change_autorcv(oldflag);
 
-    __cpu_idle = 0;
+    cpu_idle = 0;
 
     halScreenUpdated();
 
@@ -1275,26 +1275,26 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
         int oldflag;
         if(rpl.isRunning())
-            while(!__cpu_idle)
+            while(!cpu_idle)
                 QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-        __cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+        cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
         oldflag = change_autorcv(1);    // STOP THE SIMULATOR FROM RECEIVING THR TRANSMISSION
 
-        __cpu_idle = 0;
+        cpu_idle = 0;
 
         int nwords = usbreceivearchive(buffer, USBARCHIVE_MAX_SIZE_WORDS);
 
         if(rpl.isRunning())
-            while(!__cpu_idle)
+            while(!cpu_idle)
                 QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-        __cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+        cpu_idle = 2; // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
         change_autorcv(oldflag);        // RESTORE THE SIMULATOR FLAG
 
-        __cpu_idle = 0;
+        cpu_idle = 0;
 
         if(nwords == -1) {
             file.close();
@@ -1364,27 +1364,27 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
             int oldflag;
 
             if(rpl.isRunning())
-                while(!__cpu_idle)
+                while(!cpu_idle)
                     QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
-            __cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+            cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
             oldflag = change_autorcv(1);        // STOP THE SIMULATOR FROM RECEIVING THR TRANSMISSION
 
-            __cpu_idle = 0;
+            cpu_idle = 0;
 
             int nwords =
                     usbsendarchive((uint32_t *) filedata.constData(),
                     (filedata.size() + 3) >> 2);
 
             if(rpl.isRunning())
-                while(!__cpu_idle)
+                while(!cpu_idle)
                     QThread::msleep(1); // BLOCK UNTIL RPL IS IDLE
 
-            __cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+            cpu_idle = 2;     // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
             change_autorcv(oldflag);    // RESTORE THE SIMULATOR FLAG
 
-            __cpu_idle = 0;
+            cpu_idle = 0;
 
             halScreenUpdated();
 
@@ -1418,13 +1418,13 @@ int MainWindow::OpenFile(QString fname)
         // STOP RPL ENGINE
         screentmr->stop();
         if(rpl.isRunning()) {
-            __cpu_idle = 0;
-            __pc_terminate = 1;
-            __pckeymatrix ^= (1ULL << 63);
-            __keyb_update();
+            cpu_idle = 0;
+            pc_terminate = 1;
+            pckeymatrix ^= (1ULL << 63);
+            keyb_irq_update();
             while(rpl.isRunning()) {
                 usbupdate();
-                __pc_terminate = 1;
+                pc_terminate = 1;
             }
         }
 
@@ -1445,7 +1445,7 @@ int MainWindow::OpenFile(QString fname)
             a.exec();
             currentfile.clear();
             setWindowTitle("newRPL - [Unnamed]");
-            __memmap_intact = 0;
+            memmap_intact = 0;
             return 0;
         }
         case 0:
@@ -1455,7 +1455,7 @@ int MainWindow::OpenFile(QString fname)
                     " is corrupt or incompatible.\nCan't recover but memory was left intact.",
                     QMessageBox::Ok, this);
             a.exec();
-            __memmap_intact = 1;
+            memmap_intact = 1;
             break;
         }
         case 1:
@@ -1467,7 +1467,7 @@ int MainWindow::OpenFile(QString fname)
                         currentfile.lastIndexOf("\\")));
             setWindowTitle("newRPL - [" + nameonly + "]");
 
-            __memmap_intact = 2;
+            memmap_intact = 2;
 
             break;
         }
@@ -1485,15 +1485,15 @@ int MainWindow::OpenFile(QString fname)
                         currentfile.lastIndexOf("\\")));
             setWindowTitle("newRPL - [" + nameonly + "]");
 
-            __memmap_intact = 1;
+            memmap_intact = 1;
             break;
         }
 
         }
 
         // RESTART RPL ENGINE
-        __pc_terminate = 0;
-        __pckeymatrix = 0;
+        pc_terminate = 0;
+        pckeymatrix = 0;
 
         rpl.start();
         screentmr->setSingleShot(true);
@@ -1529,13 +1529,13 @@ void MainWindow::SaveFile(QString fname)
         if(rpl.isRunning()) {
 
             setExceptionPoweroff();
-            __cpu_idle = 0;
-            __pc_terminate = 1;
-            __pckeymatrix ^= (1ULL << 63);
-            __keyb_update();
+            cpu_idle = 0;
+            pc_terminate = 1;
+            pckeymatrix ^= (1ULL << 63);
+            keyb_irq_update();
             while(rpl.isRunning()) {
                 usbupdate();
-                __pc_terminate = 1;
+                pc_terminate = 1;
             }
         }
 
@@ -1546,10 +1546,10 @@ void MainWindow::SaveFile(QString fname)
 
         file.close();
 
-        __memmap_intact = 2;
+        memmap_intact = 2;
         // RESTART RPL ENGINE
-        __pc_terminate = 0;
-        __pckeymatrix = 0;
+        pc_terminate = 0;
+        pckeymatrix = 0;
         rpl.start();
         screentmr->setSingleShot(true);
         screentmr->start(20);
@@ -1608,7 +1608,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                         else {
                             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                             if(pressed) {
-                                __pckeymatrix |= 1ULL << (ptr->keynum);
+                                pckeymatrix |= 1ULL << (ptr->keynum);
                                 //qDebug() << "PRESS x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
                                 if(ptr->keynum == 63) {
                                     // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
@@ -1617,11 +1617,11 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                                 }
                             }
                             else {
-                                __pckeymatrix &= ~(1ULL << (ptr->keynum));
+                                pckeymatrix &= ~(1ULL << (ptr->keynum));
                                 //qDebug() << "RELEA x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
                             }
 
-                            __keyb_update();
+                            keyb_irq_update();
                         }
                     }
                     ptr++;
@@ -1661,8 +1661,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     }
                     else {
                         //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
-                        __pckeymatrix |= 1ULL << (ptr->keynum);
-                        __keyb_update();
+                        pckeymatrix |= 1ULL << (ptr->keynum);
+                        keyb_irq_update();
                         if(ptr->keynum == 63) {
                             // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
                             if(!rpl.isRunning())
@@ -1694,8 +1694,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     // CLICKED INSIDE A KEY
 
                     //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
-                    __pckeymatrix &= ~(1ULL << (ptr->keynum));
-                    __keyb_update();
+                    pckeymatrix &= ~(1ULL << (ptr->keynum));
+                    keyb_irq_update();
                 }
                 ptr++;
             }
@@ -1779,15 +1779,15 @@ void MainWindow::on_actionPaste_and_compile_triggered()
     if(!rpl.isRunning())
         return; // DO NOTHING
 
-    while(!__cpu_idle)
+    while(!cpu_idle)
         QThread::msleep(1);     // BLOCK UNTIL RPL IS IDLE
 
-    __cpu_idle = 2;     // BLOCK REQUEST
+    cpu_idle = 2;     // BLOCK REQUEST
 
     // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
     Clipboard2StackCompile();
 
-    __cpu_idle = 0;     // LET GO THE SIMULATOR
+    cpu_idle = 0;     // LET GO THE SIMULATOR
 
     halScreenUpdated();
 
@@ -1805,44 +1805,44 @@ USBThread::~USBThread()
 }
 
 // RUNNING THREAD FOR USB COMMS
-// __usb_paused=0 MEANS COMMS ARE ACTIVE
-// __usb_paused==1 MEANS COMMS ARE TEMPORARILY HALTED
-// __usb_paused==2 MEANS EXIT THE THREAD
+// usb_paused=0 MEANS COMMS ARE ACTIVE
+// usb_paused==1 MEANS COMMS ARE TEMPORARILY HALTED
+// usb_paused==2 MEANS EXIT THE THREAD
 
 void USBThread::run()
 {
     QElapsedTimer timer;
     timer.start();
-    __pcsystmr = timer.elapsed() * 100; // INITIALIZE TICK COUNTER
-    __usb_timeout = 5000;       // DEFAULT
+    pcsystmr = timer.elapsed() * 100; // INITIALIZE TICK COUNTER
+    usb_timeout = 5000;       // DEFAULT
 
-    while((__usb_paused != 2) && (__usb_paused != -2)) {
-        if(__usb_curdevice && !(__usb_drvstatus & USB_STATUS_CONNECTED))
+    while((usb_paused != 2) && (usb_paused != -2)) {
+        if(usb_curdevice && !(usb_drvstatus & USB_STATUS_CONNECTED))
             usb_irqdisconnect();
-        if(__usb_paused == 0)
+        if(usb_paused == 0)
             usb_irqservice();
-        else if(__usb_paused > 0)
-            __usb_paused = -__usb_paused;       // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
+        else if(usb_paused > 0)
+            usb_paused = -usb_paused;       // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
 
-        __pcsystmr = timer.elapsed() * 100;
+        pcsystmr = timer.elapsed() * 100;
 
-        if(__tmr_singleshot_running) {
-            if(__tmr1_msec)
-                __tmr1_msec--;
-            if(!__tmr1_msec) {
-                __tmr_singleshot_running = 0;
-                __tmr_newirqeventsvc();
+        if(tmr_singleshot_running) {
+            if(tmr1_msec)
+                tmr1_msec--;
+            if(!tmr1_msec) {
+                tmr_singleshot_running = 0;
+                tmr_newirqeventsvc();
 
             }
         }
-        if(!(__usb_drvstatus & USB_STATUS_NOWAIT))
+        if(!(usb_drvstatus & USB_STATUS_NOWAIT))
             msleep(1);
     }
-    if(__usb_paused == 2) {
+    if(usb_paused == 2) {
         // EXIT WAS REQUESTED, RELEASE ALL HANDLES
         usb_irqdisconnect();
 
-        __usb_paused = -__usb_paused;   // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
+        usb_paused = -usb_paused;   // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
     }
 }
 

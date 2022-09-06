@@ -12,10 +12,10 @@ extern "C" {
 #include "thirdparty/md5.h"
 }
 
-extern volatile int __sd_inserted;
-extern volatile int __sd_nsectors;     // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
-extern volatile int __sd_RCA;
-extern volatile unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
+extern volatile int sd_inserted;
+extern volatile int sd_nsectors;     // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+extern volatile int sd_RCA;
+extern volatile unsigned char *sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 unsigned char *__prime_app_buffer;
 
 MainDialog::MainDialog(QWidget *parent)
@@ -161,9 +161,9 @@ QFile sdcard(ui->firmwareFolder->text()+"/PRIME_APP.DAT");
         error=true;
     }
 
-    __sd_inserted = 0;
-    __sd_RCA = 0;
-    __sd_nsectors = 0;
+    sd_inserted = 0;
+    sd_RCA = 0;
+    sd_nsectors = 0;
 
     // FILE IS OPEN AND READY FOR READING
     __prime_app_buffer = (unsigned char *)malloc(sdcard.size());
@@ -178,9 +178,9 @@ QFile sdcard(ui->firmwareFolder->text()+"/PRIME_APP.DAT");
        error=true;
     }
 
-    __sd_buffer = __prime_app_buffer + 8192;  // FAT partition starts at an offset within the file
-    __sd_nsectors = (sdcard.size()-8192) / 512;
-    __sd_inserted = 1;
+    sd_buffer = __prime_app_buffer + 8192;  // FAT partition starts at an offset within the file
+    sd_nsectors = (sdcard.size()-8192) / 512;
+    sd_inserted = 1;
     sdcard.close();
 
     printLine("FAT Partition read OK");
@@ -266,7 +266,7 @@ if(!error) {
      error=true;
  }
  else {
-     if(f.write((const char *)__prime_app_buffer,__sd_nsectors*512+8192)!=__sd_nsectors*512+8192) {
+     if(f.write((const char *)__prime_app_buffer,sd_nsectors*512+8192)!=sd_nsectors*512+8192) {
          printLine("ERROR: Unable to save FAT partition");
          f.close();
          error=true;
@@ -342,7 +342,7 @@ if(!error) {
     unsigned char digest_primeapp[16],digest_primeos[16];
     MD5Init(&context);
 
-    MD5Update(&context,__prime_app_buffer,__sd_nsectors*512+8192);
+    MD5Update(&context,__prime_app_buffer,sd_nsectors*512+8192);
 
     MD5Final(digest_primeapp,&context);
 

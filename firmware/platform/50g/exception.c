@@ -12,13 +12,13 @@
 
 RECORDER(exceptions, 16, "System exceptions");
 
-void __keyb_waitrelease();
-int __keyb_getkey(int wait);
+void keyb_irq_waitrelease();
+int keyb_irq_getkey(int wait);
 
 extern const unsigned int Font_6A[];
 extern unsigned int RPLLastOpcode;
 
-__ARM_MODE__ void __ex_print(int x, int y, char *str)
+ARM_MODE void ex_print(int x, int y, char *str)
 {
     DRAWSURFACE dr;
     dr.addr = (int *)MEM_PHYS_EXSCREEN;
@@ -31,24 +31,24 @@ __ARM_MODE__ void __ex_print(int x, int y, char *str)
     DrawTextMono(x, y, str, (UNIFONT *) Font_6A, 1, &dr);
 }
 
-__ARM_MODE__ void __ex_clrscreen()
+ARM_MODE void ex_clrscreen()
 {
     int *ptr = (int *)MEM_PHYS_EXSCREEN, *end = ptr + 400;
     while(ptr != end)
         *ptr++ = 0;
 }
 
-__ARM_MODE__ void __ex_hline(int y)
+ARM_MODE void ex_hline(int y)
 {
     int *yptr = ((int *)MEM_PHYS_EXSCREEN) + 5 * y;
     yptr[0] = yptr[1] = yptr[2] = yptr[3] = yptr[4] = 0xaaaaaaaa;
 }
 
-#define __ex_width(string) StringWidth((string),(UNIFONT *)Font_6A)
+#define ex_width(string) StringWidth((string),(UNIFONT *)Font_6A)
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 
-__ARM_MODE__ void __ex_gethireg(unsigned int *hi_reg)
+ARM_MODE void ex_gethireg(unsigned int *hi_reg)
 {
     register unsigned int tmp asm("r3");
     register unsigned int tmp2 asm("r2");
@@ -72,7 +72,7 @@ __ARM_MODE__ void __ex_gethireg(unsigned int *hi_reg)
     return;
 }
 
-__ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
+ARM_MODE int exception_handler(char *exstr, unsigned int *registers,
         int options)
 {
     unsigned int lcd_buffer[17];
@@ -86,88 +86,88 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
 
   doitagain:
 
-    __ex_clrscreen();
+    ex_clrscreen();
 
-    if(options & __EX_NOREG) {
+    if(options & EX_NOREG) {
 
-        __ex_print(36, 12, "-- EXCEPTION --");
-        __ex_hline(8);
-        __ex_hline(20);
+        ex_print(36, 12, "-- EXCEPTION --");
+        ex_hline(8);
+        ex_hline(20);
 
-        __ex_print(65 - (__ex_width(exstr) >> 1), 30, exstr);
+        ex_print(65 - (ex_width(exstr) >> 1), 30, exstr);
 
     }
     else {
-        __ex_print(0, 0, "Exception: ");
-        __ex_print(44, 0, exstr);
+        ex_print(0, 0, "Exception: ");
+        ex_print(44, 0, exstr);
 
-        if(options & __EX_RPLREGS) {
-            __ex_hline(8);
+        if(options & EX_RPLREGS) {
+            ex_hline(8);
             // SHOW RPL CORE INFORMATION INSTEAD
-            __ex_print(0, 12, "IP: ");
+            ex_print(0, 12, "IP: ");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) IPtr) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 12, a);
+            ex_print(16, 12, a);
 
-            __ex_print(0, 18, "OPC:");
+            ex_print(0, 18, "OPC:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) RPLLastOpcode) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 18, a);
+            ex_print(16, 18, a);
 
-            __ex_print(0, 24, "TOe:");
+            ex_print(0, 24, "TOe:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) TempObEnd) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 24, a);
+            ex_print(16, 24, a);
 
-            __ex_print(0, 30, "TOs:");
+            ex_print(0, 30, "TOs:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) TempObSize) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 30, a);
+            ex_print(16, 30, a);
 
-            __ex_print(0, 36, "TBe:");
+            ex_print(0, 36, "TBe:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) TempBlocksEnd) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 36, a);
+            ex_print(16, 36, a);
 
-            __ex_print(0, 42, "TBs:");
+            ex_print(0, 42, "TBs:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) TempBlocksSize) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 42, a);
+            ex_print(16, 42, a);
 
-            __ex_print(0, 48, "RSe:");
+            ex_print(0, 48, "RSe:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) RSTop) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 48, a);
+            ex_print(16, 48, a);
 
-            __ex_print(0, 54, "RSs:");
+            ex_print(0, 54, "RSs:");
 
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
@@ -175,9 +175,9 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 54, a);
+            ex_print(16, 54, a);
 
-            __ex_print(0, 60, "DSe:");
+            ex_print(0, 60, "DSe:");
 
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
@@ -185,74 +185,74 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(16, 60, a);
+            ex_print(16, 60, a);
 
             // RIGHT COLUMN
 
-            __ex_print(64, 12, "DSs: ");
+            ex_print(64, 12, "DSs: ");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) DStkSize) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 12, a);
+            ex_print(80, 12, a);
 
-            __ex_print(64, 18, "DIe:");
+            ex_print(64, 18, "DIe:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) DirsTop) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 18, a);
+            ex_print(80, 18, a);
 
-            __ex_print(64, 24, "DIs:");
+            ex_print(64, 24, "DIs:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) DirSize) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 24, a);
+            ex_print(80, 24, a);
 
-            __ex_print(64, 30, "LAe:");
+            ex_print(64, 30, "LAe:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) LAMTop) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 30, a);
+            ex_print(80, 30, a);
 
-            __ex_print(64, 36, "LAs:");
+            ex_print(64, 36, "LAs:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) LAMSize) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 36, a);
+            ex_print(80, 36, a);
 
-            __ex_print(64, 42, "Exc:");
+            ex_print(64, 42, "Exc:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) Exceptions) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 42, a);
+            ex_print(80, 42, a);
 
-            __ex_print(64, 48, "Err:");
+            ex_print(64, 48, "Err:");
             a[8] = 0;
             for(j = 7; j >= 0; j--) {
                 a[7 - j] = ((((WORD) ErrorCode) >> (j << 2)) & 0xf) + 48;
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(80, 48, a);
+            ex_print(80, 48, a);
 
-            __ex_print(64, 54, "Um:");
+            ex_print(64, 54, "Um:");
 
             {
                 WORD total = halGetTotalPages();
@@ -263,9 +263,9 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                     if(a[7 - j] > '9')
                         a[7 - j] += 7;
                 }
-                __ex_print(80, 54, a);
+                ex_print(80, 54, a);
 
-                __ex_print(64, 60, "Tm:");
+                ex_print(64, 60, "Tm:");
 
                 a[8] = 0;
                 for(j = 7; j >= 0; j--) {
@@ -273,7 +273,7 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                     if(a[7 - j] > '9')
                         a[7 - j] += 7;
                 }
-                __ex_print(80, 60, a);
+                ex_print(80, 60, a);
             }
 
         }
@@ -281,21 +281,21 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
             // PRINT CPU REGISTERS
             a[2] = 0;
             for(f = 0; f < 8; ++f) {
-                __ex_print(0, f * 6 + 12, "R :");
+                ex_print(0, f * 6 + 12, "R :");
                 a[1] = 0;
                 a[0] = f + 48;
-                __ex_print(4, f * 6 + 12, a);
-                __ex_print(48, f * 6 + 12, "R  :");
+                ex_print(4, f * 6 + 12, a);
+                ex_print(48, f * 6 + 12, "R  :");
                 if(f < 2)
                     a[0] = f + 8 + 48;
                 else {
                     a[0] = '1';
                     a[1] = f - 2 + 48;
                 }
-                __ex_print(52, f * 6 + 12, a);
+                ex_print(52, f * 6 + 12, a);
             }
 
-            __ex_hline(8);
+            ex_hline(8);
 
             a[8] = 0;
 
@@ -307,13 +307,13 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                     if(a[7 - j] > '9')
                         a[7 - j] += 7;
                 }
-                __ex_print(12, f * 6 + 12, a);
+                ex_print(12, f * 6 + 12, a);
 
             }
 
             // DISPLAY BANKED REGISTERS
             // GET BANKED REGISTERS
-            __ex_gethireg(hi_reg);
+            ex_gethireg(hi_reg);
 
             for(f = 0; f < 7; ++f) {
 
@@ -322,7 +322,7 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                     if(a[7 - j] > '9')
                         a[7 - j] += 7;
                 }
-                __ex_print(64, f * 6 + 12, a);
+                ex_print(64, f * 6 + 12, a);
 
             }
 
@@ -332,103 +332,103 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
                 if(a[7 - j] > '9')
                     a[7 - j] += 7;
             }
-            __ex_print(64, 54, a);
+            ex_print(64, 54, a);
 
             // FLAGS
             if(hi_reg[7] & 0x80000000) {
-                __ex_print(31 * 4, 2 * 6, "N");
-                __ex_print(28 * 4, 2 * 6, "MI");
+                ex_print(31 * 4, 2 * 6, "N");
+                ex_print(28 * 4, 2 * 6, "MI");
             }
             else
-                __ex_print(28 * 4, 2 * 6, "PL");
+                ex_print(28 * 4, 2 * 6, "PL");
             if(hi_reg[7] & 0x40000000) {
-                __ex_print(31 * 4, 3 * 6, "Z");
-                __ex_print(28 * 4, 3 * 6, "EQ");
+                ex_print(31 * 4, 3 * 6, "Z");
+                ex_print(28 * 4, 3 * 6, "EQ");
             }
             else
-                __ex_print(28 * 4, 3 * 6, "NE");
+                ex_print(28 * 4, 3 * 6, "NE");
             if(hi_reg[7] & 0x20000000) {
-                __ex_print(31 * 4, 4 * 6, "C");
-                __ex_print(28 * 4, 4 * 6, "CS");
+                ex_print(31 * 4, 4 * 6, "C");
+                ex_print(28 * 4, 4 * 6, "CS");
             }
             else
-                __ex_print(28 * 4, 4 * 6, "CC");
+                ex_print(28 * 4, 4 * 6, "CC");
             if(hi_reg[7] & 0x10000000) {
-                __ex_print(31 * 4, 5 * 6, "V");
-                __ex_print(28 * 4, 5 * 6, "VS");
+                ex_print(31 * 4, 5 * 6, "V");
+                ex_print(28 * 4, 5 * 6, "VS");
             }
             else
-                __ex_print(28 * 4, 5 * 6, "VC");
+                ex_print(28 * 4, 5 * 6, "VC");
             if((hi_reg[7] & 0x60000000) == 0x20000000) {
-                __ex_print(28 * 4, 6 * 6, "HI");
+                ex_print(28 * 4, 6 * 6, "HI");
             }
             else
-                __ex_print(28 * 4, 6 * 6, "LS");
+                ex_print(28 * 4, 6 * 6, "LS");
             if((hi_reg[7] ^ (hi_reg[7] >> 3)) & 0x10000000) {
-                __ex_print(28 * 4, 7 * 6, "LT");
+                ex_print(28 * 4, 7 * 6, "LT");
             }
             else {
                 if(!(hi_reg[7] & 0x40000000))
-                    __ex_print(28 * 4, 7 * 6, "GT");
+                    ex_print(28 * 4, 7 * 6, "GT");
             }
 
             if((hi_reg[7] & 0x40)) {
-                __ex_print(27 * 4, 8 * 6, "F");
+                ex_print(27 * 4, 8 * 6, "F");
             }
             if((hi_reg[7] & 0x80)) {
-                __ex_print(31 * 4, 8 * 6, "I");
+                ex_print(31 * 4, 8 * 6, "I");
             }
 
             if((hi_reg[7] & 0x1f) == 0x10) {
-                __ex_print(27 * 4, 9 * 6, "USER");
+                ex_print(27 * 4, 9 * 6, "USER");
             }
             if((hi_reg[7] & 0x1f) == 0x11) {
-                __ex_print(27 * 4, 9 * 6, "FIQ");
+                ex_print(27 * 4, 9 * 6, "FIQ");
                 for(f = 0; f < 7; ++f) {
-                    __ex_print(24 * 4, f * 6 + 12, "/B");
+                    ex_print(24 * 4, f * 6 + 12, "/B");
                 }
             }
             if((hi_reg[7] & 0x1f) == 0x12) {
-                __ex_print(27 * 4, 9 * 6, "IRQ");
+                ex_print(27 * 4, 9 * 6, "IRQ");
                 for(f = 5; f < 7; ++f) {
-                    __ex_print(24 * 4, f * 6 + 12, "/B");
+                    ex_print(24 * 4, f * 6 + 12, "/B");
                 }
             }
             if((hi_reg[7] & 0x1f) == 0x13) {
-                __ex_print(27 * 4, 9 * 6, "SUP");
+                ex_print(27 * 4, 9 * 6, "SUP");
                 for(f = 5; f < 7; ++f) {
-                    __ex_print(24 * 4, f * 6 + 12, "/B");
+                    ex_print(24 * 4, f * 6 + 12, "/B");
                 }
             }
             if((hi_reg[7] & 0x1f) == 0x17) {
-                __ex_print(27 * 4, 9 * 6, "ABT");
+                ex_print(27 * 4, 9 * 6, "ABT");
                 for(f = 5; f < 7; ++f) {
-                    __ex_print(24 * 4, f * 6 + 12, "/B");
+                    ex_print(24 * 4, f * 6 + 12, "/B");
                 }
             }
             if((hi_reg[7] & 0x1f) == 0x1B) {
-                __ex_print(27 * 4, 9 * 6, "UND");
+                ex_print(27 * 4, 9 * 6, "UND");
                 for(f = 5; f < 7; ++f) {
-                    __ex_print(24 * 4, f * 6 + 12, "/B");
+                    ex_print(24 * 4, f * 6 + 12, "/B");
                 }
             }
             if((hi_reg[7] & 0x1f) == 0x1f) {
-                __ex_print(27 * 4, 9 * 6, "SYS");
+                ex_print(27 * 4, 9 * 6, "SYS");
             }
 
             if(hi_reg[7] & 0x20)
-                __ex_print(27 * 4, 10 * 6, "Thumb");
+                ex_print(27 * 4, 10 * 6, "Thumb");
             else
-                __ex_print(28 * 4, 10 * 6, "ARM");
+                ex_print(28 * 4, 10 * 6, "ARM");
         }
-        __ex_hline(70);
+        ex_hline(70);
 
     }
 
-    if(options & __EX_CONT) {
+    if(options & EX_CONT) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
         // DRAW BUTTON 1
-        __ex_print(0, (SCREEN_HEIGHT - 8), "Cont");
+        ex_print(0, (SCREEN_HEIGHT - 8), "Cont");
         //pnewb[70*5]|=0x10000;
         for(f = 0; f < 8; ++f)
             pnewb[(SCREEN_HEIGHT - 9) * 5 + 5 * f] |= 0x20000;
@@ -436,11 +436,11 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
         pnewb[(SCREEN_HEIGHT - 1) * 5] |= 0x3fffc;
     }
 
-    if(options & (__EX_EXIT | __EX_RPLEXIT)) {
+    if(options & (EX_EXIT | EX_RPLEXIT)) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
 
         // DRAW BUTTON 2
-        __ex_print(5 * 4, (SCREEN_HEIGHT - 8), "Exit");
+        ex_print(5 * 4, (SCREEN_HEIGHT - 8), "Exit");
         for(f = 0; f < 8; ++f)
             pnewb[(SCREEN_HEIGHT - 9) * 5 + 1 + 5 * f] |= 0x20;
         pnewb[(SCREEN_HEIGHT - 2) * 5] |= 0xfff80000;
@@ -449,14 +449,14 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
         pnewb[(SCREEN_HEIGHT - 1) * 5 + 1] |= 0x3f;
     }
 
-    if(options & __EX_WARM) {
+    if(options & EX_WARM) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
 
         // DRAW BUTTON 3
-        if(options & __EX_WIPEOUT)
-            __ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Clear Mem*");
+        if(options & EX_WIPEOUT)
+            ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Clear Mem*");
         else
-            __ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Warmstart*");
+            ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Warmstart*");
         for(f = 0; f < 8; ++f)
             pnewb[(SCREEN_HEIGHT - 9) * 5 + 2 + 5 * f] |= 0x2000000;
         pnewb[(SCREEN_HEIGHT - 2) * 5 + 2] |= 0x3ffffff;
@@ -465,10 +465,10 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
         pnewb[(SCREEN_HEIGHT - 1) * 5 + 1] |= 0xffffc000;
     }
 
-    if(options & __EX_RESET) {
+    if(options & EX_RESET) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
         // DRAW BUTTON 4
-        __ex_print(23 * 4, (SCREEN_HEIGHT - 8), "**Reset**");
+        ex_print(23 * 4, (SCREEN_HEIGHT - 8), "**Reset**");
         for(f = 0; f < 9; ++f)
             pnewb[(SCREEN_HEIGHT - 9) * 5 + 4 + 5 * f] |= 0x1;
         pnewb[(SCREEN_HEIGHT - 2) * 5 + 3] |= 0xffffffff;
@@ -481,46 +481,46 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
 
 // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
 
-    __keyb_waitrelease();
+    keyb_irq_waitrelease();
 
     do {
-        f = __keyb_getkey(1);
+        f = keyb_irq_getkey(1);
 
-        if(options & __EX_CONT) {
-            j = __EX_CONT;
+        if(options & EX_CONT) {
+            j = EX_CONT;
             if(KEYVALUE(f) == KB_A)
                 break;
         }
-        if(options & (__EX_EXIT | __EX_RPLEXIT)) {
-            j = options & (__EX_EXIT | __EX_RPLEXIT);
+        if(options & (EX_EXIT | EX_RPLEXIT)) {
+            j = options & (EX_EXIT | EX_RPLEXIT);
             if(KEYVALUE(f) == KB_B)
                 break;
         }
         if(KEYVALUE(f) == KB_L) {
-            options ^= __EX_RPLREGS;
-            options &= ~__EX_NOREG;
+            options ^= EX_RPLREGS;
+            options &= ~EX_NOREG;
             goto doitagain;
         }
 // FORCE A SHIFTED KEY PRESS
         if(!KEYSHIFT(f))
             continue;
 
-        if(options & (__EX_WARM | __EX_WIPEOUT)) {
-            if((options & __EX_WIPEOUT)
+        if(options & (EX_WARM | EX_WIPEOUT)) {
+            if((options & EX_WIPEOUT)
                     && (KEYSHIFT(f) ==
                         (SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_RS | SHIFT_RSHOLD
                             | SHIFT_LS | SHIFT_LSHOLD)))
-                j = __EX_WIPEOUT;
+                j = EX_WIPEOUT;
             else
-                j = __EX_WARM;
+                j = EX_WARM;
             if(KEYVALUE(f) == KB_C)
                 break;
             if(KEYVALUE(f) == KB_D)
                 break;
         }
 
-        if(options & __EX_RESET) {
-            j = __EX_RESET;
+        if(options & EX_RESET) {
+            j = EX_RESET;
             if(KEYVALUE(f) == KB_E)
                 break;
             if(KEYVALUE(f) == KB_F)
@@ -529,15 +529,15 @@ __ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,
     }
     while(1);
 
-    __keyb_waitrelease();
+    keyb_irq_waitrelease();
     lcd_restore(lcd_buffer);
 
     return j;
 
 }
 
-void __handler_dabort(void) __attribute__((naked));
-__ARM_MODE__ void __handler_dabort(void)
+void handler_dabort(void) __attribute__((naked));
+ARM_MODE void handler_dabort(void)
 {
     // STORE ALL REGISTERS INTO THE SAFE STACK
     asm volatile ("stmfd sp!, {r0-r12, r14}");
@@ -551,10 +551,10 @@ __ARM_MODE__ void __handler_dabort(void)
     register unsigned int *stackptr asm("sp");
     // CALL CUSTOM HANDLER
     register int f =
-            __exception_handler("Data abort", stackptr,
-            __EX_CONT | __EX_EXIT | __EX_WARM | __EX_RESET);
+            exception_handler("Data abort", stackptr,
+            EX_CONT | EX_EXIT | EX_WARM | EX_RESET);
 
-    if(f == __EX_CONT) {
+    if(f == EX_CONT) {
         // RESTORE ALL REGISTERS
         asm volatile ("add sp,sp,#4");
         asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -567,7 +567,7 @@ __ARM_MODE__ void __handler_dabort(void)
     asm volatile (".Ldohandlerexit:");
 
     /*
-       if(f==__EX_EXIT) {
+       if(f==EX_EXIT) {
 
        asm volatile ("ldr lr, .Lexit");
        asm volatile ("b .Lretexit");
@@ -575,12 +575,12 @@ __ARM_MODE__ void __handler_dabort(void)
        }
      */
 
-    if(f == __EX_WARM) {
+    if(f == EX_WARM) {
         asm volatile ("ldr lr, .Lexitwarm");
         asm volatile ("b .Lretexit");
     }
 
-    if(f == __EX_WIPEOUT) {
+    if(f == EX_WIPEOUT) {
         asm volatile ("ldr lr, .Lexitwipeout");
         asm volatile ("b .Lretexit");
     }
@@ -621,8 +621,8 @@ __ARM_MODE__ void __handler_dabort(void)
 
 }
 
-void __handler_iabort(void) __attribute__((naked));
-__ARM_MODE__ void __handler_iabort(void)
+void handler_iabort(void) __attribute__((naked));
+ARM_MODE void handler_iabort(void)
 {
     register unsigned int *stackptr asm("sp");
 
@@ -636,10 +636,10 @@ __ARM_MODE__ void __handler_iabort(void)
 
     // CALL CUSTOM HANDLER
     register int f =
-            __exception_handler("Prefetch abort", stackptr,
-            __EX_CONT | __EX_WARM | __EX_RESET);
+            exception_handler("Prefetch abort", stackptr,
+            EX_CONT | EX_WARM | EX_RESET);
 
-    if(f == __EX_CONT) {
+    if(f == EX_CONT) {
         // RESTORE ALL REGISTERS
         asm volatile ("add sp,sp,#4");
         asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -653,8 +653,8 @@ __ARM_MODE__ void __handler_iabort(void)
 
 }
 
-void __handler_und(void) __attribute__((naked));
-__ARM_MODE__ void __handler_und(void)
+void handler_und(void) __attribute__((naked));
+ARM_MODE void handler_und(void)
 {
     register unsigned int *stackptr asm("sp");
     register unsigned int value asm("r0");
@@ -676,28 +676,28 @@ __ARM_MODE__ void __handler_und(void)
 
     if(value == 0xe6cccc10) {
 
-        value = __exception_handler((char *)(stackptr[1]), stackptr,
-                stackptr[2] | __EX_NOREG);
+        value = exception_handler((char *)(stackptr[1]), stackptr,
+                stackptr[2] | EX_NOREG);
 
     }
     else {
         // CALL CUSTOM HANDLER
         if(value == 0xe6dddd10)
-            value = __exception_handler((char *)(stackptr[1]), stackptr,
+            value = exception_handler((char *)(stackptr[1]), stackptr,
                     stackptr[2]);
         else
-            value = __exception_handler("Undefined instruction", stackptr,
-                    __EX_CONT | __EX_WARM | __EX_RESET);
+            value = exception_handler("Undefined instruction", stackptr,
+                    EX_CONT | EX_WARM | EX_RESET);
     }
 
-    if(value == __EX_RPLEXIT) {
+    if(value == EX_RPLEXIT) {
         // RAISE AN RPL EXCEPTION AND ISSUE A CONTINUE
         Exceptions |= EX_EXITRPL;
         ExceptionPointer = IPtr;
-        value = __EX_CONT;
+        value = EX_CONT;
     }
 
-    if(value == __EX_CONT) {
+    if(value == EX_CONT) {
         // RESTORE ALL REGISTERS
         asm volatile ("add sp,sp,#4");
         asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -711,22 +711,22 @@ __ARM_MODE__ void __handler_und(void)
 
 }
 
-__ARM_MODE__ void __exception_install()
+ARM_MODE void exception_install()
 {
     unsigned *handler_addr = (unsigned int *)0x08000000L;
-    handler_addr[1] = (unsigned int)(&__handler_und);
-    handler_addr[3] = (unsigned int)(&__handler_iabort);
-    handler_addr[4] = (unsigned int)(&__handler_dabort);
+    handler_addr[1] = (unsigned int)(&handler_und);
+    handler_addr[3] = (unsigned int)(&handler_iabort);
+    handler_addr[4] = (unsigned int)(&handler_dabort);
 
-    __irq_install();
+    irq_install();
 }
 
-__ARM_MODE__ void throw_exception(char *message, unsigned int options)
+ARM_MODE void throw_exception(char *message, unsigned int options)
 {
     asm volatile (".word 0xE6CCCC10");
 }
 
-__ARM_MODE__ void throw_dbgexception(char *message, unsigned int options)
+ARM_MODE void throw_dbgexception(char *message, unsigned int options)
 {
     asm volatile (".word 0xE6DDDD10");
 }

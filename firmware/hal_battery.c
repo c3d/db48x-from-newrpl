@@ -23,7 +23,7 @@
 #define ADC_CRITICAL        (ADC_0_LIMIT+(ADC_100_LIMIT-ADC_0_LIMIT)/20)
 #endif
 
-extern int __bat_readcnt;
+extern int bat_readcnt;
 
 RECORDER_TWEAK_DEFINE(battery_debug, 0, "Activate battery debug code");
 
@@ -49,7 +49,7 @@ void battery_handler()
 
         // THIS IS FOR DEBUG ONLY
         char text[4] = { 0 };
-        int k = 395*__battery+7355;  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
+        int k = 395*battery+7355;  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
         int l = k & 0xffff;
 
         text[0] = '0' + (k>>16);
@@ -71,14 +71,14 @@ void battery_handler()
 
         for (unsigned s = 0; s < 3; s++)
         {
-            k = (__battery>>(8-4*s)) & 0xf;
+            k = (battery>>(8-4*s)) & 0xf;
             text[s] = k < 10 ? k + '0' : k + 'A' - 10;
         }
         DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-H,text,font,cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND),&scr);
     }
 
     // THIS IS THE REAL HANDLER
-    if(__battery < ADC_CRITICAL) {
+    if(battery < ADC_CRITICAL) {
         // SHOW CRITICAL BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST
@@ -98,7 +98,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery < ADC_LOWBAT) {
+    if(battery < ADC_LOWBAT) {
         // SHOW STATIC LOW BATTERY SIGNAL
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST IS OK
@@ -116,7 +116,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery == ADC_PLUGGED) {
+    if(battery == ADC_PLUGGED) {
         // WE ARE ON USB POWER
         if(!halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
@@ -126,7 +126,7 @@ void battery_handler()
         return;
     }
 
-    if(__battery >= ADC_LOWBAT) {
+    if(battery >= ADC_LOWBAT) {
         // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
         if(halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
@@ -139,10 +139,10 @@ void battery_handler()
     // only once every 4 seconds
     // (4 interrupts)
 
-    ++__bat_readcnt;
-    __bat_readcnt&=7;
+    ++bat_readcnt;
+    bat_readcnt&=7;
 
-    if(!__bat_readcnt) {
+    if(!bat_readcnt) {
 
 
         if(halScreen.Menu2==0) return;  // Don't display battery in single menu mode
@@ -162,13 +162,13 @@ void battery_handler()
         // B = 65536/(0x370-0x300/0x300)
         // B = 0x300 * 65536 / (0x370-0x300)
 
-        k=(65536/(ADC_100_LIMIT-ADC_0_LIMIT))*__battery- ((ADC_0_LIMIT<<16)/(ADC_100_LIMIT-ADC_0_LIMIT));  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
+        k=(65536/(ADC_100_LIMIT-ADC_0_LIMIT))*battery- ((ADC_0_LIMIT<<16)/(ADC_100_LIMIT-ADC_0_LIMIT));  // EMPIRICAL RELATIONSHIP OF VOLTAGE TO ADC VALUE
 
         // STRICT BOUNDARIES SINCE VALUES ARE APPROXIMATED
         if(k>65535) k=65535;
         if(k<0) k=0;
 
-        if(__battery==0x400) {
+        if(battery==0x400) {
             // Battery is charging - display charging icon
             DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"C",
                        (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);

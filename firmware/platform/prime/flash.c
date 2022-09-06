@@ -85,8 +85,8 @@ typedef struct {
     uint16_t locked_blocks[2816];
 }  __attribute__ ((packed)) BFX;
 
-static uint16_t __SCRATCH_MEMORY__ nand_block_translation_table[NAND_NUM_BLOCKS];
-static uint8_t __SCRATCH_MEMORY__ nand_buffer[NAND_BLOCK_SIZE];
+static uint16_t SCRATCH_MEMORY nand_block_translation_table[NAND_NUM_BLOCKS];
+static uint8_t SCRATCH_MEMORY nand_buffer[NAND_BLOCK_SIZE];
 
 void NANDWriteProtect(void)
 {
@@ -110,14 +110,14 @@ static int NANDWaitReady(void)
     unsigned int start,end;
     // Flash datasheet lists Block Erase as the longest operation with a max. 10 ms
     // So in 12 ms it MUST have finished or there was an error.
-    __tmr_setuptimeoutms(12,&start,&end);
+    tmr_setuptimeoutms(12,&start,&end);
 
     while (1) {
         if ((*NFSTAT & NFSTAT_RnB_TransDetect) != 0) {
             return NAND_STATUS_OK;
         }
 
-        if (__tmr_timedout(start,end)) {
+        if (tmr_timedout(start,end)) {
             return NAND_STATUS_TIMEOUT;
         }
     }

@@ -131,7 +131,7 @@ int optind = 1;
    causes problems with re-calling getopt as programs generally don't
    know that. */
 
-int __getopt_initialized;
+int getopt_initialized;
 
 /* The next char to be scanned in the option-element
    in which the last option character we returned was found.
@@ -266,7 +266,7 @@ extern char **__libc_argv;
 
 # ifdef USE_NONOPTION_FLAGS
 /* Defined in getopt_init.c  */
-extern char *__getopt_nonoption_flags;
+extern char *getopt_nonoption_flags;
 
 static int nonoption_flags_max_len;
 static int nonoption_flags_len;
@@ -276,9 +276,9 @@ static int nonoption_flags_len;
 #  define SWAP_FLAGS(ch1, ch2) \
   if (nonoption_flags_len > 0)						      \
     {									      \
-      char __tmp = __getopt_nonoption_flags[ch1];			      \
-      __getopt_nonoption_flags[ch1] = __getopt_nonoption_flags[ch2];	      \
-      __getopt_nonoption_flags[ch2] = __tmp;				      \
+      char __tmp = getopt_nonoption_flags[ch1];			      \
+      getopt_nonoption_flags[ch1] = getopt_nonoption_flags[ch2];	      \
+      getopt_nonoption_flags[ch2] = __tmp;				      \
     }
 # else
 #  define SWAP_FLAGS(ch1, ch2)
@@ -315,7 +315,7 @@ exchange (argv)
      but it consists of two parts that need to be swapped next.  */
 
 #if defined _LIBC && defined USE_NONOPTION_FLAGS
-  /* First make sure the handling of the `__getopt_nonoption_flags'
+  /* First make sure the handling of the `getopt_nonoption_flags'
      string can work normally.  Our top argument must be in the range
      of the string.  */
   if (nonoption_flags_len > 0 && top >= nonoption_flags_max_len)
@@ -327,11 +327,11 @@ exchange (argv)
 	nonoption_flags_len = nonoption_flags_max_len = 0;
       else
 	{
-	  memset (__mempcpy (new_str, __getopt_nonoption_flags,
+	  memset (mempcpy (new_str, getopt_nonoption_flags,
 			     nonoption_flags_max_len),
 		  '\0', top + 1 - nonoption_flags_max_len);
 	  nonoption_flags_max_len = top + 1;
-	  __getopt_nonoption_flags = new_str;
+	  getopt_nonoption_flags = new_str;
 	}
     }
 #endif
@@ -424,21 +424,21 @@ _getopt_initialize (argc, argv, optstring)
     {
       if (nonoption_flags_max_len == 0)
 	{
-	  if (__getopt_nonoption_flags == NULL
-	      || __getopt_nonoption_flags[0] == '\0')
+	  if (getopt_nonoption_flags == NULL
+	      || getopt_nonoption_flags[0] == '\0')
 	    nonoption_flags_max_len = -1;
 	  else
 	    {
-	      const char *orig_str = __getopt_nonoption_flags;
+	      const char *orig_str = getopt_nonoption_flags;
 	      int len = nonoption_flags_max_len = strlen (orig_str);
 	      if (nonoption_flags_max_len < argc)
 		nonoption_flags_max_len = argc;
-	      __getopt_nonoption_flags =
+	      getopt_nonoption_flags =
 		(char *) malloc (nonoption_flags_max_len);
-	      if (__getopt_nonoption_flags == NULL)
+	      if (getopt_nonoption_flags == NULL)
 		nonoption_flags_max_len = -1;
 	      else
-		memset (__mempcpy (__getopt_nonoption_flags, orig_str, len),
+		memset (mempcpy (getopt_nonoption_flags, orig_str, len),
 			'\0', nonoption_flags_max_len - len);
 	    }
 	}
@@ -525,12 +525,12 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 
   optarg = NULL;
 
-  if (optind == 0 || !__getopt_initialized)
+  if (optind == 0 || !getopt_initialized)
     {
       if (optind == 0)
 	optind = 1;	/* Don't scan ARGV[0], the program name.  */
       optstring = _getopt_initialize (argc, argv, optstring);
-      __getopt_initialized = 1;
+      getopt_initialized = 1;
     }
 
   /* Test whether ARGV[optind] points to a non-option argument.
@@ -540,7 +540,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 #if defined _LIBC && defined USE_NONOPTION_FLAGS
 # define NONOPTION_P (argv[optind][0] != '-' || argv[optind][1] == '\0'	      \
 		      || (optind < nonoption_flags_len			      \
-			  && __getopt_nonoption_flags[optind] == '1'))
+			  && getopt_nonoption_flags[optind] == '1'))
 #else
 # define NONOPTION_P (argv[optind][0] != '-' || argv[optind][1] == '\0')
 #endif

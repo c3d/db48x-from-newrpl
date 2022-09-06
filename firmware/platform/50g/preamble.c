@@ -16,7 +16,7 @@ extern void startup(int);
 
 void _boot(int prevstate) __attribute__((naked))
         __attribute__((section(".codepreamble")));
-__ARM_MODE__ void _boot(int prevstate)
+ARM_MODE void _boot(int prevstate)
 {
     asm volatile ("b startup");
 }

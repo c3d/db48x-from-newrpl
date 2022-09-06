@@ -9,7 +9,7 @@ extern const unsigned char const carry_table[];
 
 void mul_real_arm(BINT * rdata, BINT * adata, BINT * bdata, UBINT len)
         __attribute__((naked));
-__ARM_MODE__ void mul_real_arm(BINT * rdata, BINT * adata, BINT * bdata,
+ARM_MODE void mul_real_arm(BINT * rdata, BINT * adata, BINT * bdata,
         UBINT len)
 {
     asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
@@ -178,7 +178,7 @@ __ARM_MODE__ void mul_real_arm(BINT * rdata, BINT * adata, BINT * bdata,
 
 BINT carry_correct_arm(BINT * start, BINT * dest, BINT * end, char *carry_table)
         __attribute__((naked));
-__ARM_MODE__ BINT carry_correct_arm(BINT * start, BINT * dest, BINT * end,
+ARM_MODE BINT carry_correct_arm(BINT * start, BINT * dest, BINT * end,
         char *carry_table)
 {
 
@@ -295,7 +295,7 @@ extern const BINT const shiftmul_K2[];
 
 void add_long_mul_shift_arm(BINT * result, BINT * n1start, BINT nwords,
         BINT shift_mul) __attribute__((naked));
-__ARM_MODE__ void add_long_mul_shift_arm(BINT * result, BINT * n1start,
+ARM_MODE void add_long_mul_shift_arm(BINT * result, BINT * n1start,
         BINT nwords, BINT shift_mul)
 {
 
@@ -483,7 +483,7 @@ __ARM_MODE__ void add_long_mul_shift_arm(BINT * result, BINT * n1start,
 
 void sub_long_mul_shift_arm(BINT * result, BINT * n1start, BINT nwords,
         BINT shift_mul) __attribute__((naked));
-__ARM_MODE__ void sub_long_mul_shift_arm(BINT * result, BINT * n1start,
+ARM_MODE void sub_long_mul_shift_arm(BINT * result, BINT * n1start,
         BINT nwords, BINT shift_mul)
 {
 

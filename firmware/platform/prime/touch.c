@@ -30,7 +30,7 @@
 
 #define FINGER_STATE_START  128
 
-extern unsigned int __cpu_getPCLK();
+extern unsigned int cpu_getPCLK();
 
 
 typedef struct ts_t {
@@ -46,9 +46,9 @@ typedef struct ts_t {
     int detected;
 } ts_t;
 
-volatile int ts_status __SYSTEM_GLOBAL__;
-uint8_t ts_buffer[256] __SYSTEM_GLOBAL__;
-ts_t touchscreen __SYSTEM_GLOBAL__;
+volatile int ts_status SYSTEM_GLOBAL;
+uint8_t ts_buffer[256] SYSTEM_GLOBAL;
+ts_t touchscreen SYSTEM_GLOBAL;
 
 static inline void i2c_wait_for_interrupt(void)
 {
@@ -228,7 +228,7 @@ static void nt11002_get_properties(ts_t *ts)
     // max_fingers = buffer[9];
 }
 
-extern void __keyb_postmsg(unsigned int msg);
+extern void keyb_irq_postmsg(unsigned int msg);
 
 static int nt11002_get_data(ts_t *ts)
 {
@@ -439,7 +439,7 @@ static void ts_update()
 void ts_init()
 {
     // Make sure EINT2 is masked
-    __irq_mask(2);
+    irq_mask(2);
 
     // Set GPE14 and 15 for IIC function
     *GPECON = (*GPECON & ~0xf0000000) | 0xA0000000;
@@ -496,12 +496,12 @@ void ts_init()
 
     if(touchscreen.detected) {
         ts_status = TS_STAT_INIT;
-        __irq_addhook(2, &ts_update);
-        __irq_clrpending(2);
-        __irq_unmask(2);
+        irq_addhook(2, &ts_update);
+        irq_clrpending(2);
+        irq_unmask(2);
     }
 }
 
-extern INTERRUPT_TYPE __cpu_intoff();
-extern void __cpu_inton(INTERRUPT_TYPE);
+extern INTERRUPT_TYPE cpu_intoff_nosave();
+extern void cpu_inton_nosave(INTERRUPT_TYPE);
 

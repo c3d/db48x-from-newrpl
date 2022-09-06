@@ -9,22 +9,22 @@
 #include <ui.h>
 #include <libraries.h>
 
-extern INTERRUPT_TYPE __cpu_intoff();
-extern void __cpu_inton(INTERRUPT_TYPE);
+extern INTERRUPT_TYPE cpu_intoff_nosave();
+extern void cpu_inton_nosave(INTERRUPT_TYPE);
 
 void halCPUSlowMode()
 {
-    INTERRUPT_TYPE saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = cpu_intoff_nosave();
     if(usb_isconnected())
         cpu_setspeed(HAL_USBCLOCK);
     else
         cpu_setspeed(HAL_SLOWCLOCK);
-    __cpu_inton(saved);
+    cpu_inton_nosave(saved);
 }
 
 void halCPUFastMode()
 {
-    INTERRUPT_TYPE saved = __cpu_intoff();
+    INTERRUPT_TYPE saved = cpu_intoff_nosave();
     cpu_setspeed(HAL_FASTCLOCK);
-    __cpu_inton(saved);
+    cpu_inton_nosave(saved);
 }

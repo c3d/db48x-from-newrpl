@@ -7,8 +7,8 @@
 
 // PRIVATE HEADER FILE FOR LIBRARY BUILD
 
-#ifndef __FS_PRIV_H
-#define __FS_PRIV_H
+#ifndef FS_PRIV_H
+#define FS_PRIV_H
 
 #include <newrpl.h>
 #include <ui.h>
@@ -31,10 +31,10 @@
 #define VOLFLAG_UPDATEHINT  8
 #define VOLFLAG_HINTDIRTY  16
 
-struct __chainbuffer;
-typedef struct __chainbuffer FS_CHAINBUFFER;
+struct chainbuffer;
+typedef struct chainbuffer FS_CHAINBUFFER;
 
-struct __chainbuffer
+struct chainbuffer
 {
     struct
     {
@@ -179,8 +179,8 @@ extern void FSPackShortName(char *name, char *direntry);
 extern int FSConvert2ShortEntry(char *name, int minnum);
 extern int FSNameCompareRoot(char *name1, char *name2);
 
-extern char *__fsfindchar(char *strstart, char *strend, char *chars);
-extern char *__fsfindcharrev(char *strstart, char *strend, char *chars);
+extern char *fsfindchar(char *strstart, char *strend, char *chars);
+extern char *fsfindcharrev(char *strstart, char *strend, char *chars);
 
 // PUBLIC DATA STRUCTURE
 extern FS_PUBLIC FSystem;

@@ -8,8 +8,8 @@
 #include <ui.h>
 
 INTERRUPT_TYPE cpu_state;
-INTERRUPT_TYPE __saveint;
-volatile unsigned int __cpu_idle;
+INTERRUPT_TYPE saveint;
+volatile unsigned int cpu_idle;
 
 enum
 {
@@ -20,12 +20,12 @@ enum
 void cpu_intoff()
 {
     // MASK ALL INTERRUPTS
-    if(!__saveint)
-        __saveint = cpu_state;
+    if(!saveint)
+        saveint = cpu_state;
     cpu_state |= CPU_INTMASKED;
 }
 
-INTERRUPT_TYPE __cpu_intoff()
+INTERRUPT_TYPE cpu_intoff_nosave()
 {
     //ARM ints off
     INTERRUPT_TYPE previous = cpu_state;
@@ -35,18 +35,18 @@ INTERRUPT_TYPE __cpu_intoff()
 
 void cpu_inton()
 {
-    if(__saveint)
-        cpu_state = __saveint;
+    if(saveint)
+        cpu_state = saveint;
 }
 
 // LOW-LEVEL VERSION USED BY THE EXCEPTION HANDLERS
 // RESTORES A PREVIOUSLY SAVED INTERRUPT STATE
-void __cpu_inton(INTERRUPT_TYPE state)
+void cpu_inton_nosave(INTERRUPT_TYPE state)
 {
     cpu_state = state;
 }
 
-void __tmr_fix();
+void tmr_fix();
 
 int cpu_getspeed()
 {
@@ -71,13 +71,13 @@ void cpu_waitforinterrupt()
 // ON THE PC, JUST YIELD FOR 1 MSECOND
 
 // BLOCK SO OTHER THREAD CAN DO WORK ON RPL
-    while(__cpu_idle == 2)
+    while(cpu_idle == 2)
         thread_yield();
 
-    __cpu_idle = 1;
+    cpu_idle = 1;
     thread_yield();
-    if(__cpu_idle == 1)
-        __cpu_idle = 0;
+    if(cpu_idle == 1)
+        cpu_idle = 0;
 }
 
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE

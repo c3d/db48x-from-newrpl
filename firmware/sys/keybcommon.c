@@ -8,32 +8,32 @@
 #include <newrpl.h>
 #include <ui.h>
 
-INTERRUPT_TYPE __cpu_intoff();
-void __cpu_inton(INTERRUPT_TYPE state);
-void __tmr_eventreschedule();
+INTERRUPT_TYPE cpu_intoff_nosave();
+void cpu_inton_nosave(INTERRUPT_TYPE state);
+void tmr_eventreschedule();
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-unsigned int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
-volatile int __keyb_lock __SYSTEM_GLOBAL__;
-int __keyflags __SYSTEM_GLOBAL__;
-int __kused __SYSTEM_GLOBAL__, __kcurrent __SYSTEM_GLOBAL__;
-keymatrix __kmat __SYSTEM_GLOBAL__;
-unsigned int __keyplane __SYSTEM_GLOBAL__;
-int __keynumber __SYSTEM_GLOBAL__, __keycount __SYSTEM_GLOBAL__;
-int __keyb_repeattime __SYSTEM_GLOBAL__, __keyb_longpresstime __SYSTEM_GLOBAL__,
-        __keyb_debounce __SYSTEM_GLOBAL__;
+unsigned int keyb_irq_buffer[KEYB_BUFFER] SYSTEM_GLOBAL;
+volatile int keyb_irq_lock SYSTEM_GLOBAL;
+int keyflags SYSTEM_GLOBAL;
+int kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
+keymatrix kmat SYSTEM_GLOBAL;
+unsigned int keyplane SYSTEM_GLOBAL;
+int keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
+int keyb_irq_repeattime SYSTEM_GLOBAL, keyb_irq_longpresstime SYSTEM_GLOBAL,
+        keyb_irq_debounce SYSTEM_GLOBAL;
 
 // LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
 // HANDLERS ONLY
 
-keymatrix __keyb_getmatrix();
+keymatrix keyb_irq_getmatrix();
 
 // WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
 // NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
 
-keymatrix __keyb_getmatrixEX();
+keymatrix keyb_irq_getmatrixEX();
 
-void __keyb_waitrelease();
+void keyb_irq_waitrelease();
 
 // RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
 // MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
@@ -42,7 +42,7 @@ keymatrix keyb_getmatrix();
 // LOW-LEVEL FUNCTION TO BE USED BY THE
 // EXCEPTION SUBSYSTEM ONLY
 
-const unsigned short const __keyb_shiftconvert[8] = {
+const unsigned short const keyb_irq_shiftconvert[8] = {
     0,
     SHIFT_ALPHA | SHIFT_ALPHAHOLD,
     SHIFT_LS | SHIFT_LSHOLD,
@@ -54,16 +54,16 @@ const unsigned short const __keyb_shiftconvert[8] = {
             SHIFT_RSHOLD
 };
 
-int __keyb_getkey(int wait)
+int keyb_irq_getkey(int wait)
 {
 
     keymatrix m,m_noshift;
-    m = __keyb_getmatrixEX();
+    m = keyb_irq_getmatrixEX();
 
     if(wait) {
         // wait for a non-shift key to be pressed
         while((m & (~KEYMATRIX_ALL_SHIFTS)) == 0LL)
-            m = __keyb_getmatrixEX();
+            m = keyb_irq_getmatrixEX();
     }
 
     int kcode,kcodebit, shft = KEYMATRIX_ALPHABIT(m) | (KEYMATRIX_LSHIFTBIT(m)<<1) | (KEYMATRIX_RSHIFTBIT(m)<<2);
@@ -85,33 +85,33 @@ int __keyb_getkey(int wait)
 
     if(wait) {
         while((m & (~KEYMATRIX_ALL_SHIFTS)) != 0)
-            m = __keyb_getmatrixEX();
+            m = keyb_irq_getmatrixEX();
     }
 
     if(kcodebit < 64)
-              return kcode | __keyb_shiftconvert[shft];
+              return kcode | keyb_irq_shiftconvert[shft];
     return 0;
 
 }
 
-#define LONG_KEYPRESSTIME (__keyb_longpresstime)
-#define REPEAT_KEYTIME (__keyb_repeattime)
-#define BOUNCE_KEYTIME (__keyb_debounce)
+#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
+#define REPEAT_KEYTIME (keyb_irq_repeattime)
+#define BOUNCE_KEYTIME (keyb_irq_debounce)
 
 #define KF_RUNNING   1
 #define KF_ALPHALOCK 2
 #define KF_NOREPEAT  4
 #define KF_UPDATED   8
 
-void __keyb_postmsg(unsigned int msg)
+void keyb_irq_postmsg(unsigned int msg)
 {
 
-    __keyb_buffer[__kcurrent] = msg;
-    __kcurrent = (__kcurrent + 1) & (KEYB_BUFFER - 1);
+    keyb_irq_buffer[kcurrent] = msg;
+    kcurrent = (kcurrent + 1) & (KEYB_BUFFER - 1);
 // CHECK FOR BUFFER OVERRUN
-    if(__kcurrent == __kused) {
+    if(kcurrent == kused) {
         // BUFFER OVERRUN, DROP LAST KEY
-        __kcurrent = (__kcurrent - 1) & (KEYB_BUFFER - 1);
+        kcurrent = (kcurrent - 1) & (KEYB_BUFFER - 1);
     }
 
 }
@@ -120,26 +120,26 @@ void keyb_postmsg(unsigned int msg)
 {
     // WARNING: PROBLEMS MAY ARISE IF THE INTERRUPT SERVICE WANTS
     // TO POST A MESSAGE WHILE THE USER IS POSTING ONE.
-    while(cpu_getlock(1, &__keyb_lock));
+    while(cpu_getlock(1, &keyb_irq_lock));
 
-    __keyb_postmsg(msg);
-    __keyb_lock = 0;
+    keyb_irq_postmsg(msg);
+    keyb_irq_lock = 0;
 
 }
 
 unsigned int keyb_getmsg()
 {
-    if(__kused == __kcurrent)
+    if(kused == kcurrent)
         return 0;
-    unsigned int msg = __keyb_buffer[__kused];
-    __kused = (__kused + 1) & (KEYB_BUFFER - 1);
+    unsigned int msg = keyb_irq_buffer[kused];
+    kused = (kused + 1) & (KEYB_BUFFER - 1);
     return msg;
 }
 
 // CHECK IF ANY AVAILABLE KEYSTROKES
 int keyb_anymsg()
 {
-    if(__kused == __kcurrent)
+    if(kused == kcurrent)
         return 0;
     return 1;
 }
@@ -148,22 +148,22 @@ int keyb_anymsg()
 void keyb_flush()
 {
     while(keyb_getmatrix() != 0LL);
-    __kused = __kcurrent;
+    kused = kcurrent;
 }
 
 // FLUSH KEYBOARD BUFFER WITHOUT WAITING
 void keyb_flushnowait()
 {
-    __kused = __kcurrent;
+    kused = kcurrent;
 }
 
 // RETURN TRUE IF AN UPDATE HAPPENED
 // USED TO DETECT IF AN INTERRUPT WAS DUE TO THE KEYBOARD
 int keyb_wasupdated()
 {
-    int k = __keyflags & KF_UPDATED;
+    int k = keyflags & KF_UPDATED;
 
-    __keyflags ^= k;
+    keyflags ^= k;
     return k;
 }
 
@@ -173,20 +173,20 @@ int keyb_wasupdated()
 #define ONE_PRESS   (SHIFT_ALPHA<<19)
 #define ALPHASWAP   (SHIFT_ALPHA<<20)
 
-void __keyb_update()
+void keyb_irq_update()
 {
 
-    if(cpu_getlock(1, &__keyb_lock))
+    if(cpu_getlock(1, &keyb_irq_lock))
         return;
 
     keymatrix a, b;
 
-    __keyflags |= KF_UPDATED;
+    keyflags |= KF_UPDATED;
   doupdate:
 
-    a = __keyb_getmatrix();
-    b = a ^ __kmat;
-    __kmat = a;
+    a = keyb_irq_getmatrix();
+    b = a ^ kmat;
+    kmat = a;
     //****** DEBUG
     /*
     // PRINT KEYBOARD MATRIX
@@ -208,62 +208,62 @@ void __keyb_update()
             if(b & 1) {
                 if(a & 1) {
                     // POST KEYDN MESSAGE
-                    if(__keynumber == -key) {
+                    if(keynumber == -key) {
                         // DISREGARD SPURIOUS KEYPRESS
-                        __kmat &= ~(1LL << key);        // CLEAR THE KEY
-                        __keynumber = 0;
-                        __keycount = 0;
+                        kmat &= ~(1LL << key);        // CLEAR THE KEY
+                        keynumber = 0;
+                        keycount = 0;
                     }
                     else {
-                        __keyb_postmsg(KM_KEYDN + KEYMAP_CODEFROMBIT(key));
-                        if( (KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (__keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
-                                 || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (__keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
-                                || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (__keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                        keyb_irq_postmsg(KM_KEYDN + KEYMAP_CODEFROMBIT(key));
+                        if( (KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
+                                 || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                                || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
                                 )
                         {
-                            __keyb_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                    (__keyplane & SHIFT_ANY));
-                            __keynumber = key;
-                            __keycount = 0;
+                            keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
+                                    (keyplane & SHIFT_ANY));
+                            keynumber = key;
+                            keycount = 0;
 
-                            __keyplane &= ~ONE_PRESS;
+                            keyplane &= ~ONE_PRESS;
 
                         }
                         else {
-                            unsigned int oldplane = __keyplane;
+                            unsigned int oldplane = keyplane;
                             if(KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) {
-                                __keyplane &=
+                                keyplane &=
                                         ~(SHIFT_RSHOLD | SHIFT_RS | (SHIFT_RS <<
                                             16));
-                                __keyplane |= SHIFT_LSHOLD | SHIFT_LS;
-                                __keyplane ^= SHIFT_LS << 16;
+                                keyplane |= SHIFT_LSHOLD | SHIFT_LS;
+                                keyplane ^= SHIFT_LS << 16;
                             }
                             if(KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) {
-                                __keyplane &=
+                                keyplane &=
                                         ~(SHIFT_LSHOLD | SHIFT_LS | (SHIFT_LS <<
                                             16));
-                                __keyplane |= SHIFT_RSHOLD | SHIFT_RS;
-                                __keyplane ^= SHIFT_RS << 16;
+                                keyplane |= SHIFT_RSHOLD | SHIFT_RS;
+                                keyplane ^= SHIFT_RS << 16;
                             }
                             if(KEYMAP_CODEFROMBIT(key) == KB_ALPHA) {
-                                __keyplane &= ~OTHER_KEY;
-                                if(__keyplane & SHIFT_ALPHA) {
+                                keyplane &= ~OTHER_KEY;
+                                if(keyplane & SHIFT_ALPHA) {
                                     // ALREADY IN ALPHA MODE
-                                    __keyplane |= ALPHASWAP;
+                                    keyplane |= ALPHASWAP;
                                 }
                                 else {
-                                    __keyplane &= ~ONE_PRESS;
+                                    keyplane &= ~ONE_PRESS;
                                 }
-                                __keyplane |= SHIFT_ALPHAHOLD | SHIFT_ALPHA;
+                                keyplane |= SHIFT_ALPHAHOLD | SHIFT_ALPHA;
 
                             }
                             if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
-                                __keyplane &= ~OTHER_KEY;
-                                __keyplane |= SHIFT_ONHOLD;
+                                keyplane &= ~OTHER_KEY;
+                                keyplane |= SHIFT_ONHOLD;
                             }
                             // THE KM_SHIFT MESSAGE CARRIES THE OLD PLANE IN THE KEY CODE
                             // AND THE NEW PLANE IN THE SHIFT CODE.
-                            __keyb_postmsg(KM_SHIFT | (__keyplane & SHIFT_ANY) |
+                            keyb_irq_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) |
                                     MKOLDSHIFT(oldplane | ((oldplane &
                                                 ALPHALOCK) >> 16)));
 
@@ -273,53 +273,53 @@ void __keyb_update()
                 else {
 
                     if(KEYMAP_CODEFROMBIT(key) == KB_ON) {      // SPECIAL CASE OF THE ON KEY PRESSED AND RELEASED
-                         if(!(__keyplane & OTHER_KEY)) {
+                         if(!(keyplane & OTHER_KEY)) {
                              // NO OTHER KEY WAS PRESSED , ONLY ON WAS PRESSED AND RELEASED
                              // POST A LATE PRESS MESSAGE FOR THE ON KEY
-                             __keyb_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                     (__keyplane & (SHIFT_ANY) & ~(SHIFT_ONHOLD)));
+                             keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
+                                     (keyplane & (SHIFT_ANY) & ~(SHIFT_ONHOLD)));
 
                          }
                     }
 
 
-                    __keyb_postmsg(KM_KEYUP + KEYMAP_CODEFROMBIT(key));
+                    keyb_irq_postmsg(KM_KEYUP + KEYMAP_CODEFROMBIT(key));
 
 
 
-                    if((KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (__keyplane & (SHIFT_RS | SHIFT_LS)))) {
-                        if(__keynumber > 0)
-                            __keynumber = -__keynumber;
-                        __keycount = -BOUNCE_KEYTIME;
-                        __keyplane &= ~((SHIFT_LS | SHIFT_RS) << 16);
+                    if((KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))) {
+                        if(keynumber > 0)
+                            keynumber = -keynumber;
+                        keycount = -BOUNCE_KEYTIME;
+                        keyplane &= ~((SHIFT_LS | SHIFT_RS) << 16);
 
-                        if(!(__keyplane & (SHIFT_HOLD | SHIFT_ALHOLD |
+                        if(!(keyplane & (SHIFT_HOLD | SHIFT_ALHOLD |
                                         SHIFT_ONHOLD))) {
-                            unsigned int oldkeyplane = __keyplane;
-                            __keyplane &= ~(SHIFT_LS | SHIFT_RS | SHIFT_ALPHA); // KILL ALL SHIFT PLANES
-                            if(__keyplane & ALPHALOCK)
-                                __keyplane |= SHIFT_ALPHA;      // KEEP ALPHA IF LOCKED
-                            __keyplane &= ~((SHIFT_ALPHA) << 16);
+                            unsigned int oldkeyplane = keyplane;
+                            keyplane &= ~(SHIFT_LS | SHIFT_RS | SHIFT_ALPHA); // KILL ALL SHIFT PLANES
+                            if(keyplane & ALPHALOCK)
+                                keyplane |= SHIFT_ALPHA;      // KEEP ALPHA IF LOCKED
+                            keyplane &= ~((SHIFT_ALPHA) << 16);
 
-                            if(oldkeyplane != __keyplane)
-                                __keyb_postmsg(KM_SHIFT | (__keyplane &
+                            if(oldkeyplane != keyplane)
+                                keyb_irq_postmsg(KM_SHIFT | (keyplane &
                                             SHIFT_ANY) | MKOLDSHIFT(oldkeyplane
                                             | ((oldkeyplane & ALPHALOCK) >>
                                                 16)));
                         }
                         else {
 
-                            if(__keyplane & (SHIFT_ALPHA|SHIFT_ONHOLD)) {
+                            if(keyplane & (SHIFT_ALPHA|SHIFT_ONHOLD)) {
                                 // THIS IS A PRESS AND HOLD KEY BEING RAISED
-                                __keyplane |= OTHER_KEY;
+                                keyplane |= OTHER_KEY;
                             }
-                            if(!(__keyplane & (SHIFT_HOLD))) {
-                                unsigned int oldkeyplane = __keyplane;
+                            if(!(keyplane & (SHIFT_HOLD))) {
+                                unsigned int oldkeyplane = keyplane;
                                 // IT WAS ALPHA-HOLD OR ON-HOLD, KILL SHIFTS
-                                __keyplane &= ~(SHIFT_LS | SHIFT_RS);   // KILL ALL SHIFT PLANES
+                                keyplane &= ~(SHIFT_LS | SHIFT_RS);   // KILL ALL SHIFT PLANES
 
-                                if(oldkeyplane != __keyplane)
-                                    __keyb_postmsg(KM_SHIFT | (__keyplane &
+                                if(oldkeyplane != keyplane)
+                                    keyb_irq_postmsg(KM_SHIFT | (keyplane &
                                                 SHIFT_ANY) |
                                             MKOLDSHIFT(oldkeyplane |
                                                 ((oldkeyplane & ALPHALOCK) >>
@@ -329,85 +329,85 @@ void __keyb_update()
 
                     }
                     else {
-                        unsigned int oldkeyplane = __keyplane;
+                        unsigned int oldkeyplane = keyplane;
                         if(KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) {
-                            __keyplane &=
-                                    ~((SHIFT_LSHOLD | SHIFT_LS) ^ ((__keyplane
+                            keyplane &=
+                                    ~((SHIFT_LSHOLD | SHIFT_LS) ^ ((keyplane
                                             >> 16) & SHIFT_LS));
                             if(!(oldkeyplane & SHIFT_ALHOLD))
-                                __keyplane &=
-                                        ~((SHIFT_ALPHA) ^ (((__keyplane >> 16) |
-                                                (__keyplane >> 17)) &
+                                keyplane &=
+                                        ~((SHIFT_ALPHA) ^ (((keyplane >> 16) |
+                                                (keyplane >> 17)) &
                                             SHIFT_ALPHA));
 
                         }
                         if(KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) {
-                            __keyplane &=
-                                    ~((SHIFT_RSHOLD | SHIFT_RS) ^ ((__keyplane
+                            keyplane &=
+                                    ~((SHIFT_RSHOLD | SHIFT_RS) ^ ((keyplane
                                             >> 16) & SHIFT_RS));
                             if(!(oldkeyplane & SHIFT_ALHOLD))
-                                __keyplane &=
-                                        ~((SHIFT_ALPHA) ^ (((__keyplane >> 16) |
-                                                (__keyplane >> 17)) &
+                                keyplane &=
+                                        ~((SHIFT_ALPHA) ^ (((keyplane >> 16) |
+                                                (keyplane >> 17)) &
                                             SHIFT_ALPHA));
 
                         }
                         if(KEYMAP_CODEFROMBIT(key) == KB_ALPHA) {
-                            if(__keyplane & ALPHASWAP) {
+                            if(keyplane & ALPHASWAP) {
                                 // ALPHA WAS PRESSED WHILE ALREADY IN ALPHA MODE
-                                if(__keyplane & OTHER_KEY) {
+                                if(keyplane & OTHER_KEY) {
                                     // ANOTHER KEY WAS PRESSED BEFORE RELEASING ALPHA
-                                    __keyplane &= ~ONE_PRESS;
+                                    keyplane &= ~ONE_PRESS;
 
                                 }
                                 else {
                                     // ALPHA WAS PRESSED AND RELEASED, NO OTHER KEYS
-                                    if(__keyplane & ONE_PRESS) {
+                                    if(keyplane & ONE_PRESS) {
                                         // THIS IS THE SECOND PRESS, KILL ALPHA MODE
-                                        __keyplane &= ~ALPHALOCK;
-                                        __keyplane &= ~SHIFT_ALPHA;
+                                        keyplane &= ~ALPHALOCK;
+                                        keyplane &= ~SHIFT_ALPHA;
                                     }
                                     else
-                                        __keyplane |= ONE_PRESS;
+                                        keyplane |= ONE_PRESS;
 
                                     // SEND MESSAGE THAT ALPHA MODE CYCLING WAS REQUESTED
-                                    __keyb_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                            (__keyplane & SHIFT_ANY));
-                                    __keynumber = key;
-                                    __keycount = 0;
+                                    keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
+                                            (keyplane & SHIFT_ANY));
+                                    keynumber = key;
+                                    keycount = 0;
 
                                 }
-                                __keyplane &= ~ALPHASWAP;
+                                keyplane &= ~ALPHASWAP;
 
                             }
                             else {
                                 // ALPHA WAS PRESSED FOR THE FIRST TIME FROM OTHER MODE
-                                if(__keyplane & OTHER_KEY) {
+                                if(keyplane & OTHER_KEY) {
 
-                                    __keyplane &= ~SHIFT_ALPHAHOLD;
+                                    keyplane &= ~SHIFT_ALPHAHOLD;
                                 }
                                 else {
                                     // ALPHA WAS PRESSED AND RELEASED
-                                    __keyplane |= ALPHALOCK;
+                                    keyplane |= ALPHALOCK;
 
                                 }
-                                __keyplane &= ~ONE_PRESS;
+                                keyplane &= ~ONE_PRESS;
 
                             }
 
-                            __keyplane &= ~SHIFT_ALHOLD;
+                            keyplane &= ~SHIFT_ALHOLD;
 
                         }
                         if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
-                            __keyplane &= ~SHIFT_ONHOLD;
-                            __keyplane &= ~OTHER_KEY;
+                            keyplane &= ~SHIFT_ONHOLD;
+                            keyplane &= ~OTHER_KEY;
                         }
-                        __keyb_postmsg(KM_SHIFT | (__keyplane & SHIFT_ANY) |
+                        keyb_irq_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) |
                                 MKOLDSHIFT(oldkeyplane | ((oldkeyplane &
                                             ALPHALOCK) >> 16)));
 
-                        __keynumber = -key;
-                        __keycount = -BOUNCE_KEYTIME;
+                        keynumber = -key;
+                        keycount = -BOUNCE_KEYTIME;
                     }
 
                 }
@@ -418,21 +418,21 @@ void __keyb_update()
         }
     }
     // ANALYZE STATUS OF CURRENT KEYPRESS
-    if(__keynumber >= 0) {
-        if(__kmat & (1LL << __keynumber)) {
+    if(keynumber >= 0) {
+        if(kmat & (1LL << keynumber)) {
             // KEY STILL PRESSED, INCREASE COUNTER
-            ++__keycount;
-            if((__keycount > LONG_KEYPRESSTIME)) {
-                //if(!(__keyflags&KF_NOREPEAT)) {
+            ++keycount;
+            if((keycount > LONG_KEYPRESSTIME)) {
+                //if(!(keyflags&KF_NOREPEAT)) {
                 // ONLY CERTAIN KEYS WILL AUTOREPEAT
-                switch (KEYMAP_CODEFROMBIT(__keynumber)) {
+                switch (KEYMAP_CODEFROMBIT(keynumber)) {
                 case KB_SPC:
                 case KB_BKS:
-                    if(__keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
+                    if(keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
                                 SHIFT_ALHOLD)) {
-                        __keyb_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                        keyb_irq_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                     SHIFT_ANY));
-                        __keycount = -LONG_KEYPRESSTIME;
+                        keycount = -LONG_KEYPRESSTIME;
                         break;
                     }
                     // OTHERWISE DO REPEAT
@@ -441,29 +441,29 @@ void __keyb_update()
                 case KB_LF:
                 case KB_RT:
                     // THESE ALWAYS REPEAT, EVEN SHIFTED
-                    __keyb_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                    keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));
-                    __keycount = -REPEAT_KEYTIME;
+                    keycount = -REPEAT_KEYTIME;
                     break;
                 default:
                     // DO NOT AUTOREPEAT, DO LONG PRESS
-                    __keyb_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                    keyb_irq_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));
-                    __keycount = -LONG_KEYPRESSTIME;
+                    keycount = -LONG_KEYPRESSTIME;
                 }
 
             }
 
-            if(!__keycount) {
+            if(!keycount) {
 
-                switch (KEYMAP_CODEFROMBIT(__keynumber)) {
+                switch (KEYMAP_CODEFROMBIT(keynumber)) {
                 case KB_SPC:
                 case KB_BKS:
-                    if(__keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
+                    if(keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
                                 SHIFT_ALHOLD)) {
-                        __keyb_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                        keyb_irq_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                     SHIFT_ANY));
-                        __keycount -= LONG_KEYPRESSTIME;
+                        keycount -= LONG_KEYPRESSTIME;
                         break;
                     }
                     // OTHERWISE DO REPEAT
@@ -472,15 +472,15 @@ void __keyb_update()
                 case KB_LF:
                 case KB_RT:
                     // THESE ALWAYS REPEAT, EVEN SHIFTED
-                    __keyb_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                    keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));
-                    __keycount -= REPEAT_KEYTIME;
+                    keycount -= REPEAT_KEYTIME;
                     break;
                 default:
                     // DO NOT AUTOREPEAT, DO LONG PRESS
-                    __keyb_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(__keynumber) | (__keyplane &
+                    keyb_irq_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));
-                    __keycount -= LONG_KEYPRESSTIME;
+                    keycount -= LONG_KEYPRESSTIME;
                 }
 
             }
@@ -489,13 +489,13 @@ void __keyb_update()
     }
 
     // REPEATER
-    if(__kmat == 0) {
-        if(__keycount >= 0) {
+    if(kmat == 0) {
+        if(keycount >= 0) {
             tmr_events[0].status = 0;
-            __keynumber = 0;
+            keynumber = 0;
         }
         else {
-            ++__keycount;
+            ++keycount;
         }
     }
     else {
@@ -504,20 +504,20 @@ void __keyb_update()
             // ACTIVATE THE TIMER EVENT IF NOT ALREADY RUNNING
             tmr_events[0].ticks = tmr_ticks() + tmr_events[0].delay;
             tmr_events[0].status = 3;
-            __tmr_eventreschedule();
+            tmr_eventreschedule();
         }
     }
 
     // On-C and On-A-F handling
 
-    if(__kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_F)))) {
+    if(kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_F)))) {
         // ON-A-F pressed, offer the option to stop the program
 
-        __keyb_lock = 0;
+        keyb_irq_lock = 0;
 
         throw_exception("User BREAK requested",
-                __EX_CONT | __EX_WARM | __EX_WIPEOUT | __EX_RESET |
-                __EX_RPLREGS);
+                EX_CONT | EX_WARM | EX_WIPEOUT | EX_RESET |
+                EX_RPLREGS);
 
         //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
         //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
@@ -525,13 +525,13 @@ void __keyb_update()
 
     }
 
-    if(__kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_C)))) {
+    if(kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_C)))) {
         // ON-A-C pressed, offer the option to stop the program
 
-        __keyb_lock = 0;
+        keyb_irq_lock = 0;
 
         throw_exception("RPL Break requested",
-                __EX_CONT | __EX_RPLEXIT | __EX_WARM | __EX_RESET);
+                EX_CONT | EX_RPLEXIT | EX_WARM | EX_RESET);
 
         //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
         //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
@@ -539,31 +539,31 @@ void __keyb_update()
 
     }
 
-    __keyb_lock = 0;
+    keyb_irq_lock = 0;
 
 }
 
 void keyb_settiming(int repeat, int longpress, int debounce)
 {
-    __keyb_repeattime = (repeat + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
-    __keyb_longpresstime = (longpress + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
-    __keyb_debounce = (debounce + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
+    keyb_irq_repeattime = (repeat + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
+    keyb_irq_longpresstime = (longpress + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
+    keyb_irq_debounce = (debounce + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
 }
 
 void keyb_setrepeat(int repeat)
 {
     if(!repeat)
-        __keyflags |= KF_NOREPEAT;
+        keyflags |= KF_NOREPEAT;
     else
-        __keyflags &= ~KF_NOREPEAT;
+        keyflags &= ~KF_NOREPEAT;
 }
 
 void keyb_setalphalock(int single_alpha_lock)
 {
     if(single_alpha_lock)
-        __keyflags |= KF_ALPHALOCK;
+        keyflags |= KF_ALPHALOCK;
     else
-        __keyflags &= ~KF_ALPHALOCK;
+        keyflags &= ~KF_ALPHALOCK;
 
 }
 
@@ -571,33 +571,33 @@ void keyb_setshiftplane(int leftshift, int rightshift, int alpha, int alphalock)
 {
 //    while(keyb_getmatrix()!=0LL) ;            // WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
 
-    int oldplane = __keyplane;
+    int oldplane = keyplane;
 
     if(leftshift)
-        __keyplane |= SHIFT_LS | (SHIFT_LS << 16);
+        keyplane |= SHIFT_LS | (SHIFT_LS << 16);
     else
-        __keyplane &= ~(SHIFT_LS | (SHIFT_LS << 16));
+        keyplane &= ~(SHIFT_LS | (SHIFT_LS << 16));
     if(rightshift)
-        __keyplane |= SHIFT_RS | (SHIFT_RS << 16);
+        keyplane |= SHIFT_RS | (SHIFT_RS << 16);
     else
-        __keyplane &= ~(SHIFT_RS | (SHIFT_RS << 16));
+        keyplane &= ~(SHIFT_RS | (SHIFT_RS << 16));
     if(alpha || alphalock)
-        __keyplane |= SHIFT_ALPHA | (SHIFT_ALPHA << 16);
+        keyplane |= SHIFT_ALPHA | (SHIFT_ALPHA << 16);
     else
-        __keyplane &= ~(SHIFT_ALPHA | (SHIFT_ALPHA << 16));
+        keyplane &= ~(SHIFT_ALPHA | (SHIFT_ALPHA << 16));
     if(alphalock) {
-        __keyplane |= SHIFT_ALPHA << 17;        // LOCK ALPHA
-        __keyplane &= ~(SHIFT_ALPHA << 16);
+        keyplane |= SHIFT_ALPHA << 17;        // LOCK ALPHA
+        keyplane &= ~(SHIFT_ALPHA << 16);
     }
     else {
-        __keyplane &= ~(SHIFT_ALPHA << 17);
+        keyplane &= ~(SHIFT_ALPHA << 17);
     }
-    keyb_postmsg(KM_SHIFT | (__keyplane & SHIFT_ANY) | MKOLDSHIFT(oldplane |
+    keyb_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) | MKOLDSHIFT(oldplane |
                 ((oldplane & ALPHALOCK) >> 16)));
 
 }
 
 unsigned int keyb_getshiftplane()
 {
-    return __keyplane &SHIFT_ANY;
+    return keyplane &SHIFT_ANY;
 }

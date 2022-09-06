@@ -21,7 +21,7 @@ int FSWriteLL(unsigned char *buffer, int nbytes, FS_FILE * file, FS_VOLUME * fs)
     // DEBUG ONLY: REMOVE ASAP
     /*
     if(nbytes && (fs->InitFlags & VOLFLAG_READONLY)) {
-        throw_dbgexception("Attempt to write Read-only volume",__EX_CONT | __EX_WARM | __EX_RESET);
+        throw_dbgexception("Attempt to write Read-only volume",EX_CONT | EX_WARM | EX_RESET);
     }
     */
     // ********

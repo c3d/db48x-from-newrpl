@@ -18,39 +18,39 @@
 #undef DEFAULT_AUTOOFFTIME
 #define DEFAULT_AUTOOFFTIME 0   // NO AUTO OFF ON A PC!
 
-#undef __ENABLE_ARM_ASSEMBLY__  // THIS TARGET IS NOT ARM
+#undef ENABLE_ARM_ASSEMBLY  // THIS TARGET IS NOT ARM
 
-#undef __SYSTEM_GLOBAL__
-#define __SYSTEM_GLOBAL__
+#undef SYSTEM_GLOBAL
+#define SYSTEM_GLOBAL
 
-#undef __DATAORDER1__
-#define __DATAORDER1__
+#undef DATAORDER1
+#define DATAORDER1
 
-#undef __DATAORDER2__
-#define __DATAORDER2__
+#undef DATAORDER2
+#define DATAORDER2
 
-#undef __DATAORDER3__
-#define __DATAORDER3__
+#undef DATAORDER3
+#define DATAORDER3
 
-#undef __DATAORDERLAST__
-#define __DATAORDERLAST__
+#undef DATAORDERLAST
+#define DATAORDERLAST
 
-#undef __SCRATCH_MEMORY__
-#define __SCRATCH_MEMORY__
+#undef SCRATCH_MEMORY
+#define SCRATCH_MEMORY
 
-#undef __ROMOBJECT__
-#define __ROMOBJECT__
+#undef ROMOBJECTS
+#define ROMOBJECTS
 
-#undef __ROMLINK__
-#define __ROMLINK__
+#undef ROMLINK
+#define ROMLINK
 
 // SIGNALS FOR OS-DRIVEN EVENTS
 extern void halScreenUpdated();
 
 // MAKE TIMEOUT VARIABLE SO WE CAN HAVE SHORT TIMEOUT FOR DEVICE DETECTION
 #undef USB_TIMEOUT_MS
-#define USB_TIMEOUT_MS __usb_timeout
-extern int __usb_timeout;
+#define USB_TIMEOUT_MS usb_timeout
+extern int usb_timeout;
 
 
 // Target PC uses 50g screen and other capabilities for now
@@ -159,12 +159,12 @@ typedef unsigned int INTERRUPT_TYPE;
 
 
 // Matrix to KeyCode mapping - Defined in keyboard.c for this target
-extern unsigned char const __keyb_codefrombit[64];
-extern unsigned char const __keyb_bitfromcode[64];
+extern unsigned char const keyb_irq_codefrombit[64];
+extern unsigned char const keyb_irq_bitfromcode[64];
 
 // Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (__keyb_codefrombit[bit])
-#define KEYMAP_BITFROMCODE(code) (__keyb_bitfromcode[code])
+#define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
+#define KEYMAP_BITFROMCODE(code) (keyb_irq_bitfromcode[code])
 
 #endif
 

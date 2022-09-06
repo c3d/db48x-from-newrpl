@@ -7,11 +7,11 @@
 
 #include <ui.h>
 
-int __lcd_contrast __SYSTEM_GLOBAL__;
+int lcd_contrast SYSTEM_GLOBAL;
 
 
 // Function supplied by CPU module, returns the hardware clock frequency in Hertz
-extern int __cpu_getHCLK();
+extern int cpu_getHCLK();
 
 
 void lcd_sync()
@@ -81,7 +81,7 @@ void lcd_setcontrast(int level)
 
 
 
-extern unsigned int __cpu_getPCLK();
+extern unsigned int cpu_getPCLK();
 
 
 
@@ -97,9 +97,9 @@ extern unsigned int __cpu_getPCLK();
 
 #define SET_DATA(a)  *GPHDAT=(*GPHDAT&~0x10)|((a)? 0x10:0)
 
-#define DELAY_ONETICK   __tmr_delay100us(); __tmr_delay100us()
-#define DELAY_10MS      __tmr_delay10ms()
-#define DELAY_20MS      __tmr_delay20ms()
+#define DELAY_ONETICK   tmr_delay100us(); tmr_delay100us()
+#define DELAY_10MS      tmr_delay10ms()
+#define DELAY_20MS      tmr_delay20ms()
 
 
 
@@ -241,9 +241,9 @@ void lcd_initspidisplay()
 #define LCD_TARGET_REFRESH      55
 
 // UPDATE THE LCD CLOCK WHEN THE CPU CLOCK CHANGES
-void __lcd_fix()
+void lcd_fix()
 {
-    int clkdiv=(__cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
+    int clkdiv=(cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -264,7 +264,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     *VIDCON0 = *VIDCON0 & 0xFFFFFFFC;
 
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
+    int clkdiv=(cpu_getHCLK()<<3)/(408720*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible
@@ -444,7 +444,7 @@ void lcd_poweron()
     *VIDCON0 = *VIDCON0 & 0xFFFFFFDC;
 
 
-    int clkdiv=(__cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
+    int clkdiv=(cpu_getHCLK()<<3)/(332955*LCD_TARGET_REFRESH);
 
     clkdiv+=7;
     clkdiv>>=3; // Round to closest integer to stay as close to target as possible

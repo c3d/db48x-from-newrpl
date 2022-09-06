@@ -14,7 +14,7 @@ RECORDER(boot, 16, "Information about system boot, reset and shutdown");
 
 #define enter_mode(mode) call_swi(mode)
 
-__ARM_MODE__ void switch_mode(int mode) __attribute__((naked));
+ARM_MODE void switch_mode(int mode) __attribute__((naked));
 void switch_mode(int mode)
 {
     asm volatile ("and r0,r0,#0x1f");
@@ -26,7 +26,7 @@ void switch_mode(int mode)
     asm volatile ("bx r0");
 }
 
-__ARM_MODE__ unsigned int get_mode()
+ARM_MODE unsigned int get_mode()
 {
     register unsigned int cpsr;
 
@@ -35,27 +35,27 @@ __ARM_MODE__ unsigned int get_mode()
     return cpsr & 0x1f;
 }
 
-__ARM_MODE__ void call_swi(unsigned int arg1) __attribute((noinline));
+ARM_MODE void call_swi(unsigned int arg1) __attribute((noinline));
      void call_swi(unsigned int arg1)
 {
     asm volatile ("swi #0":::"r0", "r1");
 }
 
-__ARM_MODE__ void enable_interrupts()
+ARM_MODE void enable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all");
     asm volatile ("bic r1,r1,#0xc0");
     asm volatile ("msr cpsr_all,r1");
 }
 
-__ARM_MODE__ void disable_interrupts()
+ARM_MODE void disable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all");
     asm volatile ("orr r1,r1,#0xc0");
     asm volatile ("msr cpsr_all,r1");
 }
 
-__ARM_MODE__ void set_stack(unsigned int *) __attribute__((naked));
+ARM_MODE void set_stack(unsigned int *) __attribute__((naked));
 void set_stack(unsigned int *newstackptr)
 {
 
@@ -83,7 +83,7 @@ void dbg_reset()
 
 }
 
-__ARM_MODE__ void set_async_bus()
+ARM_MODE void set_async_bus()
 {
     asm volatile ("mrc p15,0,r0,c1,c0,0");
     asm volatile ("orr r0,r0,#0xC0000000");
@@ -170,7 +170,7 @@ void main_virtual(unsigned int mode)
             // CHECK FOR MAGIC KEY COMBINATION
             if(keyb_isAnyKeyPressed()) {
                 throw_exception("Wipeout requested",
-                        __EX_WARM | __EX_WIPEOUT | __EX_EXIT);
+                        EX_WARM | EX_WIPEOUT | EX_EXIT);
             }
 
             // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
@@ -253,7 +253,7 @@ void clear_globals()
         *ptr++ = 0;
 }
 
-__ARM_MODE__ void startup(int) __attribute__((naked, noreturn));
+ARM_MODE void startup(int) __attribute__((naked, noreturn));
 void startup(int prevstate)
 {
 
@@ -272,7 +272,7 @@ void startup(int prevstate)
 
     create_mmu_tables();
 
-    //set_swivector_phys(__SVM_enter_mode);   // GET READY TO SWITCH PROCESSOR MODES
+    //set_swivector_phys(SVM_enter_mode);   // GET READY TO SWITCH PROCESSOR MODES
 
     //if(get_mode()==USER_MODE) enter_mode(SVC_MODE);   // GO INTO SUPERVISOR MODE, USES 2 WORDS OF SVC STACK AT UNKNOWN LOCATION!! (SET BY BOOTLOADER)
     //else switch_mode(SVC_MODE);
@@ -294,24 +294,24 @@ void startup(int prevstate)
         // WOKE UP FROM POWEROFF
         // DON'T CLEAR ANYTHING
 
-        __rtc_poweron();
+        rtc_poweron();
 
         // ADD ANY OTHER INITIALIZATION HERE
 
     }
     else {
         // FROM RESET OR WARMSTART, CLEAN VARIABLES
-        __rtc_reset();
+        rtc_reset();
         clear_globals();        // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
-        __lcd_contrast = 8;
+        lcd_contrast = 8;
     }
 
-    __exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
+    exception_install();      // INITIALIZE IRQ AND EXCEPTION HANDLING
 
     enable_interrupts();
 
     tmr_setup();
-    __keyb_init();
+    keyb_irq_init();
 
     usb_init(1);
 
@@ -378,7 +378,7 @@ void startup(int prevstate)
 
 #define MMU_MAP_PAGE(phys,virt) ( ( (unsigned int *)(mmu_base[MMU_LEVEL1_INDEX(virt)]&0xfffffc00))[MMU_LEVEL2_INDEX(virt)]=MMU_PAGE(phys))
 
-extern int __last_used_byte;
+extern int last_used_byte;
 
 void create_mmu_tables()
 {
@@ -448,7 +448,7 @@ void create_mmu_tables()
 
 }
 
-__ARM_MODE__ void __SVM_enable_mmu()
+ARM_MODE void SVM_enable_mmu()
 {
 
     asm volatile ("mov r0,#0x08000000");
@@ -470,7 +470,7 @@ __ARM_MODE__ void __SVM_enable_mmu()
 }
 
 // ALL CACHES AND TLB MUST BE FLUSHED BEFORE DISABLING MMU
-__ARM_MODE__ void __SVM_disable_mmu()
+ARM_MODE void SVM_disable_mmu()
 {
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
@@ -484,7 +484,7 @@ __ARM_MODE__ void __SVM_disable_mmu()
 
 }
 
-__ARM_MODE__ static void __SVM_flush_Dcache(void)
+ARM_MODE static void SVM_flush_Dcache(void)
 {
     register unsigned int counter asm("r2");
     register unsigned int cacheaddr asm("r3");
@@ -500,7 +500,7 @@ __ARM_MODE__ static void __SVM_flush_Dcache(void)
 
 }
 
-__ARM_MODE__ static void __SVM_flush_Icache(void)
+ARM_MODE static void SVM_flush_Icache(void)
 {
     // CLEAN AND INVALIDATE ENTRY USING INDEX
 
@@ -511,7 +511,7 @@ __ARM_MODE__ static void __SVM_flush_Icache(void)
 
 }
 
-__ARM_MODE__ static void __SVM_flush_TLB(void)
+ARM_MODE static void SVM_flush_TLB(void)
 {
     // CLEAN AND INVALIDATE ENTRY USING INDEX
 
@@ -544,7 +544,7 @@ inline void set_swivector_phys(void *handler)
     *ptr = handler;
 }
 
-__ARM_MODE__ void set_stackall()
+ARM_MODE void set_stackall()
 {
     // THE USER STACK IS ALREADY SETUP PROPERLY
 
@@ -573,7 +573,7 @@ __ARM_MODE__ void set_stackall()
     asm volatile ("nop");       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
-__ARM_MODE__ void reset_stackall()
+ARM_MODE void reset_stackall()
 {
     // THE USER STACK IS ALREADY SETUP PROPERLY
 
@@ -602,16 +602,16 @@ __ARM_MODE__ void reset_stackall()
     asm volatile ("nop");       // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
-__ARM_MODE__ void enable_mmu()
+ARM_MODE void enable_mmu()
 {
 
     // WE MUST BE IN SUPERVISOR MODE ALREADY
 
-    __SVM_flush_Dcache();
-    __SVM_flush_Icache();
-    __SVM_flush_TLB();
+    SVM_flush_Dcache();
+    SVM_flush_Icache();
+    SVM_flush_TLB();
 
-    __SVM_enable_mmu();
+    SVM_enable_mmu();
 
 // MOVE USER STACK TO VIRTUAL MEMORY, NEEDED HERE TO BE ABLE TO RETURN
     asm volatile ("bic sp,sp,#0xff000000");
@@ -619,22 +619,22 @@ __ARM_MODE__ void enable_mmu()
 
 }
 
-__ARM_MODE__ void disable_mmu()
+ARM_MODE void disable_mmu()
 {
 
     // WE MUST BE IN SUPERVISOR MODE ALREADY
 
-    __SVM_flush_Dcache();
-    __SVM_flush_Icache();
-    __SVM_flush_TLB();
+    SVM_flush_Dcache();
+    SVM_flush_Icache();
+    SVM_flush_TLB();
 
-    __SVM_disable_mmu();
+    SVM_disable_mmu();
 
 // MOVE USER STACK TO PHYSICAL MEMORY, NEEDED HERE TO BE ABLE TO RETURN
     asm volatile ("bic sp,sp,#0xff000000");
     asm volatile ("orr sp,sp,#0x40000000");
 
-    __SVM_flush_TLB();
+    SVM_flush_TLB();
 
 }
 
@@ -681,9 +681,9 @@ void halReset()
 
     // MAKE SURE ALL WRITE BUFFERS ARE PROPERLY FLUSHED
 
-    __SVM_flush_Dcache();
-    __SVM_flush_Icache();
-    __SVM_flush_TLB();
+    SVM_flush_Dcache();
+    SVM_flush_Icache();
+    SVM_flush_TLB();
 
     // SET THE PRESCALER OF THE WATCHDOG AS FAST AS POSSIBLE AND A REASONABLE COUNT (ABOUT 87ms)
     *HWREG(WDT_REGS, 8) = 0x8000;
@@ -706,13 +706,13 @@ void halEnterPowerOff()
     FSShutdown();
 #endif
 
-    __rtc_poweroff();
+    rtc_poweroff();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);
 
     // WAIT FOR ALL KEYS TO BE RELEASED
-    __keyb_waitrelease();
+    keyb_irq_waitrelease();
 
     disable_interrupts();
 

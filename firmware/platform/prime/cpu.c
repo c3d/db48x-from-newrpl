@@ -7,19 +7,19 @@
 
 #include <ui.h>
 
-INTERRUPT_TYPE __saveint __SYSTEM_GLOBAL__;
+INTERRUPT_TYPE saveint SYSTEM_GLOBAL;
 
 void cpu_intoff()
 {
-	if (!__saveint.mask1 && !__saveint.mask2) {
-		__saveint.mask1 = *INTMSK1;
-		__saveint.mask2 = *INTMSK2;
+	if (!saveint.mask1 && !saveint.mask2) {
+		saveint.mask1 = *INTMSK1;
+		saveint.mask2 = *INTMSK2;
 		*INTMSK1 = 0xffffffff;
 		*INTMSK2 = 0xffffffff;
 	}
 }
 
-INTERRUPT_TYPE __cpu_intoff()
+INTERRUPT_TYPE cpu_intoff_nosave()
 {
 	INTERRUPT_TYPE previous;
 	previous.mask1 = *INTMSK1;
@@ -33,13 +33,13 @@ INTERRUPT_TYPE __cpu_intoff()
 
 void cpu_inton()
 {
-	if (__saveint.mask1 || __saveint.mask2) {
-		*INTMSK1 = __saveint.mask1;
-		*INTMSK2 = __saveint.mask2;
+	if (saveint.mask1 || saveint.mask2) {
+		*INTMSK1 = saveint.mask1;
+		*INTMSK2 = saveint.mask2;
 	}
 }
 
-void __cpu_inton(INTERRUPT_TYPE state)
+void cpu_inton_nosave(INTERRUPT_TYPE state)
 {
 	*INTMSK1 = state.mask1;
 	*INTMSK2 = state.mask2;
@@ -76,9 +76,9 @@ void __cpu_inton(INTERRUPT_TYPE state)
 
 
 // Auxiliary function that fixes timer frequency every time the cpu clock is adjusted
-extern void __tmr_fix();
+extern void tmr_fix();
 
-int __cpu_setspeed(unsigned int mode)
+int cpu_setspeed_internal(unsigned int mode)
 {
 
     // Check if LCD is already on, then adjust cpu speed only at end of frame
@@ -129,10 +129,10 @@ case 100:
 
 *CLKSRC |= 0x40;      // enable EPLL output
 
-__tmr_fix();
+tmr_fix();
 
 if(*VIDCON0&3) {
-    __lcd_fix();        // Recalculate frequency and fix it
+    lcd_fix();        // Recalculate frequency and fix it
     *VIDCON0 |= 3;      // Enable LCD again
 }
 
@@ -156,15 +156,15 @@ int cpu_setspeed(int freq)
 
 
     if(freq >= 400000000)
-        return __cpu_setspeed(400);
+        return cpu_setspeed_internal(400);
     if(freq >= 200000000)
-        return __cpu_setspeed(200);
-    return __cpu_setspeed(100);
+        return cpu_setspeed_internal(200);
+    return cpu_setspeed_internal(100);
 }
 
 
 
-int __cpu_getFCLK()
+int cpu_getFCLK()
 {
         int PLLCON = *MPLLCON;
 
@@ -177,24 +177,24 @@ int __cpu_getFCLK()
 
 }
 
-int __cpu_getARMCLK()
+int cpu_getARMCLK()
 {
-    int FCLK = __cpu_getFCLK();
+    int FCLK = cpu_getFCLK();
     int ARMDIV = (*CLKDIV0>>9) & 7;
     return FCLK / (ARMDIV+1);
 }
 
-int __cpu_getHCLK()
+int cpu_getHCLK()
 {
-    int FCLK = __cpu_getFCLK();
+    int FCLK = cpu_getFCLK();
     int HCLKDIV = *CLKDIV0 & 3;
     int PREDIV = (*CLKDIV0>>4) & 3;
     return FCLK / ( (PREDIV+1)*(HCLKDIV + 1) );
 }
 
-int __cpu_getPCLK()
+int cpu_getPCLK()
 {
-    int HCLK = __cpu_getHCLK();
+    int HCLK = cpu_getHCLK();
     int PCLKDIV = (*CLKDIV0>>2) & 1;
     if(PCLKDIV) HCLK >>= 1;
     return HCLK;
@@ -203,7 +203,7 @@ int __cpu_getPCLK()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-__ARM_MODE__ int cpu_getlock(int lockvar, volatile int *lock_ptr)
+ARM_MODE int cpu_getlock(int lockvar, volatile int *lock_ptr)
 {
     asm volatile ("swp %1,%1,[%2];":"=r" (lockvar):"r"(lockvar), "r"(lock_ptr));
 
@@ -212,7 +212,7 @@ __ARM_MODE__ int cpu_getlock(int lockvar, volatile int *lock_ptr)
 
 
 
-__ARM_MODE__ void cpu_flushwritebuffers(void)
+ARM_MODE void cpu_flushwritebuffers(void)
 {
     register unsigned int value;
 
@@ -235,7 +235,7 @@ __ARM_MODE__ void cpu_flushwritebuffers(void)
 }
 
 
-__ARM_MODE__ void cpu_flushicache(void)
+ARM_MODE void cpu_flushicache(void)
 {
     register unsigned int value;
 
@@ -249,7 +249,7 @@ __ARM_MODE__ void cpu_flushicache(void)
 
 }
 
-__ARM_MODE__ void cpu_flushTLB(void)
+ARM_MODE void cpu_flushTLB(void)
 {
     register unsigned int value;
 
@@ -263,13 +263,13 @@ __ARM_MODE__ void cpu_flushTLB(void)
 
 
 // PUT THE CPU IN "DOZE" MODE
-__ARM_MODE__ void cpu_waitforinterrupt()
+ARM_MODE void cpu_waitforinterrupt()
 {
     register unsigned int var = 0;
     asm volatile ("mcr p15,0,%0,c7,c0,4"::"r" (var));
 }
 
-__ARM_MODE__ void reset_gpio()
+ARM_MODE void reset_gpio()
 {
     // GPB0 output low
     // GPB1 output low
@@ -369,7 +369,7 @@ __ARM_MODE__ void reset_gpio()
     *PDSMCON = 0x05451500;
 }
 
-__ARM_MODE__ void cpu_off_prepare()
+ARM_MODE void cpu_off_prepare()
 {
     // TODO: CHECK FOR SERIAL TRANSMISSIONS, SD CARD WRITE OPERATIONS, ETC BEFORE GOING DOWN
 
@@ -457,31 +457,31 @@ struct PRIME_BL_WAKEUP {
     unsigned int cpu_control_c1;
     unsigned int cpu_mmu_base;
     unsigned int cpu_domaccess;
-} __cpu_wakeup_struct __SCRATCH_MEMORY__;
+} cpu_wakeup_struct SCRATCH_MEMORY;
 
 
 // Startup function is supplied by boot module
 extern void startup(void);
 
 
-__ARM_MODE__ void cpu_off_die()
+ARM_MODE void cpu_off_die()
 {
     register unsigned int data;
 
 
     // SAVE CPU STATE TO DATA STRUCTURE REQUIRED BY BOOTLOADER
-    __cpu_wakeup_struct.pc_resume=(unsigned int)&startup;
+    cpu_wakeup_struct.pc_resume=(unsigned int)&startup;
 
     asm volatile ("mrc p15,0,%[reg],c1,c0,0" : [ reg ] "=r" (data) );
-    __cpu_wakeup_struct.cpu_control_c1=data;
+    cpu_wakeup_struct.cpu_control_c1=data;
 
     asm volatile ("mrc p15,0,%[reg],c2,c0,0" : [ reg ] "=r" (data) );
-    __cpu_wakeup_struct.cpu_mmu_base=data;
+    cpu_wakeup_struct.cpu_mmu_base=data;
 
     asm volatile ("mrc p15,0,%[reg],c3,c0,0" : [ reg ] "=r" (data) );
-    __cpu_wakeup_struct.cpu_domaccess=data;
+    cpu_wakeup_struct.cpu_domaccess=data;
 
-    *INFORM3=(unsigned int)&__cpu_wakeup_struct;
+    *INFORM3=(unsigned int)&cpu_wakeup_struct;
     *INFORM2=0x55aa;
 
     *PWRCFG = 0x28088;

@@ -10,7 +10,7 @@
 
 // GENERAL HARDWARE REGISTER MACRO
 #define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
-#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
+#define ARM_MODE __attribute__((target("arm"))) __attribute__((noinline))
 
 #define MEM_REGS	0x04800000
 #define SD_REGS		0x05A00000
@@ -326,16 +326,16 @@
 #define CURSORBLINKSPEED 40000
 
 // SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
-#define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
-#define __DATAORDER1__ __attribute__((section (".data_1")))
-#define __DATAORDER2__ __attribute__((section (".data_2")))
-#define __DATAORDER3__ __attribute__((section (".data_3")))
-#define __DATAORDERLAST__ __attribute__((section (".data_last")))
-#define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
-#define __ROMOBJECT__ __attribute__((section (".romobjects")))
-#define __ROMLINK__  __attribute__((section (".romlink")))
+#define SYSTEM_GLOBAL __attribute__((section (".system_globals")))
+#define DATAORDER1 __attribute__((section (".data_1")))
+#define DATAORDER2 __attribute__((section (".data_2")))
+#define DATAORDER3 __attribute__((section (".data_3")))
+#define DATAORDERLAST __attribute__((section (".data_last")))
+#define SCRATCH_MEMORY __attribute__((section (".scratch_memory")))
+#define ROMOBJECTS __attribute__((section (".romobjects")))
+#define ROMLINK  __attribute__((section (".romlink")))
 
-#define __ENABLE_ARM_ASSEMBLY__ 1
+#define ENABLE_ARM_ASSEMBLY 1
 
 typedef unsigned int INTERRUPT_TYPE;
 

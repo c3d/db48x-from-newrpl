@@ -936,7 +936,7 @@ void LIB_HANDLER()
 
         // TODO: REMOVE THIS BEFORE FINAL RELEASE!
         if((BYTEPTR) DecompStringEnd - string > len) {
-            throw_dbgexception("Bad number length!", __EX_CONT);
+            throw_dbgexception("Bad number length!", EX_CONT);
         }
 
         RetNum = OK_CONTINUE;

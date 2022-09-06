@@ -9,7 +9,7 @@
 
 #ifndef CONFIG_NO_FSYSTEM
 
-#define __READ_ONLY__    __attribute__ ((section(".rodata")))
+#define READ_ONLY    __attribute__ ((section(".rodata")))
 
 const char *const FSErrorMsgArray[] = {
     "Invalid error",

@@ -10,17 +10,17 @@
 void stop_singleshot();
 void timer_singleshot(int ms);
 
-void __tmr_eventreschedule();
+void tmr_eventreschedule();
 
 // TIMERS
-volatile tmr_t __systmr __SYSTEM_GLOBAL__;
-volatile tmr_t __evtmr __SYSTEM_GLOBAL__;
+volatile tmr_t systmr SYSTEM_GLOBAL;
+volatile tmr_t evtmr SYSTEM_GLOBAL;
 
-volatile unsigned long long __pcsystmr; // MOVING COUNTER FOR SYSTEM PC TIMER
-long long __pctmr1;     // TIMER1 COUNTDOWN
-unsigned int __sysfreq __SYSTEM_GLOBAL__;
-volatile int __tmr_lock __SYSTEM_GLOBAL__;
-timed_event tmr_events[NUM_EVENTS] __SYSTEM_GLOBAL__;
+volatile unsigned long long pcsystmr; // MOVING COUNTER FOR SYSTEM PC TIMER
+long long pctmr1;     // TIMER1 COUNTDOWN
+unsigned int sysfreq SYSTEM_GLOBAL;
+volatile int tmr_lock SYSTEM_GLOBAL;
+timed_event tmr_events[NUM_EVENTS] SYSTEM_GLOBAL;
 
 // SAVE TIMERS CONFIGURATION - 13 WORDS REQUIRED
 void tmr_save(unsigned int *tmrbuffer)
@@ -38,21 +38,21 @@ void tmr_restore(unsigned int *tmrbuffer)
 }
 
 // THIS EVENT IS CALLED TO CHECK IF WE HAVE AN EVENT
-void __tmr_newirqeventsvc()
+void tmr_newirqeventsvc()
 {
-    if(cpu_getlock(2, &__tmr_lock))
+    if(cpu_getlock(2, &tmr_lock))
         return; // GET A LOCK ON THE TIMERS, ABORT IF SOMEBODY ELSE HAS IT
-    __tmr_lock = 1;
+    tmr_lock = 1;
 
     // GET THE CURRENT SYSTEM TICKS
     tmr_t current_ticks = tmr_ticks();
     int f;
 
-    if(__evtmr && (current_ticks >= __evtmr)) {
+    if(evtmr && (current_ticks >= evtmr)) {
         // PROCESS THE NEXT EVENT
         for(f = 0; f < NUM_EVENTS; ++f) {
             if(tmr_events[f].status & 1) {
-                if(tmr_events[f].ticks <= __evtmr) {
+                if(tmr_events[f].ticks <= evtmr) {
                     // EXECUTE EVENT
                     (*(tmr_events[f].eventhandler)) ();
                     if((tmr_events[f].status & 3) == 3) {
@@ -67,18 +67,18 @@ void __tmr_newirqeventsvc()
         }
     }
 
-    __tmr_lock = 0;
+    tmr_lock = 0;
 
-    __tmr_eventreschedule();
+    tmr_eventreschedule();
 
 }
 
-void __tmr_irqservice()
+void tmr_irqservice()
 {
-    __systmr += 0x10000;
+    systmr += 0x10000;
 
-    if(__evtmr && (__evtmr - __systmr < 0x10000))
-        __tmr_newirqeventsvc();
+    if(evtmr && (evtmr - systmr < 0x10000))
+        tmr_newirqeventsvc();
 
 }
 
@@ -98,21 +98,21 @@ void tmr_setup()
 // CLEAN ALL PENDING INTERRUPTS
 
 // START TIMER0 AS 64-BIT RUNNING TIMER AT 100 KHz
-    __tmr_lock = 0;
-    __systmr = 0;
+    tmr_lock = 0;
+    systmr = 0;
 
 // CALCULATE SYSTEM CLOCK FREQUENCY
-    __sysfreq = SYSTIMER_FREQ;
+    sysfreq = SYSTIMER_FREQ;
 
 // PREPARE TIMED EVENTS HANDLER
     int k;
     for(k = 0; k < NUM_EVENTS; ++k)
         tmr_events[k].status = 0;
 
-    __evtmr = 0;
+    evtmr = 0;
 
-//__irq_addhook(10,(__interrupt__) &__tmr_irqservice);
-//__irq_addhook(11,(__interrupt__) &__tmr_newirqeventsvc);
+//irq_addhook(10,(__interrupt__) &tmr_irqservice);
+//irq_addhook(11,(__interrupt__) &tmr_newirqeventsvc);
 
 // UNMASK INTERRUPTS FOR TIMERS 0 AND 1
 
@@ -122,46 +122,46 @@ void tmr_setup()
 }
 
 // FIX TIMERS SPEED WHEN CPU CLOCK IS CHANGED, CALLED FROM cpu_setspeed
-void __tmr_fix()
+void tmr_fix()
 {
-    __sysfreq = SYSTIMER_FREQ;
+    sysfreq = SYSTIMER_FREQ;
 
 }
 
 tmr_t tmr_getsysfreq()
 {
-    return __sysfreq;
+    return sysfreq;
 }
 
 tmr_t tmr_ticks()
 {
 // RETURN THE SYSTEM MOVING TIMER
-    return __pcsystmr;
+    return pcsystmr;
 
 }
 
 // RETURN DELAY IN MILLISECONDS
 int tmr_ticks2ms(tmr_t before, tmr_t after)
 {
-    return ((after - before) * 1000) / __sysfreq;
+    return ((after - before) * 1000) / sysfreq;
 }
 
 // RETURN DELAY IN MICROSECONDS
 int tmr_ticks2us(tmr_t before, tmr_t after)
 {
-    return ((after - before) * 1000000) / __sysfreq;
+    return ((after - before) * 1000000) / sysfreq;
 }
 
 // ADD/SUBTRACT AN INTERVAL IN MILLISECONDS TO THE GIVEN TIME IN TICKS
 tmr_t tmr_addms(tmr_t time, int ms)
 {
-    return time + ((ms * __sysfreq) / 1000);
+    return time + ((ms * sysfreq) / 1000);
 }
 
 // ADD/SUBTRACT AN INTERVAL IN MICROSECONDS TO THE GIVEN TIME IN TICKS
 tmr_t tmr_addus(tmr_t time, int us)
 {
-    return time + ((us * __sysfreq) / 1000000);
+    return time + ((us * sysfreq) / 1000000);
 }
 
 void tmr_delayms(int milliseconds)
@@ -171,7 +171,7 @@ void tmr_delayms(int milliseconds)
     tmr_t start = tmr_ticks();
 
 // CALCULATE ENDING TICKS
-    tmr_t end = start + ((milliseconds * __sysfreq) / 1000);
+    tmr_t end = start + ((milliseconds * sysfreq) / 1000);
 
 // AND WAIT
     while(end > tmr_ticks());
@@ -218,16 +218,16 @@ HEVENT tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepeat)
             tmr_events[f].ticks = ticks + tmr_events[f].delay;
             tmr_events[f].status = ((autorepeat) ? 2 : 0) | 1;
 
-            __tmr_eventreschedule();
+            tmr_eventreschedule();
             return f;
         }
     }
     return -1;
 }
 
-void __tmr_eventreschedule()
+void tmr_eventreschedule()
 {
-    if(cpu_getlock(2, &__tmr_lock))
+    if(cpu_getlock(2, &tmr_lock))
         return; // GET A LOCK ON THE TIMERS, ABORT IF SOMEBODY ELSE HAS IT
 
     tmr_t current_ticks;
@@ -236,7 +236,7 @@ void __tmr_eventreschedule()
 
     // STOP TIMER1
     stop_singleshot();
-    __tmr_lock = 1;
+    tmr_lock = 1;
 
     next = 0;
     for(f = 0; f < NUM_EVENTS; ++f) {
@@ -254,7 +254,7 @@ void __tmr_eventreschedule()
   restart:
 
     // HERE next HAS THE NEXT SCHEDULED EVENT
-    __evtmr = next;
+    evtmr = next;
 
     if(next) {
 
@@ -265,22 +265,22 @@ void __tmr_eventreschedule()
         else {
             // SET THE TIMER1 TO WAKE US UP EXACTLY AT THE RIGHT TIME
             if(next <= current_ticks) {
-                __pctmr1 = 50;  // THIS EVENT IS LATE! RUN IN HALF A MILLISECOND TO CATCH UP
-                __evtmr = current_ticks + 50;
+                pctmr1 = 50;  // THIS EVENT IS LATE! RUN IN HALF A MILLISECOND TO CATCH UP
+                evtmr = current_ticks + 50;
             }
             else
-                __pctmr1 = next - current_ticks;
+                pctmr1 = next - current_ticks;
             // MANUAL UPDATE
             // RESTART TIMER, SINGLE SHOT
-            timer_singleshot((int)(__pctmr1 * 1000.0 / (double)SYSTIMER_FREQ));
+            timer_singleshot((int)(pctmr1 * 1000.0 / (double)SYSTIMER_FREQ));
 
         }
     }
 
-    while(__tmr_lock == 2) {
+    while(tmr_lock == 2) {
         // SOMEBODY TRIED TO ACQUIRE THE LOCK WHILE WE WERE USING IT
         // MUST REDO THE TIMING IN CASE THEY ADDED/REMOVED EVENTS
-        __tmr_lock = 1;
+        tmr_lock = 1;
         next = 0;
         int f;
         for(f = 0; f < NUM_EVENTS; ++f) {
@@ -295,11 +295,11 @@ void __tmr_eventreschedule()
             }
         }
 
-        if(__evtmr != next)
+        if(evtmr != next)
             goto restart;
     }
 
-    __tmr_lock = 0;
+    tmr_lock = 0;
 
 }
 
@@ -319,7 +319,7 @@ void tmr_eventresume(HEVENT event)
     tmr_events[event].ticks = tmr_ticks() + tmr_events[event].delay;
     tmr_events[event].status |= 1;      // TURN EVENT ON
     tmr_events[event].status &= ~4;     // CLEAR THE DISABLE BIT
-    __tmr_eventreschedule();
+    tmr_eventreschedule();
 }
 
 void tmr_eventkill(HEVENT event)

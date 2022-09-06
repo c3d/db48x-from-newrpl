@@ -8,39 +8,39 @@
 #include <newrpl.h>
 #include <sys/rtc.h>
 
-static volatile int __rtc_almint __SYSTEM_GLOBAL__;
+static volatile int rtc_almint SYSTEM_GLOBAL;
 
 // ENSURE RTCCON IS CORRECTLY SET
-static void __rtc_check_device()
+static void rtc_check_device()
 {
     union rtccon rtc;
-    rtc.byte = __getRTCCon();
+    rtc.byte = getRTCCon();
 
     if(rtc.clkrst | rtc.clksel | rtc.cntsel) {
         rtc.clkrst = rtc.clksel = rtc.cntsel = 0;
-        __setRTCCon(rtc.byte);
+        setRTCCon(rtc.byte);
     }
 
     return;
 }
 
 // CONTROL WRITE ACCESS TO THE BCD REGISTERS
-static void __rtc_setwrite(int enabled)
+static void rtc_setwrite(int enabled)
 {
     union rtccon rtc;
-    rtc.byte = __getRTCCon();
+    rtc.byte = getRTCCon();
 
     if(rtc.rtcen != enabled) {
         rtc.rtcen = enabled ? 1 : 0;
-        __setRTCCon(rtc.byte);
+        setRTCCon(rtc.byte);
     }
 
-    __rtc_check_device();
+    rtc_check_device();
 
     return;
 }
 
-static int __rtc_is_valid_dt(struct date dt)
+static int rtc_is_valid_dt(struct date dt)
 {
     int mdays;
 
@@ -55,7 +55,7 @@ static int __rtc_is_valid_dt(struct date dt)
     return 1;
 }
 
-static int __rtc_is_valid_tm(struct time tm)
+static int rtc_is_valid_tm(struct time tm)
 {
     if(tm.hour > 23)
         return 0;
@@ -74,14 +74,14 @@ struct date rtc_getdate()
     struct date dt;
     int have_retried = 0, sec;
 
-    __rtc_check_device();
+    rtc_check_device();
 
   retry_get_date:
-    dt.mday = __getRTCDay();
-    dt.wday = __getRTCDow();    // 1 = MONDAY ... 7 = SUNDAY
-    dt.mon = __getRTCMon();
-    dt.year = __getRTCYear();
-    sec = __getRTCSec();
+    dt.mday = getRTCDay();
+    dt.wday = getRTCDow();    // 1 = MONDAY ... 7 = SUNDAY
+    dt.mon = getRTCMon();
+    dt.year = getRTCYear();
+    sec = getRTCSec();
 
     // CHECK IF A ROLLOVER MAY HAVE OCCURED
     if((sec == 0) && !have_retried) {
@@ -98,7 +98,7 @@ int rtc_setdate(struct date dt)
 {
     int have_retried = 0;
 
-    if(!__rtc_is_valid_dt(dt))
+    if(!rtc_is_valid_dt(dt))
         return 0;
 
     int dow =
@@ -113,21 +113,21 @@ int rtc_setdate(struct date dt)
         dow = 7;        // CONVERT TO 1 = MONDAY ... 7 = SUNDAY
 
     dt.year -= 2000;
-    __rtc_setwrite(1);
+    rtc_setwrite(1);
 
   retry_set_date:
-    __setRTCDay(dt.mday);
-    __setRTCDow(dow);
-    __setRTCMon(dt.mon);
-    __setRTCYear(dt.year);
+    setRTCDay(dt.mday);
+    setRTCDow(dow);
+    setRTCMon(dt.mon);
+    setRTCYear(dt.year);
 
     // CHECK IF A ROLLOVER MAY HAVE OCCURED
-    if((__getRTCSec() == 0) && !have_retried) {
+    if((getRTCSec() == 0) && !have_retried) {
         have_retried = 1;
         goto retry_set_date;
     }
 
-    __rtc_setwrite(0);
+    rtc_setwrite(0);
 
     return 1;
 }
@@ -137,12 +137,12 @@ struct time rtc_gettime()
     struct time tm;
     int have_retried = 0;
 
-    __rtc_check_device();
+    rtc_check_device();
 
   retry_get_time:
-    tm.min = __getRTCMin();
-    tm.hour = __getRTCHour();
-    tm.sec = __getRTCSec();
+    tm.min = getRTCMin();
+    tm.hour = getRTCHour();
+    tm.sec = getRTCSec();
 
     // CHECK IF A ROLLOVER MAY HAVE OCCURED
     if((tm.sec == 0) && !have_retried) {
@@ -157,21 +157,21 @@ int rtc_settime(struct time tm)
 {
     union rtccon rtc;
 
-    if(!__rtc_is_valid_tm(tm))
+    if(!rtc_is_valid_tm(tm))
         return 0;
 
-    rtc.byte = __getRTCCon();
+    rtc.byte = getRTCCon();
     rtc.clkrst = 1;
     rtc.rtcen = 1;
-    __setRTCCon(rtc.byte);
+    setRTCCon(rtc.byte);
 
-    __setRTCSec(tm.sec);
-    __setRTCMin(tm.min);
-    __setRTCHour(tm.hour);
+    setRTCSec(tm.sec);
+    setRTCMin(tm.min);
+    setRTCHour(tm.hour);
 
     rtc.clkrst = 0;
     rtc.rtcen = 0;
-    __setRTCCon(rtc.byte);
+    setRTCCon(rtc.byte);
 
     return 1;
 }
@@ -185,7 +185,7 @@ void rtc_getdatetime(struct date *dt, struct time *tm)
     *tm = rtc_gettime();
 
     // CHECK IF A ROLLOVER MAY HAVE OCCURED
-    if((__getRTCSec() == 0) && !have_retried) {
+    if((getRTCSec() == 0) && !have_retried) {
         have_retried = 1;
         goto retry_get_datetime;
     }
@@ -204,7 +204,7 @@ int rtc_setdatetime(struct date dt, struct time tm)
         return 0;
 
     // CHECK IF A ROLLOVER MAY HAVE OCCURED
-    if((__getRTCSec() == 0) && !have_retried) {
+    if((getRTCSec() == 0) && !have_retried) {
         have_retried = 1;
         goto retry_set_datetime;
     }
@@ -217,34 +217,34 @@ void rtc_getalarm(struct date *dt, struct time *tm, int *enabled)
 {
     union rtcalm alrm;
 
-    __rtc_check_device();
+    rtc_check_device();
 
-    alrm.byte = __getRTCAlm();
+    alrm.byte = getRTCAlm();
 
     *enabled = alrm.almen;
 
     if(alrm.secen)
-        tm->sec = __getALMSec();
+        tm->sec = getALMSec();
     else
         tm->sec = TIME_MAXSEC;
     if(alrm.minen)
-        tm->min = __getALMMin();
+        tm->min = getALMMin();
     else
         tm->min = TIME_MAXMIN;
     if(alrm.houren)
-        tm->hour = __getALMHour();
+        tm->hour = getALMHour();
     else
         tm->hour = TIME_MAXHOUR;
     if(alrm.dateen)
-        dt->mday = __getALMDay();
+        dt->mday = getALMDay();
     else
         dt->mday = 0;
     if(alrm.monen)
-        dt->mon = __getALMMon();
+        dt->mon = getALMMon();
     else
         dt->mon = 0;
     if(alrm.yearen)
-        dt->year = __getALMYear() + 2000;
+        dt->year = getALMYear() + 2000;
     else
         dt->year = 0;
 
@@ -258,36 +258,36 @@ int rtc_setalarm(struct date dt, struct time tm, int enabled)
 
     alrm.byte = 0;
 
-    __rtc_check_device();
+    rtc_check_device();
 
     if(tm.sec < 60) {
         alrm.secen = 1;
-        __setALMSec(tm.sec);
+        setALMSec(tm.sec);
     }
     if(tm.min < 60) {
         alrm.minen = 1;
-        __setALMMin(tm.min);
+        setALMMin(tm.min);
     }
     if(tm.hour < 24) {
         alrm.houren = 1;
-        __setALMHour(tm.hour);
+        setALMHour(tm.hour);
     }
     if(dt.mday > 0) {
         alrm.dateen = 1;
-        __setALMDay(dt.mday);
+        setALMDay(dt.mday);
     }
     if(dt.mon > 0) {
         alrm.monen = 1;
-        __setALMMon(dt.mon);
+        setALMMon(dt.mon);
     }
     if(dt.year > 0) {
         alrm.yearen = 1;
-        __setALMYear(dt.year - 2000);
+        setALMYear(dt.year - 2000);
     }
 
     alrm.almen = enabled ? 1 : 0;
 
-    __setRTCAlm(alrm.byte);
+    setRTCAlm(alrm.byte);
 
     return 1;
 }
@@ -299,8 +299,8 @@ int rtc_chkalrm()
         return 1;
     }
 
-    if(__rtc_almint) {
-        __rtc_almint = 0;
+    if(rtc_almint) {
+        rtc_almint = 0;
         return 1;
     }
 
@@ -311,9 +311,9 @@ void rtc_setaie(int enabled)
 {
     union rtcalm alrm;
 
-    alrm.byte = __getRTCAlm();
+    alrm.byte = getRTCAlm();
     alrm.almen = enabled ? 1 : 0;
-    __setRTCAlm(alrm.byte);
+    setRTCAlm(alrm.byte);
 
     return;
 }
@@ -324,7 +324,7 @@ void rtc_gettick(int *freq, int *enabled)
 {
     union ticnt tick;
 
-    tick.byte = __getRTCTic();
+    tick.byte = getRTCTic();
 
     if (tick.count)
         *freq = 128 / (tick.count + 1);
@@ -350,7 +350,7 @@ int rtc_settick(int freq, int enabled)
 
     tick.enable = enabled ? 1 : 0;
 
-    __setRTCTic(tick.byte);
+    setRTCTic(tick.byte);
 
     return 1;
 }
@@ -375,27 +375,27 @@ int rtc_setrnd_tm(int bound, int enabled)
     rnd_tm.seccr = bound;
     rnd_tm.srsten = enabled ? 1 : 0;
 
-    __setRTCRst(rnd_tm.byte);
+    setRTCRst(rnd_tm.byte);
 
     return 1;
 }
 
 // IRQ HANDLERS
 // UNCOMMENT IF NEEDED
-/*void __rtc_alrmirq()
+/*void rtc_alrmirq()
 {
-    __rtc_almint = 1;
+    rtc_almint = 1;
 
     return;
 }
 
-void __rtc_tickirq()
+void rtc_tickirq()
 {
 
     return;
 }
 */
-void __rtc_poweron()
+void rtc_poweron()
 {
     struct date rtc_dt, alrm_dt;
     struct time rtc_tm, alrm_tm;
@@ -430,18 +430,18 @@ void __rtc_poweron()
             if(alrm_tm.sec != (rtc_tm.sec))
                 return;
 
-        __rtc_almint = 1;
+        rtc_almint = 1;
         return;
     }
 
-    __rtc_almint = 0;
+    rtc_almint = 0;
 
     return;
 }
 
-void __rtc_poweroff()
+void rtc_poweroff()
 {
-    __rtc_setwrite(0);
+    rtc_setwrite(0);
 
     // TODO if needed : Save Tick
 
@@ -450,31 +450,31 @@ void __rtc_poweroff()
 
 // UNCOMMENT IF NEEDED
 /*
-void __rtc_setup()
+void rtc_setup()
 {
-    __irq_addhook(INT_RTC, (__interrupt__)&__rtc_alrmirq);
-    __irq_addhook(INT_TICK, (__interrupt__)&__rtc_tickirq);
+    irq_addhook(INT_RTC, (__interrupt__)&rtc_alrmirq);
+    irq_addhook(INT_TICK, (__interrupt__)&rtc_tickirq);
 
-    __irq_unmask(INT_RTC);
-    __irq_unmask(INT_TICK);
+    irq_unmask(INT_RTC);
+    irq_unmask(INT_TICK);
 
     return;
 }
 */
-void __rtc_reset()
+void rtc_reset()
 {
     struct date dt;
     struct time tm;
 
-    __rtc_check_device();
+    rtc_check_device();
     rtc_settick(0, 0);
-    __setRTCAlm(0);
+    setRTCAlm(0);
     rtc_setrnd_tm(0, 0);
 
     rtc_getdatetime(&dt, &tm);
 
     // CHECK RTC TIME
-    if(!__rtc_is_valid_dt(dt) || !__rtc_is_valid_tm(tm)) {
+    if(!rtc_is_valid_dt(dt) || !rtc_is_valid_tm(tm)) {
         dt.mday = 1;
         dt.mon = 1;
         dt.year = 2000;
@@ -484,9 +484,9 @@ void __rtc_reset()
         rtc_setdatetime(dt, tm);
     }
 
-    __rtc_setwrite(0);
+    rtc_setwrite(0);
 
-    __rtc_almint = 0;
+    rtc_almint = 0;
 
     return;
 }

@@ -6,18 +6,18 @@
  */
 #include <ui.h>
 
-WORD __battery;
-int __bat_readcnt;
+WORD battery;
+int bat_readcnt;
 
 void bat_read()
 {
-    __battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
+    battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
 }
 
 // SETUP ADC CONVERTERS TO READ BATTERY VOLTAGE
 // DUMMY FUNCTION ON A PC
 void bat_setup()
 {
-    __battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
-    __bat_readcnt=0;
+    battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
+    bat_readcnt=0;
 }

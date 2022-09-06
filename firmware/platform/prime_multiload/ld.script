@@ -80,7 +80,7 @@ SECTIONS
   .rodata1        : { *(.rodata1) }
   .eh_frame_hdr : { *(.eh_frame_hdr) }
 
-  __total_file_size = . - 0x30200000 ;
+  total_file_size = . - 0x30200000 ;
 
   .preinit_array     : { *(.preinit_array) }
   PROVIDE (__preinit_array_end = .);
@@ -94,9 +94,9 @@ SECTIONS
 
     .ARM.exidx :
     {
-    __exidx_start = .;
+    exidx_start = .;
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    __exidx_end = .;
+    exidx_end = .;
     }
 
 
@@ -105,7 +105,7 @@ SECTIONS
 
   .scratch_memory ALIGN(4) : { * (.scratch_memory) }
 
- __data_start = . ;
+ data_start = . ;
 
 
   __tmp_datastart = . ;
@@ -132,7 +132,7 @@ SECTIONS
 
 
 /* OUTPUT THE SIZE OF THE DATA SEGMENT */
-  __data_size = . - __tmp_datastart;
+  data_size = . - __tmp_datastart;
 
 /* NO NEED TO COPY THE BSS SECTION, BUT OBTAIN THE SIZE */
 
@@ -150,7 +150,7 @@ SECTIONS
   }
   . = ALIGN(32 / 8);
   _end = .;
-  __last_used_byte = .;
+  last_used_byte = .;
 
  /* CREATE VARIABLE _bss_size */
 

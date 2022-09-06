@@ -12,26 +12,26 @@
 
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 
-int errno __SYSTEM_GLOBAL__;
+int errno SYSTEM_GLOBAL;
 
-int *__errno()
+int *errno_address()
 {
     return &errno;
 }
 
-// SOME SYSTEMS (BSD) DEFINE errno POINTING TO __error
+// SOME SYSTEMS (BSD) DEFINE errno POINTING TO error
 // THIS IS NEEDED SO STANDARD HEADERS CAN BE USED
-int *__error()
+int *error()
 {
     return &errno;
 }
 
 #define	ERANGE 34
-#define errno (*__errno())
+#define errno (*errno_address())
 
 void abort()
 {
-    throw_exception("ABORT CALLED", __EX_EXIT | __EX_RESET);
+    throw_exception("ABORT CALLED", EX_EXIT | EX_RESET);
     while(1);                   // Silence [noreturn] compiler warning
 }
 

@@ -11,8 +11,8 @@
 
 RECORDER(exceptions, 16, "System exceptions");
 
-void __keyb_waitrelease();
-int __keyb_getkey(int wait);
+void keyb_irq_waitrelease();
+int keyb_irq_getkey(int wait);
 
 extern const unsigned int Font_10A[];
 extern unsigned int RPLLastOpcode;
@@ -24,7 +24,7 @@ extern unsigned int RPLLastOpcode;
 #define FNT_AVGW   7
 #define BTN_WIDTH  52
 
-void __ex_print(int x,int y,char *str)
+void ex_print(int x,int y,char *str)
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
@@ -37,7 +37,7 @@ void __ex_print(int x,int y,char *str)
     DrawText(x,y,str,(UNIFONT *)Font_10A,cgl_mkcolor(PAL_GRAY15),&dr);
 }
 
-void __ex_clrscreen()
+void ex_clrscreen()
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
@@ -49,7 +49,7 @@ void __ex_clrscreen()
     cgl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,cgl_mkcolor(PAL_GRAY0));
 }
 
-void __ex_hline(int y)
+void ex_hline(int y)
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
@@ -61,11 +61,11 @@ void __ex_hline(int y)
     cgl_hline(&dr,y,dr.x,dr.clipx2-1,cgl_mkcolor(PAL_GRAY8));
 }
 
-inline int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_10A); }
+inline int ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_10A); }
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 
-__ARM_MODE__ void __ex_gethireg(unsigned int *hi_reg)
+ARM_MODE void ex_gethireg(unsigned int *hi_reg)
 {
 register unsigned int tmp asm ("r3");
 register unsigned int tmp2 asm ("r2");
@@ -93,16 +93,16 @@ return;
 /*
 // MAIN EXCEPTION PROCESSOR
 
-#define __EX_CONT 1		// SHOW CONTINUE OPTION
-#define __EX_EXIT 2		// SHOW EXIT OPTION
-#define __EX_WARM 4		// SHOW WARMSTART OPTION
-#define __EX_RESET 8	// SHOW RESET OPTION
-#define __EX_NOREG 16	// DON'T SHOW REGISTERS
-#define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
-#define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
-#define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+#define EX_CONT 1		// SHOW CONTINUE OPTION
+#define EX_EXIT 2		// SHOW EXIT OPTION
+#define EX_WARM 4		// SHOW WARMSTART OPTION
+#define EX_RESET 8	// SHOW RESET OPTION
+#define EX_NOREG 16	// DON'T SHOW REGISTERS
+#define EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
+#define EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
 */
-int __exception_handler(char *exstr, unsigned int *registers,int options)
+int exception_handler(char *exstr, unsigned int *registers,int options)
 {
 unsigned int lcd_buffer[17];
 unsigned int hi_reg[8];
@@ -122,27 +122,27 @@ lcd_save(lcd_buffer);
 
 doitagain:
 
-__ex_clrscreen();
+ex_clrscreen();
 
-if(options&__EX_NOREG) {
+if(options&EX_NOREG) {
 
-    __ex_print(SCREEN_WIDTH/2-7*FNT_AVGW,FNT_HEIGHT*2,"-- EXCEPTION --");
-    __ex_hline(FNT_HEIGHT*2-4);
-    __ex_hline(FNT_HEIGHT*3+4);
+    ex_print(SCREEN_WIDTH/2-7*FNT_AVGW,FNT_HEIGHT*2,"-- EXCEPTION --");
+    ex_hline(FNT_HEIGHT*2-4);
+    ex_hline(FNT_HEIGHT*3+4);
 
-    __ex_print(SCREEN_WIDTH/2-(__ex_width(exstr)>>1),FNT_HEIGHT*5,exstr);
+    ex_print(SCREEN_WIDTH/2-(ex_width(exstr)>>1),FNT_HEIGHT*5,exstr);
 
 
 }
 else {
-    if(!(options&__EX_MEMDUMP)) {
-    __ex_print(0,0,"Exception: ");
-    __ex_print(11*FNT_AVGW,0,exstr);
+    if(!(options&EX_MEMDUMP)) {
+    ex_print(0,0,"Exception: ");
+    ex_print(11*FNT_AVGW,0,exstr);
     }
 
-    if(options&__EX_MEMDUMP) {
-        __ex_print(0,0,"Exception: MEMORY DUMP REQUESTED");
-        __ex_hline(FNT_HEIGHT*2-4);
+    if(options&EX_MEMDUMP) {
+        ex_print(0,0,"Exception: MEMORY DUMP REQUESTED");
+        ex_hline(FNT_HEIGHT*2-4);
     // SHOW MEMORY DUMP INSTEAD
         int i;
         for(i=0;i<10;++i) {
@@ -155,7 +155,7 @@ else {
          }
 
         // PRINT OFFSET OF MEMORY DUMP
-        __ex_print(0,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
+        ex_print(0,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
 
         for(f=0;f<8;++f) {
         a[2]=0;
@@ -164,7 +164,7 @@ else {
          a[1-j]=(((exstr[f+i*8])>>(j<<2))&0xf)+48;
           if(a[1-j]>'9') a[1-j]+=7;
          }
-        __ex_print(10*FNT_AVGW+f*3*FNT_AVGW,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
+        ex_print(10*FNT_AVGW+f*3*FNT_AVGW,FNT_HEIGHT*2+i*FNT_HEIGHT,a);
         }
 
         }
@@ -172,73 +172,73 @@ else {
 
 
     }
-    else if(options&__EX_RPLREGS) {
-        __ex_hline(FNT_HEIGHT*2-4);
+    else if(options&EX_RPLREGS) {
+        ex_hline(FNT_HEIGHT*2-4);
     // SHOW RPL CORE INFORMATION INSTEAD
-        __ex_print(0,FNT_HEIGHT*2,"IP: ");
+        ex_print(0,FNT_HEIGHT*2,"IP: ");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)IPtr)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*2,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*2,a);
 
-        __ex_print(0,FNT_HEIGHT*3,"OPC:");
+        ex_print(0,FNT_HEIGHT*3,"OPC:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)RPLLastOpcode)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*3,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*3,a);
 
-        __ex_print(0,FNT_HEIGHT*4,"TOe:");
+        ex_print(0,FNT_HEIGHT*4,"TOe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)TempObEnd)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*4,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*4,a);
 
-        __ex_print(0,FNT_HEIGHT*5,"TOs:");
+        ex_print(0,FNT_HEIGHT*5,"TOs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)TempObSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*5,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*5,a);
 
-        __ex_print(0,FNT_HEIGHT*6,"TBe:");
+        ex_print(0,FNT_HEIGHT*6,"TBe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)TempBlocksEnd)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*6,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*6,a);
 
-        __ex_print(0,FNT_HEIGHT*7,"TBs:");
+        ex_print(0,FNT_HEIGHT*7,"TBs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)TempBlocksSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*7,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*7,a);
 
-        __ex_print(0,FNT_HEIGHT*8,"RSe:");
+        ex_print(0,FNT_HEIGHT*8,"RSe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)RSTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*8,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*8,a);
 
-        __ex_print(0,FNT_HEIGHT*9,"RSs:");
+        ex_print(0,FNT_HEIGHT*9,"RSs:");
 
         a[8]=0;
         for(j=7;j>=0;j--)
@@ -246,9 +246,9 @@ else {
          a[7-j]=((((WORD)RStkSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*9,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*9,a);
 
-        __ex_print(0,FNT_HEIGHT*10,"DSe:");
+        ex_print(0,FNT_HEIGHT*10,"DSe:");
 
         a[8]=0;
         for(j=7;j>=0;j--)
@@ -256,75 +256,75 @@ else {
          a[7-j]=((((WORD)DSTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(4*FNT_AVGW,FNT_HEIGHT*10,a);
+        ex_print(4*FNT_AVGW,FNT_HEIGHT*10,a);
 
         // RIGHT COLUMN
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*2,"DSs: ");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*2,"DSs: ");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DStkSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*2,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*2,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*3,"DIe:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*3,"DIe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DirsTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*3,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*3,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*4,"DIs:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*4,"DIs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DirSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*4,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*4,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*5,"LAe:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*5,"LAe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)LAMTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*5,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*5,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*6,"LAs:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*6,"LAs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)LAMSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*6,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*6,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*7,"Exc:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*7,"Exc:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)Exceptions)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*7,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*7,a);
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*8,"Err:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*8,"Err:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)ErrorCode)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*8,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*8,a);
 
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*9,"Um:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*9,"Um:");
 
         {
         WORD total=halGetTotalPages();
@@ -335,10 +335,10 @@ else {
          a[7-j]=(((freemem)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*9,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*9,a);
 
 
-        __ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*10,"Tm:");
+        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*10,"Tm:");
 
         a[8]=0;
         for(j=7;j>=0;j--)
@@ -346,7 +346,7 @@ else {
          a[7-j]=(((total)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        __ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*10,a);
+        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*10,a);
         }
 
      }
@@ -354,17 +354,17 @@ else {
         // PRINT CPU REGISTERS
 	a[2]=0;
 	for(f=0;f<8;++f) {
-    __ex_print(0,f*FNT_HEIGHT+2*FNT_HEIGHT,"R  :");
+    ex_print(0,f*FNT_HEIGHT+2*FNT_HEIGHT,"R  :");
 	a[1]=0;
 	a[0]=f+48;
-    __ex_print(1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
-    __ex_print(SCREEN_WIDTH/2,f*FNT_HEIGHT+2*FNT_HEIGHT,"R   :");
+    ex_print(1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+    ex_print(SCREEN_WIDTH/2,f*FNT_HEIGHT+2*FNT_HEIGHT,"R   :");
 	if(f<2) a[0]=f+8+48;
 	else { a[0]='1'; a[1]=f-2+48; }
-    __ex_print(SCREEN_WIDTH/2+1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+    ex_print(SCREEN_WIDTH/2+1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 	}
 
-    __ex_hline(2*FNT_HEIGHT-4);
+    ex_hline(2*FNT_HEIGHT-4);
 
 	a[8]=0;
 
@@ -377,14 +377,14 @@ else {
 		a[7-j]=((registers[f+1]>>(j<<2))&0xf)+48;
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
-        __ex_print(4*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+        ex_print(4*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 
 	}
 
 
 	// DISPLAY BANKED REGISTERS
 	// GET BANKED REGISTERS
-	__ex_gethireg(hi_reg);
+	ex_gethireg(hi_reg);
 
 	for(f=0;f<7;++f)
 	{
@@ -394,7 +394,7 @@ else {
 		a[7-j]=((hi_reg[f]>>(j<<2))&0xf)+48;
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
-        __ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+        ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 
 	}
 
@@ -404,91 +404,91 @@ else {
 		a[7-j]=((registers[0]>>(j<<2))&0xf)+48;
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
-        __ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,9*FNT_HEIGHT,a);
+        ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,9*FNT_HEIGHT,a);
 
 		// FLAGS
-        if(hi_reg[7]&0x80000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,2*FNT_HEIGHT,"N");  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"MI");} else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"PL");
-        if(hi_reg[7]&0x40000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,3*FNT_HEIGHT,"Z"); __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"EQ"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"NE");
-        if(hi_reg[7]&0x20000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,4*FNT_HEIGHT,"C"); __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CS"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CC");
-        if(hi_reg[7]&0x10000000) { __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,5*FNT_HEIGHT,"V");  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VS");} else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VC");
-        if( (hi_reg[7]&0x60000000)==0x20000000) { __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"HI"); } else __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"LS");
+        if(hi_reg[7]&0x80000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,2*FNT_HEIGHT,"N");  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"MI");} else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"PL");
+        if(hi_reg[7]&0x40000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,3*FNT_HEIGHT,"Z"); ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"EQ"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"NE");
+        if(hi_reg[7]&0x20000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,4*FNT_HEIGHT,"C"); ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CS"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CC");
+        if(hi_reg[7]&0x10000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,5*FNT_HEIGHT,"V");  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VS");} else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VC");
+        if( (hi_reg[7]&0x60000000)==0x20000000) { ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"HI"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"LS");
 		if(  (hi_reg[7] ^ (hi_reg[7]>>3) )&0x10000000) {
-            __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"LT");
+            ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"LT");
 			}
-        else { if(!(hi_reg[7]&0x40000000)) __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"GT"); }
+        else { if(!(hi_reg[7]&0x40000000)) ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"GT"); }
 
 		if((hi_reg[7]&0x40)) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,8*FNT_HEIGHT,"F" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,8*FNT_HEIGHT,"F" );
 		}
 		if((hi_reg[7]&0x80)) {
-        __ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,8*FNT_HEIGHT,"I" );
+        ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,8*FNT_HEIGHT,"I" );
 		}
 
 
 		if((hi_reg[7]&0x1f)==0x10) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"USER" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"USER" );
 		}
 		if((hi_reg[7]&0x1f)==0x11) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"FIQ" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"FIQ" );
 		for(f=0;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x12) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"IRQ" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"IRQ" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x13) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SUP" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SUP" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x17) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"ABT" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"ABT" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1B) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"UND" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"UND" );
 		for(f=5;f<7;++f)
 		{
-        __ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1f) {
-        __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SYS" );
+        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SYS" );
 		}
 
 
-        if(hi_reg[7]&0x20) __ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,10*FNT_HEIGHT,"Thumb"); else  __ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,10*FNT_HEIGHT,"ARM");
+        if(hi_reg[7]&0x20) ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,10*FNT_HEIGHT,"Thumb"); else  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,10*FNT_HEIGHT,"ARM");
 }
-        __ex_hline(11*FNT_HEIGHT+4*FNT_AVGW);
+        ex_hline(11*FNT_HEIGHT+4*FNT_AVGW);
 
 }
 
-if(options&__EX_CONT) {
+if(options&EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
+        ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
 		//pnewb[70*5]|=0x10000;
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
         //pnewb[(SCREEN_HEIGHT-1)*5]|=0x3fffc;
 }
 
-if(options&(__EX_EXIT|__EX_RPLEXIT)) {
+if(options&(EX_EXIT|EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
+        ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
         //pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
@@ -496,12 +496,12 @@ if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         //pnewb[(SCREEN_HEIGHT-1)*5+1]|=0x3f;
 }
 
-if(options&__EX_WARM) {
+if(options&EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&__EX_WIPEOUT) __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
-            else __ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
+        if(options&EX_WIPEOUT) ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
+            else ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
         //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
@@ -509,10 +509,10 @@ if(options&__EX_WARM) {
         //pnewb[(SCREEN_HEIGHT-1)*5+1]|=0xffffc000;
 }
 
-if(options&__EX_RESET) {
+if(options&EX_RESET) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 4
-        __ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"**Reset**");
+        ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"**Reset**");
         //for(f=0;f<9;++f) pnewb[(SCREEN_HEIGHT-9)*5+4+5*f]|=0x1;
         //pnewb[(SCREEN_HEIGHT-2)*5+3]|=0xffffffff;
         //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0xf0000000;
@@ -524,42 +524,42 @@ if(options&__EX_RESET) {
 
 // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
 
-__keyb_waitrelease();
+keyb_irq_waitrelease();
 
 
 do {
-f=__keyb_getkey(1);
+f=keyb_irq_getkey(1);
 
-if(options&__EX_CONT) {
-j=__EX_CONT;
+if(options&EX_CONT) {
+j=EX_CONT;
 if( KEYVALUE(f)==KB_SYM )	break;
 }
-if(options&(__EX_EXIT|__EX_RPLEXIT)) {
-j=options&(__EX_EXIT|__EX_RPLEXIT);
+if(options&(EX_EXIT|EX_RPLEXIT)) {
+j=options&(EX_EXIT|EX_RPLEXIT);
 if( KEYVALUE(f)==KB_PLT )	break;
 }
 if( KEYVALUE(f)==KB_MEN) {
-    options^=__EX_RPLREGS;
-    options&=~__EX_NOREG;
+    options^=EX_RPLREGS;
+    options&=~EX_NOREG;
     goto doitagain;
 }
 // FORCE A SHIFTED KEY PRESS
 if(!KEYSHIFT(f)) continue;
 
 
-if(options&(__EX_WARM|__EX_WIPEOUT)) {
-    if((options&__EX_WIPEOUT) && (KEYSHIFT(f)==(SHIFT_ALPHA|SHIFT_ALPHAHOLD|SHIFT_RS|SHIFT_RSHOLD|SHIFT_LS|SHIFT_LSHOLD))) j=__EX_WIPEOUT;
-    else j=__EX_WARM;
+if(options&(EX_WARM|EX_WIPEOUT)) {
+    if((options&EX_WIPEOUT) && (KEYSHIFT(f)==(SHIFT_ALPHA|SHIFT_ALPHAHOLD|SHIFT_RS|SHIFT_RSHOLD|SHIFT_LS|SHIFT_LSHOLD))) j=EX_WIPEOUT;
+    else j=EX_WARM;
 if( KEYVALUE(f)==KB_NUM )	break;
 }
 
-if(options&__EX_RESET) {
-j=__EX_RESET;
+if(options&EX_RESET) {
+j=EX_RESET;
 if( KEYVALUE(f)==KB_HLP )	break;
 }
 } while(1);
 
-__keyb_waitrelease();
+keyb_irq_waitrelease();
 
 lcd_restore(lcd_buffer);
 
@@ -568,8 +568,8 @@ return j;
 }
 
 
-__ARM_MODE__ void __handler_dabort(void) __attribute__ ((naked));
-__ARM_MODE__ void __handler_dabort(void)
+ARM_MODE void handler_dabort(void) __attribute__ ((naked));
+ARM_MODE void handler_dabort(void)
 {
 	// STORE ALL REGISTERS INTO THE SAFE STACK
     asm volatile ("stmfd sp!, {r0-r12, r14}");
@@ -582,9 +582,9 @@ __ARM_MODE__ void __handler_dabort(void)
 
 	register unsigned int *stackptr asm("sp");
 	// CALL CUSTOM HANDLER
-	register int f=__exception_handler("Data abort",stackptr,__EX_CONT | __EX_EXIT | __EX_WARM | __EX_RESET);
+	register int f=exception_handler("Data abort",stackptr,EX_CONT | EX_EXIT | EX_WARM | EX_RESET);
 
-	if(f==__EX_CONT) {
+	if(f==EX_CONT) {
 	// RESTORE ALL REGISTERS
 	asm volatile ("add sp,sp,#4");
     asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -597,7 +597,7 @@ __ARM_MODE__ void __handler_dabort(void)
 	asm volatile (".Ldohandlerexit:");
 
     /*
-	if(f==__EX_EXIT) {
+	if(f==EX_EXIT) {
 
 	asm volatile ("ldr lr, .Lexit");
 	asm volatile ("b .Lretexit");
@@ -605,12 +605,12 @@ __ARM_MODE__ void __handler_dabort(void)
 	}
     */
 
-	if(f==__EX_WARM) {
+	if(f==EX_WARM) {
 	asm volatile ("ldr lr, .Lexitwarm");
 	asm volatile ("b .Lretexit");
 	}
 
-    if(f==__EX_WIPEOUT) {
+    if(f==EX_WIPEOUT) {
     asm volatile ("ldr lr, .Lexitwipeout");
     asm volatile ("b .Lretexit");
     }
@@ -656,8 +656,8 @@ __ARM_MODE__ void __handler_dabort(void)
 
 
 
-__ARM_MODE__ void __handler_iabort(void) __attribute__ ((naked));
-__ARM_MODE__ void __handler_iabort(void)
+ARM_MODE void handler_iabort(void) __attribute__ ((naked));
+ARM_MODE void handler_iabort(void)
 {
 register unsigned int *stackptr asm("sp");
 
@@ -670,9 +670,9 @@ register unsigned int *stackptr asm("sp");
     asm volatile ("str r14,[sp,#-4]!");
 
 	// CALL CUSTOM HANDLER
-    register int f=__exception_handler("Prefetch abort",stackptr,__EX_CONT | __EX_WARM | __EX_RESET);
+    register int f=exception_handler("Prefetch abort",stackptr,EX_CONT | EX_WARM | EX_RESET);
 
-   	if(f==__EX_CONT) {
+   	if(f==EX_CONT) {
 	// RESTORE ALL REGISTERS
 	asm volatile ("add sp,sp,#4");
     asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -686,8 +686,8 @@ register unsigned int *stackptr asm("sp");
 
 }
 
-__ARM_MODE__ void __handler_und(void) __attribute__ ((naked));
-__ARM_MODE__ void __handler_und(void)
+ARM_MODE void handler_und(void) __attribute__ ((naked));
+ARM_MODE void handler_und(void)
 {
 register unsigned int *stackptr asm("sp");
 register unsigned int value asm("r0");
@@ -711,24 +711,24 @@ register unsigned int value asm("r0");
 	if(value==0xe6cccc10)
 	{
 
-	value=__exception_handler((char *) (stackptr[1]),stackptr,stackptr[2] | __EX_NOREG);
+	value=exception_handler((char *) (stackptr[1]),stackptr,stackptr[2] | EX_NOREG);
 
 	}
 	else {
 	// CALL CUSTOM HANDLER
-	if(value==0xe6dddd10) 	value=__exception_handler((char *) (stackptr[1]),stackptr,stackptr[2]);
+	if(value==0xe6dddd10) 	value=exception_handler((char *) (stackptr[1]),stackptr,stackptr[2]);
  	else
-        value=__exception_handler("Undefined instruction",stackptr,__EX_CONT | __EX_WARM | __EX_RESET);
+        value=exception_handler("Undefined instruction",stackptr,EX_CONT | EX_WARM | EX_RESET);
 	}
 
-    if(value==__EX_RPLEXIT) {
+    if(value==EX_RPLEXIT) {
         // RAISE AN RPL EXCEPTION AND ISSUE A CONTINUE
         Exceptions|=EX_EXITRPL;
         ExceptionPointer=IPtr;
-        value=__EX_CONT;
+        value=EX_CONT;
     }
 
-   	if(value==__EX_CONT) {
+   	if(value==EX_CONT) {
 	// RESTORE ALL REGISTERS
 	asm volatile ("add sp,sp,#4");
     asm volatile ("ldmfd sp!, {r0-r12, r14}");
@@ -744,17 +744,17 @@ register unsigned int value asm("r0");
 }
 
 extern void startup(void);
-void __exception_install()
+void exception_install()
 {
     unsigned *handler_addr=(unsigned int *)0x31ffff00L;
     handler_addr[0]=(unsigned int)(&startup); // RESET EXCEPTION!!
-    handler_addr[1]=(unsigned int)(&__handler_und); // UNDEFINED instruction
-    handler_addr[2]=(unsigned int)(&__handler_und); // SWI service handler
-    handler_addr[3]=(unsigned int)(&__handler_iabort); // PREFETCH abort
-    handler_addr[4]=(unsigned int)(&__handler_dabort); // DATA abort
-    handler_addr[5]=(unsigned int)(&__handler_und); // RESERVED
-    handler_addr[6]=(unsigned int)(&__handler_und); // IRQ handler - will be overwritten by the ISR
-    handler_addr[7]=(unsigned int)(&__handler_und); // FIQ handler - will be overwritten by the ISR
+    handler_addr[1]=(unsigned int)(&handler_und); // UNDEFINED instruction
+    handler_addr[2]=(unsigned int)(&handler_und); // SWI service handler
+    handler_addr[3]=(unsigned int)(&handler_iabort); // PREFETCH abort
+    handler_addr[4]=(unsigned int)(&handler_dabort); // DATA abort
+    handler_addr[5]=(unsigned int)(&handler_und); // RESERVED
+    handler_addr[6]=(unsigned int)(&handler_und); // IRQ handler - will be overwritten by the ISR
+    handler_addr[7]=(unsigned int)(&handler_und); // FIQ handler - will be overwritten by the ISR
 
 
     handler_addr[62]=0xe51ff100; // This goes at 0x31fffff8: asm volatile ("ldr pc, .Lhdlr_reset");
@@ -779,7 +779,7 @@ void __exception_install()
     handler_addr[6]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffe0 (reset handler)
     handler_addr[7]=0xe26ff432; // rsb pc,pc,#0x32000000 --> pc=0x32000000 - (pc+8) = 0x31ffffdc (reset handler)
 
-	__irq_install();
+	irq_install();
 
 }
 

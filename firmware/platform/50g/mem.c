@@ -108,7 +108,7 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
         }
 
         if(newsize != halCountUsedPages(zone))
-            throw_dbgexception("Allocation error", __EX_CONT);
+            throw_dbgexception("Allocation error", EX_CONT);
 
         return base;
     }
@@ -126,7 +126,7 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
                     || ((index << 12) >
                         (RAM_END_PHYSICAL - RAM_BASE_PHYSICAL))) {
                 throw_dbgexception("Corrupted MMU",
-                        __EX_WARM | __EX_WIPEOUT | __EX_RESET);
+                        EX_WARM | EX_WIPEOUT | EX_RESET);
             }
             // REMOVE PAGE FROM MEMORY AREA
             mmubase[current - 1] = 0;
@@ -139,7 +139,7 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
         cpu_flushTLB();
 
         if(newsize != halCountUsedPages(zone))
-            throw_dbgexception("Release error", __EX_CONT);
+            throw_dbgexception("Release error", EX_CONT);
 
         return base;
 
@@ -149,13 +149,13 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
     return base;
 }
 
-extern int __last_used_byte;
+extern int last_used_byte;
 
 // INITIALIZE THE MEMORY AFTER A TOTAL RESET
 void halInitMemoryMap()
 {
 // MARK PAGES USED IN MEMORY MAP
-    unsigned int end = (((unsigned int)&__last_used_byte) + 0xfff) & ~0xfff;
+    unsigned int end = (((unsigned int)&last_used_byte) + 0xfff) & ~0xfff;
     int *mmutable = (int *)MEM_REVERSEMMU;
     int phys = 0x02000000;
 
@@ -184,7 +184,7 @@ void halInitMemoryMap()
 // RETURN TRUE IF MEMORY MAPS ARE INTACT, ZERO IF THEY ARE BAD OR INEXISTENT
 int halCheckMemoryMap()
 {
-    unsigned int end = (((unsigned int)&__last_used_byte) + 0xfff) & ~0xfff;
+    unsigned int end = (((unsigned int)&last_used_byte) + 0xfff) & ~0xfff;
 
     int *mmutable = (int *)MEM_REVERSEMMU;
     int virt = 0x02000000;
@@ -193,7 +193,7 @@ int halCheckMemoryMap()
     while(virt < end) {
         if(mmutable[(virt - 0x02000000) >> 12] != virt) {
             throw_dbgexception("Install will wipe out RAM",
-                    __EX_CONT | __EX_NOREG);
+                    EX_CONT | EX_NOREG);
             return 0;   // MMU TABLE WAS CORRUPTED
         }
         virt += 0x1000;
@@ -206,14 +206,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_RSTKMMU) < 0x100)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad RSTK MMU", __EX_CONT);
+            throw_dbgexception("bad RSTK MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if(mmutable[page] !=
                 MEM_RSTK + (((int)(mmu - (int *)MEM_RSTKMMU)) << 12)) {
-            throw_dbgexception("bad reverse-RSTK MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-RSTK MMU", EX_CONT);
             return 0;
         }
         ++mmu;
@@ -225,14 +225,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_DSTKMMU) < 0x100)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad DSTK MMU", __EX_CONT);
+            throw_dbgexception("bad DSTK MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if((mmutable[page] & ~0xfff) !=
                 MEM_DSTK + (((int)(mmu - (int *)MEM_DSTKMMU)) << 12)) {
-            throw_dbgexception("bad reverse-DSTK MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-DSTK MMU", EX_CONT);
             return 0;
         }
         ++mmu;
@@ -244,14 +244,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_DIRMMU) < 0x100)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad DIR MMU", __EX_CONT);
+            throw_dbgexception("bad DIR MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if((mmutable[page] & ~0xfff) !=
                 MEM_DIRS + (((int)(mmu - (int *)MEM_DIRMMU)) << 12)) {
-            throw_dbgexception("bad reverse-DIRS MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-DIRS MMU", EX_CONT);
 
             return 0;
         }
@@ -264,14 +264,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_LAMMMU) < 0x100)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad LAM MMU", __EX_CONT);
+            throw_dbgexception("bad LAM MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if((mmutable[page] & ~0xfff) !=
                 MEM_LAM + (((int)(mmu - (int *)MEM_LAMMMU)) << 12)) {
-            throw_dbgexception("bad reverse-LAM MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-LAM MMU", EX_CONT);
 
             return 0;
         }
@@ -284,14 +284,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_TEMPBLKMMU) < 0x100)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad TEMPBLK MMU", __EX_CONT);
+            throw_dbgexception("bad TEMPBLK MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if((mmutable[page] & ~0xfff) !=
                 MEM_TEMPBLOCKS + (((int)(mmu - (int *)MEM_TEMPBLKMMU)) << 12)) {
-            throw_dbgexception("bad reverse-TEMPBLK MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-TEMPBLK MMU", EX_CONT);
 
             return 0;
         }
@@ -304,14 +304,14 @@ int halCheckMemoryMap()
     while((*mmu != 0) && ((mmu - (int *)MEM_TEMPOBMMU) < 0x400)) {
         page = *mmu;
         if((page < RAM_BASE_PHYSICAL) || (page > RAM_END_PHYSICAL)) {
-            throw_dbgexception("bad TEMPOB MMU", __EX_CONT);
+            throw_dbgexception("bad TEMPOB MMU", EX_CONT);
 
             return 0;   // CORRUPTED MMU TABLE!
         }
         page = (page - RAM_BASE_PHYSICAL) >> 12;
         if((mmutable[page] & ~0xfff) !=
                 MEM_TEMPOB + (((int)(mmu - (int *)MEM_TEMPOBMMU)) << 12)) {
-            throw_dbgexception("bad reverse-TEMPOB MMU", __EX_CONT);
+            throw_dbgexception("bad reverse-TEMPOB MMU", EX_CONT);
 
             return 0;
         }

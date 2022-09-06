@@ -114,20 +114,20 @@ int compileobject()
 }
 
 // THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
-extern BINT __usb_longoffset;
-extern BINT __usb_longactbuffer;        // WHICH BUFFER IS BEING WRITTEN
-extern BINT __usb_longlastsize; // LAST BLOCK SIZE IN A LONG TRANSMISSION
-extern BYTEPTR __usb_rcvbuffer;
-extern WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
-extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
-extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
-extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__; // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
-extern BYTEPTR __usb_longbuffer[2];     // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
-extern BYTE __usb_rxtmpbuffer[RAWHID_TX_SIZE + 1] __SYSTEM_GLOBAL__;    // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
+extern BINT usb_longoffset;
+extern BINT usb_longactbuffer;        // WHICH BUFFER IS BEING WRITTEN
+extern BINT usb_longlastsize; // LAST BLOCK SIZE IN A LONG TRANSMISSION
+extern BYTEPTR usb_rcvbuffer;
+extern WORD usb_rcvtotal SYSTEM_GLOBAL;
+extern WORD usb_rcvpartial SYSTEM_GLOBAL;
+extern WORD usb_rcvcrc SYSTEM_GLOBAL;
+extern BINT usb_rcvblkmark SYSTEM_GLOBAL; // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+extern BYTEPTR usb_longbuffer[2];     // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+extern BYTE usb_rxtmpbuffer[RAWHID_TX_SIZE + 1] SYSTEM_GLOBAL;    // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
-extern BINT __usb_localbigoffset __SYSTEM_GLOBAL__;
+extern BINT usb_localbigoffset SYSTEM_GLOBAL;
 
-extern volatile int __usb_paused;
+extern volatile int usb_paused;
 extern void usb_irqservice();
 extern int usb_remoteready();
 
