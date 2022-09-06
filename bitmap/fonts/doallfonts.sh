@@ -1,4 +1,6 @@
 #!/bin/sh
+echo "#include <unifont.h>" > fontlist.h
+
 ../../tools-bin/bmp2font Font5_styleA.bmp Font5_styleA.txt Font5A.c 5A
 ../../tools-bin/bmp2font Font5_styleB.bmp Font5_styleB.txt Font5B.c 5B
 ../../tools-bin/bmp2font Font5_styleC.bmp Font5_styleC.txt Font5C.c 5C
@@ -13,5 +15,3 @@
 ../../tools-bin/bmp2font Liberation-sans-24.bmp Font10_StyleA.txt Font24.c 24
 ../../tools-bin/bmp2font Liberation-sans-18.bmp Font10_StyleA.txt Font18.c 18
 ../../tools-bin/bmp2font Notification.bmp Notification.txt FontNotification.c Notifications
-
- 

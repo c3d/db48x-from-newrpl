@@ -12,7 +12,7 @@
 #include <sys/fsystem/fsyspriv.h>
 
 #define lineheight 12
-#define font (UNIFONT const *)Font_10A
+#define font Font_10A
 #define black 0xffffffff
 #define left 0
 #define right 160

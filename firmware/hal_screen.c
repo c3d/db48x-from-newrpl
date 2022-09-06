@@ -1992,13 +1992,13 @@ void halRedrawStatus(DRAWSURFACE * scr)
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
 
             xctracker=4;
-            ytop=SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight;
+            ytop=SCREEN_HEIGHT-1-Font_Notifications->BitmapHeight;
         // ALARM
 
         if(halGetNotification(N_ALARM)) {
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"X",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STAANNPRESS), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"X",(UNIFONT *)Font_Notifications);
+                    Font_Notifications, cgl_mkcolor(PAL_STAANNPRESS), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"X",Font_Notifications);
         }
 
         // USB CONNECTION - GRAYED = CONNECTED, BLACK = DATA RECEIVED
@@ -2007,8 +2007,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if(halGetNotification(N_DATARECVD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"U",
-                    (UNIFONT *)Font_Notifications,  cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"U",(UNIFONT *)Font_Notifications);
+                    Font_Notifications,  cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"U",Font_Notifications);
 
         }
 
@@ -2022,24 +2022,24 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if(halGetNotification(N_INTERNALSHIFTHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"L",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"L",(UNIFONT *)Font_Notifications);
+                    Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"L",Font_Notifications);
         }
         if(halGetNotification(N_RIGHTSHIFT)) {
            int color;
            if(halGetNotification(N_INTERNALSHIFTHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"R",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"R",(UNIFONT *)Font_Notifications);
+                    Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"R",Font_Notifications);
         }
         if(halGetNotification(N_ALPHA)) {
            int color;
            if(halGetNotification(N_INTERNALALPHAHOLD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"A",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"A",(UNIFONT *)Font_Notifications);
+                    Font_Notifications, cgl_mkcolor(color), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"A",Font_Notifications);
         }
 
         }
@@ -2048,8 +2048,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         if(halGetNotification(N_HOURGLASS)) {
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"W",
-                    (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STAANNPRESS), cgl_mkcolor(PAL_STABACKGND), scr);
-            xctracker+=4+StringWidth((char *)"W",(UNIFONT *)Font_Notifications);
+                    Font_Notifications, cgl_mkcolor(PAL_STAANNPRESS), cgl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=4+StringWidth((char *)"W",Font_Notifications);
         }
 
         // Battery notifications are handled as part of the battery handler - do not display here
@@ -2172,7 +2172,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 BitmapHeight, (char *)string, (char *)selst,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDTEXT), cgl_mkcolor(PAL_CMDBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)string,(char *)selst,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
                     if(selend > selst) {
@@ -2183,7 +2183,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 BitmapHeight, (char *)selst, (char *)selend,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDSELTEXT), cgl_mkcolor(PAL_CMDSELBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)selst,(char *)selend,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
                     if(strend > selend) {
@@ -2194,7 +2194,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 BitmapHeight, (char *)selend, (char *)strend,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDTEXT), cgl_mkcolor(PAL_CMDBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)selend,(char *)strend,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
                     if(tail) {
@@ -2257,13 +2257,13 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
             if(selst > string) {
                 DrawTextBkN(xcoord, ytop + 2 + y, (char *)string, (char *)selst,
                         *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDTEXT), cgl_mkcolor(PAL_CMDBACKGND), scr);
-                //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                //xcoord+=StringWidthN((char *)string,(char *)selst,halScreen.FontArray[FONT_CMDLINE]);
                 xcoord = scr->x;
             }
             if(selend > selst) {
                 DrawTextBkN(xcoord, ytop + 2 + y, (char *)selst, (char *)selend,
                         *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDSELTEXT), cgl_mkcolor(PAL_CMDSELBACKGND), scr);
-                //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                //xcoord+=StringWidthN((char *)selst,(char *)selend,halScreen.FontArray[FONT_CMDLINE]);
                 xcoord = scr->x;
             }
             if(strend > selend) {
@@ -2274,7 +2274,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 #else /* TARGET_PRIME1 */
                         cgl_mkcolor(PAL_CMDBACKGND), scr);
 #endif /* TARGET_PRIME1 */
-                //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                //xcoord+=StringWidthN((char *)selend,(char *)strend,halScreen.FontArray[FONT_CMDLINE]);
                 xcoord = scr->x;
             }
             if(tail) {
@@ -2344,7 +2344,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 (char *)selst,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDTEXT), cgl_mkcolor(PAL_CMDBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)string,(char *)selst,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
                     if(selend > selst) {
@@ -2352,7 +2352,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 (char *)selend,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDSELTEXT), cgl_mkcolor(PAL_CMDSELBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)selst,(char *)selend,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
                     if(strend > selend) {
@@ -2360,7 +2360,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
                                 (char *)strend,
                                 *halScreen.FontArray[FONT_CMDLINE], cgl_mkcolor(PAL_CMDTEXT), cgl_mkcolor(PAL_CMDBACKGND),
                                 scr);
-                        //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+                        //xcoord+=StringWidthN((char *)selend,(char *)strend,halScreen.FontArray[FONT_CMDLINE]);
                         xcoord = scr->x;
                     }
 

@@ -45,14 +45,14 @@ tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
 tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	cd tools/elf2rom && qmake $(<F) -o $(@F)
 bmp2font: tools-bin/bmp2font
-tools-bin/bmp2font: tools/fonts/bmp2font/bmp2font.mak
+tools-bin/bmp2font: tools/fonts/bmp2font/bmp2font.mak tools/fonts/bmp2font/main.c
 	cd tools/fonts/bmp2font && $(MAKE) -f bmp2font.mak install
 tools/fonts/bmp2font/bmp2font.mak: tools/fonts/bmp2font/bmp2font.pro
 	cd tools/fonts/bmp2font && qmake $(<F) -o $(@F)
 
-%-sim %-simulator: %-simulator-$(TAG).mak compiler fonts recorder .ALWAYS
+%-sim %-simulator: %-simulator-$(TAG).mak compiler recorder .ALWAYS
 	$(MAKE) -f $<
-%-fw %-firmware: %-firmware-$(TAG).mak compiler fonts elf2rom .ALWAYS
+%-fw %-firmware: %-firmware-$(TAG).mak compiler elf2rom .ALWAYS
 	$(MAKE) -f $<
 
 %-$(TAG).mak: %.pro
@@ -70,7 +70,9 @@ debug: debug-sim
 release: release-all
 
 fonts: bmp2font
-	cd bitmap/fonts && ./doallfonts.sh && mv *.c ../../firmware/sys/
+	cd bitmap/fonts && ./doallfonts.sh
+	mv bitmap/fonts/*.c firmware/sys/
+	mv bitmap/fonts/fontlist.h firmware/include/
 
 .PRECIOUS: %.mak
 .ALWAYS:

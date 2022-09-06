@@ -14,7 +14,6 @@ RECORDER(exceptions, 16, "System exceptions");
 void keyb_irq_waitrelease();
 int keyb_irq_getkey(int wait);
 
-extern const unsigned int Font_10A[];
 extern unsigned int RPLLastOpcode;
 
 // EXCEPTIONS SCREEN AREA RIGHT AFTER THE SCREEN, RESERVE SPACE FOR 16-BIT COLOR MODE
@@ -34,7 +33,7 @@ void ex_print(int x,int y,char *str)
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
 
-    DrawText(x,y,str,(UNIFONT *)Font_10A,cgl_mkcolor(PAL_GRAY15),&dr);
+    DrawText(x,y,str,Font_10A,cgl_mkcolor(PAL_GRAY15),&dr);
 }
 
 void ex_clrscreen()
@@ -61,7 +60,7 @@ void ex_hline(int y)
     cgl_hline(&dr,y,dr.x,dr.clipx2-1,cgl_mkcolor(PAL_GRAY8));
 }
 
-inline int ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_10A); }
+inline int ex_width(char *string) { return StringWidth(string,Font_10A); }
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 

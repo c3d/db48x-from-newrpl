@@ -529,10 +529,24 @@ int main(int argc, char *argv[])
     }
     else {
         // TEXT OUTPUT
+        FILE *fontlist = fopen("fontlist.h", "a");
+        if (!fontlist) {
+            fprintf(stderr, "Cannot open header file '%s'.\n", "fontlist.h");
+            free(monobitmap);
+            free(bmpdata);
+            return 1;
+        }
+        fprintf(fontlist,
+                "\n"
+                "extern const UNIFONT FONT_%s;\n"
+                "#define Font_%s (&FONT_%s)\n",
+                fontname, fontname, fontname);
+        fclose(fontlist);
+
         han = fopen(outfile, "wt");
 
         if(!han) {
-            printf("Cannot open output file '%s'.\n", outfile);
+            fprintf(stderr, "Cannot open output file '%s'.\n", outfile);
             free(monobitmap);
             free(bmpdata);
             return 1;
@@ -548,46 +562,66 @@ int main(int argc, char *argv[])
 
         //fwrite(&prolog,4,1,han);
         fprintf(han,
-                "\n/*************** FONT FILE CONVERTED FROM %s AND %s ************** */\n",
+                "\n"
+                "/*************** FONT FILE CONVERTED FROM %s AND %s ************** */\n",
                 bmpfile, txtfile);
 
-        fprintf(han, "\n\n\n\nconst unsigned int const Font_%s[]= { \n",
+        fprintf(han,
+                "\n"
+                "#include <unifont.h>\n"
+                "\n"
+                "const UNIFONT FONT_%s=\n"
+                "{\n",
                 fontname);
 
-        fprintf(han, "0x%X, // PROLOG\n", prolog);
-
-        prolog = ((hdr.Height - 1) << 16) | (rowlen & 0xffff);
-
-        //fwrite(&prolog,4,1,han);
-        fprintf(han, "0x%X, // FONT HEIGHT AND BITMAP WIDTH\n", prolog);
-
-        prolog = ((3 + used_ranges) << 16 | ((3 + used_ranges + used_data)));
-
-        //fwrite(&prolog,4,1,han);
-        fprintf(han, "0x%X, // OFFSETS TO TABLES\n", prolog);
+        fprintf(han,
+                "  .Prolog       = 0x%X,\n"
+                "  .BitmapWidth  = %u,\n"
+                "  .BitmapHeight = %u,\n"
+                "  .OffsetBitmap = %u,\n"
+                "  .OffsetTable  = %u,\n"
+                "\n"
+                "  .MapTable = {\n",
+                prolog,
+                rowlen,
+                hdr.Height - 1,
+                3 + used_ranges + used_data,
+                3 + used_ranges);
 
         // WRITE RANGES
         //fwrite(&ranges,4,used_ranges,han);
+        fprintf(han, "    // Ranges");
         for(j = 0; j < used_ranges; ++j) {
-            fprintf(han, "0x%X, ", ranges[j]);
-            if(j % 16 == 0)
-                fprintf(han, "\n");
+            if(j % 8 == 0)
+                fprintf(han, "\n    ");
+            fprintf(han, "0x%08X, ", ranges[j]);
         }
+        fprintf(han,
+                "\n"
+                "    // End of ranges\n"
+                "\n");
 
         // WRITE DATA TABLE
         //fwrite(&offdata,2,used_data,han);
+        fprintf(han, "    // Data tables");
         for(j = 0; j < used_data; ++j) {
-                fprintf(han, "0x%X, ", offdata[j]);
-            if(j % 16 == 0)
-                fprintf(han, "\n");
+            if(j % 8 == 0)
+                fprintf(han, "\n    ");
+            fprintf(han, "0x%08X, ", offdata[j]);
         }
+        fprintf(han,
+                "\n"
+                "    // End of data tables\n"
+                "\n");
 
         // WRITE BITMAP
-        //fwrite(&monobitmap,rowlen,hdr.Height-1,han);
-
+        // fwrite(&monobitmap,rowlen,hdr.Height-1,han);
+        // REVISIT: This code assumes little-endian
+        fprintf(han, "    // Bitmap data");
         r = rowlen * (hdr.Height - 1);
-
         for(j = 0; j < r; ++j) {
+            if(j % 32 == 0)
+                fprintf(han, "\n    ");
             switch (j & 3) {
             case 0:
                 prolog = monobitmap[j];
@@ -603,21 +637,24 @@ int main(int argc, char *argv[])
             case 3:
                 prolog |= monobitmap[j] << 24;
 
-                fprintf(han, "0x%X", prolog);
+                fprintf(han, "0x%08X", prolog);
                 if(j != r - 1)
                     fprintf(han, ", ");
             }
-            if(j % 64 == 0)
-                fprintf(han, "\n");
         }
         if(j & 3) {
-            fprintf(han, "0x%X", prolog);
+            fprintf(han, "0x%04X", prolog);
             fprintf(han, "\n");
         }
 
         // FINISHED OUTPUT
         fprintf(han,
-                "\n\n};\n\n/*********** END OF CONVERTED FONT ******************/\n");
+                "\n"
+                "    // End of bitmap data\n"
+                "  }\n"
+                "};\n"
+                "\n"
+                "/*********** END OF CONVERTED FONT ******************/\n");
 
         /*
            fprintf(han,"unsigned int ggl_mono2gray[256]={\n");

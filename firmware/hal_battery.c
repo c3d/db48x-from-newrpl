@@ -170,12 +170,12 @@ void battery_handler()
 
         if(battery==0x400) {
             // Battery is charging - display charging icon
-            DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-1-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"C",
-                       (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
+            DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C", Font_Notifications)-1, SCREEN_HEIGHT-1-FONT_Notifications.BitmapHeight, (char *)"C",
+                       Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
         }
         else {
             // Display Battery percentage below battery icon
-
+            // REVISIT: Assume little-endian, really hard to read
             text=0;
             rot=0;
             ++k;
@@ -194,17 +194,16 @@ void battery_handler()
             text|='%'<<rot;
 
             // Display battery percentage
-            int percentwidth=StringWidthN((char *)&text,((char *)&text)+(rot>>3)+1,(UNIFONT *)Font_10A);
-            int batwidth=StringWidth((char *)"D",(UNIFONT *)Font_Notifications);
+            int percentwidth=StringWidthN((char *)&text,((char *)&text)+(rot>>3)+1,Font_10A);
+            int batwidth=StringWidth((char *)"D",Font_Notifications);
             if(percentwidth>batwidth) {
                 batwidth=(percentwidth+batwidth)/2;
             } else percentwidth=(percentwidth+batwidth)/2;
 
-            DrawTextBk(SCREEN_WIDTH-percentwidth
-                       ,SCREEN_HEIGHT-((UNIFONT *)Font_10A)->BitmapHeight-1,(char *)&text,(UNIFONT *)Font_10A,cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND),&scr);
+            DrawTextBk(SCREEN_WIDTH-percentwidth,SCREEN_HEIGHT-FONT_10A.BitmapHeight-1,(char *)&text,Font_10A,cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND),&scr);
 
-            DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-((UNIFONT *)Font_10A)->BitmapHeight-((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"D",
-                       (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
+            DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
+                       Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
             halScreenUpdated();
         }
     }
@@ -222,8 +221,8 @@ void busy_handler()
     {
         gglsurface scr;
         cgl_initscr(&scr);
-        DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"W",(UNIFONT *)Font_Notifications)-1, SCREEN_HEIGHT-3-((UNIFONT *)Font_10A)->BitmapHeight-2*((UNIFONT *)Font_Notifications)->BitmapHeight, (char *)"W",
-                   (UNIFONT *)Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
+        DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"W", Font_Notifications)-1, SCREEN_HEIGHT-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
+                   Font_Notifications, cgl_mkcolor(PAL_STABAT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     }
 #endif // TARGET_PRIME1

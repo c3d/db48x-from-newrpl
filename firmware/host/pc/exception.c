@@ -11,7 +11,6 @@
 void keyb_irq_waitrelease();
 int keyb_irq_getkey(int wait);
 
-extern const unsigned int Font_6A[];
 extern unsigned int RPLLastOpcode;
 
 void ex_print(int x, int y, char *str)
@@ -24,7 +23,7 @@ void ex_print(int x, int y, char *str)
     dr.clipx2 = SCREEN_WIDTH;
     dr.clipy2 = SCREEN_HEIGHT;
 
-    DrawTextMono(x, y, str, (UNIFONT *) Font_6A, 1, &dr);
+    DrawTextMono(x, y, str, Font_6A, 1, &dr);
 }
 
 void ex_clrscreen()
@@ -42,7 +41,7 @@ void ex_hline(int y)
 
 int ex_width(char *string)
 {
-    return StringWidth(string, (UNIFONT *) Font_6A);
+    return StringWidth(string, Font_6A);
 }
 
 int exception_handler(char *exstr, unsigned int *registers, int options)

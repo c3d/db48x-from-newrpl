@@ -6,6 +6,7 @@
  */
 
 #include "libraries.h"
+#include "fontlist.h"
 
 #ifndef COMMANDS_ONLY_PASS
 #include "cmdcodes.h"

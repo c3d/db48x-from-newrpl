@@ -11,6 +11,8 @@
 #include "newrpl.h"
 #include "xgl.h"
 #include "usb.h"
+#include "unifont.h"
+#include "fontlist.h"
 #include "recorder.h"
 
 #ifndef EXTERN
@@ -25,16 +27,6 @@
 typedef long long tmr_t;
 //! Handle to refer to a timed event.
 typedef int HEVENT;
-
-typedef struct
-{
-    unsigned int Prolog;
-    unsigned short BitmapWidth;
-    unsigned short BitmapHeight;
-    unsigned short OffsetBitmap;
-    unsigned short OffsetTable;
-    unsigned int MapTable[];
-} UNIFONT;
 
 // COMPACT TIME STRUCTURE, SIMILAR TO STANDARD tm BUT USING ONLY 64 BITS.
 struct compact_tm
@@ -999,25 +991,6 @@ void bat_read();
 
 // VARIABLE WHERE THE BATTERY STATUS IS STORED
 extern WORD battery;
-
-// SYSTEM FONTS
-extern const unsigned int Font_5A[];
-extern const unsigned int Font_5B[];
-extern const unsigned int Font_5C[];
-extern const unsigned int Font_6A[];
-extern const unsigned int Font_6m[];
-extern const unsigned int Font_7A[];
-extern const unsigned int Font_8A[];
-extern const unsigned int Font_8B[];
-extern const unsigned int Font_8C[];
-extern const unsigned int Font_8D[];
-extern const unsigned int Font_10A[];
-extern const unsigned int Font_18[];
-extern const unsigned int Font_24[];
-
-// System font only needed on targets that don't have hardware notifications
-extern const unsigned int Font_Notifications[];
-
 
 //const unsigned int System5Font[];
 //const unsigned int System6Font[];

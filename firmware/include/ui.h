@@ -8,6 +8,12 @@
 #ifndef UI_H
 #define UI_H
 
+#include <newrpl.h>
+#include <utf8lib.h>
+#include <hal_api.h>
+#include <fontlist.h>
+
+
 // Color to grayscale conversion helpers
 
 
@@ -221,14 +227,6 @@
 #define GTHEME_FORMSELBACKGND PATTERN_SOLID(PAL_GRAY6)
 #define GTHEME_FORMCURSOR  PATTERN_SOLID(PAL_GRAY15)
 
-
-
-
-
-
-#include <newrpl.h>
-#include <utf8lib.h>
-#include <hal_api.h>
 
 #define UNUSED_ARGUMENT(a) (void)(a)
 
