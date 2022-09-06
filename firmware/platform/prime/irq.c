@@ -17,32 +17,32 @@ void irq_dummy(void)
 }
 
 void irq_service() __attribute__ ((naked));
-void irq_service()
+ARM_MODE void irq_service()
 {
 	asm volatile ("stmfd sp!, {r0-r12,lr}");
-    asm volatile ("mov r0,sp");
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("orr r1,r1,#0x1f");
-    asm volatile ("msr cpsr_all,r1");   // SWITCH TO SYSTEM MODE
-    asm volatile ("stmfd r0!,{sp,lr}"); // SAVE REGISTERS THAT WERE BANKED
-    asm volatile ("stmfd sp!,{ r0 }");  // SAVE IRQ STACK PTR
-    *SRCPND1=*INTPND1; // CLEAR SRCPENDING EARLY TO AVOID MISSING ANY OTHER INTERRUPTS
-    *SRCPND2=*INTPND2;
-    if(*INTPND1) {
-        (*( (__interrupt__) (irq_table[*INTOFFSET1]))) ();
-        *INTPND1=*INTPND1;
-    }
-    else if(*INTPND2) {
-        (*( (__interrupt__) (irq_table[32+ *INTOFFSET2]))) ();
-        *INTPND2=*INTPND2;
-    }
-	
-    asm volatile ("ldmia sp!, { r0 }"); // GET IRQ STACK PTR
-    asm volatile ("ldmia r0!, { sp, lr }"); // RESTORE USER STACK AND LR
-    asm volatile ("mrs r1,cpsr_all");
-    asm volatile ("bic r1,r1,#0xd");
-    asm volatile ("msr cpsr_all,r1");   // SWITCH BACK TO IRQ MODE
-    asm volatile ("ldmia sp!, {r0-r12,lr}");    // RESTORE ALL OTHER REGISTERS BACK
+        asm volatile ("mov r0,sp");
+        asm volatile ("mrs r1,cpsr_all");
+        asm volatile ("orr r1,r1,#0x1f");
+        asm volatile ("msr cpsr_all,r1");   // SWITCH TO SYSTEM MODE
+        asm volatile ("stmfd r0!,{sp,lr}"); // SAVE REGISTERS THAT WERE BANKED
+        asm volatile ("stmfd sp!,{ r0 }");  // SAVE IRQ STACK PTR
+        *SRCPND1=*INTPND1; // CLEAR SRCPENDING EARLY TO AVOID MISSING ANY OTHER INTERRUPTS
+        *SRCPND2=*INTPND2;
+        if(*INTPND1) {
+            (*( (__interrupt__) (irq_table[*INTOFFSET1]))) ();
+            *INTPND1=*INTPND1;
+        }
+        else if(*INTPND2) {
+            (*( (__interrupt__) (irq_table[32+ *INTOFFSET2]))) ();
+            *INTPND2=*INTPND2;
+        }
+
+        asm volatile ("ldmia sp!, { r0 }"); // GET IRQ STACK PTR
+        asm volatile ("ldmia r0!, { sp, lr }"); // RESTORE USER STACK AND LR
+        asm volatile ("mrs r1,cpsr_all");
+        asm volatile ("bic r1,r1,#0xd");
+        asm volatile ("msr cpsr_all,r1");   // SWITCH BACK TO IRQ MODE
+        asm volatile ("ldmia sp!, {r0-r12,lr}");    // RESTORE ALL OTHER REGISTERS BACK
 	asm volatile ("subs pc,lr,#4");
 }
 
@@ -68,11 +68,11 @@ for(f=0;f<40;++f)
 {
     irq_table[f]=(unsigned int)&irq_dummy;
 }
-	
+
 // HOOK INTERRUPT SERVICE ROUTINE
 // ORIGINAL SAVED W/EXCEPTION HANDLERS
 *( (unsigned int *) 0x31ffff18)=(unsigned int)&irq_service;
-	
+
 }
 
 void irq_addhook(int service_number,__interrupt__ serv_routine)
