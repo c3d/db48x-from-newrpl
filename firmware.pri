@@ -60,7 +60,7 @@ INCLUDEPATH += firmware/include newrpl
 ## FIXME - We need this for a #include_next <stdint.h>, but we should not
 INCLUDEPATH += /usr/include
 
-LIBS += -lc -lgcc
+LIBS += -lc -lgcc -Wl,--gc-sections
 
 DISTFILES += firmware/platform/$$PLATFORM/ld.script
 
@@ -69,8 +69,8 @@ QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
 
 
-QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
-QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns
+QMAKE_CFLAGS_DEBUG = -g $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns -fdata-sections -ffunction-sections
+QMAKE_CFLAGS_RELEASE = $${DEVEL_OPTIONS} -mtune=arm920t -mcpu=arm920t -march=armv4t -mlittle-endian -fno-jump-tables -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -fno-partial-inlining -pipe $${THUMB_MODE} -mthumb-interwork -nostdinc -fno-tree-loop-distribute-patterns -fdata-sections -ffunction-sections
 
 QMAKE_LFLAGS = -g -T$$PWD/firmware/platform/$$PLATFORM/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
