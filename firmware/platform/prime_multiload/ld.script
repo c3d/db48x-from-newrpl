@@ -80,6 +80,7 @@ SECTIONS
   .rodata1        : { *(.rodata1) }
   .eh_frame_hdr : { *(.eh_frame_hdr) }
 
+  __total_file_size = . - 0x30200000 ;
 
   .preinit_array     : { *(.preinit_array) }
   PROVIDE (__preinit_array_end = .);
