@@ -103,17 +103,29 @@ enum halNotification
 
 enum halFonts
 {
-    FONT_STACK = 0,
-    FONT_STACKLVL1,
-    FONT_CMDLINE,
-    FONT_MENU,
-    FONT_STATUS,
-    FONT_PLOT,
-    FONT_FORMS,
-    FONT_HLPTEXT,
-    FONT_HLPTITLE,
+    FONT_INDEX_STACK = 0,
+    FONT_INDEX_STACKLVL1,
+    FONT_INDEX_CMDLINE,
+    FONT_INDEX_MENU,
+    FONT_INDEX_STATUS,
+    FONT_INDEX_PLOT,
+    FONT_INDEX_FORMS,
+    FONT_INDEX_HLPTEXT,
+    FONT_INDEX_HLPTITLE,
     FONTS_NUM
 };
+
+#define FONT(F) (halScreen.FontArray[FONT_INDEX_##F])
+#define FONT_STACK      FONT(STACK)
+#define FONT_STACKLVL1  FONT(STACKLVL1)
+#define FONT_CMDLINE    FONT(CMDLINE)
+#define FONT_MENU       FONT(MENU)
+#define FONT_STATUS     FONT(STATUS)
+#define FONT_PLOT       FONT(PLOT)
+#define FONT_FORMS      FONT(FORMS)
+#define FONT_HLPTEXT    FONT(HLPTEXT)
+#define FONT_HLPTITLE   FONT(HLPTITLE)
+#define FONT_HEIGHT(F)  ((F)->BitmapHeight)
 
 #define FORM_DIRTY 1
 #define STACK_DIRTY 2
@@ -143,7 +155,7 @@ typedef struct
     int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer, CursorTimer;
-    UNIFONT const **FontArray[FONTS_NUM];     // POINTERS TO ADDRESSES OF FONTS
+    UNIFONT const *FontArray[FONTS_NUM];     // POINTERS TO FONTS
     WORD FontHash[FONTS_NUM];   // HASH TO DETECT FONT CHANGES
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
     int LineVisible, LineCurrent, LineIsModified;
@@ -1244,11 +1256,11 @@ extern WORD halCacheEntry;
 // RENDER
 
 void uiClearRenderCache();
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font);
-void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font);
-WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT const ** font);
-void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font);
-WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font);
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
+void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
+WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font);
+void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, const UNIFONT *font);
+WORDPTR uiRenderObject(WORDPTR object, const UNIFONT *font);
 void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr);
 
 

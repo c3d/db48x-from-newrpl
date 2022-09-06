@@ -533,8 +533,7 @@ void numberKeyHandler(WORD keymsg)
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
 
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -2260,8 +2259,7 @@ void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, BINT separate)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -2289,8 +2287,7 @@ void alphasymbolKeyHandler(WORD keymsg, BYTEPTR Lsymbol, BYTEPTR Csymbol)
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
 
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -2326,8 +2323,7 @@ void newlineKeyHandler(WORD keymsg)
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
 
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -2361,8 +2357,7 @@ void decimaldotKeyHandler(WORD keymsg)
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
 
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -3458,8 +3453,7 @@ void downKeyHandler(WORD keymsg)
                     cursorstart = 'P';
 
                 // OPEN THE COMMAND LINE
-                halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->
-                        BitmapHeight + 2);
+                halSetCmdLineHeight(CMDLINE_HEIGHT);
                 halSetContext(halGetContext() | CONTEXT_INEDITOR);
                 if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
                     uiOpenCmdLine('X');
@@ -3971,8 +3965,7 @@ void eexKeyHandler(WORD keymsg)
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->
-                    BitmapHeight + 2);
+            halSetCmdLineHeight(CMDLINE_HEIGHT);
             halSetContext(halGetContext() | CONTEXT_INEDITOR);
             if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
                 uiOpenCmdLine('X');
@@ -4081,8 +4074,7 @@ void bracketKeyHandler(WORD keymsg, BYTEPTR string)
         if(halGetContext() & CONTEXT_INTSTACK)
             return;     // DO NOTHING
 
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
             uiOpenCmdLine('X');
@@ -4316,29 +4308,29 @@ void onDotKeyHandler(WORD keymsg)
     cgl_initscr(&scr);
 #endif /* TARGET_PRIME1 */
     int ytop =
-            halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
+        halScreen.Form + halScreen.Stack + halScreen.CmdLine +
+        halScreen.Menu1;
     // CLEAR STATUS AREA
 #ifndef TARGET_PRIME1
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, 0);
+             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
     cgl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
+             ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 #endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Format:",
 #ifndef TARGET_PRIME1
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+               FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+    FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 #endif /* TARGET_PRIME1 */
-    DrawTextBk(STATUSAREA_X + 1,
-            ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+DrawTextBk(STATUSAREA_X + 1,
+               ytop + 1 + FONT_HEIGHT(FONT_STATUS),
 #ifndef TARGET_PRIME1
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS], 0xf, 0,
+               (char *)options[option], FONT_STATUS, 0xf, 0,
 #else /* TARGET_PRIME1 */
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS],cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND),
+               (char *)options[option], FONT_STATUS,cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND),
 #endif /* TARGET_PRIME1 */
             &scr);
 
@@ -4482,11 +4474,11 @@ void onSpcKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Mode:",
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
-            ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)options[option], *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND),
-            &scr);
+               ytop + 1 + FONT_HEIGHT(FONT_STATUS),
+               (char *)options[option], FONT_STATUS, cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND),
+               &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
     switch (option) {
@@ -4601,11 +4593,11 @@ void onMulDivKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "ENG exponent:",
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
-            ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)onMulDivKeyHandler_options[option],
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               ytop + 1 + FONT_HEIGHT(FONT_STATUS),
+               (char *)onMulDivKeyHandler_options[option],
+               FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     if(option)
         option += 7;
@@ -4701,10 +4693,10 @@ void onDigitKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, cgl_mkcolor(PAL_STABACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Digits:",
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
-            ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
-            (char *)&digits, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               ytop + 1 + FONT_HEIGHT(FONT_STATUS),
+               (char *)&digits, FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4777,16 +4769,16 @@ void onUpDownKeyHandler(WORD keymsg)
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "System precision:",
 #ifndef TARGET_PRIME1
-            *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+               FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-            *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, cgl_mkcolor(PAL_STATEXT),cgl_mkcolor(PAL_STABACKGND), &scr);
 #endif /* TARGET_PRIME1 */
     DrawTextBk(STATUSAREA_X + 1,
-            ytop + 1 + (*halScreen.FontArray[FONT_STATUS])->BitmapHeight,
+               ytop + 1 + FONT_HEIGHT(FONT_STATUS),
 #ifndef TARGET_PRIME1
-            digits_string, *halScreen.FontArray[FONT_STATUS], 0xf, 0, &scr);
+               digits_string, FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-            digits_string, *halScreen.FontArray[FONT_STATUS], cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
+               digits_string, FONT_STATUS, cgl_mkcolor(PAL_STATEXT), cgl_mkcolor(PAL_STABACKGND), &scr);
 #endif /* TARGET_PRIME1 */
 
     halScreen.DirtyFlag |= STACK_DIRTY;
@@ -4944,8 +4936,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
         else if(ISSTRING(*action) && inlist) {
             // A STRING TO INSERT INTO THE EDITOR
             // OPEN AN EDITOR AND INSERT THE STRING
-            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->
-                    BitmapHeight + 2);
+            halSetCmdLineHeight(CMDLINE_HEIGHT);
             halSetContext(halGetContext() | CONTEXT_INEDITOR);
             if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
                 uiOpenCmdLine('X');
@@ -8021,7 +8012,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
        // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
        DRAWSURFACE scr;
        ggl_initscr(&scr);
-       UNIFONT *fnt=halScreen.FontArray[FONT_STATUS];
+       UNIFONT *fnt=FONT_STATUS;
 
        // FOR DEBUG ONLY
        int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);

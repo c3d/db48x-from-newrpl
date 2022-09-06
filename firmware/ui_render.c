@@ -24,7 +24,7 @@ void uiClearRenderCache()
 }
 
 // ADD AN ENTRY TO THE CACHE
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font)
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -39,7 +39,7 @@ void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font)
         halCacheEntry |= CACHE_FULL;
 }
 
-void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** font)
+void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -70,7 +70,7 @@ void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const ** fo
 }
 
 // USE AN ENTRY IN THE CACHE
-WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT const ** font)
+WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -116,7 +116,7 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 
 // RENDER AN OBJECT TO THE GIVEN DRAWSURFACE, USE CACHE IF POSSIBLE
 
-void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font)
+void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const *font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
@@ -147,14 +147,14 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const ** font)
     BINT nchars = rplStrSize(string);
     BYTEPTR charptr = (BYTEPTR) (string + 1);
 
-    DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, *font,
+    DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
             cgl_mkcolor(PAL_STKITEMS), scr);
 
 }
 
 // RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
 
-WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
+WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
@@ -178,14 +178,14 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
     BINT nchars = rplStrSize(string);
     BYTEPTR charptr = (BYTEPTR) (string + 1);
     BINT numwidth =
-            StringWidthN((char *)charptr, (char *)charptr + nchars, *font);
+            StringWidthN((char *)charptr, (char *)charptr + nchars, font);
 
     if(numwidth > MAX_BMP_WIDTH)
         numwidth = MAX_BMP_WIDTH;
 
     ScratchPointer1 = string;
 
-    WORDPTR newbmp = uiAllocNewBitmap(numwidth, (*font)->BitmapHeight);
+    WORDPTR newbmp = uiAllocNewBitmap(numwidth, font->BitmapHeight);
     if(newbmp) {
 
         // RELOAD ALL POINTERS IN CASE THERE WAS A GC
@@ -201,16 +201,16 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const ** font)
         tsurf.clipx = 0;
         tsurf.clipx2 = numwidth - 1;
         tsurf.clipy = 0;
-        tsurf.clipy2 = (*font)->BitmapHeight - 1;
+        tsurf.clipy2 = font->BitmapHeight - 1;
         tsurf.x = 0;
         tsurf.y = 0;
 
         // CLEAR THE BITMAP FIRST
-        cgl_rect(&tsurf,0,0,numwidth,(*font)->BitmapHeight - 1,cgl_mkcolor(PAL_STKBACKGND));
+        cgl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,cgl_mkcolor(PAL_STKBACKGND));
         //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
 
-        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, *font, cgl_mkcolor(PAL_STKITEMS),
+        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, cgl_mkcolor(PAL_STKITEMS),
                 &tsurf);
 
         // AND ADD TO CACHE
@@ -255,6 +255,6 @@ void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
         BYTEPTR charptr = (BYTEPTR) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
-                *halScreen.FontArray[FONT_STACK], cgl_mkcolor(PAL_STKITEMS), scr);
+                  FONT_STACK, cgl_mkcolor(PAL_STKITEMS), scr);
     }
 }

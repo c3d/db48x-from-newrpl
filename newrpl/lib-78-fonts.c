@@ -277,7 +277,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
     0
 };
 
-WORDPTR const *rplGetFontRomPtrTableAddress(void)
+const WORDPTR const *rplGetFontRomPtrTableAddress(void)
 {
     return ROMPTR_TABLE;
 }
@@ -604,31 +604,31 @@ void rplSetCurrentFont(BINT area, WORDPTR ident)
     }
     WORDPTR fntid;
     switch (area) {
-    case FONT_STACK:
+    case FONT_INDEX_STACK:
         fntid = (WORDPTR) fontstack_ident;
         break;
-    case FONT_STACKLVL1:
+    case FONT_INDEX_STACKLVL1:
         fntid = (WORDPTR) fontstack1_ident;
         break;
-    case FONT_CMDLINE:
+    case FONT_INDEX_CMDLINE:
         fntid = (WORDPTR) fontcmdline_ident;
         break;
-    case FONT_MENU:
+    case FONT_INDEX_MENU:
         fntid = (WORDPTR) fontmenu_ident;
         break;
-    case FONT_STATUS:
+    case FONT_INDEX_STATUS:
         fntid = (WORDPTR) fontstarea_ident;
         break;
-    case FONT_PLOT:
+    case FONT_INDEX_PLOT:
         fntid = (WORDPTR) fontplot_ident;
         break;
-    case FONT_FORMS:
+    case FONT_INDEX_FORMS:
         fntid = (WORDPTR) fontform_ident;
         break;
-    case FONT_HLPTEXT:
+    case FONT_INDEX_HLPTEXT:
         fntid = (WORDPTR) fonthelp_ident;
         break;
-    case FONT_HLPTITLE:
+    case FONT_INDEX_HLPTITLE:
         fntid = (WORDPTR) fonthelptitle_ident;
         break;
 
@@ -644,31 +644,31 @@ WORDPTR rplGetCurrentFont(BINT area)
 {
     WORDPTR fntid;
     switch (area) {
-    case FONT_STACK:
+    case FONT_INDEX_STACK:
         fntid = (WORDPTR) fontstack_ident;
         break;
-    case FONT_STACKLVL1:
+    case FONT_INDEX_STACKLVL1:
         fntid = (WORDPTR) fontstack1_ident;
         break;
-    case FONT_CMDLINE:
+    case FONT_INDEX_CMDLINE:
         fntid = (WORDPTR) fontcmdline_ident;
         break;
-    case FONT_MENU:
+    case FONT_INDEX_MENU:
         fntid = (WORDPTR) fontmenu_ident;
         break;
-    case FONT_STATUS:
+    case FONT_INDEX_STATUS:
         fntid = (WORDPTR) fontstarea_ident;
         break;
-    case FONT_PLOT:
+    case FONT_INDEX_PLOT:
         fntid = (WORDPTR) fontplot_ident;
         break;
-    case FONT_FORMS:
+    case FONT_INDEX_FORMS:
         fntid = (WORDPTR) fontform_ident;
         break;
-    case FONT_HLPTEXT:
+    case FONT_INDEX_HLPTEXT:
         fntid = (WORDPTR) fonthelp_ident;
         break;
-    case FONT_HLPTITLE:
+    case FONT_INDEX_HLPTITLE:
         fntid = (WORDPTR) fonthelptitle_ident;
         break;
     default:
@@ -680,19 +680,19 @@ WORDPTR rplGetCurrentFont(BINT area)
     if(!fntid) {
         // RETURN A DEFAULT SYSTEM FONT
         switch (area) {
-        case FONT_STACK:
+        case FONT_INDEX_STACK:
             return (WORDPTR) fnt8c_ident;
-        case FONT_STACKLVL1:
+        case FONT_INDEX_STACKLVL1:
             return (WORDPTR) fnt8c_ident;
-        case FONT_CMDLINE:
+        case FONT_INDEX_CMDLINE:
             return (WORDPTR) fnt8c_ident;
-        case FONT_MENU:
+        case FONT_INDEX_MENU:
             return (WORDPTR) fnt6a_ident;
-        case FONT_STATUS:
+        case FONT_INDEX_STATUS:
             return (WORDPTR) fnt6a_ident;
-        case FONT_PLOT:
+        case FONT_INDEX_PLOT:
             return (WORDPTR) fnt6a_ident;
-        case FONT_FORMS:
+        case FONT_INDEX_FORMS:
             return (WORDPTR) fnt8c_ident;
         default:
             return 0;
@@ -841,7 +841,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for stack area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_STACK);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STACK);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -850,7 +850,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for stack level 1
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_STACKLVL1);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STACKLVL1);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -859,7 +859,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for menu area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_MENU);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_MENU);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -868,7 +868,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for command line area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_CMDLINE);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_CMDLINE);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -877,7 +877,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for status area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_STATUS);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STATUS);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -887,7 +887,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall name of current font for plot objects
         //@NEW
 
-        WORDPTR fntid = rplGetCurrentFont(FONT_PLOT);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_PLOT);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -896,7 +896,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for forms
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_FORMS);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_FORMS);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -915,7 +915,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_STACK, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_STACK, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -934,7 +934,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_STACKLVL1, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_STACKLVL1, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -953,7 +953,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_MENU, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_MENU, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -973,7 +973,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_CMDLINE, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_CMDLINE, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -992,7 +992,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_STATUS, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_STATUS, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -1012,7 +1012,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_PLOT, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_PLOT, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -1032,7 +1032,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_FORMS, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_FORMS, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -1042,7 +1042,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_HLPTEXT);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_HLPTEXT);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1051,7 +1051,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help title
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_HLPTITLE);
+        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_HLPTITLE);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1072,7 +1072,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_HLPTEXT, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_HLPTEXT, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -1091,7 +1091,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_HLPTITLE, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_HLPTITLE, rplPeekData(1));
         rplDropData(1);
         return;
     }

@@ -100,9 +100,8 @@ BINT uiSetCmdLineText(WORDPTR text)
     if(halScreen.CursorPosition < 0)
         halScreen.CursorPosition = 0;
     halScreen.CursorX =
-            StringWidthN((char *)linestart,
-            (char *)linestart + halScreen.CursorPosition,
-            *halScreen.FontArray[FONT_CMDLINE]);
+        StringWidthN((char *)linestart,
+                     (char *)linestart + halScreen.CursorPosition, FONT_CMDLINE);
 
     uiExtractLine(halScreen.LineCurrent);
 
@@ -306,8 +305,8 @@ void uiSetCurrentLine(BINT line)
     int targetx = halScreen.CursorX;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
-            (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
-            *halScreen.FontArray[FONT_CMDLINE], &targetx);
+        (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
+                                       FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
     halScreen.CursorPosition = ptr2 - ptr;
@@ -496,7 +495,7 @@ BINT uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
                 StringWidthN(((char *)CmdLineCurrentLine) + 4 +
                 halScreen.CursorPosition,
                 ((char *)CmdLineCurrentLine) + 4 + halScreen.CursorPosition +
-                length, *halScreen.FontArray[FONT_CMDLINE]);
+                             length, FONT_CMDLINE);
 
 // MOVE CURRENT SELECTION
         if((halScreen.SelStartLine == halScreen.LineCurrent)
@@ -860,8 +859,8 @@ void uiMoveCursor(BINT offset)
     halScreen.CursorPosition = offset;
 
     halScreen.CursorX =
-            StringWidthN((char *)ptr, (char *)ptr2,
-            *halScreen.FontArray[FONT_CMDLINE]);
+        StringWidthN((char *)ptr, (char *)ptr2,
+                     FONT_CMDLINE);
 
     halScreen.CursorState &= ~0xc000;
 
@@ -964,9 +963,7 @@ void uiCursorLeft(BINT nchars)
 
     halScreen.CursorPosition = offset;
 
-    halScreen.CursorX =
-            StringWidthN((char *)ptr, (char *)ptr2,
-            *halScreen.FontArray[FONT_CMDLINE]);
+    halScreen.CursorX= StringWidthN((char *)ptr, (char *)ptr2, FONT_CMDLINE);
 
     halScreen.CursorState &= ~0xc000;
 
@@ -1073,8 +1070,8 @@ void uiCursorRight(BINT nchars)
     halScreen.CursorPosition = offset;
 
     halScreen.CursorX =
-            StringWidthN((char *)ptr, (char *)ptr2,
-            *halScreen.FontArray[FONT_CMDLINE]);
+        StringWidthN((char *)ptr, (char *)ptr2,
+                     FONT_CMDLINE);
 
     halScreen.CursorState &= ~0xc000;
 
@@ -1152,9 +1149,8 @@ void uiCursorPageRight()
     BINT len = rplStrSize(CmdLineCurrentLine);
     int targetx = halScreen.CursorX + SCREEN_WIDTH;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR ptr2 =
-            (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
-            *halScreen.FontArray[FONT_CMDLINE], &targetx);
+    BYTEPTR ptr2 = (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
+                                                  FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
     halScreen.CursorPosition = ptr2 - ptr;
@@ -1194,7 +1190,7 @@ void uiCursorPageLeft()
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
             (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
-            *halScreen.FontArray[FONT_CMDLINE], &targetx);
+                                           FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
     halScreen.CursorPosition = ptr2 - ptr;
@@ -1455,15 +1451,11 @@ void uiStretchCmdLine(BINT addition)
     if(halScreen.NumLinesVisible < 1)
         halScreen.NumLinesVisible = 1;
 
-    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight *
-            halScreen.NumLinesVisible + 2);
+    halSetCmdLineHeight(FONT_HEIGHT(FONT_CMDLINE) * halScreen.NumLinesVisible + 2);
     if(halScreen.CmdLine !=
-            (*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight *
-            halScreen.NumLinesVisible + 2) {
+            FONT_HEIGHT(FONT_CMDLINE) * halScreen.NumLinesVisible + 2) {
         // NO ROOM, ADJUST NUMBER OF VISIBLE LINES
-        BINT actuallines =
-                (halScreen.CmdLine -
-                2) / (*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
+        BINT actuallines = (halScreen.CmdLine - 2) / FONT_HEIGHT(FONT_CMDLINE);
         halScreen.NumLinesVisible = actuallines;
         if(halScreen.NumLinesVisible < 1)
             halScreen.NumLinesVisible = 1;
@@ -2161,8 +2153,7 @@ void uiOpenAndInsertTextN(BYTEPTR start, BYTEPTR end)
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
 
         ScratchPointer1 = (WORDPTR) start;
-        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight +
-                2);
+        halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         uiOpenCmdLine('D');
         end = ((BYTEPTR) ScratchPointer1) + (end - start);

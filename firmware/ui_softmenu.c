@@ -393,7 +393,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
         BINT w = StringWidthN((char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                *halScreen.FontArray[FONT_MENU]), pos;
+                FONT_MENU), pos;
 
         if(w >= scr->clipx2 - scr->clipx)
             pos = scr->clipx + 1;
@@ -413,7 +413,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
         */
         DrawTextN(pos, scr->clipy + 1, (char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                *halScreen.FontArray[FONT_MENU], color, scr);
+                FONT_MENU, color, scr);
 
         // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
         if(w >= scr->clipx2 - scr->clipx) {
@@ -456,7 +456,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
         BINT w = StringWidthN((char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                *halScreen.FontArray[FONT_MENU]), pos;
+                FONT_MENU), pos;
 
         if(w >= scr->clipx2 - scr->clipx)
             pos = scr->clipx + 1;
@@ -493,7 +493,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
         if((flags & 1) || (var && ISDIR(*var[1]))) {
             //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
             //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
-            //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
+            //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),FONT_MENU,(color)? 0x4:0xa,scr);
 
 
 
@@ -523,7 +523,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
         DrawTextN(pos, scr->clipy + 1, (char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                *halScreen.FontArray[FONT_MENU], color, scr);
+                FONT_MENU, color, scr);
 
         // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
         if(w >= scr->clipx2 - scr->clipx) {
@@ -632,7 +632,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
 
     BINT w = StringWidthN((char *)string, (char *)endstring,
-            *halScreen.FontArray[FONT_MENU]), pos;
+            FONT_MENU), pos;
     if(w >= scr->clipx2 - scr->clipx)
         pos = scr->clipx + 1;
     else
@@ -642,7 +642,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
     {
         //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
         //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
-        //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
+        //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,FONT_MENU,(color)? 0x4:0xa,scr);
 
         cgl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
                 dircolor);
@@ -668,7 +668,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
     }
 
     DrawTextN(pos, scr->clipy + 1, (char *)string, (char *)endstring,
-            *halScreen.FontArray[FONT_MENU], color, scr);
+            FONT_MENU, color, scr);
 
 
     // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS

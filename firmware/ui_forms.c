@@ -45,7 +45,7 @@ void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
             // TODO: DEFINE THE HEIGHT FOR VARIOUS OTHER TYPES
 
             // BY DEFAULT, THIS IS THE HEIGHT OF ONE LINE OF TEXT
-            rowh = (*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
+            rowh = FONT_HEIGHT(FONT_FORMS);
 
         }
 
@@ -140,7 +140,7 @@ void uiUpdateForm(WORDPTR form)
             item = rplSkipOb(item);
         }
         else
-            rowh = (*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
+            rowh = FONT_HEIGHT(FONT_FORMS);
 
         if(ISLIST(*item)) {
             // A LIST OF COLUMNS
@@ -185,7 +185,7 @@ void uiUpdateForm(WORDPTR form)
                     backgnd.clipx2 = backgnd.clipx + itemw - 1;
                     DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(col + 1),
                             (char *)(col + 1) + rplStrSize(col),
-                            *halScreen.FontArray[FONT_FORMS], 0xf, 0, &backgnd);
+                            FONT_FORMS, 0xf, 0, &backgnd);
                     backgnd.clipx = backgnd.clipx2 + 1;
                 }
 
@@ -206,7 +206,7 @@ void uiUpdateForm(WORDPTR form)
             backgnd.clipx2 = backgnd.clipx + roww - 1;
             DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(item + 1),
                     (char *)(item + 1) + rplStrSize(item),
-                    *halScreen.FontArray[FONT_FORMS], 0xf, 0, &backgnd);
+                    FONT_FORMS, 0xf, 0, &backgnd);
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
                 DRAWSURFACE copy;
@@ -238,6 +238,6 @@ void uiUpdateForm(WORDPTR form)
 
     // DONE, EVERYTHING WAS DRAWN
 
-    uiUpdateOrAddCacheEntry(form, newbmp, halScreen.FontArray[FONT_FORMS]);
+    uiUpdateOrAddCacheEntry(form, newbmp, FONT_FORMS);
 
 }
