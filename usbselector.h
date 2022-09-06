@@ -66,4 +66,11 @@ private:
 
 };
 
+// A wrapper for a function that is used only in USB code
+// WARNING: Meaning of this reversed, true now means "safe"
+static inline bool safe_stringcpy(char *dst, size_t n, const char *src)
+{
+    return stpncpy(dst, src, n) <= dst + n;
+}
+
 #endif // USBSELECTOR_H

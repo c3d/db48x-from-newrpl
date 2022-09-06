@@ -303,8 +303,7 @@ void USBSelector::RefreshList()
 
                     usb_shutdown();
                     // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
-                    if(safe_stringcpy(usb_devicepath, 8192,
-                                tmp.toUtf8().constData()))
+                    if(!safe_stringcpy(usb_devicepath, 8192, tmp.toUtf8().constData()))
                         usb_devicepath[0] = 0;
                     usb_timeout = 200;        // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
                     usb_init(0);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
@@ -579,8 +578,7 @@ void USBSelector::on_syncTime_clicked()
     settime[2]=MAKESINT(t.time().minute());
     settime[3]=MAKESINT(t.time().second());
 
-    if(safe_stringcpy(usb_devicepath, 8192,
-                SelectedDevicePath.toUtf8().constData()))
+    if(!safe_stringcpy(usb_devicepath, 8192, SelectedDevicePath.toUtf8().constData()))
         usb_devicepath[0] = 0;
 
     usb_paused=0;
@@ -824,8 +822,7 @@ void USBSelector::on_updateFirmware_clicked()
     usb_paused = 1;
     while(usb_paused >= 0);
     usb_shutdown();
-    if(safe_stringcpy(usb_devicepath, 8192,
-                SelectedDevicePath.toUtf8().constData()))
+    if(!safe_stringcpy(usb_devicepath, 8192, SelectedDevicePath.toUtf8().constData()))
         usb_devicepath[0] = 0;
     usb_init(0);
 

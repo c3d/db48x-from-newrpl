@@ -8,6 +8,8 @@
 #ifndef NEWRPL_H
 #define NEWRPL_H
 
+#include <stdlib.h>
+#include <string.h>
 #include "newrpl_types.h"
 #include <firmware.h>
 #include "utf8lib.h"
@@ -26,6 +28,54 @@
 extern "C"
 {
 #endif
+
+// stdlib wrappers
+static inline void memcpyw(void *dst, const void *src, size_t nwords)
+{
+    WORD *dstw = (WORD *) dst;
+    const WORD *srcw = (const WORD *) src;
+    while (nwords--)
+        *dstw++ = *srcw++;
+}
+
+static inline void memmovew(void *dst, const void *src, size_t nwords)
+{
+    memmove(dst, src, nwords * sizeof(WORD));
+}
+
+static inline size_t stringlen(const char *s)
+{
+    return strlen(s);
+}
+
+static inline char *stringcpy(char *dst, const char *src)
+{
+    return strcpy(dst, src);
+}
+
+static inline void *memcpyb(void *dst, const void *src, size_t n)
+{
+    return memcpy(dst, src, n);
+}
+
+static inline void *memmoveb(void *dst, const void *src, size_t n)
+{
+    return memmove(dst, src, n);
+}
+
+static inline void memsetw(void *dst, WORD value, size_t nwords)
+{
+    WORD *dstw = (WORD *) dst;
+    while(nwords--)
+        *dstw++ = value;
+}
+
+static inline void *memsetb(void *dst, int value, size_t nbytes)
+{
+    return memset(dst, value, nbytes);
+}
+
+
 
 // FORMATTING FOR NUMBERS
     typedef struct

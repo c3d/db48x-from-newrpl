@@ -60,7 +60,7 @@ INCLUDEPATH += firmware/include newrpl
 ## FIXME - We need this for a #include_next <stdint.h>, but we should not
 INCLUDEPATH += /usr/include
 
-LIBS += -lgcc
+LIBS += -lc -lgcc
 
 DISTFILES += firmware/platform/$$PLATFORM/ld.script
 
