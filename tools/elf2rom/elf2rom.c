@@ -427,16 +427,11 @@ int main(int argc, char **argv)
     if (outfilename != NULL) {
         strcpy(outfile, outfilename);
     } else {
-        strcpy(outfile, inp);
-        p = (char *)((unsigned long)outfile + strlen(outfile) - 1);
-        while(*p && *p != '.')
-            p--;
-        if(*p == '.') {
-            *p = '\0';
-            strcat(outfile, ".bin");
-        }
-        else
-            strcpy(outfile, OUTFILE);
+        strncpy(outfile, inp, sizeof(outfile)-1);
+        p = strrchr(outfile, '.');
+        if (p)
+            *p = 0;
+        strncat(outfile, ".bin", sizeof(outfile)-1);
     }
 
     //printf("DEBUG: outfile=%s\n",outfile);
