@@ -287,6 +287,8 @@ const systemflag const flags_names[] = {
     {"DECOMPEDIT", {0x80 | (-FL_DECOMPEDIT), 0, 0, 0, 0, 0, 0, 0}},
     {"CPLX", {0x80 | (-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0}},
     {"REAL", {(-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0}},
+    {"APPROX.", {(-FL_APPROXSIGN) }},
+    {"APPROX~", {0x80 | (-FL_APPROXSIGN) }},
 
 // TODO: ADD MORE FLAG NAMES HERE
     {NULL, {0, 0, 0, 0, 0, 0, 0, 0}}

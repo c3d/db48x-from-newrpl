@@ -76,6 +76,10 @@ static inline void *memsetb(void *dst, int value, size_t nbytes)
 }
 
 
+// Bit manipulation macros
+#define BIT(n)          (1U << (n))
+#define BITS(n,m)       (((1U << ((m) + 1 - (n))) - 1) << (n))
+
 
 // FORMATTING FOR NUMBERS
     typedef struct
@@ -792,6 +796,7 @@ struct date
 #define FL_MENU2WHITE     -16
 #define FL_ANGLEMODE1     -17
 #define FL_ANGLEMODE2     -18
+#define FL_APPROXSIGN     -19   // Use '~' instead of '.' as approximation sign
 #define FL_UNDERFLOWERROR -20
 #define FL_OVERFLOWERROR  -21
 #define FL_INFINITEERROR  -22

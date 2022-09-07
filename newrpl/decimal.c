@@ -2450,6 +2450,7 @@ void newRealFromText(REAL * result, char *text, char *end, UBINT64 chars)
     int dotdone = 0;
     BINT word = 0;
 
+
     result->flags = 0;
     result->exp = 0;
 
@@ -2468,9 +2469,8 @@ void newRealFromText(REAL * result, char *text, char *end, UBINT64 chars)
         ++text;
     }
 
-    // GET POSSIBLE END DOT, AFTER EXPONENT
-
-    if(*(end - 1) == '.') {
+    // GET POSSIBLE END DOT, AFTER EXPONENT - ACCEPT BOTH DOT AND TILDE
+    if(end[-1] == '.' || end[-1] == '~') {
         result->flags |= F_APPROX;
         --end;
     }
@@ -2591,7 +2591,7 @@ void newRealFromText(REAL * result, char *text, char *end, UBINT64 chars)
 
             if(digits == 0) {
                 // IN CASE DECIMAL_DOT IS '.'
-                if(*end == '.')
+                if(*end == '.' || *end == '~')
                     result->flags |= F_APPROX;
                 else {
                     result->len = end - text;
@@ -3064,6 +3064,7 @@ char *formatReal(REAL * number, char *buffer, BINT format, UBINT64 chars)
     int wantzeros;
     int countdigits = 0, totalcount;
     int idx = 0;
+    char approxSign = rplTestSystemFlag(FL_APPROXSIGN) ? '.' : '~';
 
     // HANDLE SPECIALS FIRST
 
@@ -3396,7 +3397,7 @@ char *formatReal(REAL * number, char *buffer, BINT format, UBINT64 chars)
 
     if((number->flags & F_APPROX) && (!(format & FMT_NOTRAILDOT)
                 || (format & FMT_CODE)))
-        buffer[idx++] = '.';
+        buffer[idx++] = approxSign;
 
     // EXPONENT
 
