@@ -307,6 +307,8 @@ const int keyMap[] = {
     Qt::Key_L, 58,
     Qt::Key_Tab, 60,
     Qt::Key_CapsLock, 61,
+    Qt::Key_Alt, 61,
+    Qt::Key_Meta, 61,
     Qt::Key_Control, 62,
     Qt::Key_Escape, 63,
     Qt::Key_Home, 63
@@ -496,11 +498,13 @@ const int keyMap[] = {
     Qt::Key_L, 11,
     Qt::Key_Tab, 26,
     Qt::Key_CapsLock, 51,
+    Qt::Key_Alt, 51,
+    Qt::Key_Meta, 51,
     Qt::Key_Control, 63,
     Qt::Key_Escape, 52,
-    Qt::Key_Home, 28
+    Qt::Key_Home, 28,
             // ADD MORE KEYS HERE
-    , 0, 0
+    0, 0
 };
 
 struct mousemap
@@ -591,12 +595,14 @@ struct mousemap
 #endif
 
 
-
+RECORDER(gui_keys, 32, "Keys from the user interface");
 
 void MainWindow::keyPressEvent(QKeyEvent * ev)
 {
 
     int i;
+
+    record(gui_keys, "KeyPress %u 0x%x", ev->key(), ev->key());
 
     if(ev->isAutoRepeat()) {
         ev->accept();
@@ -604,6 +610,7 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
     }
 
     if(ev->key() == Qt::Key_F12) {
+        record(gui_keys, "KeyPress Interrupt requested");
         pckeymatrix = (1ULL << 63) | (1ULL << 41) | (1ULL << 43);
         keyb_irq_update();
         ev->accept();
@@ -611,7 +618,10 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
     }
 
     for(i = 0; keyMap[i] != 0; i += 2) {
+        if (RECORDER_TWEAK(gui_keys) >= 2)
+            record(gui_keys, "Offset %d keymap is %u 0x%x", i, keyMap[i], keyMap[i]);
         if(ev->key() == keyMap[i]) {
+            record(gui_keys, "KeyPress found in keymap at offset %d, code is %u", i, keyMap[i+1]);
             pckeymatrix |= 1ULL << (keyMap[i + 1]);
             keyb_irq_update();
             ev->accept();
@@ -619,6 +629,7 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
         }
     }
 
+    record(gui_keys, "KeyPress %u 0x%x sent to Qt", ev->key(), ev->key());
     QMainWindow::keyPressEvent(ev);
 }
 
@@ -626,12 +637,16 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
 {
 
     int i;
+
+    record(gui_keys, "KeyRelease %u 0x%x", ev->key(), ev->key());
+
     if(ev->isAutoRepeat()) {
         ev->accept();
         return;
     }
 
     if(ev->key() == Qt::Key_F12) {
+        record(gui_keys, "KeyRelease Interrupt requested");
         pckeymatrix &= ~((1ULL << 63) | (1ULL << 41) | (1ULL << 43));
         keyb_irq_update();
         ev->accept();
@@ -642,6 +657,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
 
     for(i = 0; keyMap[i] != 0; i += 2) {
         if(mykey == keyMap[i]) {
+            record(gui_keys, "KeyRelease found in keymap at offset %d, code is %u", i, keyMap[i+1]);
             pckeymatrix &= ~(1ULL << (keyMap[i + 1]));
             keyb_irq_update();
             ev->accept();
@@ -649,6 +665,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
         }
     }
 
+    record(gui_keys, "KeyRelease %u 0x%x sent to Qt", ev->key(), ev->key());
     QMainWindow::keyReleaseEvent(ev);
 }
 
