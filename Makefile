@@ -74,5 +74,10 @@ fonts: bmp2font
 	mv bitmap/fonts/*.c firmware/sys/
 	mv bitmap/fonts/fontlist.h firmware/include/
 
+FILES=$(shell git ls-files '*.c' '*.h' '*.cpp')
+reformat clang-format: $(FILES:%=%.clang-format)
+%.clang-format:
+	clang-format -i $*
+
 .PRECIOUS: %.mak
 .ALWAYS:
