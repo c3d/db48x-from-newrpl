@@ -158,33 +158,33 @@ newrpl_color:NEWRPL_GRAPHICS=cgl
 newrpl_color:DEFINES += NEWRPL_COLOR
 
 SOURCES += \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_bitblt.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_bitbltoper.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_filter.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_fltdarken.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_fltinvert.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_fltlighten.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_fltreplace.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_getnib.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_hblt.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_hbltfilter.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_hbltoper.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_hline.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_initscr.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_mkcolor.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_mkcolor32.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_opmask.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_optransp.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_ovlblt.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_pltnib.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_rect.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_rectp.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_revblt.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_scrolldn.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_scrolllf.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_scrollrt.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_scrollup.c \
-        firmware/ggl/$$NEWRPL_GRAPHICS/$${NEWRPL_GRAPHICS}_vline.c \
+        firmware/ggl/ggl_bitblt.c \
+        firmware/ggl/ggl_bitbltoper.c \
+        firmware/ggl/ggl_filter.c \
+        firmware/ggl/ggl_fltdarken.c \
+        firmware/ggl/ggl_fltinvert.c \
+        firmware/ggl/ggl_fltlighten.c \
+        firmware/ggl/ggl_fltreplace.c \
+        firmware/ggl/ggl_getnib.c \
+        firmware/ggl/ggl_hblt.c \
+        firmware/ggl/ggl_hbltfilter.c \
+        firmware/ggl/ggl_hbltoper.c \
+        firmware/ggl/ggl_hline.c \
+        firmware/ggl/ggl_initscr.c \
+        firmware/ggl/ggl_mksolid.c \
+        firmware/ggl/ggl_mksolid32.c \
+        firmware/ggl/ggl_opmask.c \
+        firmware/ggl/ggl_optransp.c \
+        firmware/ggl/ggl_ovlblt.c \
+        firmware/ggl/ggl_pltnib.c \
+        firmware/ggl/ggl_rect.c \
+        firmware/ggl/ggl_rectp.c \
+        firmware/ggl/ggl_revblt.c \
+        firmware/ggl/ggl_scrolldn.c \
+        firmware/ggl/ggl_scrolllf.c \
+        firmware/ggl/ggl_scrollrt.c \
+        firmware/ggl/ggl_scrollup.c \
+        firmware/ggl/ggl_vline.c \
 
 
 # System
@@ -317,7 +317,7 @@ HEADERS  += \
         firmware/include/hal_api.h \
         firmware/include/ui.h \
         firmware/include/usb.h \
-        firmware/include/xgl.h \
+        firmware/include/ggl.h \
         firmware/sys/fsystem/fsyspriv.h \
         firmware/sys/sddriver.h \
 

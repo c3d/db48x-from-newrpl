@@ -7,7 +7,7 @@
 
 #include <newrpl.h>
 #include <hal_api.h>
-#include <xgl.h>
+#include <ggl.h>
 #include "nand.h"
 #include <sys/fsystem/fsyspriv.h>
 
@@ -232,8 +232,8 @@ void main_virtual(unsigned int mode)
     //line = 0;
 
 
-    //cgl_initscr(&surface);
-    //cgl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_STKBACKGND));
+    //ggl_initscr(&surface);
+    //ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, ggl_mkcolor(PAL_STKBACKGND));
 
      // INITIALIZE SOME SYSTEM VARIABLES
 
@@ -247,12 +247,12 @@ void main_virtual(unsigned int mode)
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-        cgl_initscr(&scr);
+        ggl_initscr(&scr);
 
         halSetupTheme(NULL);
 
         //   CLEAR SCREEN
-        cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, cgl_mkcolor(PAL_STKBACKGND));
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, ggl_mkcolor(PAL_STKBACKGND));
 
 
             // CHECK FOR MAGIC KEY COMBINATION
@@ -317,7 +317,7 @@ void main_virtual(unsigned int mode)
 
         tmr_eventkill(event);
         //   CLEAR SCREEN
-        cgl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,  cgl_mkcolor(PAL_GRAY4));
+        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,  ggl_mkcolor(PAL_GRAY4));
 
         keyb_flushnowait();
 
@@ -947,9 +947,9 @@ void startup(void)
     enable_interrupts();
 
     // Setup Default color palette for early exception handlers only, just in case
-    cgl_setpalette(PAL_GRAY0,THEME_GRAY0);
-    cgl_setpalette(PAL_GRAY8,THEME_GRAY8);
-    cgl_setpalette(PAL_GRAY15,THEME_GRAY15);
+    ggl_setpalette(PAL_GRAY0,THEME_GRAY0);
+    ggl_setpalette(PAL_GRAY8,THEME_GRAY8);
+    ggl_setpalette(PAL_GRAY15,THEME_GRAY15);
 
     tmr_setup();
 

@@ -33,7 +33,7 @@ void ex_print(int x,int y,char *str)
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
 
-    DrawText(x,y,str,Font_10A,cgl_mkcolor(PAL_GRAY15),&dr);
+    DrawText(x,y,str,Font_10A,ggl_mkcolor(PAL_GRAY15),&dr);
 }
 
 void ex_clrscreen()
@@ -45,7 +45,7 @@ void ex_clrscreen()
     dr.clipx=dr.clipy=0;
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
-    cgl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,cgl_mkcolor(PAL_GRAY0));
+    ggl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,ggl_mkcolor(PAL_GRAY0));
 }
 
 void ex_hline(int y)
@@ -57,7 +57,7 @@ void ex_hline(int y)
     dr.clipx=dr.clipy=0;
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
-    cgl_hline(&dr,y,dr.x,dr.clipx2-1,cgl_mkcolor(PAL_GRAY8));
+    ggl_hline(&dr,y,dr.x,dr.clipx2-1,ggl_mkcolor(PAL_GRAY8));
 }
 
 inline int ex_width(char *string) { return StringWidth(string,Font_10A); }

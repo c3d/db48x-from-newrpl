@@ -8,7 +8,7 @@
 
 
 extern "C" {
-#include "xgl.h"
+#include "ggl.h"
 }
 
 extern "C" int lcd_needsupdate;
@@ -107,7 +107,7 @@ QPaletteEditor::QPaletteEditor(QWidget *parent) :
     {
         ui->pTable->insertRow(k);
         QTableWidgetItem *item=new QTableWidgetItem("     ");
-        QBrush tempbkgnd(QColor::fromRgb(RGBRED(cgl_palette[k]),RGBGREEN(cgl_palette[k]),RGBBLUE(cgl_palette[k])));
+        QBrush tempbkgnd(QColor::fromRgb(RGBRED(ggl_palette[k]),RGBGREEN(ggl_palette[k]),RGBBLUE(ggl_palette[k])));
         item->setBackground(tempbkgnd);
         ui->pTable->setItem(k,0,item);
         ui->pTable->setItem(k,1,new QTableWidgetItem(QString(pal_descriptions[k])));
@@ -146,7 +146,7 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
         for(k=0;k<64;++k)
         {
             QColor color=ui->pTable->item(k,0)->background().color();
-            cgl_palette[k]=RGB_TO_RGB16(color.red(),color.green(),color.blue());
+            ggl_palette[k]=RGB_TO_RGB16(color.red(),color.green(),color.blue());
             FullScreenUpdate();
         }
         return;
@@ -222,7 +222,7 @@ void QPaletteEditor::ReadPalette()
     for(k=0;k<64;++k)
     {
         QTableWidgetItem *item=ui->pTable->takeItem(k,0);
-        QBrush tempbkgnd(QColor::fromRgb(RGBRED(cgl_palette[k]),RGBGREEN(cgl_palette[k]),RGBBLUE(cgl_palette[k])));
+        QBrush tempbkgnd(QColor::fromRgb(RGBRED(ggl_palette[k]),RGBGREEN(ggl_palette[k]),RGBBLUE(ggl_palette[k])));
         item->setBackground(tempbkgnd);
         ui->pTable->setItem(k,0,item);
     }

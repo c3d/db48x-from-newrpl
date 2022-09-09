@@ -226,7 +226,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
                 // w+(clipped&0xff)+(clipped>>8) = ORIGINAL WIDTH OF THE CHARACTER
                 // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
 
-                cgl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
+                ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
                         drawsurf->x - 2 + (clipped & 0xff), color);
                 break;
             }

@@ -9,7 +9,7 @@
 #define _HAL_API_H
 
 #include "newrpl.h"
-#include "xgl.h"
+#include "ggl.h"
 #include "usb.h"
 #include "unifont.h"
 #include "fontlist.h"

@@ -4,17 +4,70 @@
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
  */
-
 #ifndef _GGL_H
 #define _GGL_H
 
 #define LCD_H SCREEN_H
 #define LCD_W SCREEN_W
 
+// (From ggl.h) Generic definitions for both color and gray modes
+
+// Convert from RGB (0-255) to RGB16(5-6-5)
+#define RGB_TO_RGB16(red,green,blue) ((((red)&0xf8)<<8)|(((green)&0xfc)<<3)|(((blue)&0xf8)>>3))
+
+// Pack RGB16 components (red=0-31, green=0-63, blue=0-31)
+#define PACK_RGB16(red,green,blue) ((((red)&0x1f)<<11)|(((green)&0x3f)<<5)|(((blue)&0x1f)))
+
+// Extract RGB red component from RGB16 color (bit expand to 0-255 range)
+#define RGBRED(rgb16) ( ((rgb16)&0x8000)? (((rgb16)>>8)|7) : ((rgb16)>>8)&0xf8)
+// Extract RGB green component from RGB16 color (bit expand to 0-255 range)
+#define RGBGREEN(rgb16) ( ((rgb16)&0x400)? ((((rgb16)>>3)&0xff)|3) : ((rgb16)>>3)&0xfc)
+// Extract RGB blue component from RGB16 color (bit expand to 0-255 range)
+#define RGBBLUE(rgb16) ( ((rgb16)&0x10)? ((((rgb16)<<3)&0xff)|7) : ((rgb16)<<3)&0xfc)
+
+// Extract RGB components from a 16-grays color value
+#define G2RGBRED(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+#define G2RGBGREEN(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+#define G2RGBBLUE(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+
+// Convert from RGB (0-255) to GRAY16(4-bit)
+#define RGB_TO_GRAY16(red,green,blue) ((( (red)+(green)+(green)+(blue)) >> 6)&0xf)
+
+
+#define REPEAT_NIBBLE(nib) (((nib)&0xf)|(((nib)&0xf)<<4))
+#define REPEAT_BYTE(byte) (((byte)&0xff)|(((byte)&0xff)<<8))
+#define REPEAT_HALFWORD(hword) (((hword)&0xffff)|(((hword)&0xffff)<<16))
+
+#define PATTERN_SOLID(gray) REPEAT_HALFWORD(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
+#define PATTERN_2COL(dot1,dot2) REPEAT_HALFWORD(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
+#define PATTERN_4COL(dot1,dot2,dot3,dot4) REPEAT_HALFWORD( ((dot1)&0xf) | (((dot2)&0xf)<<4)| (((dot3)&0xf)<<8)| (((dot4)&0xf)<<12) )
+
+// Theming engine definitions, include early to allow for target-specific overrides
+
+// Default palette size, entries 0-15 are for grayscale conversion, entries above 16 are customizable Theme colors for different elements of the UI
+#define PALETTESIZE     64
+#define PALETTEMASK     63
+
+#define IS_PALETTE_COLOR 0x10000
+
+// Global palette, can be used for grayscale conversion or for themes
+extern int ggl_palette[PALETTESIZE];
+
 // internal buffer for hblt routines
 
 #define HBLT_BUFFER 64  // default 64 words = 512 pixels
 
+#ifndef TARGET_PRIME1
+// The CGL library is a close drop-in replacement to replace the GGL (Gray Graphics Library)
+// which was fixed to 4-bits per pixel
+// CGL library has ggl_xxx functions that are fully compatible with GGL and will map the 16 grays
+// to a proper color. Code designed to run on GGL should work correctly with the screen in color mode.
+// ggl_xxx functions are equivalent but work with full color.
+
+// Data structures and API are meant to be compatible with GGL, so they need to be very similar for
+// ease of porting.
+
+#endif /* ! TARGET_PRIME1 */
 // data types/structures
 
 // surface used for bitblt operations
@@ -26,8 +79,13 @@
 // for normal drawing primitives, (0,0) is the word-aligned address pointed by .addr,
 // disregarding of the values in .x and .y
 // for bitblt operations, .x and .y give the origin (top-left corner) of the region to use
+#ifndef TARGET_PRIME1
+// the surface is PIXEL-aligned, so there's multiple pixels per word, and a scanline
+// may start misaligned. Use a proper .width if each scanline needs to be word aligned
+#else /* TARGET_PRIME1 */
 // the surface is nibble-aligned, so a 1 pixel wide surface will contain 8
 // rows of pixels per word
+#endif /* TARGET_PRIME1 */
 
 typedef struct
 {
@@ -35,7 +93,9 @@ typedef struct
     int width;  //! Width (in pixels) of the buffer
     int x, y;   //! Offset coordinates within the buffer
     int clipx, clipx2, clipy, clipy2;
-
+#ifdef TARGET_PRIME1
+    int actbuffer;   //! Active buffer: 0 or 1
+#endif /* TARGET_PRIME1 */
 } gglsurface;
 
 typedef unsigned int (*gglfilter)(unsigned int pixels, int param);
@@ -109,8 +169,8 @@ void ggl_revblt(gglsurface * dest, gglsurface * src, int width, int height);    
 // use it when the direcction of movement is unknown
 void ggl_ovlblt(gglsurface * dest, gglsurface * src, int width, int height);    // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
-#define ggl_bitbltmask(dest,src,width,height,tcol)  ggl_bitbltoper(dest,src,width,height,tcol,&ggl_opmask)
-#define ggl_monobitbltmask(dest,src,width,height,tcol)  ggl_monobitbltoper(dest,src,width,height,tcol,&ggl_opmask)
+#define ggl_bitbltmask(dest,src,width,height,tcol)  ggl_bitbltoper(dest,src,width,height,tcol,(ggloperator)&ggl_opmask)
+#define ggl_monobitbltmask(dest,src,width,height,tcol)  ggl_monobitbltoper(dest,src,width,height,tcol,(ggloperator)&ggl_opmask)
 
 void ggl_bitbltclip(gglsurface * dest, gglsurface * src, int width, int height);        // copy a rectangular region, clipped within dest
 
@@ -158,17 +218,25 @@ unsigned ggl_fltreplace(unsigned word, int param);
 
 // operators (between two surfaces)
 // standard mask, tcolor in src is considered transparent
-unsigned ggl_opmask(unsigned dest, unsigned src, int tcolor);
+unsigned ggl_opmask(unsigned dest, unsigned src, unsigned tcolor);
 // transparency blend, weight is 0 = src is opaque, 16 = src is fully transparent
 unsigned ggl_optransp(unsigned dest, unsigned src, int weight);
-// standard mask, tcolor in src is considered transparent, black color in src is AND with newcolor
-unsigned ggl_opmaskcol(unsigned dest, unsigned src, int tcolor, int newcolor);
-
-// miscellaneous
+// standard mask, tcolor in src is considered transparent, white color in src is replaced with newcolor
+unsigned ggl_opmaskcol(unsigned dest, unsigned src, unsigned tcolor, unsigned newcolor);
 
 // ggl_mkcolor repeats the same color on every nibble
 // ggl_mkcolor(2) will return 0x22222222
-int ggl_mkcolor(int color);     // solid color generator
+int ggl_mksolid(int color);     // solid color generator
+
+// ggl_getcolor takes a system palette index color and expands to an actual RGB16 color
+// for values 0-15 the system palette must match grayscale levels for compatibility
+#define ggl_mkcolor(color) (ggl_palette[(color)&PALETTEMASK])
+
+// Set a palette index entry
+#define ggl_setpalette(index,color) { ggl_palette[(index)&PALETTEMASK]=(color); }
+
+// Return the actual color to draw, either the given color or a palette color
+#define ggl_getcolor(color) (((color)&IS_PALETTE_COLOR)? ggl_palette[(color)&PALETTEMASK]: (color))
 
 // ggl_mkcolor32 creates virtual 32-colors by using 8x8 patterns
 // col32 is a value from 0 to 30, being 30=black, 0=white

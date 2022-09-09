@@ -134,7 +134,7 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const *font)
         tsurf.x = 0;
         tsurf.y = 0;
 
-        cgl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
+        ggl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
 
         return;
     }
@@ -148,7 +148,7 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const *font)
     BYTEPTR charptr = (BYTEPTR) (string + 1);
 
     DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
-            cgl_mkcolor(PAL_STKITEMS), scr);
+            ggl_mkcolor(PAL_STKITEMS), scr);
 
 }
 
@@ -206,11 +206,11 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
         tsurf.y = 0;
 
         // CLEAR THE BITMAP FIRST
-        cgl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,cgl_mkcolor(PAL_STKBACKGND));
+        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_mkcolor(PAL_STKBACKGND));
         //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
 
-        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, cgl_mkcolor(PAL_STKITEMS),
+        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, ggl_mkcolor(PAL_STKITEMS),
                 &tsurf);
 
         // AND ADD TO CACHE
@@ -243,7 +243,7 @@ void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
         tsurf.x = 0;
         tsurf.y = 0;
 
-        cgl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
+        ggl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
     }
     else {
         // DRAW DIRECTLY, SOMETHING WE COULDN'T RENDER
@@ -255,6 +255,6 @@ void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
         BYTEPTR charptr = (BYTEPTR) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
-                  FONT_STACK, cgl_mkcolor(PAL_STKITEMS), scr);
+                  FONT_STACK, ggl_mkcolor(PAL_STKITEMS), scr);
     }
 }

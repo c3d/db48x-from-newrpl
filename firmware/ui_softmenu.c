@@ -358,24 +358,24 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
     if(palette_color==PAL_MENUINVTEXT) {
         // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-        if(flags&2) { color=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); dircolor=cgl_mkcolor(PAL_MENUDIRMARK); }
-        else { color=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); dircolor=cgl_mkcolor(PAL_MENUINVDIRMARK); }
+        if(flags&2) { color=ggl_mkcolor(PAL_MENUTEXT); bcolor=ggl_mkcolor(PAL_MENUBACKGND); dircolor=ggl_mkcolor(PAL_MENUDIRMARK); }
+        else { color=ggl_mkcolor(PAL_MENUINVTEXT); bcolor=ggl_mkcolor(PAL_MENUINVBACKGND); dircolor=ggl_mkcolor(PAL_MENUINVDIRMARK); }
     }
     else {
         if(palette_color==PAL_MENUTEXT) {
         // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-        if(flags&2) { color=cgl_mkcolor(PAL_MENUINVTEXT); bcolor=cgl_mkcolor(PAL_MENUINVBACKGND); dircolor=cgl_mkcolor(PAL_MENUINVDIRMARK); }
-        else { color=cgl_mkcolor(PAL_MENUTEXT); bcolor=cgl_mkcolor(PAL_MENUBACKGND); dircolor=cgl_mkcolor(PAL_MENUDIRMARK); }
+        if(flags&2) { color=ggl_mkcolor(PAL_MENUINVTEXT); bcolor=ggl_mkcolor(PAL_MENUINVBACKGND); dircolor=ggl_mkcolor(PAL_MENUINVDIRMARK); }
+        else { color=ggl_mkcolor(PAL_MENUTEXT); bcolor=ggl_mkcolor(PAL_MENUBACKGND); dircolor=ggl_mkcolor(PAL_MENUDIRMARK); }
         }
         else {
           // JUST USE THE SPECIFIC COLORS REQUESTED BY CALLER, SWAP COLORS IF INVERTED BY FLAGS
             if(flags&2) {
-                dircolor=bcolor=cgl_mkcolor(palette_color);
-                color=cgl_mkcolor(palette_bkcolor);
+                dircolor=bcolor=ggl_mkcolor(palette_color);
+                color=ggl_mkcolor(palette_bkcolor);
             }
             else {
-                    color=cgl_mkcolor(palette_color);
-                    dircolor=bcolor=cgl_mkcolor(palette_bkcolor);
+                    color=ggl_mkcolor(palette_color);
+                    dircolor=bcolor=ggl_mkcolor(palette_bkcolor);
             }
         }
     }
@@ -387,7 +387,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
 
         // REDRAW THE BACKGROUND WITH THE NEW COLOR
-        if(flags&2) cgl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
+        if(flags&2) ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
 
 
 
@@ -401,7 +401,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
             pos = (scr->clipx2 + 1 + scr->clipx - w) >> 1;
 
         // FIRST LETTER GRAY BACKGROUND
-        cgl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
+        ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
                 dircolor);
         /*
         ggl_clipvline(scr, pos + 1, scr->clipy, scr->clipy2,
@@ -434,14 +434,14 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
             scr->y = scr->clipy;
 
 
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                   RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                   RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &ggl_fltreplace);
             scr->x-=vanishwidth;
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                    RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                    RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &ggl_fltreplace);
             scr->x-=vanishwidth;
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                    RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                    RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &ggl_fltreplace);
 
         }
 
@@ -464,23 +464,23 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
             pos = (scr->clipx2 + 1 + scr->clipx - w) >> 1;
         if(palette_color==PAL_MENUINVTEXT) {
             if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
-                color=cgl_mkcolor(PAL_MENUTEXT);
-                bcolor=cgl_mkcolor(PAL_MENUBACKGND);
-                dircolor=cgl_mkcolor(PAL_MENUDIRMARK);
+                color=ggl_mkcolor(PAL_MENUTEXT);
+                bcolor=ggl_mkcolor(PAL_MENUBACKGND);
+                dircolor=ggl_mkcolor(PAL_MENUDIRMARK);
 
                 // REDRAW THE BACKGROUND WITH THE NEW COLOR
-                cgl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
+                ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
             }
 
         }
         else {
         if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
-            color=cgl_mkcolor(PAL_MENUINVTEXT);
-            bcolor=cgl_mkcolor(PAL_MENUINVBACKGND);
-            dircolor=cgl_mkcolor(PAL_MENUINVDIRMARK);
+            color=ggl_mkcolor(PAL_MENUINVTEXT);
+            bcolor=ggl_mkcolor(PAL_MENUINVBACKGND);
+            dircolor=ggl_mkcolor(PAL_MENUINVDIRMARK);
 
             // REDRAW THE BACKGROUND WITH THE NEW COLOR
-            cgl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
+            ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
 
         }
         }
@@ -498,7 +498,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
 
             // FIRST LETTER GRAY BACKGROUND
-            cgl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
+            ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
                     dircolor);
 
             /*
@@ -544,14 +544,14 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
             scr->y = scr->clipy;
 
 
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                   RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                   RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &ggl_fltreplace);
             scr->x-=vanishwidth;
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                    RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                    RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &ggl_fltreplace);
             scr->x-=vanishwidth;
-            cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                    RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &cgl_fltreplace);
+            ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                    RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &ggl_fltreplace);
 
         }
 
@@ -628,7 +628,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
     // JUST DISPLAY THE STRING
 
     // REDRAW THE BACKGROUND WITH THE NEW COLOR
-    if(flags&2) cgl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
+    if(flags&2) ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
 
 
     BINT w = StringWidthN((char *)string, (char *)endstring,
@@ -644,7 +644,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
         //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
         //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,FONT_MENU,(color)? 0x4:0xa,scr);
 
-        cgl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
+        ggl_cliprect(scr, pos, scr->clipy, pos+MENU1_HEIGHT/2,scr->clipy2,
                 dircolor);
         /*
         // FIRST LETTER GRAY BACKGROUND
@@ -690,14 +690,14 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
         scr->y = scr->clipy;
 
 
-        cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-               RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &cgl_fltreplace);
+        ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+               RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2) | (color<<16) , &ggl_fltreplace);
         scr->x-=vanishwidth;
-        cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &cgl_fltreplace);
+        ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1) | (color<<16), &ggl_fltreplace);
         scr->x-=vanishwidth;
-        cgl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
-                RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &cgl_fltreplace);
+        ggl_filter(scr, vanishwidth, scr->clipy2 - scr->clipy + 1,
+                RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (color<<16), &ggl_fltreplace);
 
     }
 
