@@ -40,7 +40,7 @@ help:
 compiler: compiler-$(TAG).mak recorder
 	$(MAKE) -f $< install
 elf2rom: tools-bin/elf2rom
-tools-bin/elf2rom: tools/elf2rom/elf2rom.mak
+tools-bin/elf2rom: tools/elf2rom/elf2rom.mak | compiler
 	cd tools/elf2rom && $(MAKE) -f elf2rom.mak install
 tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	cd tools/elf2rom && qmake $(<F) -o $(@F)
@@ -55,7 +55,7 @@ tools/fonts/bmp2font/bmp2font.mak: tools/fonts/bmp2font/bmp2font.pro
 %-fw %-firmware: %-firmware-$(TAG).mak compiler elf2rom .ALWAYS
 	$(MAKE) -f $<
 
-%-firmware-$(TAG).mak: %-firmware.pro
+%-firmware-$(TAG).mak: %-firmware.pro | compiler elf2rom
 	qmake $< -spec devices/linux-generic-g++ CONFIG+=$(CONFIG) -o $@
 %-$(TAG).mak: %.pro
 	qmake $< CONFIG+=$(CONFIG) -o $@
