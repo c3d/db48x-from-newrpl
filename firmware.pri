@@ -49,16 +49,7 @@ include(newrpl.pri)
 SOURCES += \
     newrpl/mul_real_arm.c \
 
-# Cross compiler
-GCC_LIBDIR = $$system(arm-none-eabi-gcc -print-file-name=)
-
-INCLUDEPATH += $$GCC_LIBDIR/include
-QMAKE_LIBDIR += $$GCC_LIBDIR
-
 INCLUDEPATH += firmware/include newrpl
-
-## FIXME - We need this for a #include_next <stdint.h>, but we should not
-INCLUDEPATH += /usr/include
 
 LIBS += -lc -lgcc
 
@@ -67,6 +58,7 @@ DISTFILES += firmware/platform/$$PLATFORM/ld.script
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
+QMAKE_CFLAGS =--specs=nosys.specs
 
 QMAKE_CFLAGS_COMMON = \
 	$${DEVEL_OPTIONS} \
@@ -77,12 +69,12 @@ QMAKE_CFLAGS_COMMON = \
 	-mcpu=$$MACHINE_CPU \
 	-march=$$MACHINE_ARCH \
 	-mthumb-interwork \
-	-nostdinc \
 	-fomit-frame-pointer \
 	-fdata-sections \
 	-ffunction-sections \
 
 QMAKE_CFLAGS_DEBATABLE = \
+	-nostdinc \
 	-fno-jump-tables \
 	-fno-toplevel-reorder \
 	-fno-tree-loop-distribute-patterns \
@@ -92,11 +84,12 @@ QMAKE_CFLAGS_DEBUG   = -g -Og $$QMAKE_CFLAGS_COMMON
 QMAKE_CFLAGS_RELEASE = -O3 $$QMAKE_CFLAGS_COMMON
 
 QMAKE_LFLAGS = \
+	--specs=nosys.specs \
 	-g \
 	-T$$PWD/firmware/platform/$$PLATFORM/ld.script \
-	-nodefaultlibs \
-	-nostdlib \
 	-L$$GCC_LIBDIR \
-	 -Wl,--gc-sections \
+	-nostdlib \
+	-nodefaultlibs \
+	-Wl,--gc-sections \
 
 QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)

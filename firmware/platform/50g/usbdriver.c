@@ -605,7 +605,7 @@ void usb_ep0_receive(int newtransmission)
 
 }
 
-void inline usb_checkpipe()
+ARM_MODE void usb_checkpipe()
 {
     if((*EP0_CSR) & EP0_SETUP_END) {
         // SOMETHING HAPPENED, CLEAR THE CONDITION TO ALLOW RETRY
@@ -624,7 +624,7 @@ void inline usb_checkpipe()
 
 }
 
-void ep0_irqservice()
+ARM_MODE void ep0_irqservice()
 {
     *INDEX_REG = 0;     // SELECT ENDPOINT 0
 

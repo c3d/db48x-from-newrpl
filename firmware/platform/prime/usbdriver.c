@@ -372,7 +372,7 @@ static void usb_reset_full(void)
 {
     *URSTCON |= (URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
     tmr_delay100us();
-    
+
     *URSTCON &= ~(URSTCON_FUNC_RESET | URSTCON_PHY_RESET);
     tmr_delay100us();     // WAIT FOR THE PHY AND THE DEVICE BLOCK TO RESET
 
@@ -684,7 +684,7 @@ static void usb_ep0_read_buffer(void)
             *usb_ctlbufptr++ = MSB(halfword);
             *usb_ctlbufptr++ = LSB(halfword);
             usb_ctlcount -= 2;
-        }     
+        }
     }
 
     // THERE WAS EXTRA DATA IN THE PACKET??
@@ -723,7 +723,7 @@ void usb_ep0_receive(BYTEPTR buffer, BINT count)
     usb_ep0_read_buffer();
 }
 
-void inline usb_checkpipe()
+ARM_MODE void usb_checkpipe()
 {
     if (*EP0SR & EP0SR_SHT || *EP0CR & EP0CR_ESS) {
         // STALL HANDSHAKE SENT OR GOING TO BE SENT
@@ -737,7 +737,7 @@ void inline usb_checkpipe()
     // FIXME SSR?
 }
 
-void ep0_irqservice()
+ARM_MODE void ep0_irqservice()
 {
     *IR = 0;     // SELECT ENDPOINT 0
 
@@ -791,7 +791,7 @@ void ep0_irqservice()
         halfword = *EP0BR;
         --fifocount;
         index = MSB(halfword) | (LSB(halfword) << 8);
-        
+
         halfword = *EP0BR;
         --fifocount;
         length = MSB(halfword) | (LSB(halfword) << 8);
@@ -1306,7 +1306,7 @@ void usb_ep2_receive()
     halfword = *EP2BR;
     --fifocnt;
     int p_type = MSB(halfword);
- 
+
     if(p_type & 0x80) {
         // THIS IS A CONTROL PACKET
         // PUT IT IN THE CTL BUFFER AND NOTIFY THE USER
