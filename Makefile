@@ -79,5 +79,5 @@ reformat clang-format: $(FILES:%=%.clang-format)
 %.clang-format:
 	clang-format -i $*
 
-.PRECIOUS: %.mak
+.PRECIOUS: %.mak %-$(TAG).mak
 .ALWAYS:
