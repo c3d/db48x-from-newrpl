@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += \
     elf2rom.c
 
-LIBS += -lelf
+QMAKE_CFLAGS += $$system(pkg-config --cflags libelf)
+LIBS += $$system(pkg-config --libs libelf)
 
 install_bin.path = $$PWD/../../tools-bin
 install_bin.files = $$OUT_PWD/elf2rom
