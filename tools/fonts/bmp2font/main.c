@@ -1,63 +1,57 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct
 {
-    unsigned int FileSize;
-    unsigned int Reserved;
-    unsigned int Offset;
-    unsigned int HeaderSize;
-    unsigned int Width;
-    int Height;
+    unsigned int   FileSize;
+    unsigned int   Reserved;
+    unsigned int   Offset;
+    unsigned int   HeaderSize;
+    unsigned int   Width;
+    int            Height;
     unsigned short Planes;
     unsigned short BitsPixel;
-    unsigned int Compression;
-    unsigned int ImageSize;
-    unsigned int XPels_Meter;
-    unsigned int YPels_Meter;
-    unsigned int NumClr;
-    unsigned int ClrImp;
+    unsigned int   Compression;
+    unsigned int   ImageSize;
+    unsigned int   XPels_Meter;
+    unsigned int   YPels_Meter;
+    unsigned int   NumClr;
+    unsigned int   ClrImp;
 } BMP_Header;
 
-#define LIB_FONTS   78
-
-#define MAX_GLYPHS 65536
-
-#define MAX_NCHARS       0xfffff
-
-#define PACKDATA(w,o) (((w)<<16)|((o&0xffff)))
-
-#define SING_OFFSET(val) (((val)&0xFFF))
-#define SING_LEN(val) (((val)>>12)&0xfffff)
-
-#define MK_SINGRANGE(start,end,offset) ((((end)-(start)+1)<<12)|((offset)&0xfff))
-#define MK_SINGGAP(start,end) MK_SINGRANGE(start,end,0xfff)
-
-#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
+#define LIB_FONTS                        78
+#define MAX_GLYPHS                       65536
+#define MAX_NCHARS                       0xfffff
+#define PACKDATA(w, o)                   (((w) << 16) | ((o & 0xffff)))
+#define SING_OFFSET(val)                 (((val) &0xFFF))
+#define SING_LEN(val)                    (((val) >> 12) & 0xfffff)
+#define MK_SINGRANGE(start, end, offset) ((((end) - (start) + 1) << 12) | ((offset) &0xfff))
+#define MK_SINGGAP(start, end)           MK_SINGRANGE(start, end, 0xfff)
+#define MKPROLOG(lib, size)              ((((lib) &0xFFF) << 20) | ((size) &0x3FFFF) | 0x80000)
 
 // GET FONT INFORMATION
-
-int width[MAX_GLYPHS];
-int offset[MAX_GLYPHS];
-int codeidx[0x110000];
-char txtbuff[1024 * 1024];       // MAX. 1MB FOR THE TEXT FILE
+int          width[MAX_GLYPHS];
+int          offset[MAX_GLYPHS];
+int          codeidx[0x110000];
+char         txtbuff[1024 * 1024]; // MAX. 1MB FOR THE TEXT FILE
 unsigned int packedata[0x110000];
 unsigned int ranges[2000];
-int used_ranges;
+int          used_ranges;
 unsigned int offdata[20000 + MAX_NCHARS];
-int used_data;
+int          used_data;
 
 // FIND DUPLICATED ITEMS IN THE STREAM
 int searchDupData(unsigned int *start, int nitems)
 {
     int j, k;
 
-    for(j = 0; j < used_data - nitems; ++j) {
-        for(k = 0; k < nitems; ++k)
-            if(start[k] != offdata[j + k])
+    for (j = 0; j < used_data - nitems; ++j)
+    {
+        for (k = 0; k < nitems; ++k)
+            if (start[k] != offdata[j + k])
                 break;
-        if(k == nitems)
+        if (k == nitems)
             return j;
     }
     return -1;
@@ -65,72 +59,80 @@ int searchDupData(unsigned int *start, int nitems)
 
 int main(int argc, char *argv[])
 {
-    if(argc < 4) {
+    if (argc < 4)
+    {
         printf("bmp2font 1.0\n------------\n\n");
-        printf("Syntax: bmp2font <font-bitmap-file.bmp> <font-text-file.txt> <output[.c or .nrpl]> [name of C variable]\n\n");
+        printf(
+            "Syntax: bmp2font <font-bitmap-file.bmp> <font-text-file.txt> <output[.c or .nrpl]> [name of C "
+            "variable]\n\n");
         return 0;
     }
-    char *bmpfile = argv[1], *txtfile = argv[2], *outfile = argv[3], *fontname;
-    char fname[4096];
+    char          *bmpfile = argv[1], *txtfile = argv[2], *outfile = argv[3], *fontname;
+    char           fname[4096];
     unsigned char *bmpdata;
-    int binary = 1;
+    int            binary = 1;
 
-    if(!strncmp(outfile + strlen(outfile) - 2, ".c", 2)) {
+    if (!strncmp(outfile + strlen(outfile) - 2, ".c", 2))
+    {
         // THE FILE REQUESTED IS IN .c FORMAT
         binary = 0;
-        if(argc >= 5)
+        if (argc >= 5)
             fontname = argv[4];
-        else {
+        else
+        {
             // IF NOT PROVIDED BY THE USER, USE A NAME EXTRACTED FROM THE OUTPUT FILE
             int end = strlen(outfile) - 2;
             strncpy(fname, outfile, end);
             fname[end] = 0;
-            fontname = fname;
+            fontname   = fname;
         }
-
     }
     else
         fontname = NULL;
 
     FILE *han = fopen(bmpfile, "rb");
 
-    if(!han) {
+    if (!han)
+    {
         printf("Unable to open file '%s'\n", bmpfile);
         return 1;
     }
 
-    int invert;
-    BMP_Header hdr;
+    int          invert;
+    BMP_Header   hdr;
     unsigned int Palette[256];
 
     fseek(han, 2, SEEK_SET);
     fread(&hdr, sizeof(BMP_Header), 1, han);
 
-    if(hdr.BitsPixel != 8 || hdr.Planes != 1) {
+    if (hdr.BitsPixel != 8 || hdr.Planes != 1)
+    {
         fclose(han);
         printf("Only grayscale or 256-color bitmaps supported\n");
         return 0;
     }
 
-    if(hdr.HeaderSize > 40)
+    if (hdr.HeaderSize > 40)
         fseek(han, hdr.HeaderSize - 40, SEEK_CUR);
 
     fread(Palette, 4, 256, han);
 
-    if(hdr.Height < 0) {
+    if (hdr.Height < 0)
+    {
         hdr.Height = -hdr.Height;
-        invert = 0;
+        invert     = 0;
     }
     else
         invert = 1;
 
     int rowwords = ((hdr.Width * hdr.BitsPixel) / 8 + 3) >> 2;
 
-//printf("rowwords=%d\n",rowwords);
+    // printf("rowwords=%d\n",rowwords);
 
-    bmpdata = malloc(rowwords * 4 * hdr.Height);
+    bmpdata      = malloc(rowwords * 4 * hdr.Height);
 
-    if(!bmpdata) {
+    if (!bmpdata)
+    {
         fclose(han);
         printf("Memory allocation error\n");
         return 1;
@@ -140,82 +142,88 @@ int main(int argc, char *argv[])
     fread(bmpdata, 4, rowwords * hdr.Height, han);
     fclose(han);
 
-//printf("Bitmap read=%d bytes (requested %d bytes)\n",bytesread*4,rowwords*hdr.Height*4);
+    // printf("Bitmap read=%d bytes (requested %d bytes)\n",bytesread*4,rowwords*hdr.Height*4);
 
     printf("Bitmap read correctly\n");
 
-// *********************************************************
-// BEGIN FONT PROCESSING
-// *********************************************************
+    // *********************************************************
+    // BEGIN FONT PROCESSING
+    // *********************************************************
 
-// SCAN THE BITMAP FOR WIDTH AND OFFSET INFO
+    // SCAN THE BITMAP FOR WIDTH AND OFFSET INFO
 
-    int x;
+    int            x;
     unsigned char *addr;
-    unsigned char change = 0xaa;
-    int idx = 0;
-    addr = bmpdata + (invert ? 0 : (rowwords * 4 * (hdr.Height - 1)));
+    unsigned char  change = 0xaa;
+    int            idx    = 0;
+    addr                  = bmpdata + (invert ? 0 : (rowwords * 4 * (hdr.Height - 1)));
 
-    for(x = 0; x < (int)hdr.Width; ++x) {
-        if(addr[x] != change) {
-            if(idx > 0)
+    for (x = 0; x < (int) hdr.Width; ++x)
+    {
+        if (addr[x] != change)
+        {
+            if (idx > 0)
                 width[idx - 1] = x - offset[idx - 1];
             offset[idx] = x;
             ++idx;
             change = addr[x];
         }
     }
-    if(idx > 0)
+    if (idx > 0)
         width[idx - 1] = x - offset[idx - 1];
-//offset[idx]=x;
-//++idx;
+    // offset[idx]=x;
+    //++idx;
 
     printf("Detected %d symbols in bitmap\n", idx);
 
-// CONVERT THE BITMAP TO MONOCHROME
+    // CONVERT THE BITMAP TO MONOCHROME
 
-    unsigned char *monobitmap =
-            calloc((hdr.Height - 1), ((hdr.Width + 7) >> 3));
-    if(!monobitmap) {
+    unsigned char *monobitmap = calloc((hdr.Height - 1), ((hdr.Width + 7) >> 3));
+    if (!monobitmap)
+    {
         printf("Memory allocation error.\n");
         free(bmpdata);
         return 1;
     }
 
-    int color;
+    int            color;
     unsigned char *ptr = monobitmap;
-    int y, ystart, yend, yinc, rowlen;
+    int            y, ystart, yend, yinc, rowlen;
 
     rowlen = (hdr.Width + 7) >> 3;
 
-    if(invert) {
+    if (invert)
+    {
         ystart = hdr.Height - 1;
-        yend = 0;
-        yinc = -1;
+        yend   = 0;
+        yinc   = -1;
     }
-    else {
+    else
+    {
         ystart = 0;
-        yend = hdr.Height - 1;
-        yinc = 1;
+        yend   = hdr.Height - 1;
+        yinc   = 1;
     }
 
-    for(y = ystart; y != yend; y += yinc) {
+    for (y = ystart; y != yend; y += yinc)
+    {
         addr = bmpdata + y * rowwords * 4;
-        for(x = 0; x < (int)hdr.Width; ++x) {
-            color = Palette[(int)addr[x]];
-            if(!color) {
+        for (x = 0; x < (int) hdr.Width; ++x)
+        {
+            color = Palette[(int) addr[x]];
+            if (!color)
                 ptr[x >> 3] |= 1 << (x & 7);
-            }
         }
         ptr += rowlen;
     }
 
-// FINISHED BITMAP CONVERSION
+    // FINISHED BITMAP CONVERSION
 
-// READ THE GLYPHS CODES
+    // READ THE GLYPHS CODES
     han = fopen(txtfile, "rb");
 
-    if(!han) {
+    if (!han)
+    {
         printf("Unable to open file '%s'\n", txtfile);
         free(monobitmap);
         free(bmpdata);
@@ -225,34 +233,36 @@ int main(int argc, char *argv[])
     txtsize = fread(txtbuff, 1, 256 * 1024, han);
     fclose(han);
 
-// PROCESS THE TEXT FILE
+    // PROCESS THE TEXT FILE
     char *txtend = txtbuff + txtsize;
     char *lineend, *taddr;
-    taddr = txtbuff;
+    taddr      = txtbuff;
     int txtidx = 0, usedline = 0, usedflag;
     int base, ndigits;
 
-// RESET ALL UNICODE CHARACTERS TO POINT TO SYMBOL 0
-    for(y = 0; y < 0x110000; ++y)
+    // RESET ALL UNICODE CHARACTERS TO POINT TO SYMBOL 0
+    for (y = 0; y < 0x110000; ++y)
         codeidx[y] = 0;
 
-// SCAN THE FILE FOR CODES
-    while(taddr < txtend) {
-
-        lineend = taddr;
+    // SCAN THE FILE FOR CODES
+    while (taddr < txtend)
+    {
+        lineend  = taddr;
         usedflag = 0;
-        while((*lineend != '\n') && (lineend < txtend))
+        while ((*lineend != '\n') && (lineend < txtend))
             ++lineend;
 
-        do {
+        do
+        {
             // SKIP ANY BLANKS
-            while(((*taddr == ' ') || (*taddr == '\t')) && (taddr < lineend))
+            while (((*taddr == ' ') || (*taddr == '\t')) && (taddr < lineend))
                 ++taddr;
 
-            if(taddr >= txtend)
+            if (taddr >= txtend)
                 break;
 
-            if((taddr[0] == '/') || (taddr[0] == '\n')) {
+            if ((taddr[0] == '/') || (taddr[0] == '\n'))
+            {
                 // DISCARD REST OF THE LINE
                 taddr = lineend;
                 ++txtidx;
@@ -260,8 +270,10 @@ int main(int argc, char *argv[])
             }
 
             base = 10;
-            if(taddr[0] == '0') {
-                if((taddr[1] == 'x') || (taddr[1] == 'X')) {
+            if (taddr[0] == '0')
+            {
+                if ((taddr[1] == 'x') || (taddr[1] == 'X'))
+                {
                     base = 16;
                     taddr += 2;
                 }
@@ -269,107 +281,108 @@ int main(int argc, char *argv[])
             }
             // CONVERT THE NUMBER
             unsigned int result = 0;
-            int digit = -1;
-            ndigits = 0;
+            int          digit  = -1;
+            ndigits             = 0;
 
-            do {
-
-                if((taddr[0] >= '0') && (taddr[0] <= '9'))
+            do
+            {
+                if ((taddr[0] >= '0') && (taddr[0] <= '9'))
                     digit = taddr[0] - '0';
-                else {
-                    if(base == 16) {
-                        if((taddr[0] >= 'A') && (taddr[0] <= 'F'))
+                else
+                {
+                    if (base == 16)
+                    {
+                        if ((taddr[0] >= 'A') && (taddr[0] <= 'F'))
                             digit = taddr[0] - 'A' + 10;
-                        else if((taddr[0] >= 'a') && (taddr[0] <= 'f'))
+                        else if ((taddr[0] >= 'a') && (taddr[0] <= 'f'))
                             digit = taddr[0] - 'a' + 10;
                     }
                 }
 
-                if(digit < 0) {
-                    if((taddr[0] != ',') && (taddr[0] != '/')
-                            && (taddr[0] != '\n') && (taddr[0] != '\r')
-                            && (taddr[0] != ' ') && (taddr[0] != '\t')) {
-                        printf("Syntax error in text file, line=%d\n",
-                                txtidx + 1);
+                if (digit < 0)
+                {
+                    if ((taddr[0] != ',') && (taddr[0] != '/') && (taddr[0] != '\n') && (taddr[0] != '\r') &&
+                        (taddr[0] != ' ') && (taddr[0] != '\t'))
+                    {
+                        printf("Syntax error in text file, line=%d\n", txtidx + 1);
                         free(bmpdata);
                         free(monobitmap);
                         return 1;
                     }
-                    if(ndigits) {
-                        if(result > 0x10ffff) {
+                    if (ndigits)
+                    {
+                        if (result > 0x10ffff)
+                        {
                             printf("Number out of range in text file, line=%d\n", txtidx + 1);
                             free(bmpdata);
                             free(monobitmap);
                             return 1;
                         }
                         codeidx[result] = usedline;
-                        //printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
+                        // printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
 
-                        usedflag = 1;
+                        usedflag        = 1;
                     }
                     break;
                 }
-                else {
+                else
+                {
                     result = result * base + digit;
                     ++ndigits;
                     digit = -1;
                     ++taddr;
                 }
 
-            }
-            while(taddr < lineend);
+            } while (taddr < lineend);
 
-            if(taddr == lineend) {
-                if(ndigits) {
-                    if(result > 0x10ffff) {
-                        printf("Number out of range in text file, line=%d\n",
-                                txtidx + 1);
+            if (taddr == lineend)
+            {
+                if (ndigits)
+                {
+                    if (result > 0x10ffff)
+                    {
+                        printf("Number out of range in text file, line=%d\n", txtidx + 1);
                         free(bmpdata);
                         free(monobitmap);
                         return 1;
                     }
                     codeidx[result] = usedline;
-                    //printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
-                    usedflag = 1;
+                    // printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
+                    usedflag        = 1;
                 }
-
             }
             // POSSIBLY SKIP BLANKS BEFORE A COMMA
-            while(((*taddr == ' ') || (*taddr == '\t')) && (taddr < lineend))
+            while (((*taddr == ' ') || (*taddr == '\t')) && (taddr < lineend))
                 ++taddr;
 
-        }
-        while(*taddr++ == ',');
+        } while (*taddr++ == ',');
 
         // END OF LINE REACHED
-        if(usedflag)
+        if (usedflag)
             ++usedline;
         taddr = lineend + 1;
     }
 
     printf("Number of codes in text file: %d\n", usedline);
 
-    if(usedline != idx) {
+    if (usedline != idx)
+    {
         int references[idx];
 
-        for(y = 0; y < idx; ++y)
+        for (y = 0; y < idx; ++y)
             references[y] = 0;
 
-        for(y = 0; y < 0x110000; ++y)
+        for (y = 0; y < 0x110000; ++y)
             references[codeidx[y]]++;
 
-        for(y = 0; y < idx; ++y) {
-            if(references[y] == 0) {
+        for (y = 0; y < idx; ++y)
+            if (references[y] == 0)
                 printf("**Warning**: Symbol %d at X=%d is not referenced from text file (unused).\n", y, offset[y]);
-            }
-
-        }
-
     }
 
-// PACK AND SAVE THE DATA
+    // PACK AND SAVE THE DATA
 
-// FONT STRUCTURE
+    // FONT STRUCTURE
     /*
      * 4-BYTES PROLOG W/SIZE (COMPATIBLE WITH NEWRPL OBJECT FORMAT)
      * 4-BYTES:
@@ -378,9 +391,9 @@ int main(int argc, char *argv[])
      *          2-BYTES: OFFSET IN WORDS FROM PROLOG TO FONT BITMAP
      *          2-BYTES: OFFSET IN WORDS FROM PROLOG TO WIDTH&OFFSET TABLE
      * ------ TABLE OF UNICODE->GLYPH MAPPING -----
-     * 4-BYTE RANGES: 0xNNNNNOOO, WITH N=NUMBER OF CODES IN THIS RANGE, OOO=INDEX INTO WIDTH&OFFSET TABLE (0-4094, 4095 IS RESERVED FOR UNMAPPED)
-     *                0xNNNNNFFF, WHEN OOO=0XFFF, THE ENTIRE RANGE OF CODES IS MAPPED TO INDEX 0 OF THE WIDTH&OFFSET TABLE.
-     * REPEAT UNTIL IT COVERS THE ENTIRE UNICODE RANGE 0x110000
+     * 4-BYTE RANGES: 0xNNNNNOOO, WITH N=NUMBER OF CODES IN THIS RANGE, OOO=INDEX INTO WIDTH&OFFSET TABLE (0-4094, 4095
+     * IS RESERVED FOR UNMAPPED) 0xNNNNNFFF, WHEN OOO=0XFFF, THE ENTIRE RANGE OF CODES IS MAPPED TO INDEX 0 OF THE
+     * WIDTH&OFFSET TABLE. REPEAT UNTIL IT COVERS THE ENTIRE UNICODE RANGE 0x110000
      *
      * ------ TABLE OF WIDTH & OFFSET
      * 4-BYTES VALUES 0xWWWWOOOO, WITH W=WIDTH IN PIXELS, OOO=x COORDINATE WITHIN THE BITMAP
@@ -392,49 +405,52 @@ int main(int argc, char *argv[])
      * ----- PADDING FOR WORD-ALIGNMENT
      */
 
-// ANALYZE RANGES AND PACK
-// BEGIN ANALYSIS OF RANGES
+    // ANALYZE RANGES AND PACK
+    // BEGIN ANALYSIS OF RANGES
 
-// PACK THE OFFSET AND WIDTH DATA
+    // PACK THE OFFSET AND WIDTH DATA
 
 #define PACK_THRESHOLD 40
 
     int j, r;
 
-    for(j = 0; j < 0x110000; ++j) {
+    for (j = 0; j < 0x110000; ++j)
         packedata[j] = PACKDATA(width[codeidx[j]], offset[codeidx[j]]);
-    }
 
-    used_data = 0;
-    used_ranges = 0;
+    used_data     = 0;
+    used_ranges   = 0;
 
     int prevrange = 0;
-    j = 0;
-    do {
+    j             = 0;
+    do
+    {
         r = j + 1;
-        while((packedata[r] == packedata[j]) && (r < 0x110000))
+        while ((packedata[r] == packedata[j]) && (r < 0x110000))
             ++r;
-        if(r - j > PACK_THRESHOLD) {
-            if(j != prevrange) {
-
-                while(j - prevrange > MAX_NCHARS) {
-
-                    int location =
-                            searchDupData(packedata + prevrange, MAX_NCHARS);
+        if (r - j > PACK_THRESHOLD)
+        {
+            if (j != prevrange)
+            {
+                while (j - prevrange > MAX_NCHARS)
+                {
+                    int location = searchDupData(packedata + prevrange, MAX_NCHARS);
                     printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n",
-                            prevrange, prevrange + MAX_NCHARS - 1, MAX_NCHARS,
-                            location < 0 ? used_data : location);
+                           prevrange,
+                           prevrange + MAX_NCHARS - 1,
+                           MAX_NCHARS,
+                           location < 0 ? used_data : location);
                     unsigned int data;
 
-                    if(location < 0) {
+                    if (location < 0)
+                    {
                         // APPEND NEW DATA
                         data = MK_SINGRANGE(1, MAX_NCHARS, used_data);
                         int f;
-                        for(f = prevrange; f < prevrange + MAX_NCHARS;
-                                ++f, ++used_data)
+                        for (f = prevrange; f < prevrange + MAX_NCHARS; ++f, ++used_data)
                             offdata[used_data] = packedata[f];
                     }
-                    else {
+                    else
+                    {
                         // DATA IS REPEATED, REUSE
                         data = MK_SINGRANGE(1, MAX_NCHARS, location);
                     }
@@ -446,48 +462,49 @@ int main(int argc, char *argv[])
 
                 // THERE'S A GAP OF NON-REPEATED BYTES
 
-                int location =
-                        searchDupData(packedata + prevrange, j - prevrange);
+                int          location = searchDupData(packedata + prevrange, j - prevrange);
                 unsigned int data;
-                printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n", prevrange,
-                        j - 1, j - prevrange,
-                        location < 0 ? used_data : location);
-                if(location < 0) {
+                printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n",
+                       prevrange,
+                       j - 1,
+                       j - prevrange,
+                       location < 0 ? used_data : location);
+                if (location < 0)
+                {
                     data = MK_SINGRANGE(prevrange, j - 1, used_data);
                     int f;
-                    for(f = prevrange; f < j; ++f, ++used_data)
+                    for (f = prevrange; f < j; ++f, ++used_data)
                         offdata[used_data] = packedata[f];
                 }
-                else {
+                else
+                {
                     data = MK_SINGRANGE(prevrange, j - 1, location);
                 }
                 ranges[used_ranges] = data;
                 ++used_ranges;
-
             }
             // ADD THE RANGE WITH REPETITIVE DATA
 
-            printf("Range: %04X..%04X = %02X, LEN=%d\n", j, r - 1, packedata[j],
-                    r - j);
+            printf("Range: %04X..%04X = %02X, LEN=%d\n", j, r - 1, packedata[j], r - j);
             ranges[used_ranges] = MK_SINGGAP(j, r - 1);
             ++used_ranges;
             prevrange = r;
         }
         j = r;
-    }
-    while(j < 0x110000);
+    } while (j < 0x110000);
 
     printf("Total ranges=%d\n", used_ranges);
-    printf("Total table bytes=%d\n", (int)sizeof(unsigned int) * used_data);
+    printf("Total table bytes=%d\n", (int) sizeof(unsigned int) * used_data);
 
-// DONE PROCESSING, CREATE FILE AND SAVE IT
+    // DONE PROCESSING, CREATE FILE AND SAVE IT
 
-// WRITE BINARY FILE
-    if(binary) {
-
+    // WRITE BINARY FILE
+    if (binary)
+    {
         han = fopen(outfile, "wb");
 
-        if(!han) {
+        if (!han)
+        {
             printf("Cannot open output file '%s'.\n", outfile);
             free(monobitmap);
             free(bmpdata);
@@ -496,11 +513,9 @@ int main(int argc, char *argv[])
 
         printf("Starting binary output to file '%s'\n", outfile);
 
-        int totalsize =
-                2 + used_ranges + used_data +
-                ((rowlen * (hdr.Height - 1) + 3) >> 2);
+        int          totalsize = 2 + used_ranges + used_data + ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
-        unsigned int prolog = MKPROLOG(LIB_FONTS, totalsize);
+        unsigned int prolog    = MKPROLOG(LIB_FONTS, totalsize);
 
         fwrite(&prolog, 4, 1, han);
 
@@ -512,25 +527,28 @@ int main(int argc, char *argv[])
 
         fwrite(&prolog, 4, 1, han);
 
-// WRITE RANGES
+        // WRITE RANGES
         fwrite(&ranges, 4, used_ranges, han);
 
-// WRITE DATA TABLE
+        // WRITE DATA TABLE
         fwrite(&offdata, 4, used_data, han);
 
-// WRITE BITMAP
+        // WRITE BITMAP
         fwrite(&monobitmap, rowlen, hdr.Height - 1, han);
 
         j = 4 - ((rowlen * (hdr.Height - 1)) & 3);
-        if(j < 4) {
+        if (j < 4)
+        {
             prolog = 0;
             fwrite(&prolog, 1, j, han);
         }
     }
-    else {
+    else
+    {
         // TEXT OUTPUT
         FILE *fontlist = fopen("fontlist.h", "a");
-        if (!fontlist) {
+        if (!fontlist)
+        {
             fprintf(stderr, "Cannot open header file '%s'.\n", "fontlist.h");
             free(monobitmap);
             free(bmpdata);
@@ -540,12 +558,15 @@ int main(int argc, char *argv[])
                 "\n"
                 "extern const UNIFONT FONT_%s;\n"
                 "#define Font_%s (&FONT_%s)\n",
-                fontname, fontname, fontname);
+                fontname,
+                fontname,
+                fontname);
         fclose(fontlist);
 
         han = fopen(outfile, "wt");
 
-        if(!han) {
+        if (!han)
+        {
             fprintf(stderr, "Cannot open output file '%s'.\n", outfile);
             free(monobitmap);
             free(bmpdata);
@@ -554,17 +575,16 @@ int main(int argc, char *argv[])
 
         printf("Starting C format output to file '%s'\n", outfile);
 
-        int totalsize =
-                2 + used_ranges + used_data +
-                ((rowlen * (hdr.Height - 1) + 3) >> 2);
+        int          totalsize = 2 + used_ranges + used_data + ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
-        unsigned int prolog = MKPROLOG(LIB_FONTS, totalsize);
+        unsigned int prolog    = MKPROLOG(LIB_FONTS, totalsize);
 
-        //fwrite(&prolog,4,1,han);
+        // fwrite(&prolog,4,1,han);
         fprintf(han,
                 "\n"
                 "/*************** FONT FILE CONVERTED FROM %s AND %s ************** */\n",
-                bmpfile, txtfile);
+                bmpfile,
+                txtfile);
 
         fprintf(han,
                 "\n"
@@ -575,13 +595,13 @@ int main(int argc, char *argv[])
                 fontname);
 
         fprintf(han,
-                "  .Prolog       = 0x%X,\n"
-                "  .BitmapWidth  = %u,\n"
-                "  .BitmapHeight = %u,\n"
-                "  .OffsetBitmap = %u,\n"
-                "  .OffsetTable  = %u,\n"
+                "    .Prolog       = 0x%X,\n"
+                "    .BitmapWidth  = %u,\n"
+                "    .BitmapHeight = %u,\n"
+                "    .OffsetBitmap = %u,\n"
+                "    .OffsetTable  = %u,\n"
                 "\n"
-                "  .MapTable = {\n",
+                "    .MapTable = {\n",
                 prolog,
                 rowlen,
                 hdr.Height - 1,
@@ -589,60 +609,57 @@ int main(int argc, char *argv[])
                 3 + used_ranges);
 
         // WRITE RANGES
-        //fwrite(&ranges,4,used_ranges,han);
+        // fwrite(&ranges,4,used_ranges,han);
         fprintf(han, "    // Ranges");
-        for(j = 0; j < used_ranges; ++j) {
-            if(j % 8 == 0)
-                fprintf(han, "\n    ");
+        for (j = 0; j < used_ranges; ++j)
+        {
+            if (j % 8 == 0)
+                fprintf(han, "\n        ");
             fprintf(han, "0x%08X, ", ranges[j]);
         }
         fprintf(han,
                 "\n"
-                "    // End of ranges\n"
+                "        // End of ranges\n"
                 "\n");
 
         // WRITE DATA TABLE
-        //fwrite(&offdata,2,used_data,han);
-        fprintf(han, "    // Data tables");
-        for(j = 0; j < used_data; ++j) {
-            if(j % 8 == 0)
-                fprintf(han, "\n    ");
+        // fwrite(&offdata,2,used_data,han);
+        fprintf(han, "        // Data tables");
+        for (j = 0; j < used_data; ++j)
+        {
+            if (j % 8 == 0)
+                fprintf(han, "\n        ");
             fprintf(han, "0x%08X, ", offdata[j]);
         }
         fprintf(han,
                 "\n"
-                "    // End of data tables\n"
+                "        // End of data tables\n"
                 "\n");
 
         // WRITE BITMAP
         // fwrite(&monobitmap,rowlen,hdr.Height-1,han);
         // REVISIT: This code assumes little-endian
-        fprintf(han, "    // Bitmap data");
+        fprintf(han, "        // Bitmap data");
         r = rowlen * (hdr.Height - 1);
-        for(j = 0; j < r; ++j) {
-            if(j % 32 == 0)
-                fprintf(han, "\n    ");
-            switch (j & 3) {
-            case 0:
-                prolog = monobitmap[j];
-                break;
-            case 1:
-                prolog |= monobitmap[j] << 8;
-
-                break;
-            case 2:
-                prolog |= monobitmap[j] << 16;
-
-                break;
+        for (j = 0; j < r; ++j)
+        {
+            if (j % 32 == 0)
+                fprintf(han, "\n        ");
+            switch (j & 3)
+            {
+            case 0: prolog = monobitmap[j]; break;
+            case 1: prolog |= monobitmap[j] << 8; break;
+            case 2: prolog |= monobitmap[j] << 16; break;
             case 3:
                 prolog |= monobitmap[j] << 24;
 
                 fprintf(han, "0x%08X", prolog);
-                if(j != r - 1)
+                if (j != r - 1)
                     fprintf(han, ", ");
             }
         }
-        if(j & 3) {
+        if (j & 3)
+        {
             fprintf(han, "0x%04X", prolog);
             fprintf(han, "\n");
         }
@@ -650,8 +667,8 @@ int main(int argc, char *argv[])
         // FINISHED OUTPUT
         fprintf(han,
                 "\n"
-                "    // End of bitmap data\n"
-                "  }\n"
+                "        // End of bitmap data\n"
+                "    }\n"
                 "};\n"
                 "\n"
                 "/*********** END OF CONVERTED FONT ******************/\n");
@@ -673,13 +690,12 @@ int main(int argc, char *argv[])
            }
            fprintf(han,"\n\n};");
          */
-
     }
 
     fclose(han);
 
     printf("Done.\n\n");
-// FINISHED WRITING FONT FILE
+    // FINISHED WRITING FONT FILE
 
     return 0;
 }
