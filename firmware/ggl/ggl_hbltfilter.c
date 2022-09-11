@@ -16,11 +16,11 @@ void ggl_hbltfilter(int *dest, int destoff, int npixels, int param, gglfilter fi
     // destoff OFFSET IN NIBBLES (PIXELS) FROM dest
     // param IS AN ARBITRARY PARAMETER PASSED TO THE FILTER FUNCTION
     // filterfunc IS THE CUSTOM FILTER FUNCTION
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     // COPIES npixels NIBBLES FROM src TO dest
     // dest AND src ARE WORD ALIGNED ADDRESSES
     // destoff AND srcoff ARE OFFSETS IN NIBBLES (PIXELS) FROM dest AND src
-    unsigned short int *pdest = (unsigned short int *)dest + destoff;
+    unsigned short int *pdest = (unsigned short int *) dest + destoff;
 #endif /* TARGET_PRIME1 */
 
 #ifndef TARGET_PRIME1
@@ -28,9 +28,9 @@ void ggl_hbltfilter(int *dest, int destoff, int npixels, int param, gglfilter fi
 
     // MASK AND UPDATE
 
-    int ml = ggl_leftmask(destoff), mr = ggl_rightmask(destoff + npixels - 1);
+    int  ml = ggl_leftmask(destoff), mr = ggl_rightmask(destoff + npixels - 1);
     start = dest + (destoff >> 3);
-    end = dest + ((destoff + npixels - 1) >> 3);
+    end   = dest + ((destoff + npixels - 1) >> 3);
 
     if (start == end)
     {
@@ -44,14 +44,14 @@ void ggl_hbltfilter(int *dest, int destoff, int npixels, int param, gglfilter fi
     ++start;
 
     while (start != end)
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     while (npixels--)
 #endif /* TARGET_PRIME1 */
     {
 #ifndef TARGET_PRIME1
         *start = (*filterfunc)(*start, param);
         ++start;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
         *pdest = (*filterfunc)(*pdest, param);
         ++pdest;
 #endif /* TARGET_PRIME1 */

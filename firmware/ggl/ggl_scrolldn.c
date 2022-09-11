@@ -17,10 +17,10 @@ void ggl_scrolldn(gglsurface *dest, int width, int height, int npixels)
 
     gglsurface srf;
 
-    srf.addr = dest->addr;
+    srf.addr  = dest->addr;
     srf.width = dest->width;
-    srf.x = dest->x;
-    srf.y = dest->y + npixels;
+    srf.x     = dest->x;
+    srf.y     = dest->y + npixels;
 
     ggl_revblt(&srf, dest, width, height - npixels);
 }

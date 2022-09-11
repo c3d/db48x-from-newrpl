@@ -30,15 +30,15 @@ void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, int color)
     {
         int tmp;
         tmp = x1;
-        x1 = x2;
-        x2 = tmp;
+        x1  = x2;
+        x2  = tmp;
     }
     if (y1 > y2)
     {
         int tmp;
         tmp = y1;
-        y1 = y2;
-        y2 = tmp;
+        y1  = y2;
+        y2  = tmp;
     }
 
     if (x1 > srf->clipx2)

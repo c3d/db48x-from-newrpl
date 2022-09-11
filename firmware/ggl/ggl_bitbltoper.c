@@ -44,7 +44,7 @@ void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height
 
     for (line = 0; line < height; ++line)
     {
-        ggl_monohbltoper(dest->addr, doff, (unsigned char *)(src->addr), soff, width, param, fop);
+        ggl_monohbltoper(dest->addr, doff, (unsigned char *) (src->addr), soff, width, param, fop);
         doff += dest->width;
         soff += src->width;
     }

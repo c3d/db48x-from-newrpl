@@ -9,9 +9,9 @@
 
 unsigned int ggl_fltinvert(unsigned word, int param)
 {
-    (void)param; // THIS IS JUST TO SILENCE THE UNUSED ARGUMENT WARNING
+    (void) param; // THIS IS JUST TO SILENCE THE UNUSED ARGUMENT WARNING
 
-    register int f;
+    register int          f;
     register unsigned int res = 0;
     for (f = 0; f < 8; ++f, word >>= 4)
     {

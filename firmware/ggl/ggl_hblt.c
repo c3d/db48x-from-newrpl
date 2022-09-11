@@ -15,7 +15,7 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
 #ifndef TARGET_PRIME1
 
     while (npixels > 504)
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     if (src > dest)
 #endif /* TARGET_PRIME1 */
     {
@@ -26,17 +26,17 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
         srcoff += 504;
     }
 
-    int tempmem[HBLT_BUFFER];
+    int      tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
-    int rot = ((srcoff & 7) - (destoff & 7)) * 4;
+    int      rot = ((srcoff & 7) - (destoff & 7)) * 4;
     unsigned a, b = 0;
-    int *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
+    int     *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
 
     // FIRST STAGE: COPY AND ROTATION
-#else /* TARGET_PRIME1 */
-        unsigned short int *pdest = (unsigned short int *)dest + destoff;
-        unsigned short int *psrc = (unsigned short int *)src + srcoff;
+#else  /* TARGET_PRIME1 */
+        unsigned short int *pdest = (unsigned short int *) dest + destoff;
+        unsigned short int *psrc  = (unsigned short int *) src + srcoff;
 #endif /* TARGET_PRIME1 */
 
 #ifndef TARGET_PRIME1
@@ -47,9 +47,9 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
         rot = -rot;
         while (start <= end)
         {
-            a = *start;
+            a    = *start;
             *ptr = (a << rot) | (b >> (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
         }
@@ -61,13 +61,13 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
         ++start;
         while (start <= end)
         {
-            a = *start;
+            a    = *start;
             *ptr = (b >> rot) | (a << (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
         }
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
         while (npixels--)
             *pdest++ = *psrc++;
 #endif /* TARGET_PRIME1 */
@@ -83,18 +83,18 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
             ++start;
         }
     }
-#else /* TARGET_PRIME1 */
-        unsigned short int *pdest = (unsigned short int *)dest + destoff + npixels - 1;
-        unsigned short int *psrc = (unsigned short int *)src + srcoff + npixels - 1;
+#else  /* TARGET_PRIME1 */
+        unsigned short int *pdest = (unsigned short int *) dest + destoff + npixels - 1;
+        unsigned short int *psrc  = (unsigned short int *) src + srcoff + npixels - 1;
 #endif /* TARGET_PRIME1 */
 
 #ifndef TARGET_PRIME1
     // SECOND STAGE: MASK AND UPDATE
 
     int ml = ggl_leftmask(destoff), mr = ggl_rightmask(destoff + npixels - 1);
-    ptr = tempmem;
+    ptr   = tempmem;
     start = dest + (destoff >> 3);
-    end = dest + ((destoff + npixels - 1) >> 3);
+    end   = dest + ((destoff + npixels - 1) >> 3);
 
     if (start == end)
     {
@@ -113,7 +113,7 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
         *start = *ptr;
         ++start;
         ++ptr;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
         while (npixels--)
             *pdest-- = *psrc--;
 #endif /* TARGET_PRIME1 */

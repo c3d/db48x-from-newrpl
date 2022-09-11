@@ -21,7 +21,7 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
     //    npixels<=512 (NO CHECKS MADE HERE)
 
     while (npixels > 504)
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     if (src > dest)
 #endif /* TARGET_PRIME1 */
     {
@@ -32,15 +32,15 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
         srcoff += 504;
     }
 
-    int tempmem[HBLT_BUFFER];
+    int      tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
-    int rot = ((srcoff & 7) - (destoff & 7)) * 4;
+    int      rot = ((srcoff & 7) - (destoff & 7)) * 4;
     unsigned a, b = 0;
-    int *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
-#else /* TARGET_PRIME1 */
-        unsigned short int *pdest = (unsigned short int *)dest + destoff;
-        unsigned short int *psrc = (unsigned short int *)src + srcoff;
+    int     *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
+#else  /* TARGET_PRIME1 */
+        unsigned short int *pdest = (unsigned short int *) dest + destoff;
+        unsigned short int *psrc  = (unsigned short int *) src + srcoff;
 #endif /* TARGET_PRIME1 */
 
 #ifndef TARGET_PRIME1
@@ -53,9 +53,9 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
         rot = -rot;
         while (start <= end)
         {
-            a = *start;
+            a    = *start;
             *ptr = (a << rot) | (b >> (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
         }
@@ -66,17 +66,17 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
         b = *start;
         ++start;
         while (start <= end)
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
         while (npixels--)
 #endif /* TARGET_PRIME1 */
         {
 #ifndef TARGET_PRIME1
-            a = *start;
+            a    = *start;
             *ptr = (b >> rot) | (a << (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
             *pdest = (*foperator)(*pdest, *psrc++, param);
             ++pdest;
 #endif /* TARGET_PRIME1 */
@@ -87,9 +87,9 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
 #ifndef TARGET_PRIME1
         // ROTATION IS ZERO, JUST COPY
         while (start <= end)
-#else /* TARGET_PRIME1 */
-        unsigned short int *pdest = (unsigned short int *)dest + destoff + npixels - 1;
-        unsigned short int *psrc = (unsigned short int *)src + srcoff + npixels - 1;
+#else  /* TARGET_PRIME1 */
+        unsigned short int *pdest = (unsigned short int *) dest + destoff + npixels - 1;
+        unsigned short int *psrc  = (unsigned short int *) src + srcoff + npixels - 1;
 
         while (npixels--)
 #endif /* TARGET_PRIME1 */
@@ -98,7 +98,7 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
             *ptr = *start;
             ++ptr;
             ++start;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
             *pdest = (*foperator)(*pdest, *psrc--, param);
             --pdest;
 #endif /* TARGET_PRIME1 */
@@ -109,9 +109,9 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
     // SECOND STAGE: MASK AND UPDATE
 
     int ml = ggl_leftmask(destoff), mr = ggl_rightmask(destoff + npixels - 1);
-    ptr = tempmem;
+    ptr   = tempmem;
     start = dest + (destoff >> 3);
-    end = dest + ((destoff + npixels - 1) >> 3);
+    end   = dest + ((destoff + npixels - 1) >> 3);
 
     if (start == end)
     {
@@ -139,7 +139,7 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
 #ifndef TARGET_PRIME1
 // TABLE TO EXPAND MONOCHROME BITMAP TO 16-GRAYS
 
-const unsigned int const ggl_mono2gray[256] = {
+const const unsigned int ggl_mono2gray[256] = {
     0x0,        0xF,        0xF0,       0xFF,       0xF00,      0xF0F,      0xFF0,      0xFFF,      0xF000,
     0xF00F,     0xF0F0,     0xF0FF,     0xFF00,     0xFF0F,     0xFFF0,     0xFFFF,     0xF0000,    0xF000F,
     0xF00F0,    0xF00FF,    0xF0F00,    0xF0F0F,    0xF0FF0,    0xF0FFF,    0xFF000,    0xFF00F,    0xFF0F0,
@@ -168,11 +168,17 @@ const unsigned int const ggl_mono2gray[256] = {
     0xFFF0000F, 0xFFF000F0, 0xFFF000FF, 0xFFF00F00, 0xFFF00F0F, 0xFFF00FF0, 0xFFF00FFF, 0xFFF0F000, 0xFFF0F00F,
     0xFFF0F0F0, 0xFFF0F0FF, 0xFFF0FF00, 0xFFF0FF0F, 0xFFF0FFF0, 0xFFF0FFFF, 0xFFFF0000, 0xFFFF000F, 0xFFFF00F0,
     0xFFFF00FF, 0xFFFF0F00, 0xFFFF0F0F, 0xFFFF0FF0, 0xFFFF0FFF, 0xFFFFF000, 0xFFFFF00F, 0xFFFFF0F0, 0xFFFFF0FF,
-    0xFFFFFF00, 0xFFFFFF0F, 0xFFFFFFF0, 0xFFFFFFFF};
+    0xFFFFFF00, 0xFFFFFF0F, 0xFFFFFFF0, 0xFFFFFFFF
+};
 
 #endif /* ! TARGET_PRIME1 */
-void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, int npixels, int param,
-                      ggloperator foperator)
+void ggl_monohbltoper(int           *dest,
+                      int            destoff,
+                      unsigned char *src,
+                      int            srcoff,
+                      int            npixels,
+                      int            param,
+                      ggloperator    foperator)
 {
 #ifndef TARGET_PRIME1
     // SAME AS hbltoper BUT SOURCE BITMAP IS MONOCHROME, AND CONVERTED TO 16-GRAYS
@@ -190,12 +196,12 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
         srcoff += 504;
     }
 
-    int tempmem[HBLT_BUFFER];
+    int            tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
-    int rot = ((srcoff & 7) - (destoff & 7)) * 4;
-    unsigned a, b = 0;
-    int *ptr = tempmem, *dstart, *dend;
+    int            rot = ((srcoff & 7) - (destoff & 7)) * 4;
+    unsigned       a, b = 0;
+    int           *ptr   = tempmem, *dstart, *dend;
     unsigned char *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
 
     // FIRST STAGE: COPY AND ROTATION
@@ -207,9 +213,9 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
         rot = -rot;
         while (start <= end)
         {
-            a = ggl_mono2gray[*start];
+            a    = ggl_mono2gray[*start];
             *ptr = (a << rot) | (b >> (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
         }
@@ -221,9 +227,9 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
         ++start;
         while (start <= end)
         {
-            a = ggl_mono2gray[*start];
+            a    = ggl_mono2gray[*start];
             *ptr = (b >> rot) | (a << (32 - rot));
-            b = a;
+            b    = a;
             ++ptr;
             ++start;
         }
@@ -242,9 +248,9 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
     // SECOND STAGE: MASK AND UPDATE
 
     int ml = ggl_leftmask(destoff), mr = ggl_rightmask(destoff + npixels - 1);
-    ptr = tempmem;
+    ptr    = tempmem;
     dstart = dest + (destoff >> 3);
-    dend = dest + ((destoff + npixels - 1) >> 3);
+    dend   = dest + ((destoff + npixels - 1) >> 3);
 
     if (dstart == dend)
     {
@@ -257,7 +263,7 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
     *dstart = (*dstart & ml) | (((*foperator)(*dstart, *ptr, param)) & (~ml));
     ++dstart;
     ++ptr;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     // COPIES npixels NIBBLES FROM src TO dest
     // dest AND src ARE WORD ALIGNED ADDRESSES
     // destoff AND srcoff ARE OFFSETS IN NIBBLES (PIXELS) FROM dest AND src
@@ -269,10 +275,10 @@ void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, in
         *dstart = (*foperator)(*dstart, *ptr, param);
         ++dstart;
         ++ptr;
-#else /* TARGET_PRIME1 */
-    unsigned short int *pdest = (unsigned short int *)dest + destoff;
-    unsigned char *psrc = (unsigned char *)src;
-    unsigned char mask = 1 << (srcoff & 7);
+#else  /* TARGET_PRIME1 */
+    unsigned short int *pdest = (unsigned short int *) dest + destoff;
+    unsigned char      *psrc  = (unsigned char *) src;
+    unsigned char       mask  = 1 << (srcoff & 7);
     while (npixels--)
     {
         *pdest = (*foperator)(*pdest, ((psrc[srcoff >> 3] & mask) ? RGB_TO_RGB16(255, 255, 255) : 0), param);

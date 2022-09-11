@@ -19,7 +19,5 @@ void ggl_mksolid32(int col, int *pattern)
     color |= color << 16;
 
     for (c = 0; c < 8; ++c)
-    {
         pattern[c] = color + ((c & 1) ? (mask << 4) : mask);
-    }
 }

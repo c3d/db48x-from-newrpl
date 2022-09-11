@@ -16,15 +16,15 @@ void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color)
     int offset = srf->width * yt + x;
 
 #ifdef TARGET_PRIME1
-    unsigned short *ptr = (unsigned short *)srf->addr + offset;
+    unsigned short *ptr = (unsigned short *) srf->addr + offset;
 #endif /* TARGET_PRIME1 */
     while (yt <= yb)
     {
 #ifndef TARGET_PRIME1
         ggl_pltnib(srf->addr, offset, color >> ((yt & 7) << 2));
         offset += srf->width;
-#else /* TARGET_PRIME1 */
-        *ptr = (unsigned short int)color;
+#else  /* TARGET_PRIME1 */
+        *ptr = (unsigned short int) color;
         ptr += srf->width;
 #endif /* TARGET_PRIME1 */
         ++yt;
@@ -62,7 +62,7 @@ void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color)
         offset += srf->width;
         ++yt;
     }
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     ggl_vline(srf, x, yt, yb, color);
 #endif /* TARGET_PRIME1 */
 }

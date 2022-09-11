@@ -23,18 +23,18 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
     //                 y MUST BE VALID
 
 #ifndef TARGET_PRIME1
-    int loff = (y * srf->width + xl);
-    int roff = (y * srf->width + xr);
-    register int *left = (int *)srf->addr + (loff >> 3);
-    register int *right = (int *)srf->addr + (roff >> 3);
-    int ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
-#else /* TARGET_PRIME1 */
-    unsigned short int *ptr = (unsigned short int *)srf->addr + y * srf->width + xl;
+    int           loff  = (y * srf->width + xl);
+    int           roff  = (y * srf->width + xr);
+    register int *left  = (int *) srf->addr + (loff >> 3);
+    register int *right = (int *) srf->addr + (roff >> 3);
+    int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
+#else  /* TARGET_PRIME1 */
+    unsigned short int *ptr = (unsigned short int *) srf->addr + y * srf->width + xl;
 #endif /* TARGET_PRIME1 */
 
 #ifndef TARGET_PRIME1
     if (left == right)
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     while (xl <= xr)
 #endif /* TARGET_PRIME1 */
     {
@@ -43,7 +43,7 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
         ml |= mr;
         *left = (*left & ml) | (color & (~ml));
         return;
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
         *ptr++ = color;
         ++xl;
 #endif /* TARGET_PRIME1 */
@@ -86,11 +86,11 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
         xr = srf->clipx2;
 
 #ifndef TARGET_PRIME1
-    int loff = (y * srf->width + xl);
-    int roff = (y * srf->width + xr);
-    register int *left = (int *)srf->addr + (loff >> 3);
-    register int *right = (int *)srf->addr + (roff >> 3);
-    int ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
+    int           loff  = (y * srf->width + xl);
+    int           roff  = (y * srf->width + xr);
+    register int *left  = (int *) srf->addr + (loff >> 3);
+    register int *right = (int *) srf->addr + (roff >> 3);
+    int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
 
     if (left == right)
     {
@@ -109,7 +109,7 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
     }
 
     *right = (*right & mr) | (color & (~mr));
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
     ggl_hline(srf, y, xl, xr, color);
 #endif /* TARGET_PRIME1 */
 }

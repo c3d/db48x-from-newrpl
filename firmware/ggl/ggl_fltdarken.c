@@ -8,7 +8,7 @@
 
 unsigned ggl_fltdarken(unsigned word, int param)
 {
-    register int f;
+    register int          f;
     register unsigned int res = 0;
     for (f = 0; f < 8; ++f, word >>= 4)
     {

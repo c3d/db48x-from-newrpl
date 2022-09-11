@@ -18,7 +18,7 @@ void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height)
 
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-    int doff, soff;
+    int  doff, soff;
     int *dst, *dend, *st; //,*send;
 
     // CHECK FOR OVERLAPPING ZONES
@@ -26,8 +26,8 @@ void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height)
     doff = dest->y * dest->width + dest->x;
     soff = src->y * src->width + src->x;
 
-    dst = dest->addr + (doff >> 3);
-    st = src->addr + (soff >> 3);
+    dst  = dest->addr + (doff >> 3);
+    st   = src->addr + (soff >> 3);
     dend = dst + ((height * dest->width) >> 3);
     // send=st+((height*src->width)>>3);
 

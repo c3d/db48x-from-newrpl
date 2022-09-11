@@ -11,7 +11,7 @@ unsigned int ggl_optransp(unsigned int dest, unsigned int src, int weight)
 {
     // APPLY 100% TRANSPARENCY MASK
     // tcol = TRANSPARENT COLOR IN src
-    register int f;
+    register int          f;
     register unsigned int res = 0;
     for (f = 0; f < 8; ++f, src >>= 4, dest >>= 4)
     {
