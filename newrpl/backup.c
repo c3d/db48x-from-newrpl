@@ -309,7 +309,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
             UBINT64 id;
 
             // SPECIAL CASE - HANDLE OFFSET NUMBERS STORED INSIDE THE STACK
-            if((PTR2NUMBER) ptr <= (UBINT64) sections[5].nitems) {
+            if((PTR2NUMBER) ptr <= (PTR2NUMBER) sections[5].nitems) {
                 // THIS IS A NUMBER, NOT A POINTER
                 //  IN THE STACK, THESE ARE STACK MARKERS
                 // REPLACE WITH A SPECIAL ROMPTRID FOR LIBRARY 0, ID=63, offset=31
