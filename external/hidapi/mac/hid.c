@@ -35,6 +35,9 @@
 #include <unistd.h>
 #include <wchar.h>
 
+/* The following is used to silence warnings for unused variables */
+#define UNUSED(var)		do { (void)(var); } while(0)
+
 /* Barrier implementation because Mac OSX doesn't have pthread_barrier.
    It also doesn't have clock_gettime(). So much for POSIX and SUSv2.
    This implementation came from Brent Priddy and was posted on
@@ -50,6 +53,7 @@ typedef struct pthread_barrier
 
 static int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t *attr, unsigned int count)
 {
+    UNUSED(attr);
     if (count == 0)
     {
         errno = EINVAL;
@@ -257,7 +261,7 @@ static int get_string_property(IOHIDDeviceRef device, CFStringRef prop, wchar_t 
                                         len * sizeof(wchar_t),
                                         &used_buf_len);
 
-        if (chars_copied == len)
+        if ((size_t) chars_copied == len)
             buf[len] = 0; /* len is decremented above */
         else
             buf[chars_copied] = 0;
@@ -559,6 +563,9 @@ hid_device *HID_API_EXPORT hid_open(unsigned short vendor_id, unsigned short pro
 
 static void hid_device_removal_callback(void *context, IOReturn result, void *sender)
 {
+    UNUSED(result);
+    UNUSED(sender);
+
     /* Stop the Run Loop for this device. */
     hid_device *d   = context;
 
@@ -577,6 +584,11 @@ static void hid_report_callback(void           *context,
                                 uint8_t        *report,
                                 CFIndex         report_length)
 {
+    UNUSED(result);
+    UNUSED(sender);
+    UNUSED(report_type);
+    UNUSED(report_id);
+
     struct input_report *rpt;
     hid_device          *dev = context;
 
@@ -714,6 +726,9 @@ hid_device *HID_API_EXPORT hid_open_path(const char *path)
         return NULL;
 
     /* Get the IORegistry entry for the given path */
+#if (MAC_OS_X_VERSION_MAX_ALLOWED >= 120000)
+#  define kIOMasterPortDefault kIOMainPortDefault // PC adjustment
+#endif
     entry = IORegistryEntryFromPath(kIOMasterPortDefault, path);
     if (entry == MACH_PORT_NULL)
     {
@@ -1069,7 +1084,10 @@ int HID_API_EXPORT_CALL hid_get_serial_number_string(hid_device *dev, wchar_t *s
 int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index, wchar_t *string, size_t maxlen)
 {
     /* TODO: */
-
+    UNUSED(dev);
+    UNUSED(string_index);
+    UNUSED(string);
+    UNUSED(maxlen);
     return 0;
 }
 
@@ -1077,7 +1095,7 @@ int HID_API_EXPORT_CALL hid_get_indexed_string(hid_device *dev, int string_index
 HID_API_EXPORT const wchar_t *HID_API_CALL hid_error(hid_device *dev)
 {
     /* TODO: */
-
+    UNUSED(dev);
     return NULL;
 }
 
