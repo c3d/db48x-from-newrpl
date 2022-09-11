@@ -31,7 +31,9 @@ int main(int argc, char *argv[])
             recorder_trace_set(argv[a]+2);
     }
 
+#if QT_VERSION < 0x060000
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif // QT version 6
 
     QApplication a(argc, argv);
     /*

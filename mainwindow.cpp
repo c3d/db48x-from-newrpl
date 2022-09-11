@@ -73,7 +73,7 @@ extern "C" int change_autorcv(int newfl);
 extern "C" void setExceptionPoweroff();
 
 MainWindow::MainWindow(QWidget * parent):
-QMainWindow(parent), rpl(this), usbdriver(this), ui(new Ui::MainWindow), themeEdit(this)
+QMainWindow(parent), rpl(this), usbdriver(this), themeEdit(this), ui(new Ui::MainWindow)
 {
 
     QCoreApplication::setOrganizationName("newRPL");
@@ -1589,15 +1589,24 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                 || (ev->type() == QEvent::TouchCancel)) {
             // ACCEPT THE TOUCH
             QTouchEvent *me = static_cast < QTouchEvent * >(ev);
-            int npoints, k, pressed;
-            npoints = me->touchPoints().count();
+            int k, pressed;
+#if QT_VERSION < 0x060000
+            auto &touchPoints = me->touchPoints();
+#else
+            auto &touchPoints = me->points();
+#endif // Qt version 6
+            qsizetype npoints = touchPoints.count();
             for(k = 0; k < npoints; ++k) {
-                QPointF coordinates = me->touchPoints().at(k).startPos();
+#if QT_VERSION < 0x060000
+                QPointF coordinates = touchPoints.at(k).startPos();
+#else
+                QPointF coordinates = touchPoints.at(k).pressPosition();
+#endif // Qt version 6
                 qreal relx, rely;
 
-                if(me->touchPoints().at(k).state() & Qt::TouchPointPressed)
+                if(touchPoints.at(k).state() & Qt::TouchPointPressed)
                     pressed = 1;
-                else if(me->touchPoints().at(k).
+                else if(touchPoints.at(k).
                         state() & Qt::TouchPointReleased)
                     pressed = 0;
                 else
@@ -1657,8 +1666,13 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                return true;
                } */
 
+#if QT_VERSION < 0x060000
             relx = (qreal) me->x() / (qreal) ui->KeybImage->width();
             rely = (qreal) me->y() / (qreal) ui->KeybImage->height();
+#else
+            relx = (qreal) me->position().x() / (qreal) ui->KeybImage->width();
+            rely = (qreal) me->position().y() / (qreal) ui->KeybImage->height();
+#endif // Qt vertsion 6
 
             //qDebug() << "PRESS x=" << relx << ", y=" << rely ;
 
@@ -1695,8 +1709,13 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
             //QPoint coordinates = me->pos();
             qreal relx, rely;
 
+#if QT_VERSION < 0x060000
             relx = (qreal) me->x() / (qreal) ui->KeybImage->width();
             rely = (qreal) me->y() / (qreal) ui->KeybImage->height();
+#else
+            relx = (qreal) me->position().x() / (qreal) ui->KeybImage->width();
+            rely = (qreal) me->position().y() / (qreal) ui->KeybImage->height();
+#endif // Qt vertsion 6
 
             //qDebug() << "RELEASE x=" << relx << ", y=" << rely ;
 
@@ -1727,14 +1746,23 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                 || (ev->type() == QEvent::TouchCancel)) {
             // ACCEPT THE TOUCH
             QTouchEvent *me = static_cast < QTouchEvent * >(ev);
-            int npoints, k, pressed;
-            npoints = me->touchPoints().count();
+            int k, pressed;
+#if QT_VERSION < 0x060000
+            auto &touchPoints = me->touchPoints();
+#else
+            auto &touchPoints = me->points();
+#endif // Qt version 6
+            qsizetype npoints = touchPoints.count();
             for(k = 0; k < npoints; ++k) {
-                QPointF coordinates = me->touchPoints().at(k).startPos();
+#if QT_VERSION < 0x060000
+                QPointF coordinates = touchPoints.at(k).startPos();
+#else
+                QPointF coordinates = touchPoints.at(k).pressPosition();
+#endif // Qt version 6
 
-                if(me->touchPoints().at(k).state() & Qt::TouchPointPressed)
+                if(touchPoints.at(k).state() & Qt::TouchPointPressed)
                     pressed = 1;
-                else if(me->touchPoints().at(k).
+                else if(touchPoints.at(k).
                         state() & Qt::TouchPointReleased)
                     pressed = 0;
                 else

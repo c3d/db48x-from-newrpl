@@ -129,12 +129,13 @@ void QPaletteEditor::on_QPaletteEditor_accepted()
 
 void QPaletteEditor::on_pTable_cellDoubleClicked(int row, int column)
 {
-QColor newcolor = QColorDialog::getColor(ui->pTable->item(row,0)->background().color());
-if(newcolor.isValid()) {
-    QTableWidgetItem *item=ui->pTable->takeItem(row,0);
-    QBrush tempbkgnd(newcolor);
-    item->setBackground(tempbkgnd);
-    ui->pTable->setItem(row,0,item);
+    Q_UNUSED(column);
+    QColor newcolor = QColorDialog::getColor(ui->pTable->item(row,0)->background().color());
+    if(newcolor.isValid()) {
+        QTableWidgetItem *item=ui->pTable->takeItem(row,0);
+        QBrush tempbkgnd(newcolor);
+        item->setBackground(tempbkgnd);
+        ui->pTable->setItem(row,0,item);
 }
 
 }
