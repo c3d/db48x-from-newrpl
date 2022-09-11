@@ -427,7 +427,6 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
         HALFWORDPTR destptr;
         WORDPTR srcptr;
 
-        BINT destmask = 0;
         WORD pixel;
 
         srcptr = (WORDPTR) (bitmap + 3);
