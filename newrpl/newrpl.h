@@ -19,6 +19,9 @@
 #include "sysvars.h"
 #include "recorder.h"
 
+/* The following is used to silence warnings for unused variables */
+#define UNUSED(var)		do { (void)(var); } while(0)
+
 // BUILD SYSTEM PROVIDES NEWRPL_BUILDNUM MACRO WITH THE COMMIT NUMBER
 
 // EXTERNAL API FOR THE NEWRPL MACHINE - TO BE USED ONLY BY USER LIBRARIES

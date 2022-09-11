@@ -189,6 +189,7 @@ int usbremotefwupdatestart()
 // RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
 int usbreceivearchive(uint32_t * buffer, int bufsize)
 {
+    UNUSED(bufsize);
     int count, bytesread;
     int totalfilelen;
     int fileid;
