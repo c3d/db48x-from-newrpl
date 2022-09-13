@@ -7,56 +7,58 @@
 #ifndef _GGL_H
 #define _GGL_H
 
-#define LCD_H SCREEN_H
-#define LCD_W SCREEN_W
+#define LCD_H                          SCREEN_H
+#define LCD_W                          SCREEN_W
 
 // (From ggl.h) Generic definitions for both color and gray modes
 
 // Convert from RGB (0-255) to RGB16(5-6-5)
-#define RGB_TO_RGB16(red,green,blue) ((((red)&0xf8)<<8)|(((green)&0xfc)<<3)|(((blue)&0xf8)>>3))
+#define RGB_TO_RGB16(red, green, blue) ((((red) &0xf8) << 8) | (((green) &0xfc) << 3) | (((blue) &0xf8) >> 3))
 
 // Pack RGB16 components (red=0-31, green=0-63, blue=0-31)
-#define PACK_RGB16(red,green,blue) ((((red)&0x1f)<<11)|(((green)&0x3f)<<5)|(((blue)&0x1f)))
+#define PACK_RGB16(red, green, blue)   ((((red) &0x1f) << 11) | (((green) &0x3f) << 5) | (((blue) &0x1f)))
 
 // Extract RGB red component from RGB16 color (bit expand to 0-255 range)
-#define RGBRED(rgb16) ( ((rgb16)&0x8000)? (((rgb16)>>8)|7) : ((rgb16)>>8)&0xf8)
+#define RGBRED(rgb16)                  (((rgb16) &0x8000) ? (((rgb16) >> 8) | 7) : ((rgb16) >> 8) & 0xf8)
 // Extract RGB green component from RGB16 color (bit expand to 0-255 range)
-#define RGBGREEN(rgb16) ( ((rgb16)&0x400)? ((((rgb16)>>3)&0xff)|3) : ((rgb16)>>3)&0xfc)
+#define RGBGREEN(rgb16)                (((rgb16) &0x400) ? ((((rgb16) >> 3) & 0xff) | 3) : ((rgb16) >> 3) & 0xfc)
 // Extract RGB blue component from RGB16 color (bit expand to 0-255 range)
-#define RGBBLUE(rgb16) ( ((rgb16)&0x10)? ((((rgb16)<<3)&0xff)|7) : ((rgb16)<<3)&0xfc)
+#define RGBBLUE(rgb16)                 (((rgb16) &0x10) ? ((((rgb16) << 3) & 0xff) | 7) : ((rgb16) << 3) & 0xfc)
 
 // Extract RGB components from a 16-grays color value
-#define G2RGBRED(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
-#define G2RGBGREEN(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
-#define G2RGBBLUE(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
+#define G2RGBRED(gray)                 ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
+#define G2RGBGREEN(gray)               ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
+#define G2RGBBLUE(gray)                ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
 
 #ifndef TARGET_PRIME1
-#define C2RGBRED(gray)          G2RGBRED(gray)
-#define C2RGBGREEN(gray)        G2RGBGREEN(gray)
-#define C2RGBBLUE(gray)         G2RGBBLUE(gray)
+#  define C2RGBRED(gray)   G2RGBRED(gray)
+#  define C2RGBGREEN(gray) G2RGBGREEN(gray)
+#  define C2RGBBLUE(gray)  G2RGBBLUE(gray)
 #else // TARGET_PRIME1
-#define C2RGBRED(rgb16)         RGBRED(rgb16)
-#define C2RGBGREEN(rgb16)       RGBGREEN(rgb16)
-#define C2RGBBLUE(rgb16)        RGBBLUE(rgb16)
+#  define C2RGBRED(rgb16)   RGBRED(rgb16)
+#  define C2RGBGREEN(rgb16) RGBGREEN(rgb16)
+#  define C2RGBBLUE(rgb16)  RGBBLUE(rgb16)
 #endif // TARGET_PRIME1
 
 // Convert from RGB (0-255) to GRAY16(4-bit)
-#define RGB_TO_GRAY16(red,green,blue) ((( (red)+(green)+(green)+(blue)) >> 6)&0xf)
+#define RGB_TO_GRAY16(red, green, blue) ((((red) + (green) + (green) + (blue)) >> 6) & 0xf)
 
 
-#define REPEAT_NIBBLE(nib) (((nib)&0xf)|(((nib)&0xf)<<4))
-#define REPEAT_BYTE(byte) (((byte)&0xff)|(((byte)&0xff)<<8))
-#define REPEAT_HALFWORD(hword) (((hword)&0xffff)|(((hword)&0xffff)<<16))
+#define REPEAT_NIBBLE(nib)              (((nib) &0xf) | (((nib) &0xf) << 4))
+#define REPEAT_BYTE(byte)               (((byte) &0xff) | (((byte) &0xff) << 8))
+#define REPEAT_HALFWORD(hword)          (((hword) &0xffff) | (((hword) &0xffff) << 16))
 
-#define PATTERN_SOLID(gray) REPEAT_HALFWORD(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
-#define PATTERN_2COL(dot1,dot2) REPEAT_HALFWORD(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
-#define PATTERN_4COL(dot1,dot2,dot3,dot4) REPEAT_HALFWORD( ((dot1)&0xf) | (((dot2)&0xf)<<4)| (((dot3)&0xf)<<8)| (((dot4)&0xf)<<12) )
+#define PATTERN_SOLID(gray)             REPEAT_HALFWORD(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
+#define PATTERN_2COL(dot1, dot2) REPEAT_HALFWORD(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
+#define PATTERN_4COL(dot1, dot2, dot3, dot4) \
+  REPEAT_HALFWORD(((dot1) &0xf) | (((dot2) &0xf) << 4) | (((dot3) &0xf) << 8) | (((dot4) &0xf) << 12))
 
 // Theming engine definitions, include early to allow for target-specific overrides
 
-// Default palette size, entries 0-15 are for grayscale conversion, entries above 16 are customizable Theme colors for different elements of the UI
-#define PALETTESIZE     64
-#define PALETTEMASK     63
+// Default palette size, entries 0-15 are for grayscale conversion, entries above 16 are customizable Theme colors for
+// different elements of the UI
+#define PALETTESIZE      64
+#define PALETTEMASK      63
 
 #define IS_PALETTE_COLOR 0x10000
 
@@ -65,7 +67,7 @@ extern int ggl_palette[PALETTESIZE];
 
 // internal buffer for hblt routines
 
-#define HBLT_BUFFER 64  // default 64 words = 512 pixels
+#define HBLT_BUFFER 64 // default 64 words = 512 pixels
 
 #ifndef TARGET_PRIME1
 // The CGL library is a close drop-in replacement to replace the GGL (Gray Graphics Library)
@@ -92,7 +94,7 @@ extern int ggl_palette[PALETTESIZE];
 #ifndef TARGET_PRIME1
 // the surface is PIXEL-aligned, so there's multiple pixels per word, and a scanline
 // may start misaligned. Use a proper .width if each scanline needs to be word aligned
-#else /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME1 */
 // the surface is nibble-aligned, so a 1 pixel wide surface will contain 8
 // rows of pixels per word
 #endif /* TARGET_PRIME1 */
@@ -100,18 +102,17 @@ extern int ggl_palette[PALETTESIZE];
 typedef struct
 {
     int *addr;  //! Word-aligned address of the surface buffer
-    int width;  //! Width (in pixels) of the buffer
-    int x, y;   //! Offset coordinates within the buffer
-    int clipx, clipx2, clipy, clipy2;
+    int  width; //! Width (in pixels) of the buffer
+    int  x, y;  //! Offset coordinates within the buffer
+    int  clipx, clipx2, clipy, clipy2;
 #ifdef TARGET_PRIME1
-    int actbuffer;   //! Active buffer: 0 or 1
-#endif /* TARGET_PRIME1 */
+    int actbuffer; //! Active buffer: 0 or 1
+#endif             /* TARGET_PRIME1 */
 } gglsurface;
 
 typedef unsigned int (*gglfilter)(unsigned int pixels, int param);
 
-typedef unsigned int (*ggloperator)(unsigned int dest, unsigned int source,
-        int param);
+typedef unsigned int (*ggloperator)(unsigned int dest, unsigned int source, int param);
 
 // inline routines
 
@@ -119,20 +120,20 @@ typedef unsigned int (*ggloperator)(unsigned int dest, unsigned int source,
 // IN ARM, A<<B WITH B>=32 = ZERO
 // IN X86, A<<B WITH B>=32 = A<<(B&31)
 
-#define ROT_LEFT(a,b) ( ((b)>=32)? 0:(((unsigned)a)<<(b)))
-#define ROT_RIGHT(a,b) ( ((b)>=32)? 0:((a)>>(b)))
+#define ROT_LEFT(a, b)    (((b) >= 32) ? 0 : (((unsigned) a) << (b)))
+#define ROT_RIGHT(a, b)   (((b) >= 32) ? 0 : ((a) >> (b)))
 
-#define ggl_leftmask(cx) ((ROT_LEFT(1,(( (cx)&7)<<2))-1))       // create mask
-#define ggl_rightmask(cx) (ROT_LEFT((-1),((((cx)&7)+1)<<2)))    // create mask
+#define ggl_leftmask(cx)  ((ROT_LEFT(1, (((cx) &7) << 2)) - 1))    // create mask
+#define ggl_rightmask(cx) (ROT_LEFT((-1), ((((cx) &7) + 1) << 2))) // create mask
 
-void ggl_initscr(gglsurface * surface);
+void ggl_initscr(gglsurface *surface);
 
 // drawing primitives
 // general pixel set/read routines
 
 void ggl_pltnib(int *buff, int off, int color); // poke a pixel (off in nibbles)
-int ggl_getnib(int *buff, int off);     // peek a pixel (off in nibbles)
-int ggl_getmonopix(char *buf, int off); // peek a pixel in monochrome bitmap (off in pixels)
+int  ggl_getnib(int *buff, int off);            // peek a pixel (off in nibbles)
+int  ggl_getmonopix(char *buf, int off);        // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
 
@@ -141,14 +142,14 @@ int ggl_getmonopix(char *buf, int off); // peek a pixel in monochrome bitmap (of
 //       on every nibble (for color 8, color=0x88888888)
 //       or call ggl_mkcolor for that purpose
 
-void ggl_hline(gglsurface * srf, int y, int xl, int xr, int color);     // fast low-level horizontal line
-void ggl_cliphline(gglsurface * srf, int y, int xl, int xr, int color);
-void ggl_vline(gglsurface * srf, int x, int yt, int yb, int color);     // fast low-level vertical line
-void ggl_clipvline(gglsurface * srf, int x, int yt, int yb, int color);
-void ggl_rect(gglsurface * srf, int x1, int y1, int x2, int y2, int color);     // low-level rectangle
-void ggl_cliprect(gglsurface * srf, int x1, int y1, int x2, int y2, int color); // low-level rectangle
+void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color); // fast low-level horizontal line
+void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color);
+void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color); // fast low-level vertical line
+void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color);
+void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, int color);     // low-level rectangle
+void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, int color); // low-level rectangle
 
-void ggl_rectp(gglsurface * srf, int x1, int y1, int x2, int y2, int *color);   // low-level rectangle with 8x8 pattern
+void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, int *color); // low-level rectangle with 8x8 pattern
 
 // bit-blit functions
 
@@ -162,7 +163,7 @@ void ggl_rectp(gglsurface * srf, int x1, int y1, int x2, int y2, int *color);   
 // npixels is the number of nibbles to copy
 // note: hblt will behave well even if the zones overlap, no need for moveup/movedown
 
-void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels);       // copy a row of pixels
+void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels); // copy a row of pixels
 
 // same behavior as hblt but specifying a transparent color
 // every pixel in *src with the transparent color will not affect the
@@ -172,47 +173,52 @@ void ggl_hbltmask(int *dest, int destoff, int *src, int srcoff, int npixels, int
 // rectangle blt
 // note: see gglsurface above for complete understanding of the behavior of these routines
 // ggl_bitblt loops from top to bottom
-void ggl_bitblt(gglsurface * dest, gglsurface * src, int width, int height);    // copy a rectangular region
+void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height); // copy a rectangular region
 // ggl_revblt loops from bottom to top, for overlapping zones
-void ggl_revblt(gglsurface * dest, gglsurface * src, int width, int height);    // copy a rectangular region, reverse loop
+void ggl_revblt(gglsurface *dest, gglsurface *src, int width, int height); // copy a rectangular region, reverse loop
 // ggl_ovlblt chooses to use normal/reverse loop based on the addresses
 // use it when the direcction of movement is unknown
-void ggl_ovlblt(gglsurface * dest, gglsurface * src, int width, int height);    // copy overlapped regions
+void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height); // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
-#define ggl_bitbltmask(dest,src,width,height,tcol)  ggl_bitbltoper(dest,src,width,height,tcol,(ggloperator)&ggl_opmask)
-#define ggl_monobitbltmask(dest,src,width,height,tcol)  ggl_monobitbltoper(dest,src,width,height,tcol,(ggloperator)&ggl_opmask)
+#define ggl_bitbltmask(dest, src, width, height, tcol) \
+  ggl_bitbltoper(dest, src, width, height, tcol, (ggloperator) &ggl_opmask)
+#define ggl_monobitbltmask(dest, src, width, height, tcol) \
+  ggl_monobitbltoper(dest, src, width, height, tcol, (ggloperator) &ggl_opmask)
 
-void ggl_bitbltclip(gglsurface * dest, gglsurface * src, int width, int height);        // copy a rectangular region, clipped within dest
+void     ggl_bitbltclip(gglsurface *dest,
+                        gglsurface *src,
+                        int         width,
+                        int         height); // copy a rectangular region, clipped within dest
 
 // rectangle scrolling routines
 // dest contains the surface to scroll, and width and height define the rectangle
 // the area that needs to be redrawn after the scroll is not erased or modified by these routines
-void ggl_scrollup(gglsurface * dest, int width, int height, int npixels);       // scroll npixels up
-void ggl_scrolldn(gglsurface * dest, int width, int height, int npixels);       // scroll npixels dn
-void ggl_scrolllf(gglsurface * dest, int width, int height, int npixels);       // scroll npixels left
-void ggl_scrollrt(gglsurface * dest, int width, int height, int npixels);       // scroll npixels right
+void     ggl_scrollup(gglsurface *dest, int width, int height, int npixels); // scroll npixels up
+void     ggl_scrolldn(gglsurface *dest, int width, int height, int npixels); // scroll npixels dn
+void     ggl_scrolllf(gglsurface *dest, int width, int height, int npixels); // scroll npixels left
+void     ggl_scrollrt(gglsurface *dest, int width, int height, int npixels); // scroll npixels right
 
 // custom filters and operators
 
 // low-level row filtering routine
-void ggl_hbltfilter(int *dest, int destoff, int npixels, int param,
-        gglfilter filterfunc);
+void     ggl_hbltfilter(int *dest, int destoff, int npixels, int param, gglfilter filterfunc);
 // bitmap filtering routine
-void ggl_filter(gglsurface * dest, int width, int height, int param,
-        gglfilter filterfunc);
+void     ggl_filter(gglsurface *dest, int width, int height, int param, gglfilter filterfunc);
 
 // low-level row operator routine
-void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels,
-        int param, ggloperator foperator);
+void     ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int param, ggloperator foperator);
 // low-level row operator routine for monochrome bitmaps
-void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff,
-        int npixels, int param, ggloperator foperator);
+void     ggl_monohbltoper(int           *dest,
+                          int            destoff,
+                          unsigned char *src,
+                          int            srcoff,
+                          int            npixels,
+                          int            param,
+                          ggloperator    foperator);
 // bitblt operator routine
-void ggl_bitbltoper(gglsurface * dest, gglsurface * src, int width, int height,
-        int param, ggloperator fop);
+void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop);
 // bitblt operator routine for monochrome bitmaps
-void ggl_monobitbltoper(gglsurface * dest, gglsurface * src, int width,
-        int height, int param, ggloperator fop);
+void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop);
 
 // predefined filters and operators
 
@@ -236,22 +242,25 @@ unsigned ggl_opmaskcol(unsigned dest, unsigned src, unsigned tcolor, unsigned ne
 
 // ggl_mkcolor repeats the same color on every nibble
 // ggl_mkcolor(2) will return 0x22222222
-int ggl_mksolid(int color);     // solid color generator
+int      ggl_mksolid(int color); // solid color generator
 
 // ggl_getcolor takes a system palette index color and expands to an actual RGB16 color
 // for values 0-15 the system palette must match grayscale levels for compatibility
-#define ggl_mkcolor(color) (ggl_palette[(color)&PALETTEMASK])
+#define ggl_mkcolor(color) (ggl_palette[(color) &PALETTEMASK])
 
 // Set a palette index entry
-#define ggl_setpalette(index,color) { ggl_palette[(index)&PALETTEMASK]=(color); }
+#define ggl_setpalette(index, color)             \
+  {                                              \
+    ggl_palette[(index) &PALETTEMASK] = (color); \
+  }
 
 // Return the actual color to draw, either the given color or a palette color
-#define ggl_getcolor(color) (((color)&IS_PALETTE_COLOR)? ggl_palette[(color)&PALETTEMASK]: (color))
+#define ggl_getcolor(color) (((color) &IS_PALETTE_COLOR) ? ggl_palette[(color) &PALETTEMASK] : (color))
 
 // ggl_mkcolor32 creates virtual 32-colors by using 8x8 patterns
 // col32 is a value from 0 to 30, being 30=black, 0=white
 // note: the user is responsible to provide a valid int[8] buffer in the
 // pattern argument
-void ggl_mkcolor32(int col32, int *pattern);    // 50% dither pattern generator for 31 colors
+void ggl_mkcolor32(int col32, int *pattern); // 50% dither pattern generator for 31 colors
 
 #endif
