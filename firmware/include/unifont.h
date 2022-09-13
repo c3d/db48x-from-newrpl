@@ -3,11 +3,11 @@
 
 typedef struct
 {
-    unsigned int Prolog;
+    unsigned int   Prolog;
     unsigned short BitmapWidth;
     unsigned short BitmapHeight;
     unsigned short OffsetBitmap;
     unsigned short OffsetTable;
-    unsigned int MapTable[];
+    unsigned int   MapTable[];
 } UNIFONT;
 #endif // UNIFONT_H

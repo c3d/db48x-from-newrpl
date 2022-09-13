@@ -1,9 +1,9 @@
 /*
-* Copyright (c) 2014-2016, Claudio Lapilli and the newRPL Team
-* All rights reserved.
-* This file is released under the 3-clause BSD license.
-* See the file LICENSE.txt that shipped with this distribution.
-*/
+ * Copyright (c) 2014-2016, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
 
 #ifndef _FSYSTEM_H
 #define _FSYSTEM_H
@@ -35,35 +35,35 @@
 /*!
  * \brief Read only file attribute
  */
-#define FSATTR_RDONLY 1
+#define FSATTR_RDONLY       1
 /*!
  * \brief Hidden file attribute
  */
-#define FSATTR_HIDDEN 2
+#define FSATTR_HIDDEN       2
 /*!
  * \brief System file attribute
  */
-#define FSATTR_SYSTEM 4
+#define FSATTR_SYSTEM       4
 /*!
  * \brief Volume file attribute
  */
-#define FSATTR_VOLUME 8
+#define FSATTR_VOLUME       8
 /*!
  * \brief Directory file attribute
  */
-#define FSATTR_DIR    16
+#define FSATTR_DIR          16
 /*!
  * \brief Archive file attribute
  */
-#define FSATTR_ARCHIVE 32
+#define FSATTR_ARCHIVE      32
 /*!
  * \brief Special attribute value for long filename entries
  */
-#define FSATTR_LONGNAME 0xf
+#define FSATTR_LONGNAME     0xf
 /*!
  * \brief Long filename attribute mask
  */
-#define FSATTR_LONGMASK 0x3f
+#define FSATTR_LONGMASK     0x3f
 
 // OPEN MODES
 /*!
@@ -71,40 +71,40 @@
  *
  * Write operations won't be allowed on this file.
  */
-#define FSMODE_READ      0      // READ PERMISSION (DEFAULT)
+#define FSMODE_READ         0 // READ PERMISSION (DEFAULT)
 /*!
  * \brief Write mode
  *
  * Write operations truncate the file after the last written byte.
  */
-#define FSMODE_WRITE     2      // WRITE PERMISSION
+#define FSMODE_WRITE        2 // WRITE PERMISSION
 /*!
  * \brief Append mode
  *
  * Write operations occur only at the end of the file.
  */
-#define FSMODE_APPEND    4      // ONLY ALLOW WRITING AFTER EOF
+#define FSMODE_APPEND       4 // ONLY ALLOW WRITING AFTER EOF
 /*!
  * \brief Modify mode
  *
  * Write operations occur anywhere in the file. File preserves its
  * original size.
  */
-#define FSMODE_MODIFY    8      // WRITE TO ANY POSITION WITHIN FILE
+#define FSMODE_MODIFY       8 // WRITE TO ANY POSITION WITHIN FILE
 /*!
  * \brief No-growth mode
  *
  * Write operations that require to increase the file size won't
  * be allowed.
  */
-#define FSMODE_NOGROW   16      // DON'T ALLOW FILE TO GROW
+#define FSMODE_NOGROW       16 // DON'T ALLOW FILE TO GROW
 /*!
  * \brief Don't create file
  *
  * This flag is for the FSOpen function only. If write permission was
  * requested and the file doesn't exist, don't create a new one.
  */
-#define FSMODE_NOCREATE	32      // DON'T CREATE IF FILE DOESN'T EXIST
+#define FSMODE_NOCREATE     32 // DON'T CREATE IF FILE DOESN'T EXIST
 
 /*!
  * \brief Enable write buffers
@@ -112,78 +112,78 @@
  * This flag is for the FSOpen function only. By default writes are not
  * buffered (written directly). This flag enables buffered writes.
  */
-#define FSMODE_WRITEBUFFERS	64      // USE BUFFERED WRITES
+#define FSMODE_WRITEBUFFERS 64 // USE BUFFERED WRITES
 
 // SIMILAR TO STANDARD SEEK_XXX CONSTANTS
-#define FSSEEK_SET  0
-#define FSSEEK_CUR  1
-#define FSSEEK_END  2
+#define FSSEEK_SET          0
+#define FSSEEK_CUR          1
+#define FSSEEK_END          2
 
 // ERRORS RETURNED BY USER-LEVEL FUNCTIONS
 /*!
  * \brief Error code: Returned by all functions when there are no errors.
  */
-#define FS_OK		  1
+#define FS_OK               1
 /*!
  * \brief Error code: Indicates a hardware error or an unknown error.
  */
-#define FS_ERROR      0 // UNKNOWN ERROR (OR FUNCTION DOESN'T CARE)
+#define FS_ERROR            0 // UNKNOWN ERROR (OR FUNCTION DOESN'T CARE)
 /*!
  * \brief Error code: Indicates end-of-file was reached
  */
-#define FS_EOF	     -1 // END OF FILE
+#define FS_EOF              -1 // END OF FILE
 /*!
  * \brief Error code: Indicates an invalid file name was given
  */
-#define FS_BADNAME   -2 // INVALID FILE NAME
+#define FS_BADNAME          -2 // INVALID FILE NAME
 /*!
  * \brief Error code: Returned when the volume requested doesn't exist
  */
-#define FS_BADVOLUME -3 // INVALID DRIVE
+#define FS_BADVOLUME        -3 // INVALID DRIVE
 /*!
  * \brief Error code: File not found.
  */
-#define FS_NOTFOUND  -4 // FILE NOT FOUND
+#define FS_NOTFOUND         -4 // FILE NOT FOUND
 /*!
  * \brief Error code: Write operation failed or not permitted.
  */
-#define FS_CANTWRITE -5 // WRITE FAILED
+#define FS_CANTWRITE        -5 // WRITE FAILED
 /*!
  * \brief Error code: No card is currently inserted.
  */
-#define FS_NOCARD    -6 // NO CARD INSERTED
+#define FS_NOCARD           -6 // NO CARD INSERTED
 /*!
  * \brief Error code: User has changed the card without unmounting the volumes.
  */
-#define FS_CHANGED   -7 // CARD HAS CHANGED
+#define FS_CHANGED          -7 // CARD HAS CHANGED
 /*!
  * \brief Error code: Max. number of open files has been reached.
  */
-#define FS_MAXFILES  -8 // MAXIMUM NUMBER OF FILES OPEN WAS EXCEEDED
+#define FS_MAXFILES         -8 // MAXIMUM NUMBER OF FILES OPEN WAS EXCEEDED
 /*!
  * \brief Error code: The name given correspond to an open directory.
  */
-#define FS_OPENDIR   -9 // NAME IS AN ALREADY OPEN DIRECTORY
+#define FS_OPENDIR          -9 // NAME IS AN ALREADY OPEN DIRECTORY
 /*!
  * \brief Error code: The name given corresponds to an open file.
  */
-#define FS_OPENFILE  -9 // NAME IS AN ALREADY OPEN FILE
+#define FS_OPENFILE         -9 // NAME IS AN ALREADY OPEN FILE
 /*!
  * \brief Error code: File/directory is open/referenced/locked.
  */
-#define FS_USED      -9 // FILE/DIRECTORY IS BEING USED
+#define FS_USED             -9 // FILE/DIRECTORY IS BEING USED
 /*!
  * \brief Error code: Disk is full.
  */
-#define FS_DISKFULL  -10        // DISK IS FULL
+#define FS_DISKFULL         -10 // DISK IS FULL
 /*!
  * \brief Error code: File already exists.
  */
-#define FS_EXIST     -11        // FILE ALREADY EXISTS
+#define FS_EXIST            -11 // FILE ALREADY EXISTS
 /*!
  * \brief Error code: Invalid Handle.
  */
-#define FS_INVHANDLE -12        // HANDLE IS NOT VALID
+#define FS_INVHANDLE        -12 // HANDLE IS NOT VALID
 
 // CASE SENSITIVITY MODES
 /*!
@@ -199,7 +199,7 @@
  *
  *
  */
-#define FSCASE_SENS   0 // CASE SENSITIVE (RAW NAMES)
+#define FSCASE_SENS         0 // CASE SENSITIVE (RAW NAMES)
 /*!
  * \brief Case sensitivity mode: HP compatible case sensitive.
  *
@@ -231,7 +231,7 @@
  * Create "HELLO WORLD" creates "HELLO WORLD;;"
  *
  */
-#define FSCASE_SENSHP 1 // CASE SENSITIVE (W/SEMICOLON STRIPPING)
+#define FSCASE_SENSHP       1 // CASE SENSITIVE (W/SEMICOLON STRIPPING)
 /*!
  * \brief Case sensitivity mode: Case insensitive.
  *
@@ -240,7 +240,7 @@
  * therefore the usual.
  *
  */
-#define FSCASE_INSENS 2 // CASE INSENSITIVE
+#define FSCASE_INSENS       2 // CASE INSENSITIVE
 /*!
  * \brief Case sensitivity mode: HP compatible case sensitive.
  *
@@ -252,7 +252,7 @@
  * stored in the disk.
  *
  */
-#define FSCASE_SENSHPTRUE 3     // CASE SENSITIVE W/SEMICOLONS BUT RETURNS TRUE NAMES
+#define FSCASE_SENSHPTRUE   3 // CASE SENSITIVE W/SEMICOLONS BUT RETURNS TRUE NAMES
 
 // FILENAME ANALYSIS RESULT FLAGS (FSGetNameType())
 /*!
@@ -260,42 +260,42 @@
  *
  * Examples: "C:", ":3:name", "3:\"
  */
-#define FSNAME_HASVOL    1      // 1 == Name include drive
+#define FSNAME_HASVOL       1 // 1 == Name include drive
 /*!
  * \brief Name constant: Name includes path information
  *
  * Examples: "mydir/name", "../mydir/subdir/name"
  *
  */
-#define FSNAME_HASPATH   2      // 2 == Name include path
+#define FSNAME_HASPATH      2 // 2 == Name include path
 /*!
  * \brief Name constant: Name has an absolute path
  *
  * Examples: "\mydir"
  *
  */
-#define FSNAME_ABSPATH   4      // 4 == Path is absolute
+#define FSNAME_ABSPATH      4 // 4 == Path is absolute
 /*!
  * \brief Name constant: Name is a directory ended in slash
  *
  * Examples: "\mydir\subdir\", "mydir/subdir/"
  *
  */
-#define FSNAME_ENDSLASH  8      // 8 == name ends in slash
+#define FSNAME_ENDSLASH     8 // 8 == name ends in slash
 /*!
  * \brief Name constant: Drive specification is HP style (:x:)
  *
  * Examples: ":C:name"
  *
  */
-#define FSNAME_VOLHP    16      // 16== Drive is HP style (:x:)
+#define FSNAME_VOLHP        16 // 16== Drive is HP style (:x:)
 /*!
  * \brief Name constant: Name/path does not have a file name
  *
  * Examples: "C:", "C:\mydir\", "\"
  *
  */
-#define FSNAME_EMPTY    32      // 32== Name is empty
+#define FSNAME_EMPTY        32 // 32== Name is empty
 
 /*!
  * \brief Name constant: File name is the single dot
@@ -303,7 +303,7 @@
  * Examples: "C:\mydir\."
  *
  */
-#define FSNAME_DOT     64
+#define FSNAME_DOT          64
 
 /*!
  * \brief Name constant: File name is the double dot
@@ -311,7 +311,7 @@
  * Examples: "C:\mydir\.."
  *
  */
-#define FSNAME_DOTDOT     128
+#define FSNAME_DOTDOT       128
 
 /*!
  * \brief Name constant: Invalid filename
@@ -319,15 +319,15 @@
  * Examples: "C:\mydir\\file", "\dir\c:",
  *
  */
-#define FSNAME_INVALID  -1
+#define FSNAME_INVALID      -1
 
 // BITS 16-31 = DEPTH OF PATH (0=CURRENT DIR OR ROOT)
 // NEGATIVE RESULT ==> INVALID FILENAME
 
 // CASE INSENSITIVITY MACRO
-#define ICASE(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
-#define UPPER(a) ( ((a>96)&&(a<123))? (a&0xdf):a)
-#define LOWER(a) ( ((a>64)&&(a<91))? (a|0x20):a)
+#define ICASE(a)            (((a > 96) && (a < 123)) ? (a & 0xdf) : a)
+#define UPPER(a)            (((a > 96) && (a < 123)) ? (a & 0xdf) : a)
+#define LOWER(a)            (((a > 64) && (a < 91)) ? (a | 0x20) : a)
 
 // TYPE DEFINITIONS
 
@@ -347,8 +347,8 @@ struct frag
 struct buffer
 {
     unsigned char *Data;
-    unsigned int Offset;
-    int Used;
+    unsigned int   Offset;
+    int            Used;
 };
 
 // MAIN FILE STRUCTURE
@@ -364,31 +364,31 @@ struct file
     /*!
      * File name, including period and file extension, NULL terminated
      */
-    char *Name;
+    char    *Name;
     /*!
      * Volume that contains this file (0-3)
      */
-    unsigned Volume:8,
-            /*!
-             * Any combination of the FSMODE_XXX constants
-             */
-        Mode:8,
-            /*!
-             * File Attribute
-             */
-        Attr:8;
+    unsigned Volume : 8,
+        /*!
+         * Any combination of the FSMODE_XXX constants
+         */
+        Mode        : 8,
+        /*!
+         * File Attribute
+         */
+        Attr        : 8;
     /*!
      * Reserved
      */
-    unsigned NTRes:8,
-            /*!
-             * Create time fraction, hundredths of second (0-199)
-             */
-        CrtTmTenth:8,
-            /*!
-             * Last Access Date
-             */
-        LastAccDate:16;
+    unsigned NTRes  : 8,
+        /*!
+         * Create time fraction, hundredths of second (0-199)
+         */
+        CrtTmTenth  : 8,
+        /*!
+         * Last Access Date
+         */
+        LastAccDate : 16;
     /*!
      * Create time and date (DOS format)
      */
@@ -400,7 +400,7 @@ struct file
     /*!
      * First cluster allocated to the file
      */
-    int FirstCluster;
+    int          FirstCluster;
     /*!
      * File size in bytes
      */
@@ -412,15 +412,15 @@ struct file
     /*!
      * Offset of file entry within its parent directory
      */
-    int DirEntryOffset,
-            /*!
-             * Number of directory entries this file uses
-             */
+    int          DirEntryOffset,
+        /*!
+         * Number of directory entries this file uses
+         */
         DirEntryNum;
     /*!
      * Pointer to parent directory
      */
-    FS_FILE *Dir;
+    FS_FILE    *Dir;
     /*!
      * **Internal**: Cluster chain
      */
@@ -428,7 +428,7 @@ struct file
     /*!
      * **Internal**: Read/Write buffers
      */
-    FS_BUFFER RdBuffer, WrBuffer;
+    FS_BUFFER   RdBuffer, WrBuffer;
 };
 
 // INITIALIZATION FUNCTIONS
@@ -444,9 +444,9 @@ struct file
  * \return An FS_XXX error code (see error code constants)
  * \sa FSRestart
  */
-extern int FSShutdown();
+extern int         FSShutdown();
 // SAME AS ABOVE, BUT USED WHEN THERE'S NO CARD PRESENT
-extern int FSShutdownNoCard();
+extern int         FSShutdownNoCard();
 
 /*!
  * \brief Shutdown and reinitialize the file system.
@@ -459,7 +459,7 @@ extern int FSShutdownNoCard();
  * \return The FS_XXX error code (see error code constants)
  * \sa FSShutdown
  */
-extern int FSRestart();
+extern int         FSRestart();
 
 /*!
  * \brief Stops the clock to the SD card to preserve power
@@ -469,7 +469,7 @@ extern int FSRestart();
  *
  * \sa FSWakeUp
  */
-extern void FSSleep();
+extern void        FSSleep();
 
 /*!
  * \brief Restarts the clock to the SD card
@@ -478,7 +478,7 @@ extern void FSSleep();
  *
  * \sa FSSleep
  */
-extern void FSWakeUp();
+extern void        FSWakeUp();
 
 // VOLUME FUNCTIONS
 
@@ -493,7 +493,7 @@ extern void FSWakeUp();
  * \return TRUE if the volume exists and is mounted, FALSE otherwise
  * \sa FSVolumeInserted
  */
-extern int FSVolumeMounted(int VolNumber);
+extern int         FSVolumeMounted(int VolNumber);
 
 /*!
  * \brief Checks if a specified volume is mounted and inserted
@@ -509,7 +509,7 @@ extern int FSVolumeMounted(int VolNumber);
  * FS_ERROR (unknown error - hardware/memory)
  * \sa FSVolumeMounted
  */
-extern int FSVolumeInserted(int VolNumber);
+extern int         FSVolumeInserted(int VolNumber);
 
 /*!
  * \brief Set the current working volume
@@ -523,7 +523,7 @@ extern int FSVolumeInserted(int VolNumber);
  * FS_ERROR (volume doesn't exist or other errors)
  * \sa FSGetCurrentVolume
  */
-extern int FSSetCurrentVolume(int VolNumber);
+extern int         FSSetCurrentVolume(int VolNumber);
 
 /*!
  * \brief Get the current working volume
@@ -535,7 +535,7 @@ extern int FSSetCurrentVolume(int VolNumber);
  * in the card
  * \sa FSSetCurrentVolume
  */
-extern int FSGetCurrentVolume();
+extern int         FSGetCurrentVolume();
 
 /*!
  * \brief Get the total size of a volume
@@ -546,7 +546,7 @@ extern int FSGetCurrentVolume();
  * \return Total size of the volume in bytes. If error, one of the FS_XXX constants (<=0).
  * \sa FSGetVolumeFree
  */
-extern int FSGetVolumeSize(int Volnumber);
+extern int         FSGetVolumeSize(int Volnumber);
 /*!
  * \brief Get the free space on a volume
  *
@@ -556,7 +556,7 @@ extern int FSGetVolumeSize(int Volnumber);
  * \return Free space of the volume in 512 byte sectors, If error, one of the FS_XXX constants (<=0).
  * \sa FSGetVolumeSize
  */
-extern int FSGetVolumeFree(int Volnumber);
+extern int         FSGetVolumeFree(int Volnumber);
 
 /*!
  * \brief Mark current volume as read-only. Use immediately after mount.
@@ -567,7 +567,7 @@ extern int FSGetVolumeFree(int Volnumber);
  * \return Nothing.
  * \sa FSSetCurrentVolume
  */
-extern void FSMarkVolumeReadOnly();
+extern void        FSMarkVolumeReadOnly();
 
 // DIRECTORY ACCESS FUNCTIONS
 
@@ -581,7 +581,7 @@ extern void FSMarkVolumeReadOnly();
  * \return An FS_XXX error code (see error code constants)
  * \sa FSChdir FSRmdir FSGetNameType
  */
-extern int FSMkdir(char *name);
+extern int         FSMkdir(char *name);
 
 /*!
  * \brief Delete a directory
@@ -594,7 +594,7 @@ extern int FSMkdir(char *name);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSChdir FSMkdir FSGetNameType
  */
-extern int FSRmdir(char *name);
+extern int         FSRmdir(char *name);
 
 /*!
  * \brief Changes current working directory
@@ -607,7 +607,7 @@ extern int FSRmdir(char *name);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSMkdir FSRmdir FSGetNameType
  */
-extern int FSChdir(char *name);
+extern int         FSChdir(char *name);
 
 /*!
  * \brief Returns the current work directory for the specified volume.
@@ -621,7 +621,7 @@ extern int FSChdir(char *name);
  * \return A string containing the directory, NULL if error.
  * \sa FSGetCurrentVolume FSChdir
  */
-extern char *FSGetcwd(int Volume);
+extern char       *FSGetcwd(int Volume);
 
 /*!
  * \brief Open a directory for entry scanning
@@ -636,7 +636,7 @@ extern char *FSGetcwd(int Volume);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSOpen FSClose FSGetNameType FS_FILE
  */
-extern int FSOpenDir(char *name, FS_FILE ** fileptr);
+extern int         FSOpenDir(char *name, FS_FILE **fileptr);
 
 /*!
  * \brief Get the next entry from a directory
@@ -659,7 +659,7 @@ extern int FSOpenDir(char *name, FS_FILE ** fileptr);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSOpenDir FSReleaseEntry FS_FILE
  */
-extern int FSGetNextEntry(FS_FILE * entry, FS_FILE * dir);
+extern int         FSGetNextEntry(FS_FILE *entry, FS_FILE *dir);
 
 /*!
  * \brief Release dynamically allocated memory on a FS_FILE structure
@@ -672,7 +672,7 @@ extern int FSGetNextEntry(FS_FILE * entry, FS_FILE * dir);
 
  * \sa FSGetNextEntry FS_FILE
  */
-extern void FSReleaseEntry(FS_FILE * file);
+extern void        FSReleaseEntry(FS_FILE *file);
 
 // FILE ACCESS FUNCTIONS
 /*!
@@ -692,7 +692,7 @@ extern void FSReleaseEntry(FS_FILE * file);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSOpen FSClose FS_FILE FSGetNameType
  */
-extern int FSCreate(char *name, int attr, FS_FILE ** fileptr);
+extern int         FSCreate(char *name, int attr, FS_FILE **fileptr);
 /*!
  * \brief Open a file. Create if it doesn't exist.
  *
@@ -716,7 +716,7 @@ extern int FSCreate(char *name, int attr, FS_FILE ** fileptr);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSCreate FSClose FSGetNameType FS_FILE FSMODE_XXX constants
  */
-extern int FSOpen(char *name, int mode, FS_FILE ** fileptr);
+extern int         FSOpen(char *name, int mode, FS_FILE **fileptr);
 
 /*!
  * \brief Close an open file.
@@ -734,7 +734,7 @@ extern int FSOpen(char *name, int mode, FS_FILE ** fileptr);
  *
  * \sa FSCreate FSOpen FSOpenDir FSCloseAndDelete
  */
-extern int FSClose(FS_FILE * file);
+extern int         FSClose(FS_FILE *file);
 
 /*!
  * \brief Close an open file and delete it.
@@ -747,7 +747,7 @@ extern int FSClose(FS_FILE * file);
  *
  * \sa FSCreate FSOpen FSOpenDir FSClose
  */
-extern int FSCloseAndDelete(FS_FILE * file);
+extern int         FSCloseAndDelete(FS_FILE *file);
 
 /*!
  * \brief Move the current position pointer for read/write.
@@ -765,7 +765,7 @@ extern int FSCloseAndDelete(FS_FILE * file);
  *
  * \sa FSRead FSWrite FSTell
  */
-extern int FSSeek(FS_FILE * file, int Offset, int position);
+extern int         FSSeek(FS_FILE *file, int Offset, int position);
 
 /*!
  * \brief Get the current position pointer for read/write.
@@ -779,7 +779,7 @@ extern int FSSeek(FS_FILE * file, int Offset, int position);
  *
  * \sa FSRead FSWrite FSSeek
  */
-extern int FSTell(FS_FILE * file);
+extern int         FSTell(FS_FILE *file);
 
 /*!
  * \brief Read data from a file.
@@ -798,7 +798,7 @@ extern int FSTell(FS_FILE * file);
  *
  * \sa FSSeek FSWrite
  */
-extern int FSRead(unsigned char *buffer, int nbytes, FS_FILE * file);
+extern int         FSRead(unsigned char *buffer, int nbytes, FS_FILE *file);
 /*!
  * \brief Write data to a file.
  *
@@ -817,7 +817,7 @@ extern int FSRead(unsigned char *buffer, int nbytes, FS_FILE * file);
  *
  * \sa FSSeek FSRead
  */
-extern int FSWrite(unsigned char *buffer, int nbytes, FS_FILE * file);
+extern int         FSWrite(unsigned char *buffer, int nbytes, FS_FILE *file);
 /*!
  * \brief Detect end-of-file condition.
  *
@@ -830,7 +830,7 @@ extern int FSWrite(unsigned char *buffer, int nbytes, FS_FILE * file);
  *
  * \sa FSSeek FSWrite
  */
-extern int FSEof(FS_FILE * file);
+extern int         FSEof(FS_FILE *file);
 /*!
  * \brief Delete a file
  *
@@ -842,7 +842,7 @@ extern int FSEof(FS_FILE * file);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSRename FSGetNameType
  */
-extern int FSDelete(char *name);
+extern int         FSDelete(char *name);
 /*!
  * \brief Rename a file
  *
@@ -855,7 +855,7 @@ extern int FSDelete(char *name);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSDelete FSGetNameType
  */
-extern int FSRename(char *oldname, char *newname);
+extern int         FSRename(char *oldname, char *newname);
 
 // NAME PROCESSING FUNCTIONS
 /*!
@@ -875,7 +875,7 @@ extern int FSRename(char *oldname, char *newname);
  * \return TRUE if names are equal, FALSE otherwise
  * \sa FSStripSemi FSGetNameType FSCASE_XXX constants
  */
-extern int FSNameCompare(char *name1, char *name2, int caseflags);
+extern int         FSNameCompare(char *name1, char *name2, int caseflags);
 
 /*!
  * \brief Obtain the file name.
@@ -894,7 +894,7 @@ extern int FSNameCompare(char *name1, char *name2, int caseflags);
  * \return A pointer to the allocated string, NULL if error
  * \sa FSStripSemi FSGetNameType FSNAME_XXX constants
  */
-extern char *FSGetFileName(FS_FILE * file, int pathflags);
+extern char       *FSGetFileName(FS_FILE *file, int pathflags);
 
 /*!
  * \brief Get information about a file name.
@@ -930,7 +930,7 @@ extern char *FSGetFileName(FS_FILE * file, int pathflags);
  * If the name is invalid, the function returns a negative number.
  * \sa FSStripSemi FSGetNameType FSCASE_XXX constants FSNAME_XXX constants
  */
-extern int FSGetNameType(char *name);
+extern int         FSGetNameType(char *name);
 
 /*!
  * \brief Strip trailing semicolons.
@@ -942,7 +942,7 @@ extern int FSGetNameType(char *name);
  *
  * \sa FSGetNameType FSCASE_XXX constants
  */
-extern void FSStripSemi(char *name);
+extern void        FSStripSemi(char *name);
 
 /*!
  * \brief Get error message.
@@ -968,7 +968,7 @@ extern const char *FSGetErrorMsg(int errornum);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSOpen FSWrite
  */
-extern int FSChMode(FS_FILE * file, int newmode);
+extern int         FSChMode(FS_FILE *file, int newmode);
 
 /*!
  * \brief Change file attributes
@@ -985,7 +985,7 @@ extern int FSChMode(FS_FILE * file, int newmode);
  * \return An FS_XXX error code (see error code constants)
  * \sa FSAttr FSChMode FSOpen FSGetNextEntry
  */
-extern int FSChAttr(FS_FILE * file, int newattr);
+extern int         FSChAttr(FS_FILE *file, int newattr);
 
 /*!
  * \brief Get file attributes
@@ -998,7 +998,7 @@ extern int FSChAttr(FS_FILE * file, int newattr);
  * \return File attributes.
  * \sa FSChAttr FSOpen FSGetNextEntry
  */
-extern int FSAttr(FS_FILE * file);
+extern int         FSAttr(FS_FILE *file);
 
 /*!
  * \brief Get file size
@@ -1011,7 +1011,7 @@ extern int FSAttr(FS_FILE * file);
  * \return File length in bytes.
  * \sa FSOpen FSGetNextEntry
  */
-extern int FSFileLength(FS_FILE * file);
+extern int         FSFileLength(FS_FILE *file);
 
 /*!
  * \brief Set the case sensitivity mode.
@@ -1022,7 +1022,7 @@ extern int FSFileLength(FS_FILE * file);
  * \param casemode   New case mode. One of the FSCASE_XXX constants
  * \sa FSCASE_XXX constants
  */
-extern void FSSetCaseMode(int casemode);
+extern void        FSSetCaseMode(int casemode);
 
 /*!
  * \brief Get file creation time and date
@@ -1036,7 +1036,7 @@ extern void FSSetCaseMode(int casemode);
  * \return Function is void, returns time and date filled in tm structure.
  * \sa FSGetAccessDate FSGetWriteTime
  */
-extern void FSGetCreatTime(FS_FILE * file, struct compact_tm *timedate);
+extern void        FSGetCreatTime(FS_FILE *file, struct compact_tm *timedate);
 
 /*!
  * \brief Get file write time and date
@@ -1051,7 +1051,7 @@ extern void FSGetCreatTime(FS_FILE * file, struct compact_tm *timedate);
  * \return Function is void, returns time and date filled in tm structure.
  * \sa FSGetAccessDate FSGetCreatTime
  */
-extern void FSGetWriteTime(FS_FILE * file, struct compact_tm *timedate);
+extern void        FSGetWriteTime(FS_FILE *file, struct compact_tm *timedate);
 
 /*!
  * \brief Get file access date (no time)
@@ -1068,7 +1068,7 @@ extern void FSGetWriteTime(FS_FILE * file, struct compact_tm *timedate);
  * \return Function is void, returns time and date filled in tm structure.
  * \sa FSGetCreatTime FSGetWriteTime
  */
-extern void FSGetAccessDate(FS_FILE * file, struct compact_tm *timedate);
+extern void        FSGetAccessDate(FS_FILE *file, struct compact_tm *timedate);
 
 /*!
  * \brief Get file handle number for given file
@@ -1078,7 +1078,7 @@ extern void FSGetAccessDate(FS_FILE * file, struct compact_tm *timedate);
  * \return Function returns a handle number or FS_INVHANDLE if error.
  * \sa FSGetFileFromHandle
  */
-extern int FSGetHandle(FS_FILE * file);
+extern int         FSGetHandle(FS_FILE *file);
 
 /*!
  * \brief Get a FS_FILE structure that correspond to the given handle.
@@ -1090,13 +1090,13 @@ extern int FSGetHandle(FS_FILE * file);
  *         parameter with an open (FS_FILE *).
  * \sa FSGetFileFromHandle
  */
-extern int FSGetFileFromHandle(int handle, FS_FILE ** fileptr);
+extern int         FSGetFileFromHandle(int handle, FS_FILE **fileptr);
 
-extern int FSIsInit();
-extern int FSIsDirty();
-extern void FSFlushAll();
+extern int         FSIsInit();
+extern int         FSIsDirty();
+extern void        FSFlushAll();
 
-extern int FSCardInserted();
-extern int FSCardIsSDHC();
+extern int         FSCardInserted();
+extern int         FSCardIsSDHC();
 
 #endif

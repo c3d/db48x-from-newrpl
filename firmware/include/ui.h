@@ -249,7 +249,7 @@
 #ifndef MENU1_HEIGHT
 #  define MENU1_HEIGHT (FONT_HEIGHT(FONT_MENU) + 3)
 #endif
-#define CMDLINE_HEIGHT (FONT_HEIGHT(FONT_CMDLINE) + 2)
+#define CMDLINE_HEIGHT      (FONT_HEIGHT(FONT_CMDLINE) + 2)
 
 #define MENU_TAB_WIDTH      (((LCD_W - 5) / 6) + 1)
 
