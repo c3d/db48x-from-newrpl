@@ -111,7 +111,6 @@ extern int usb_timeout;
 
 #endif // TARGET_PC_PRIMEG1
 
-
 // DEFAULT CLOCK SPEEDS
 #define HAL_SLOWCLOCK     6000000
 #define HAL_USBCLOCK     48000000
@@ -166,8 +165,8 @@ typedef unsigned int INTERRUPT_TYPE;
 
 
 // Matrix to KeyCode mapping - Defined in keyboard.c for this target
-extern unsigned char const keyb_irq_codefrombit[64];
-extern unsigned char const keyb_irq_bitfromcode[64];
+extern const unsigned char keyb_irq_codefrombit[64];
+extern const unsigned char keyb_irq_bitfromcode[64];
 
 // Keyboard mapping macros  - MUST exist for all targets
 #define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
