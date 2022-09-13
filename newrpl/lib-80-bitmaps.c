@@ -121,7 +121,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     BINT width = (BINT) bitmap[1];
     BINT height = (BINT) bitmap[2];
 
-    BINT totalsize = (width * height * DEFAULTBITSPERPIXEL) + 31;
+    BINT totalsize = (width * height * BITS_PER_PIXEL) + 31;
 
     totalsize >>= 5;    // BITMAP SIZE IN WORDS
 

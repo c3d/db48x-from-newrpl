@@ -99,7 +99,7 @@ WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
 WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 {
 
-    BINT bits = DEFAULTBITSPERPIXEL * width * height;
+    BINT bits = BITS_PER_PIXEL * width * height;
 
     bits += 31;
     bits >>= 5;
