@@ -8,12 +8,12 @@
 #ifndef _HAL_API_H
 #define _HAL_API_H
 
+#include "usb.h"
 #include "fontlist.h"
 #include "ggl.h"
 #include "newrpl.h"
 #include "recorder.h"
 #include "unifont.h"
-#include "usb.h"
 
 #ifndef EXTERN
 #  define EXTERN extern
