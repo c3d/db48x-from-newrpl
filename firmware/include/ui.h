@@ -21,74 +21,74 @@
 
 // First 16 are reserved for 16 grays (for grayscale compatibility)
 
-#define PAL_GRAY0                0
-#define PAL_GRAY1                1
-#define PAL_GRAY2                2
-#define PAL_GRAY3                3
-#define PAL_GRAY4                4
-#define PAL_GRAY5                5
-#define PAL_GRAY6                6
-#define PAL_GRAY7                7
-#define PAL_GRAY8                8
-#define PAL_GRAY9                9
-#define PAL_GRAY10               10
-#define PAL_GRAY11               11
-#define PAL_GRAY12               12
-#define PAL_GRAY13               13
-#define PAL_GRAY14               14
-#define PAL_GRAY15               15
+#define PAL_GRAY0             0
+#define PAL_GRAY1             1
+#define PAL_GRAY2             2
+#define PAL_GRAY3             3
+#define PAL_GRAY4             4
+#define PAL_GRAY5             5
+#define PAL_GRAY6             6
+#define PAL_GRAY7             7
+#define PAL_GRAY8             8
+#define PAL_GRAY9             9
+#define PAL_GRAY10            10
+#define PAL_GRAY11            11
+#define PAL_GRAY12            12
+#define PAL_GRAY13            13
+#define PAL_GRAY14            14
+#define PAL_GRAY15            15
 
 // Theme colors for the stack
-#define PAL_STK_BACKGND          16
-#define PAL_STK_INDEX            17
-#define PAL_STK_VLINE            18
-#define PAL_STK_IDXBACKGND       19
-#define PAL_STK_ITEMS            20
-#define PAL_STK_SELBKGND         21
-#define PAL_STK_SELITEM          22
-#define PAL_STK_CURSOR           23
+#define PAL_STK_BG            16
+#define PAL_STK_INDEX         17
+#define PAL_STK_VLINE         18
+#define PAL_STK_IDX_BG        19
+#define PAL_STK_ITEMS         20
+#define PAL_STK_SEL_BG        21
+#define PAL_STK_SEL_ITEM      22
+#define PAL_STK_CURSOR        23
 
 // Theme colors for the command line
-#define PAL_CMD_BACKGND          24
-#define PAL_CMD_TEXT             25
-#define PAL_CMD_SELBACKGND       26
-#define PAL_CMD_SELTEXT          27
-#define PAL_CMD_CURSORBACKGND    28
-#define PAL_CMD_CURSOR           29
-#define PAL_DIVLINE              30
+#define PAL_CMD_BG            24
+#define PAL_CMD_TEXT          25
+#define PAL_CMD_SEL_BG        26
+#define PAL_CMD_SELTEXT       27
+#define PAL_CMD_CURSOR_BG     28
+#define PAL_CMD_CURSOR        29
+#define PAL_DIV_LINE          30
 
 // Theme colors for menu
-#define PAL_MENU_BACKGND         31
-#define PAL_MENU_INVBACKGND      32
-#define PAL_MENU_TEXT            33
-#define PAL_MENU_INVTEXT         34
-#define PAL_MENU_DIRMARK         35
-#define PAL_MENU_INVDIRMARK      36
-#define PAL_MENU_HLINE           37
-#define PAL_MENU_FOCUSHLINE      38
-#define PAL_MENU_PRESSBACKGND    39
-#define PAL_MENU_PRESSINVBACKGND 40
+#define PAL_MENU_BG           31
+#define PAL_MENU_INV_BG       32
+#define PAL_MENU_TEXT         33
+#define PAL_MENU_INV_TEXT     34
+#define PAL_MENU_DIR_MARK     35
+#define PAL_MENU_INV_DIR_MARK 36
+#define PAL_MENU_HLINE        37
+#define PAL_MENU_FOCUS_HLINE  38
+#define PAL_MENU_PRESS_BG     39
+#define PAL_MENU_PRESS_INV_BG 40
 
 
 // Theme colors for status area
-#define PAL_STA_BACKGND          41
-#define PAL_STA_TEXT             42
-#define PAL_STA_ANNPRESS         43
-#define PAL_STA_ANN              44
-#define PAL_STA_BAT              45
-#define PAL_STA_UFLAG0           46
-#define PAL_STA_UFLAG1           47
+#define PAL_STA_BG            41
+#define PAL_STA_TEXT          42
+#define PAL_STA_ANNPRESS      43
+#define PAL_STA_ANN           44
+#define PAL_STA_BAT           45
+#define PAL_STA_UFLAG0        46
+#define PAL_STA_UFLAG1        47
 
-#define PAL_HLP_BACKGND          48
-#define PAL_HLP_TEXT             49
-#define PAL_HLP_LINES            50
+#define PAL_HLP_BG            48
+#define PAL_HLP_TEXT          49
+#define PAL_HLP_LINES         50
 
 
-#define PAL_FORM_BACKGND         51
-#define PAL_FORM_TEXT            52
-#define PAL_FORM_SELTEXT         53
-#define PAL_FORM_SELBACKGND      54
-#define PAL_FORM_CURSOR          55
+#define PAL_FORM_BG           51
+#define PAL_FORM_TEXT         52
+#define PAL_FORM_SELTEXT      53
+#define PAL_FORM_SEL_BG       54
+#define PAL_FORM_CURSOR       55
 
 
 // Add additional theme colors here
@@ -100,22 +100,22 @@
 // Default Palette values
 // stick to 16 grays mode by default
 
-#define THEME_GRAY0              RGB_TO_RGB16(255, 255, 255)
-#define THEME_GRAY1              RGB_TO_RGB16(238, 238, 238)
-#define THEME_GRAY2              RGB_TO_RGB16(221, 221, 221)
-#define THEME_GRAY3              RGB_TO_RGB16(204, 204, 204)
-#define THEME_GRAY4              RGB_TO_RGB16(187, 187, 187)
-#define THEME_GRAY5              RGB_TO_RGB16(170, 170, 170)
-#define THEME_GRAY6              RGB_TO_RGB16(153, 153, 153)
-#define THEME_GRAY7              RGB_TO_RGB16(136, 136, 136)
-#define THEME_GRAY8              RGB_TO_RGB16(119, 119, 119)
-#define THEME_GRAY9              RGB_TO_RGB16(102, 102, 102)
-#define THEME_GRAY10             RGB_TO_RGB16(85, 85, 85)
-#define THEME_GRAY11             RGB_TO_RGB16(68, 68, 68)
-#define THEME_GRAY12             RGB_TO_RGB16(51, 51, 51)
-#define THEME_GRAY13             RGB_TO_RGB16(34, 34, 34)
-#define THEME_GRAY14             RGB_TO_RGB16(17, 17, 17)
-#define THEME_GRAY15             RGB_TO_RGB16(0, 0, 0)
+#define THEME_GRAY0           RGB_TO_RGB16(255, 255, 255)
+#define THEME_GRAY1           RGB_TO_RGB16(238, 238, 238)
+#define THEME_GRAY2           RGB_TO_RGB16(221, 221, 221)
+#define THEME_GRAY3           RGB_TO_RGB16(204, 204, 204)
+#define THEME_GRAY4           RGB_TO_RGB16(187, 187, 187)
+#define THEME_GRAY5           RGB_TO_RGB16(170, 170, 170)
+#define THEME_GRAY6           RGB_TO_RGB16(153, 153, 153)
+#define THEME_GRAY7           RGB_TO_RGB16(136, 136, 136)
+#define THEME_GRAY8           RGB_TO_RGB16(119, 119, 119)
+#define THEME_GRAY9           RGB_TO_RGB16(102, 102, 102)
+#define THEME_GRAY10          RGB_TO_RGB16(85, 85, 85)
+#define THEME_GRAY11          RGB_TO_RGB16(68, 68, 68)
+#define THEME_GRAY12          RGB_TO_RGB16(51, 51, 51)
+#define THEME_GRAY13          RGB_TO_RGB16(34, 34, 34)
+#define THEME_GRAY14          RGB_TO_RGB16(17, 17, 17)
+#define THEME_GRAY15          RGB_TO_RGB16(0, 0, 0)
 
 
 // Theme colors for stack
@@ -124,110 +124,110 @@
 // stick to 16 grays mode by default
 
 // Theme colors for stack
-#  define THEME_STKBACKGND          PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_STKINDEX            PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STKVLINE            PATTERN_SOLID(PAL_GRAY8)
-#  define THEME_STKIDXBACKGND       PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_STKITEMS            PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STKSELBKGND         PATTERN_SOLID(PAL_GRAY6)
-#  define THEME_STKSELITEM          PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STKCURSOR           PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STK_BG            PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_STK_INDEX         PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STK_VLINE         PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_STK_IDX_BG        PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_STK_ITEMS         PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STK_SEL_BG        PATTERN_SOLID(PAL_GRAY6)
+#  define THEME_STK_SEL_ITEM      PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STK_CURSOR        PATTERN_SOLID(PAL_GRAY15)
 
 // Theme colors for command line
-#  define THEME_CMDBACKGND          PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_CMDTEXT             PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_CMDSELBACKGND       PATTERN_SOLID(PAL_GRAY6)
-#  define THEME_CMDSELTEXT          PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_CMDCURSORBACKGND    PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_CMDCURSOR           PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_DIVLINE             PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_CMD_BG            PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_CMD_TEXT          PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_CMD_SEL_BG        PATTERN_SOLID(PAL_GRAY6)
+#  define THEME_CMD_SELTEXT       PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_CMD_CURSOR_BG     PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_CMD_CURSOR        PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_DIV_LINE          PATTERN_SOLID(PAL_GRAY8)
 
 // Theme colors for menu
-#  define THEME_MENUBACKGND         PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_MENUINVBACKGND      PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_MENUTEXT            PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_MENUINVTEXT         PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_MENUDIRMARK         PATTERN_SOLID(PAL_GRAY8)
-#  define THEME_MENUINVDIRMARK      PATTERN_SOLID(PAL_GRAY6)
-#  define THEME_MENUHLINE           PATTERN_SOLID(PAL_GRAY8)
-#  define THEME_MENUFOCUSHLINE      PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_MENUPRESSBACKGND    RGB_TO_RGB16(255, 0, 0)
-#  define THEME_MENUPRESSINVBACKGND RGB_TO_RGB16(255, 0, 0)
+#  define THEME_MENU_BG           PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_MENU_INV_BG       PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_MENU_TEXT         PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_MENU_INV_TEXT     PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_MENU_DIR_MARK     PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_MENU_INV_DIR_MARK PATTERN_SOLID(PAL_GRAY6)
+#  define THEME_MENU_HLINE        PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_MENU_FOCUS_HLINE  PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_MENU_PRESS_BG     RGB_TO_RGB16(255, 0, 0)
+#  define THEME_MENU_PRESS_INV_BG RGB_TO_RGB16(255, 0, 0)
 
 // Theme colors for status area
-#  define THEME_STABACKGND          PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_STATEXT             PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STAANNPRESS         PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STAANN              PATTERN_SOLID(PAL_GRAY8)
-#  define THEME_STABAT              PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_STAUFLAG0           PATTERN_SOLID(PAL_GRAY8)
-#  define THEME_STAUFLAG1           PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STA_BG            PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_STA_TEXT          PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STA_ANNPRESS      PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STA_ANN           PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_STA_BAT           PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_STA_UFLAG0        PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_STA_UFLAG1        PATTERN_SOLID(PAL_GRAY15)
 
 // Theme colors for help and popup messages
-#  define THEME_HLPBACKGND          PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_HLPTEXT             PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_HLPLINES            PATTERN_SOLID(PAL_GRAY8)
+#  define THEME_HLP_BG            PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_HLP_TEXT          PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_HLP_LINES         PATTERN_SOLID(PAL_GRAY8)
 
 // Theme colors for Forms
-#  define THEME_FORMBACKGND         PATTERN_SOLID(PAL_GRAY0)
-#  define THEME_FORMTEXT            PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_FORMSELTEXT         PATTERN_SOLID(PAL_GRAY15)
-#  define THEME_FORMSELBACKGND      PATTERN_SOLID(PAL_GRAY6)
-#  define THEME_FORMCURSOR          PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_FORMBACKGROUND    PATTERN_SOLID(PAL_GRAY0)
+#  define THEME_FORMTEXT          PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_FORMSELTEXT       PATTERN_SOLID(PAL_GRAY15)
+#  define THEME_FORMSEL_BG        PATTERN_SOLID(PAL_GRAY6)
+#  define THEME_FORMCURSOR        PATTERN_SOLID(PAL_GRAY15)
 
 #else // NEWRPL_COLOR
 
-#  define THEME_STKBACKGND          RGB_TO_RGB16(255, 255, 255)
-#  define THEME_STKINDEX            RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STKVLINE            RGB_TO_RGB16(128, 128, 128)
-#  define THEME_STKIDXBACKGND       RGB_TO_RGB16(255, 255, 255)
-#  define THEME_STKITEMS            RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STKSELBKGND         RGB_TO_RGB16(192, 192, 192)
-#  define THEME_STKSELITEM          RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STKCURSOR           RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STK_BG            RGB_TO_RGB16(255, 255, 255)
+#  define THEME_STK_INDEX         RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STK_VLINE         RGB_TO_RGB16(128, 128, 128)
+#  define THEME_STK_IDX_BG        RGB_TO_RGB16(255, 255, 255)
+#  define THEME_STK_ITEMS         RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STK_SEL_BG        RGB_TO_RGB16(192, 192, 192)
+#  define THEME_STK_SEL_ITEM      RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STK_CURSOR        RGB_TO_RGB16(0, 0, 0)
 
 // Theme colors for command line
-#  define THEME_CMDBACKGND          RGB_TO_RGB16(255, 255, 255)
-#  define THEME_CMDTEXT             RGB_TO_RGB16(0, 0, 0)
-#  define THEME_CMDSELBACKGND       RGB_TO_RGB16(192, 192, 192)
-#  define THEME_CMDSELTEXT          RGB_TO_RGB16(0, 0, 0)
-#  define THEME_CMDCURSORBACKGND    RGB_TO_RGB16(0, 0, 0)
-#  define THEME_CMDCURSOR           RGB_TO_RGB16(255, 255, 255)
-#  define THEME_DIVLINE             RGB_TO_RGB16(128, 128, 128)
+#  define THEME_CMD_BG            RGB_TO_RGB16(255, 255, 255)
+#  define THEME_CMD_TEXT          RGB_TO_RGB16(0, 0, 0)
+#  define THEME_CMD_SEL_BG        RGB_TO_RGB16(192, 192, 192)
+#  define THEME_CMD_SELTEXT       RGB_TO_RGB16(0, 0, 0)
+#  define THEME_CMD_CURSOR_BG     RGB_TO_RGB16(0, 0, 0)
+#  define THEME_CMD_CURSOR        RGB_TO_RGB16(255, 255, 255)
+#  define THEME_DIV_LINE          RGB_TO_RGB16(128, 128, 128)
 
 // Theme colors for menu
-#  define THEME_MENUBACKGND         RGB_TO_RGB16(0, 0, 0)
-#  define THEME_MENUINVBACKGND      RGB_TO_RGB16(220, 220, 220)
-#  define THEME_MENUTEXT            RGB_TO_RGB16(255, 255, 255)
-#  define THEME_MENUINVTEXT         RGB_TO_RGB16(0, 0, 0)
-#  define THEME_MENUDIRMARK         RGB_TO_RGB16(128, 128, 128)
-#  define THEME_MENUINVDIRMARK      RGB_TO_RGB16(192, 192, 192)
-#  define THEME_MENUHLINE           RGB_TO_RGB16(128, 128, 128)
-#  define THEME_MENUFOCUSHLINE      RGB_TO_RGB16(255, 255, 255)
-#  define THEME_MENUPRESSBACKGND    RGB_TO_RGB16(255, 0, 0)
-#  define THEME_MENUPRESSINVBACKGND RGB_TO_RGB16(255, 0, 0)
+#  define THEME_MENU_BG           RGB_TO_RGB16(0, 0, 0)
+#  define THEME_MENU_INV_BG       RGB_TO_RGB16(220, 220, 220)
+#  define THEME_MENU_TEXT         RGB_TO_RGB16(255, 255, 255)
+#  define THEME_MENU_INV_TEXT     RGB_TO_RGB16(0, 0, 0)
+#  define THEME_MENU_DIR_MARK     RGB_TO_RGB16(128, 128, 128)
+#  define THEME_MENU_INV_DIR_MARK RGB_TO_RGB16(192, 192, 192)
+#  define THEME_MENU_HLINE        RGB_TO_RGB16(128, 128, 128)
+#  define THEME_MENU_FOCUS_HLINE  RGB_TO_RGB16(255, 255, 255)
+#  define THEME_MENU_PRESS_BG     RGB_TO_RGB16(255, 0, 0)
+#  define THEME_MENU_PRESS_INV_BG RGB_TO_RGB16(255, 0, 0)
 
 
 // Theme colors for status area
-#  define THEME_STABACKGND          RGB_TO_RGB16(255, 255, 255)
-#  define THEME_STATEXT             RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STAANNPRESS         RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STAANN              RGB_TO_RGB16(128, 128, 128)
-#  define THEME_STABAT              RGB_TO_RGB16(0, 0, 0)
-#  define THEME_STAUFLAG0           RGB_TO_RGB16(128, 128, 128)
-#  define THEME_STAUFLAG1           RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STA_BG            RGB_TO_RGB16(255, 255, 255)
+#  define THEME_STA_TEXT          RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STA_ANNPRESS      RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STA_ANN           RGB_TO_RGB16(128, 128, 128)
+#  define THEME_STA_BAT           RGB_TO_RGB16(0, 0, 0)
+#  define THEME_STA_UFLAG0        RGB_TO_RGB16(128, 128, 128)
+#  define THEME_STA_UFLAG1        RGB_TO_RGB16(0, 0, 0)
 
 // Theme colors for help and popup messages
-#  define THEME_HLPBACKGND          RGB_TO_RGB16(255, 255, 255)
-#  define THEME_HLPTEXT             RGB_TO_RGB16(0, 0, 0)
-#  define THEME_HLPLINES            RGB_TO_RGB16(128, 128, 128)
+#  define THEME_HLP_BG            RGB_TO_RGB16(255, 255, 255)
+#  define THEME_HLP_TEXT          RGB_TO_RGB16(0, 0, 0)
+#  define THEME_HLP_LINES         RGB_TO_RGB16(128, 128, 128)
 
 // Theme colors for Forms
-#  define THEME_FORMBACKGND         RGB_TO_RGB16(255, 255, 255)
-#  define THEME_FORMTEXT            RGB_TO_RGB16(0, 0, 0)
-#  define THEME_FORMSELTEXT         RGB_TO_RGB16(0, 0, 0)
-#  define THEME_FORMSELBACKGND      RGB_TO_RGB16(192, 192, 192)
-#  define THEME_FORMCURSOR          RGB_TO_RGB16(0, 0, 0)
+#  define THEME_FORMBACKGROUND    RGB_TO_RGB16(255, 255, 255)
+#  define THEME_FORMTEXT          RGB_TO_RGB16(0, 0, 0)
+#  define THEME_FORMSELTEXT       RGB_TO_RGB16(0, 0, 0)
+#  define THEME_FORMSEL_BG        RGB_TO_RGB16(192, 192, 192)
+#  define THEME_FORMCURSOR        RGB_TO_RGB16(0, 0, 0)
 #endif // NEWRPL_COLOR
 
 #define UNUSED_ARGUMENT(a) (void) (a)
@@ -238,8 +238,8 @@
 #define UI_LANG_ENGLISH    1
 
 // CONSTANTS THAT DEFINE THE LOOK OF THE USER INTERFACE
-#ifndef STATUSAREA_X
-#  define STATUSAREA_X (66 * SCREEN_WIDTH) / 131
+#ifndef STATUS_AREA_X
+#  define STATUS_AREA_X (66 * SCREEN_WIDTH) / 131
 #endif
 // BASIC HEIGHT OF SCREEN AREAS IN PIXELS - THIS IS HARDWARE DEPENDENT SO WE NEED TO ALLOW TARGET HEADER TO DEFINE IF
 // NEEDED
@@ -251,19 +251,19 @@
 #endif
 #define CMDLINE_HEIGHT (FONT_HEIGHT(FONT_CMDLINE) + 2)
 
-#define MENU_TAB_WIDTH     (((SCREEN_WIDTH - 5) / 6) + 1)
-#define BITSPERPIXEL       (32 / PIXELS_PER_WORD)
+#define MENU_TAB_WIDTH      (((SCREEN_WIDTH - 5) / 6) + 1)
+#define BITSPERPIXEL        (32 / PIXELS_PER_WORD)
 
 // PREFERRED HEIGHT OF THE FONTS
-#define DEF_FNTSTK_HEIGHT  (SCREEN_HEIGHT / 10)
-#define DEF_FNT1STK_HEIGHT DEF_FNTSTK_HEIGHT
-#define DEF_FNTCMDL_HEIGHT DEF_FNTSTK_HEIGHT
-#define DEF_FNTFORM_HEIGHT DEF_FNTSTK_HEIGHT
-#define DEF_FNTPLOT_HEIGHT DEF_FNTSTK_HEIGHT
-#define DEF_FNTMENU_HEIGHT (SCREEN_HEIGHT / 13)
-#define DEF_FNTSTAT_HEIGHT DEF_FNTMENU_HEIGHT
-#define DEF_FNTHELP_HEIGHT DEF_FNTMENU_HEIGHT
-#define DEF_FNTHLPT_HEIGHT DEF_FNTMENU_HEIGHT
+#define DEF_FNT_STK_HEIGHT  (SCREEN_HEIGHT / 10)
+#define DEF_FNT_1STK_HEIGHT DEF_FNT_STK_HEIGHT
+#define DEF_FNT_CMDL_HEIGHT DEF_FNT_STK_HEIGHT
+#define DEF_FNT_FORM_HEIGHT DEF_FNT_STK_HEIGHT
+#define DEF_FNT_PLOT_HEIGHT DEF_FNT_STK_HEIGHT
+#define DEF_FNT_MENU_HEIGHT (SCREEN_HEIGHT / 13)
+#define DEF_FNT_STAT_HEIGHT DEF_FNT_MENU_HEIGHT
+#define DEF_FNT_HELP_HEIGHT DEF_FNT_MENU_HEIGHT
+#define DEF_FNT_HLPT_HEIGHT DEF_FNT_MENU_HEIGHT
 
 // COMMAND LINE
 

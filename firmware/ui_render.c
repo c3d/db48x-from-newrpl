@@ -206,7 +206,7 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
         tsurf.y = 0;
 
         // CLEAR THE BITMAP FIRST
-        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_mkcolor(PAL_STK_BACKGND));
+        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_mkcolor(PAL_STK_BG));
         //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
 

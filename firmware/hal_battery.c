@@ -66,14 +66,14 @@ void battery_handler()
             : l < 62259 ? '9'
             : 'X';
 
-        DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-2*H,text,font,ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BACKGND),&scr);
+        DrawTextBk(STATUS_AREA_X,SCREEN_HEIGHT-2*H,text,font,ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BG),&scr);
 
         for (unsigned s = 0; s < 3; s++)
         {
             k = (battery>>(8-4*s)) & 0xf;
             text[s] = k < 10 ? k + '0' : k + 'A' - 10;
         }
-        DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-H,text,font,ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BACKGND),&scr);
+        DrawTextBk(STATUS_AREA_X,SCREEN_HEIGHT-H,text,font,ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BG),&scr);
     }
 
     // THIS IS THE REAL HANDLER
@@ -170,7 +170,7 @@ void battery_handler()
         if(battery==0x400) {
             // Battery is charging - display charging icon
             DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"C", Font_Notifications)-1, SCREEN_HEIGHT-1-FONT_Notifications.BitmapHeight, (char *)"C",
-                       Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
+                       Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BG), &scr);
         }
         else {
             // Display Battery percentage below battery icon
@@ -199,10 +199,10 @@ void battery_handler()
                 batwidth=(percentwidth+batwidth)/2;
             } else percentwidth=(percentwidth+batwidth)/2;
 
-            DrawTextBk(SCREEN_WIDTH-percentwidth,SCREEN_HEIGHT-FONT_10A.BitmapHeight-1,(char *)&text,Font_10A,ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BACKGND),&scr);
+            DrawTextBk(SCREEN_WIDTH-percentwidth,SCREEN_HEIGHT-FONT_10A.BitmapHeight-1,(char *)&text,Font_10A,ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BG),&scr);
 
             DrawTextBk(SCREEN_WIDTH-batwidth, SCREEN_HEIGHT-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
-                       Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
+                       Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BG), &scr);
             halScreenUpdated();
         }
     }
@@ -221,7 +221,7 @@ void busy_handler()
         gglsurface scr;
         ggl_initscr(&scr);
         DrawTextBk(SCREEN_WIDTH-StringWidth((char *)"W", Font_Notifications)-1, SCREEN_HEIGHT-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
-                   Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
+                   Font_Notifications, ggl_mkcolor(PAL_STA_BAT), ggl_mkcolor(PAL_STA_BG), &scr);
 
     }
 #endif // TARGET_PRIME1

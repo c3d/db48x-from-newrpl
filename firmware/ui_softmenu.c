@@ -356,16 +356,16 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
 
     int color,bcolor,dircolor;
 
-    if(palette_color==PAL_MENU_INVTEXT) {
+    if(palette_color==PAL_MENU_INV_TEXT) {
         // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-        if(flags&2) { color=ggl_mkcolor(PAL_MENU_TEXT); bcolor=ggl_mkcolor(PAL_MENU_BACKGND); dircolor=ggl_mkcolor(PAL_MENU_DIRMARK); }
-        else { color=ggl_mkcolor(PAL_MENU_INVTEXT); bcolor=ggl_mkcolor(PAL_MENU_INVBACKGND); dircolor=ggl_mkcolor(PAL_MENU_INVDIRMARK); }
+        if(flags&2) { color=ggl_mkcolor(PAL_MENU_TEXT); bcolor=ggl_mkcolor(PAL_MENU_BG); dircolor=ggl_mkcolor(PAL_MENU_DIR_MARK); }
+        else { color=ggl_mkcolor(PAL_MENU_INV_TEXT); bcolor=ggl_mkcolor(PAL_MENU_INV_BG); dircolor=ggl_mkcolor(PAL_MENU_INV_DIR_MARK); }
     }
     else {
         if(palette_color==PAL_MENU_TEXT) {
         // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-        if(flags&2) { color=ggl_mkcolor(PAL_MENU_INVTEXT); bcolor=ggl_mkcolor(PAL_MENU_INVBACKGND); dircolor=ggl_mkcolor(PAL_MENU_INVDIRMARK); }
-        else { color=ggl_mkcolor(PAL_MENU_TEXT); bcolor=ggl_mkcolor(PAL_MENU_BACKGND); dircolor=ggl_mkcolor(PAL_MENU_DIRMARK); }
+        if(flags&2) { color=ggl_mkcolor(PAL_MENU_INV_TEXT); bcolor=ggl_mkcolor(PAL_MENU_INV_BG); dircolor=ggl_mkcolor(PAL_MENU_INV_DIR_MARK); }
+        else { color=ggl_mkcolor(PAL_MENU_TEXT); bcolor=ggl_mkcolor(PAL_MENU_BG); dircolor=ggl_mkcolor(PAL_MENU_DIR_MARK); }
         }
         else {
           // JUST USE THE SPECIFIC COLORS REQUESTED BY CALLER, SWAP COLORS IF INVERTED BY FLAGS
@@ -462,11 +462,11 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
             pos = scr->clipx + 1;
         else
             pos = (scr->clipx2 + 1 + scr->clipx - w) >> 1;
-        if(palette_color==PAL_MENU_INVTEXT) {
+        if(palette_color==PAL_MENU_INV_TEXT) {
             if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
                 color=ggl_mkcolor(PAL_MENU_TEXT);
-                bcolor=ggl_mkcolor(PAL_MENU_BACKGND);
-                dircolor=ggl_mkcolor(PAL_MENU_DIRMARK);
+                bcolor=ggl_mkcolor(PAL_MENU_BG);
+                dircolor=ggl_mkcolor(PAL_MENU_DIR_MARK);
 
                 // REDRAW THE BACKGROUND WITH THE NEW COLOR
                 ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
@@ -475,9 +475,9 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAW
         }
         else {
         if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
-            color=ggl_mkcolor(PAL_MENU_INVTEXT);
-            bcolor=ggl_mkcolor(PAL_MENU_INVBACKGND);
-            dircolor=ggl_mkcolor(PAL_MENU_INVDIRMARK);
+            color=ggl_mkcolor(PAL_MENU_INV_TEXT);
+            bcolor=ggl_mkcolor(PAL_MENU_INV_BG);
+            dircolor=ggl_mkcolor(PAL_MENU_INV_DIR_MARK);
 
             // REDRAW THE BACKGROUND WITH THE NEW COLOR
             ggl_rect(scr,scr->clipx,scr->clipy,scr->clipx2,scr->clipy2,bcolor);
