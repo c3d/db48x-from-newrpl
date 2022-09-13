@@ -39,56 +39,56 @@
 #define PAL_GRAY15  15
 
 // Theme colors for the stack
-#define PAL_STKBACKGND 16
-#define PAL_STKINDEX   17
-#define PAL_STKVLINE   18
-#define PAL_STKIDXBACKGND 19
-#define PAL_STKITEMS   20
-#define PAL_STKSELBKGND 21
-#define PAL_STKSELITEM  22
-#define PAL_STKCURSOR   23
+#define PAL_STK_BACKGND 16
+#define PAL_STK_INDEX   17
+#define PAL_STK_VLINE   18
+#define PAL_STK_IDXBACKGND 19
+#define PAL_STK_ITEMS   20
+#define PAL_STK_SELBKGND 21
+#define PAL_STK_SELITEM  22
+#define PAL_STK_CURSOR   23
 
 // Theme colors for the command line
-#define PAL_CMDBACKGND  24
-#define PAL_CMDTEXT     25
-#define PAL_CMDSELBACKGND 26
-#define PAL_CMDSELTEXT  27
-#define PAL_CMDCURSORBACKGND 28
-#define PAL_CMDCURSOR   29
+#define PAL_CMD_BACKGND  24
+#define PAL_CMD_TEXT     25
+#define PAL_CMD_SELBACKGND 26
+#define PAL_CMD_SELTEXT  27
+#define PAL_CMD_CURSORBACKGND 28
+#define PAL_CMD_CURSOR   29
 #define PAL_DIVLINE     30
 
 // Theme colors for menu
-#define PAL_MENUBACKGND 31
-#define PAL_MENUINVBACKGND 32
-#define PAL_MENUTEXT    33
-#define PAL_MENUINVTEXT 34
-#define PAL_MENUDIRMARK 35
-#define PAL_MENUINVDIRMARK 36
-#define PAL_MENUHLINE   37
-#define PAL_MENUFOCUSHLINE 38
-#define PAL_MENUPRESSBACKGND 39
-#define PAL_MENUPRESSINVBACKGND 40
+#define PAL_MENU_BACKGND 31
+#define PAL_MENU_INVBACKGND 32
+#define PAL_MENU_TEXT    33
+#define PAL_MENU_INVTEXT 34
+#define PAL_MENU_DIRMARK 35
+#define PAL_MENU_INVDIRMARK 36
+#define PAL_MENU_HLINE   37
+#define PAL_MENU_FOCUSHLINE 38
+#define PAL_MENU_PRESSBACKGND 39
+#define PAL_MENU_PRESSINVBACKGND 40
 
 
 // Theme colors for status area
-#define PAL_STABACKGND  41
-#define PAL_STATEXT     42
-#define PAL_STAANNPRESS 43
-#define PAL_STAANN      44
-#define PAL_STABAT      45
-#define PAL_STAUFLAG0   46
-#define PAL_STAUFLAG1   47
+#define PAL_STA_BACKGND  41
+#define PAL_STA_TEXT     42
+#define PAL_STA_ANNPRESS 43
+#define PAL_STA_ANN      44
+#define PAL_STA_BAT      45
+#define PAL_STA_UFLAG0   46
+#define PAL_STA_UFLAG1   47
 
-#define PAL_HLPBACKGND  48
-#define PAL_HLPTEXT     49
-#define PAL_HLPLINES    50
+#define PAL_HLP_BACKGND  48
+#define PAL_HLP_TEXT     49
+#define PAL_HLP_LINES    50
 
 
-#define PAL_FORMBACKGND 51
-#define PAL_FORMTEXT    52
-#define PAL_FORMSELTEXT 53
-#define PAL_FORMSELBACKGND 54
-#define PAL_FORMCURSOR  55
+#define PAL_FORM_BACKGND 51
+#define PAL_FORM_TEXT    52
+#define PAL_FORM_SELTEXT 53
+#define PAL_FORM_SELBACKGND 54
+#define PAL_FORM_CURSOR  55
 
 
 // Add additional theme colors here

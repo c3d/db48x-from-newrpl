@@ -4183,7 +4183,7 @@ void onPlusKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 #endif /* TARGET_PRIME1 */
 
     int j;
@@ -4236,7 +4236,7 @@ void onMinusKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 #endif /* TARGET_PRIME1 */
 
     int j;
@@ -4316,21 +4316,21 @@ void onDotKeyHandler(WORD keymsg)
              ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 #endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Format:",
 #ifndef TARGET_PRIME1
                FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-    FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+    FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
 #endif /* TARGET_PRIME1 */
 DrawTextBk(STATUSAREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
 #ifndef TARGET_PRIME1
                (char *)options[option], FONT_STATUS, 0xf, 0,
 #else /* TARGET_PRIME1 */
-               (char *)options[option], FONT_STATUS,ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND),
+               (char *)options[option], FONT_STATUS,ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND),
 #endif /* TARGET_PRIME1 */
             &scr);
 
@@ -4471,13 +4471,13 @@ void onSpcKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Mode:",
-               FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)options[option], FONT_STATUS, ggl_mkcolor(PAL_STATEXT),ggl_mkcolor(PAL_STABACKGND),
+               (char *)options[option], FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BACKGND),
                &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4590,14 +4590,14 @@ void onMulDivKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "ENG exponent:",
-               FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
                (char *)onMulDivKeyHandler_options[option],
-               FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
 
     if(option)
         option += 7;
@@ -4690,13 +4690,13 @@ void onDigitKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "Display Digits:",
-               FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
     DrawTextBk(STATUSAREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)&digits, FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               (char *)&digits, FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4764,21 +4764,21 @@ void onUpDownKeyHandler(WORD keymsg)
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
+            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BACKGND));
 #endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUSAREA_X + 1, ytop + 1, "System precision:",
 #ifndef TARGET_PRIME1
                FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-               FONT_STATUS, ggl_mkcolor(PAL_STATEXT),ggl_mkcolor(PAL_STABACKGND), &scr);
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BACKGND), &scr);
 #endif /* TARGET_PRIME1 */
     DrawTextBk(STATUSAREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
 #ifndef TARGET_PRIME1
                digits_string, FONT_STATUS, 0xf, 0, &scr);
 #else /* TARGET_PRIME1 */
-               digits_string, FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), &scr);
+               digits_string, FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BACKGND), &scr);
 #endif /* TARGET_PRIME1 */
 
     halScreen.DirtyFlag |= STACK_DIRTY;

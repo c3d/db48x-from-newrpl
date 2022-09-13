@@ -41,7 +41,7 @@ void main_virtual()
 
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
-                ggl_mksolid(PAL_STKBACKGND));
+                ggl_mksolid(PAL_STK_BACKGND));
 
         // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
         mode = (halCheckMemoryMap() == 2) ? 1 : 0;      // mode!=0 ONLY WHEN WAKING UP FROM POWEROFF

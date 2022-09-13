@@ -148,7 +148,7 @@ void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const *font)
     BYTEPTR charptr = (BYTEPTR) (string + 1);
 
     DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
-            ggl_mkcolor(PAL_STKITEMS), scr);
+            ggl_mkcolor(PAL_STK_ITEMS), scr);
 
 }
 
@@ -206,11 +206,11 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
         tsurf.y = 0;
 
         // CLEAR THE BITMAP FIRST
-        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_mkcolor(PAL_STKBACKGND));
+        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_mkcolor(PAL_STK_BACKGND));
         //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
 
-        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, ggl_mkcolor(PAL_STKITEMS),
+        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, ggl_mkcolor(PAL_STK_ITEMS),
                 &tsurf);
 
         // AND ADD TO CACHE
@@ -255,6 +255,6 @@ void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
         BYTEPTR charptr = (BYTEPTR) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
-                  FONT_STACK, ggl_mkcolor(PAL_STKITEMS), scr);
+                  FONT_STACK, ggl_mkcolor(PAL_STK_ITEMS), scr);
     }
 }
