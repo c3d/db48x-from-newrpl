@@ -30,6 +30,16 @@
 #define G2RGBGREEN(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
 #define G2RGBBLUE(gray) ( (((gray)&0xf)<<4) | (((gray)&0x8)? 0xf:0) )
 
+#ifndef TARGET_PRIME1
+#define C2RGBRED(gray)          G2RGBRED(gray)
+#define C2RGBGREEN(gray)        G2RGBGREEN(gray)
+#define C2RGBBLUE(gray)         G2RGBBLUE(gray)
+#else // TARGET_PRIME1
+#define C2RGBRED(rgb16)         RGBRED(rgb16)
+#define C2RGBGREEN(rgb16)       RGBGREEN(rgb16)
+#define C2RGBBLUE(rgb16)        RGBBLUE(rgb16)
+#endif // TARGET_PRIME1
+
 // Convert from RGB (0-255) to GRAY16(4-bit)
 #define RGB_TO_GRAY16(red,green,blue) ((( (red)+(green)+(green)+(blue)) >> 6)&0xf)
 

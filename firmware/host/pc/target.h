@@ -73,10 +73,15 @@ extern int usb_timeout;
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
 #define SCREEN_H 80
 
-
+// HP50G menu organization
+#define MENU2_STARTX 0
+#define MENU2_ENDX   SCREEN_W
+#define MENU2_COUNT  3
 
 #define ANN_X_COORD (SCREEN_WIDTH)
-#else
+
+#else // TARGET_PC_PRIMEG1
+
 // USABLE SCREEN WINDOW SIZE
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -94,15 +99,17 @@ extern int usb_timeout;
 #define SCREEN_H 240
 
 #define ANN_X_COORD (SCREEN_WIDTH)
+#define MENU1_ENDX  ((44*SCREEN_WIDTH)/131)
 
 // Prime menu organization constants
-#define MENU1_ENDX  ((44*SCREEN_WIDTH)/131)
 #define MENU2_STARTX (MENU1_ENDX+1)
 #define MENU2_ENDX  (1+(88*SCREEN_WIDTH)/131)
+#define MENU2_COUNT  2
+
 #undef  STATUSAREA_X
 #define STATUSAREA_X  (MENU2_ENDX+1)
 
-#endif
+#endif // TARGET_PC_PRIMEG1
 
 
 // DEFAULT CLOCK SPEEDS

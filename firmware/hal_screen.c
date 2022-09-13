@@ -1078,9 +1078,6 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
-#ifdef TARGET_PRIME1
-
-#endif /* TARGET_PRIME1 */
     int mcolor,bcolor,mpalette,bpalette;
 
     if(rplTestSystemFlag(FL_MENU1WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=ggl_mkcolor(PAL_MENUINVTEXT); bcolor=ggl_mkcolor(PAL_MENUINVBACKGND); }
@@ -1112,24 +1109,40 @@ void halRedrawMenu1(DRAWSURFACE * scr)
     BINT nitems = uiCountMenuItems(m1code, MenuObj);
     BINT k;
     WORDPTR item;
-#else /* TARGET_PRIME1 */
-    if(halScreen.Menu2==0) {
-#endif /* TARGET_PRIME1 */
 
-#ifndef TARGET_PRIME1
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
     if((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6)) {
         m1code = SETMENUPAGE(m1code, 0);
         rplSetMenuCode(1, m1code);
     }
-#else /* TARGET_PRIME1 */
-        // Draw a one-line horizontal menu with no status area when Menu2 is disabled
-#endif /* TARGET_PRIME1 */
 
-#ifndef TARGET_PRIME1
     // FIRST ROW
+    scr->clipy = ytop + 1;
+    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+    for(k = 0; k < 5; ++k) {
+        scr->clipx = MENU_TAB_WIDTH * k;
+        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+        item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
+    }
+
+    // NOW DO THE NXT KEY
+    scr->clipx = MENU_TAB_WIDTH * k;
+    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+
+    if(nitems == 6) {
+        item = uiGetMenuItem(m1code, MenuObj, 5);
+        uiDrawMenuItem(item, mpalette, bpalette, scr);
+        if(nitems > 6) {
+            DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
+                    FONT_MENU, mcolor, scr);
+        }
+    }
+
 #else /* TARGET_PRIME1 */
+    if(halScreen.Menu2==0) {
+        // Draw a one-line horizontal menu with no status area when Menu2 is disabled
         ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
         ybottom = ytop + halScreen.Menu1 - 1;
         // DRAW BACKGROUND
@@ -1137,16 +1150,6 @@ void halRedrawMenu1(DRAWSURFACE * scr)
                      bcolor);
         ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENUHLINE));
         ggl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENUHLINE));
-#endif /* TARGET_PRIME1 */
-
-#ifndef TARGET_PRIME1
-    scr->clipy = ytop + 1;
-    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
-#endif /* ! TARGET_PRIME1 */
-
-#ifndef TARGET_PRIME1
-    for(k = 0; k < 5; ++k) {
-#else /* TARGET_PRIME1 */
 
         BINT64 m1code = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
@@ -1174,20 +1177,8 @@ void halRedrawMenu1(DRAWSURFACE * scr)
         }
 
         // NOW DO THE NXT KEY
-#endif /* TARGET_PRIME1 */
         scr->clipx = MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-#ifndef TARGET_PRIME1
-        item = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-        uiDrawMenuItem(item, mpalette, bpalette, scr);
-    }
-#endif /* ! TARGET_PRIME1 */
-
-#ifndef TARGET_PRIME1
-    // NOW DO THE NXT KEY
-    scr->clipx = MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-#else /* TARGET_PRIME1 */
         if(nitems == 6) {
             item = uiGetMenuItem(m1code, MenuObj, 5);
             uiDrawMenuItem(item, mpalette, bpalette, scr);
@@ -1198,21 +1189,9 @@ void halRedrawMenu1(DRAWSURFACE * scr)
                          FONT_MENU, mcolor, scr);
             }
         }
-
-#endif /* TARGET_PRIME1 */
-
-#ifndef TARGET_PRIME1
-    if(nitems == 6) {
-        item = uiGetMenuItem(m1code, MenuObj, 5);
-        uiDrawMenuItem(item, mpalette, bpalette, scr);
-#endif /* ! TARGET_PRIME1 */
     }
-    else {
-#ifndef TARGET_PRIME1
-        if(nitems > 6) {
-            DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
-                    FONT_MENU, mcolor, scr);
-#else /* TARGET_PRIME1 */
+    else
+    {
 
         // Draw a three-line menu with centered status area when Menu2 is enabled
 
@@ -1243,13 +1222,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
         if((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6)) {
             m1code = SETMENUPAGE(m1code, 0);
             rplSetMenuCode(1, m1code);
-#endif /* TARGET_PRIME1 */
         }
-#ifndef TARGET_PRIME1
-    }
-#endif /* ! TARGET_PRIME1 */
-
-#ifdef TARGET_PRIME1
         // FIRST ROW
 
         scr->clipy = ytop + 1;
@@ -1305,6 +1278,7 @@ void halRedrawMenu1(DRAWSURFACE * scr)
 
     }
 #endif /* TARGET_PRIME1 */
+
     scr->clipx = oldclipx;
     scr->clipx2 = oldclipx2;
     scr->clipy = oldclipy;
@@ -1331,19 +1305,11 @@ void halRedrawMenu2(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
-#ifdef TARGET_PRIME1
-
-
-
-#endif /* TARGET_PRIME1 */
     int mcolor,bcolor,mpalette,bpalette;
 
     if(rplTestSystemFlag(FL_MENU2WHITE)) { mpalette=PAL_MENUINVTEXT; bpalette=PAL_MENUINVBACKGND; mcolor=ggl_mkcolor(PAL_MENUINVTEXT); bcolor=ggl_mkcolor(PAL_MENUINVBACKGND); }
     else { mpalette=PAL_MENUTEXT; bpalette=PAL_MENUBACKGND; mcolor=ggl_mkcolor(PAL_MENUTEXT); bcolor=ggl_mkcolor(PAL_MENUBACKGND); }
 
-#ifndef TARGET_PRIME1
-
-#endif /* ! TARGET_PRIME1 */
     int ytop, ybottom;
     int oldclipx, oldclipx2, oldclipy, oldclipy2;
 
@@ -1371,9 +1337,9 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     oldclipx2 = scr->clipx2;
     oldclipy = scr->clipy;
     oldclipy2 = scr->clipy2;
+
 #ifdef TARGET_PRIME1
      // Draw a three-line menu with centered status area when Menu2 is enabled
-
     ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
     ybottom = ytop + halScreen.Menu1 +halScreen.Menu2 - 1;
     int selcolor=ggl_mkcolor(halKeyMenuSwitch? PAL_MENUFOCUSHLINE:PAL_MENUHLINE);
@@ -1409,66 +1375,50 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     }
 
     // FIRST ROW
-
 #ifndef TARGET_PRIME1
     scr->clipy = ytop;
     scr->clipy2 = ytop + MENU2_HEIGHT / 2 - 2;
 #else /* TARGET_PRIME1 */
     scr->clipy = ytop + 1;
     scr->clipy2 = ytop + MENU1_HEIGHT - 2;
-
 #endif /* TARGET_PRIME1 */
 
-#ifndef TARGET_PRIME1
-    for(k = 0; k < 3; ++k) {
-        scr->clipx = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-#else /* TARGET_PRIME1 */
-    for(k = 0; k < 2; ++k) {
+    for(k = 0; k < MENU2_COUNT; ++k) {
         scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-#endif /* TARGET_PRIME1 */
         item = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // SECOND ROW
-
 #ifndef TARGET_PRIME1
     scr->clipy = ytop + MENU2_HEIGHT / 2;
     scr->clipy2 = ybottom - 1;
 #else /* TARGET_PRIME1 */
-
     scr->clipy = ytop + MENU1_HEIGHT;
     scr->clipy2 = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
 #endif /* TARGET_PRIME1 */
 
     for(k = 0; k < 2; ++k) {
-#ifndef TARGET_PRIME1
-        scr->clipx = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-        item = uiGetMenuItem(m2code, MenuObj, k + 3 + MENUPAGE(m2code));
-#else /* TARGET_PRIME1 */
         scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
         scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
         item = uiGetMenuItem(m2code, MenuObj, k + 2 + MENUPAGE(m2code));
-#endif /* TARGET_PRIME1 */
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
 #ifdef TARGET_PRIME1
-    // THIRD ROW
 
+    // THIRD ROW
     scr->clipy = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
     scr->clipy2 = ybottom - 1;
 
     k=0;
-        scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
-        item = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
-        uiDrawMenuItem(item, mpalette, bpalette, scr);
-
+    scr->clipx = MENU2_STARTX + MENU_TAB_WIDTH * k;
+    scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH-2);
+    item = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
+    uiDrawMenuItem(item, mpalette, bpalette, scr);
 #endif /* TARGET_PRIME1 */
+
     // NOW DO THE NXT KEY
 #ifndef TARGET_PRIME1
     scr->clipx = MENU_TAB_WIDTH * k;
@@ -1485,14 +1435,10 @@ void halRedrawMenu2(DRAWSURFACE * scr)
     else {
         if(nitems > 6) {
             DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...",
-                    FONT_MENU, mcolor, scr);
+                     FONT_MENU, mcolor, scr);
         }
     }
 
-#ifdef TARGET_PRIME1
-
-
-#endif /* TARGET_PRIME1 */
     scr->clipx = oldclipx;
     scr->clipx2 = oldclipx2;
     scr->clipy = oldclipy;
@@ -1513,18 +1459,15 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
     halScreenUpdated();
 
-#ifdef TARGET_PRIME1
-
-
-#endif /* TARGET_PRIME1 */
     if(halScreen.Menu2) {
-        int ytop =
 #ifndef TARGET_PRIME1
+        int ytop =
                 halScreen.Form + halScreen.Stack + halScreen.CmdLine +
                 halScreen.Menu1;
         ggl_cliprect(scr, STATUSAREA_X, ytop, SCREEN_WIDTH - 1,
                 ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STABACKGND));
 #else /* TARGET_PRIME1 */
+        int ytop =
                 halScreen.Form + halScreen.Stack + halScreen.CmdLine ;
 
         ggl_hline(scr,ytop,STATUSAREA_X,SCREEN_WIDTH -1,ggl_mkcolor(PAL_MENUHLINE));
@@ -1537,8 +1480,11 @@ void halRedrawStatus(DRAWSURFACE * scr)
         scr->clipx = STATUSAREA_X;
         scr->clipy = ytop;
 
-        // AUTOCOMPLETE
+#ifdef TARGET_PRIME1
+        ytop++;
+#endif // TARGET_PRIME1
 
+        // AUTOCOMPLETE
         if(halScreen.CmdLineState & CMDSTATE_ACACTIVE) {
             BYTEPTR namest;
             BYTEPTR nameend;
@@ -1547,12 +1493,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
                 // SECOND LINE
                 if(!Exceptions) {
                     // BUT ONLY IF THERE WERE NO ERRORS
-#ifndef TARGET_PRIME1
-                    BINT y = ytop + 1 +
-#else /* TARGET_PRIME1 */
-                    BINT y = ytop + 2 +
-#endif /* TARGET_PRIME1 */
-                            FONT_STATUS->BitmapHeight;
+                    BINT y = ytop + 1 + FONT_STATUS->BitmapHeight;
+
                     // FOR NOW JUST DISPLAY THE SELECTED TOKEN
                     WORDPTR cmdname =
                             rplDecompile(((ISPROLOG(halScreen.ACSuggestion)
@@ -1580,12 +1522,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
             BINT nnames, j, width, xst;
             WORDPTR pathnames[8], lastword;
             BYTEPTR start, end;
-#ifndef TARGET_PRIME1
-            BINT y = ytop + 1 +
-#else /* TARGET_PRIME1 */
-            BINT y = ytop + 2 +
-#endif /* TARGET_PRIME1 */
-                FONT_HEIGHT(FONT_STATUS);
+            BINT y = ytop + 1 + FONT_HEIGHT(FONT_STATUS);
 
             nnames = rplGetFullPath(CurrentDir, pathnames, 8);
 
@@ -1639,7 +1576,7 @@ void halRedrawStatus(DRAWSURFACE * scr)
                 scr->x = STATUSAREA_X;
                 ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0xA, &ggl_fltlighten);
                 scr->x += 2;
-                ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS, 0x6, &ggl_fltlighten);
+                ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0x6, &ggl_fltlighten);
                 scr->x += 2;
                 ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0x4, &ggl_fltlighten);
 
@@ -1650,21 +1587,12 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
                 int rf,rb,gf,gb,bf,bb;
 
-#ifndef TARGET_PRIME1
-                rf=G2RGBRED(ggl_mkcolor(PAL_STATEXT));
-                rb=G2RGBRED(ggl_mkcolor(PAL_STABACKGND));
-                gf=G2RGBGREEN(ggl_mkcolor(PAL_STATEXT));
-                gb=G2RGBGREEN(ggl_mkcolor(PAL_STABACKGND));
-                bf=G2RGBBLUE(ggl_mkcolor(PAL_STATEXT));
-                bb=G2RGBBLUE(ggl_mkcolor(PAL_STABACKGND));
-#else /* TARGET_PRIME1 */
-                rf=RGBRED(ggl_mkcolor(PAL_STATEXT));
-                rb=RGBRED(ggl_mkcolor(PAL_STABACKGND));
-                gf=RGBGREEN(ggl_mkcolor(PAL_STATEXT));
-                gb=RGBGREEN(ggl_mkcolor(PAL_STABACKGND));
-                bf=RGBBLUE(ggl_mkcolor(PAL_STATEXT));
-                bb=RGBBLUE(ggl_mkcolor(PAL_STABACKGND));
-#endif /* TARGET_PRIME1 */
+                rf=C2RGBRED(ggl_mkcolor(PAL_STATEXT));
+                rb=C2RGBRED(ggl_mkcolor(PAL_STABACKGND));
+                gf=C2RGBGREEN(ggl_mkcolor(PAL_STATEXT));
+                gb=C2RGBGREEN(ggl_mkcolor(PAL_STABACKGND));
+                bf=C2RGBBLUE(ggl_mkcolor(PAL_STATEXT));
+                bb=C2RGBBLUE(ggl_mkcolor(PAL_STABACKGND));
 
                 // CREATE 3 INTERPOLATED COLORS: (3F+B)/4, (F+B)/2 AND (F+3B)/4
                 int vanishwidth=MENU_TAB_WIDTH/16;
@@ -1681,21 +1609,11 @@ void halRedrawStatus(DRAWSURFACE * scr)
                         RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2) | (ggl_mkcolor(PAL_STATEXT)<<16), &ggl_fltreplace);
 
             }
-
-#ifndef TARGET_PRIME1
-
-#endif /* ! TARGET_PRIME1 */
         }
 
-#ifdef TARGET_PRIME1
         int xctracker=0;            // TRACK THE WIDTH OF THE INDICATORS TO MAKE SURE THEY ALL FIT
 
-#endif /* TARGET_PRIME1 */
         // ANGLE MODE INDICATOR
-
-#ifdef TARGET_PRIME1
-
-#endif /* TARGET_PRIME1 */
         {
             BINT anglemode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
@@ -1707,138 +1625,68 @@ void halRedrawStatus(DRAWSURFACE * scr)
                 "∡d"
             };
 
-#ifndef TARGET_PRIME1
             DrawTextBk(STATUSAREA_X + 1, ytop + 1, (char *)name[anglemode],
-#else /* TARGET_PRIME1 */
-            DrawTextBk(STATUSAREA_X + 1, ytop + 2, (char *)name[anglemode],
-#endif /* TARGET_PRIME1 */
                        FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), scr);
-#ifdef TARGET_PRIME1
-
             xctracker+=4+StringWidth((char *)name[anglemode],FONT_STATUS);
-
-#endif /* TARGET_PRIME1 */
         }
 
         // COMPLEX MODE INDICATOR
 
-#ifndef TARGET_PRIME1
-        if(rplTestSystemFlag(FL_COMPLEXMODE))
-            DrawTextBk(STATUSAREA_X + 14, ytop + 1, (char *)"C",
-#else /* TARGET_PRIME1 */
         if(rplTestSystemFlag(FL_COMPLEXMODE)) {
-            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 2, (char *)"C",
-#endif /* TARGET_PRIME1 */
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"C",
                        FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), scr);
-#ifdef TARGET_PRIME1
             xctracker+=4+StringWidth((char *)"C",FONT_STATUS);
-
         }
-#endif /* TARGET_PRIME1 */
 
         // HALTED PROGRAM INDICATOR
-
-#ifndef TARGET_PRIME1
-        if(halFlags & HAL_HALTED)
-            DrawTextBk(STATUSAREA_X + 20, ytop + 1, (char *)"H",
-#else /* TARGET_PRIME1 */
         if(halFlags & HAL_HALTED) {
-            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 2, (char *)"H",
-#endif /* TARGET_PRIME1 */
+            DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"H",
                        FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), scr);
-#ifdef TARGET_PRIME1
             xctracker+=4+StringWidth((char *)"H",FONT_STATUS);
-
-         }
-#endif /* TARGET_PRIME1 */
+        }
 
         // FIRST 6 USER FLAGS
-#ifdef TARGET_PRIME1
-
-#endif /* TARGET_PRIME1 */
         {
             UBINT64 *flags = rplGetUserFlagsLow();
             if(flags) {
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 30 , ytop + 2,
-                        STATUSAREA_X + 36 , ytop + 6, ggl_mkcolor(PAL_STAUFLAG0));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 2,
-                        STATUSAREA_X + 6 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG0));
-#endif /* TARGET_PRIME1 */
+                ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 1,
+                         STATUSAREA_X + 6 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG0));
 
                 if(*flags & 4)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 30   , ytop + 2,
-                            STATUSAREA_X + 31 , ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 2,
-                            STATUSAREA_X + 2 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
+                    ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 1,
+                             STATUSAREA_X + 2 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
                 if(*flags & 2)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 32 , ytop + 2,
-                            STATUSAREA_X + 33 , ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 3 + xctracker, ytop + 2,
-                            STATUSAREA_X + 4 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
+                    ggl_rect(scr, STATUSAREA_X + 3 + xctracker, ytop + 1,
+                             STATUSAREA_X + 4 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
                 if(*flags & 1)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 34 , ytop + 2,
-                            STATUSAREA_X + 35 , ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 5 + xctracker, ytop + 2,
-                            STATUSAREA_X + 6 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
+                    ggl_rect(scr, STATUSAREA_X + 5 + xctracker, ytop + 1,
+                             STATUSAREA_X + 6 + xctracker, ytop + 3, ggl_mkcolor(PAL_STAUFLAG1));
 
                 if(*flags & 32)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 30 , ytop + 5,
-                            STATUSAREA_X + 31 , ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 5,
+                    ggl_rect(scr, STATUSAREA_X + 1 + xctracker, ytop + 4,
                             STATUSAREA_X + 2 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
                 if(*flags & 16)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 32 , ytop + 5,
-                            STATUSAREA_X + 33 , ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 3 + xctracker, ytop + 5,
+                    ggl_rect(scr, STATUSAREA_X + 3 + xctracker, ytop + 4,
                             STATUSAREA_X + 4 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
                 if(*flags & 8)
-#ifndef TARGET_PRIME1
-                    ggl_rect(scr, STATUSAREA_X + 34 , ytop + 5,
-                            STATUSAREA_X + 35 , ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-            }
-#else /* TARGET_PRIME1 */
-                    ggl_rect(scr, STATUSAREA_X + 5 + xctracker, ytop + 5,
-                            STATUSAREA_X + 6 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
-#endif /* TARGET_PRIME1 */
+                    ggl_rect(scr, STATUSAREA_X + 5 + xctracker, ytop + 4,
+                             STATUSAREA_X + 6 + xctracker, ytop + 6, ggl_mkcolor(PAL_STAUFLAG1));
 
-#ifdef TARGET_PRIME1
                 xctracker+=7;
-#endif /* TARGET_PRIME1 */
-
-#ifdef TARGET_PRIME1
             }
-#endif /* TARGET_PRIME1 */
-
         }
 
-        // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
-
 #ifndef TARGET_PRIME1
+        // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
         if(halGetNotification(N_ALARM)) {
             char txt[4];
             txt[0] = 'A';
             txt[1] = 'L';
             txt[2] = 'M';
             txt[3] = 0;
-            DrawTextBk(STATUSAREA_X + 38, ytop + 1, txt,
+            DrawTextBk(STATUSAREA_X + xctracker, ytop + 1, txt,
                     FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=2+StringWidth(txt,FONT_STATUS);
         }
         else if(halGetNotification(N_DATARECVD)) {
             char txt[4];
@@ -1846,16 +1694,13 @@ void halRedrawStatus(DRAWSURFACE * scr)
             txt[1] = 'X';
             txt[2] = ' ';
             txt[3] = 0;
-            DrawTextBk(STATUSAREA_X + 38, ytop + 1, txt,
+            DrawTextBk(STATUSAREA_X + xctracker, ytop + 1, txt,
                     FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND), scr);
+            xctracker+=2+StringWidth(txt,FONT_STATUS);
         }
-#else /* TARGET_PRIME1 */
-
-
-#endif /* TARGET_PRIME1 */
+#endif // TARGET_PRIME1
 
 #ifndef CONFIG_NO_FSYSTEM
-
         // SD CARD INSERTED INDICATOR
         {
             char txt[4];
@@ -1887,50 +1732,34 @@ void halRedrawStatus(DRAWSURFACE * scr)
             }
 
             if(color) {
-                if(color == -1)
-#ifndef TARGET_PRIME1
-                    DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
-#else /* TARGET_PRIME1 */
+                if(color == -1) {
                     DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-#endif /* TARGET_PRIME1 */
-                            FONT_STATUS, ggl_mkcolor(PAL_STABACKGND), ggl_mkcolor(PAL_STATEXT), scr);
+                               FONT_STATUS, ggl_mkcolor(PAL_STABACKGND), ggl_mkcolor(PAL_STATEXT), scr);
+                }
                 else {
                     if(color == -2)
-#ifndef TARGET_PRIME1
-                        DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
-#else /* TARGET_PRIME1 */
                         DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-#endif /* TARGET_PRIME1 */
                                    FONT_STATUS, ggl_mkcolor(PAL_STABACKGND), ggl_mkcolor(PAL_STATEXT), scr);
                     else
-#ifndef TARGET_PRIME1
-                        DrawTextBk(STATUSAREA_X + 53, ytop + 1, txt,
-#else /* TARGET_PRIME1 */
                         DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, txt,
-#endif /* TARGET_PRIME1 */
                                    FONT_STATUS, ggl_mkcolor(PAL_STATEXT), ggl_mkcolor(PAL_STABACKGND),
                                 scr);
                 }
-#ifdef TARGET_PRIME1
                 xctracker+=4+StringWidth(txt,FONT_STATUS);
-
-#endif /* TARGET_PRIME1 */
             }
 
         }
-
-#endif
+#endif // CONFIG_NO_FSYSTEM
 
 #ifdef TARGET_PRIME1
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
+        xctracker=4;
+        ytop=SCREEN_HEIGHT-1-Font_Notifications->BitmapHeight;
 
-            xctracker=4;
-            ytop=SCREEN_HEIGHT-1-Font_Notifications->BitmapHeight;
         // ALARM
-
         if(halGetNotification(N_ALARM)) {
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"X",
-                    Font_Notifications, ggl_mkcolor(PAL_STAANNPRESS), ggl_mkcolor(PAL_STABACKGND), scr);
+                       Font_Notifications, ggl_mkcolor(PAL_STAANNPRESS), ggl_mkcolor(PAL_STABACKGND), scr);
             xctracker+=4+StringWidth((char *)"X",Font_Notifications);
         }
 
@@ -1940,9 +1769,8 @@ void halRedrawStatus(DRAWSURFACE * scr)
             if(halGetNotification(N_DATARECVD)) color=PAL_STAANNPRESS; else color=PAL_STAANN;
 
             DrawTextBk(STATUSAREA_X + 1 + xctracker, ytop + 1, (char *)"U",
-                    Font_Notifications,  ggl_mkcolor(color), ggl_mkcolor(PAL_STABACKGND), scr);
+                       Font_Notifications,  ggl_mkcolor(color), ggl_mkcolor(PAL_STABACKGND), scr);
             xctracker+=4+StringWidth((char *)"U",Font_Notifications);
-
         }
 
         // Keyboard
@@ -1986,11 +1814,9 @@ void halRedrawStatus(DRAWSURFACE * scr)
         }
 
         // Battery notifications are handled as part of the battery handler - do not display here
-
-
 #endif /* TARGET_PRIME1 */
-        // ADD OTHER INDICATORS HERE
 
+        // ADD OTHER INDICATORS HERE
         scr->clipx = xc;
         scr->clipy = yc;
     }
@@ -2003,16 +1829,8 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
 {
     halScreenUpdated();
 
-#ifdef TARGET_PRIME1
-
-
-#endif /* TARGET_PRIME1 */
     if(halScreen.CmdLine) {
         int ytop = halScreen.Form + halScreen.Stack;
-#ifdef TARGET_PRIME1
-
-
-#endif /* TARGET_PRIME1 */
         if((halScreen.DirtyFlag & CMDLINE_ALLDIRTY) == CMDLINE_ALLDIRTY) {
             //ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
             ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_DIVLINE));
@@ -2186,11 +2004,7 @@ void halRedrawCmdLine(DRAWSURFACE * scr)
             if(strend > selend) {
                 DrawTextBkN(xcoord, ytop + 2 + y, (char *)selend,
                         (char *)strend, FONT_CMDLINE, ggl_mkcolor(PAL_CMDTEXT),
-#ifndef TARGET_PRIME1
                             ggl_mkcolor(PAL_CMDBACKGND), scr);
-#else /* TARGET_PRIME1 */
-                        ggl_mkcolor(PAL_CMDBACKGND), scr);
-#endif /* TARGET_PRIME1 */
                 //xcoord+=StringWidthN((char *)selend,(char *)strend,FONT_CMDLINE);
                 xcoord = scr->x;
             }
@@ -2350,15 +2164,11 @@ void halUpdateFonts()
             case FONT_INDEX_FORMS:
                 halScreen.DirtyFlag |= FORM_DIRTY;
                 break;
-#ifdef TARGET_PRIME1
             case FONT_INDEX_HLPTITLE:
             case FONT_INDEX_HLPTEXT:
                 break;
-
-#endif /* TARGET_PRIME1 */
             }
-
-        }
+}
         else
             halScreen.FontArray[f] = tmparray[f];
 
@@ -2366,11 +2176,10 @@ void halUpdateFonts()
 
 }
 
-#ifdef TARGET_PRIME1
-
 // PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
 void halPrepareBuffer(DRAWSURFACE *scr)
 {
+#ifdef TARGET_PRIME1
     DRAWSURFACE altbuffer;
     if(scr->actbuffer) altbuffer.addr=scr->addr-(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
     else altbuffer.addr=scr->addr+(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
@@ -2396,11 +2205,12 @@ void halPrepareBuffer(DRAWSURFACE *scr)
 
     scr->addr=altbuffer.addr;
     scr->actbuffer^=1;
-
+#endif /* TARGET_PRIME1 */
 }
 
 void halSwapBuffer(DRAWSURFACE *scr)
 {
+#ifdef TARGET_PRIME1
     // Show new buffer on the screen
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag|=BUFFER_LOCK;
@@ -2412,15 +2222,12 @@ void halSwapBuffer(DRAWSURFACE *scr)
     halScreen.DirtyFlag&=~BUFFER_LOCK;
 
     halScreenUpdated();
+#endif /* TARGET_PRIME1 */
 }
 
-
-#endif /* TARGET_PRIME1 */
 void halForceRedrawAll(DRAWSURFACE * scr)
 {
-#ifdef TARGET_PRIME1
     halPrepareBuffer(scr);
-#endif /* TARGET_PRIME1 */
     halUpdateFonts();
     halRedrawForm(scr);
     halRedrawStack(scr);
@@ -2428,61 +2235,38 @@ void halForceRedrawAll(DRAWSURFACE * scr)
     halRedrawMenu1(scr);
     halRedrawMenu2(scr);
     halRedrawStatus(scr);
-#ifdef TARGET_PRIME1
     halSwapBuffer(scr);
-#endif /* TARGET_PRIME1 */
 }
 
-#ifdef TARGET_PRIME1
-
-
-
-
-
-#endif /* TARGET_PRIME1 */
 void halRedrawAll(DRAWSURFACE * scr)
 {
-#ifdef TARGET_PRIME1
-
-
-
-#endif /* TARGET_PRIME1 */
     if(halScreen.DirtyFlag)
-#ifdef TARGET_PRIME1
     {
-#endif /* TARGET_PRIME1 */
         halUpdateFonts();
-#ifdef TARGET_PRIME1
         halPrepareBuffer(scr);
 
-#endif /* TARGET_PRIME1 */
-    if(halScreen.DirtyFlag & FORM_DIRTY)
-        halRedrawForm(scr);
-    if(halScreen.DirtyFlag & STACK_DIRTY)
-        halRedrawStack(scr);
-    if(halScreen.DirtyFlag & CMDLINE_ALLDIRTY)
-        halRedrawCmdLine(scr);
-#ifndef TARGET_PRIME1
-    if(halScreen.DirtyFlag & MENU1_DIRTY)
-        halRedrawMenu1(scr);
-#else /* TARGET_PRIME1 */
-
-#endif /* TARGET_PRIME1 */
-    if(!halScreen.SAreaTimer) {
-        // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
-#ifdef TARGET_PRIME1
-        if(halScreen.DirtyFlag & MENU1_DIRTY)
+        if (halScreen.DirtyFlag & FORM_DIRTY)
+            halRedrawForm(scr);
+        if (halScreen.DirtyFlag & STACK_DIRTY)
+            halRedrawStack(scr);
+        if (halScreen.DirtyFlag & CMDLINE_ALLDIRTY)
+            halRedrawCmdLine(scr);
+        if (halScreen.DirtyFlag & MENU1_DIRTY)
             halRedrawMenu1(scr);
-#endif /* TARGET_PRIME1 */
-        if(halScreen.DirtyFlag & MENU2_DIRTY)
-            halRedrawMenu2(scr);
-        if(halScreen.DirtyFlag & STAREA_DIRTY)
-            halRedrawStatus(scr);
-    }
+        if (!halScreen.SAreaTimer)
+        {
+            // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
 #ifdef TARGET_PRIME1
-    halSwapBuffer(scr);
-    }
+            if (halScreen.DirtyFlag & MENU1_DIRTY)
+                halRedrawMenu1(scr);
 #endif /* TARGET_PRIME1 */
+            if (halScreen.DirtyFlag & MENU2_DIRTY)
+                halRedrawMenu2(scr);
+            if (halScreen.DirtyFlag & STAREA_DIRTY)
+                halRedrawStatus(scr);
+        }
+        halSwapBuffer(scr);
+    }
 }
 
 // MARK STATUS AREA FOR IMMEDIATE UPDATE
