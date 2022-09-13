@@ -708,16 +708,6 @@ void halSetupTheme(WORDPTR palette)
         ggl_setpalette(PAL_GRAY15,THEME_GRAY15);
 
         // Theme colors for the stack
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_STK_BACKGND, GTHEME_STKBACKGND);
-        ggl_setpalette( PAL_STK_INDEX, GTHEME_STKINDEX);
-        ggl_setpalette( PAL_STK_VLINE, GTHEME_STKVLINE);
-        ggl_setpalette( PAL_STK_IDXBACKGND, GTHEME_STKIDXBACKGND);
-        ggl_setpalette( PAL_STK_ITEMS, GTHEME_STKITEMS);
-        ggl_setpalette( PAL_STK_SELBKGND, GTHEME_STKSELBKGND);
-        ggl_setpalette( PAL_STK_SELITEM, GTHEME_STKSELITEM);
-        ggl_setpalette( PAL_STK_CURSOR, GTHEME_STKCURSOR);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_STK_BACKGND, THEME_STKBACKGND);
         ggl_setpalette( PAL_STK_INDEX, THEME_STKINDEX);
         ggl_setpalette( PAL_STK_VLINE, THEME_STKVLINE);
@@ -726,18 +716,8 @@ void halSetupTheme(WORDPTR palette)
         ggl_setpalette( PAL_STK_SELBKGND, THEME_STKSELBKGND);
         ggl_setpalette( PAL_STK_SELITEM, THEME_STKSELITEM);
         ggl_setpalette( PAL_STK_CURSOR, THEME_STKCURSOR);
-#endif /* NEWRPL_COLOR */
 
         // Theme colors for the command line
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_CMD_BACKGND, GTHEME_CMDBACKGND);
-        ggl_setpalette( PAL_CMD_TEXT, GTHEME_CMDTEXT);
-        ggl_setpalette( PAL_CMD_SELBACKGND, GTHEME_CMDSELBACKGND);
-        ggl_setpalette( PAL_CMD_SELTEXT, GTHEME_CMDSELTEXT);
-        ggl_setpalette( PAL_CMD_CURSORBACKGND, GTHEME_CMDCURSORBACKGND);
-        ggl_setpalette( PAL_CMD_CURSOR, GTHEME_CMDCURSOR);
-        ggl_setpalette( PAL_DIVLINE, GTHEME_DIVLINE);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_CMD_BACKGND, THEME_CMDBACKGND);
         ggl_setpalette( PAL_CMD_TEXT, THEME_CMDTEXT);
         ggl_setpalette( PAL_CMD_SELBACKGND, THEME_CMDSELBACKGND);
@@ -745,21 +725,8 @@ void halSetupTheme(WORDPTR palette)
         ggl_setpalette( PAL_CMD_CURSORBACKGND, THEME_CMDCURSORBACKGND);
         ggl_setpalette( PAL_CMD_CURSOR, THEME_CMDCURSOR);
         ggl_setpalette( PAL_DIVLINE, THEME_DIVLINE);
-#endif /* NEWRPL_COLOR */
 
         // Theme colors for menu
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_MENU_BACKGND, GTHEME_MENUBACKGND);
-        ggl_setpalette( PAL_MENU_INVBACKGND, GTHEME_MENUINVBACKGND);
-        ggl_setpalette( PAL_MENU_TEXT, GTHEME_MENUTEXT);
-        ggl_setpalette( PAL_MENU_INVTEXT, GTHEME_MENUINVTEXT);
-        ggl_setpalette( PAL_MENU_DIRMARK, GTHEME_MENUDIRMARK);
-        ggl_setpalette( PAL_MENU_INVDIRMARK, GTHEME_MENUINVDIRMARK);
-        ggl_setpalette( PAL_MENU_HLINE, GTHEME_MENUHLINE);
-        ggl_setpalette( PAL_MENU_FOCUSHLINE, GTHEME_MENUFOCUSHLINE);
-        ggl_setpalette( PAL_MENU_PRESSBACKGND, GTHEME_MENUPRESSBACKGND);
-        ggl_setpalette( PAL_MENU_PRESSINVBACKGND, GTHEME_MENUPRESSINVBACKGND);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_MENU_BACKGND, THEME_MENUBACKGND);
         ggl_setpalette( PAL_MENU_INVBACKGND, THEME_MENUINVBACKGND);
         ggl_setpalette( PAL_MENU_TEXT, THEME_MENUTEXT);
@@ -770,18 +737,8 @@ void halSetupTheme(WORDPTR palette)
         ggl_setpalette( PAL_MENU_FOCUSHLINE, THEME_MENUFOCUSHLINE);
         ggl_setpalette( PAL_MENU_PRESSBACKGND, THEME_MENUPRESSBACKGND);
         ggl_setpalette( PAL_MENU_PRESSINVBACKGND, THEME_MENUPRESSINVBACKGND);
-#endif /* NEWRPL_COLOR */
 
         // Theme colors for status area
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_STA_BACKGND, GTHEME_STABACKGND);
-        ggl_setpalette( PAL_STA_TEXT, GTHEME_STATEXT);
-        ggl_setpalette( PAL_STA_ANNPRESS, GTHEME_STAANNPRESS);
-        ggl_setpalette( PAL_STA_ANN, GTHEME_STAANN);
-        ggl_setpalette( PAL_STA_BAT, GTHEME_STABAT);
-        ggl_setpalette( PAL_STA_UFLAG0, GTHEME_STAUFLAG0);
-        ggl_setpalette( PAL_STA_UFLAG1, GTHEME_STAUFLAG1);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_STA_BACKGND, THEME_STABACKGND);
         ggl_setpalette( PAL_STA_TEXT, THEME_STATEXT);
         ggl_setpalette( PAL_STA_ANNPRESS, THEME_STAANNPRESS);
@@ -789,37 +746,20 @@ void halSetupTheme(WORDPTR palette)
         ggl_setpalette( PAL_STA_BAT, THEME_STABAT);
         ggl_setpalette( PAL_STA_UFLAG0, THEME_STAUFLAG0);
         ggl_setpalette( PAL_STA_UFLAG1, THEME_STAUFLAG1);
-#endif /* NEWRPL_COLOR */
 
         // Theme colors for help and popup messages
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_HLP_BACKGND, GTHEME_HLPBACKGND);
-        ggl_setpalette( PAL_HLP_TEXT, GTHEME_HLPTEXT);
-        ggl_setpalette( PAL_HLP_LINES,GTHEME_HLPLINES);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_HLP_BACKGND, THEME_HLPBACKGND);
         ggl_setpalette( PAL_HLP_TEXT, THEME_HLPTEXT);
         ggl_setpalette( PAL_HLP_LINES,THEME_HLPLINES);
-#endif /* NEWRPL_COLOR */
 
         // Theme colors for Forms
-#ifndef NEWRPL_COLOR
-        ggl_setpalette( PAL_FORM_BACKGND, GTHEME_FORMBACKGND);
-        ggl_setpalette( PAL_FORM_TEXT, GTHEME_FORMTEXT);
-        ggl_setpalette( PAL_FORM_SELTEXT, GTHEME_FORMSELTEXT);
-        ggl_setpalette( PAL_FORM_SELBACKGND, GTHEME_FORMSELBACKGND);
-        ggl_setpalette( PAL_FORM_CURSOR, GTHEME_FORMCURSOR);
-#else /* NEWRPL_COLOR */
         ggl_setpalette( PAL_FORM_BACKGND, THEME_FORMBACKGND);
         ggl_setpalette( PAL_FORM_TEXT, THEME_FORMTEXT);
         ggl_setpalette( PAL_FORM_SELTEXT, THEME_FORMSELTEXT);
         ggl_setpalette( PAL_FORM_SELBACKGND, THEME_FORMSELBACKGND);
         ggl_setpalette( PAL_FORM_CURSOR, THEME_FORMCURSOR);
-#endif /* NEWRPL_COLOR */
 
         // More default colors here
-
-
         return;
     }
 
