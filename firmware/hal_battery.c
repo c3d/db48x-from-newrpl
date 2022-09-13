@@ -311,15 +311,15 @@ void halWakeUp()
 
         // Take a list of 64 integers and use them as palette entries
 
-        if(!error && (rplListLength(saved)<PALETTESIZE)) error=1;
+        if(!error && (rplListLength(saved)<PALETTE_SIZE)) error=1;
 
         int k;
         WORDPTR obj=saved+1;
-        WORD palette[PALETTESIZE];
+        WORD palette[PALETTE_SIZE];
         UBINT64 color;
 
         if(!error) {
-            for(k=0;k<PALETTESIZE;++k)
+            for(k=0;k<PALETTE_SIZE;++k)
             {
                 color=rplReadNumberAsBINT(obj);
                 if(Exceptions) { rplClearErrors(); error=1; break; }

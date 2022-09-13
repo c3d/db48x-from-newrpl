@@ -757,17 +757,17 @@ void LIB_HANDLER()
         // Also store the list in .Settings for permanent use
 
 
-        if(rplListLength(rplPeekData(1))<PALETTESIZE) {
+        if(rplListLength(rplPeekData(1))<PALETTE_SIZE) {
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
         int k;
         WORDPTR obj=rplPeekData(1)+1;
-        WORD palette[PALETTESIZE];
+        WORD palette[PALETTE_SIZE];
         UBINT64 color;
 
-        for(k=0;k<PALETTESIZE;++k)
+        for(k=0;k<PALETTE_SIZE;++k)
         {
             color=rplReadNumberAsBINT(obj);
             if(Exceptions) return;

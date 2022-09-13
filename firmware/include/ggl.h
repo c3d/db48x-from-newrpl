@@ -54,13 +54,13 @@
 
 // Default palette size, entries 0-15 are for grayscale conversion, entries above 16 are customizable Theme colors for
 // different elements of the UI
-#define PALETTESIZE      64
-#define PALETTEMASK      63
+#define PALETTE_SIZE      64
+#define PALETTE_MASK      63
 
 #define IS_PALETTE_COLOR 0x10000
 
 // Global palette, can be used for grayscale conversion or for themes
-extern int ggl_palette[PALETTESIZE];
+extern int ggl_palette[PALETTE_SIZE];
 
 // internal buffer for hblt routines
 
@@ -243,16 +243,16 @@ int      ggl_mksolid(int color); // solid color generator
 
 // ggl_getcolor takes a system palette index color and expands to an actual RGB16 color
 // for values 0-15 the system palette must match grayscale levels for compatibility
-#define ggl_mkcolor(color) (ggl_palette[(color) &PALETTEMASK])
+#define ggl_mkcolor(color) (ggl_palette[(color) &PALETTE_MASK])
 
 // Set a palette index entry
 #define ggl_setpalette(index, color)             \
   {                                              \
-    ggl_palette[(index) &PALETTEMASK] = (color); \
+    ggl_palette[(index) &PALETTE_MASK] = (color); \
   }
 
 // Return the actual color to draw, either the given color or a palette color
-#define ggl_getcolor(color) (((color) &IS_PALETTE_COLOR) ? ggl_palette[(color) &PALETTEMASK] : (color))
+#define ggl_getcolor(color) (((color) &IS_PALETTE_COLOR) ? ggl_palette[(color) &PALETTE_MASK] : (color))
 
 // ggl_mkcolor32 creates virtual 32-colors by using 8x8 patterns
 // col32 is a value from 0 to 30, being 30=black, 0=white

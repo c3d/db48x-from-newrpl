@@ -94,7 +94,7 @@
 // Add additional theme colors here
 
 
-// up to PALETTESIZE palette colors
+// up to PALETTE_SIZE palette colors
 
 
 // Default Palette values

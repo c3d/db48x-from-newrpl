@@ -787,7 +787,7 @@ void halSetupTheme(WORDPTR palette)
 
     // Replace the palette completely
 
-    for (int k = 0; k < PALETTESIZE; ++k)
+    for (int k = 0; k < PALETTE_SIZE; ++k)
         ggl_setpalette(k, palette[k]);
 
     // Make sure all items are rendered again using the new colors

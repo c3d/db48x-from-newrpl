@@ -307,10 +307,10 @@ void fullscreenupdate()
 void palette2list(uint32_t *list,int *size)
 {
     int k;
-    if(*size<PALETTESIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT BINT, PLUS PROLOG AND ENDLIST
+    if(*size<PALETTE_SIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT BINT, PLUS PROLOG AND ENDLIST
 
-    list[0]=MKPROLOG(DOLIST, PALETTESIZE * 3 + 1);
-    for(k=0;k<PALETTESIZE;++k)
+    list[0]=MKPROLOG(DOLIST, PALETTE_SIZE * 3 + 1);
+    for(k=0;k<PALETTE_SIZE;++k)
     {
         list[1+3*k]=MKPROLOG(HEXBINT,2);
         list[2+3*k]=ggl_palette[k];
@@ -318,7 +318,7 @@ void palette2list(uint32_t *list,int *size)
     }
     list[1+3*k]=CMD_ENDLIST;
 
-    *size=PALETTESIZE*3+2;
+    *size=PALETTE_SIZE*3+2;
 
 }
 
@@ -326,7 +326,7 @@ void list2palette(uint32_t *list)
 {
     int k;
     WORDPTR ptr=list+1;
-    for(k=0;k<PALETTESIZE;++k)
+    for(k=0;k<PALETTE_SIZE;++k)
     {
         if(*ptr==CMD_ENDLIST) break;
         if(ISBINT(*ptr)) ggl_palette[k]=ptr[1];
@@ -337,5 +337,5 @@ void list2palette(uint32_t *list)
 // Get the size of the palette to outside the RPL world
 int palettesize()
 {
-    return PALETTESIZE;
+    return PALETTE_SIZE;
 }
