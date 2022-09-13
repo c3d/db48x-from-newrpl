@@ -41,7 +41,6 @@ void battery_handler()
 #else //
         const UNIFONT * font = (const UNIFONT *) Font_8A;
         enum { W = 6, H = 9 };
-        const
 #endif // TARGET_PRIME1
 
         gglsurface scr;
