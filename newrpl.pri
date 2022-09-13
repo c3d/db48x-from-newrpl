@@ -153,8 +153,6 @@ SOURCES += \
         firmware/hal_battery.c \
 
 # Graphics
-!newrpl_color:NEWRPL_GRAPHICS=ggl
-newrpl_color:NEWRPL_GRAPHICS=cgl
 newrpl_color:DEFINES += NEWRPL_COLOR
 
 SOURCES += \
