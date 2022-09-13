@@ -904,7 +904,7 @@ void startup(void)
 
     // Start the LCD as early as possible, even before the MMU is up and running
     lcd_poweron();
-    lcd_setmode((DEFAULTBITMAPMODE==BITMAP_RAW16G)? BPPMODE_4BPP:BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_setmode((DEFAULT_BITMAP_MODE==BITMAP_RAW16G)? BPPMODE_4BPP:BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
     lcd_on();
 
 

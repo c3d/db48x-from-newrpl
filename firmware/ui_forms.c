@@ -112,7 +112,7 @@ void uiUpdateForm(WORDPTR form)
     // ALLOCATE NEW BITMAP
     ScratchPointer1 = form;
 
-    WORDPTR newbmp = rplBmpCreate(DEFAULTBITMAPMODE, formw, formh, 1);  // ALLOCATE A NEW BITMAP AND CLEAR IT
+    WORDPTR newbmp = rplBmpCreate(DEFAULT_BITMAP_MODE, formw, formh, 1);  // ALLOCATE A NEW BITMAP AND CLEAR IT
     if(!newbmp)
         return;
     form = ScratchPointer1;

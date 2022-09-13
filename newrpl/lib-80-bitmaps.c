@@ -115,7 +115,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     BINT type = LIBNUM(*bitmap) & 7;
 
-    if(type == DEFAULTBITMAPMODE)
+    if(type == DEFAULT_BITMAP_MODE)
         return bitmap;  // NO CONVERSION NEEEDED
 
     BINT width = (BINT) bitmap[1];
@@ -133,7 +133,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     // THIS IS FOR THE 50G HARDWARE, BUT FUTURE-PROOF FOR 16-BIT COLOR DISPLAYS AS WELL
 
-#if DEFAULTBITMAPMODE == BITMAP_RAW16G
+#if DEFAULT_BITMAP_MODE == BITMAP_RAW16G
     switch (type) {
     case BITMAP_RAWMONO:
 
@@ -303,7 +303,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     }
 #endif
 
-#if DEFAULTBITMAPMODE == BITMAP_RAW64KC
+#if DEFAULT_BITMAP_MODE == BITMAP_RAW64KC
     switch (type) {
     case BITMAP_RAWMONO:
 

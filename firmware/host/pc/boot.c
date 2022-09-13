@@ -160,7 +160,7 @@ void startup()
 
     // START IN FULL COLOR MODE BY DEFAULT
 
-    lcd_setmode( (DEFAULTBITMAPMODE==BITMAP_RAW16G)? 2:3, (unsigned int *)MEM_PHYS_SCREEN);
+    lcd_setmode( (DEFAULT_BITMAP_MODE==BITMAP_RAW16G)? 2:3, (unsigned int *)MEM_PHYS_SCREEN);
 
     main_virtual();
 
