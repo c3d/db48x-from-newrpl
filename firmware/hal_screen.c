@@ -2119,7 +2119,9 @@ void halUpdateFonts()
 // PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
 void halPrepareBuffer(DRAWSURFACE *scr)
 {
-#ifdef TARGET_PRIME1
+#ifndef TARGET_PRIME1
+    UNUSED_ARGUMENT(scr);
+#else // TARGET_PRIME1
     DRAWSURFACE altbuffer;
     if(scr->actbuffer) altbuffer.addr=scr->addr-(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
     else altbuffer.addr=scr->addr+(SCREEN_WIDTH*SCREEN_HEIGHT)/PIXELS_PER_WORD;
@@ -2150,7 +2152,9 @@ void halPrepareBuffer(DRAWSURFACE *scr)
 
 void halSwapBuffer(DRAWSURFACE *scr)
 {
-#ifdef TARGET_PRIME1
+#ifndef TARGET_PRIME1
+    UNUSED_ARGUMENT(scr);
+#else  // TARGET_PRIME1
     // Show new buffer on the screen
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag|=BUFFER_LOCK;
