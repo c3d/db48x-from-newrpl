@@ -1715,9 +1715,6 @@ void halRedrawStatus(DRAWSURFACE * scr)
 
         // Keyboard
         {
-           unsigned int keyplane=keyb_getshiftplane();
-
-
         if(halGetNotification(N_LEFTSHIFT)) {
            int color;
             if(halGetNotification(N_INTERNALSHIFTHOLD)) color=PAL_STA_ANNPRESS; else color=PAL_STA_ANN;
