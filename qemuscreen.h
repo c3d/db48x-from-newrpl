@@ -43,4 +43,4 @@ class QEmuScreen:public QGraphicsView
 
 };
 
-#endif // QSCREEN_H
+#endif // QEMUSCREEN_H

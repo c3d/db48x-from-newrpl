@@ -56,8 +56,8 @@ extern int usb_timeout;
 // Target PC uses 50g screen and other capabilities for now
 #ifndef TARGET_PC_PRIMEG1
 // USABLE SCREEN WINDOW SIZE
-#define SCREEN_WIDTH 131
-#define SCREEN_HEIGHT 80
+#define LCD_W 131
+#define LCD_H 80
 #define PIXELS_PER_WORD 8
 
 #define SCREEN_BUFFERS 1
@@ -69,22 +69,22 @@ extern int usb_timeout;
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#define SCREEN_W 160
+#define LCD_SCANLINE 160
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
-#define SCREEN_H 80
+#define LCD_H 80
 
 // HP50G menu organization
 #define MENU2_STARTX 0
 #define MENU2_ENDX   SCREEN_W
 #define MENU2_COUNT  3
 
-#define ANN_X_COORD (SCREEN_WIDTH)
+#define ANN_X_COORD (LCD_W)
 
 #else // TARGET_PC_PRIMEG1
 
 // USABLE SCREEN WINDOW SIZE
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
+#define LCD_W 320
+#define LCD_H 240
 #define PIXELS_PER_WORD 2
 #define SCREEN_BUFFERS 2
 
@@ -94,16 +94,16 @@ extern int usb_timeout;
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#define SCREEN_W 320
+#define LCD_SCANLINE 320
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
-#define SCREEN_H 240
+#define LCD_H 240
 
-#define ANN_X_COORD (SCREEN_WIDTH)
-#define MENU1_ENDX  ((44*SCREEN_WIDTH)/131)
+#define ANN_X_COORD (LCD_W)
+#define MENU1_ENDX  ((44*LCD_W)/131)
 
 // Prime menu organization constants
 #define MENU2_STARTX (MENU1_ENDX+1)
-#define MENU2_ENDX  (1+(88*SCREEN_WIDTH)/131)
+#define MENU2_ENDX  (1+(88*LCD_W)/131)
 #define MENU2_COUNT  2
 
 #undef  STATUSAREA_X
@@ -116,8 +116,8 @@ extern int usb_timeout;
 #define HAL_USBCLOCK     48000000
 #define HAL_FASTCLOCK   192000000
 
-extern char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD*SCREEN_BUFFERS];
-extern char ExceptionScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
+extern char PhysicalScreen[(LCD_SCANLINE*LCD_H)*4/PIXELS_PER_WORD*SCREEN_BUFFERS];
+extern char ExceptionScreen[(LCD_SCANLINE*LCD_H)*4/PIXELS_PER_WORD];
 
 typedef unsigned int INTERRUPT_TYPE;
 

@@ -40,7 +40,7 @@ void main_virtual()
         ggl_initscr(&scr);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,
                 ggl_mksolid(PAL_STK_BG));
 
         // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
@@ -112,7 +112,7 @@ void main_virtual()
             tmr_eventkill(k);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 1, ggl_mkcolor(PAL_GRAY4));
+        ggl_rect(&scr, 0, 0, LCD_W, LCD_H - 1, ggl_mkcolor(PAL_GRAY4));
 
         keyb_flushnowait();
 

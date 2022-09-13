@@ -165,8 +165,8 @@ void uiEnsureCursorVisible()
     }
 
     // SCROLL RIGHT AS NEEDED
-    if(halScreen.CursorX > (halScreen.XVisible + SCREEN_WIDTH - 8)) {
-        halScreen.XVisible = halScreen.CursorX - (SCREEN_WIDTH - 8);
+    if(halScreen.CursorX > (halScreen.XVisible + LCD_W - 8)) {
+        halScreen.XVisible = halScreen.CursorX - (LCD_W - 8);
         scrolled = 1;
     }
 
@@ -1147,7 +1147,7 @@ void uiCursorPageRight()
 // POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
 
     BINT len = rplStrSize(CmdLineCurrentLine);
-    int targetx = halScreen.CursorX + SCREEN_WIDTH;
+    int targetx = halScreen.CursorX + LCD_W;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 = (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
                                                   FONT_CMDLINE, &targetx);
@@ -1186,7 +1186,7 @@ void uiCursorPageLeft()
 // POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
 
     BINT len = rplStrSize(CmdLineCurrentLine);
-    int targetx = halScreen.CursorX - SCREEN_WIDTH;
+    int targetx = halScreen.CursorX - LCD_W;
     BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
     BYTEPTR ptr2 =
             (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,

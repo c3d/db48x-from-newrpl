@@ -152,9 +152,9 @@ void MainWindow::resizeEvent(QResizeEvent * event)
     w = ui->EmuScreen->screen_width;
     h = ui->EmuScreen->screen_height + 5;
     if(!h)
-        h = SCREEN_HEIGHT+5;
+        h = LCD_H+5;
     if(!w)
-        w = SCREEN_WIDTH;
+        w = LCD_W;
     qreal dpwidth = event->size().width();
     qreal realwidth = dpwidth * dpratio;
     scale = realwidth / w;

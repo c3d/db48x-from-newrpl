@@ -8,7 +8,7 @@
 #include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
-#define HOZVAL ((LCD_W>>2)-1)
+#define HOZVAL ((LCD_SCANLINE>>2)-1)
 
 int lcd_contrast SYSTEM_GLOBAL;
 
@@ -211,7 +211,7 @@ int lcd_setmode_internal(int mode, unsigned int *physbuf)
     // physbuf MUST be the physical address
 
     volatile unsigned int *lcdreg = (unsigned int *)LCD_REGS;
-    int height = 80 /*(lcdreg[3])>>8 */ , pagewidth = LCD_W >> (4 - mode);
+    int height = 80 /*(lcdreg[3])>>8 */ , pagewidth = LCD_SCANLINE >> (4 - mode);
 
     // TURN OFF
     lcdreg[0] &= 0xfffffffe;

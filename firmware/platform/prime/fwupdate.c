@@ -43,9 +43,9 @@ void ram_receiveandflashfw(BINT flashsize)
     DRAWSURFACE scr;
     ggl_initscr(&scr);
 
-    ggl_hline(&scr,10,0,SCREEN_WIDTH-1,0xffffffff);
-    ggl_hline(&scr,21,0,SCREEN_WIDTH-1,0xffffffff);
-    ggl_rect(&scr,0,11,SCREEN_WIDTH-1,20,0);
+    ggl_hline(&scr,10,0,LCD_W-1,0xffffffff);
+    ggl_hline(&scr,21,0,LCD_W-1,0xffffffff);
+    ggl_rect(&scr,0,11,LCD_W-1,20,0);
 
     do {
 

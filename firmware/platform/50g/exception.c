@@ -21,11 +21,11 @@ ARM_MODE void ex_print(int x, int y, char *str)
 {
     DRAWSURFACE dr;
     dr.addr = (int *)MEM_PHYS_EXSCREEN;
-    dr.width = LCD_W;
+    dr.width = LCD_SCANLINE;
     dr.x = dr.y = 0;
     dr.clipx = dr.clipy = 0;
-    dr.clipx2 = SCREEN_WIDTH;
-    dr.clipy2 = SCREEN_HEIGHT;
+    dr.clipx2 = LCD_W;
+    dr.clipy2 = LCD_H;
 
     DrawTextMono(x, y, str, Font_6A, 1, &dr);
 }
@@ -427,25 +427,25 @@ ARM_MODE int exception_handler(char *exstr, unsigned int *registers,
     if(options & EX_CONT) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
         // DRAW BUTTON 1
-        ex_print(0, (SCREEN_HEIGHT - 8), "Cont");
+        ex_print(0, (LCD_H - 8), "Cont");
         //pnewb[70*5]|=0x10000;
         for(f = 0; f < 8; ++f)
-            pnewb[(SCREEN_HEIGHT - 9) * 5 + 5 * f] |= 0x20000;
-        pnewb[(SCREEN_HEIGHT - 2) * 5] |= 0x3ffff;
-        pnewb[(SCREEN_HEIGHT - 1) * 5] |= 0x3fffc;
+            pnewb[(LCD_H - 9) * 5 + 5 * f] |= 0x20000;
+        pnewb[(LCD_H - 2) * 5] |= 0x3ffff;
+        pnewb[(LCD_H - 1) * 5] |= 0x3fffc;
     }
 
     if(options & (EX_EXIT | EX_RPLEXIT)) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
 
         // DRAW BUTTON 2
-        ex_print(5 * 4, (SCREEN_HEIGHT - 8), "Exit");
+        ex_print(5 * 4, (LCD_H - 8), "Exit");
         for(f = 0; f < 8; ++f)
-            pnewb[(SCREEN_HEIGHT - 9) * 5 + 1 + 5 * f] |= 0x20;
-        pnewb[(SCREEN_HEIGHT - 2) * 5] |= 0xfff80000;
-        pnewb[(SCREEN_HEIGHT - 2) * 5 + 1] |= 0x3f;
-        pnewb[(SCREEN_HEIGHT - 1) * 5] |= 0xffe00000;
-        pnewb[(SCREEN_HEIGHT - 1) * 5 + 1] |= 0x3f;
+            pnewb[(LCD_H - 9) * 5 + 1 + 5 * f] |= 0x20;
+        pnewb[(LCD_H - 2) * 5] |= 0xfff80000;
+        pnewb[(LCD_H - 2) * 5 + 1] |= 0x3f;
+        pnewb[(LCD_H - 1) * 5] |= 0xffe00000;
+        pnewb[(LCD_H - 1) * 5 + 1] |= 0x3f;
     }
 
     if(options & EX_WARM) {
@@ -453,27 +453,27 @@ ARM_MODE int exception_handler(char *exstr, unsigned int *registers,
 
         // DRAW BUTTON 3
         if(options & EX_WIPEOUT)
-            ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Clear Mem*");
+            ex_print(11 * 4, (LCD_H - 8), "*Clear Mem*");
         else
-            ex_print(11 * 4, (SCREEN_HEIGHT - 8), "*Warmstart*");
+            ex_print(11 * 4, (LCD_H - 8), "*Warmstart*");
         for(f = 0; f < 8; ++f)
-            pnewb[(SCREEN_HEIGHT - 9) * 5 + 2 + 5 * f] |= 0x2000000;
-        pnewb[(SCREEN_HEIGHT - 2) * 5 + 2] |= 0x3ffffff;
-        pnewb[(SCREEN_HEIGHT - 2) * 5 + 1] |= 0xfffff000;
-        pnewb[(SCREEN_HEIGHT - 1) * 5 + 2] |= 0x3ffffff;
-        pnewb[(SCREEN_HEIGHT - 1) * 5 + 1] |= 0xffffc000;
+            pnewb[(LCD_H - 9) * 5 + 2 + 5 * f] |= 0x2000000;
+        pnewb[(LCD_H - 2) * 5 + 2] |= 0x3ffffff;
+        pnewb[(LCD_H - 2) * 5 + 1] |= 0xfffff000;
+        pnewb[(LCD_H - 1) * 5 + 2] |= 0x3ffffff;
+        pnewb[(LCD_H - 1) * 5 + 1] |= 0xffffc000;
     }
 
     if(options & EX_RESET) {
         int *pnewb = (int *)MEM_PHYS_EXSCREEN;
         // DRAW BUTTON 4
-        ex_print(23 * 4, (SCREEN_HEIGHT - 8), "**Reset**");
+        ex_print(23 * 4, (LCD_H - 8), "**Reset**");
         for(f = 0; f < 9; ++f)
-            pnewb[(SCREEN_HEIGHT - 9) * 5 + 4 + 5 * f] |= 0x1;
-        pnewb[(SCREEN_HEIGHT - 2) * 5 + 3] |= 0xffffffff;
-        pnewb[(SCREEN_HEIGHT - 2) * 5 + 2] |= 0xf0000000;
-        pnewb[(SCREEN_HEIGHT - 1) * 5 + 3] |= 0xffffffff;
-        pnewb[(SCREEN_HEIGHT - 1) * 5 + 2] |= 0xc0000000;
+            pnewb[(LCD_H - 9) * 5 + 4 + 5 * f] |= 0x1;
+        pnewb[(LCD_H - 2) * 5 + 3] |= 0xffffffff;
+        pnewb[(LCD_H - 2) * 5 + 2] |= 0xf0000000;
+        pnewb[(LCD_H - 1) * 5 + 3] |= 0xffffffff;
+        pnewb[(LCD_H - 1) * 5 + 2] |= 0xc0000000;
     }
 
 // WARMSTART AND RESET REQUIRE SIMULTANEOUS SHIFT OR ALPHA KEYPRESS

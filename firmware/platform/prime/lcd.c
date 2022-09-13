@@ -313,55 +313,55 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     switch(mode)
     {
     case BPPMODE_1BPP:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>3;
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH)>>3)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>3;
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>3;
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H)>>3;
+        *VIDW00ADD2B0 = (((LCD_W)>>3)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H)>>3;
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H)>>3;
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
         *WINCON0 = 0x40000;     // Enable bit swap
         break;
     case BPPMODE_2BPP:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>2;
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH)>>2)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>2;
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>2;
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H)>>2;
+        *VIDW00ADD2B0 = (((LCD_W)>>2)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H)>>2;
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H)>>2;
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
         *WINCON0 = 0x40000;     // Enable bit swap
         break;
     case BPPMODE_4BPP:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)>>1;
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH)>>1)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>1;
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)>>1;
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H)>>1;
+        *VIDW00ADD2B0 = (((LCD_W)>>1)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H)>>1;
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H)>>1;
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
 
         *WINCON0 = 0x40000;     // Enable bit swap
         break;
     case BPPMODE_8BPP:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT);
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH))+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT);
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT);
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H);
+        *VIDW00ADD2B0 = (((LCD_W))+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H);
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H);
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
 
         *WINCON0 = 0x20000;     // Enable byte swap
         break;
     case BPPMODE_16BPP565:
     case BPPMODE_16BPP555:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*2;
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH)<<1)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)*2;
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)*2;
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H)*2;
+        *VIDW00ADD2B0 = (((LCD_W)<<1)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H)*2;
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H)*2;
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
 
         *WINCON0 = 0x10000;     // Enable half-word swap
         break;
     case BPPMODE_18BPP:
     case BPPMODE_24BPP:
-        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (SCREEN_WIDTH*SCREEN_HEIGHT)*4;
-        *VIDW00ADD2B0 = (((SCREEN_WIDTH)<<2)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
-        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)*4;
-        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (SCREEN_WIDTH*SCREEN_HEIGHT)*4;
+        *VIDW00ADD1B0 = (((unsigned int)physbuf)&0x00ffffff) + (LCD_W*LCD_H)*4;
+        *VIDW00ADD2B0 = (((LCD_W)<<2)+15)&~0xf; // Set PAGEWIDTH aligned to 4-words bursts, no OFFSET
+        *VIDW00ADD0B1 = *VIDW00ADD0B0 + (LCD_W*LCD_H)*4;
+        *VIDW00ADD1B1 = *VIDW00ADD1B0 + (LCD_W*LCD_H)*4;
         *VIDW00ADD2B1 = *VIDW00ADD2B0 ;
 
         *WINCON0 = 0;     // Disable bit swap
@@ -476,7 +476,7 @@ volatile int lcd_scanline()
 {
 int state=*VIDCON1;
 if(state&0x6000 == 0x4000) return (state>>16)&0x3ff;
-else return SCREEN_HEIGHT+1;
+else return LCD_H+1;
 }
 
 void lcd_setactivebuffer(int buffer)

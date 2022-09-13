@@ -35,7 +35,7 @@ void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
     end = rplSkipOb(form);
     item = form + 1;
     while(item < end) {
-        roww = SCREEN_WIDTH;
+        roww = LCD_W;
 
         if(ISBINT(*item)) {
             rowh = rplReadBINT(item);
@@ -70,7 +70,7 @@ void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
 
             }
 
-            roww += (ncols - forced) * (SCREEN_WIDTH / (ncols));
+            roww += (ncols - forced) * (LCD_W / (ncols));
 
         }
 
@@ -133,7 +133,7 @@ void uiUpdateForm(WORDPTR form)
     end = rplSkipOb(form);
     item = form + 1;
     while(item < end) {
-        roww = SCREEN_WIDTH;
+        roww = LCD_W;
 
         if(ISBINT(*item)) {
             rowh = rplReadBINT(item);
@@ -163,8 +163,8 @@ void uiUpdateForm(WORDPTR form)
                 col = rplSkipOb(col);
 
             }
-            def_itemw = SCREEN_WIDTH / ncols;
-            roww += (ncols - forced) * (SCREEN_WIDTH / (ncols));
+            def_itemw = LCD_W / ncols;
+            roww += (ncols - forced) * (LCD_W / (ncols));
 
             // NOW RENDER IT
 

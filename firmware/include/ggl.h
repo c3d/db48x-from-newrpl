@@ -7,9 +7,6 @@
 #ifndef _GGL_H
 #define _GGL_H
 
-#define LCD_H                          SCREEN_H
-#define LCD_W                          SCREEN_W
-
 // (From ggl.h) Generic definitions for both color and gray modes
 
 // Convert from RGB (0-255) to RGB16(5-6-5)

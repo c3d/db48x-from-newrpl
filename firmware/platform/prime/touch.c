@@ -223,8 +223,8 @@ static void nt11002_get_properties(ts_t *ts)
     if(ts->adjust_width == ts->adjust_height) ts->detected = 0;
     else ts->detected = 1;
 
-    ts->adjust_width = ( SCREEN_WIDTH * 1024 ) / ts->adjust_width;
-    ts->adjust_height = ( SCREEN_HEIGHT * 1024 ) / ts->adjust_height;
+    ts->adjust_width = ( LCD_W * 1024 ) / ts->adjust_width;
+    ts->adjust_height = ( LCD_H * 1024 ) / ts->adjust_height;
     // max_fingers = buffer[9];
 }
 
@@ -300,8 +300,8 @@ static void gt9137_get_properties(ts_t *ts)
     if(ts->adjust_width == ts->adjust_height) ts->detected = 0;
     else ts->detected = 1;
 
-    ts->adjust_width = ( SCREEN_WIDTH * 1024 ) / ts->adjust_width;
-    ts->adjust_height = ( SCREEN_HEIGHT * 1024 ) / ts->adjust_height;
+    ts->adjust_width = ( LCD_W * 1024 ) / ts->adjust_width;
+    ts->adjust_height = ( LCD_H * 1024 ) / ts->adjust_height;
     // max_fingers = buffer[9];
 }
 

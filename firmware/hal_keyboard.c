@@ -4179,10 +4179,10 @@ void onPlusKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
 #ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
 
@@ -4232,10 +4232,10 @@ void onMinusKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
 #ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
 
@@ -4312,10 +4312,10 @@ void onDotKeyHandler(WORD keymsg)
         halScreen.Menu1;
     // CLEAR STATUS AREA
 #ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
              ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
              ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
 
@@ -4470,7 +4470,7 @@ void onSpcKeyHandler(WORD keymsg)
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Display Mode:",
@@ -4589,7 +4589,7 @@ void onMulDivKeyHandler(WORD keymsg)
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "ENG exponent:",
@@ -4689,7 +4689,7 @@ void onDigitKeyHandler(WORD keymsg)
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Display Digits:",
@@ -4760,10 +4760,10 @@ void onUpDownKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
 #ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, 0);
 #else /* TARGET_PRIME1 */
-    ggl_rect(&scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1,
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
 
@@ -8018,8 +8018,8 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
        int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);
        int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
        // CLEAR STATUS AREA AND SHOW KEY THERE
-       ggl_rect(&scr,STATUS_AREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-       DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
+       ggl_rect(&scr,STATUS_AREA_X,ytop,LCD_W-1,ytop+halScreen.Menu2-1,0);
+       DrawTextBk(LCD_W-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
        char *shiftstr;
        switch(KM_SHIFTPLANE(keymsg))
        {
@@ -8060,9 +8060,9 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
        default:
        shiftstr="";
        }
-       DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
+       DrawTextBk(LCD_W-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
 
-       if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
+       if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(LCD_W-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
 
        }
      */

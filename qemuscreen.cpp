@@ -27,14 +27,14 @@ annAlpha(QString(":/bitmap/bitmap/ann_alpha.xbm")),
 annBattery(QString(":/bitmap/bitmap/ann_battery.xbm")),
 annLShift(QString(":/bitmap/bitmap/ann_left.xbm")),
 annRShift(QString(":/bitmap/bitmap/ann_right.xbm")),
-mainPixmap(SCREEN_WIDTH,SCREEN_HEIGHT)
+mainPixmap(LCD_W,LCD_H)
 {
     int i;
 
     screentmr = nullptr;
 
-    screen_height = SCREEN_HEIGHT;
-    screen_width = SCREEN_WIDTH;
+    screen_height = LCD_H;
+    screen_width = LCD_W;
     BkgndColor = QColor(172, 222, 157);
     MainColor = QColor(0, 0, 0);
     BkgndPen.setColor(BkgndColor);
@@ -83,32 +83,32 @@ mainPixmap(SCREEN_WIDTH,SCREEN_HEIGHT)
 
     Annunciators[0] = scr.addPixmap(annComms);
     Annunciators[0]->setScale(0.25);
-    Annunciators[0]->setOffset(((SCREEN_WIDTH-10) - 0 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[0]->setOffset(((LCD_W-10) - 0 * ((LCD_W-30)/5))*4, -20);
     Annunciators[0]->setOpacity(1.0);
 
     Annunciators[1] = scr.addPixmap(annLShift);
     Annunciators[1]->setScale(0.25);
-    Annunciators[1]->setOffset(((SCREEN_WIDTH-10) - 5 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[1]->setOffset(((LCD_W-10) - 5 * ((LCD_W-30)/5))*4, -20);
     Annunciators[1]->setOpacity(1.0);
 
     Annunciators[2] = scr.addPixmap(annRShift);
     Annunciators[2]->setScale(0.25);
-    Annunciators[2]->setOffset(((SCREEN_WIDTH-10) - 4 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[2]->setOffset(((LCD_W-10) - 4 * ((LCD_W-30)/5))*4, -20);
     Annunciators[2]->setOpacity(1.0);
 
     Annunciators[3] = scr.addPixmap(annAlpha);
     Annunciators[3]->setScale(0.25);
-    Annunciators[3]->setOffset(((SCREEN_WIDTH-10) - 3 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[3]->setOffset(((LCD_W-10) - 3 * ((LCD_W-30)/5))*4, -20);
     Annunciators[3]->setOpacity(1.0);
 
     Annunciators[4] = scr.addPixmap(annBattery);
     Annunciators[4]->setScale(0.25);
-    Annunciators[4]->setOffset(((SCREEN_WIDTH-10) - 2 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[4]->setOffset(((LCD_W-10) - 2 * ((LCD_W-30)/5))*4, -20);
     Annunciators[4]->setOpacity(1.0);
 
     Annunciators[5] = scr.addPixmap(annHourglass);
     Annunciators[5]->setScale(0.25);
-    Annunciators[5]->setOffset(((SCREEN_WIDTH-10) - 1 * ((SCREEN_WIDTH-30)/5))*4, -20);
+    Annunciators[5]->setOffset(((LCD_W-10) - 1 * ((LCD_W-30)/5))*4, -20);
     Annunciators[5]->setOpacity(1.0);
 
     setScene(&scr);
@@ -137,7 +137,7 @@ void QEmuScreen::setPixel(int offset, int color)
 
    QPainter pt(&mainPixmap);
    pt.setPen(Grays[color & 15]);
-   pt.drawPoint(offset%SCREEN_WIDTH,offset/SCREEN_HEIGHT);
+   pt.drawPoint(offset%LCD_W,offset/LCD_H);
 
 }
 
@@ -149,7 +149,7 @@ void QEmuScreen::setWord(int offset, unsigned int color)
     for(f = 0; f < 32; ++f) {
 //        Pixels[offset + f]->setBrush(GrayBrush[(color >> (f * 4)) & 15]);
           pt.setPen(Grays[(color >> (f * 4)) & 15]);
-          pt.drawPoint((offset+f)%SCREEN_WIDTH,(offset+f)/SCREEN_HEIGHT);
+          pt.drawPoint((offset+f)%LCD_W,(offset+f)/LCD_H);
     }
 }
 
@@ -188,10 +188,10 @@ void QEmuScreen::update()
 
         unsigned int *ptr,*buffer;
         int mask;
-        buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+        buffer=lcd_buffer+(lcd_activebuffer? (LCD_W*LCD_H/PIXELS_PER_WORD):0);
         for(i = 0; i < screen_height; ++i) {
             mask = 1;
-            ptr = buffer + (LCD_W >> 5) * i;
+            ptr = buffer + (LCD_SCANLINE >> 5) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = *ptr & mask;
                 //Pixels[i * screen_width +
@@ -211,7 +211,7 @@ void QEmuScreen::update()
         // UPDATE ANNUNCIATORS
         mask = 1 << 3;
         for(i = 0; i < 6; ++i) {
-            ptr = buffer + (LCD_W >> 5) * i;
+            ptr = buffer + (LCD_SCANLINE >> 5) * i;
             color = (*ptr & mask) >> 3;
             Annunciators[i]->setOpacity(color ? 1.0 : 0.0);
         }
@@ -230,14 +230,14 @@ void QEmuScreen::update()
     if(lcd_mode == 2) {
         // 16-GRAYS SCREEN
         unsigned int *ptr,*buffer;
-        buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+        buffer=lcd_buffer+(lcd_activebuffer? (LCD_W*LCD_H/PIXELS_PER_WORD):0);
         int mask;
         scr.setBackgroundBrush(QBrush(BkgndColor));
         QPainter pt(&mainPixmap);
 
         for(i = 0; i < screen_height; ++i) {
             mask = 0xf;
-            ptr = buffer + (LCD_W >> 3) * i;
+            ptr = buffer + (LCD_SCANLINE >> 3) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = (*ptr & mask) >> ((j & 7) * 4);
                 //Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
@@ -259,7 +259,7 @@ void QEmuScreen::update()
         mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD))));
         for(i = 0; i < 6; ++i) {
             ptr = buffer + ANN_X_COORD / (PIXELS_PER_WORD);
-            ptr += i * (SCREEN_W / PIXELS_PER_WORD);
+            ptr += i * (LCD_SCANLINE / PIXELS_PER_WORD);
             color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD)));
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);
         }
@@ -279,7 +279,7 @@ void QEmuScreen::update()
 
            scr.setBackgroundBrush(QBrush(Qt::black));
            QPainter pt(&mainPixmap);
-           unsigned int *buffer=lcd_buffer+(lcd_activebuffer? (SCREEN_WIDTH*SCREEN_HEIGHT/PIXELS_PER_WORD):0);
+           unsigned int *buffer=lcd_buffer+(lcd_activebuffer? (LCD_W*LCD_H/PIXELS_PER_WORD):0);
 
         QImage lcdimage((const unsigned char *)buffer,screen_width,screen_height,(screen_width*4)/PIXELS_PER_WORD,QImage::Format_RGB16);
 
@@ -289,7 +289,7 @@ void QEmuScreen::update()
         /*
         for(i = 0; i < screen_height; ++i) {
             mask = 0xf;
-            ptr = lcd_buffer + (LCD_W >> 3) * i;
+            ptr = lcd_buffer + (LCD_SCANLINE >> 3) * i;
             for(j = 0; j < screen_width; ++j) {
                 color = (*ptr & mask) >> ((j & 7) * 4);
                 //Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
@@ -314,7 +314,7 @@ void QEmuScreen::update()
         mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD))));
         for(i = 0; i < 6; ++i) {
             ptr = lcd_buffer + ANN_X_COORD / (PIXELS_PER_WORD);
-            ptr += i * (SCREEN_W / PIXELS_PER_WORD);
+            ptr += i * (LCD_SCANLINE / PIXELS_PER_WORD);
             color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD % (PIXELS_PER_WORD)));
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);
         }

@@ -27,11 +27,11 @@ void ex_print(int x,int y,char *str)
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
-    dr.width=LCD_W;
+    dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;
     dr.clipx=dr.clipy=0;
-    dr.clipx2=SCREEN_WIDTH;
-    dr.clipy2=SCREEN_HEIGHT;
+    dr.clipx2=LCD_W;
+    dr.clipy2=LCD_H;
 
     DrawText(x,y,str,Font_10A,ggl_mkcolor(PAL_GRAY15),&dr);
 }
@@ -40,11 +40,11 @@ void ex_clrscreen()
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
-    dr.width=LCD_W;
+    dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;
     dr.clipx=dr.clipy=0;
-    dr.clipx2=SCREEN_WIDTH;
-    dr.clipy2=SCREEN_HEIGHT;
+    dr.clipx2=LCD_W;
+    dr.clipy2=LCD_H;
     ggl_rect(&dr,dr.x,dr.y,dr.clipx2-1,dr.clipy2-1,ggl_mkcolor(PAL_GRAY0));
 }
 
@@ -52,11 +52,11 @@ void ex_hline(int y)
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
-    dr.width=LCD_W;
+    dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;
     dr.clipx=dr.clipy=0;
-    dr.clipx2=SCREEN_WIDTH;
-    dr.clipy2=SCREEN_HEIGHT;
+    dr.clipx2=LCD_W;
+    dr.clipy2=LCD_H;
     ggl_hline(&dr,y,dr.x,dr.clipx2-1,ggl_mkcolor(PAL_GRAY8));
 }
 
@@ -125,11 +125,11 @@ ex_clrscreen();
 
 if(options&EX_NOREG) {
 
-    ex_print(SCREEN_WIDTH/2-7*FNT_AVGW,FNT_HEIGHT*2,"-- EXCEPTION --");
+    ex_print(LCD_W/2-7*FNT_AVGW,FNT_HEIGHT*2,"-- EXCEPTION --");
     ex_hline(FNT_HEIGHT*2-4);
     ex_hline(FNT_HEIGHT*3+4);
 
-    ex_print(SCREEN_WIDTH/2-(ex_width(exstr)>>1),FNT_HEIGHT*5,exstr);
+    ex_print(LCD_W/2-(ex_width(exstr)>>1),FNT_HEIGHT*5,exstr);
 
 
 }
@@ -259,71 +259,71 @@ else {
 
         // RIGHT COLUMN
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*2,"DSs: ");
+        ex_print(LCD_W/2,FNT_HEIGHT*2,"DSs: ");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DStkSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*2,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*2,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*3,"DIe:");
+        ex_print(LCD_W/2,FNT_HEIGHT*3,"DIe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DirsTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*3,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*3,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*4,"DIs:");
+        ex_print(LCD_W/2,FNT_HEIGHT*4,"DIs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)DirSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*4,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*4,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*5,"LAe:");
+        ex_print(LCD_W/2,FNT_HEIGHT*5,"LAe:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)LAMTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*5,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*5,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*6,"LAs:");
+        ex_print(LCD_W/2,FNT_HEIGHT*6,"LAs:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)LAMSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*6,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*6,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*7,"Exc:");
+        ex_print(LCD_W/2,FNT_HEIGHT*7,"Exc:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)Exceptions)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*7,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*7,a);
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*8,"Err:");
+        ex_print(LCD_W/2,FNT_HEIGHT*8,"Err:");
         a[8]=0;
         for(j=7;j>=0;j--)
          {
          a[7-j]=((((WORD)ErrorCode)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*8,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*8,a);
 
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*9,"Um:");
+        ex_print(LCD_W/2,FNT_HEIGHT*9,"Um:");
 
         {
         WORD total=halGetTotalPages();
@@ -334,10 +334,10 @@ else {
          a[7-j]=(((freemem)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*9,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*9,a);
 
 
-        ex_print(SCREEN_WIDTH/2,FNT_HEIGHT*10,"Tm:");
+        ex_print(LCD_W/2,FNT_HEIGHT*10,"Tm:");
 
         a[8]=0;
         for(j=7;j>=0;j--)
@@ -345,7 +345,7 @@ else {
          a[7-j]=(((total)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
-        ex_print(SCREEN_WIDTH/2+4*FNT_AVGW,FNT_HEIGHT*10,a);
+        ex_print(LCD_W/2+4*FNT_AVGW,FNT_HEIGHT*10,a);
         }
 
      }
@@ -357,10 +357,10 @@ else {
 	a[1]=0;
 	a[0]=f+48;
     ex_print(1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
-    ex_print(SCREEN_WIDTH/2,f*FNT_HEIGHT+2*FNT_HEIGHT,"R   :");
+    ex_print(LCD_W/2,f*FNT_HEIGHT+2*FNT_HEIGHT,"R   :");
 	if(f<2) a[0]=f+8+48;
 	else { a[0]='1'; a[1]=f-2+48; }
-    ex_print(SCREEN_WIDTH/2+1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+    ex_print(LCD_W/2+1*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 	}
 
     ex_hline(2*FNT_HEIGHT-4);
@@ -393,7 +393,7 @@ else {
 		a[7-j]=((hi_reg[f]>>(j<<2))&0xf)+48;
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
-        ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
+        ex_print(LCD_W/2+5*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,a);
 
 	}
 
@@ -403,71 +403,71 @@ else {
 		a[7-j]=((registers[0]>>(j<<2))&0xf)+48;
 		if(a[7-j]>'9') a[7-j]+=7;
 		}
-        ex_print(SCREEN_WIDTH/2+5*FNT_AVGW,9*FNT_HEIGHT,a);
+        ex_print(LCD_W/2+5*FNT_AVGW,9*FNT_HEIGHT,a);
 
 		// FLAGS
-        if(hi_reg[7]&0x80000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,2*FNT_HEIGHT,"N");  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"MI");} else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,2*FNT_HEIGHT,"PL");
-        if(hi_reg[7]&0x40000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,3*FNT_HEIGHT,"Z"); ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"EQ"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,3*FNT_HEIGHT,"NE");
-        if(hi_reg[7]&0x20000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,4*FNT_HEIGHT,"C"); ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CS"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,4*FNT_HEIGHT,"CC");
-        if(hi_reg[7]&0x10000000) { ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,5*FNT_HEIGHT,"V");  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VS");} else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,5*FNT_HEIGHT,"VC");
-        if( (hi_reg[7]&0x60000000)==0x20000000) { ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"HI"); } else ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,6*FNT_HEIGHT,"LS");
+        if(hi_reg[7]&0x80000000) { ex_print(LCD_W/2+19*FNT_AVGW,2*FNT_HEIGHT,"N");  ex_print(LCD_W/2+16*FNT_AVGW,2*FNT_HEIGHT,"MI");} else ex_print(LCD_W/2+16*FNT_AVGW,2*FNT_HEIGHT,"PL");
+        if(hi_reg[7]&0x40000000) { ex_print(LCD_W/2+19*FNT_AVGW,3*FNT_HEIGHT,"Z"); ex_print(LCD_W/2+16*FNT_AVGW,3*FNT_HEIGHT,"EQ"); } else ex_print(LCD_W/2+16*FNT_AVGW,3*FNT_HEIGHT,"NE");
+        if(hi_reg[7]&0x20000000) { ex_print(LCD_W/2+19*FNT_AVGW,4*FNT_HEIGHT,"C"); ex_print(LCD_W/2+16*FNT_AVGW,4*FNT_HEIGHT,"CS"); } else ex_print(LCD_W/2+16*FNT_AVGW,4*FNT_HEIGHT,"CC");
+        if(hi_reg[7]&0x10000000) { ex_print(LCD_W/2+19*FNT_AVGW,5*FNT_HEIGHT,"V");  ex_print(LCD_W/2+16*FNT_AVGW,5*FNT_HEIGHT,"VS");} else ex_print(LCD_W/2+16*FNT_AVGW,5*FNT_HEIGHT,"VC");
+        if( (hi_reg[7]&0x60000000)==0x20000000) { ex_print(LCD_W/2+16*FNT_AVGW,6*FNT_HEIGHT,"HI"); } else ex_print(LCD_W/2+16*FNT_AVGW,6*FNT_HEIGHT,"LS");
 		if(  (hi_reg[7] ^ (hi_reg[7]>>3) )&0x10000000) {
-            ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"LT");
+            ex_print(LCD_W/2+16*FNT_AVGW,7*FNT_HEIGHT,"LT");
 			}
-        else { if(!(hi_reg[7]&0x40000000)) ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,7*FNT_HEIGHT,"GT"); }
+        else { if(!(hi_reg[7]&0x40000000)) ex_print(LCD_W/2+16*FNT_AVGW,7*FNT_HEIGHT,"GT"); }
 
 		if((hi_reg[7]&0x40)) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,8*FNT_HEIGHT,"F" );
+        ex_print(LCD_W/2+15*FNT_AVGW,8*FNT_HEIGHT,"F" );
 		}
 		if((hi_reg[7]&0x80)) {
-        ex_print(SCREEN_WIDTH/2+19*FNT_AVGW,8*FNT_HEIGHT,"I" );
+        ex_print(LCD_W/2+19*FNT_AVGW,8*FNT_HEIGHT,"I" );
 		}
 
 
 		if((hi_reg[7]&0x1f)==0x10) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"USER" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"USER" );
 		}
 		if((hi_reg[7]&0x1f)==0x11) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"FIQ" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"FIQ" );
 		for(f=0;f<7;++f)
 		{
-        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(LCD_W/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x12) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"IRQ" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"IRQ" );
 		for(f=5;f<7;++f)
 		{
-        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(LCD_W/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x13) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SUP" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"SUP" );
 		for(f=5;f<7;++f)
 		{
-        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(LCD_W/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x17) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"ABT" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"ABT" );
 		for(f=5;f<7;++f)
 		{
-        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(LCD_W/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1B) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"UND" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"UND" );
 		for(f=5;f<7;++f)
 		{
-        ex_print(SCREEN_WIDTH/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
+        ex_print(LCD_W/2+12*FNT_AVGW,f*FNT_HEIGHT+2*FNT_HEIGHT,"/B" );
 		}
 		}
 		if((hi_reg[7]&0x1f)==0x1f) {
-        ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,9*FNT_HEIGHT,"SYS" );
+        ex_print(LCD_W/2+15*FNT_AVGW,9*FNT_HEIGHT,"SYS" );
 		}
 
 
-        if(hi_reg[7]&0x20) ex_print(SCREEN_WIDTH/2+15*FNT_AVGW,10*FNT_HEIGHT,"Thumb"); else  ex_print(SCREEN_WIDTH/2+16*FNT_AVGW,10*FNT_HEIGHT,"ARM");
+        if(hi_reg[7]&0x20) ex_print(LCD_W/2+15*FNT_AVGW,10*FNT_HEIGHT,"Thumb"); else  ex_print(LCD_W/2+16*FNT_AVGW,10*FNT_HEIGHT,"ARM");
 }
         ex_hline(11*FNT_HEIGHT+4*FNT_AVGW);
 
@@ -476,47 +476,47 @@ else {
 if(options&EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"Cont");
+        ex_print(1*BTN_WIDTH+4,(LCD_H-3*FNT_HEIGHT),"Cont");
 		//pnewb[70*5]|=0x10000;
-        //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
-        //pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
-        //pnewb[(SCREEN_HEIGHT-1)*5]|=0x3fffc;
+        //for(f=0;f<8;++f) pnewb[(LCD_H-9)*5+5*f]|=0x20000;
+        //pnewb[(LCD_H-2)*5]|=0x3ffff;
+        //pnewb[(LCD_H-1)*5]|=0x3fffc;
 }
 
 if(options&(EX_EXIT|EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-2*FNT_HEIGHT),"Exit");
-        //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
-        //pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
-        //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
-        //pnewb[(SCREEN_HEIGHT-1)*5]|=0xffe00000;
-        //pnewb[(SCREEN_HEIGHT-1)*5+1]|=0x3f;
+        ex_print(1*BTN_WIDTH+4,(LCD_H-2*FNT_HEIGHT),"Exit");
+        //for(f=0;f<8;++f) pnewb[(LCD_H-9)*5+1+5*f]|=0x20;
+        //pnewb[(LCD_H-2)*5]|=0xfff80000;
+        //pnewb[(LCD_H-2)*5+1]|=0x3f;
+        //pnewb[(LCD_H-1)*5]|=0xffe00000;
+        //pnewb[(LCD_H-1)*5+1]|=0x3f;
 }
 
 if(options&EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&EX_WIPEOUT) ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Clear Mem*");
-            else ex_print(1*BTN_WIDTH+4,(SCREEN_HEIGHT-FNT_HEIGHT),"*Warmstart*");
-        //for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
-        //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
-        //pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
-        //pnewb[(SCREEN_HEIGHT-1)*5+2]|=0x3ffffff;
-        //pnewb[(SCREEN_HEIGHT-1)*5+1]|=0xffffc000;
+        if(options&EX_WIPEOUT) ex_print(1*BTN_WIDTH+4,(LCD_H-FNT_HEIGHT),"*Clear Mem*");
+            else ex_print(1*BTN_WIDTH+4,(LCD_H-FNT_HEIGHT),"*Warmstart*");
+        //for(f=0;f<8;++f) pnewb[(LCD_H-9)*5+2+5*f]|=0x2000000;
+        //pnewb[(LCD_H-2)*5+2]|=0x3ffffff;
+        //pnewb[(LCD_H-2)*5+1]|=0xfffff000;
+        //pnewb[(LCD_H-1)*5+2]|=0x3ffffff;
+        //pnewb[(LCD_H-1)*5+1]|=0xffffc000;
 }
 
 if(options&EX_RESET) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 4
-        ex_print(4*BTN_WIDTH+4,(SCREEN_HEIGHT-3*FNT_HEIGHT),"**Reset**");
-        //for(f=0;f<9;++f) pnewb[(SCREEN_HEIGHT-9)*5+4+5*f]|=0x1;
-        //pnewb[(SCREEN_HEIGHT-2)*5+3]|=0xffffffff;
-        //pnewb[(SCREEN_HEIGHT-2)*5+2]|=0xf0000000;
-        //pnewb[(SCREEN_HEIGHT-1)*5+3]|=0xffffffff;
-        //pnewb[(SCREEN_HEIGHT-1)*5+2]|=0xc0000000;
+        ex_print(4*BTN_WIDTH+4,(LCD_H-3*FNT_HEIGHT),"**Reset**");
+        //for(f=0;f<9;++f) pnewb[(LCD_H-9)*5+4+5*f]|=0x1;
+        //pnewb[(LCD_H-2)*5+3]|=0xffffffff;
+        //pnewb[(LCD_H-2)*5+2]|=0xf0000000;
+        //pnewb[(LCD_H-1)*5+3]|=0xffffffff;
+        //pnewb[(LCD_H-1)*5+2]|=0xc0000000;
 }
 
 // WARMSTART AND RESET REQUIRE SIMULTANEOUS SHIFT OR ALPHA KEYPRESS

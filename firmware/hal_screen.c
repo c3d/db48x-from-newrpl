@@ -28,7 +28,7 @@ void halSetNotification(enum halNotification type, int color)
     {
         unsigned char *scrptr = (unsigned char *) MEM_PHYS_SCREEN;
         scrptr += ANN_X_COORD / (PIXELS_PER_WORD / 4);
-        scrptr += type * (SCREEN_W / (PIXELS_PER_WORD / 4));
+        scrptr += type * (LCD_SCANLINE / (PIXELS_PER_WORD / 4));
         *scrptr = (*scrptr & ~(((1 << BITSPERPIXEL) - 1) << (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD / 4))))) |
                   (color << (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD / 4))));
         return;
@@ -52,16 +52,16 @@ void halSetStackHeight(int h)
     int total;
     halScreen.Stack = h;
     total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    if (total != SCREEN_HEIGHT)
+    if (total != LCD_H)
     {
         if (halScreen.Form)
         {
-            halScreen.Form += SCREEN_HEIGHT - total;
+            halScreen.Form += LCD_H - total;
             halScreen.DirtyFlag |= FORM_DIRTY;
         }
 
         else
-            halScreen.Stack = SCREEN_HEIGHT - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
+            halScreen.Stack = LCD_H - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
         if (halScreen.Form < 0)
         {
             halScreen.Stack += halScreen.Form;
@@ -78,16 +78,16 @@ void halSetFormHeight(int h)
         h = 0;
     halScreen.Form = h;
     total          = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    if (total != SCREEN_HEIGHT)
+    if (total != LCD_H)
     {
         if (halScreen.Stack)
         {
-            halScreen.Stack += SCREEN_HEIGHT - total;
+            halScreen.Stack += LCD_H - total;
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
 
         else
-            halScreen.Form = SCREEN_HEIGHT - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
+            halScreen.Form = LCD_H - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
         if (halScreen.Stack < 0)
         {
             halScreen.Form += halScreen.Stack;
@@ -105,13 +105,13 @@ void halSetMenu1Height(int h)
         h = 0;
     halScreen.Menu1 = h;
     total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != SCREEN_HEIGHT)
+    while (total != LCD_H)
     {
         // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
 
         if (halScreen.Stack)
         {
-            halScreen.Stack += SCREEN_HEIGHT - total;
+            halScreen.Stack += LCD_H - total;
             halScreen.DirtyFlag |= STACK_DIRTY;
 
             if (halScreen.Stack < 0)
@@ -119,7 +119,7 @@ void halSetMenu1Height(int h)
         }
         else
         {
-            halScreen.Form += SCREEN_HEIGHT - total;
+            halScreen.Form += LCD_H - total;
             halScreen.DirtyFlag |= FORM_DIRTY;
 
             if (halScreen.Form < 0)
@@ -140,13 +140,13 @@ void halSetMenu2Height(int h)
         h = 0;
     halScreen.Menu2 = h;
     total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != SCREEN_HEIGHT)
+    while (total != LCD_H)
     {
         // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
 
         if (halScreen.Stack > 1)
         {
-            halScreen.Stack += SCREEN_HEIGHT - total;
+            halScreen.Stack += LCD_H - total;
             halScreen.DirtyFlag |= STACK_DIRTY;
             if (halScreen.Stack < 1)
                 halScreen.Stack = 1;
@@ -155,7 +155,7 @@ void halSetMenu2Height(int h)
         {
             if (halScreen.Form > 1)
             {
-                halScreen.Form += SCREEN_HEIGHT - total;
+                halScreen.Form += LCD_H - total;
                 halScreen.DirtyFlag |= FORM_DIRTY;
                 if (halScreen.Form < 1)
                     halScreen.Form = 1;
@@ -164,7 +164,7 @@ void halSetMenu2Height(int h)
             {
                 if (halScreen.CmdLine > 1)
                 {
-                    int newcmdht  = halScreen.CmdLine + SCREEN_HEIGHT - total;
+                    int newcmdht  = halScreen.CmdLine + LCD_H - total;
                     int newnlines = (newcmdht - 2) / FONT_HEIGHT(FONT_CMDLINE);
                     if (newnlines < 1)
                     {
@@ -196,13 +196,13 @@ void halSetCmdLineHeight(int h)
         h = 0;
     halScreen.CmdLine = h;
     total             = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != SCREEN_HEIGHT)
+    while (total != LCD_H)
     {
         // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
 
         if (halScreen.Stack > 1)
         {
-            halScreen.Stack += SCREEN_HEIGHT - total;
+            halScreen.Stack += LCD_H - total;
             halScreen.DirtyFlag |= STACK_DIRTY;
 
             if (halScreen.Stack < 1)
@@ -212,7 +212,7 @@ void halSetCmdLineHeight(int h)
         {
             if (halScreen.Form > 1)
             {
-                halScreen.Form += SCREEN_HEIGHT - total;
+                halScreen.Form += LCD_H - total;
                 halScreen.DirtyFlag |= FORM_DIRTY;
 
                 if (halScreen.Form < 1)
@@ -221,11 +221,11 @@ void halSetCmdLineHeight(int h)
             else
             {
                 // STACK AND FORMS ARE AT MINIMUM
-                if (total > SCREEN_HEIGHT)
+                if (total > LCD_H)
                 {
                     unsigned height = FONT_HEIGHT(FONT_CMDLINE);
                     halScreen.CmdLine =
-                        SCREEN_HEIGHT - 2 - (halScreen.Form + halScreen.Stack + halScreen.Menu1 + halScreen.Menu2);
+                        LCD_H - 2 - (halScreen.Form + halScreen.Stack + halScreen.Menu1 + halScreen.Menu2);
                     halScreen.CmdLine /= height;
                     if (halScreen.CmdLine < 1)
                         halScreen.CmdLine = 1;
@@ -237,14 +237,14 @@ void halSetCmdLineHeight(int h)
                     // ENLARGE STACK
                     if (halScreen.Stack > 0)
                     {
-                        halScreen.Stack += SCREEN_HEIGHT - total;
+                        halScreen.Stack += LCD_H - total;
                         halScreen.DirtyFlag |= STACK_DIRTY;
                     }
                     else
                     {
                         // IF THE STACK IS CLOSED, THEN IT HAS TO BE A FORM!
 
-                        halScreen.Form += SCREEN_HEIGHT - total;
+                        halScreen.Form += LCD_H - total;
                         halScreen.DirtyFlag |= FORM_DIRTY;
                     }
                 }
@@ -366,7 +366,7 @@ void halRedrawForm(DRAWSURFACE *scr)
     scr->y          = 0;
 
     scr->clipx      = 0;
-    scr->clipx2     = SCREEN_WIDTH - 1;
+    scr->clipx2     = LCD_W - 1;
     scr->clipy      = 0;
     scr->clipy2     = yend;
 
@@ -489,7 +489,7 @@ void halRedrawStack(DRAWSURFACE *scr)
         xright += stknum_w;
 
     ggl_cliprect(scr, 0, ystart, xright - 1, yend - 1, ggl_mkcolor(PAL_STK_IDX_BG));            // CLEAR RECTANGLE
-    ggl_cliprect(scr, xright + 1, ystart, SCREEN_WIDTH - 1, yend - 1, ggl_mkcolor(PAL_STK_BG)); // CLEAR RECTANGLE
+    ggl_cliprect(scr, xright + 1, ystart, LCD_W - 1, yend - 1, ggl_mkcolor(PAL_STK_BG)); // CLEAR RECTANGLE
     ggl_clipvline(scr, xright, ystart, yend - 1, ggl_mkcolor(PAL_STK_VLINE));
 
     while (y > ystart)
@@ -542,7 +542,7 @@ void halRedrawStack(DRAWSURFACE *scr)
         // SET CLIPPING REGION
 
         scr->clipx  = 0;
-        scr->clipx2 = SCREEN_WIDTH - 1;
+        scr->clipx2 = LCD_W - 1;
         scr->clipy  = (ytop < 0) ? 0 : ytop;
         scr->clipy2 = (y > yend) ? yend - 1 : y - 1;
 
@@ -605,7 +605,7 @@ void halRedrawStack(DRAWSURFACE *scr)
         {
             // DO PROPER LAYOUT
 
-            BINT x = SCREEN_WIDTH - width; // RIGHT-JUSTIFY ITEMS
+            BINT x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
             if (x < xright + 1)
                 x = xright + 1; // UNLESS IT DOESN'T FIT, THEN LEFT JUSTIFY
 
@@ -920,9 +920,9 @@ void halRedrawHelp(DRAWSURFACE *scr)
         BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
+        ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_HLP_LINES));
+        ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_HLP_LINES));
 
         // SHOW 3 LINES ONLY
 
@@ -947,7 +947,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
         for (k = 0; k < 3; ++k)
         {
-            xend      = SCREEN_WIDTH - 1 - namew;
+            xend      = LCD_W - 1 - namew;
             endofline = (BYTEPTR) StringCoordToPointer((char *) basetext, (char *) endoftext, FONT_HLPTEXT, &xend);
             if (endofline < endoftext)
             {
@@ -985,9 +985,9 @@ void halRedrawHelp(DRAWSURFACE *scr)
         BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(scr, 0, ytop, SCREEN_WIDTH - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
+        ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_HLP_LINES));
+        ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_HLP_LINES));
 
         // SHOW MESSAGE'S FIRST 3 LINES ONLY
         BINT    currentline = 0, nextline;
@@ -1066,9 +1066,9 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
     ybottom = ytop + halScreen.Menu1 - 1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr, 0, ytop + 1, SCREEN_WIDTH - 1, ybottom - 1, bcolor);
-    ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENU_HLINE));
-    ggl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENU_HLINE));
+    ggl_cliprect(scr, 0, ytop + 1, LCD_W - 1, ybottom - 1, bcolor);
+    ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
+    ggl_cliphline(scr, ybottom, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 #endif /* ! TARGET_PRIME1 */
@@ -1123,9 +1123,9 @@ void halRedrawMenu1(DRAWSURFACE *scr)
         ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
         ybottom = ytop + halScreen.Menu1 - 1;
         // DRAW BACKGROUND
-        ggl_cliprect(scr, 0, ytop + 1, SCREEN_WIDTH - 1, ybottom - 1, bcolor);
-        ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENU_HLINE));
-        ggl_cliphline(scr, ybottom, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENU_HLINE));
+        ggl_cliprect(scr, 0, ytop + 1, LCD_W - 1, ybottom - 1, bcolor);
+        ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
+        ggl_cliphline(scr, ybottom, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
 
         BINT64  m1code  = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
@@ -1311,7 +1311,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     // ggl_clipvline(scr,STATUS_AREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
     //    ggl_clipvline(scr,87,ytop,ybottom,0);
     //    ggl_clipvline(scr,109,ytop,ybottom,0);
-    // ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(0x8));
+    // ggl_cliphline(scr,ytop,0,LCD_W-1,ggl_mkcolor(0x8));
     ggl_cliphline(scr, ytop + MENU2_HEIGHT / 2 - 1, 0, STATUS_AREA_X - 2, ggl_mkcolor(PAL_MENU_HLINE));
     ggl_cliphline(scr, ybottom, 0, STATUS_AREA_X - 2, ggl_mkcolor(PAL_MENU_HLINE));
 
@@ -1448,15 +1448,15 @@ void halRedrawStatus(DRAWSURFACE *scr)
     {
 #ifndef TARGET_PRIME1
         int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
-        ggl_cliprect(scr, STATUS_AREA_X, ytop, SCREEN_WIDTH - 1, ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+        ggl_cliprect(scr, STATUS_AREA_X, ytop, LCD_W - 1, ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
 #else  /* TARGET_PRIME1 */
         int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
 
-        ggl_hline(scr, ytop, STATUS_AREA_X, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_MENU_HLINE));
+        ggl_hline(scr, ytop, STATUS_AREA_X, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
         ggl_cliprect(scr,
                      STATUS_AREA_X,
                      ytop + 1,
-                     SCREEN_WIDTH - 1,
+                     LCD_W - 1,
                      ytop + halScreen.Menu1 + halScreen.Menu2 - 1,
                      ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
@@ -1539,8 +1539,8 @@ void halRedrawStatus(DRAWSURFACE *scr)
             }
             // ADD WIDTH OF SYMBOLS
             width += 4 * nnames;
-            if (width > SCREEN_WIDTH - STATUS_AREA_X)
-                xst = SCREEN_WIDTH - width;
+            if (width > LCD_W - STATUS_AREA_X)
+                xst = LCD_W - width;
             else
                 xst = STATUS_AREA_X;
 
@@ -1578,7 +1578,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
                 }
             }
 #if 0
-            if(width > SCREEN_WIDTH - STATUS_AREA_X) {
+            if(width > LCD_W - STATUS_AREA_X) {
                 // FADE THE TEXT OUT
 
                 scr->x = STATUS_AREA_X;
@@ -1591,7 +1591,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
             }
 #endif /* Disabled code */
 
-            if (width > SCREEN_WIDTH - STATUS_AREA_X)
+            if (width > LCD_W - STATUS_AREA_X)
             {
                 int rf, rb, gf, gb, bf, bb;
 
@@ -1843,7 +1843,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
 #ifdef TARGET_PRIME1
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
         xctracker = 4;
-        ytop      = SCREEN_HEIGHT - 1 - Font_Notifications->BitmapHeight;
+        ytop      = LCD_H - 1 - Font_Notifications->BitmapHeight;
 
         // ALARM
         if (halGetNotification(N_ALARM))
@@ -1966,9 +1966,9 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
         int ytop = halScreen.Form + halScreen.Stack;
         if ((halScreen.DirtyFlag & CMDLINE_ALLDIRTY) == CMDLINE_ALLDIRTY)
         {
-            // ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
-            ggl_cliphline(scr, ytop, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_DIV_LINE));
-            ggl_cliphline(scr, ytop + 1, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_CMD_BG));
+            // ggl_cliprect(scr,0,ytop,LCD_W-1,ytop+halScreen.CmdLine-1,0);
+            ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_DIV_LINE));
+            ggl_cliphline(scr, ytop + 1, 0, LCD_W - 1, ggl_mkcolor(PAL_CMD_BG));
         }
 
         BINT    y       = (halScreen.LineCurrent - halScreen.LineVisible) * FONT_HEIGHT(FONT_CMDLINE);
@@ -2107,7 +2107,7 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
                 ggl_cliprect(scr,
                              xcoord,
                              ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                             SCREEN_W - 1,
+                             LCD_SCANLINE - 1,
                              ytop + 2 + (k + 1) * FONT_HEIGHT(FONT_CMDLINE) - 1,
                              ggl_mkcolor(PAL_CMD_BG));
             }
@@ -2203,7 +2203,7 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
             ggl_cliprect(scr,
                          xcoord,
                          ytop + 2 + y,
-                         SCREEN_W - 1,
+                         LCD_SCANLINE - 1,
                          ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
                          ggl_mkcolor(PAL_CMD_BG));
         }
@@ -2225,8 +2225,8 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
             {
                 scr->clipx  = halScreen.CursorX - halScreen.XVisible;
                 scr->clipx2 = scr->clipx + FONT_HEIGHT(FONT_CMDLINE) + 4; // HARD CODED MAXIMUM WIDTH OF THE CURSOR
-                if (scr->clipx2 >= SCREEN_WIDTH)
-                    scr->clipx2 = SCREEN_WIDTH - 1;
+                if (scr->clipx2 >= LCD_W)
+                    scr->clipx2 = LCD_W - 1;
 
                 // REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
                 if (!(halScreen.DirtyFlag & CMDLINE_LINEDIRTY))
@@ -2320,16 +2320,16 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
                     ggl_cliprect(scr,
                                  xcoord,
                                  ytop + 2 + y,
-                                 SCREEN_W - 1,
+                                 LCD_SCANLINE - 1,
                                  ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
                                  ggl_mkcolor(PAL_CMD_BG));
                 }
 
                 // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN
                 scr->clipx  = 0;
-                scr->clipx2 = SCREEN_WIDTH - 1;
+                scr->clipx2 = LCD_W - 1;
                 scr->clipy  = 0;
-                scr->clipy2 = SCREEN_HEIGHT - 1;
+                scr->clipy2 = LCD_H - 1;
             }
         }
     }
@@ -2394,9 +2394,9 @@ void halPrepareBuffer(DRAWSURFACE *scr)
 #else  // TARGET_PRIME1
     DRAWSURFACE altbuffer;
     if (scr->actbuffer)
-        altbuffer.addr = scr->addr - (SCREEN_WIDTH * SCREEN_HEIGHT) / PIXELS_PER_WORD;
+        altbuffer.addr = scr->addr - (LCD_W * LCD_H) / PIXELS_PER_WORD;
     else
-        altbuffer.addr = scr->addr + (SCREEN_WIDTH * SCREEN_HEIGHT) / PIXELS_PER_WORD;
+        altbuffer.addr = scr->addr + (LCD_W * LCD_H) / PIXELS_PER_WORD;
     altbuffer.x     = 0;
     altbuffer.y     = 0;
     altbuffer.width = scr->width;
@@ -2404,12 +2404,12 @@ void halPrepareBuffer(DRAWSURFACE *scr)
     scr->x          = 0;
     scr->y          = 0;
     // Copy current screen data to the new buffer
-    // ggl_bitblt(&altbuffer,scr,SCREEN_WIDTH,SCREEN_HEIGHT);
+    // ggl_bitblt(&altbuffer,scr,LCD_W,LCD_H);
 
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
-    memmovew(altbuffer.addr, scr->addr, (SCREEN_WIDTH * SCREEN_HEIGHT) / PIXELS_PER_WORD);
+    memmovew(altbuffer.addr, scr->addr, (LCD_W * LCD_H) / PIXELS_PER_WORD);
 
     // Let background processes know to use the alternative buffer
     halScreen.DirtyFlag |= BUFFER_ALT;
@@ -2622,14 +2622,14 @@ void halShowErrorMsg()
     BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
+    ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
     // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + FONT_HEIGHT(FONT_HLPTITLE) + 1, 0, SCREEN_WIDTH - 1, ggl_mkcolor(PAL_HLP_LINES));
-    // ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+    ggl_cliphline(&scr, ytop + FONT_HEIGHT(FONT_HLPTITLE) + 1, 0, LCD_W - 1, ggl_mkcolor(PAL_HLP_LINES));
+    // ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,LCD_W-1,ggl_mkcolor(8));
     ggl_cliprect(&scr, 0, ytop, 4, ybot, ggl_mkcolor(PAL_HLP_LINES));
 
     scr.clipx  = 1;
-    scr.clipx2 = SCREEN_WIDTH - 2;
+    scr.clipx2 = LCD_W - 2;
     scr.clipy  = ytop;
     scr.clipy2 = ybot - 1;
     // SHOW ERROR MESSAGE
@@ -2747,12 +2747,12 @@ void halShowMsgN(char *Text, char *End)
     BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, SCREEN_WIDTH - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
+    ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
     // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + 1, 1, SCREEN_WIDTH - 2, ggl_mkcolor(PAL_HLP_LINES));
-    ggl_cliphline(&scr, ybot, 1, SCREEN_WIDTH - 2, ggl_mkcolor(PAL_HLP_LINES));
+    ggl_cliphline(&scr, ytop + 1, 1, LCD_W - 2, ggl_mkcolor(PAL_HLP_LINES));
+    ggl_cliphline(&scr, ybot, 1, LCD_W - 2, ggl_mkcolor(PAL_HLP_LINES));
     ggl_clipvline(&scr, 1, ytop + 2, ybot - 1, ggl_mkcolor(PAL_HLP_LINES));
-    ggl_clipvline(&scr, SCREEN_WIDTH - 2, ytop + 2, ybot - 1, ggl_mkcolor(PAL_HLP_LINES));
+    ggl_clipvline(&scr, LCD_W - 2, ytop + 2, ybot - 1, ggl_mkcolor(PAL_HLP_LINES));
 
     // SHOW MESSAGE
 

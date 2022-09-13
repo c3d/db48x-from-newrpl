@@ -195,7 +195,7 @@ void keyb_irq_update()
     int k;
     // DRAW THE KEYMATRIX
     for(k=0;k<64;++k)
-        ggl_rect(&scr, SCREEN_WIDTH-4*(k+2), 0, SCREEN_WIDTH-4*(k+1),4 ,
+        ggl_rect(&scr, LCD_W-4*(k+2), 0, LCD_W-4*(k+1),4 ,
                    (a&(1LL<<k))? 0xffffffff:0x44444444);
 
     */

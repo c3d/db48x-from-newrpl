@@ -8,8 +8,7 @@
 #include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
-#define LCD_W SCREEN_W
-#define HOZVAL ((LCD_W>>2)-1)
+#define HOZVAL ((LCD_SCANLINE>>2)-1)
 
 // SIMULATED SYSTEM REGISTERS
 int lcd_mode = -1;
@@ -17,8 +16,8 @@ int lcd_needsupdate = 0;
 int lcd_activebuffer = 0;
 unsigned int *lcd_buffer;
 // SIMULATED SCREEN MEMORY
-char PhysicalScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD*SCREEN_BUFFERS];
-char ExceptionScreen[(SCREEN_W*SCREEN_H)*4/PIXELS_PER_WORD];
+char PhysicalScreen[(LCD_SCANLINE*LCD_H)*4/PIXELS_PER_WORD*SCREEN_BUFFERS];
+char ExceptionScreen[(LCD_SCANLINE*LCD_H)*4/PIXELS_PER_WORD];
 
 int lcd_contrast SYSTEM_GLOBAL;
 
@@ -83,8 +82,8 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 
     int pagewidth;
 
-    if(mode<3) pagewidth = LCD_W >> (3 - mode);
-    else pagewidth = LCD_W * 2;
+    if(mode<3) pagewidth = LCD_SCANLINE >> (3 - mode);
+    else pagewidth = LCD_SCANLINE * 2;
 
     lcd_buffer = physbuf;
     lcd_setcontrast(lcd_contrast);
@@ -96,7 +95,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 
 int lcd_scanline()
 {
-    return SCREEN_HEIGHT+1;
+    return LCD_H+1;
 }
 
 void lcd_setactivebuffer(int buffer)

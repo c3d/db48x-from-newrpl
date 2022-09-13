@@ -679,16 +679,16 @@
 #define BPPMODE_18BPP  0x8
 #define BPPMODE_24BPP 0xb // rgb
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
-#define SCREEN_W 320
-#define SCREEN_H 240
+#define LCD_W 320
+#define LCD_H 240
+#define LCD_SCANLINE 320
+#define LCD_H 240
 #define SCREEN_BUFFERS 2
 
 // Prime menu organization constants
-#define MENU1_ENDX  ((44*SCREEN_WIDTH)/131)
+#define MENU1_ENDX  ((44*LCD_W)/131)
 #define MENU2_STARTX 0
-#define MENU2_ENDX   SCREEN_W
+#define MENU2_ENDX   LCD_SCANLINE
 #define MENU2_COUNT  3
 
 #undef  STATUSAREA_X

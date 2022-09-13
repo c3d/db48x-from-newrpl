@@ -233,7 +233,7 @@ void main_virtual(unsigned int mode)
 
 
     //ggl_initscr(&surface);
-    //ggl_rect(&surface, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, ggl_mkcolor(PAL_STK_BG));
+    //ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, ggl_mkcolor(PAL_STK_BG));
 
      // INITIALIZE SOME SYSTEM VARIABLES
 
@@ -252,7 +252,7 @@ void main_virtual(unsigned int mode)
         halSetupTheme(NULL);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1, ggl_mkcolor(PAL_STK_BG));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, ggl_mkcolor(PAL_STK_BG));
 
 
             // CHECK FOR MAGIC KEY COMBINATION
@@ -317,7 +317,7 @@ void main_virtual(unsigned int mode)
 
         tmr_eventkill(event);
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1,  ggl_mkcolor(PAL_GRAY4));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,  ggl_mkcolor(PAL_GRAY4));
 
         keyb_flushnowait();
 
