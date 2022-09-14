@@ -7,9 +7,10 @@
 #ifndef _GGL_H
 #define _GGL_H
 
+#include "common-macros.h"
+
 #include <stdint.h>
 #include <target.h>
-#include "common-macros.h"
 
 // GGL provides a unified interface for three forms of graphics with different bits per pixel (BPP):
 // 1. 4BPP  gray-scale graphics on gray-scale platforms (HP50g).
@@ -28,20 +29,20 @@
 // In combined operations, the pattern is always aligned with the destination
 
 #ifndef BITS_PER_PIXEL
-#error Cannot build GGL without BITS_PER_PIXEL
+#  error Cannot build GGL without BITS_PER_PIXEL
 #endif
 
 #if BITS_PER_PIXEL == 1
-#define PATTERN_WIDTH       8
-#define PATTERN_HEIGHT      8
+#  define PATTERN_WIDTH  8
+#  define PATTERN_HEIGHT 8
 #elif BITS_PER_PIXEL == 4
-#define PATTERN_WIDTH       4
-#define PATTERN_HEIGHT      4
+#  define PATTERN_WIDTH  4
+#  define PATTERN_HEIGHT 4
 #elif BITS_PER_PIXEL == 16
-#define PATTERN_WIDTH       2
-#define PATTERN_HEIGHT      2
+#  define PATTERN_WIDTH  2
+#  define PATTERN_HEIGHT 2
 #else
-#error Unknown value for BITS_PER_PIXEL
+#  error Unknown value for BITS_PER_PIXEL
 #endif
 
 // Generic definitions for both color and gray modes
@@ -49,24 +50,24 @@ typedef union color1
 {
     struct bits
     {
-        uint8_t bit0    : 1;
-        uint8_t bit1    : 1;
-        uint8_t bit2    : 1;
-        uint8_t bit3    : 1;
-        uint8_t bit4    : 1;
-        uint8_t bit5    : 1;
-        uint8_t bit6    : 1;
-        uint8_t bit7    : 1;
+        uint8_t bit0 : 1;
+        uint8_t bit1 : 1;
+        uint8_t bit2 : 1;
+        uint8_t bit3 : 1;
+        uint8_t bit4 : 1;
+        uint8_t bit5 : 1;
+        uint8_t bit6 : 1;
+        uint8_t bit7 : 1;
     } __attribute__((packed)) bits;
-    uint8_t     value;
+    uint8_t value;
 } color1_t;
 
 typedef union color4_t
 {
     struct nibbles
     {
-        uint8_t low         : 4;
-        uint8_t high        : 4;
+        uint8_t low  : 4;
+        uint8_t high : 4;
     } __attribute__((packed)) nibbles;
     uint8_t value;
 } color4_t;
@@ -75,22 +76,22 @@ typedef union color16
 {
     struct rgb16
     {
-        uint8_t blue    : 5;
-        uint8_t green   : 6;
-        uint8_t red     : 5;
+        uint8_t blue  : 5;
+        uint8_t green : 6;
+        uint8_t red   : 5;
     } __attribute__((packed)) rgb16;
     uint16_t value;
 } color16_t;
 
-#define color_t CAT(color, CAT(BITS_PER_PIXEL,_t))
+#define color_t CAT(color, CAT(BITS_PER_PIXEL, _t))
 
 typedef union pattern
 {
-    uint64_t    bits;
-    uint64_t    color   : BITS_PER_PIXEL;
-    color1_t    plane1[8];
-    color4_t    plane4[8];
-    color16_t   plane16[4];
+    uint64_t  bits;
+    uint64_t  color : BITS_PER_PIXEL;
+    color1_t  plane1[8];
+    color4_t  plane4[8];
+    color16_t plane16[4];
 } pattern_t;
 
 
@@ -106,7 +107,7 @@ static inline pattern_t ggl_solid_pattern(color_t color)
 static inline pattern_t ggl_pattern_2_colors(color_t colors[2])
 {
     uint64_t bits = 0;
-    for (unsigned shift = 0; shift < 64/BITS_PER_PIXEL; shift++)
+    for (unsigned shift = 0; shift < 64 / BITS_PER_PIXEL; shift++)
         bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 2)) % 2)].value;
     pattern_t pat = { .bits = bits };
     return pat;
@@ -115,7 +116,7 @@ static inline pattern_t ggl_pattern_2_colors(color_t colors[2])
 static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
 {
     uint64_t bits = 0;
-    for (unsigned shift = 0; shift < 64/BITS_PER_PIXEL; shift++)
+    for (unsigned shift = 0; shift < 64 / BITS_PER_PIXEL; shift++)
         bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 4)) % 4)].value;
     pattern_t pat = { .bits = bits };
     return pat;
@@ -168,8 +169,8 @@ static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
 
 // Default palette size, entries 0-15 are for grayscale conversion, entries above 16 are customizable Theme colors for
 // different elements of the UI
-#define PALETTE_SIZE      64
-#define PALETTE_MASK      63
+#define PALETTE_SIZE 64
+#define PALETTE_MASK 63
 
 // Global palette, can be used for grayscale conversion or for themes
 extern int ggl_palette[PALETTE_SIZE];
@@ -358,8 +359,8 @@ int      ggl_mksolid(int color); // solid color generator
 #define ggl_mkcolor(color) (ggl_palette[(color) &PALETTE_MASK])
 
 // Set a palette index entry
-#define ggl_setpalette(index, color)             \
-  {                                              \
+#define ggl_setpalette(index, color)              \
+  {                                               \
     ggl_palette[(index) &PALETTE_MASK] = (color); \
   }
 
