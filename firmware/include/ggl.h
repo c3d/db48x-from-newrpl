@@ -171,8 +171,6 @@ static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
 #define PALETTE_SIZE      64
 #define PALETTE_MASK      63
 
-#define IS_PALETTE_COLOR 0x10000
-
 // Global palette, can be used for grayscale conversion or for themes
 extern int ggl_palette[PALETTE_SIZE];
 
@@ -364,9 +362,6 @@ int      ggl_mksolid(int color); // solid color generator
   {                                              \
     ggl_palette[(index) &PALETTE_MASK] = (color); \
   }
-
-// Return the actual color to draw, either the given color or a palette color
-#define ggl_getcolor(color) (((color) &IS_PALETTE_COLOR) ? ggl_palette[(color) &PALETTE_MASK] : (color))
 
 // ggl_mkcolor32 creates virtual 32-colors by using 8x8 patterns
 // col32 is a value from 0 to 30, being 30=black, 0=white
