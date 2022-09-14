@@ -7,6 +7,120 @@
 #ifndef _GGL_H
 #define _GGL_H
 
+#include <stdint.h>
+#include <target.h>
+#include "common-macros.h"
+
+// GGL provides a unified interface for three forms of graphics with different bits per pixel (BPP):
+// 1. 4BPP  gray-scale graphics on gray-scale platforms (HP50g).
+// 2. 16BPP RGB16 color graphics on color platforms (Prime)
+// 3. 1BPP  Black and white graphics on bitmap platforms (DM42)
+//
+// In order to accomodate common theming across the platforms, graphics functions
+// accept two forms of color input: flat color, which uses the same color for
+// every pixel, and color pattern, which is a 64-bit value that creates a
+// pattern of different sizes depending on the value of BITS_PER_PIXEL
+//
+// In 1BPP mode, the 64-bits correspond to an 8x8 bitmap pattern
+// In 4BPP mode, the 64-bits correspond to a 4x4 grayscale pattern
+// In 16BPP mode, the 64 bits correspond to a 2x2 color pattern
+//
+// In combined operations, the pattern is always aligned with the destination
+
+#ifndef BITS_PER_PIXEL
+#error Cannot build GGL without BITS_PER_PIXEL
+#endif
+
+#if BITS_PER_PIXEL == 1
+#define PATTERN_WIDTH       8
+#define PATTERN_HEIGHT      8
+#elif BITS_PER_PIXEL == 4
+#define PATTERN_WIDTH       4
+#define PATTERN_HEIGHT      4
+#elif BITS_PER_PIXEL == 16
+#define PATTERN_WIDTH       2
+#define PATTERN_HEIGHT      2
+#else
+#error Unknown value for BITS_PER_PIXEL
+#endif
+
+// Generic definitions for both color and gray modes
+typedef union color1
+{
+    struct bits
+    {
+        uint8_t bit0    : 1;
+        uint8_t bit1    : 1;
+        uint8_t bit2    : 1;
+        uint8_t bit3    : 1;
+        uint8_t bit4    : 1;
+        uint8_t bit5    : 1;
+        uint8_t bit6    : 1;
+        uint8_t bit7    : 1;
+    } __attribute__((packed)) bits;
+    uint8_t     value;
+} color1_t;
+
+typedef union color4_t
+{
+    struct nibbles
+    {
+        uint8_t low         : 4;
+        uint8_t high        : 4;
+    } __attribute__((packed)) nibbles;
+    uint8_t value;
+} color4_t;
+
+typedef union color16
+{
+    struct rgb16
+    {
+        uint8_t blue    : 5;
+        uint8_t green   : 6;
+        uint8_t red     : 5;
+    } __attribute__((packed)) rgb16;
+    uint16_t value;
+} color16_t;
+
+#define color_t CAT(color, CAT(BITS_PER_PIXEL,_t))
+
+typedef union pattern
+{
+    uint64_t    bits;
+    uint64_t    color   : BITS_PER_PIXEL;
+    color1_t    plane1[8];
+    color4_t    plane4[8];
+    color16_t   plane16[4];
+} pattern_t;
+
+
+static inline pattern_t ggl_solid_pattern(color_t color)
+{
+    uint64_t bits = 0;
+    for (unsigned shift = 0; shift < 64; shift += BITS_PER_PIXEL)
+        bits |= color.value << shift;
+    pattern_t pat = { .bits = bits };
+    return pat;
+}
+
+static inline pattern_t ggl_pattern_2_colors(color_t colors[2])
+{
+    uint64_t bits = 0;
+    for (unsigned shift = 0; shift < 64/BITS_PER_PIXEL; shift++)
+        bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 2)) % 2)].value;
+    pattern_t pat = { .bits = bits };
+    return pat;
+}
+
+static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
+{
+    uint64_t bits = 0;
+    for (unsigned shift = 0; shift < 64/BITS_PER_PIXEL; shift++)
+        bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 4)) % 4)].value;
+    pattern_t pat = { .bits = bits };
+    return pat;
+}
+
 // (From ggl.h) Generic definitions for both color and gray modes
 
 // Convert from RGB (0-255) to RGB16(5-6-5)
