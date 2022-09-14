@@ -28,27 +28,14 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
     register int *left  = (int *) srf->addr + (loff >> 3);
     register int *right = (int *) srf->addr + (roff >> 3);
     int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
-#else  /* TARGET_PRIME1 */
-    unsigned short int *ptr = (unsigned short int *) srf->addr + y * srf->width + xl;
-#endif /* TARGET_PRIME1 */
 
-#ifndef TARGET_PRIME1
     if (left == right)
-#else  /* TARGET_PRIME1 */
-    while (xl <= xr)
-#endif /* TARGET_PRIME1 */
     {
-#ifndef TARGET_PRIME1
         // single word operation
         ml |= mr;
         *left = (*left & ml) | (color & (~ml));
         return;
-#else  /* TARGET_PRIME1 */
-        *ptr++ = color;
-        ++xl;
-#endif /* TARGET_PRIME1 */
     }
-#ifndef TARGET_PRIME1
 
     *left = (*left & ml) | (color & (~ml));
     ++left;
@@ -59,7 +46,17 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
     }
 
     *right = (*right & mr) | (color & (~mr));
-#endif /* ! TARGET_PRIME1 */
+
+#else /* TARGET_PRIME1 */
+
+    unsigned short int *ptr = (unsigned short int *) srf->addr + y * srf->width + xl;
+    while (xl <= xr)
+    {
+        *ptr++ = color;
+        ++xl;
+    }
+
+#endif /* TARGET_PRIME1 */
 }
 
 void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
