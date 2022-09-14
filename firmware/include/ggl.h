@@ -125,10 +125,22 @@ static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
 // (From ggl.h) Generic definitions for both color and gray modes
 
 // Convert from RGB (0-255) to RGB16(5-6-5)
-#define RGB_TO_RGB16(red, green, blue) ((((red) &0xf8) << 8) | (((green) &0xfc) << 3) | (((blue) &0xf8) >> 3))
+static inline color16_t ggl_rgb16(uint8_t red, uint8_t green, uint8_t blue)
+{
+    color16_t result = { .rgb16 = { .red = red, .green = green, .blue = blue } };
+    return result;
+}
+
+// Convert from RGB (0-255) to RGB16(5-6-5)
+static inline color16_t ggl_rgb32_to_rgb16(uint8_t red, uint8_t green, uint8_t blue)
+{
+    return ggl_rgb16(red >> 3, green >> 2, blue >> 3);
+}
+
+#define RGB_TO_RGB16(red, green, blue) (ggl_rgb32_to_rgb16((red), (green), (blue)).value)
 
 // Pack RGB16 components (red=0-31, green=0-63, blue=0-31)
-#define PACK_RGB16(red, green, blue)   ((((red) &0x1f) << 11) | (((green) &0x3f) << 5) | (((blue) &0x1f)))
+#define PACK_RGB16(red, green, blue)   (ggl_rgb16((red), (green), (blue)).value)
 
 // Extract RGB red component from RGB16 color (bit expand to 0-255 range)
 #define RGBRED(rgb16)                  (((rgb16) &0x8000) ? (((rgb16) >> 8) | 7) : ((rgb16) >> 8) & 0xf8)
