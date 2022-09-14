@@ -72,6 +72,7 @@ QMAKE_CFLAGS_COMMON = \
 	-fomit-frame-pointer \
 	-fdata-sections \
 	-ffunction-sections \
+	-Wno-packed-bitfield-compat \
 
 QMAKE_CFLAGS_DEBATABLE = \
 	-nostdinc \
