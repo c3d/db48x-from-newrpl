@@ -81,5 +81,5 @@ reformat clang-format: $(FILES:%=%.clang-format)
 %.clang-format:
 	clang-format -i $*
 
-.PRECIOUS: %.mak %-$(TAG).mak
+.PRECIOUS: %-firmware-$(TAG).mak %-$(TAG).mak
 .ALWAYS:
