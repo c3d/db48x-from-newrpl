@@ -27,13 +27,6 @@ MACHINE_CPU  = arm926ej-s
 MACHINE_TUNE = $$MACHINE_CPU
 MACHINE_ARCH = armv5tej
 
-CONFIG(release, debug|release) {
-    CONFIG = static ordered
-}
-CONFIG(debug, debug|release) {
-    CONFIG = debug static ordered
-}
-
 DEFINES += TARGET_50G
 
 include(firmware.pri)

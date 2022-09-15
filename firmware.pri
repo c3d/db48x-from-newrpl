@@ -25,9 +25,9 @@ newrpl_color:NEWRPL_CONFIG += newrpl_color
 
 # Strip the configuratoin to the strictest minimim
 CONFIG(debug, debug|release) {
-    CONFIG = debug static ordered
+    CONFIG = debug static ordered depend_includepath
 } else {
-    CONFIG = static ordered
+    CONFIG = static ordered depend_includepath
 }
 
 CONFIG += newrpl_firmware $$NEWRPL_CONFIG

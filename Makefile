@@ -56,7 +56,7 @@ tools/fonts/bmp2font/bmp2font.mak: tools/fonts/bmp2font/bmp2font.pro
 	$(MAKE) -f $<
 
 %-firmware-$(TAG).mak: %-firmware.pro | compiler elf2rom
-	qmake $< -spec devices/linux-generic-g++ CONFIG+=$(CONFIG) -o $@
+	qmake $< CONFIG+=$(CONFIG) -o $@ -spec devices/linux-generic-g++
 %-$(TAG).mak: %.pro
 	qmake $< CONFIG+=$(CONFIG) -o $@
 
