@@ -309,7 +309,6 @@ HEADERS += \
 
 # Headers for the firmware
 HEADERS  += \
-        firmware/include/$${NEWRPL_GRAPHICS}.h \
         firmware/include/firmware.h \
         firmware/include/fsystem.h \
         firmware/include/hal_api.h \
