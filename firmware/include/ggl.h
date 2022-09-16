@@ -45,6 +45,10 @@
 #  error Unknown value for BITS_PER_PIXEL
 #endif
 
+#define BITS_PER_PATTERN_ROW   (BITS_PER_PIXEL * PATTERN_WIDTH)
+#define BYTES_PER_PATTERN_ROW  (BITS_PER_PATTERN_ROW / 8)
+#define COLORS_PER_PATTERN_ROW (BYTES_PER_PATTERN_ROW / sizeof(color_t))
+
 // Generic definitions for both color and gray modes
 typedef union color1
 {
