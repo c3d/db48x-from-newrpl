@@ -16,10 +16,10 @@ void ggl_initscr(gglsurface *srf)
     srf->clipx2             = LCD_W - 1;
     srf->clipy2             = LCD_H - 1;
 #ifdef TARGET_PRIME1
-    srf->actbuffer = 0;
+    srf->active_buffer = 0;
 #  if SCREEN_BUFFERS > 1
-    srf->actbuffer = lcd_getactivebuffer();
-    srf->addr += LCD_W * LCD_H / PIXELS_PER_WORD * srf->actbuffer;
+    srf->active_buffer = lcd_getactivebuffer();
+    srf->addr += LCD_W * LCD_H / PIXELS_PER_WORD * srf->active_buffer;
 #  endif
 #endif /* TARGET_PRIME1 */
 }

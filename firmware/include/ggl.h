@@ -227,13 +227,12 @@ extern int ggl_palette[PALETTE_SIZE];
 
 typedef struct
 {
-    int *addr;  //! Word-aligned address of the surface buffer
-    int  width; //! Width (in pixels) of the buffer
-    int  x, y;  //! Offset coordinates within the buffer
-    int  clipx, clipx2, clipy, clipy2;
-#ifdef TARGET_PRIME1
-    int actbuffer; //! Active buffer: 0 or 1
-#endif             /* TARGET_PRIME1 */
+    int     *addr;   //! Word-aligned address of the surface buffer
+    unsigned width;  //! Width (in pixels) of the buffer
+    unsigned height; //! Height (in pixels) of the buffer
+    int      x, y;   //! Offset coordinates within the buffer
+    int      clipx, clipx2, clipy, clipy2;
+    int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 
 typedef unsigned int (*gglfilter)(unsigned int pixels, int param);

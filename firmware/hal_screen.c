@@ -2393,7 +2393,7 @@ void halPrepareBuffer(DRAWSURFACE *scr)
     UNUSED_ARGUMENT(scr);
 #else  // TARGET_PRIME1
     DRAWSURFACE altbuffer;
-    if (scr->actbuffer)
+    if (scr->active_buffer)
         altbuffer.addr = scr->addr - (LCD_W * LCD_H) / PIXELS_PER_WORD;
     else
         altbuffer.addr = scr->addr + (LCD_W * LCD_H) / PIXELS_PER_WORD;
@@ -2418,7 +2418,7 @@ void halPrepareBuffer(DRAWSURFACE *scr)
     halScreen.DirtyFlag &= ~BUFFER_LOCK;
 
     scr->addr = altbuffer.addr;
-    scr->actbuffer ^= 1;
+    scr->active_buffer ^= 1;
 #endif /* TARGET_PRIME1 */
 }
 
@@ -2431,7 +2431,7 @@ void halSwapBuffer(DRAWSURFACE *scr)
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
-    lcd_setactivebuffer(scr->actbuffer);
+    lcd_setactivebuffer(scr->active_buffer);
     halScreen.DirtyFlag &= ~BUFFER_ALT;
 
     // Remove the lock
