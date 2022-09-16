@@ -114,16 +114,16 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
     return newobj;
 }
 
-// RENDER AN OBJECT TO THE GIVEN DRAWSURFACE, USE CACHE IF POSSIBLE
+// RENDER AN OBJECT TO THE GIVEN gglsurface, USE CACHE IF POSSIBLE
 
-void uiDrawObject(WORDPTR object, DRAWSURFACE * scr, UNIFONT const *font)
+void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
     WORDPTR bmp = uiRenderObject(object, font);
     if(bmp) {
         // COPY IT TO DESTINATION
-        DRAWSURFACE tsurf;
+        gglsurface tsurf;
 
         tsurf.addr = (int *)(bmp + 3);
         tsurf.width = bmp[1];
@@ -194,7 +194,7 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 
 
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
-        DRAWSURFACE tsurf;
+        gglsurface tsurf;
 
         tsurf.addr = (int *)(newbmp + 3);
         tsurf.width = numwidth;
@@ -228,11 +228,11 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 }
 
 // DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
-void uiDrawBitmap(WORDPTR bmp, DRAWSURFACE * scr)
+void uiDrawBitmap(WORDPTR bmp, gglsurface * scr)
 {
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION
-        DRAWSURFACE tsurf;
+        gglsurface tsurf;
 
         tsurf.addr = (int *)(bmp + 3);
         tsurf.width = bmp[1];

@@ -310,7 +310,7 @@ void                       halInt2String(int num, char *str)
     *ptr = 0;
 }
 
-void halRedrawForm(DRAWSURFACE *scr)
+void halRedrawForm(gglsurface *scr)
 {
     if (halScreen.Form == 0)
     {
@@ -349,7 +349,7 @@ void halRedrawForm(DRAWSURFACE *scr)
         return;
     }
 
-    DRAWSURFACE viewport;
+    gglsurface viewport;
 
     viewport.addr   = (int *) (bmp + 3);
     viewport.width  = bmp[1];
@@ -391,7 +391,7 @@ void halRedrawForm(DRAWSURFACE *scr)
     scr->clipy2 = oldclipy2;
 }
 
-void halRedrawStack(DRAWSURFACE *scr)
+void halRedrawStack(gglsurface *scr)
 {
     if (halScreen.Stack == 0)
     {
@@ -843,7 +843,7 @@ void halInitScreen()
     halScreen.StkVisibleOffset = 0;
 }
 
-void halRedrawHelp(DRAWSURFACE *scr)
+void halRedrawHelp(gglsurface *scr)
 {
     if (!halScreen.Menu2)
     {
@@ -1024,7 +1024,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 }
 
 // REDRAW THE VARS MENU
-void halRedrawMenu1(DRAWSURFACE *scr)
+void halRedrawMenu1(gglsurface *scr)
 {
     if (halScreen.HelpMode)
     {
@@ -1262,7 +1262,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 }
 
 // REDRAW THE OTHER MENU
-void halRedrawMenu2(DRAWSURFACE *scr)
+void halRedrawMenu2(gglsurface *scr)
 {
     if (halScreen.HelpMode)
     {
@@ -1431,7 +1431,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     halScreen.DirtyFlag &= ~MENU2_DIRTY;
 }
 
-void halRedrawStatus(DRAWSURFACE *scr)
+void halRedrawStatus(gglsurface *scr)
 {
     if (halScreen.HelpMode)
     {
@@ -1957,7 +1957,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
     halScreen.DirtyFlag &= ~STAREA_DIRTY;
 }
 
-void halRedrawCmdLine(DRAWSURFACE *scr)
+void halRedrawCmdLine(gglsurface *scr)
 {
     halScreenUpdated();
 
@@ -2387,12 +2387,12 @@ void halUpdateFonts()
 }
 
 // PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
-void halPrepareBuffer(DRAWSURFACE *scr)
+void halPrepareBuffer(gglsurface *scr)
 {
 #ifndef TARGET_PRIME1
     UNUSED_ARGUMENT(scr);
 #else  // TARGET_PRIME1
-    DRAWSURFACE altbuffer;
+    gglsurface altbuffer;
     if (scr->active_buffer)
         altbuffer.addr = scr->addr - (LCD_W * LCD_H) / PIXELS_PER_WORD;
     else
@@ -2422,7 +2422,7 @@ void halPrepareBuffer(DRAWSURFACE *scr)
 #endif /* TARGET_PRIME1 */
 }
 
-void halSwapBuffer(DRAWSURFACE *scr)
+void halSwapBuffer(gglsurface *scr)
 {
 #ifndef TARGET_PRIME1
     UNUSED_ARGUMENT(scr);
@@ -2441,7 +2441,7 @@ void halSwapBuffer(DRAWSURFACE *scr)
 #endif /* TARGET_PRIME1 */
 }
 
-void halForceRedrawAll(DRAWSURFACE *scr)
+void halForceRedrawAll(gglsurface *scr)
 {
     halPrepareBuffer(scr);
     halUpdateFonts();
@@ -2454,7 +2454,7 @@ void halForceRedrawAll(DRAWSURFACE *scr)
     halSwapBuffer(scr);
 }
 
-void halRedrawAll(DRAWSURFACE *scr)
+void halRedrawAll(gglsurface *scr)
 {
     if (halScreen.DirtyFlag)
     {
@@ -2502,7 +2502,7 @@ void status_popup_handler()
 #ifdef TARGET_PRIME1
         halScreen.DirtyFlag |= STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 #else  // !TARGET_PRIME1
-        DRAWSURFACE scr;
+        gglsurface scr;
         ggl_initscr(&scr);
         halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
@@ -2608,7 +2608,7 @@ void halShowErrorMsg()
 
     halErrorPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
 
     if (!halScreen.Menu2)
@@ -2733,7 +2733,7 @@ void halShowMsgN(char *Text, char *End)
 {
     halErrorPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
 
     if (!halScreen.Menu2)

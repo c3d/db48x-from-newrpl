@@ -40,7 +40,7 @@ void ram_receiveandflashfw(BINT flashsize)
     unsigned char *ram_fw_pointer = ram_fw_start;
     int fw_size = 0;
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
 
     ggl_hline(&scr,10,0,LCD_W-1,0xffffffff);

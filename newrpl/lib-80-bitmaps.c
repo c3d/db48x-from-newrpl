@@ -96,7 +96,7 @@ const char *const bitmap_modes[] = {
 typedef struct
 {
     // ADD OTHER INFO HERE
-    DRAWSURFACE srf;
+    gglsurface srf;
     BINT npoints, ptalloc;
     CURVEPT points[1];
 

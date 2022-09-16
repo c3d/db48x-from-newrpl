@@ -292,7 +292,7 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
 // DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
 // DOES NOT CLEAR BACKGROUND
 
-void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, DRAWSURFACE * scr)
+void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, gglsurface * scr)
 {
     WORDPTR ptr;
     BINT flags = 0;

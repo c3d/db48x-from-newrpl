@@ -19,7 +19,7 @@ extern unsigned int RPLLastOpcode;
 
 ARM_MODE void ex_print(int x, int y, char *str)
 {
-    DRAWSURFACE dr;
+    gglsurface dr;
     dr.addr = (int *)MEM_PHYS_EXSCREEN;
     dr.width = LCD_SCANLINE;
     dr.x = dr.y = 0;

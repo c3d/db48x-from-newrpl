@@ -25,7 +25,7 @@ extern unsigned int RPLLastOpcode;
 
 void ex_print(int x,int y,char *str)
 {
-    DRAWSURFACE dr;
+    gglsurface dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
     dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;
@@ -38,7 +38,7 @@ void ex_print(int x,int y,char *str)
 
 void ex_clrscreen()
 {
-    DRAWSURFACE dr;
+    gglsurface dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
     dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;
@@ -50,7 +50,7 @@ void ex_clrscreen()
 
 void ex_hline(int y)
 {
-    DRAWSURFACE dr;
+    gglsurface dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
     dr.width=LCD_SCANLINE;
     dr.x=dr.y=0;

@@ -9,7 +9,7 @@
 #include <libraries.h>
 #include <ui.h>
 
-void uiRepaintForm(DRAWSURFACE * scr)
+void uiRepaintForm(gglsurface * scr)
 {
     // REPAINT VISIBLE PART OF A FORM
     UNUSED_ARGUMENT(scr);
@@ -119,7 +119,7 @@ void uiUpdateForm(WORDPTR form)
 
     // PASS 2: REDRAW EACH ELEMENT ONTO THE NEW BITMAP
 
-    DRAWSURFACE backgnd;
+    gglsurface backgnd;
 
     backgnd.addr = (int *)(newbmp + 3);
     backgnd.width = formw;
@@ -209,7 +209,7 @@ void uiUpdateForm(WORDPTR form)
                     FONT_FORMS, 0xf, 0, &backgnd);
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
-                DRAWSURFACE copy;
+                gglsurface copy;
                 copy.addr = backgnd.addr;
                 copy.width = backgnd.width;
 

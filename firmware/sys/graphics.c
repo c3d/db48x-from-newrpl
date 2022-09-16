@@ -165,7 +165,7 @@ int StringWidth(char *Text, UNIFONT const * Font)
 // UTF8 STRING
 
 void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
-        DRAWSURFACE * drawsurf)
+        gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
@@ -294,7 +294,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
 // DRAW TEXT WITH SOLID BACKGROUND
 // UTF8 STRING
 void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
-        int bkcolor, DRAWSURFACE * drawsurf)
+        int bkcolor, gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
@@ -426,7 +426,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
 }
 
 void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
-        int bkcolor, DRAWSURFACE * drawsurf)
+        int bkcolor, gglsurface * drawsurf)
 {
     char *End = Text;
 
@@ -437,7 +437,7 @@ void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
 }
 
 void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
-        DRAWSURFACE * drawsurf)
+        gglsurface * drawsurf)
 {
     char *End = Text;
 
@@ -450,7 +450,7 @@ void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
 // DRAWS TEXT TO A 1-BIT MONOCHROME SURFACE
 // TRANSPARENT BACKGROUND
 void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
-        DRAWSURFACE * drawsurf)
+        gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;

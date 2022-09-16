@@ -41,8 +41,6 @@ struct compact_tm
     int tm_year; // int     years since 1900
 };
 
-typedef gglsurface DRAWSURFACE;
-
 enum keyContext
 {
     IN_STACK = 0,
@@ -1007,10 +1005,10 @@ extern WORD battery;
 // const unsigned int System7Font[];
 // const unsigned int MiniFont[];
 
-void        DrawText(int x, int y, char *Text, UNIFONT const *Font, int color, DRAWSURFACE *drawsurf);
-void        DrawTextN(int x, int y, char *Text, char *End, UNIFONT const *Font, int color, DRAWSURFACE *drawsurf);
+void        DrawText(int x, int y, char *Text, UNIFONT const *Font, int color, gglsurface *drawsurf);
+void        DrawTextN(int x, int y, char *Text, char *End, UNIFONT const *Font, int color, gglsurface *drawsurf);
 
-void        DrawTextBk(int x, int y, char *Text, UNIFONT const *Font, int color, int bkcolor, DRAWSURFACE *drawsurf);
+void        DrawTextBk(int x, int y, char *Text, UNIFONT const *Font, int color, int bkcolor, gglsurface *drawsurf);
 void        DrawTextBkN(int            x,
                         int            y,
                         char          *Text,
@@ -1018,9 +1016,9 @@ void        DrawTextBkN(int            x,
                         UNIFONT const *Font,
                         int            color,
                         int            bkcolor,
-                        DRAWSURFACE   *drawsurf);
+                        gglsurface   *drawsurf);
 
-void        DrawTextMono(int x, int y, char *Text, UNIFONT const *Font, int color, DRAWSURFACE *drawsurf);
+void        DrawTextMono(int x, int y, char *Text, UNIFONT const *Font, int color, gglsurface *drawsurf);
 int         StringWidth(char *Text, UNIFONT const *Font);
 int         StringWidthN(char *Text, char *End, UNIFONT const *Font);
 char       *StringCoordToPointer(char *Text, char *End, UNIFONT const *Font, int *xcoord);
@@ -1183,8 +1181,8 @@ void          halSetCmdLineHeight(int h);
 void          halStatusAreaPopup();
 void          halCancelPopup();
 void          halUpdateFonts();
-void          halRedrawAll(DRAWSURFACE *scr);
-void          halRedrawCmdLine(DRAWSURFACE *scr);
+void          halRedrawAll(gglsurface *scr);
+void          halRedrawCmdLine(gglsurface *scr);
 void          halUpdateStatus();
 void          halSetStackHeight(int h);
 void          halSetFormHeight(int h);
@@ -1245,9 +1243,9 @@ void           uiClearRenderCache();
 void           uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
 void           uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
 WORDPTR        uiFindCacheEntry(WORDPTR object, const UNIFONT *font);
-void           uiDrawObject(WORDPTR object, DRAWSURFACE *scr, const UNIFONT *font);
+void           uiDrawObject(WORDPTR object, gglsurface *scr, const UNIFONT *font);
 WORDPTR        uiRenderObject(WORDPTR object, const UNIFONT *font);
-void           uiDrawBitmap(WORDPTR bmp, DRAWSURFACE *scr);
+void           uiDrawBitmap(WORDPTR bmp, gglsurface *scr);
 
 
 RECORDER_DECLARE(hal_api);

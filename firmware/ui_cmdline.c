@@ -181,7 +181,7 @@ void uicursorupdate()
         return; // DON'T UPDATE IF LOCKED
     halScreen.CursorState ^= 0x8000;    // FLIP STATE BIT
     halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
     halRedrawCmdLine(&scr);
 }

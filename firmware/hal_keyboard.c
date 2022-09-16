@@ -4168,7 +4168,7 @@ void onPlusKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     // INCREASE CONTRAST
-    DRAWSURFACE scr;
+    gglsurface scr;
 #ifndef TARGET_PRIME1
     ggl_initscr(&scr);
 #else /* TARGET_PRIME1 */
@@ -4221,7 +4221,7 @@ void onMinusKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     // DECREASE CONTRAST
-    DRAWSURFACE scr;
+    gglsurface scr;
 #ifndef TARGET_PRIME1
     ggl_initscr(&scr);
 #else /* TARGET_PRIME1 */
@@ -4301,7 +4301,7 @@ void onDotKeyHandler(WORD keymsg)
 
     halStatusAreaPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
 #ifndef TARGET_PRIME1
     ggl_initscr(&scr);
 #else /* TARGET_PRIME1 */
@@ -4464,7 +4464,7 @@ void onSpcKeyHandler(WORD keymsg)
 
     halStatusAreaPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
@@ -4583,7 +4583,7 @@ void onMulDivKeyHandler(WORD keymsg)
 
     halStatusAreaPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
@@ -4683,7 +4683,7 @@ void onDigitKeyHandler(WORD keymsg)
 
     halStatusAreaPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
     ggl_initscr(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
@@ -4749,7 +4749,7 @@ void onUpDownKeyHandler(WORD keymsg)
 
     halStatusAreaPopup();
 
-    DRAWSURFACE scr;
+    gglsurface scr;
 #ifndef TARGET_PRIME1
     ggl_initscr(&scr);
 #else /* TARGET_PRIME1 */
@@ -8010,7 +8010,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
        if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
 
        // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
-       DRAWSURFACE scr;
+       gglsurface scr;
        ggl_initscr(&scr);
        UNIFONT *fnt=FONT_STATUS;
 
@@ -8117,7 +8117,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
 #endif /* TARGET_PRIME1 */
     BINT64 offcounter = 0;
 
-    DRAWSURFACE scr;
+    gglsurface scr;
 #ifndef TARGET_PRIME1
     ggl_initscr(&scr);
 #else /* TARGET_PRIME1 */
