@@ -121,7 +121,7 @@ void uiUpdateForm(WORDPTR form)
 
     gglsurface backgnd;
 
-    backgnd.addr = (int *)(newbmp + 3);
+    backgnd.pixels = (int *)(newbmp + 3);
     backgnd.width = formw;
     backgnd.x = 0;
     backgnd.y = 0;
@@ -210,7 +210,7 @@ void uiUpdateForm(WORDPTR form)
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
                 gglsurface copy;
-                copy.addr = backgnd.addr;
+                copy.pixels = backgnd.pixels;
                 copy.width = backgnd.width;
 
                 copy.x = 0;

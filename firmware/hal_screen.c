@@ -351,7 +351,7 @@ void halRedrawForm(gglsurface *scr)
 
     gglsurface viewport;
 
-    viewport.addr   = (int *) (bmp + 3);
+    viewport.pixels = (int *) (bmp + 3);
     viewport.width  = bmp[1];
     viewport.x      = 0;
     viewport.y      = 0; // TODO: CHANGE THIS TO ENABLE SCROLLING
@@ -488,7 +488,7 @@ void halRedrawStack(gglsurface *scr)
     if (depth >= 10000)
         xright += stknum_w;
 
-    ggl_cliprect(scr, 0, ystart, xright - 1, yend - 1, ggl_mkcolor(PAL_STK_IDX_BG));            // CLEAR RECTANGLE
+    ggl_cliprect(scr, 0, ystart, xright - 1, yend - 1, ggl_mkcolor(PAL_STK_IDX_BG));     // CLEAR RECTANGLE
     ggl_cliprect(scr, xright + 1, ystart, LCD_W - 1, yend - 1, ggl_mkcolor(PAL_STK_BG)); // CLEAR RECTANGLE
     ggl_clipvline(scr, xright, ystart, yend - 1, ggl_mkcolor(PAL_STK_VLINE));
 
@@ -2394,9 +2394,9 @@ void halPrepareBuffer(gglsurface *scr)
 #else  // TARGET_PRIME1
     gglsurface altbuffer;
     if (scr->active_buffer)
-        altbuffer.addr = scr->addr - (LCD_W * LCD_H) / PIXELS_PER_WORD;
+        altbuffer.pixels = scr->pixels - (LCD_W * LCD_H) / PIXELS_PER_WORD;
     else
-        altbuffer.addr = scr->addr + (LCD_W * LCD_H) / PIXELS_PER_WORD;
+        altbuffer.pixels = scr->pixels + (LCD_W * LCD_H) / PIXELS_PER_WORD;
     altbuffer.x     = 0;
     altbuffer.y     = 0;
     altbuffer.width = scr->width;
@@ -2409,7 +2409,7 @@ void halPrepareBuffer(gglsurface *scr)
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
-    memmovew(altbuffer.addr, scr->addr, (LCD_W * LCD_H) / PIXELS_PER_WORD);
+    memmovew(altbuffer.pixels, scr->pixels, (LCD_W * LCD_H) / PIXELS_PER_WORD);
 
     // Let background processes know to use the alternative buffer
     halScreen.DirtyFlag |= BUFFER_ALT;
@@ -2417,7 +2417,7 @@ void halPrepareBuffer(gglsurface *scr)
     // Remove the lock
     halScreen.DirtyFlag &= ~BUFFER_LOCK;
 
-    scr->addr = altbuffer.addr;
+    scr->pixels = altbuffer.pixels;
     scr->active_buffer ^= 1;
 #endif /* TARGET_PRIME1 */
 }

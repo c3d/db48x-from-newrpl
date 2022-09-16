@@ -22,7 +22,7 @@ void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height)
 
     for (line = 0; line < height; ++line)
     {
-        ggl_hblt(dest->addr, doff, src->addr, soff, width);
+        ggl_hblt(dest->pixels, doff, src->pixels, soff, width);
         doff += dest->width;
         soff += src->width;
     }

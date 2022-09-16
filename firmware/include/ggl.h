@@ -131,7 +131,9 @@ static inline pattern_t ggl_pattern_4_colors(color_t colors[4])
 // Convert from RGB (0-255) to RGB16(5-6-5)
 static inline color16_t ggl_rgb16(uint8_t red, uint8_t green, uint8_t blue)
 {
-    color16_t result = { .rgb16 = { .red = red, .green = green, .blue = blue } };
+    color16_t result = {
+        .rgb16 = {.red = red, .green = green, .blue = blue}
+    };
     return result;
 }
 
@@ -227,7 +229,7 @@ extern int ggl_palette[PALETTE_SIZE];
 
 typedef struct
 {
-    int     *addr;   //! Word-aligned address of the surface buffer
+    int     *pixels; //! Word-aligned address of the surface buffer
     unsigned width;  //! Width (in pixels) of the buffer
     unsigned height; //! Height (in pixels) of the buffer
     int      x, y;   //! Offset coordinates within the buffer

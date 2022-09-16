@@ -186,7 +186,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
     unsigned int w = 0;
     int clipped = 0, h;
     gglsurface srf;
-    srf.addr = (int *)fontbitmap;
+    srf.pixels = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 
@@ -315,7 +315,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
     unsigned int w = 0;
     int clipped = 0, h;
     gglsurface srf;
-    srf.addr = (int *)fontbitmap;
+    srf.pixels = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 
@@ -476,7 +476,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
     unsigned int w;
     int h;
     gglsurface srf;
-    srf.addr = (int *)fontbitmap;
+    srf.pixels = (int *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 
@@ -555,14 +555,14 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
                 address = srf.x + (srf.y + k) * srf.width;
                 destword = 0;
                 for(f = 0; f < (int)w; ++f) {
-                    if(ggl_getmonopix((char *)srf.addr, address)) {
+                    if(ggl_getmonopix((char *)srf.pixels, address)) {
                         // PLOT A PIXEL ON DESTINATION
                         destword |= 1 << f;
                     }
                     ++address;
                 }
 
-                unsigned char *cptr = (unsigned char *)drawsurf->addr;
+                unsigned char *cptr = (unsigned char *)drawsurf->pixels;
                 int offset = drawsurf->x + (drawsurf->y + k) * drawsurf->width;
                 cptr += offset >> 3;
                 offset &= 7;

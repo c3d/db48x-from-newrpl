@@ -29,6 +29,6 @@ void ggl_revblt(gglsurface *dest, gglsurface *src, int width, int height)
     {
         doff -= dest->width;
         soff -= src->width;
-        ggl_hblt(dest->addr, doff, src->addr, soff, width);
+        ggl_hblt(dest->pixels, doff, src->pixels, soff, width);
     }
 }

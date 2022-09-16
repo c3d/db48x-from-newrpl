@@ -17,10 +17,10 @@ void ggl_scrolllf(gglsurface *dest, int width, int height, int npixels)
 
     gglsurface srf;
 
-    srf.addr  = dest->addr;
-    srf.width = dest->width;
-    srf.x     = dest->x + npixels;
-    srf.y     = dest->y;
+    srf.pixels = dest->pixels;
+    srf.width  = dest->width;
+    srf.x      = dest->x + npixels;
+    srf.y      = dest->y;
 
     ggl_bitblt(dest, &srf, width - npixels, height);
 }

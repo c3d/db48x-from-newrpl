@@ -21,7 +21,7 @@ void ggl_filter(gglsurface *dest, int width, int height, int param, gglfilter fi
 
     for (line = 0; line < height; ++line)
     {
-        ggl_hbltfilter(dest->addr, doff, width, param, filterfunc);
+        ggl_hbltfilter(dest->pixels, doff, width, param, filterfunc);
         doff += dest->width;
     }
 }

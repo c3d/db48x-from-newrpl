@@ -25,8 +25,8 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
 #ifndef TARGET_PRIME1
     int           loff  = (y * srf->width + xl);
     int           roff  = (y * srf->width + xr);
-    register int *left  = (int *) srf->addr + (loff >> 3);
-    register int *right = (int *) srf->addr + (roff >> 3);
+    register int *left  = (int *) srf->pixels + (loff >> 3);
+    register int *right = (int *) srf->pixels + (roff >> 3);
     int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
 
     if (left == right)
@@ -49,7 +49,7 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
 
 #else /* TARGET_PRIME1 */
 
-    unsigned short int *ptr = (unsigned short int *) srf->addr + y * srf->width + xl;
+    unsigned short int *ptr = (unsigned short int *) srf->pixels + y * srf->width + xl;
     while (xl <= xr)
     {
         *ptr++ = color;
@@ -85,8 +85,8 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
 #ifndef TARGET_PRIME1
     int           loff  = (y * srf->width + xl);
     int           roff  = (y * srf->width + xr);
-    register int *left  = (int *) srf->addr + (loff >> 3);
-    register int *right = (int *) srf->addr + (roff >> 3);
+    register int *left  = (int *) srf->pixels + (loff >> 3);
+    register int *right = (int *) srf->pixels + (roff >> 3);
     int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
 
     if (left == right)

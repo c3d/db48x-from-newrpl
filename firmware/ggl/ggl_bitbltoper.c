@@ -22,7 +22,7 @@ void ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, in
 
     for (line = 0; line < height; ++line)
     {
-        ggl_hbltoper(dest->addr, doff, src->addr, soff, width, param, fop);
+        ggl_hbltoper(dest->pixels, doff, src->pixels, soff, width, param, fop);
         doff += dest->width;
         soff += src->width;
     }
@@ -44,7 +44,7 @@ void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height
 
     for (line = 0; line < height; ++line)
     {
-        ggl_monohbltoper(dest->addr, doff, (unsigned char *) (src->addr), soff, width, param, fop);
+        ggl_monohbltoper(dest->pixels, doff, (unsigned char *) src->pixels, soff, width, param, fop);
         doff += dest->width;
         soff += src->width;
     }

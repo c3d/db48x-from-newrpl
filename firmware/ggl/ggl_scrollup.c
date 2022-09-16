@@ -17,10 +17,10 @@ void ggl_scrollup(gglsurface *dest, int width, int height, int npixelsup)
 
     gglsurface srf;
 
-    srf.addr  = dest->addr;
-    srf.width = dest->width;
-    srf.x     = dest->x;
-    srf.y     = dest->y + npixelsup;
+    srf.pixels = dest->pixels;
+    srf.width  = dest->width;
+    srf.x      = dest->x;
+    srf.y      = dest->y + npixelsup;
 
     ggl_bitblt(dest, &srf, width, height - npixelsup);
 }
