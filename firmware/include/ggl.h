@@ -245,7 +245,7 @@ typedef struct
     unsigned width;  //! Width (in pixels) of the buffer
     unsigned height; //! Height (in pixels) of the buffer
     int      x, y;   //! Offset coordinates within the buffer
-    int      clipx, clipx2, clipy, clipy2;
+    int      left, right, top, bottom;
     int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 

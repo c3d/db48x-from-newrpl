@@ -666,10 +666,10 @@ void LIB_HANDLER()
 
             renderst->ptalloc = 1;
             renderst->npoints = 0;
-            renderst->srf.clipx = 0;
-            renderst->srf.clipx2 = w - 1;
-            renderst->srf.clipy = 0;
-            renderst->srf.clipy2 = h - 1;
+            renderst->srf.left = 0;
+            renderst->srf.right = w - 1;
+            renderst->srf.top = 0;
+            renderst->srf.bottom = h - 1;
             renderst->srf.pixels = (int *) (ROBJPTR(rstatus) + 3);
             renderst->srf.width = w;
             renderst->srf.x = 0;

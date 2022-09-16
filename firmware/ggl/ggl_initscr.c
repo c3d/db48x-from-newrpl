@@ -12,9 +12,9 @@ void ggl_initscr(gglsurface *srf)
     srf->pixels = (int *) MEM_PHYS_SCREEN;
     srf->width  = LCD_SCANLINE;
     srf->x = srf->y = 0;
-    srf->clipx = srf->clipy = 0;
-    srf->clipx2             = LCD_W - 1;
-    srf->clipy2             = LCD_H - 1;
+    srf->left = srf->top = 0;
+    srf->right             = LCD_W - 1;
+    srf->bottom             = LCD_H - 1;
 #ifdef TARGET_PRIME1
     srf->active_buffer = 0;
 #  if SCREEN_BUFFERS > 1

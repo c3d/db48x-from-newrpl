@@ -127,10 +127,10 @@ void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
 
         tsurf.pixels = (int *)(bmp + 3);
         tsurf.width = bmp[1];
-        tsurf.clipx = 0;
-        tsurf.clipx2 = bmp[1] - 1;
-        tsurf.clipy = 0;
-        tsurf.clipy2 = bmp[2] - 1;
+        tsurf.left = 0;
+        tsurf.right = bmp[1] - 1;
+        tsurf.top = 0;
+        tsurf.bottom = bmp[2] - 1;
         tsurf.x = 0;
         tsurf.y = 0;
 
@@ -198,10 +198,10 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 
         tsurf.pixels = (int *)(newbmp + 3);
         tsurf.width = numwidth;
-        tsurf.clipx = 0;
-        tsurf.clipx2 = numwidth - 1;
-        tsurf.clipy = 0;
-        tsurf.clipy2 = font->BitmapHeight - 1;
+        tsurf.left = 0;
+        tsurf.right = numwidth - 1;
+        tsurf.top = 0;
+        tsurf.bottom = font->BitmapHeight - 1;
         tsurf.x = 0;
         tsurf.y = 0;
 
@@ -236,10 +236,10 @@ void uiDrawBitmap(WORDPTR bmp, gglsurface * scr)
 
         tsurf.pixels = (int *)(bmp + 3);
         tsurf.width = bmp[1];
-        tsurf.clipx = 0;
-        tsurf.clipx2 = bmp[1] - 1;
-        tsurf.clipy = 0;
-        tsurf.clipy2 = bmp[2] - 1;
+        tsurf.left = 0;
+        tsurf.right = bmp[1] - 1;
+        tsurf.top = 0;
+        tsurf.bottom = bmp[2] - 1;
         tsurf.x = 0;
         tsurf.y = 0;
 

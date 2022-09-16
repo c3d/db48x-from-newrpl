@@ -41,23 +41,23 @@ void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, int color)
         y2  = tmp;
     }
 
-    if (x1 > srf->clipx2)
+    if (x1 > srf->right)
         return;
-    if (y1 > srf->clipy2)
+    if (y1 > srf->bottom)
         return;
-    if (y2 < srf->clipy)
+    if (y2 < srf->top)
         return;
-    if (x2 < srf->clipx)
+    if (x2 < srf->left)
         return;
 
-    if (x1 < srf->clipx)
-        x1 = srf->clipx;
-    if (y1 < srf->clipy)
-        y1 = srf->clipy;
-    if (x2 > srf->clipx2)
-        x2 = srf->clipx2;
-    if (y2 > srf->clipy2)
-        y2 = srf->clipy2;
+    if (x1 < srf->left)
+        x1 = srf->left;
+    if (y1 < srf->top)
+        y1 = srf->top;
+    if (x2 > srf->right)
+        x2 = srf->right;
+    if (y2 > srf->bottom)
+        y2 = srf->bottom;
 
     // DRAWS A RECTANGLE BETWEEN x1,y1 and x2,y2 ALL INCLUSIVE
     // color CAN BE AN 8-BIT PATTERN THAT REPEATS VERTICALLY

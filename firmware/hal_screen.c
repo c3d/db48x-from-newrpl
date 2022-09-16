@@ -321,13 +321,13 @@ void halRedrawForm(gglsurface *scr)
     halScreenUpdated();
 
     // REDRAW THE CONTENTS OF THE CURRENT FORM
-    int oldclipx, oldclipx2, oldclipy, oldclipy2;
+    int oldleft, oldright, oldtop, oldbottom;
     int ystart = 0, yend = ystart + halScreen.Form;
 
-    oldclipx  = scr->clipx;
-    oldclipy  = scr->clipy;
-    oldclipx2 = scr->clipx2;
-    oldclipy2 = scr->clipy2;
+    oldleft  = scr->left;
+    oldtop  = scr->top;
+    oldright = scr->right;
+    oldbottom = scr->bottom;
 
     WORDPTR form, bmp;
 
@@ -335,7 +335,7 @@ void halRedrawForm(gglsurface *scr)
 
     if (!form)
     {
-        ggl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, ggl_mkcolor(PAL_FORM_BG)); // CLEAR RECTANGLE
+        ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, ggl_mkcolor(PAL_FORM_BG)); // CLEAR RECTANGLE
         halScreen.DirtyFlag &= ~FORM_DIRTY;
         return;
     }
@@ -344,7 +344,7 @@ void halRedrawForm(gglsurface *scr)
 
     if (!bmp)
     {
-        ggl_cliprect(scr, scr->clipx, ystart, scr->clipx2, yend - 1, ggl_mkcolor(PAL_FORM_BG)); // CLEAR RECTANGLE
+        ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, ggl_mkcolor(PAL_FORM_BG)); // CLEAR RECTANGLE
         halScreen.DirtyFlag &= ~FORM_DIRTY;
         return;
     }
@@ -355,40 +355,40 @@ void halRedrawForm(gglsurface *scr)
     viewport.width  = bmp[1];
     viewport.x      = 0;
     viewport.y      = 0; // TODO: CHANGE THIS TO ENABLE SCROLLING
-    viewport.clipx  = 0;
-    viewport.clipx2 = bmp[1] - 1;
-    viewport.clipy  = 0;
-    viewport.clipy2 = bmp[2] - 1;
+    viewport.left  = 0;
+    viewport.right = bmp[1] - 1;
+    viewport.top  = 0;
+    viewport.bottom = bmp[2] - 1;
 
     // POSITION THE VIEWPORT ON THE SCREEN
 
     scr->x          = 0;
     scr->y          = 0;
 
-    scr->clipx      = 0;
-    scr->clipx2     = LCD_W - 1;
-    scr->clipy      = 0;
-    scr->clipy2     = yend;
+    scr->left      = 0;
+    scr->right     = LCD_W - 1;
+    scr->top      = 0;
+    scr->bottom     = yend;
 
-    if (yend > viewport.clipy2 + 1)
+    if (yend > viewport.bottom + 1)
     {
         // CLEAR THE BACKGROUND
         ggl_cliprect(scr,
-                     scr->clipx,
-                     viewport.clipy2 + 1,
-                     scr->clipx2,
+                     scr->left,
+                     viewport.bottom + 1,
+                     scr->right,
                      yend - 1,
                      ggl_mkcolor(PAL_FORM_BG)); // CLEAR RECTANGLE
     }
 
     // DRAW THE VIEWPORT
-    ggl_bitbltclip(scr, &viewport, viewport.width, viewport.clipy2 + 1);
+    ggl_bitbltclip(scr, &viewport, viewport.width, viewport.bottom + 1);
     halScreen.DirtyFlag &= ~FORM_DIRTY;
 
-    scr->clipx  = oldclipx;
-    scr->clipx2 = oldclipx2;
-    scr->clipy  = oldclipy;
-    scr->clipy2 = oldclipy2;
+    scr->left  = oldleft;
+    scr->right = oldright;
+    scr->top  = oldtop;
+    scr->bottom = oldbottom;
 }
 
 void halRedrawStack(gglsurface *scr)
@@ -401,7 +401,7 @@ void halRedrawStack(gglsurface *scr)
 
     halScreenUpdated();
 
-    int            oldclipx, oldclipx2, oldclipy, oldclipy2;
+    int            oldleft, oldright, oldtop, oldbottom;
     int            ystart = halScreen.Form, yend = ystart + halScreen.Stack;
     int            depth = rplDepthData(), level = 1;
     int            objheight, ytop, y, numwidth, xright, stknum_w;
@@ -410,10 +410,10 @@ void halRedrawStack(gglsurface *scr)
     const UNIFONT *levelfnt;
     WORDPTR        object;
 
-    oldclipx  = scr->clipx;
-    oldclipy  = scr->clipy;
-    oldclipx2 = scr->clipx2;
-    oldclipy2 = scr->clipy2;
+    oldleft  = scr->left;
+    oldtop  = scr->top;
+    oldright = scr->right;
+    oldbottom = scr->bottom;
 
     stknum_w  = (FONT_HEIGHT(FONT_STACK) * 192) / 256; // ESTIMATE NUMBER WIDTH AT 75% OF THE FONT HEIGHT
     if (halScreen.KeyContext & CONTEXT_INTSTACK)
@@ -541,10 +541,10 @@ void halRedrawStack(gglsurface *scr)
 
         // SET CLIPPING REGION
 
-        scr->clipx  = 0;
-        scr->clipx2 = LCD_W - 1;
-        scr->clipy  = (ytop < 0) ? 0 : ytop;
-        scr->clipy2 = (y > yend) ? yend - 1 : y - 1;
+        scr->left  = 0;
+        scr->right = LCD_W - 1;
+        scr->top  = (ytop < 0) ? 0 : ytop;
+        scr->bottom = (y > yend) ? yend - 1 : y - 1;
 
         if (halScreen.KeyContext & CONTEXT_INTSTACK)
         {
@@ -611,7 +611,7 @@ void halRedrawStack(gglsurface *scr)
 
             // DISPLAY THE ITEM
 
-            scr->clipx = xright + 1;
+            scr->left = xright + 1;
 
             scr->x     = x;
             scr->y     = ytop;
@@ -623,10 +623,10 @@ void halRedrawStack(gglsurface *scr)
         ++level;
     }
 
-    scr->clipx  = oldclipx;
-    scr->clipx2 = oldclipx2;
-    scr->clipy  = oldclipy;
-    scr->clipy2 = oldclipy2;
+    scr->left  = oldleft;
+    scr->right = oldright;
+    scr->top  = oldtop;
+    scr->bottom = oldbottom;
 
     halScreen.DirtyFlag &= ~STACK_DIRTY;
 }
@@ -1009,15 +1009,15 @@ void halRedrawHelp(gglsurface *scr)
         }
 
         // FINALLY, SHOW THE NAME OF THE ITEM
-        BINT oldclipy = scr->clipy, oldclipy2 = scr->clipy2;
+        BINT oldtop = scr->top, oldbottom = scr->bottom;
 
-        scr->clipy  = ytop + 1;
-        scr->clipy2 = ytop + 1 + FONT_HLPTITLE->BitmapHeight;
+        scr->top  = ytop + 1;
+        scr->bottom = ytop + 1 + FONT_HLPTITLE->BitmapHeight;
 
         uiDrawMenuItem(item, PAL_HLP_TEXT, PAL_HLP_BG, scr);
 
-        scr->clipy  = oldclipy;
-        scr->clipy2 = oldclipy2;
+        scr->top  = oldtop;
+        scr->bottom = oldbottom;
 
         return;
     }
@@ -1060,7 +1060,7 @@ void halRedrawMenu1(gglsurface *scr)
     }
 
     int ytop, ybottom;
-    int oldclipx, oldclipx2, oldclipy, oldclipy2;
+    int oldleft, oldright, oldtop, oldbottom;
 
 #ifndef TARGET_PRIME1
     ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
@@ -1073,10 +1073,10 @@ void halRedrawMenu1(gglsurface *scr)
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 #endif /* ! TARGET_PRIME1 */
 
-    oldclipx  = scr->clipx;
-    oldclipx2 = scr->clipx2;
-    oldclipy  = scr->clipy;
-    oldclipy2 = scr->clipy2;
+    oldleft  = scr->left;
+    oldright = scr->right;
+    oldtop  = scr->top;
+    oldbottom = scr->bottom;
 
 #ifndef TARGET_PRIME1
     BINT64  m1code  = rplGetMenuCode(1);
@@ -1094,26 +1094,26 @@ void halRedrawMenu1(gglsurface *scr)
     }
 
     // FIRST ROW
-    scr->clipy  = ytop + 1;
-    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+    scr->top  = ytop + 1;
+    scr->bottom = ytop + MENU1_HEIGHT - 2;
     for (k = 0; k < 5; ++k)
     {
-        scr->clipx  = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU_TAB_WIDTH * k;
+        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
         item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // NOW DO THE NXT KEY
-    scr->clipx  = MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+    scr->left  = MENU_TAB_WIDTH * k;
+    scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
 
     if (nitems == 6)
     {
         item = uiGetMenuItem(m1code, MenuObj, 5);
         uiDrawMenuItem(item, mpalette, bpalette, scr);
         if (nitems > 6)
-            DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...", FONT_MENU, mcolor, scr);
+            DrawText(scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor, scr);
     }
 
 #else  /* TARGET_PRIME1 */
@@ -1143,20 +1143,20 @@ void halRedrawMenu1(gglsurface *scr)
 
         // FIRST ROW
 
-        scr->clipy  = ytop + 1;
-        scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+        scr->top  = ytop + 1;
+        scr->bottom = ytop + MENU1_HEIGHT - 2;
 
         for (k = 0; k < 5; ++k)
         {
-            scr->clipx  = MENU_TAB_WIDTH * k;
-            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+            scr->left  = MENU_TAB_WIDTH * k;
+            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
             item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
             uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
 
         // NOW DO THE NXT KEY
-        scr->clipx  = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU_TAB_WIDTH * k;
+        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
         if (nitems == 6)
         {
             item = uiGetMenuItem(m1code, MenuObj, 5);
@@ -1165,7 +1165,7 @@ void halRedrawMenu1(gglsurface *scr)
         else
         {
             if (nitems > 6)
-                DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...", FONT_MENU, mcolor, scr);
+                DrawText(scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor, scr);
         }
     }
     else
@@ -1199,14 +1199,14 @@ void halRedrawMenu1(gglsurface *scr)
         }
         // FIRST ROW
 
-        scr->clipy  = ytop + 1;
-        scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+        scr->top  = ytop + 1;
+        scr->bottom = ytop + MENU1_HEIGHT - 2;
 
 
         for (k = 0; k < 2; ++k)
         {
-            scr->clipx  = MENU_TAB_WIDTH * k;
-            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+            scr->left  = MENU_TAB_WIDTH * k;
+            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
             item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
             uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
@@ -1214,31 +1214,31 @@ void halRedrawMenu1(gglsurface *scr)
         // SECOND ROW
 
 
-        scr->clipy  = ytop + MENU1_HEIGHT;
-        scr->clipy2 = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 2;
+        scr->top  = ytop + MENU1_HEIGHT;
+        scr->bottom = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 2;
 
         for (k = 0; k < 2; ++k)
         {
-            scr->clipx  = MENU_TAB_WIDTH * k;
-            scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+            scr->left  = MENU_TAB_WIDTH * k;
+            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
             item        = uiGetMenuItem(m1code, MenuObj, k + 2 + MENUPAGE(m1code));
             uiDrawMenuItem(item, mpalette, bpalette, scr);
         }
 
         // THIRD ROW
 
-        scr->clipy  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
-        scr->clipy2 = ybottom - 1;
+        scr->top  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
+        scr->bottom = ybottom - 1;
 
         k           = 0;
-        scr->clipx  = MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU_TAB_WIDTH * k;
+        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
         item        = uiGetMenuItem(m1code, MenuObj, k + 4 + MENUPAGE(m1code));
         uiDrawMenuItem(item, mpalette, bpalette, scr);
 
         // NOW DO THE NXT KEY
-        scr->clipx  = MENU_TAB_WIDTH;
-        scr->clipx2 = MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU_TAB_WIDTH;
+        scr->right = MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
 
         if (nitems == 6)
         {
@@ -1248,15 +1248,15 @@ void halRedrawMenu1(gglsurface *scr)
         else
         {
             if (nitems > 6)
-                DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...", FONT_MENU, mcolor, scr);
+                DrawText(scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor, scr);
         }
     }
 #endif /* TARGET_PRIME1 */
 
-    scr->clipx  = oldclipx;
-    scr->clipx2 = oldclipx2;
-    scr->clipy  = oldclipy;
-    scr->clipy2 = oldclipy2;
+    scr->left  = oldleft;
+    scr->right = oldright;
+    scr->top  = oldtop;
+    scr->bottom = oldbottom;
 
     halScreen.DirtyFlag &= ~MENU1_DIRTY;
 }
@@ -1299,7 +1299,7 @@ void halRedrawMenu2(gglsurface *scr)
     }
 
     int ytop, ybottom;
-    int oldclipx, oldclipx2, oldclipy, oldclipy2;
+    int oldleft, oldright, oldtop, oldbottom;
 
 #ifndef TARGET_PRIME1
     ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
@@ -1318,10 +1318,10 @@ void halRedrawMenu2(gglsurface *scr)
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 #endif /* ! TARGET_PRIME1 */
 
-    oldclipx  = scr->clipx;
-    oldclipx2 = scr->clipx2;
-    oldclipy  = scr->clipy;
-    oldclipy2 = scr->clipy2;
+    oldleft  = scr->left;
+    oldright = scr->right;
+    oldtop  = scr->top;
+    oldbottom = scr->bottom;
 
 #ifdef TARGET_PRIME1
     // Draw a three-line menu with centered status area when Menu2 is enabled
@@ -1358,34 +1358,34 @@ void halRedrawMenu2(gglsurface *scr)
 
     // FIRST ROW
 #ifndef TARGET_PRIME1
-    scr->clipy  = ytop;
-    scr->clipy2 = ytop + MENU2_HEIGHT / 2 - 2;
+    scr->top  = ytop;
+    scr->bottom = ytop + MENU2_HEIGHT / 2 - 2;
 #else  /* TARGET_PRIME1 */
-    scr->clipy  = ytop + 1;
-    scr->clipy2 = ytop + MENU1_HEIGHT - 2;
+    scr->top  = ytop + 1;
+    scr->bottom = ytop + MENU1_HEIGHT - 2;
 #endif /* TARGET_PRIME1 */
 
     for (k = 0; k < MENU2_COUNT; ++k)
     {
-        scr->clipx  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
+        scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
         item        = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
     // SECOND ROW
 #ifndef TARGET_PRIME1
-    scr->clipy  = ytop + MENU2_HEIGHT / 2;
-    scr->clipy2 = ybottom - 1;
+    scr->top  = ytop + MENU2_HEIGHT / 2;
+    scr->bottom = ybottom - 1;
 #else  /* TARGET_PRIME1 */
-    scr->clipy  = ytop + MENU1_HEIGHT;
-    scr->clipy2 = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
+    scr->top  = ytop + MENU1_HEIGHT;
+    scr->bottom = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
 #endif /* TARGET_PRIME1 */
 
     for (k = 0; k < 2; ++k)
     {
-        scr->clipx  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-        scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+        scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
+        scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
         item        = uiGetMenuItem(m2code, MenuObj, k + 2 + MENUPAGE(m2code));
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
@@ -1393,23 +1393,23 @@ void halRedrawMenu2(gglsurface *scr)
 #ifdef TARGET_PRIME1
 
     // THIRD ROW
-    scr->clipy  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
-    scr->clipy2 = ybottom - 1;
+    scr->top  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
+    scr->bottom = ybottom - 1;
 
     k           = 0;
-    scr->clipx  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+    scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
+    scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
     item        = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
     uiDrawMenuItem(item, mpalette, bpalette, scr);
 #endif /* TARGET_PRIME1 */
 
     // NOW DO THE NXT KEY
 #ifndef TARGET_PRIME1
-    scr->clipx  = MENU_TAB_WIDTH * k;
-    scr->clipx2 = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
+    scr->left  = MENU_TAB_WIDTH * k;
+    scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
 #else  /* TARGET_PRIME1 */
-    scr->clipx  = MENU2_STARTX + MENU_TAB_WIDTH;
-    scr->clipx2 = MENU2_STARTX + MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
+    scr->left  = MENU2_STARTX + MENU_TAB_WIDTH;
+    scr->right = MENU2_STARTX + MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
 #endif /* TARGET_PRIME1 */
 
     if (nitems == 6)
@@ -1420,13 +1420,13 @@ void halRedrawMenu2(gglsurface *scr)
     else
     {
         if (nitems > 6)
-            DrawText(scr->clipx + 1, scr->clipy + 1, "NXT...", FONT_MENU, mcolor, scr);
+            DrawText(scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor, scr);
     }
 
-    scr->clipx  = oldclipx;
-    scr->clipx2 = oldclipx2;
-    scr->clipy  = oldclipy;
-    scr->clipy2 = oldclipy2;
+    scr->left  = oldleft;
+    scr->right = oldright;
+    scr->top  = oldtop;
+    scr->bottom = oldbottom;
 
     halScreen.DirtyFlag &= ~MENU2_DIRTY;
 }
@@ -1461,10 +1461,10 @@ void halRedrawStatus(gglsurface *scr)
                      ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
         BINT xc, yc;
-        xc         = scr->clipx;
-        yc         = scr->clipy;
-        scr->clipx = STATUS_AREA_X;
-        scr->clipy = ytop;
+        xc         = scr->left;
+        yc         = scr->top;
+        scr->left = STATUS_AREA_X;
+        scr->top = ytop;
 
 #ifdef TARGET_PRIME1
         ytop++;
@@ -1950,8 +1950,8 @@ void halRedrawStatus(gglsurface *scr)
 #endif /* TARGET_PRIME1 */
 
         // ADD OTHER INDICATORS HERE
-        scr->clipx = xc;
-        scr->clipy = yc;
+        scr->left = xc;
+        scr->top = yc;
     }
 
     halScreen.DirtyFlag &= ~STAREA_DIRTY;
@@ -2223,10 +2223,10 @@ void halRedrawCmdLine(gglsurface *scr)
 
             else
             {
-                scr->clipx  = halScreen.CursorX - halScreen.XVisible;
-                scr->clipx2 = scr->clipx + FONT_HEIGHT(FONT_CMDLINE) + 4; // HARD CODED MAXIMUM WIDTH OF THE CURSOR
-                if (scr->clipx2 >= LCD_W)
-                    scr->clipx2 = LCD_W - 1;
+                scr->left  = halScreen.CursorX - halScreen.XVisible;
+                scr->right = scr->left + FONT_HEIGHT(FONT_CMDLINE) + 4; // HARD CODED MAXIMUM WIDTH OF THE CURSOR
+                if (scr->right >= LCD_W)
+                    scr->right = LCD_W - 1;
 
                 // REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
                 if (!(halScreen.DirtyFlag & CMDLINE_LINEDIRTY))
@@ -2326,10 +2326,10 @@ void halRedrawCmdLine(gglsurface *scr)
                 }
 
                 // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN
-                scr->clipx  = 0;
-                scr->clipx2 = LCD_W - 1;
-                scr->clipy  = 0;
-                scr->clipy2 = LCD_H - 1;
+                scr->left  = 0;
+                scr->right = LCD_W - 1;
+                scr->top  = 0;
+                scr->bottom = LCD_H - 1;
             }
         }
     }
@@ -2628,15 +2628,15 @@ void halShowErrorMsg()
     // ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,LCD_W-1,ggl_mkcolor(8));
     ggl_cliprect(&scr, 0, ytop, 4, ybot, ggl_mkcolor(PAL_HLP_LINES));
 
-    scr.clipx  = 1;
-    scr.clipx2 = LCD_W - 2;
-    scr.clipy  = ytop;
-    scr.clipy2 = ybot - 1;
+    scr.left  = 1;
+    scr.right = LCD_W - 2;
+    scr.top  = ytop;
+    scr.bottom = ybot - 1;
     // SHOW ERROR MESSAGE
 
     if (Exceptions != EX_ERRORCODE)
     {
-        BINT xstart = scr.clipx + 6;
+        BINT xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
             WORDPTR cmdname = halGetCommandName(ExceptionPointer);
@@ -2646,8 +2646,8 @@ void halShowErrorMsg()
                 BYTEPTR end   = start + rplStrSize(cmdname);
 
                 xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
-                DrawTextN(scr.clipx + 6,
-                          scr.clipy + 1,
+                DrawTextN(scr.left + 6,
+                          scr.top + 1,
                           (char *) start,
                           (char *) end,
                           FONT_HLPTITLE,
@@ -2656,7 +2656,7 @@ void halShowErrorMsg()
                 xstart += 4;
             }
         }
-        DrawText(xstart, scr.clipy + 1, "Exception:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
+        DrawText(xstart, scr.top + 1, "Exception:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
 
         BINT ecode;
         for (errbit = 0; errbit < 8; ++errbit) // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -2672,8 +2672,8 @@ void halShowErrorMsg()
                     BYTEPTR msgstart = (BYTEPTR) (message + 1);
                     BYTEPTR msgend   = msgstart + rplStrSize(message);
 
-                    DrawTextN(scr.clipx + 6,
-                              scr.clipy + 3 + FONT_HEIGHT(FONT_HLPTEXT),
+                    DrawTextN(scr.left + 6,
+                              scr.top + 3 + FONT_HEIGHT(FONT_HLPTEXT),
                               (char *) msgstart,
                               (char *) msgend,
                               FONT_HLPTEXT,
@@ -2687,7 +2687,7 @@ void halShowErrorMsg()
     else
     {
         // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-        BINT xstart = scr.clipx + 6;
+        BINT xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
             WORDPTR cmdname = halGetCommandName(ExceptionPointer);
@@ -2697,8 +2697,8 @@ void halShowErrorMsg()
                 BYTEPTR end   = start + rplStrSize(cmdname);
 
                 xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
-                DrawTextN(scr.clipx + 6,
-                          scr.clipy + 1,
+                DrawTextN(scr.left + 6,
+                          scr.top + 1,
                           (char *) start,
                           (char *) end,
                           FONT_HLPTITLE,
@@ -2707,7 +2707,7 @@ void halShowErrorMsg()
                 xstart += 4;
             }
         }
-        DrawText(xstart, scr.clipy + 1, "Error:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
+        DrawText(xstart, scr.top + 1, "Error:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
         // GET NEW TRANSLATABLE MESSAGES
 
         WORDPTR message = uiGetLibMsg(ErrorCode);
@@ -2718,8 +2718,8 @@ void halShowErrorMsg()
             BYTEPTR msgstart = (BYTEPTR) (message + 1);
             BYTEPTR msgend   = msgstart + rplStrSize(message);
 
-            DrawTextN(scr.clipx + 6,
-                      scr.clipy + 3 + FONT_HEIGHT(FONT_HLPTITLE),
+            DrawTextN(scr.left + 6,
+                      scr.top + 3 + FONT_HEIGHT(FONT_HLPTITLE),
                       (char *) msgstart,
                       (char *) msgend,
                       FONT_HLPTEXT,

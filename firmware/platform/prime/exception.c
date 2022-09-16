@@ -29,9 +29,9 @@ void ex_print(int x, int y, char *str)
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
     dr.x = dr.y = 0;
-    dr.clipx = dr.clipy = 0;
-    dr.clipx2           = LCD_W;
-    dr.clipy2           = LCD_H;
+    dr.left = dr.top = 0;
+    dr.right           = LCD_W;
+    dr.bottom           = LCD_H;
 
     DrawText(x, y, str, Font_10A, ggl_mkcolor(PAL_GRAY15), &dr);
 }
@@ -42,10 +42,10 @@ void ex_clrscreen()
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
     dr.x = dr.y = 0;
-    dr.clipx = dr.clipy = 0;
-    dr.clipx2           = LCD_W;
-    dr.clipy2           = LCD_H;
-    ggl_rect(&dr, dr.x, dr.y, dr.clipx2 - 1, dr.clipy2 - 1, ggl_mkcolor(PAL_GRAY0));
+    dr.left = dr.top = 0;
+    dr.right           = LCD_W;
+    dr.bottom           = LCD_H;
+    ggl_rect(&dr, dr.x, dr.y, dr.right - 1, dr.bottom - 1, ggl_mkcolor(PAL_GRAY0));
 }
 
 void ex_hline(int y)
@@ -54,10 +54,10 @@ void ex_hline(int y)
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
     dr.x = dr.y = 0;
-    dr.clipx = dr.clipy = 0;
-    dr.clipx2           = LCD_W;
-    dr.clipy2           = LCD_H;
-    ggl_hline(&dr, y, dr.x, dr.clipx2 - 1, ggl_mkcolor(PAL_GRAY8));
+    dr.left = dr.top = 0;
+    dr.right           = LCD_W;
+    dr.bottom           = LCD_H;
+    ggl_hline(&dr, y, dr.x, dr.right - 1, ggl_mkcolor(PAL_GRAY8));
 }
 
 inline int ex_width(char *string)

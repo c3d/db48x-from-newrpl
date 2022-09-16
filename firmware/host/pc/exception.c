@@ -19,9 +19,9 @@ void ex_print(int x, int y, char *str)
     dr.pixels = (int *)MEM_PHYS_EXSCREEN;
     dr.width = LCD_SCANLINE;
     dr.x = dr.y = 0;
-    dr.clipx = dr.clipy = 0;
-    dr.clipx2 = LCD_W;
-    dr.clipy2 = LCD_H;
+    dr.left = dr.top = 0;
+    dr.right = LCD_W;
+    dr.bottom = LCD_H;
 
     DrawTextMono(x, y, str, Font_6A, 1, &dr);
 }

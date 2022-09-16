@@ -38,19 +38,19 @@ void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color)
     // color=number from 0 to 15
     // RESTRICTIONS: yb>=yt
 
-    if (yt > srf->clipy2)
+    if (yt > srf->bottom)
         return;
-    if (yb < srf->clipy)
+    if (yb < srf->top)
         return;
 
-    if (yt < srf->clipy)
-        yt = srf->clipy;
-    if (yb > srf->clipy2)
-        yb = srf->clipy2;
+    if (yt < srf->top)
+        yt = srf->top;
+    if (yb > srf->bottom)
+        yb = srf->bottom;
 
-    if (x < srf->clipx)
+    if (x < srf->left)
         return;
-    if (x > srf->clipx2)
+    if (x > srf->right)
         return;
 
 #ifndef TARGET_PRIME1

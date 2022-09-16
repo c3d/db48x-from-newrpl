@@ -172,12 +172,12 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
     unsigned int const *mapptr;
     char *fontbitmap;
 
-    if(drawsurf->clipx < 0)
+    if(drawsurf->left < 0)
         return;
 
-    if(y > drawsurf->clipy2)
+    if(y > drawsurf->bottom)
         return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->clipy)
+    if(y + (int)Font->BitmapHeight <= drawsurf->top)
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
@@ -192,13 +192,13 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
 
     h = Font->BitmapHeight;
 
-    if(y < drawsurf->clipy) {
-        h -= drawsurf->clipy - y;
-        srf.y = drawsurf->clipy - y;
-        y = drawsurf->clipy;
+    if(y < drawsurf->top) {
+        h -= drawsurf->top - y;
+        srf.y = drawsurf->top - y;
+        y = drawsurf->top;
     }
-    if(y + h - 1 > drawsurf->clipy2)
-        h = drawsurf->clipy2 - y + 1;
+    if(y + h - 1 > drawsurf->bottom)
+        h = drawsurf->bottom - y + 1;
 
     drawsurf->y = y;
     drawsurf->x = x;
@@ -259,22 +259,22 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
         w >>= 16;
         clipped = 0;
         if(w) {
-            if(drawsurf->x > drawsurf->clipx2)
+            if(drawsurf->x > drawsurf->right)
                 return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->clipx) {
+            if(drawsurf->x + (int)w - 1 < drawsurf->left) {
                 drawsurf->x += w;
                 Text = utf8skip(Text, End);
                 continue;
             }
-            if(drawsurf->x < drawsurf->clipx) {
-                srf.x += drawsurf->clipx - drawsurf->x;
-                w -= drawsurf->clipx - drawsurf->x;
-                clipped |= (drawsurf->clipx - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
-                drawsurf->x = drawsurf->clipx;
+            if(drawsurf->x < drawsurf->left) {
+                srf.x += drawsurf->left - drawsurf->x;
+                w -= drawsurf->left - drawsurf->x;
+                clipped |= (drawsurf->left - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
+                drawsurf->x = drawsurf->left;
             }
-            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2) {
-                clipped |= w - (drawsurf->clipx2 - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
-                w = drawsurf->clipx2 - drawsurf->x + 1;
+            if(drawsurf->x + (int)w - 1 > drawsurf->right) {
+                clipped |= w - (drawsurf->right - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
+                w = drawsurf->right - drawsurf->x + 1;
             }
 
             // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
@@ -301,12 +301,12 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
     unsigned int const *mapptr;
     char *fontbitmap;
 
-    if(drawsurf->clipx < 0)
+    if(drawsurf->left < 0)
         return;
 
-    if(y > drawsurf->clipy2)
+    if(y > drawsurf->bottom)
         return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->clipy)
+    if(y + (int)Font->BitmapHeight <= drawsurf->top)
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
@@ -321,13 +321,13 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
 
     h = Font->BitmapHeight;
 
-    if(y < drawsurf->clipy) {
-        h -= drawsurf->clipy - y;
-        srf.y = drawsurf->clipy - y;
-        y = drawsurf->clipy;
+    if(y < drawsurf->top) {
+        h -= drawsurf->top - y;
+        srf.y = drawsurf->top - y;
+        y = drawsurf->top;
     }
-    if(y + h - 1 > drawsurf->clipy2)
-        h = drawsurf->clipy2 - y + 1;
+    if(y + h - 1 > drawsurf->bottom)
+        h = drawsurf->bottom - y + 1;
 
     drawsurf->y = y;
     drawsurf->x = x;
@@ -391,22 +391,22 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
         clipped = 0;
         if(w) {
 
-            if(drawsurf->x > drawsurf->clipx2)
+            if(drawsurf->x > drawsurf->right)
                 return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->clipx) {
+            if(drawsurf->x + (int)w - 1 < drawsurf->left) {
                 drawsurf->x += w;
                 Text = utf8skip(Text, End);
                 continue;
             }
-            if(drawsurf->x < drawsurf->clipx) {
-                srf.x += drawsurf->clipx - drawsurf->x;
-                w -= drawsurf->clipx - drawsurf->x;
-                clipped |= (drawsurf->clipx - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
-                drawsurf->x = drawsurf->clipx;
+            if(drawsurf->x < drawsurf->left) {
+                srf.x += drawsurf->left - drawsurf->x;
+                w -= drawsurf->left - drawsurf->x;
+                clipped |= (drawsurf->left - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
+                drawsurf->x = drawsurf->left;
             }
-            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2) {
-                clipped |= w - (drawsurf->clipx2 - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
-                w = drawsurf->clipx2 - drawsurf->x + 1;
+            if(drawsurf->x + (int)w - 1 > drawsurf->right) {
+                clipped |= w - (drawsurf->right - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
+                w = drawsurf->right - drawsurf->x + 1;
             }
 
             ggl_rect(drawsurf, drawsurf->x, drawsurf->y, drawsurf->x + w - 1,
@@ -462,12 +462,12 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
     while(*End)
         ++End;
 
-    if(drawsurf->clipx < 0)
+    if(drawsurf->left < 0)
         return;
 
-    if(y > drawsurf->clipy2)
+    if(y > drawsurf->bottom)
         return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->clipy)
+    if(y + (int)Font->BitmapHeight <= drawsurf->top)
         return;
 
     fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
@@ -482,13 +482,13 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
 
     h = Font->BitmapHeight;
 
-    if(y < drawsurf->clipy) {
-        h -= drawsurf->clipy - y;
-        srf.y = drawsurf->clipy - y;
-        y = drawsurf->clipy;
+    if(y < drawsurf->top) {
+        h -= drawsurf->top - y;
+        srf.y = drawsurf->top - y;
+        y = drawsurf->top;
     }
-    if(y + h - 1 > drawsurf->clipy2)
-        h = drawsurf->clipy2 - y + 1;
+    if(y + h - 1 > drawsurf->bottom)
+        h = drawsurf->bottom - y + 1;
 
     drawsurf->y = y;
     drawsurf->x = x;
@@ -536,17 +536,17 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
 
         if(w) {
 
-            if(drawsurf->x > drawsurf->clipx2)
+            if(drawsurf->x > drawsurf->right)
                 return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->clipx)
+            if(drawsurf->x + (int)w - 1 < drawsurf->left)
                 return;
-            if(drawsurf->x < drawsurf->clipx) {
-                srf.x += drawsurf->clipx - drawsurf->x;
-                w -= drawsurf->clipx - drawsurf->x;
-                drawsurf->x = drawsurf->clipx;
+            if(drawsurf->x < drawsurf->left) {
+                srf.x += drawsurf->left - drawsurf->x;
+                w -= drawsurf->left - drawsurf->x;
+                drawsurf->x = drawsurf->left;
             }
-            if(drawsurf->x + (int)w - 1 > drawsurf->clipx2)
-                w = drawsurf->clipx2 - drawsurf->x + 1;
+            if(drawsurf->x + (int)w - 1 > drawsurf->right)
+                w = drawsurf->right - drawsurf->x + 1;
 
             int address, f, k;
             unsigned int destword;

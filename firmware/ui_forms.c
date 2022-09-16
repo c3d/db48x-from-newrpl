@@ -169,9 +169,9 @@ void uiUpdateForm(WORDPTR form)
             // NOW RENDER IT
 
             col = item + 1;
-            backgnd.clipx = 0;
-            backgnd.clipy = ycoord;
-            backgnd.clipy2 = ycoord + rowh - 1;
+            backgnd.left = 0;
+            backgnd.top = ycoord;
+            backgnd.bottom = ycoord + rowh - 1;
             while(col < endcol) {
                 if(ISBINT(*col)) {
                     itemw = rplReadBINT(col);
@@ -182,11 +182,11 @@ void uiUpdateForm(WORDPTR form)
                 if(ISSTRING(*col)) {
                     // DRAW THE STRING
                     // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
-                    backgnd.clipx2 = backgnd.clipx + itemw - 1;
-                    DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(col + 1),
+                    backgnd.right = backgnd.left + itemw - 1;
+                    DrawTextBkN(backgnd.left, backgnd.top, (char *)(col + 1),
                             (char *)(col + 1) + rplStrSize(col),
                             FONT_FORMS, 0xf, 0, &backgnd);
-                    backgnd.clipx = backgnd.clipx2 + 1;
+                    backgnd.left = backgnd.right + 1;
                 }
 
                 //TODO: RENDER FIELDS HERE
@@ -200,11 +200,11 @@ void uiUpdateForm(WORDPTR form)
         if(ISSTRING(*item)) {
             // DRAW THE STRING
             // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
-            backgnd.clipx = 0;
-            backgnd.clipy = ycoord;
-            backgnd.clipy2 = ycoord + rowh - 1;
-            backgnd.clipx2 = backgnd.clipx + roww - 1;
-            DrawTextBkN(backgnd.clipx, backgnd.clipy, (char *)(item + 1),
+            backgnd.left = 0;
+            backgnd.top = ycoord;
+            backgnd.bottom = ycoord + rowh - 1;
+            backgnd.right = backgnd.left + roww - 1;
+            DrawTextBkN(backgnd.left, backgnd.top, (char *)(item + 1),
                     (char *)(item + 1) + rplStrSize(item),
                     FONT_FORMS, 0xf, 0, &backgnd);
             if(!rowid) {
@@ -215,15 +215,15 @@ void uiUpdateForm(WORDPTR form)
 
                 copy.x = 0;
                 copy.y = 0;
-                copy.clipx = backgnd.x;
+                copy.left = backgnd.x;
                 backgnd.x = (backgnd.width - backgnd.x) / 2;
                 // CENTER THE TEXT
-                ggl_bitblt(&backgnd, &copy, copy.clipx,
-                        backgnd.clipy2 - backgnd.clipy + 1);
-                ggl_cliprect(&backgnd, backgnd.x + copy.clipx, backgnd.clipy,
-                        backgnd.clipx2, backgnd.clipy2, 0x44444444);
-                ggl_cliprect(&backgnd, 0, backgnd.clipy, backgnd.x - 1,
-                        backgnd.clipy2, 0x44444444);
+                ggl_bitblt(&backgnd, &copy, copy.left,
+                        backgnd.bottom - backgnd.top + 1);
+                ggl_cliprect(&backgnd, backgnd.x + copy.left, backgnd.top,
+                        backgnd.right, backgnd.bottom, 0x44444444);
+                ggl_cliprect(&backgnd, 0, backgnd.top, backgnd.x - 1,
+                        backgnd.bottom, 0x44444444);
             }
 
         }

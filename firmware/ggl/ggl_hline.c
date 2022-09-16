@@ -68,19 +68,19 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
     // RESTRICTIONS: xr>=xl
     //                 y MUST BE VALID
 
-    if (y < srf->clipy)
+    if (y < srf->top)
         return;
-    if (y > srf->clipy2)
+    if (y > srf->bottom)
         return;
-    if (xr < srf->clipx)
+    if (xr < srf->left)
         return;
-    if (xl > srf->clipx2)
+    if (xl > srf->right)
         return;
 
-    if (xl < srf->clipx)
-        xl = srf->clipx;
-    if (xr > srf->clipx2)
-        xr = srf->clipx2;
+    if (xl < srf->left)
+        xl = srf->left;
+    if (xr > srf->right)
+        xr = srf->right;
 
 #ifndef TARGET_PRIME1
     int           loff  = (y * srf->width + xl);

@@ -44,26 +44,26 @@ void ggl_bitbltclip(gglsurface *dest, gglsurface *src, int width, int height)
 #endif /* ! TARGET_PRIME1 */
 
     // DESTINATION CLIPPING ONLY
-    if (dest->x > dest->clipx2)
+    if (dest->x > dest->right)
         return;
-    if (dest->y > dest->clipy2)
+    if (dest->y > dest->bottom)
         return;
-    if (dest->x + width < dest->clipx)
+    if (dest->x + width < dest->left)
         return;
-    if (dest->y + height < dest->clipy)
+    if (dest->y + height < dest->top)
         return;
-    if (dest->x < dest->clipx)
-        dest->x = dest->clipx;
-    if (dest->x + width > dest->clipx2)
-        width = dest->clipx2 - dest->x + 1;
-    if (dest->y < dest->clipy)
+    if (dest->x < dest->left)
+        dest->x = dest->left;
+    if (dest->x + width > dest->right)
+        width = dest->right - dest->x + 1;
+    if (dest->y < dest->top)
     {
-        src->y += dest->clipy - dest->y;
-        height -= dest->clipy - dest->y;
-        dest->y = dest->clipy;
+        src->y += dest->top - dest->y;
+        height -= dest->top - dest->y;
+        dest->y = dest->top;
     }
-    if (dest->y + height > dest->clipy2)
-        height = dest->clipy2 - dest->y + 1;
+    if (dest->y + height > dest->bottom)
+        height = dest->bottom - dest->y + 1;
 
     ggl_bitblt(dest, src, width, height);
 }
