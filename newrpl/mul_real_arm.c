@@ -5,7 +5,7 @@
 
 // RESTRICTIONS:
 // len HAS THE LOWEST 16 BITS = blen, HIGHER 16 BITS = alen
-extern const unsigned char const carry_table[];
+extern const const unsigned char carry_table[];
 
 void mul_real_arm(int32_t * rdata, int32_t * adata, int32_t * bdata, uint32_t len)
         __attribute__((naked));
@@ -176,10 +176,14 @@ ARM_MODE void mul_real_arm(int32_t * rdata, int32_t * adata, int32_t * bdata,
 
 }
 
-int32_t carry_correct_arm(int32_t * start, int32_t * dest, int32_t * end, char *carry_table)
-        __attribute__((naked));
-ARM_MODE int32_t carry_correct_arm(int32_t * start, int32_t * dest, int32_t * end,
-        char *carry_table)
+int32_t          carry_correct_arm(int32_t *start,
+                                   int32_t *dest,
+                                   int32_t *end,
+                                   cstring carry_table) __attribute__((naked));
+ARM_MODE int32_t carry_correct_arm(int32_t *start,
+                                   int32_t *dest,
+                                   int32_t *end,
+                                   cstring  carry_table)
 {
 
     asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
@@ -290,8 +294,8 @@ ARM_MODE int32_t carry_correct_arm(int32_t * start, int32_t * dest, int32_t * en
 // shift IS IN THE RANGE 0-7
 // shift_mul = 16 higher bits = shift, lower 16 bits = mul
 
-extern const int32_t const shiftmul_K1[];
-extern const int32_t const shiftmul_K2[];
+extern const const int32_t shiftmul_K1[];
+extern const const int32_t shiftmul_K2[];
 
 void add_long_mul_shift_arm(int32_t * result, int32_t * n1start, int32_t nwords,
         int32_t shift_mul) __attribute__((naked));

@@ -45,7 +45,7 @@ extern "C"
 #ifdef ENABLE_ARM_ASSEMBLY
 extern void mul_real_arm(int32_t * rdata, int32_t * adata, int32_t * bdata, uint32_t len);
 extern int32_t carry_correct_arm(int32_t * start, int32_t * dest, int32_t * end,
-        char *carry_table);
+        cstring carry_table);
 extern void add_long_mul_shift_arm(int32_t * result, int32_t * n1start, int32_t nwords,
         int32_t shift_mul);
 extern void sub_long_mul_shift_arm(int32_t * result, int32_t * n1start, int32_t nwords,
@@ -263,7 +263,7 @@ void newRealFromint64_t(REAL * result, int64_t number, int32_t exp10);
 // IT IS UTF8 COMPLIANT, WILL RETURN ERROR IF THERE'S
 // ANY INVALID CHARACTERS IN THE text, BETWEEN POINTERS text AND end
 
-void newRealFromText(REAL * result, char *text, char *end, uint64_t chars);
+void newRealFromText(REAL * result, cstring text, cstring end, uint64_t chars);
 
 // COPY CONTENTS OF ONE REAL TO ANOTHER
 void copyReal(REAL * dest, REAL * src);

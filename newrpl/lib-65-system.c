@@ -527,7 +527,7 @@ static word_p ResetAlarms()
     alarms = InitAlarms();
 
     rplError(ERR_ALRMCORRUPT);
-    halSetNotification(N_ALARM, ggl_color(PAL_GRAY0));
+    halSetNotification(N_ALARM, 0);
 
     return alarms;
 }
@@ -960,7 +960,7 @@ static void ScanPastDue()
     struct alarm alrm;
 
     if(!GetFirstAlarm(PASTDUE_ALM, &alrm))
-        halSetNotification(N_ALARM, ggl_color(PAL_GRAY0));
+        halSetNotification(N_ALARM, 0);
 
     return;
 }

@@ -60,7 +60,7 @@ char *FSOEM2Unicode(char *origin, char *dest, int nchars)
     for(f = 0; f < nchars; ++f, dest += 2) {
         if(origin) {
             val = utf82cp(origin, origin + 4);
-            origin = utf8skip(origin, origin + 4);
+            origin = (char *) utf8skip(origin, origin + 4);
             if(val > 0xffff)
                 val = '_';      // FILTER ALL UNICODE CHARACTERS THAT DON'T FIT IN UCS-2
         }

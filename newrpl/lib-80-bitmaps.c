@@ -745,7 +745,7 @@ void LIB_HANDLER()
             int32_t k;
             for(k = 0; k < renderst->npoints; ++k) {
                 ggl_cliphline(&(renderst->srf), renderst->points[k].y >> 24,
-                              renderst->points[k].x, renderst->points[k].x, ggl_color(PAL_GRAY15));
+                              renderst->points[k].x, renderst->points[k].x, ggl_solid(PAL_GRAY15));
             }
 
             return;

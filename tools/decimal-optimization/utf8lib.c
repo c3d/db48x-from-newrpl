@@ -39,7 +39,7 @@ extern const unsigned int const packed_starterData[];
 unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 
 // DECODE A UTF8 CODE POINT AND RETURN ITS VALUE
-int utf82cp(char *ptr, char *end)
+int utf82cp(cstring ptr, cstring end)
 {
     if(*ptr & 0x80) {
         if((*ptr & 0xe0) == 0xc0) {

@@ -7,61 +7,13 @@
 
 #include <ggl.h>
 
-void ggl_vline(gglsurface *srf, int x, int yt, int yb, color_t color)
+void ggl_vline(gglsurface *srf, int x, int yt, int yb, pattern_t colors)
 {
-    // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
-    // color=number from 0 to 15
-    // RESTRICTIONS: yb>=yt
-
-    int offset = srf->width * yt + x;
-
-#ifdef TARGET_PRIME1
-    color16_t *ptr = (color16_t *) srf->pixels + offset;
-#endif /* TARGET_PRIME1 */
-    while (yt <= yb)
-    {
-#ifndef TARGET_PRIME1
-        ggl_pltnib(srf->pixels, offset, color);
-        offset += srf->width;
-#else  /* TARGET_PRIME1 */
-        *ptr = color;
-        ptr += srf->width;
-#endif /* TARGET_PRIME1 */
-        ++yt;
-    }
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_set, colors, CLIP_NONE);
 }
 
 // SAME AS VLINE BU WITH CLIPPING
-void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, color_t color)
+void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern_t colors)
 {
-    // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
-    // color=number from 0 to 15
-    // RESTRICTIONS: yb>=yt
-
-    if (yt > srf->bottom)
-        return;
-    if (yb < srf->top)
-        return;
-
-    if (yt < srf->top)
-        yt = srf->top;
-    if (yb > srf->bottom)
-        yb = srf->bottom;
-
-    if (x < srf->left)
-        return;
-    if (x > srf->right)
-        return;
-
-#ifndef TARGET_PRIME1
-    int offset = srf->width * yt + x;
-    while (yt <= yb)
-    {
-        ggl_pltnib(srf->pixels, offset, color);
-        offset += srf->width;
-        ++yt;
-    }
-#else  /* TARGET_PRIME1 */
-    ggl_vline(srf, x, yt, yb, color);
-#endif /* TARGET_PRIME1 */
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_set, colors, CLIP_DST);
 }

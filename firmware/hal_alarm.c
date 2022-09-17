@@ -52,9 +52,9 @@ void halTriggerAlarm()
     }
 
     if(rplTriggerAlarm())
-        halSetNotification(N_ALARM, ggl_color(PAL_GRAY15));
+        halSetNotification(N_ALARM, 0xf);
     else
-        halSetNotification(N_ALARM, ggl_color(PAL_GRAY0));
+        halSetNotification(N_ALARM, 0);
 
     halScreen.DirtyFlag |=
             STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;

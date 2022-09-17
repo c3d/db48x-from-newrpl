@@ -39,7 +39,7 @@ extern const unsigned int const packed_starterData[];
 unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 
 // DECODE A UTF8 CODE POINT AND RETURN ITS VALUE
-int utf82cp(char *ptr, char *end)
+int utf82cp(utf8_p ptr, utf8_p end)
 {
     if(*ptr & 0x80) {
         if((*ptr & 0xe0) == 0xc0) {
@@ -83,7 +83,7 @@ int utf82cp(char *ptr, char *end)
 }
 
 // SKIP A CODE POINT
-char *utf8skip(char *ptr, char *end)
+utf8_p utf8skip(utf8_p ptr, utf8_p end)
 {
     if(end <= ptr)
         return ptr;
@@ -98,7 +98,7 @@ char *utf8skip(char *ptr, char *end)
 
 // SKIP BYTES UNTIL A STARTER CODEPOINT IS FOUND
 // USED TO ALIGN ARBITRARY POINTERS INTO THE UTF8 SEQUENCE
-char *utf8findst(char *ptr, char *end)
+utf8_p utf8findst(utf8_p ptr, utf8_p end)
 {
     if(end <= ptr)
         return ptr;
@@ -135,7 +135,7 @@ char *utf8findst(char *ptr, char *end)
 
 // SAME AS SKIP, BUT ALSO SKIP OVER COMBINING MARKS
 // SKIP CODEPOINTS UNTIL A STARTER CODEPOINT IS FOUND
-char *utf8skipst(char *ptr, char *end)
+utf8_p utf8skipst(utf8_p ptr, utf8_p end)
 {
     if(end <= ptr)
         return ptr;
@@ -169,7 +169,7 @@ char *utf8skipst(char *ptr, char *end)
 }
 
 // SKIP n CODE POINTS
-char *utf8nskip(char *ptr, char *end, int n)
+utf8_p utf8nskip(utf8_p ptr, utf8_p end, int n)
 {
     while(n > 0) {
         if(ptr >= end)
@@ -189,7 +189,7 @@ char *utf8nskip(char *ptr, char *end, int n)
 }
 
 // SKIP n STARTERS AND THEIR COMBINING MARKS
-char *utf8nskipst(char *ptr, char *end, int n)
+utf8_p utf8nskipst(utf8_p ptr, utf8_p end, int n)
 {
     if(end <= ptr)
         return ptr;
@@ -226,7 +226,7 @@ char *utf8nskipst(char *ptr, char *end, int n)
 }
 
 // SKIP A CODE POINT IN REVERSE
-char *utf8rskip(char *ptr, char *start)
+utf8_p utf8rskip(utf8_p ptr, utf8_p start)
 {
     if(start >= ptr)
         return ptr;
@@ -237,13 +237,13 @@ char *utf8rskip(char *ptr, char *start)
 }
 
 // REVERSE SKIP CODEPOINTS UNTIL NEXT STARTER
-char *utf8rskipst(char *ptr, char *start)
+utf8_p utf8rskipst(utf8_p ptr, utf8_p start)
 {
 
     if(start >= ptr)
         return ptr;
 
-    char *prevptr;
+    utf8_p prevptr;
     int cp, cpinfo;
 
     do {
@@ -560,7 +560,7 @@ enum
 // NFC_QC!=0 -> CC=0 --> FULL DECOMPOSITION/COMPOSITION, NO BUBBLE SORT
 // NFC_QC!=0 -> CC!=0 --> FULL DEC+BUBBLE SORT+COMPOSITION
 
-int utf82NFC(char *string, char *end)
+int utf82NFC(utf8_p string, utf8_p end)
 {
     unsigned int cp, cc, qc, cpinfo;
     int lastchar = 0, flags;
@@ -630,24 +630,24 @@ int utf82NFC(char *string, char *end)
 // COMPARE len UNICODE CODE POINTS IN UTF8 ENCODED STRINGS
 // SIMILAR TO strncmp BUT WITH UTF8 SUPPORT
 
-int utf8ncmp(const char *s1, const char *s1end, const char *s2,
-        const char *s2end, int len)
+int utf8ncmp(utf8_p s1, utf8_p s1end, utf8_p s2,
+        utf8_p s2end, int len)
 {
     if(len > 0) {
         while((len > 0) && (s1 < s1end) && (s2 < s2end)) {
-            if(utf82cp((char *)s1, (char *)s1end) != utf82cp((char *)s2,
-                        (char *)s2end))
+            if(utf82cp((utf8_p )s1, (utf8_p )s1end) != utf82cp((utf8_p )s2,
+                        (utf8_p )s2end))
                 break;
 
-            s1 = utf8skip((char *)s1, (char *)s1end);
-            s2 = utf8skip((char *)s2, (char *)s2end);
+            s1 = utf8skip((utf8_p )s1, (utf8_p )s1end);
+            s2 = utf8skip((utf8_p )s2, (utf8_p )s2end);
             --len;
         }
 
         if(len > 0) {
             if((s1 < s1end) && (s2 < s2end))
-                return (utf82cp((char *)s1, (char *)s1end) - utf82cp((char *)s2,
-                            (char *)s2end));
+                return (utf82cp((utf8_p )s1, (utf8_p )s1end) - utf82cp((utf8_p )s2,
+                            (utf8_p )s2end));
             else {
                 if(s1 == s1end)
                     return -1;
@@ -659,13 +659,13 @@ int utf8ncmp(const char *s1, const char *s1end, const char *s2,
 
         if(s1 < s1end) {
             // CHECK IF LEFTOVER IS A NON-STARTER
-            if(CCLASS(getCPInfo(utf82cp((char *)s1, (char *)s1end))) != 0) {
+            if(CCLASS(getCPInfo(utf82cp((utf8_p )s1, (utf8_p )s1end))) != 0) {
                 // NOT A STARTER, STRINGS ARE NOT EQUAL
                 return 1;
             }
         }
         if(s2 < s2end) {
-            if(CCLASS(getCPInfo(utf82cp((char *)s2, (char *)s2 + 4))) != 0) {
+            if(CCLASS(getCPInfo(utf82cp((utf8_p )s2, (utf8_p )s2 + 4))) != 0) {
                 // NOT A STARTER, STRINGS ARE NOT EQUAL
                 return -1;
             }
@@ -678,23 +678,23 @@ int utf8ncmp(const char *s1, const char *s1end, const char *s2,
 
 // SIMILAR TO utf8ncmp2 BUT SECOND STRING IS EXACTLY len CODE POINTS
 // (TO AVOID COMPUTING THE END OF A NULL TERMINATED STRING)
-int utf8ncmp2(const char *s1, const char *s1end, const char *s2, int len)
+int utf8ncmp2(utf8_p s1, utf8_p s1end, utf8_p s2, int len)
 {
     if(len > 0) {
         while((len > 0) && (s1 < s1end)) {
-            if(utf82cp((char *)s1, (char *)s1end) != utf82cp((char *)s2,
-                        (char *)s2 + 4))
+            if(utf82cp((utf8_p )s1, (utf8_p )s1end) != utf82cp((utf8_p )s2,
+                        (utf8_p )s2 + 4))
                 break;
 
-            s1 = utf8skip((char *)s1, (char *)s1end);
-            s2 = utf8skip((char *)s2, (char *)s2 + 4);
+            s1 = utf8skip((utf8_p )s1, (utf8_p )s1end);
+            s2 = utf8skip((utf8_p )s2, (utf8_p )s2 + 4);
             --len;
         }
 
         if(len > 0) {
             if(s1 < s1end)
-                return (utf82cp((char *)s1, (char *)s1end) - utf82cp((char *)s2,
-                            (char *)s2 + 4));
+                return (utf82cp((utf8_p )s1, (utf8_p )s1end) - utf82cp((utf8_p )s2,
+                            (utf8_p )s2 + 4));
             else
                 return -1;
         }
@@ -703,7 +703,7 @@ int utf8ncmp2(const char *s1, const char *s1end, const char *s2, int len)
 
         if(s1 < s1end) {
             // CHECK IF LEFTOVER IS A NON-STARTER
-            if(CCLASS(getCPInfo(utf82cp((char *)s1, (char *)s1end))) != 0) {
+            if(CCLASS(getCPInfo(utf82cp((utf8_p )s1, (utf8_p )s1end))) != 0) {
                 // NOT A STARTER, STRINGS ARE NOT EQUAL
                 return 1;
             }
@@ -715,14 +715,14 @@ int utf8ncmp2(const char *s1, const char *s1end, const char *s2, int len)
 }
 
 // SIMILAR TO strcmp BUT WITH UTF8 SUPPORT
-int utf8cmp(const char *s1, const char *s2)
+int utf8cmp(utf8_p s1, utf8_p s2)
 {
     while(*s1 && *s2) {
-        if(utf82cp((char *)s1, (char *)s1 + 4) != utf82cp((char *)s2,
-                    (char *)s2 + 4))
+        if(utf82cp((utf8_p )s1, (utf8_p )s1 + 4) != utf82cp((utf8_p )s2,
+                    (utf8_p )s2 + 4))
             break;
-        s1 = utf8skip((char *)s1, (char *)s1 + 4);
-        s2 = utf8skip((char *)s2, (char *)s2 + 4);
+        s1 = utf8skip((utf8_p )s1, (utf8_p )s1 + 4);
+        s2 = utf8skip((utf8_p )s2, (utf8_p )s2 + 4);
     }
 
     if((*s1 == 0) && (*s2 == 0))
@@ -731,14 +731,14 @@ int utf8cmp(const char *s1, const char *s2)
         return -1;
     if(*s2 == '\0')
         return 1;
-    return (utf82cp((char *)s1, (char *)s1 + 4) - utf82cp((char *)s2,
-                (char *)s2 + 4));
+    return (utf82cp((utf8_p )s1, (utf8_p )s1 + 4) - utf82cp((utf8_p )s2,
+                (utf8_p )s2 + 4));
 }
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A NULL-TERMINATED STRING
 
-int utf8len(char *string)
+int utf8len(utf8_p string)
 {
     int count = 0;
     while(*string) {
@@ -756,7 +756,7 @@ int utf8len(char *string)
 
 // RETURNS THE LENGTH IN UNICODE CODEPOINTS, SKIPPING NON-STARTER CHARACTERS
 
-int utf8nlenst(char *string, char *end)
+int utf8nlenst(utf8_p string, utf8_p end)
 {
     int count = 0;
     while(string < end) {
@@ -766,7 +766,7 @@ int utf8nlenst(char *string, char *end)
     return count;
 }
 
-int utf8nlen(char *string, char *end)
+int utf8nlen(utf8_p string, utf8_p end)
 {
     int count = 0;
     while(string < end) {

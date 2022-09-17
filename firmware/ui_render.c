@@ -145,11 +145,15 @@ void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
 
     // NOW PRINT THE STRING OBJECT
     int32_t nchars = rplStrSize(string);
-    byte_p charptr = (byte_p) (string + 1);
+    cstring charptr = (cstring) (string + 1);
 
-    DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
-            ggl_color(PAL_STK_ITEMS), scr);
-
+    DrawTextN(scr,
+              scr->x,
+              scr->y,
+              charptr,
+              charptr + nchars,
+              font,
+              ggl_solid(PAL_STK_ITEMS));
 }
 
 // RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
@@ -176,9 +180,8 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
     // NOW PRINT THE STRING OBJECT
 
     int32_t nchars = rplStrSize(string);
-    byte_p charptr = (byte_p) (string + 1);
-    int32_t numwidth =
-            StringWidthN((char *)charptr, (char *)charptr + nchars, font);
+    cstring charptr = (cstring) (string + 1);
+    int32_t numwidth = StringWidthN(charptr, charptr + nchars, font);
 
     if(numwidth > MAX_BMP_WIDTH)
         numwidth = MAX_BMP_WIDTH;
@@ -190,7 +193,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
 
         // RELOAD ALL POINTERS IN CASE THERE WAS A GC
         string = ScratchPointer1;
-        charptr = (byte_p) (string + 1);
+        charptr = (cstring) (string + 1);
 
 
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
@@ -206,12 +209,17 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
         tsurf.y = 0;
 
         // CLEAR THE BITMAP FIRST
-        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_color(PAL_STK_BG));
+        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_solid(PAL_STK_BG));
         //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
 
 
-        DrawTextN(0, 0, (char *)charptr, (char *)charptr + nchars, font, ggl_color(PAL_STK_ITEMS),
-                &tsurf);
+        DrawTextN(&tsurf,
+                  0,
+                  0,
+                  charptr,
+                  charptr + nchars,
+                  font,
+                  ggl_solid(PAL_STK_ITEMS));
 
         // AND ADD TO CACHE
 
@@ -252,9 +260,13 @@ void uiDrawBitmap(word_p bmp, gglsurface * scr)
 
         // NOW PRINT THE STRING OBJECT
         int32_t nchars = rplStrSize(string);
-        byte_p charptr = (byte_p) (string + 1);
-
-        DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
-                  FONT_STACK, ggl_color(PAL_STK_ITEMS), scr);
+        cstring charptr = (cstring) (string + 1);
+        DrawTextN(scr,
+                  scr->x,
+                  scr->y,
+                  charptr,
+                  charptr + nchars,
+                  FONT_STACK,
+                  ggl_solid(PAL_STK_ITEMS));
     }
 }

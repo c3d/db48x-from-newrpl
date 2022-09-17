@@ -23,7 +23,7 @@ extern unsigned int RPLLastOpcode;
 #define FNT_AVGW          7
 #define BTN_WIDTH         52
 
-void ex_print(int x, int y, char *str)
+void ex_print(int x, int y, cstring str)
 {
     gglsurface dr;
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
@@ -33,7 +33,7 @@ void ex_print(int x, int y, char *str)
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
 
-    DrawText(x, y, str, Font_10A, ggl_color(PAL_GRAY15), &dr);
+    DrawText(&dr, x, y, str, Font_10A, ggl_solid(PAL_GRAY15));
 }
 
 void ex_clrscreen()
@@ -45,7 +45,7 @@ void ex_clrscreen()
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_rect(&dr, dr.x, dr.y, dr.right - 1, dr.bottom - 1, ggl_color(PAL_GRAY0));
+    ggl_rect(&dr, dr.x, dr.y, dr.right - 1, dr.bottom - 1, ggl_solid(PAL_GRAY0));
 }
 
 void ex_hline(int y)
@@ -57,7 +57,7 @@ void ex_hline(int y)
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_hline(&dr, y, dr.x, dr.right - 1, ggl_color(PAL_GRAY8));
+    ggl_hline(&dr, y, dr.x, dr.right - 1, ggl_solid(PAL_GRAY8));
 }
 
 inline int ex_width(char *string)
@@ -846,12 +846,12 @@ void        exception_install()
     irq_install();
 }
 
-void __attribute__((noinline)) throw_exception(char *message, unsigned int options)
+void __attribute__((noinline)) throw_exception(cstring message, unsigned options)
 {
     asm volatile(".word 0xE6CCCC10");
 }
 
-void __attribute__((noinline)) throw_dbgexception(char *message, unsigned int options)
+void __attribute__((noinline)) throw_dbgexception(cstring message, unsigned options)
 {
     asm volatile(".word 0xE6DDDD10");
 }

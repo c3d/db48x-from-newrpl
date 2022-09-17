@@ -66,14 +66,14 @@ void battery_handler()
             : l < 62259 ? '9'
             : 'X';
 
-        DrawTextBk(STATUS_AREA_X,LCD_H-2*H,text,font,ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG),&scr);
+        DrawTextBk(&scr, STATUS_AREA_X,LCD_H-2*H,text,font,ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
 
         for (unsigned s = 0; s < 3; s++)
         {
             k = (battery>>(8-4*s)) & 0xf;
             text[s] = k < 10 ? k + '0' : k + 'A' - 10;
         }
-        DrawTextBk(STATUS_AREA_X,LCD_H-H,text,font,ggl_color(PAL_STA_TEXT),ggl_color(PAL_STA_BG),&scr);
+        DrawTextBk(&scr,STATUS_AREA_X,LCD_H-H,text,font,ggl_solid(PAL_STA_TEXT),ggl_solid(PAL_STA_BG));
     }
 
     // THIS IS THE REAL HANDLER
@@ -82,14 +82,14 @@ void battery_handler()
         if(halFlags & HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST
             halSetNotification(N_LOWBATTERY,
-                               ggl_color(PAL_GRAY_MASK ^ halGetNotification(N_LOWBATTERY)));
+                               0xf ^ halGetNotification(N_LOWBATTERY));
             halFlags |= HAL_SLOWLOCK;
             halScreenUpdated();
         }
         else {
             // KEEP BLINKING INDICATOR
             halSetNotification(N_LOWBATTERY,
-                               ggl_color(PAL_GRAY_MASK ^ halGetNotification(N_LOWBATTERY)));
+                               0xf ^ halGetNotification(N_LOWBATTERY));
             // AND DISALLOW FAST MODE
             halFlags |= HAL_SLOWLOCK;
             halScreenUpdated();
@@ -109,7 +109,7 @@ void battery_handler()
             if(!halGetNotification(N_LOWBATTERY))
                 halScreenUpdated();
 
-            halSetNotification(N_LOWBATTERY, ggl_color(PAL_GRAY15));
+            halSetNotification(N_LOWBATTERY, 0xf);
             halFlags |= HAL_SLOWLOCK;
         }
         return;
@@ -120,7 +120,7 @@ void battery_handler()
         if(!halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
 
-        halSetNotification(N_LOWBATTERY, ggl_color(PAL_GRAY8));
+        halSetNotification(N_LOWBATTERY, 8);
         halFlags &= ~HAL_SLOWLOCK;
         return;
     }
@@ -129,7 +129,7 @@ void battery_handler()
         // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
         if(halGetNotification(N_LOWBATTERY))
             halScreenUpdated();
-        halSetNotification(N_LOWBATTERY, ggl_color(PAL_GRAY0));
+        halSetNotification(N_LOWBATTERY, 0);
         halFlags &= ~HAL_SLOWLOCK;
     }
 
@@ -169,8 +169,8 @@ void battery_handler()
 
         if(battery==0x400) {
             // Battery is charging - display charging icon
-            DrawTextBk(LCD_W-StringWidth((char *)"C", Font_Notifications)-1, LCD_H-1-FONT_Notifications.BitmapHeight, (char *)"C",
-                       Font_Notifications, ggl_color(PAL_STA_BAT), ggl_color(PAL_STA_BG), &scr);
+            DrawTextBk(&scr, LCD_W-StringWidth((char *)"C", Font_Notifications)-1, LCD_H-1-FONT_Notifications.BitmapHeight, (char *)"C",
+                       Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
         }
         else {
             // Display Battery percentage below battery icon
@@ -199,10 +199,10 @@ void battery_handler()
                 batwidth=(percentwidth+batwidth)/2;
             } else percentwidth=(percentwidth+batwidth)/2;
 
-            DrawTextBk(LCD_W-percentwidth,LCD_H-FONT_10A.BitmapHeight-1,(char *)&text,Font_10A,ggl_color(PAL_STA_BAT), ggl_color(PAL_STA_BG),&scr);
+            DrawTextBk(&scr, LCD_W-percentwidth,LCD_H-FONT_10A.BitmapHeight-1,(cstring)&text,Font_10A,ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
 
-            DrawTextBk(LCD_W-batwidth, LCD_H-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
-                       Font_Notifications, ggl_color(PAL_STA_BAT), ggl_color(PAL_STA_BG), &scr);
+            DrawTextBk(&scr, LCD_W-batwidth, LCD_H-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
+                       Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
             halScreenUpdated();
         }
     }
@@ -213,15 +213,15 @@ void busy_handler()
 {
     // THE CPU IS BUSY, SWITCH TO FAST SPEED!!
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
-    halSetNotification(N_HOURGLASS, ggl_color(PAL_GRAY15));
+    halSetNotification(N_HOURGLASS, 0xf);
 
 #ifdef TARGET_PRIME1
     // Force Display the Hourglass
     {
         gglsurface scr;
         ggl_initscr(&scr);
-        DrawTextBk(LCD_W-StringWidth((char *)"W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
-                   Font_Notifications, ggl_color(PAL_STA_BAT), ggl_color(PAL_STA_BG), &scr);
+        DrawTextBk(&scr, LCD_W-StringWidth((char *)"W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
+                   Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
 
     }
 #endif // TARGET_PRIME1
@@ -400,7 +400,7 @@ void halWakeUp()
     keyb_flushnowait();
     keyb_setshiftplane(0, 0, 0, 0);
 
-    halSetNotification(N_ALARM, ggl_color(rplCheckAlarms() ? PAL_GRAY15 : PAL_GRAY0));
+    halSetNotification(N_ALARM, rplCheckAlarms() ? 0xf : 0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
 

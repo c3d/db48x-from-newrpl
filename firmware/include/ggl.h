@@ -327,10 +327,18 @@ static inline pixword *ggl_pixel_address(gglsurface *s, coord x, coord y)
 // Operations for ggl_blit
 static inline pixword ggl_set(pixword dst, pixword src, pixword arg)
 {
-    UNUSED_ARGUMENT(dst);
-    UNUSED_ARGUMENT(src)
+    UNUSED(dst);
+    UNUSED(src);
     return arg;
 }
+
+typedef enum clip
+{
+    CLIP_NONE = 0,
+    CLIP_SRC  = 1,
+    CLIP_DST  = 2,
+    CLIP_ALL  = 3
+} clip_t;
 
 // General-purpose blitting operation
 // This transfers pixels from 'src' to 'dst' (which can be equal)
@@ -348,10 +356,9 @@ static inline void ggl_blit(gglsurface *dst,
                             coord       y,
                             gglop       op,
                             pattern_t   colors,
-                            bool        clip_dst,
-                            bool        clip_src)
+                            clip_t      clip)
 {
-    if (clip_src)
+    if (clip & CLIP_SRC)
     {
         if (x < src->left)
         {
@@ -369,37 +376,35 @@ static inline void ggl_blit(gglsurface *dst,
             bottom = src->bottom - y + top;
     }
 
-    if (clip_dst)
+    if (clip & CLIP_DST)
     {
         // Clipping based on target
-        if (left < surface->left)
-            left = surface->left;
-        if (right > surface->right)
-            right = surface->right;
-        if (top < surface->top)
-            top = surface->top;
-        if (bottom > surface->bottom)
-            bottom = surface->bottom;
+        if (left < dst->left)
+            left = dst->left;
+        if (right > dst->right)
+            right = dst->right;
+        if (top < dst->top)
+            top = dst->top;
+        if (bottom > dst->bottom)
+            bottom = dst->bottom;
 
         // Bail out if there is no effect
-        if (left > surface->right || right < surface->left ||
-            top > surface->bottom || bottom < suface->top)
+        if (left > dst->right || right < dst->left || top > dst->bottom ||
+            bottom < dst->top)
             return;
     }
 
     // Check whether we need to go forward or backward along X or Y
-    bool     xback  = x < left;
-    bool     yback  = y < top;
+    int      xback  = x < left;
+    int      yback  = y < top;
     int      xdir   = xback ? -1 : 1;
     int      ydir   = yback ? -1 : 1;
     coord    dx1    = xback ? right : left;
     coord    dx2    = xback ? left : right;
     coord    dy1    = yback ? bottom : top;
-    coord    dy2    = yback ? top : bottom;
     coord    sx1    = xback ? x + right - left : x;
     coord    sy1    = yback ? y + bottom - top : y;
     coord    ycount = bottom - top;
-    coord    xcount = right - left;
 
     // Offset in words for a displacement along Y
     offset   dyoff  = ggl_pixel_offset(dst, 0, ydir);
@@ -413,7 +418,8 @@ static inline void ggl_blit(gglsurface *dst,
     // Left and right pixel shift
     unsigned dsh1   = dx1 * BITS_PER_PIXEL % BITS_PER_WORD;
     unsigned dsh2   = dx2 * BITS_PER_PIXEL % BITS_PER_WORD;
-    unsigned ssh1   = sx1 * BITS_PER_PIXEL % BITS_PER_WORD;
+    unsigned ssh1   = (sx1 - dx1) * BITS_PER_PIXEL % BITS_PER_WORD;
+    unsigned srt1   = BITS_PER_WORD - ssh1;
 
     // Left and right masks
     pixword  ones   = ~0U;
@@ -421,22 +427,23 @@ static inline void ggl_blit(gglsurface *dst,
     pixword  dmsk2  = xback ? ones << dsh2 : ones >> (BITS_PER_WORD - dsh2);
 
     // Adjust the color pattern based on starting point
-    colors          = ggl_rotate_pattern(colors, dx1 + dy1);
+    uint64_t data   = colors.bits;
+    data = ggl_rotate_pattern_bits(data, (dx1 + dy1) * BITS_PER_PIXEL);
 
     // Check if we are writing a single word and need to combine masks
     if (dp1 == dp2)
     {
-        pixword mask = dmsk1 & dmsk2;
+        pixword dmsk = dmsk1 & dmsk2;
         while (ycount-- >= 0)
         {
             pixword dword  = *dp1;
-            pixword sword  = *sp1;
-            pixword aword  = colors.bits;
+            pixword sword  = (sp1[0] << ssh1) | (sp1[xdir] >> srt1);
+            pixword aword  = data;
             pixword result = op(dword, sword, aword);
-            *dp1           = (result & mask) | (dword & ~mask);
+            *dp1           = (result & dmsk) | (dword & ~dmsk);
             dp1 += dyoff;
             sp1 += syoff;
-            colors = ggl_rotate_pattern(colors, ydir);
+            data = ggl_rotate_pattern_bits(data, ydir * BITS_PER_PIXEL);
         }
     }
     else
@@ -444,33 +451,33 @@ static inline void ggl_blit(gglsurface *dst,
         // Need to mask beginning and end differently
         while (ycount-- >= 0)
         {
-            pixword *dp = dp1;
-            pixword *sp = sp1;
-            pixword dword = *dp;
-            pixword sword = *sp;
-            pixword aword = colors.bits;
-            pixword result = op(dword, sword, aword);
-            *dp = (result & dmsk1) | (dword & ~dmsk1);
+            pixword *dp     = dp1;
+            pixword *sp     = sp1;
+            pixword  dword  = *dp;
+            pixword  sword  = *sp;
+            pixword  aword  = data;
+            pixword  result = op(dword, sword, aword);
+            *dp             = (result & dmsk1) | (dword & ~dmsk1);
             dp += xdir;
             sp += xdir;
-            colors.bits = ggl_rotate_pattern_bits(colors, BITS_PER_WORD);
+            data = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
             while (dp != dp2)
             {
-                dword = *dp;
-                sword = *sp;
-                aword = colors.bits;
+                dword  = *dp;
+                sword  = (sp[0] << ssh1) | (sp[xdir] >> srt1);
+                aword  = data;
                 result = op(dword, sword, aword);
-                *dp = result;
+                *dp    = result;
                 dp += xdir;
                 sp += xdir;
-                colors.bits = ggl_rotate_pattern_bits(colors, BITS_PER_WORD);
+                data = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
             }
-            dword = *dp;
-            sword = *sp;
-            aword = colors.bits;
+            dword  = *dp;
+            sword  = *sp;
+            aword  = data;
             result = op(dword, sword, aword);
-            *dp = (result & dmsk2) | (dword & ~dmsk2);
-            colors.bits = ggl_rotate_pattern_bits(colors, BITS_PER_WORD);
+            *dp    = (result & dmsk2) | (dword & ~dmsk2);
+            data   = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
         }
     }
 }
@@ -519,8 +526,6 @@ void ggl_vline(gglsurface *srf, int x, int yt, int yb, pattern_t color); // fast
 void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern_t color);
 void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color);     // low-level rectangle
 void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color); // low-level rectangle
-
-void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, color_t *color); // low-level rectangle with 8x8 pattern
 
 // bit-blit functions
 

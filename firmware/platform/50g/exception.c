@@ -27,7 +27,7 @@ ARM_MODE void ex_print(int x, int y, char *str)
     dr.right = LCD_W;
     dr.bottom = LCD_H;
 
-    DrawTextMono(x, y, str, Font_6A, 1, &dr);
+    DrawTextMono(&dr, x, y, str, Font_6A, ggl_solid(PAL_GRAY1));
 }
 
 ARM_MODE void ex_clrscreen()
@@ -720,12 +720,12 @@ ARM_MODE void exception_install()
     irq_install();
 }
 
-ARM_MODE void throw_exception(char *message, unsigned int options)
+ARM_MODE void throw_exception(cstring message, unsigned options)
 {
     asm volatile (".word 0xE6CCCC10");
 }
 
-ARM_MODE void throw_dbgexception(char *message, unsigned int options)
+ARM_MODE void throw_dbgexception(cstring message, unsigned options)
 {
     asm volatile (".word 0xE6DDDD10");
 }

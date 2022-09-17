@@ -2442,7 +2442,7 @@ const int const pow10_8[8] = {
     10000000
 };
 
-void newRealFromText(REAL * result, char *text, char *end, uint64_t chars)
+void newRealFromText(REAL * result, cstring text, cstring end, uint64_t chars)
 {
     int digits = 0;
     int exp = 0;
@@ -2479,7 +2479,7 @@ void newRealFromText(REAL * result, char *text, char *end, uint64_t chars)
     {
         const char *infinitystring = "∞";
         const char *undinfinitystring = "∞̅";
-        char *textptr = text, *ptr = (char *)undinfinitystring;
+        cstring textptr = text, ptr = undinfinitystring;
         while(*ptr != 0) {
             if(*textptr != *ptr)
                 break;
@@ -2824,20 +2824,20 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
 
     int dotpos = -1;
 
-    char *ptr = utf8rskip(end, start);
+    char *ptr = (char *) utf8rskip(end, start);
     while(ptr >= start) {
         WORD ucode = (WORD) utf82cp(ptr, end);
         if(ucode == FRAC_SEP(chars)) {
-            ptr = utf8rskip(ptr, start);
+            ptr = (char *) utf8rskip(ptr, start);
             continue;
         }
         if(ucode == THOUSAND_SEP(chars)) {
-            ptr = utf8rskip(ptr, start);
+            ptr = (char *) utf8rskip(ptr, start);
             continue;
         }
         if(ucode == DECIMAL_DOT(chars)) {
             dotpos = ptr - start;
-            ptr = utf8rskip(ptr, start);
+            ptr = (char *) utf8rskip(ptr, start);
             continue;
         }
         if((ucode == '-') || (ucode == '+')) {
@@ -2853,7 +2853,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
         }
         // THIS CAN ONLY HAPPEN IF THE NUMBER WAS 9
         if(ptr > start)
-            ptr = utf8rskip(ptr, start);
+            ptr = (char *) utf8rskip(ptr, start);
         else
             --ptr;
     }
@@ -2915,7 +2915,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
                 if(intdigits == 3) {
 
                     // MOVE THE DECIMAL DOT 3 PLACES
-                    char *p = utf8skip(start + dotpos, end);    // POINT AFTER THE DOT
+                    char *p = (char *) utf8skip(start + dotpos, end);    // POINT AFTER THE DOT
                     int diff = (p - start) - dotpos;
                     // REMOVE THE OLD DECIMAL DOT
                     while(p >= ptr + diff) {
@@ -2940,7 +2940,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
                     while(p < start + dotpos) {
                         if((WORD) utf82cp(p, end) == THOUSAND_SEP(chars)) {
                             // REMOVE IT, MOVING THE ENTIRE STRING BACK
-                            char *p2 = utf8skip(p, end);
+                            char *p2 = (char *) utf8skip(p, end);
                             diff = p2 - p;
                             while(p < end) {
                                 *p = *(p + diff);
@@ -2951,7 +2951,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
                             dotpos -= diff;
                         }
                         else
-                            p = utf8skip(p, end);
+                            p = (char *) utf8skip(p, end);
                     }
 
                     changeexp = 3;
@@ -2962,7 +2962,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
                         // THIS CAN ONLY HAPPEN IF ALL TRAILING NUMBERS ARE ZEROS
 
                         // HERE ptr POINTS TO THE NEW DECIMAL DOT
-                        char *p = utf8skip(ptr, end);
+                        char *p = (char *) utf8skip(ptr, end);
                         WORD utfsep = cp2utf8(FRAC_SEP(chars));
                         int nbytes = 0;
                         while(utfsep >> (nbytes * 8))
@@ -2974,7 +2974,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
                                 ++nzeros;
                             ++p;
                         }
-                        p = utf8skip(ptr, end);
+                        p = (char *) utf8skip(ptr, end);
                         int fpos;
                         for(fpos = 0; fpos < nzeros; ++fpos) {
                             if((fpos > 0) && (fpos % sep_spacing == 0)) {
@@ -3023,12 +3023,12 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
             if(!(format & FMT_ENG)) {
                 if((WORD) utf82cp(ptr,
                             end + adddigit - 1) == THOUSAND_SEP(chars))
-                    ptr = utf8skip(ptr, end + adddigit - 1);
+                    ptr = (char *) utf8skip(ptr, end + adddigit - 1);
                 if((WORD) utf82cp(ptr,
                             end + adddigit - 1) == DECIMAL_DOT(chars))
-                    ptr = utf8skip(ptr, end + adddigit - 1);
+                    ptr = (char *) utf8skip(ptr, end + adddigit - 1);
                 if((WORD) utf82cp(ptr, end + adddigit - 1) == FRAC_SEP(chars))
-                    ptr = utf8skip(ptr, end + adddigit - 1);
+                    ptr = (char *) utf8skip(ptr, end + adddigit - 1);
             }
             else {
                 // IN ENG MODE, MIGHT HAVE TO MOVE THE DECIMAL POINT 3
@@ -3379,7 +3379,7 @@ char *formatReal(REAL * number, char *buffer, int32_t format, uint64_t chars)
 
             WORD ucode;
             do {
-                prevbuf = utf8rskip(&buffer[idx], buffer);
+                prevbuf = (char *) utf8rskip(&buffer[idx], buffer);
                 ucode = utf82cp(prevbuf, &buffer[idx]);
                 if((ucode == '0') || (ucode == FRAC_SEP(chars))) {
                     idx = prevbuf - buffer;

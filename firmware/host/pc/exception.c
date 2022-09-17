@@ -23,7 +23,7 @@ void ex_print(int x, int y, char *str)
     dr.right = LCD_W;
     dr.bottom = LCD_H;
 
-    DrawTextMono(x, y, str, Font_6A, ggl_color(PAL_GRAY1), &dr);
+    DrawTextMono(&dr, x, y, str, Font_6A, ggl_solid(PAL_GRAY1));
 }
 
 void ex_clrscreen()
@@ -368,8 +368,8 @@ void exception_install()
 
 }
 
-void __attribute__((noinline)) throw_exception(char *message,
-        unsigned int options)
+void __attribute__((noinline)) throw_exception(cstring message,
+                                               unsigned options)
 {
     int value;
 
@@ -394,8 +394,8 @@ void __attribute__((noinline)) throw_exception(char *message,
     }
 }
 
-void __attribute__((noinline)) throw_dbgexception(char *message,
-        unsigned int options)
+void __attribute__((noinline)) throw_dbgexception(cstring message,
+                                                  unsigned options)
 {
     int value;
 

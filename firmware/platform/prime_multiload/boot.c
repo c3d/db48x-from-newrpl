@@ -15,7 +15,7 @@
 
 #define lineheight 12
 #define font Font_10A
-#define black RGB_TO_RGB16(0,0,0)
+#define black ggl_solid_pattern(RGB_TO_RGB16(0,0,0))
 #define left 0
 #define right 160
 
@@ -48,15 +48,15 @@ void printline(char *left_text, char *right_text) {
         lcd_on();
 
         ggl_initscr(&surface);
-        ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, RGB_TO_RGB16(255,0,0));
+        ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid_pattern(RGB_TO_RGB16(255,0,0)));
         line =0;
     }
 
     if (left_text) {
-        DrawText(left, line * lineheight, left_text, font, black, &surface);
+        DrawText(&surface, left, line * lineheight, left_text, font, black);
     }
     if (right_text) {
-        DrawText(right, line * lineheight, right_text, font, black, &surface);
+        DrawText(&surface, right, line * lineheight, right_text, font, black);
     }
     if (left_text || right_text) {
         ++line;

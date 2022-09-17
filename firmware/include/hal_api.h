@@ -258,9 +258,9 @@ enum
             user's choice to handle the exception. If the user chooses to exit, warmstart or reset
             the program will exit first as if the exit() function was called.
 */
-void throw_exception(char *message, unsigned int options);
+void throw_exception(cstring message, unsigned int options);
 
-void throw_dbgexception(char *message, unsigned int options);
+void throw_dbgexception(cstring message, unsigned int options);
 
 // *****************************************************
 // **************  IRQ MACHINERY ***********************
@@ -1005,22 +1005,52 @@ extern WORD battery;
 // const unsigned int System7Font[];
 // const unsigned int MiniFont[];
 
-void        DrawText(int x, int y, char *Text, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
-void        DrawTextN(int x, int y, char *Text, char *End, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
-void DrawTextBk(int x, int y, char *Text, UNIFONT const *Font, color_t color, color_t bkcolor, gglsurface *drawsurf);
-void DrawTextBkN(int            x,
-                 int            y,
-                 char          *Text,
-                 char          *End,
-                 UNIFONT const *Font,
-                 color_t        color,
-                 color_t        bkcolor,
-                 gglsurface    *drawsurf);
-
-void        DrawTextMono(int x, int y, char *Text, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
-int         StringWidth(char *Text, UNIFONT const *Font);
-int         StringWidthN(char *Text, char *End, UNIFONT const *Font);
-char       *StringCoordToPointer(char *Text, char *End, UNIFONT const *Font, int *xcoord);
+void        DrawText(gglsurface    *drawsurf,
+                     coord          x,
+                     coord          y,
+                     cstring        Text,
+                     UNIFONT const *Font,
+                     pattern_t      color);
+void        DrawTextN(gglsurface    *drawsurf,
+                      coord          x,
+                      coord          y,
+                      cstring        Text,
+                      cstring        End,
+                      UNIFONT const *Font,
+                      pattern_t      color);
+void        DrawTextBk(gglsurface    *drawsurf,
+                       coord          x,
+                       coord          y,
+                       cstring        Text,
+                       UNIFONT const *Font,
+                       pattern_t      color,
+                       pattern_t      bkcolor);
+void        DrawTextBkN(gglsurface    *drawsurf,
+                        coord          x,
+                        coord          y,
+                        cstring        Text,
+                        cstring        End,
+                        UNIFONT const *Font,
+                        pattern_t      color,
+                        pattern_t      bkcolor);
+void        DrawTextMono(gglsurface    *drawsurf,
+                         coord          x,
+                         coord          y,
+                         cstring        Text,
+                         UNIFONT const *Font,
+                         pattern_t      colors);
+static inline cstring StringEnd(cstring str)
+{
+    while(*str)
+        str++;
+    return str;
+}
+int         StringWidth(cstring Text, UNIFONT const *Font);
+int         StringWidthN(cstring Text, cstring End, UNIFONT const *Font);
+cstring     StringCoordToPointer(cstring        Text,
+                                 cstring        End,
+                                 UNIFONT const *Font,
+                                 int           *xcoord);
 
 int         cpu_getlock(int lockvar, volatile int *lock_ptr);
 int         cpu_setspeed(int);
@@ -1171,11 +1201,11 @@ int           halCheckSystemAlarm();
 // SCREEN FUNCTIONS
 void          halInitScreen();
 void          halSetupTheme(color16_t *palette);
-void          halSetNotification(enum halNotification type, color_t color);
-int           halGetNotification(enum halNotification type);
+void          halSetNotification(enum halNotification type, unsigned color);
+unsigned      halGetNotification(enum halNotification type);
 void          halShowErrorMsg();
-void          halShowMsg(char *Text);
-void          halShowMsgN(char *Text, char *End);
+void          halShowMsg(cstring Text);
+void          halShowMsgN(cstring Text, cstring End);
 void          halSetCmdLineHeight(int h);
 void          halStatusAreaPopup();
 void          halCancelPopup();

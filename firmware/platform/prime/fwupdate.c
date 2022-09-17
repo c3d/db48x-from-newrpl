@@ -43,9 +43,9 @@ void ram_receiveandflashfw(int32_t flashsize)
     gglsurface scr;
     ggl_initscr(&scr);
 
-    ggl_hline(&scr,10,0,LCD_W-1,0xffffffff);
-    ggl_hline(&scr,21,0,LCD_W-1,0xffffffff);
-    ggl_rect(&scr,0,11,LCD_W-1,20,0);
+    ggl_hline(&scr,10,0,LCD_W-1,ggl_solid(PAL_GRAY15));
+    ggl_hline(&scr,21,0,LCD_W-1,ggl_solid(PAL_GRAY15));
+    ggl_rect(&scr,0,11,LCD_W-1,20,ggl_solid(PAL_GRAY0));
 
     do {
 
@@ -137,20 +137,20 @@ void ram_receiveandflashfw(int32_t flashsize)
             for(k = 0; k < flashsize - 0x4000; k += 0x1000) {
 
                 int pixel = (k) >> 14;
-                ggl_vline(&scr,pixel,11,20,0);
+                ggl_vline(&scr,pixel,11,20,ggl_solid(PAL_GRAY0));
 
             }
 
             for(; k >= 0; k -= 256) {
                 int pixel = (k) >> 14;
 
-                ggl_vline(&scr,pixel,11,20,0x66666666);
+                ggl_vline(&scr,pixel,11,20,ggl_solid(PAL_GRAY6));
             }
 
             for(k = 0; k < flashsize - 0x4000; k += 256) {
                 int pixel = (k) >> 14;
 
-                ggl_vline(&scr,pixel,11,20,0xffffffff);
+                ggl_vline(&scr,pixel,11,20,ggl_solid(PAL_GRAY15));
             }
 
             ram_doreset();      // HOST REQUESTED A RESET
@@ -170,7 +170,7 @@ void ram_receiveandflashfw(int32_t flashsize)
 
             int pixel = (((WORD) flash_address) - 0x4000) >> 14;
 
-            ggl_vline(&scr,pixel,11,20,0xffffffff);
+            ggl_vline(&scr,pixel,11,20,ggl_solid(PAL_GRAY15));
 
         }
     }
@@ -190,4 +190,3 @@ ARM_MODE void ram_startfwupdate()
 
     while(1);
 }
-

@@ -13,11 +13,11 @@ static pixword gui_chgcolorfilter(pixword dest, pixword src, pixword param)
     return ggl_opmaskcol(dest, src, 0, param);
 }
 
-int StringWidthN(char *Text, char *End, UNIFONT const * Font)
+int StringWidthN(cstring Text, cstring End, UNIFONT const * Font)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int const *mapptr;
+    const unsigned int *mapptr;
     unsigned int w;
     int width = 0;
 
@@ -79,11 +79,14 @@ int StringWidthN(char *Text, char *End, UNIFONT const * Font)
 
 // WARNING: DO NOT PASS xcoord=NULL, NO ARGUMENT CHECKS
 
-char *StringCoordToPointer(char *Text, char *End, UNIFONT const * Font, int *xcoord)
+cstring StringCoordToPointer(cstring        Text,
+                             cstring        End,
+                             UNIFONT const *Font,
+                             int           *xcoord)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int const *mapptr;
+    const unsigned int *mapptr;
     unsigned int w;
     int  width = 0;
 
@@ -152,23 +155,26 @@ char *StringCoordToPointer(char *Text, char *End, UNIFONT const * Font, int *xco
 
 }
 
-int StringWidth(char *Text, UNIFONT const * Font)
+int StringWidth(cstring Text, UNIFONT const * Font)
 {
-    char *End = Text;
-    while(*End)
-        ++End;
+    cstring End = StringEnd(Text);
     return StringWidthN(Text, End, Font);
 }
 
 // DRAW TEXT WITH TRANSPARENT BACKGROUND
 // UTF8 STRING
 
-void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_t color,
-        gglsurface * drawsurf)
+void DrawTextN(gglsurface    *drawsurf,
+               coord          x,
+               coord          y,
+               cstring        Text,
+               cstring        End,
+               UNIFONT const *Font,
+               pattern_t      colors)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int const *mapptr;
+    const unsigned int *mapptr;
     char *fontbitmap;
 
     if(drawsurf->left < 0)
@@ -226,7 +232,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_
                 // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
 
                 ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
-                        drawsurf->x - 2 + (clipped & 0xff), color);
+                              drawsurf->x - 2 + (clipped & 0xff), colors);
                 break;
             }
 
@@ -280,24 +286,33 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_
             //if((color & 0xf) == 0xf)
 //                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
 //            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color.value,
-                        &gui_chgcolorfilter);
+            ggl_monobitbltoper(drawsurf,
+                               &srf,
+                               w,
+                               h,
+                               colors.bits,
+                               &gui_chgcolorfilter);
             drawsurf->x += w;
         }
         Text = utf8skip(Text, End);
     }
     return;
-
 }
 
 // DRAW TEXT WITH SOLID BACKGROUND
 // UTF8 STRING
-void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_t color,
-        color_t bkcolor, gglsurface * drawsurf)
+void DrawTextBkN(gglsurface    *drawsurf,
+                 coord          x,
+                 coord          y,
+                 cstring        Text,
+                 cstring        End,
+                 UNIFONT const *Font,
+                 pattern_t      color,
+                 pattern_t      bkcolor)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int const *mapptr;
+    const unsigned int *mapptr;
     char *fontbitmap;
 
     if(drawsurf->left < 0)
@@ -357,7 +372,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, colo
                 // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
 
                 ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
-                        drawsurf->x - 2 + (clipped & 0xff), color);
+                              drawsurf->x - 2 + (clipped & 0xff), color);
                 break;
             }
 
@@ -414,7 +429,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, colo
             //if((color & 0xf) == 0xf)
 //                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
 //            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color.value,
+                ggl_monobitbltoper(drawsurf, &srf, w, h, color.bits,
                         &gui_chgcolorfilter);
             drawsurf->x += w;
         }
@@ -424,42 +439,45 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, colo
 
 }
 
-void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, color_t color,
-        color_t bkcolor, gglsurface * drawsurf)
+void DrawTextBk(gglsurface    *drawsurf,
+                coord          x,
+                coord          y,
+                cstring        Text,
+                UNIFONT const *Font,
+                pattern_t      color,
+                pattern_t      bkcolor)
 {
-    char *End = Text;
-
-    while(*End)
-        ++End;
-
-    DrawTextBkN(x, y, Text, End, Font, color, bkcolor, drawsurf);
+    cstring End = StringEnd(Text);
+    DrawTextBkN(drawsurf, x, y, Text, End, Font, color, bkcolor);
 }
 
-void DrawText(int x, int y, char *Text, UNIFONT const * Font, color_t color,
-        gglsurface * drawsurf)
+void DrawText(gglsurface    *drawsurf,
+              coord          x,
+              coord          y,
+              cstring        Text,
+              UNIFONT const *Font,
+              pattern_t      color)
 {
-    char *End = Text;
-
-    while(*End)
-        ++End;
-
-    DrawTextN(x, y, Text, End, Font, color, drawsurf);
+    cstring End = StringEnd(Text);
+    DrawTextN( drawsurf, x, y, Text, End, Font, color);
 }
 
 // DRAWS TEXT TO A 1-BIT MONOCHROME SURFACE
 // TRANSPARENT BACKGROUND
-void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, color_t color,
-        gglsurface * drawsurf)
+void DrawTextMono(gglsurface    *drawsurf,
+                  coord          x,
+                  coord          y,
+                  cstring        Text,
+                  UNIFONT const *Font,
+                  pattern_t      color)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
-    unsigned int const *mapptr;
+    const unsigned int *mapptr;
     char *fontbitmap;
 
     // FIND END OF STRING
-    char *End = Text;
-    while(*End)
-        ++End;
+    cstring End = StringEnd(Text);
 
     if(drawsurf->left < 0)
         return;
@@ -569,7 +587,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, color_t color,
                 // NOW ROTATE DESTINATION
                 destword <<= offset;
                 // THIS ONLY WORKS FOR FONTS WITH UP TO 8 PIXELS WIDE CHARACTERS
-                if(color.value) {
+                if(color.bits) {
                     // BLACK LETTERS ON TRANSPARENT BACKGROUND
                     *cptr |= destword;
                     if(destword >> 8) {

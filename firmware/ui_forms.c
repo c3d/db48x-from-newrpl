@@ -183,9 +183,9 @@ void uiUpdateForm(word_p form)
                     // DRAW THE STRING
                     // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
                     backgnd.right = backgnd.left + itemw - 1;
-                    DrawTextBkN(backgnd.left, backgnd.top, (char *)(col + 1),
+                    DrawTextBkN(&backgnd, backgnd.left, backgnd.top, (char *)(col + 1),
                                 (char *)(col + 1) + rplStrSize(col),
-                                FONT_FORMS, ggl_color(PAL_GRAY15), ggl_color(PAL_GRAY0), &backgnd);
+                                FONT_FORMS, ggl_solid(PAL_GRAY15), ggl_solid(PAL_GRAY0));
                     backgnd.left = backgnd.right + 1;
                 }
 
@@ -204,9 +204,9 @@ void uiUpdateForm(word_p form)
             backgnd.top = ycoord;
             backgnd.bottom = ycoord + rowh - 1;
             backgnd.right = backgnd.left + roww - 1;
-            DrawTextBkN(backgnd.left, backgnd.top, (char *)(item + 1),
+            DrawTextBkN(&backgnd, backgnd.left, backgnd.top, (char *)(item + 1),
                         (char *)(item + 1) + rplStrSize(item),
-                        FONT_FORMS, ggl_color(PAL_GRAY15), ggl_color(PAL_GRAY0), &backgnd);
+                        FONT_FORMS, ggl_solid(PAL_GRAY15), ggl_solid(PAL_GRAY0));
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
                 gglsurface copy;
@@ -225,13 +225,13 @@ void uiUpdateForm(word_p form)
                              backgnd.top,
                              backgnd.right,
                              backgnd.bottom,
-                             ggl_color(PAL_GRAY4));
+                             ggl_solid(PAL_GRAY4));
                 ggl_cliprect(&backgnd,
                              0,
                              backgnd.top,
                              backgnd.x - 1,
                              backgnd.bottom,
-                             ggl_color(PAL_GRAY4));
+                             ggl_solid(PAL_GRAY4));
             }
 
         }
