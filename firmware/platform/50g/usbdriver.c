@@ -233,13 +233,13 @@ const struct descriptor_list_struct
 
 // NEW SIMPLIFIED GLOBALS
 
-volatile BINT usb_drvstatus SYSTEM_GLOBAL;        // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
+volatile int32_t usb_drvstatus SYSTEM_GLOBAL;        // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 
-BINT usb_fileid SYSTEM_GLOBAL;    // CURRENT FILEID
-BINT usb_fileid_seq SYSTEM_GLOBAL;        // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
-BINT usb_offset SYSTEM_GLOBAL;    // CURRENT OFFSET WITHIN THE FILE
+int32_t usb_fileid SYSTEM_GLOBAL;    // CURRENT FILEID
+int32_t usb_fileid_seq SYSTEM_GLOBAL;        // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
+int32_t usb_offset SYSTEM_GLOBAL;    // CURRENT OFFSET WITHIN THE FILE
 WORD usb_crc32 SYSTEM_GLOBAL;     // CURRENT CRC32 OF DATA RECEIVED
-BINT usb_lastgood_offset SYSTEM_GLOBAL;    // LAST KNOWN GOOD OFFSET WITHIN THE FILE
+int32_t usb_lastgood_offset SYSTEM_GLOBAL;    // LAST KNOWN GOOD OFFSET WITHIN THE FILE
 WORD usb_lastgood_crc SYSTEM_GLOBAL;     // LAST KNOWN MATCHING CRC32 OF DATA RECEIVED
 BYTE usb_ctlbuffer[RAWHID_RX_SIZE + 1] SYSTEM_GLOBAL;     // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
 BYTE usb_tmprxbuffer[RAWHID_RX_SIZE + 1] SYSTEM_GLOBAL;   // TEMPORARY BUFFER TO RECEIVE DATA
@@ -247,17 +247,17 @@ BYTE usb_ctlrxbuffer[RAWHID_RX_SIZE + 1] SYSTEM_GLOBAL;   // TEMPORARY BUFFER TO
 BYTE usb_ctltxbuffer[RAWHID_TX_SIZE + 1] SYSTEM_GLOBAL;   // TEMPORARY BUFFER TO TRANSMIT DATA
 
 BYTE usb_rxtxbuffer[LONG_BUFFER_SIZE] SCRATCH_MEMORY;     // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
-BINT usb_rxoffset SYSTEM_GLOBAL;  // STARTING OFFSET OF THE DATA IN THE RX BUFFER
-volatile BINT usb_rxtxtop SYSTEM_GLOBAL;  // NUMBER OF BYTES USED IN THE RX BUFFER
-volatile BINT usb_rxtxbottom SYSTEM_GLOBAL;       // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-volatile BINT usb_rxtotalbytes SYSTEM_GLOBAL;     // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+int32_t usb_rxoffset SYSTEM_GLOBAL;  // STARTING OFFSET OF THE DATA IN THE RX BUFFER
+volatile int32_t usb_rxtxtop SYSTEM_GLOBAL;  // NUMBER OF BYTES USED IN THE RX BUFFER
+volatile int32_t usb_rxtxbottom SYSTEM_GLOBAL;       // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+volatile int32_t usb_rxtotalbytes SYSTEM_GLOBAL;     // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
-BINT usb_txtotalbytes SYSTEM_GLOBAL;      // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
-BINT usb_txseq SYSTEM_GLOBAL;     // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
+int32_t usb_txtotalbytes SYSTEM_GLOBAL;      // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+int32_t usb_txseq SYSTEM_GLOBAL;     // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
 BYTEPTR usb_ctlbufptr SYSTEM_GLOBAL;      // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
-BINT usb_ctlcount SYSTEM_GLOBAL;  // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
-BINT usb_ctlpadding SYSTEM_GLOBAL;        // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+int32_t usb_ctlcount SYSTEM_GLOBAL;  // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+int32_t usb_ctlpadding SYSTEM_GLOBAL;        // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
 //  END OF NEW GLOBALS
 // ********************************
@@ -331,7 +331,7 @@ const WORD const crctable[256] = {
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-WORD usb_crc32roll(WORD oldcrc, BYTEPTR data, BINT len)
+WORD usb_crc32roll(WORD oldcrc, BYTEPTR data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -648,11 +648,11 @@ ARM_MODE void ep0_irqservice()
         }
 
         // WE HAVE A PACKET
-        BINT reqtype;
-        BINT request;
-        BINT value;
-        BINT index;
-        BINT length;
+        int32_t reqtype;
+        int32_t request;
+        int32_t value;
+        int32_t index;
+        int32_t length;
 
         // READ ALL 8 BYTES FROM THE FIFO
 
@@ -773,7 +773,7 @@ ARM_MODE void ep0_irqservice()
             }
             case GET_CONFIGURATION:
             {
-                BINT configvalue =
+                int32_t configvalue =
                         (usb_drvstatus & USB_STATUS_CONFIGURED) ? 1 : 0;
                 *EP0_CSR |= EP0_SERVICED_OUT_PKT_RDY;
                 usb_ctlcount = 1;

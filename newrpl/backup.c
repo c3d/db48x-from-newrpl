@@ -14,8 +14,8 @@
 
 uint64_t rplConvertToRomptrID(WORDPTR ptr)
 {
-    BINT libnum = MAXLIBNUMBER;
-    BINT SavedOpcode;
+    int32_t libnum = MAXLIBNUMBER;
+    int32_t SavedOpcode;
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
@@ -50,9 +50,9 @@ WORDPTR rplConvertIDToPTR(uint64_t romptrid)
     if(!ISROMPTRID(romptrid))
         return 0;
 
-    BINT libnum = ROMPTRID_LIB(romptrid);
+    int32_t libnum = ROMPTRID_LIB(romptrid);
 
-    BINT SavedOpcode;
+    int32_t SavedOpcode;
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
@@ -78,10 +78,10 @@ WORDPTR rplConvertIDToPTR(uint64_t romptrid)
 
 // BACKUP TEMPOB AND DIRECTORIES (NO STACK) TO EXTERNAL DEVICE
 
-BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
+int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
 {
-    BINT offset;
-    BINT k;
+    int32_t offset;
+    int32_t k;
     // COMPACT TEMPOB AS MUCH AS POSSIBLE
     rplGCollect();
 
@@ -91,8 +91,8 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     struct
     {
         WORDPTR start;
-        BINT nitems;
-        BINT offwords;
+        int32_t nitems;
+        int32_t offwords;
     } sections[10];
 
     // FILL SECTIONS
@@ -156,7 +156,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         sections[k].offwords = offset;
     }
 
-    BINT writeoff = 0;
+    int32_t writeoff = 0;
 
     // FIRST, WRITE SIGNATURE TO THE FILE
     if(!writefunc(TEXT2WORD('N', 'R', 'P', 'B'), OpaqueArgument))
@@ -191,7 +191,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
 
     // DUMP TEMPBLOCKS TO THE FILE
     for(k = 0; k < sections[0].nitems; ++k) {
-        if(!writefunc((BINT) (TempBlocks[k] - TempOb) + sections[1].offwords,
+        if(!writefunc((int32_t) (TempBlocks[k] - TempOb) + sections[1].offwords,
                     OpaqueArgument))
             return 0;   // WRITE BLOCKS AS OFFSET RELATIVE TO THE FILE INSTEAD OF POINTER
         ++writeoff;
@@ -216,7 +216,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         ptr = Directories[k];
         if((ptr >= TempOb) && (ptr < TempObEnd)) {
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
-            if(!writefunc((BINT) (ptr - TempOb) + sections[1].offwords,
+            if(!writefunc((int32_t) (ptr - TempOb) + sections[1].offwords,
                         OpaqueArgument))
                 return 0;
         }
@@ -254,7 +254,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         ptr = GC_PTRUpdate[k];
         if((ptr >= TempOb) && (ptr <= TempObSize)) {
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
-            if(!writefunc((BINT) (ptr - TempOb) + sections[1].offwords,
+            if(!writefunc((int32_t) (ptr - TempOb) + sections[1].offwords,
                         OpaqueArgument))
                 return 0;
         }
@@ -300,7 +300,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         ptr = DStk[k];
         if((ptr >= TempOb) && (ptr <= TempObSize)) {
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
-            if(!writefunc((BINT) (ptr - TempOb) + sections[1].offwords,
+            if(!writefunc((int32_t) (ptr - TempOb) + sections[1].offwords,
                         OpaqueArgument))
                 return 0;
         }
@@ -358,7 +358,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
 // 1 = RESTORE COMPLETED WITH NO ERRORS
 // 2 = RESTORE COMPLETED WITH SOME ERRORS, RUN MEMFIX LATER
 
-BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
+int32_t rplRestoreBackup(int32_t includestack, WORD(*readfunc) (void *),
         void *OpaqueArgument)
 {
 
@@ -366,11 +366,11 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
     struct
     {
         WORDPTR start;
-        BINT nitems;
-        BINT offwords;
+        int32_t nitems;
+        int32_t offwords;
     } sections[10];
 
-    BINT offset = 0, k, errors = 0;
+    int32_t offset = 0, k, errors = 0;
 
     WORD data;
 
@@ -605,9 +605,9 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
 
             }
             else {
-                if(((BINT) data) <= 0) {
+                if(((int32_t) data) <= 0) {
                     // OLD FORMAT - THESE WERE NUMBERS USED IN THE STACK SNAPSHOTS
-                    DStk[k] = NUMBER2PTR(-(BINT) data);
+                    DStk[k] = NUMBER2PTR(-(int32_t) data);
                     DStkProtect = DStkBottom = DStk + k + 1;
                 }
                 else {
@@ -633,17 +633,17 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
 /*
 #define DO_SOME_DAMAGE 0x123
 
-BINT rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
+int32_t rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
 {
 
     // GENERIC SECTIONS
     struct {
         WORDPTR start;
-        BINT nitems;
-        BINT offwords;
+        int32_t nitems;
+        int32_t offwords;
     } sections[10];
 
-    BINT offset=0,k,errors=0;
+    int32_t offset=0,k,errors=0;
 
     WORD data;
 

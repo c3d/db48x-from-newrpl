@@ -252,7 +252,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
 // OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
 
-BINT rplListItemCompare(WORDPTR a, WORDPTR b)
+int32_t rplListItemCompare(WORDPTR a, WORDPTR b)
 {
 
     rplPushData(a);
@@ -266,9 +266,9 @@ BINT rplListItemCompare(WORDPTR a, WORDPTR b)
         }
         return 0;
     }
-    BINT r = rplReadBINT(rplPopData());
+    int32_t r = rplReadint32_t(rplPopData());
     if(r == 0)
-        return (BINT) (a - b);
+        return (int32_t) (a - b);
     return r;
 
 }
@@ -310,12 +310,12 @@ void LIB_HANDLER()
 
             WORDPTR comp = rplPeekData(1);
             WORDPTR posobj;
-            BINT ndims, length;
-            BINT pos;
+            int32_t ndims, length;
+            int32_t pos;
 
             length = rplListLength(comp);
             ndims = rplDepthData() - 1;
-            BINT k;
+            int32_t k;
             WORDPTR *stksave = DSTop;
 
             for(k = 1; k <= ndims; ++k) {
@@ -341,7 +341,7 @@ void LIB_HANDLER()
 
                 }
 
-                pos = rplReadNumberAsBINT(posobj);
+                pos = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     DSTop = stksave;
                     rplError(ERR_INVALIDPOSITION);
@@ -482,7 +482,7 @@ void LIB_HANDLER()
         }
 
         if(OPCODE(CurOpcode) == OVR_SAME) {
-            BINT result = rplListSame();
+            int32_t result = rplListSame();
             if(Exceptions)
                 return;
             rplDropData(2);
@@ -591,7 +591,7 @@ void LIB_HANDLER()
 
         WORDPTR *stksave = DSTop;
 
-        BINT nitems = rplListLength(list);
+        int32_t nitems = rplListLength(list);
 
         if(nitems < 2)
             return;
@@ -681,8 +681,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT nitems = rplListLength(list);
-        BINT iscaselist = ISAUTOEXPLIST(*list);
+        int32_t nitems = rplListLength(list);
+        int32_t iscaselist = ISAUTOEXPLIST(*list);
 
         if(nitems < 2)
             return;
@@ -760,7 +760,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Do a procedure with elements of lists
         //@INCOMPAT
-        BINT initdepth = rplDepthData();
+        int32_t initdepth = rplDepthData();
         if(initdepth < 3) {
             rplError(ERR_BADARGCOUNT);
 
@@ -776,7 +776,7 @@ void LIB_HANDLER()
 
         // GET THE NUMBER OF LISTS
 
-        int64_t nlists = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t nlists = rplReadNumberAsInt64(rplPeekData(2));
 
         if(initdepth < 2 + nlists) {
             rplError(ERR_BADARGCOUNT);
@@ -809,7 +809,7 @@ void LIB_HANDLER()
 
         // CHECK THAT ALL LISTS ARE ACTUALLY LISTS
 
-        BINT f, l, length = -1;
+        int32_t f, l, length = -1;
         for(f = 3; f < 3 + nlists; ++f) {
             if(!ISLIST(*rplPeekData(f))) {
                 rplError(ERR_LISTEXPECTED);
@@ -836,39 +836,39 @@ void LIB_HANDLER()
 
         rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb = rplNewBINT(nlists, DECBINT);
+        WORDPTR newb = rplNewint32_t(nlists, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = BINT WITH NUMBER OF LISTS
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = int32_t WITH NUMBER OF LISTS
 
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        newb = rplNewBINT(length, DECBINT);
+        newb = rplNewint32_t(length, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 3 = int32_t WITH NUMBER OF ITEMS PER LIST
 
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        newb = rplNewBINT(1, DECBINT);
+        newb = rplNewint32_t(1, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
+        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 4 = 1, int32_t WITH CURRENT INDEX IN TEH LOOP
 
         for(f = 0; f < nlists; ++f) {
             rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2 + nlists - f)); // LAM n+4 = LISTS IN REVERSE ORDER
@@ -906,9 +906,9 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
         // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
 
-        int64_t nlists = rplReadBINT(*rplGetLAMn(2));
-        int64_t idx = rplReadBINT(*rplGetLAMn(4));
-        BINT k;
+        int64_t nlists = rplReadint32_t(*rplGetLAMn(2));
+        int64_t idx = rplReadint32_t(*rplGetLAMn(4));
+        int32_t k;
 
         for(k = 0; k < nlists; ++k) {
             rplPushData(rplGetListElement(*rplGetLAMn(k + 5), idx));
@@ -937,14 +937,14 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        int64_t length = rplReadBINT(*rplGetLAMn(3));
-        int64_t nlists = rplReadBINT(*rplGetLAMn(2));
-        int64_t idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t length = rplReadint32_t(*rplGetLAMn(3));
+        int64_t nlists = rplReadint32_t(*rplGetLAMn(2));
+        int64_t idx = rplReadint32_t(*rplGetLAMn(4));
 
         if(idx < length) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint = rplNewBINT(idx, DECBINT);
+            WORDPTR newbint = rplNewint32_t(idx, DECint32_t);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                 if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -968,9 +968,9 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth = (BINT) (DSTop - prevDStk);
+        int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-        rplNewBINTPush(newdepth, DECBINT);
+        rplNewint32_tPush(newdepth, DECint32_t);
         if(Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -997,7 +997,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR *lstptr = DSTop - nlists - 3;
-        BINT k;
+        int32_t k;
         for(k = 0; k < nlists; ++k, ++lstptr)
             if(ISAUTOEXPLIST(**lstptr)) {
                 rplListAutoExpand(rplPeekData(1));
@@ -1043,7 +1043,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Do a procedure on a subset of a list
         //@INCOMPAT
-        BINT initdepth = rplDepthData();
+        int32_t initdepth = rplDepthData();
         if(initdepth < 3) {
             rplError(ERR_BADARGCOUNT);
 
@@ -1065,7 +1065,7 @@ void LIB_HANDLER()
 
         // GET THE NUMBER OF VALUES WE NEED TO USE IN EACH ITERATION
 
-        int64_t nvalues = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t nvalues = rplReadNumberAsInt64(rplPeekData(2));
 
         WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
@@ -1091,7 +1091,7 @@ void LIB_HANDLER()
 
         // CHECK THAT THE LIST ARE ACTUALLY LISTS
 
-        BINT length, maxpos;
+        int32_t length, maxpos;
         length = rplListLength(rplPeekData(3));
 
         if(length < nvalues) {
@@ -1107,7 +1107,7 @@ void LIB_HANDLER()
 
         rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb = rplNewBINT(nvalues, DECBINT);
+        WORDPTR newb = rplNewint32_t(nvalues, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -1120,26 +1120,26 @@ void LIB_HANDLER()
             return;
         }
 
-        newb = rplNewBINT(maxpos, DECBINT);
+        newb = rplNewint32_t(maxpos, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) endsub_name, newb);      // LAM 3 = BINT WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
+        rplCreateLAM((WORDPTR) endsub_name, newb);      // LAM 3 = int32_t WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
 
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        newb = rplNewBINT(1, DECBINT);
+        newb = rplNewint32_t(1, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nsub_name, newb);        // LAM 4 = 1, BINT WITH CURRENT INDEX IN THE LOOP
+        rplCreateLAM((WORDPTR) nsub_name, newb);        // LAM 4 = 1, int32_t WITH CURRENT INDEX IN THE LOOP
 
         rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));  // LAM 5 = LIST
         if(Exceptions) {
@@ -1173,9 +1173,9 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NVALUES, GETLAM3 = ENDSUB, GETLAM4 = NSUB, GETLAM 5 = LIST
 
-        int64_t nvalues = rplReadBINT(*rplGetLAMn(2));
-        int64_t idx = rplReadBINT(*rplGetLAMn(4));
-        BINT k;
+        int64_t nvalues = rplReadint32_t(*rplGetLAMn(2));
+        int64_t idx = rplReadint32_t(*rplGetLAMn(4));
+        int32_t k;
         for(k = 0; k < nvalues; ++k) {
             rplPushData(rplGetListElement(*rplGetLAMn(5), idx + k));
             if(Exceptions) {
@@ -1205,13 +1205,13 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        int64_t endsub = rplReadBINT(*rplGetLAMn(3));
-        int64_t idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t endsub = rplReadint32_t(*rplGetLAMn(3));
+        int64_t idx = rplReadint32_t(*rplGetLAMn(4));
 
         if(idx < endsub) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint = rplNewBINT(idx, DECBINT);
+            WORDPTR newbint = rplNewint32_t(idx, DECint32_t);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
 
@@ -1232,9 +1232,9 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth = (BINT) (DSTop - prevDStk);
+        int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-        rplNewBINTPush(newdepth, DECBINT);
+        rplNewint32_tPush(newdepth, DECint32_t);
         if(Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
@@ -1394,7 +1394,7 @@ void LIB_HANDLER()
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth = (BINT) (DSTop - prevDStk);
+                    int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
                     WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
@@ -1427,9 +1427,9 @@ void LIB_HANDLER()
 
                     while(*stkptr != map_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
+                    int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements, DECBINT);
+                    rplNewint32_tPush(nelements, DECint32_t);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -1642,7 +1642,7 @@ void LIB_HANDLER()
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth = (BINT) (DSTop - prevDStk);
+                    int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
                     WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
@@ -1669,9 +1669,9 @@ void LIB_HANDLER()
 
                     while(*stkptr != listeval_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
+                    int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements, DECBINT);
+                    rplNewint32_tPush(nelements, DECint32_t);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
@@ -1777,7 +1777,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length = rplListLength(rplPeekData(2));
+        int32_t length = rplListLength(rplPeekData(2));
 
         if(length < 2) {
             rplError(ERR_INVALIDLISTSIZE);
@@ -1854,7 +1854,7 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
             rplOverwriteData(2 + newdepth, rplPeekData(1));
             rplDropData(1 + newdepth);
@@ -1946,9 +1946,9 @@ void LIB_HANDLER()
                 ++nextobj;
                 {
                     // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                    BINT nxtoff = nextobj - *rplGetLAMn(2);
-                    BINT strtoff = startobj - nextobj;
-                    BINT endoff = endmarker - nextobj;
+                    int32_t nxtoff = nextobj - *rplGetLAMn(2);
+                    int32_t strtoff = startobj - nextobj;
+                    int32_t endoff = endmarker - nextobj;
 
                     rplPushData((WORDPTR) map_seco);
 
@@ -1963,12 +1963,12 @@ void LIB_HANDLER()
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth = (BINT) (DSTop - prevDStk);
+                    int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
                     if(OPCODE(opcode) == OVR_ISTRUE) {
                         //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
-                        BINT k;
-                        BINT istrue = 0;
+                        int32_t k;
+                        int32_t istrue = 0;
                         for(k = 1; k <= newdepth; ++k) {
                             if(!rplIsFalse(rplPeekData(k))) {
                                 istrue = 1;
@@ -2009,12 +2009,12 @@ void LIB_HANDLER()
 
                     while(*stkptr != map_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
+                    int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
                     if(OPCODE(opcode) == OVR_ISTRUE) {
                         //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
-                        BINT k;
-                        BINT istrue = 0;
+                        int32_t k;
+                        int32_t istrue = 0;
                         for(k = 1; k <= nelements; ++k) {
                             if(!rplIsFalse(rplPeekData(k))) {
                                 istrue = 1;
@@ -2031,9 +2031,9 @@ void LIB_HANDLER()
                     }
 
                     else {
-                        BINT nxtoff = nextobj - *rplGetLAMn(2);
-                        BINT strtoff = startobj - nextobj;
-                        BINT endoff = endmarker - nextobj;
+                        int32_t nxtoff = nextobj - *rplGetLAMn(2);
+                        int32_t strtoff = startobj - nextobj;
+                        int32_t endoff = endmarker - nextobj;
 
                         WORDPTR newlist = rplCreateListN(nelements, 1, 1);
                         if(!newlist) {
@@ -2147,9 +2147,9 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewBINTPush(newdepth, DECBINT);
+            rplNewint32_tPush(newdepth, DECint32_t);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -2196,9 +2196,9 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewBINTPush(newdepth, DECBINT);
+            rplNewint32_tPush(newdepth, DECint32_t);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -2317,11 +2317,11 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
-            BINT result = 1;
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
+            int32_t result = 1;
 
             if(newdepth) {
-                BINT f;
+                int32_t f;
                 for(f = 1; f <= newdepth; ++f) {
                     if(rplIsFalse(rplPeekData(f))) {
                         result = 0;
@@ -2377,11 +2377,11 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
-            BINT result;
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
+            int32_t result;
 
             if(newdepth) {
-                BINT f;
+                int32_t f;
                 WORD Opcode = *((*rplGetLAMn(1)) + 1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
                 if(Opcode & 1) {
                     // SPECIAL TEST IS TRUE ONLY IF ALL VALUES ARE TRUE
@@ -2520,7 +2520,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length = rplListLength(rplPeekData(1));
+        int32_t length = rplListLength(rplPeekData(1));
 
         if(length < 1) {
             rplError(ERR_INVALIDLISTSIZE);
@@ -2598,7 +2598,7 @@ void LIB_HANDLER()
             // CLOSE THE MAIN LIST AND RETURN
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
             rplOverwriteData(1 + newdepth, rplPeekData(1));
             rplDropData(newdepth);
@@ -2681,7 +2681,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT length = rplListLength(rplPeekData(1));
+        int32_t length = rplListLength(rplPeekData(1));
 
         if(length < 2) {
             rplError(ERR_INVALIDLISTSIZE);
@@ -2753,9 +2753,9 @@ void LIB_HANDLER()
 
             WORDPTR *prevDStk = rplUnprotectData();
 
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewBINTPush(newdepth, DECBINT);
+            rplNewint32_tPush(newdepth, DECint32_t);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -2849,7 +2849,7 @@ void LIB_HANDLER()
 
             return;
         }
-        BINT size1, size2;
+        int32_t size1, size2;
         WORDPTR obj1 = rplPeekData(2), obj2 = rplPeekData(1);
         if(ISPROLOG(*obj1))
             size1 = OBJSIZE(*obj1) + 1;
@@ -2916,7 +2916,7 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nitems = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nitems = rplReadNumberAsInt64(rplPeekData(1));
         if(nitems < 1) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
@@ -2981,7 +2981,7 @@ void LIB_HANDLER()
                     // CLOSE THE MAIN LIST AND RETURN
                     WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth = (BINT) (DSTop - prevDStk);
+                    int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
                     rplRemoveAtData(newdepth + 1, 1);   // REMOVE ORIGINAL LIST ARGUMENT, LEAVING THE EXPLODED RESULTS IN THE STACK
                     rplClrSystemFlag(FL_LISTCMDCLEANUP);
@@ -2999,9 +2999,9 @@ void LIB_HANDLER()
                     while((*stkptr != mapinnercomp_seco)
                             && (stkptr > DStkBottom))
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
-                    BINT nelements = (BINT) (DSTop - stkptr) - 1;
+                    int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewBINTPush(nelements, DECBINT);
+                    rplNewint32_tPush(nelements, DECint32_t);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -3145,8 +3145,8 @@ void LIB_HANDLER()
                 rplDecompAppendString((BYTEPTR) "{");
             else
                 rplDecompAppendString((BYTEPTR) "c{");
-            BINT islistoflist = rplListHasLists(DecompileObject) ? 1 : 0;
-            BINT depth = 0, needseparator;
+            int32_t islistoflist = rplListHasLists(DecompileObject) ? 1 : 0;
+            int32_t depth = 0, needseparator;
 
             if(islistoflist)
                 needseparator =
@@ -3157,7 +3157,7 @@ void LIB_HANDLER()
             if(needseparator)
                 rplDecompAppendChar(' ');
 
-            BINT offset = 1, endoffset = rplObjSize(DecompileObject);
+            int32_t offset = 1, endoffset = rplObjSize(DecompileObject);
 
             while(offset < endoffset) {
                 if(ISLIST(DecompileObject[offset])) {
@@ -3275,7 +3275,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
         return;
     }
@@ -3290,7 +3290,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -3300,7 +3300,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

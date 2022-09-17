@@ -94,7 +94,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        int64_t sizebytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t sizebytes = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -135,9 +135,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(5));
+        int32_t destsize = sizeof(WORD) * rplObjSize(rplPeekData(5));
 
-        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(4));
+        int64_t destoffset = rplReadNumberAsInt64(rplPeekData(4));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -146,15 +146,15 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
-        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
-        BINT srcsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
+        int32_t srcsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
 
         if(srcoffset + nbytes > srcsize) {
 
@@ -197,15 +197,15 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
-        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
-        BINT srcsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
+        int32_t srcsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
 
         if(srcoffset + nbytes > srcsize) {
 
@@ -218,7 +218,7 @@ void LIB_HANDLER()
         WORDPTR newobj = rplAllocTempOb(nbytes + 1);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
-        BINT k;
+        int32_t k;
 
         BYTEPTR ptr = (BYTEPTR) rplPeekData(3);
         ptr += srcoffset;
@@ -247,9 +247,9 @@ void LIB_HANDLER()
         }
         rplStripTagStack(4);
 
-        BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(4));
+        int32_t destsize = sizeof(WORD) * rplObjSize(rplPeekData(4));
 
-        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(3));
+        int64_t destoffset = rplReadNumberAsInt64(rplPeekData(3));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -258,7 +258,7 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -281,7 +281,7 @@ void LIB_HANDLER()
                 return; // NOT ENOUGH MEMORY
 
             int k;
-            BINT byte_num;
+            int32_t byte_num;
             BYTEPTR ptr = (BYTEPTR) newobj;
             ptr += destoffset;
 
@@ -289,14 +289,14 @@ void LIB_HANDLER()
 
             RReg[0].flags &= ~F_NEGATIVE;
 
-            rplBINTToRReg(3, 256);
+            rplint32_tToRReg(3, 256);
 
             // EXTRACT BYTES FROM THE BINARY INTEGER
             for(k = 0; k < nbytes; ++k) {
 
                 divmodReal(&RReg[1], &RReg[2], &RReg[0], &RReg[3]);
 
-                byte_num = (BYTE) getBINTReal(&RReg[2]);
+                byte_num = (BYTE) getint32_tReal(&RReg[2]);
                 if(num.flags & F_NEGATIVE) {
                     byte_num ^= 0xff;
                     if(!k)
@@ -322,13 +322,13 @@ void LIB_HANDLER()
                 return; // NOT ENOUGH MEMORY
 
             int k;
-            BINT byte_num;
+            int32_t byte_num;
             BYTEPTR ptr = (BYTEPTR) newobj;
             ptr += destoffset;
 
             BYTEPTR src = (BYTEPTR) rplPeekData(2);
             BYTEPTR srcend = src + 4 + rplStrSize(rplPeekData(2));
-            BINT strlen = rplStrLenCp(rplPeekData(2));
+            int32_t strlen = rplStrLenCp(rplPeekData(2));
 
             src += 4;
 
@@ -356,11 +356,11 @@ void LIB_HANDLER()
         if(ISLIST(*rplPeekData(2))) {
             // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 8 BITS OF EACH
 
-            BINT listlen = rplListLength(rplPeekData(2));
+            int32_t listlen = rplListLength(rplPeekData(2));
             WORDPTR listptr = rplGetListElement(rplPeekData(2), 1);
             REAL num;
             int k;
-            BINT byte_num;
+            int32_t byte_num;
 
             WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
@@ -369,7 +369,7 @@ void LIB_HANDLER()
             BYTEPTR ptr = (BYTEPTR) newobj;
             ptr += destoffset;
 
-            rplBINTToRReg(3, 256);
+            rplint32_tToRReg(3, 256);
 
             // EXTRACT BYTES FROM THE BINARY INTEGER
             for(k = 0; k < nbytes; ++k) {
@@ -378,11 +378,11 @@ void LIB_HANDLER()
                     if(Exceptions)
                         return;
 
-                    if(inBINTRange(&num))
-                        byte_num = getBINTReal(&num) & 0xff;
+                    if(inint32_tRange(&num))
+                        byte_num = getint32_tReal(&num) & 0xff;
                     else {
                         divmodReal(&RReg[1], &RReg[2], &num, &RReg[3]);
-                        byte_num = (BYTE) getBINTReal(&RReg[2]);
+                        byte_num = (BYTE) getint32_tReal(&RReg[2]);
                         if(num.flags & F_NEGATIVE) {
                             byte_num ^= 0xff;
                             byte_num += 1;
@@ -426,9 +426,9 @@ void LIB_HANDLER()
         }
         rplStripTagStack(4);
 
-        BINT destsize = rplObjSize(rplPeekData(4));
+        int32_t destsize = rplObjSize(rplPeekData(4));
 
-        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(3));
+        int64_t destoffset = rplReadNumberAsInt64(rplPeekData(3));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -437,7 +437,7 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -468,14 +468,14 @@ void LIB_HANDLER()
 
             RReg[0].flags &= ~F_NEGATIVE;
 
-            rplBINTToRReg(3, 0x100000000LL);
+            rplint32_tToRReg(3, 0x100000000LL);
 
             // EXTRACT WORDS FROM THE BINARY INTEGER
             for(k = 0; k < nwords; ++k) {
 
                 divmodReal(&RReg[1], &RReg[2], &RReg[0], &RReg[3]);
 
-                word_num = getBINTReal(&RReg[2]);
+                word_num = getint32_tReal(&RReg[2]);
                 if(num.flags & F_NEGATIVE) {
                     word_num ^= 0xffffffff;
                     if(!k)
@@ -507,7 +507,7 @@ void LIB_HANDLER()
 
             BYTEPTR src = (BYTEPTR) rplPeekData(2);
             BYTEPTR srcend = src + 4 + rplStrSize(rplPeekData(2));
-            BINT strlen = rplStrLenCp(rplPeekData(2));
+            int32_t strlen = rplStrLenCp(rplPeekData(2));
 
             src += 4;
 
@@ -535,7 +535,7 @@ void LIB_HANDLER()
         if(ISLIST(*rplPeekData(2))) {
             // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 32 BITS OF EACH
 
-            BINT listlen = rplListLength(rplPeekData(2));
+            int32_t listlen = rplListLength(rplPeekData(2));
             WORDPTR listptr = rplGetListElement(rplPeekData(2), 1);
             REAL num;
             int k;
@@ -548,7 +548,7 @@ void LIB_HANDLER()
             WORDPTR ptr = newobj;
             ptr += destoffset;
 
-            rplBINTToRReg(3, 0x100000000LL);
+            rplint32_tToRReg(3, 0x100000000LL);
 
             // EXTRACT BYTES FROM THE BINARY INTEGER
             for(k = 0; k < nwords; ++k) {
@@ -557,11 +557,11 @@ void LIB_HANDLER()
                     if(Exceptions)
                         return;
 
-                    if(inBINTRange(&num))
-                        word_num = getBINTReal(&num);
+                    if(inint32_tRange(&num))
+                        word_num = getint32_tReal(&num);
                     else {
                         divmodReal(&RReg[1], &RReg[2], &num, &RReg[3]);
-                        word_num = getBINTReal(&RReg[2]);
+                        word_num = getint32_tReal(&RReg[2]);
                         if(num.flags & F_NEGATIVE) {
                             word_num ^= 0xff;
                             word_num += 1;
@@ -610,9 +610,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT destsize = rplObjSize(rplPeekData(5));
+        int32_t destsize = rplObjSize(rplPeekData(5));
 
-        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(4));
+        int64_t destoffset = rplReadNumberAsInt64(rplPeekData(4));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -621,15 +621,15 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 1;
-        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
-        BINT srcsize = rplObjSize(rplPeekData(3));
+        int32_t srcsize = rplObjSize(rplPeekData(3));
 
         if(srcoffset + nwords > srcsize) {
 
@@ -670,15 +670,15 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 1;
-        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
-        BINT srcsize = rplObjSize(rplPeekData(3));
+        int32_t srcsize = rplObjSize(rplPeekData(3));
 
         if(srcoffset + nwords > srcsize) {
             rplError(ERR_READOUTSIDEOBJECT);
@@ -690,13 +690,13 @@ void LIB_HANDLER()
         WORDPTR newobj = rplAllocTempOb(nwords * 3 + 1);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
-        BINT k;
+        int32_t k;
 
         WORDPTR ptr = rplPeekData(3);
         ptr += srcoffset;
 
         for(k = 0; k < nwords; ++k, ++ptr) {
-            newobj[3 * k + 1] = MKPROLOG(HEXBINT, 2);
+            newobj[3 * k + 1] = MKPROLOG(HEXint32_t, 2);
             newobj[3 * k + 2] = *ptr;
             newobj[3 * k + 3] = 0;
         }
@@ -729,9 +729,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
+        int32_t destsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
 
-        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t destoffset = rplReadNumberAsInt64(rplPeekData(2));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -740,7 +740,7 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT nbytes = sizeof(WORD) * rplObjSize(rplPeekData(1));
+        int32_t nbytes = sizeof(WORD) * rplObjSize(rplPeekData(1));
 
         if(destoffset + nbytes > destsize) {
 
@@ -775,7 +775,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t srcoffset = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
@@ -786,7 +786,7 @@ void LIB_HANDLER()
 
         WORD prolog = ptr[0] | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24);
 
-        BINT nwords = (ISPROLOG(prolog) ? OBJSIZE(prolog) : 0);
+        int32_t nwords = (ISPROLOG(prolog) ? OBJSIZE(prolog) : 0);
 
         if(((1 + nwords) * sizeof(WORD) + srcoffset) >
                 sizeof(WORD) * rplObjSize(rplPeekData(2))) {
@@ -818,7 +818,7 @@ void LIB_HANDLER()
     case OVR_SAME:
         // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
     {
-        BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+        int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
         rplDropData(2);
         if(same)
             rplPushTrue();
@@ -890,7 +890,7 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((BINT) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
@@ -898,7 +898,7 @@ void LIB_HANDLER()
 
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             WORD value = 0;
-            BINT digit;
+            int32_t digit;
             while(ptr < (BYTEPTR) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
@@ -934,8 +934,8 @@ void LIB_HANDLER()
 
         WORD value = 0;
         WORD checksum = 0;
-        BINT ndigits = 0;
-        BINT dig;
+        int32_t ndigits = 0;
+        int32_t dig;
 
         if(LIBNUM(*ScratchPointer4) & 1) {
             // CONTINUE WHERE WE LEFT OFF
@@ -948,7 +948,7 @@ void LIB_HANDLER()
         }
 
         while((CompileEnd - ScratchPointer4 - 1) <
-                (BINT) OBJSIZE(*ScratchPointer4)) {
+                (int32_t) OBJSIZE(*ScratchPointer4)) {
             do {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     dig = (*ptr + 4);
@@ -993,7 +993,7 @@ void LIB_HANDLER()
             while(ptr != (BYTEPTR) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
-                            (BINT) OBJSIZE(*ScratchPointer4)))) {
+                            (int32_t) OBJSIZE(*ScratchPointer4)))) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum << 16));
@@ -1022,8 +1022,8 @@ void LIB_HANDLER()
             // DECOMPILE FONT
 
             rplDecompAppendString((BYTEPTR) "BINDATA ");
-            BINT size = OBJSIZE(*DecompileObject);
-            BINT k, zero = 1, nibble;
+            int32_t size = OBJSIZE(*DecompileObject);
+            int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
                 nibble = (size >> (k * 4)) & 0xf;
                 if(!zero || nibble) {
@@ -1049,12 +1049,12 @@ void LIB_HANDLER()
             encoder[6] = 0;
 
             WORDPTR ptr = DecompileObject + 1;
-            BINT nwords = 0;
+            int32_t nwords = 0;
 
             while(size) {
                 // ENCODE THE 6 CHARACTERS
                 int k;
-                BINT chksum = 0;
+                int32_t chksum = 0;
                 for(k = 0; k < 5; ++k) {
                     encoder[k] = ((*ptr) >> (26 - 6 * k)) & 0x3f;
                     chksum +=
@@ -1137,7 +1137,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1153,7 +1153,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -1163,7 +1163,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -18,11 +18,11 @@
 // VECTORS ARE AUTO-ROTATED
 // ROWS AND COLUMNS ARE 1-BASED
 
-WORDPTR rplMatrixGet(WORDPTR matrix, BINT row, BINT col)
+WORDPTR rplMatrixGet(WORDPTR matrix, int32_t row, int32_t col)
 {
     if(!ISMATRIX(*matrix))
         return 0;
-    BINT rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
+    int32_t rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
 
     if(!rows) {
         // THIS IS A VECTOR
@@ -52,14 +52,14 @@ WORDPTR rplMatrixGet(WORDPTR matrix, BINT row, BINT col)
 }
 
 // RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
-BINT rplMatrixCols(WORDPTR matrix)
+int32_t rplMatrixCols(WORDPTR matrix)
 {
     return MATCOLS(*(matrix + 1));
 }
 
 // RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
 // ROWS=0 MEANS A VECTOR WITH cols ELEMENTS
-BINT rplMatrixRows(WORDPTR matrix)
+int32_t rplMatrixRows(WORDPTR matrix)
 {
     return MATROWS(*(matrix + 1));
 }
@@ -68,7 +68,7 @@ BINT rplMatrixRows(WORDPTR matrix)
 
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)
 {
-    BINT rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
+    int32_t rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
     if(!rows)
         rows = 1;
     return matrix + 2 + rows * cols;
@@ -76,9 +76,9 @@ WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)
 
 // GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE
 
-WORDPTR rplMatrixFastGet(WORDPTR matrix, BINT row, BINT col)
+WORDPTR rplMatrixFastGet(WORDPTR matrix, int32_t row, int32_t col)
 {
-    BINT rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
+    int32_t rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
     if(!rows)
         return matrix + matrix[row + col];
     return matrix + matrix[(row - 1) * cols + col + 1];
@@ -86,14 +86,14 @@ WORDPTR rplMatrixFastGet(WORDPTR matrix, BINT row, BINT col)
 
 // GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE - FLAT INDEX 0..(n-1)
 
-WORDPTR rplMatrixFastGetFlat(WORDPTR matrix, BINT index)
+WORDPTR rplMatrixFastGetFlat(WORDPTR matrix, int32_t index)
 {
     return GETELEMENT(matrix, index);
 }
 
 // FAST GET THE PTR TO AN ELEMENT IN A MATRIX EXPLODED IN THE STACK
 
-WORDPTR *rplMatrixFastGetEx(WORDPTR * first, BINT cols, BINT i, BINT j)
+WORDPTR *rplMatrixFastGetEx(WORDPTR * first, int32_t cols, int32_t i, int32_t j)
 {
     return first + (i - 1) * cols + (j - 1);
 }
@@ -101,7 +101,7 @@ WORDPTR *rplMatrixFastGetEx(WORDPTR * first, BINT cols, BINT i, BINT j)
 // CREATE A NEW MATRIX EXPLODED IN THE STACK, FILLED WITH ZEROS
 // RETURN THE POINTER TO THE FIRST ELEMENT IN THE STACK
 
-WORDPTR *rplMatrixNewEx(BINT rows, BINT cols)
+WORDPTR *rplMatrixNewEx(int32_t rows, int32_t cols)
 {
     if(!rows)
         ++rows;
@@ -110,7 +110,7 @@ WORDPTR *rplMatrixNewEx(BINT rows, BINT cols)
         return 0;
 
     WORDPTR *Firstelem = DSTop;
-    BINT k, nelem;
+    int32_t k, nelem;
 
     nelem = rows * cols;
 
@@ -133,11 +133,11 @@ WORDPTR *rplMatrixNewEx(BINT rows, BINT cols)
 WORDPTR *rplMatrixExplode()
 {
     WORDPTR *matrix = DSTop - 1;
-    BINT rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
+    int32_t rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
     if(!rows)
         ++rows;
 
-    BINT k, nelem;
+    int32_t k, nelem;
 
     nelem = rows * cols;
 
@@ -159,11 +159,11 @@ WORDPTR *rplMatrixExplode()
 WORDPTR *rplMatrixExplodeByCols()
 {
     WORDPTR *matrix = DSTop - 1;
-    BINT rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
+    int32_t rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
     if(!rows)
         return rplMatrixExplode();
 
-    BINT i, j;
+    int32_t i, j;
 
     for(i = 1; i <= cols; ++i) {
         for(j = 1; j <= rows; ++j) {
@@ -182,9 +182,9 @@ WORDPTR *rplMatrixExplodeByCols()
 // RETURNS 0 IF ERROR, AND SETS Exceptions AND ExceptionPtr.
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
-WORDPTR rplMatrixComposeN(BINT level, BINT rows, BINT cols)
+WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
 {
-    BINT totalelements = (rows) ? rows * cols : cols;
+    int32_t totalelements = (rows) ? rows * cols : cols;
 
 // CHECK IF ENOUGH ELEMENTS IN THE STACK
     if(rplDepthData() < level + totalelements - 1) {
@@ -198,7 +198,7 @@ WORDPTR rplMatrixComposeN(BINT level, BINT rows, BINT cols)
     }
 
 //   CHECK VALIDITY OF ALL ELEMENTS
-    BINT k, j, totalsize = 0;
+    int32_t k, j, totalsize = 0;
     WORDPTR obj;
 
     for(k = level; k < level + totalelements; ++k) {
@@ -248,7 +248,7 @@ WORDPTR rplMatrixComposeN(BINT level, BINT rows, BINT cols)
 
 }
 
-WORDPTR rplMatrixCompose(BINT rows, BINT cols)
+WORDPTR rplMatrixCompose(int32_t rows, int32_t cols)
 {
     return rplMatrixComposeN(1, rows, cols);
 }
@@ -268,8 +268,8 @@ void rplMatrixBinary(WORD Opcode)
 
 // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
-    BINT rowsb = MATROWS(*(*b + 1)), colsb = MATCOLS(* (*b + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsb = MATROWS(*(*b + 1)), colsb = MATCOLS(* (*b + 1));
 
     if(rowsa != rowsb) {
         // CHECK IF ONE OF THEM IS A VECTOR AND AUTOTRANSPOSE
@@ -317,9 +317,9 @@ void rplMatrixBinary(WORD Opcode)
 
 // HERE WE HAVE COMPATIBLE SIZE VECTOR/MATRIX
 
-    BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+    int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-    BINT j;
+    int32_t j;
 
 // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -384,11 +384,11 @@ void rplMatrixMulScalar()
 
 // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
 
-    BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+    int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-    BINT j;
+    int32_t j;
 
 // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -437,11 +437,11 @@ void rplMatrixDivScalar()
 
 // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
 
-    BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+    int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-    BINT j;
+    int32_t j;
 
 // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -484,11 +484,11 @@ void rplMatrixUnary(WORD Opcode)
 
 // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
 
-    BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+    int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-    BINT j;
+    int32_t j;
 
 // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -544,9 +544,9 @@ void rplMatrixMul()
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
-    BINT rowsb = MATROWS(*(*b + 1)), colsb = MATCOLS(* (*b + 1));
-    BINT rrows, rcols;
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsb = MATROWS(*(*b + 1)), colsb = MATCOLS(* (*b + 1));
+    int32_t rrows, rcols;
 
     if(rowsa == 0 && rowsb == 0) {
         // VECTOR BY VECTOR MULTIPLICATION
@@ -648,7 +648,7 @@ void rplMatrixMul()
 
     // HERE WE HAVE PROPER DIMENSIONS TO DO THE MULTIPLICATION
 
-    BINT i, j, k;
+    int32_t i, j, k;
 
     for(i = 0; i < rowsa; ++i) {
 
@@ -709,10 +709,10 @@ void rplMatrixMul()
 // EXPLODED IN THE STACK
 // RETURNS FALSE IF MATRIX IS SINGULAR OR THERE WAS AN ERROR, TRUE OTHERWISE
 
-BINT rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, BINT rowsa, BINT colsa,
-        BINT upperonly)
+int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t colsa,
+        int32_t upperonly)
 {
-    BINT i, j, k, q, startrow = 1;
+    int32_t i, j, k, q, startrow = 1;
 
     /*
        Single step Bareiss
@@ -896,7 +896,7 @@ void rplMatrixReduce()
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
 
     // SIZE CHECK, ONLY AUGMENTED SQUARE MATRICES ALLOWED
     if(rowsa > colsa) {
@@ -954,9 +954,9 @@ void rplMatrixReduce()
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
 
-void rplMatrixBackSubstEx(WORDPTR * a, BINT rowsa, BINT colsa)
+void rplMatrixBackSubstEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 {
-    BINT i, j, k, l;
+    int32_t i, j, k, l;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
 // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
@@ -1033,7 +1033,7 @@ void rplMatrixInvert()
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
 
     // SIZE CHECK, ONLY SQUARE MATRICES ALLOWED
     if(rowsa != colsa) {
@@ -1072,7 +1072,7 @@ void rplMatrixInvert()
 
     // WE HAVE THE SPACE IN THE STACK, EXPAND THE ROWS
 
-    BINT i, j;
+    int32_t i, j;
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
@@ -1175,12 +1175,12 @@ void rplMatrixNorm()
 
 // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
 
     if(!rowsa)
         rowsa = 1;
 
-    BINT i, j;
+    int32_t i, j;
     rplPushData((WORDPTR) zero_bint);
 // DO THE ELEMENT-BY-ELEMENT OPERATION
     for(i = 0; i < rowsa; ++i) {
@@ -1231,12 +1231,12 @@ void rplMatrixNorm()
 // DOES NOT EXPLODE OR USE THE STACK
 // NO TYPE CHECK, MAKE SURE IT'S A MATRIX
 
-BINT rplMatrixIsPolar(WORDPTR matobj)
+int32_t rplMatrixIsPolar(WORDPTR matobj)
 {
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(matobj + 1)), colsa = MATCOLS(*(matobj + 1));
-    BINT k;
+    int32_t rowsa = MATROWS(*(matobj + 1)), colsa = MATCOLS(*(matobj + 1));
+    int32_t k;
     WORDPTR item;
 
     if(rowsa)
@@ -1260,8 +1260,8 @@ WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
-    BINT k;
+    int32_t rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
+    int32_t k;
     WORDPTR item;
 
     if(rowsa)
@@ -1278,12 +1278,12 @@ WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
 
 // GET THE ANGLE MODE
 
-BINT rplMatrixPolarGetAngMode(WORDPTR matrix)
+int32_t rplMatrixPolarGetAngMode(WORDPTR matrix)
 {
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
-    BINT k;
+    int32_t rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
+    int32_t k;
     WORDPTR item;
 
     if(rowsa)
@@ -1306,9 +1306,9 @@ BINT rplMatrixPolarGetAngMode(WORDPTR matrix)
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
 
-void rplMatrixPolarToRectEx(WORDPTR * a, BINT rowsa, BINT colsa)
+void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 {
-    BINT i, j, k;
+    int32_t i, j, k;
     WORDPTR *stacksave = DSTop;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -1389,10 +1389,10 @@ void rplMatrixPolarToRectEx(WORDPTR * a, BINT rowsa, BINT colsa)
 // 3D SPHERICAL IS 3
 // A SINGLE angmode APPLIES TO ALL ANGLES IN THE VECTOR (ANGLE_XXX CONSTANTS)
 
-void rplMatrixRectToPolarEx(WORDPTR * a, BINT rowsa, BINT colsa,
-        WORD angtemplate, BINT angmode)
+void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
+        WORD angtemplate, int32_t angmode)
 {
-    BINT i, j, k;
+    int32_t i, j, k;
     WORDPTR *stacksave = DSTop;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -1419,7 +1419,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, BINT rowsa, BINT colsa,
 
         // HERE WE HAVE THE SQUARE OF THE VECTOR LENGTH AND COSINE MULTIPLIER IN THE STACK
 
-        BINT negcosine = 0;
+        int32_t negcosine = 0;
 
         for(j = colsa; j >= 1; --j) {
 
@@ -1464,7 +1464,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, BINT rowsa, BINT colsa,
                             && (rplIsNegative(STACKELEM(i,
                                         1)) ^ rplIsNegative(rplPeekData(3)))) {
                         // FIRST ANGLE CAN BE FROM -180 TO +180
-                        BINT negsine = rplIsNegative(rplPeekData(1));
+                        int32_t negsine = rplIsNegative(rplPeekData(1));
                         rplPushData(rplPeekData(1));
                         rplOverwriteData(2, (WORDPTR) angle_180);
                         if(negsine)
@@ -1514,7 +1514,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, BINT rowsa, BINT colsa,
                         REAL r;
 
                         rplReadNumberAsReal(rplPeekData(1), &r);
-                        BINT tmpdigits;
+                        int32_t tmpdigits;
                         if(iszeroReal(&r))
                             tmpdigits = 0;
                         else {
@@ -1598,7 +1598,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, BINT rowsa, BINT colsa,
 
 // SAME AS ADD, BUT ADDS VECTORS IN POLAR MODE
 
-void rplMatrixAddPolar(BINT negv2)
+void rplMatrixAddPolar(int32_t negv2)
 {
     WORDPTR *v1, *v2, *savestk = DSTop;
 
@@ -1607,9 +1607,9 @@ void rplMatrixAddPolar(BINT negv2)
 
     // CHECK DIMENSIONS
 
-    BINT rows1 = MATROWS((*v1)[1]), cols1 = MATCOLS((*v1)[1]);
-    BINT rows2 = MATROWS((*v2)[1]), cols2 = MATCOLS((*v2)[1]);
-    BINT elem;
+    int32_t rows1 = MATROWS((*v1)[1]), cols1 = MATCOLS((*v1)[1]);
+    int32_t rows2 = MATROWS((*v2)[1]), cols2 = MATCOLS((*v2)[1]);
+    int32_t elem;
 
     if(rows1 > 1) {
         if(cols1 != 1) {
@@ -1646,7 +1646,7 @@ void rplMatrixAddPolar(BINT negv2)
 
     //  RESULTING VECTOR WILL FOLLOW THE TEMPLATE OF THE FIRST ARGUMENT BY CONVENTION
     WORD templ = rplMatrixPolarGetTemplate(*v1);
-    BINT angmode = rplMatrixPolarGetAngMode(*v1);
+    int32_t angmode = rplMatrixPolarGetAngMode(*v1);
 
     rplPushData(*v1);
     WORDPTR *firstv1 = rplMatrixExplode() - 1;  // EXPLODE V1
@@ -1677,7 +1677,7 @@ void rplMatrixAddPolar(BINT negv2)
     }
 
     // OPERATE ELEMENT BY ELEMENT
-    BINT k;
+    int32_t k;
 
     for(k = 1; k <= elem; ++k) {
         rplPushData(firstv1[k]);
@@ -1728,8 +1728,8 @@ void rplMatrixNegPolar()
     // CHECK DIMENSIONS
 
     WORDPTR *matrix = DSTop - 1;
-    BINT rows1 = MATROWS(*(*matrix + 1)), cols1 = MATCOLS(* (*matrix + 1));
-    BINT k, elem, negdone;
+    int32_t rows1 = MATROWS(*(*matrix + 1)), cols1 = MATCOLS(* (*matrix + 1));
+    int32_t k, elem, negdone;
     WORDPTR item;
 
     if(rows1 > 1) {
@@ -1754,7 +1754,7 @@ void rplMatrixNegPolar()
             continue;
         if(!negdone && ISANGLE(*item)) {
             // ADD HALF CIRCLE TO THE ANGLE
-            BINT angmode = ANGLEMODE(*item);
+            int32_t angmode = ANGLEMODE(*item);
             REAL halfturn, ang;
 
             switch (angmode) {
@@ -1825,9 +1825,9 @@ void rplMatrixNegPolar()
 // IF AN ELEMENT IS A MATRIX, IT IS EQUIVALENT TO MULTIPLE ROWS
 // ALL VECTORS AND MATRICES MUST HAVE THE SAME NUMBER OF COLUMNS
 
-WORDPTR rplMatrixFlexComposeN(BINT level, BINT totalelements)
+WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
 {
-    BINT rows, cols;
+    int32_t rows, cols;
 
     rows = -1;
     cols = -1;
@@ -1839,15 +1839,15 @@ WORDPTR rplMatrixFlexComposeN(BINT level, BINT totalelements)
     }
 
 //   CHECK VALIDITY OF ALL ELEMENTS
-    BINT k, j, totalsize = 0, nelem = 0;
+    int32_t k, j, totalsize = 0, nelem = 0;
     WORDPTR obj;
 
     for(k = level; k < level + totalelements; ++k) {
         obj = rplPeekData(k);
         if(ISMATRIX(*obj)) {
             // GET THE NUMBER OF COLUMNS
-            BINT mcols = rplMatrixCols(obj);
-            BINT mrows = rplMatrixRows(obj);
+            int32_t mcols = rplMatrixCols(obj);
+            int32_t mrows = rplMatrixRows(obj);
 
             if(cols == -1) {
                 // DEFINE THE NUMBER OF COLUMNS FOR THE ENTIRE MATRIX
@@ -1924,9 +1924,9 @@ WORDPTR rplMatrixFlexComposeN(BINT level, BINT totalelements)
         obj = rplPeekData(level - 1 + totalelements - k);
         if(ISMATRIX(*obj)) {
             // INSERT ALL ELEMENTS IN THE MATRIX
-            BINT i;
-            BINT mrows = rplMatrixRows(obj);
-            BINT offsetfix =
+            int32_t i;
+            int32_t mrows = rplMatrixRows(obj);
+            int32_t offsetfix =
                     (newobj - matrix) - (rplMatrixGetFirstObj(obj) - obj);
             if(!mrows)
                 ++mrows;
@@ -1940,7 +1940,7 @@ WORDPTR rplMatrixFlexComposeN(BINT level, BINT totalelements)
 
             // TODO: COMPARE ONE BY ONE AND FIX OFFSETS
             // INSERT ALL OBJECTS
-            BINT objsize = rplSkipOb(obj) - rplMatrixGetFirstObj(obj);
+            int32_t objsize = rplSkipOb(obj) - rplMatrixGetFirstObj(obj);
             memmovew(newobj, rplMatrixGetFirstObj(obj), objsize);
             newobj += objsize;
             nelem += mrows * cols;
@@ -1978,7 +1978,7 @@ WORDPTR rplMatrixFlexComposeN(BINT level, BINT totalelements)
 
 }
 
-BINT rplMatrixIsAllowed(WORDPTR object)
+int32_t rplMatrixIsAllowed(WORDPTR object)
 {
     if(!(ISNUMBERCPLX(*object)
                 || ISSYMBOLIC(*object)
@@ -1992,7 +1992,7 @@ BINT rplMatrixIsAllowed(WORDPTR object)
 
 // PUSHES TRUE ON THE STACK IF ALL ELEMENTS IN A MATRIX AT LEVEL 1 ARE ZERO
 
-BINT rplIsZeroMatrix(WORDPTR object)
+int32_t rplIsZeroMatrix(WORDPTR object)
 {
     WORDPTR *Savestk, *a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
@@ -2005,11 +2005,11 @@ BINT rplIsZeroMatrix(WORDPTR object)
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
 
-    BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+    int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-    BINT j;
+    int32_t j;
 
     // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -2107,7 +2107,7 @@ void rplMatrixTranspose()
 
     // CHECK DIMENSIONS
 
-    BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
+    int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(* (*a + 1));
 
     if(!rowsa)
         return; // NO NEED TO TRANSPOSE VECTORS
@@ -2126,9 +2126,9 @@ void rplMatrixTranspose()
 // COMPOSES A NEW MATRIX OBJECT FROM FILLED WITH GIVEN OBJECT
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
-WORDPTR rplMatrixFill(BINT rows, BINT cols, WORDPTR obj)
+WORDPTR rplMatrixFill(int32_t rows, int32_t cols, WORDPTR obj)
 {
-    BINT k, totalelements = (rows) ? rows * cols : cols;
+    int32_t k, totalelements = (rows) ? rows * cols : cols;
 
     if((rows < 0) || (rows > 65535) || (cols < 1) || (cols > 65535)) {
         rplError(ERR_INVALIDDIMENSION);
@@ -2169,7 +2169,7 @@ WORDPTR rplMatrixFill(BINT rows, BINT cols, WORDPTR obj)
 // CREATE TEMPORARY STORAGE FOR ROW INDEX PERMUTATION VECTOR
 // USED IN PARTIAL PIVOTING
 
-WORDPTR rplMatrixInitIdx(BINT nrows)
+WORDPTR rplMatrixInitIdx(int32_t nrows)
 {
     // RESERVE SPACE FOR THE ROW INDEX LIST
 
@@ -2181,7 +2181,7 @@ WORDPTR rplMatrixInitIdx(BINT nrows)
 
     IdxList[0] = MKPROLOG(DOBINDATA, nrows);
 
-    BINT k;
+    int32_t k;
     for(k = 1; k <= nrows; ++k)
         IdxList[k] = k;
 
@@ -2190,9 +2190,9 @@ WORDPTR rplMatrixInitIdx(BINT nrows)
 
 // COMPOSES A NEW IDENTITY MATRIX OBJECT
 
-WORDPTR rplMatrixIdent(BINT rows)
+WORDPTR rplMatrixIdent(int32_t rows)
 {
-    BINT k;
+    int32_t k;
 
     if((rows < 0) || (rows > 65535)) {
         rplError(ERR_INVALIDDIMENSION);
@@ -2224,15 +2224,15 @@ WORDPTR rplMatrixIdent(BINT rows)
 
 // COMPOSES A NEW ZERO MATRIX/VECTOR OBJECT
 
-WORDPTR rplMatrixZero(BINT rows, BINT cols)
+WORDPTR rplMatrixZero(int32_t rows, int32_t cols)
 {
-    BINT k;
+    int32_t k;
     if((rows < 0) || (rows > 65535) || (cols < 1) || (cols > 65535)) {
         rplError(ERR_INVALIDDIMENSION);
         return 0;
     }
 
-    BINT isvector = (rows == 0) ? 1 : 0;
+    int32_t isvector = (rows == 0) ? 1 : 0;
 
     if(isvector)
         rows = 1;
@@ -2267,9 +2267,9 @@ WORDPTR rplMatrixZero(BINT rows, BINT cols)
 // [ ... ... qmm ... rmn ]
 // THE VECTOR ON THE STACK HAS [ rii ... rmm ]
 
-void rplMatrixQREx(WORDPTR * a, BINT rowsa, BINT colsa)
+void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 {
-    BINT i, j, k;
+    int32_t i, j, k;
 
     /* ALGORITHM:
        for j:= 1 to n do begin
@@ -2437,7 +2437,7 @@ void rplMatrixQREx(WORDPTR * a, BINT rowsa, BINT colsa)
 // EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
 // RETURNS Q AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRGetQ(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
+WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * diagv)
 {
     UNUSED_ARGUMENT(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -2446,7 +2446,7 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
 #define VECTELEM(c) diagv[(c)]
 #define ZELEM(r) z[(r)-1]
     WORDPTR *stksave = DSTop, *z;
-    BINT i, j, k;
+    int32_t i, j, k;
 
     for(i = 1; i <= rowsa; ++i) {
 
@@ -2533,7 +2533,7 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
 // EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
 // RETURNS Q AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRGetR(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
+WORDPTR rplMatrixQRGetR(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * diagv)
 {
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
@@ -2541,7 +2541,7 @@ WORDPTR rplMatrixQRGetR(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
 #define VECTELEM(c) diagv[(c)]
 
     WORDPTR *stksave = DSTop;
-    BINT i, j;
+    int32_t i, j;
 
     for(i = 1; i <= rowsa; ++i) {
 
@@ -2581,7 +2581,7 @@ WORDPTR rplMatrixQRGetR(WORDPTR * a, BINT rowsa, BINT colsa, WORDPTR * diagv)
 // MATRIX MUST BE SQUARE OF nxn AND diag IS THE n ELEMENT DIAGONAL
 // RETURNS A(k+1) AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRDoRQ(WORDPTR * a, BINT n, WORDPTR * diagv)
+WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv)
 {
     UNUSED_ARGUMENT(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -2590,7 +2590,7 @@ WORDPTR rplMatrixQRDoRQ(WORDPTR * a, BINT n, WORDPTR * diagv)
 #define VECTELEM(c) diagv[(c)]
 #define ZELEM(r) z[(r)-1]
     WORDPTR *stksave = DSTop, *z;
-    BINT i, j, k;
+    int32_t i, j, k;
 
     for(i = 1; i <= n; ++i) {
 

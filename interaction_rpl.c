@@ -114,18 +114,18 @@ int compileobject()
 }
 
 // THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
-extern BINT usb_longoffset;
-extern BINT usb_longactbuffer;        // WHICH BUFFER IS BEING WRITTEN
-extern BINT usb_longlastsize; // LAST BLOCK SIZE IN A LONG TRANSMISSION
+extern int32_t usb_longoffset;
+extern int32_t usb_longactbuffer;        // WHICH BUFFER IS BEING WRITTEN
+extern int32_t usb_longlastsize; // LAST BLOCK SIZE IN A LONG TRANSMISSION
 extern BYTEPTR usb_rcvbuffer;
 extern WORD usb_rcvtotal SYSTEM_GLOBAL;
 extern WORD usb_rcvpartial SYSTEM_GLOBAL;
 extern WORD usb_rcvcrc SYSTEM_GLOBAL;
-extern BINT usb_rcvblkmark SYSTEM_GLOBAL; // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+extern int32_t usb_rcvblkmark SYSTEM_GLOBAL; // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
 extern BYTEPTR usb_longbuffer[2];     // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
 extern BYTE usb_rxtmpbuffer[RAWHID_TX_SIZE + 1] SYSTEM_GLOBAL;    // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
-extern BINT usb_localbigoffset SYSTEM_GLOBAL;
+extern int32_t usb_localbigoffset SYSTEM_GLOBAL;
 
 extern volatile int usb_paused;
 extern void usb_irqservice();
@@ -300,19 +300,19 @@ void fullscreenupdate()
     halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
 }
 
-// Make a list with the color theme palette vlaues (64 BINTs)
+// Make a list with the color theme palette vlaues (64 int32_ts)
 // size contains the buffer maximum size, if palette doesn't fit it returns size=0
 // if it fits, it returns size = actual object size in words
 // and the object is stored at the buffer (list)
 void palette2list(uint32_t *list,int *size)
 {
     int k;
-    if(*size<PALETTE_SIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT BINT, PLUS PROLOG AND ENDLIST
+    if(*size<PALETTE_SIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT int32_t, PLUS PROLOG AND ENDLIST
 
     list[0]=MKPROLOG(DOLIST, PALETTE_SIZE * 3 + 1);
     for(k=0;k<PALETTE_SIZE;++k)
     {
-        list[1+3*k]=MKPROLOG(HEXBINT,2);
+        list[1+3*k]=MKPROLOG(HEXint32_t,2);
         list[2+3*k]=ggl_palette[k];
         list[3+3*k]=0;
     }
@@ -329,7 +329,7 @@ void list2palette(uint32_t *list)
     for(k=0;k<PALETTE_SIZE;++k)
     {
         if(*ptr==CMD_ENDLIST) break;
-        if(ISBINT(*ptr)) ggl_palette[k]=ptr[1];
+        if(ISint32_t(*ptr)) ggl_palette[k]=ptr[1];
         ptr=rplSkipOb(ptr);
     }
 }

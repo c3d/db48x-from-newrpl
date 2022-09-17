@@ -420,7 +420,7 @@ extern "C"
 void PrintObj(WORDPTR obj)
 {
     WORDPTR string;
-    BINT nwords;
+    int32_t nwords;
     BYTEPTR charptr;
     string = rplDecompile(obj, 0);
 
@@ -443,7 +443,7 @@ void PrintObj(WORDPTR obj)
 void PrintSeco(WORDPTR obj)
 {
     WORDPTR string;
-    BINT nwords;
+    int32_t nwords;
     BYTEPTR charptr;
 
     WORDPTR endobj = rplSkipOb(obj);
@@ -561,11 +561,11 @@ void DumpLAMs()
 
 void DumpDStack()
 {
-    BINT count = 0;
-    BINT nwords;
+    int32_t count = 0;
+    int32_t nwords;
     WORDPTR string;
     BYTEPTR charptr;
-    BINT nlevels = 5;
+    int32_t nlevels = 5;
 
     while(nlevels > rplDepthData() && nlevels > 0) {
         printf("%d:\n", nlevels);

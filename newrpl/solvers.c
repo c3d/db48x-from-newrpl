@@ -18,9 +18,9 @@
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyEvalEx(WORDPTR * first, BINT degree, WORDPTR * value)
+WORDPTR rplPolyEvalEx(WORDPTR * first, int32_t degree, WORDPTR * value)
 {
-    BINT k;
+    int32_t k;
 
     rplPushData(first[0]);
     for(k = 1; k <= degree; ++k) {
@@ -50,15 +50,15 @@ WORDPTR rplPolyEvalEx(WORDPTR * first, BINT degree, WORDPTR * value)
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyEvalDerivEx(BINT deriv, WORDPTR * first, BINT degree,
+WORDPTR rplPolyEvalDerivEx(int32_t deriv, WORDPTR * first, int32_t degree,
         WORDPTR * value)
 {
-    BINT k, j, c;
+    int32_t k, j, c;
 
     rplPushData(first[0]);
     for(c = degree, j = 1; j < deriv; ++j)
         c *= (c - j);
-    rplNewBINTPush(c, DECBINT);
+    rplNewint32_tPush(c, DECint32_t);
     if(Exceptions)
         return 0;
     rplCallOvrOperator(CMD_OVR_MUL);
@@ -73,7 +73,7 @@ WORDPTR rplPolyEvalDerivEx(BINT deriv, WORDPTR * first, BINT degree,
         rplPushData(first[k]);
         for(c = degree - k, j = 1; j < deriv; ++j)
             c *= (c - j);
-        rplNewBINTPush(c, DECBINT);
+        rplNewint32_tPush(c, DECint32_t);
         if(Exceptions)
             return 0;
         rplCallOvrOperator(CMD_OVR_MUL);
@@ -97,9 +97,9 @@ WORDPTR rplPolyEvalDerivEx(BINT deriv, WORDPTR * first, BINT degree,
 // USES LAGUERRE METHOD, IT FINDS COMPLEX ROOTS
 // CALLER NEEDS TO SET FLAGS: COMPLEX MODE AND DON'T ERROR ON INFINITE RESULT TO AVOID PREMATURE EXIT
 
-WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
+WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
 {
-    BINT k;
+    int32_t k;
 
     // EXTRACT THE MAGNITUDE OF ALL COEFFICIENTS
     for(k = 0; k <= degree; ++k) {
@@ -131,7 +131,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
         return 0;
 
     // USE HALF OF THAT CIRCLE AS INITIAL GUESS
-    newRealFromBINT(&RReg[0], 5, -1);
+    newRealFromint32_t(&RReg[0], 5, -1);
     rplNewRealFromRRegPush(0);
     if(Exceptions)
         return 0;
@@ -142,7 +142,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
 
     // HERE WE HAVE THE POLYNOMIAL EXPLODED AND AN INITIAL GUESS
 
-    BINT oldprec = Context.precdigits;
+    int32_t oldprec = Context.precdigits;
     WORDPTR pk;
     REAL err;
     // TEMPORARILY INCREASE PRECISION
@@ -258,7 +258,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
 
         // HERE WE HAVE pk, G, G^2 AND H ON THE STACK
 
-        rplNewBINTPush(degree, DECBINT);
+        rplNewint32_tPush(degree, DECint32_t);
         if(Exceptions) {
             Context.precdigits = oldprec;
             return 0;
@@ -275,7 +275,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
             return 0;
         }
 
-        rplNewBINTPush(1 - degree, DECBINT);    // -(n-1) = (1-n)
+        rplNewint32_tPush(1 - degree, DECint32_t);    // -(n-1) = (1-n)
         if(Exceptions) {
             Context.precdigits = oldprec;
             return 0;
@@ -347,7 +347,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
             // THIS MAY HAPPEN AT A LOCAL EXTREMUM
             // NOT SURE WHAT TO DO, FOR NOW JUST SET a=1000*error TO MOVE IT TO A DIFFERENT POINT
             rplDropData(2);
-            newRealFromBINT(&RReg[0], 1, -Context.precdigits + 12);
+            newRealFromint32_t(&RReg[0], 1, -Context.precdigits + 12);
             rplNewRealFromRRegPush(0);
         }
         else
@@ -373,7 +373,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
     pk = rplPeekData(1);
 
     if(ISCOMPLEX(*pk)) {
-        BINT cclass = rplComplexClass(pk);
+        int32_t cclass = rplComplexClass(pk);
         if(cclass == CPLX_ZERO)
             rplOverwriteData(1, (WORDPTR) zero_bint);
         else if(cclass == CPLX_NORMAL) {
@@ -382,7 +382,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
             rplReadCNumberAsReal(pk, &re);
             rplReadCNumberAsImag(pk, &im);
 
-            BINT digre, digim;
+            int32_t digre, digim;
             digre = intdigitsReal(&re);
             digim = intdigitsReal(&im);
 
@@ -532,9 +532,9 @@ WORDPTR rplPolyRootEx(WORDPTR * first, BINT degree)
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyDeflateEx(WORDPTR * first, BINT degree, WORDPTR * value)
+WORDPTR rplPolyDeflateEx(WORDPTR * first, int32_t degree, WORDPTR * value)
 {
-    BINT k;
+    int32_t k;
 
     rplPushData(first[0]);
     for(k = 1; k <= degree; ++k) {
@@ -577,7 +577,7 @@ void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode)
         rplCreateLAMEnvironment(arg_userfunc);
         if(Exceptions)
             return;
-        BINT nargs = 0;
+        int32_t nargs = 0;
         while(rplSkipOb(ScratchPointer1) < ScratchPointer2) {
             ++nargs;
             if(!ISIDENT(*ScratchPointer1)) {
@@ -600,7 +600,7 @@ void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode)
             rplCleanupLAMs(0);
             return;
         }
-        BINT k;
+        int32_t k;
 
         for(k = 0; k < nargs; ++k) {
             rplCreateLAM(DSTop[-k - 1], DSTop[-k - nargs - 1]);
@@ -657,8 +657,8 @@ void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode)
 // FOR ALL EXPRESSIONS OR EQUALITIES: '(LEFT-RIGHT)^2'
 // FOR ALL TRUTH EXPRESSIONS (INEQUALITIES): +Inf IF FALSE, 0 IF TRUE
 
-void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, BINT nvars,
-        BINT minimizer)
+void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvars,
+        int32_t minimizer)
 {
     WORDPTR *dstksave = DSTop;
 
@@ -681,7 +681,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, BINT nvars,
         return;
     }
 
-    BINT woffset = 0, endoffset, j;
+    int32_t woffset = 0, endoffset, j;
 
     endoffset = rplSkipOb(*listofeq) - *listofeq;
     if(ISLIST(**listofeq)) {
@@ -694,7 +694,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, BINT nvars,
     if(Exceptions)
         return;
 
-    BINT varname = 0, varends = rplSkipOb(*listofvars) - (*listofvars);
+    int32_t varname = 0, varends = rplSkipOb(*listofvars) - (*listofvars);
 
     if(ISLIST(**listofvars))
         varname++;
@@ -719,7 +719,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, BINT nvars,
     // EVALUATE ALL FUNCTIONS
     WORD eqtype;
     WORDPTR *tmp;
-    BINT nresults = 0;
+    int32_t nresults = 0;
     REAL result;
     while(woffset < endoffset) {
 

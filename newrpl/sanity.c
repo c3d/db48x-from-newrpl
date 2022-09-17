@@ -19,14 +19,14 @@
 
 // DOES NOT CHECK FOR VALIDITY OF THE OBJECT POINTER
 
-BINT rplVerifyObject(WORDPTR obj)
+int32_t rplVerifyObject(WORDPTR obj)
 {
     int libnum = LIBNUM(*obj);
     LIBHANDLER han = rplGetLibHandler(libnum);
     if(!han)
         return 0;
     // EXECUTE THE LIBRARY DIRECTLY
-    BINT SavedOpcode = CurOpcode;
+    int32_t SavedOpcode = CurOpcode;
 
     CurOpcode = MKOPCODE(libnum, OPCODE_CHECKOBJ);
 
@@ -43,7 +43,7 @@ BINT rplVerifyObject(WORDPTR obj)
     return 1;
 }
 
-BINT rplIsTempObPointer(WORDPTR ptr)
+int32_t rplIsTempObPointer(WORDPTR ptr)
 {
 // CHECK IF POINTER IS WITHIN TEMPOB
     if((ptr >= TempOb) && (ptr < TempObEnd))
@@ -56,7 +56,7 @@ BINT rplIsTempObPointer(WORDPTR ptr)
 // A) POINT WITHIN TEMPOB
 // B) POINT TO AN OBJECT IN ROM
 
-BINT rplVerifyObjPointer(WORDPTR ptr)
+int32_t rplVerifyObjPointer(WORDPTR ptr)
 {
 // CHECK IF POINTER IS WITHIN TEMPOB
     if((ptr >= TempOb) && (ptr < TempObEnd))
@@ -64,8 +64,8 @@ BINT rplVerifyObjPointer(WORDPTR ptr)
 
 // POINTER IS NOT, CHECK IF IT'S A VALID ROM POINTER
 // BY ASKING LIBRARIES TO RECOGNIZE IT
-    BINT libnum = MAXLIBNUMBER;
-    BINT SavedOpcode;
+    int32_t libnum = MAXLIBNUMBER;
+    int32_t SavedOpcode;
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
@@ -99,9 +99,9 @@ BINT rplVerifyObjPointer(WORDPTR ptr)
 // RETURNS 0 IF INVALID POINTERS FOUND (EVEN IF PATCHED)
 // RETURNS 1 IF ALL POINTERS ON STACK ARE VALID AND POINT TO VALID OBJECTS
 
-BINT rplVerifyDStack(BINT fix)
+int32_t rplVerifyDStack(int32_t fix)
 {
-    BINT errors = 0;
+    int32_t errors = 0;
     WORDPTR *stkptr = DSTop - 1;
     WORDPTR *bottom = DStkBottom;
 
@@ -130,7 +130,7 @@ BINT rplVerifyDStack(BINT fix)
 // FINISHED CURRENT STACK, DO THE NEXT SNAPSHOT
         if(bottom > DStk) {
             --bottom;
-            BINT levels = (intptr_t) * bottom;
+            int32_t levels = (intptr_t) * bottom;
             if((levels <= 0) || ((bottom - levels) < DStk)
                     || ((bottom - levels) >= DSTop)) {
                 // INVALID SNAPSHOT!!
@@ -161,7 +161,7 @@ BINT rplVerifyDStack(BINT fix)
 // RETURNS 0 IF INVALID POINTERS FOUND
 // RETURNS 1 IF ALL POINTERS ON STACK ARE VALID AND POINT TO VALID OBJECTS
 
-BINT rplVerifyRStack()
+int32_t rplVerifyRStack()
 {
     WORDPTR *stkptr = RSTop - 1;
 
@@ -193,9 +193,9 @@ BINT rplVerifyRStack()
 
 // RETURNS TRUS IF TEMPOB LAYOUT IS VALID
 
-BINT rplVerifyTempOb(BINT fix)
+int32_t rplVerifyTempOb(int32_t fix)
 {
-    BINT errors = 0;
+    int32_t errors = 0;
     WORDPTR *tbptr = TempBlocks;
     WORDPTR prevptr = 0;
 
@@ -224,7 +224,7 @@ BINT rplVerifyTempOb(BINT fix)
 // CREATES AN IDENT IN TEMPOB (ALLOCATING MEMORY= POSSIBLE GC)
 // USING THE GIVEN NUMBER, MAXIMUM 8 LETTERS
 
-WORDPTR rplCreateHashIdent(BINT number)
+WORDPTR rplCreateHashIdent(int32_t number)
 {
     int64_t bignumber =
             ((int64_t) number << 32) ^ ((int64_t) number << 24) ^ ((int64_t) number
@@ -255,12 +255,12 @@ extern const WORD const dir_end_bint[];
 extern const WORD const dir_parent_bint[];
 extern const WORD const root_dir_handle[];
 
-BINT rplVerifyDirectories(BINT fix)
+int32_t rplVerifyDirectories(int32_t fix)
 {
-    BINT errors = 0;
+    int32_t errors = 0;
     WORDPTR *dirptr = Directories, *dirptr2, *dirend;
     WORDPTR handle, parent, name;
-    BINT nitems, dirstate;
+    int32_t nitems, dirstate;
 
 // PASS 1 - SCAN DIRECTORY STRUCTURE ONLY
 
@@ -557,7 +557,7 @@ BINT rplVerifyDirectories(BINT fix)
         }
 
 // CHECK NAME
-        BINT badname = 0;
+        int32_t badname = 0;
 
         if(!rplVerifyObjPointer(dirptr[0])) {
             if(!fix)
@@ -615,7 +615,7 @@ BINT rplVerifyDirectories(BINT fix)
                 // JUST PURGE IT
                 if(!fix)
                     return 0;
-                dirptr[1] = (WORDPTR) zero_bint;        // CHANGE TO A BINT SO IT CAN BE PURGED
+                dirptr[1] = (WORDPTR) zero_bint;        // CHANGE TO A int32_t SO IT CAN BE PURGED
                 rplPurgeForced(dirptr);
                 continue;
             }

@@ -23,7 +23,7 @@
 FPINT mulFPINT(FPINT a, FPINT b)
 {
     // PROPER MULTIPLICATION SEQUENCE TO AVOID OVERFLOWS
-    BINT sign = 0;
+    int32_t sign = 0;
     uint64_t res;
     if(a < 0) {
         sign ^= 1;
@@ -54,7 +54,7 @@ FPINT mulFPINT(FPINT a, FPINT b)
 // DIVIDE TWO FP NUMBERS
 FPINT divFPINT(FPINT a, FPINT b)
 {
-    BINT sign = 0;
+    int32_t sign = 0;
     uint64_t res;
     if(a < 0) {
         sign ^= 1;
@@ -70,7 +70,7 @@ FPINT divFPINT(FPINT a, FPINT b)
 
     res <<= 24;
 
-    BINT k;
+    int32_t k;
     for(k = 23; (a != 0) && (k >= 0); k--) {
         a <<= 1;
         if(a > b) {
@@ -92,8 +92,8 @@ FPINT divFPINT(FPINT a, FPINT b)
 
 // MACROS TO EXTRACT THE COSINE AND SINE FROM THE 64-BIT RESULT
 // USING MULTIPLE TYPE CASTS TO FORCE SIGN EXTENSION
-#define FPCOS(word) ((FPINT)((BINT)(LO(word))))
-#define FPSIN(word) ((FPINT)((BINT)(HI(word))))
+#define FPCOS(word) ((FPINT)((int32_t)(LO(word))))
+#define FPSIN(word) ((FPINT)((int32_t)(HI(word))))
 
 #define CMULT(constant,x) (((constant)*(x))>>24)
 
@@ -101,7 +101,7 @@ FPINT divFPINT(FPINT a, FPINT b)
 
 uint64_t sincosFPINT(FPINT angle)
 {
-    BINT negsin = 0, negcos = 0;
+    int32_t negsin = 0, negcos = 0;
     if(angle < 0) {
         negsin = 1;
         angle = -angle;
@@ -134,7 +134,7 @@ uint64_t sincosFPINT(FPINT angle)
     C2 = CMULT(CMULT(CMULT(-231543704, ang2) + 1959187590, ang2) - 4770292713,
             angle);
 
-    BINT sin, cos;
+    int32_t sin, cos;
 
     sin = ((C1 - C2) + 0x80) >> 8;
     cos = ((C1 + C2) + 0x80) >> 8;
@@ -144,6 +144,6 @@ uint64_t sincosFPINT(FPINT angle)
     if(negcos)
         cos = -cos;
 
-    return (((uint64_t) ((UBINT) sin)) << 32) + ((uint64_t) ((UBINT) cos));
+    return (((uint64_t) ((uint32_t) sin)) << 32) + ((uint64_t) ((uint32_t) cos));
 
 }

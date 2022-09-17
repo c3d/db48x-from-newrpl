@@ -13,14 +13,14 @@
 // STANDARD COMPILER FOR COMMAND TOKENS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
-void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[],
+void libCompileCmds(int32_t libnum, char *libnames[], WORD libopcodes[],
         int numcmds)
 {
     int idx;
     int len;
     for(idx = 0; idx < numcmds; ++idx) {
         len = utf8len((char *)libnames[idx]);
-        if((len != 0) && (len == (BINT) TokenLen)
+        if((len != 0) && (len == (int32_t) TokenLen)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         (char *)libnames[idx], len))) {
             if(libopcodes)
@@ -62,7 +62,7 @@ void libDecompileCmds(char *libnames[], WORD libopcodes[], int numcmds)
 // STANDARD PROBETOKEN FOR COMMANDS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
-void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds)
+void libProbeCmds(char *libnames[], int32_t tokeninfo[], int numcmds)
 {
     int idx;
     int len;
@@ -71,7 +71,7 @@ void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds)
     // SCAN THROUGH ALL COMMANDS AND FIND LONGEST MATCH
     for(idx = 0; idx < numcmds; ++idx) {
         len = utf8len((char *)libnames[idx]);
-        if((len > 0) && (len <= (BINT) TokenLen)
+        if((len > 0) && (len <= (int32_t) TokenLen)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         (char *)libnames[idx], len))) {
             // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
@@ -98,7 +98,7 @@ void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds)
 // STARTING TO COUNT FROM COMMAND NUMBER 0
 // THIS VERSION TAKES A VECTOR WITH OPCODE NUMBERS
 void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
-        BINT tokeninfo[], int numcmds)
+        int32_t tokeninfo[], int numcmds)
 {
     int idx;
     int len;
@@ -122,7 +122,7 @@ void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
 // STANDARD GETINFO FOR COMMANDS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // THIS VERSION ASSUMES THE INDEX IS THE OPCODE NUMBER
-void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds)
+void libGetInfo2(WORD opcode, char *libnames[], int32_t tokeninfo[], int numcmds)
 {
     int idx;
     int len;
@@ -141,12 +141,12 @@ void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds)
     RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 0);
 }
 
-void libGetRomptrID(BINT libnum, WORDPTR * table, WORDPTR ptr)
+void libGetRomptrID(int32_t libnum, WORDPTR * table, WORDPTR ptr)
 {
-    BINT idx = 0;
+    int32_t idx = 0;
     while(table[idx]) {
         if((ptr >= table[idx]) && (ptr < table[idx] + rplObjSize(table[idx]))) {
-            BINT offset = ptr - table[idx];
+            int32_t offset = ptr - table[idx];
             if(offset > 30) {
                 ObjectID = MKROMPTRID(libnum, idx, 31); // MARK OFFSET=31 TO INDICATE OFFSET EXCEEDS THE OFFSET
                 ObjectIDHash = libComputeHash(ptr);
@@ -167,7 +167,7 @@ void libGetRomptrID(BINT libnum, WORDPTR * table, WORDPTR ptr)
 
 void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash)
 {
-    BINT idx = 0;
+    int32_t idx = 0;
     while(table[idx])
         ++idx;
     if(ROMPTRID_IDX(id) >= idx) {
@@ -207,7 +207,7 @@ void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash)
 // STANDARD AUTOCOMPLETE FOR COMMANDS
 // COMMON TO ALL LIBRARIES THAT DEFINE COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
-void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds)
+void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds)
 {
     // TokenStart = token string
     // TokenLen = token length
@@ -222,7 +222,7 @@ void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds)
         RetNum = ERR_NOTMINE;
         return;
     }
-    BINT idx, len;
+    int32_t idx, len;
 
     if(!ISPROLOG(Prolog) && (LIBNUM(Prolog) == (WORD) libnum))
         idx = OPCODE(Prolog) - 1;
@@ -231,7 +231,7 @@ void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds)
 
     while(idx >= 0) {
         len = utf8len((char *)libnames[idx]);
-        if((len >= (BINT) TokenLen)
+        if((len >= (int32_t) TokenLen)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         (char *)libnames[idx], TokenLen))) {
             // WE HAVE THE NEXT MATCH
@@ -247,7 +247,7 @@ void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds)
         else {
             // SKIP THE FIRST CHARACTER AND CHECK AGAIN
             --len;
-            if((len >= (BINT) TokenLen)
+            if((len >= (int32_t) TokenLen)
                     && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                             utf8skipst((char *)libnames[idx],
                                 (char *)libnames[idx] + 4), TokenLen))) {
@@ -266,7 +266,7 @@ void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds)
 }
 
 /*
-void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
+void libAutoCompletePrev(int32_t libnum,char *libnames[],int numcmds)
 {
     // TokenStart = token string
     // TokenLen = token length
@@ -283,7 +283,7 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
         return;
     }
 
-    BINT idx,len;
+    int32_t idx,len;
 
     if(LIBNUM(Prolog)==libnum) {
         if(ISPROLOG(Prolog)) idx=0;
@@ -293,7 +293,7 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
 
     while(idx<numcmds) {
         len=utf8len((char *)libnames[idx]);
-        if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],TokenLen)))
+        if((len>=(int32_t)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],TokenLen)))
         {
             // WE HAVE THE NEXT MATCH
             SuggestedOpcode=MKOPCODE(libnum,idx);
@@ -319,7 +319,7 @@ WORD libComputeHash(WORDPTR object)
     return hash;
 }
 
-WORD libComputeHash2(WORDPTR start, BINT nwords)
+WORD libComputeHash2(WORDPTR start, int32_t nwords)
 {
     WORDPTR end = start + nwords;
     WORD hash = 115127;
@@ -335,7 +335,7 @@ WORD libComputeHash2(WORDPTR start, BINT nwords)
 // SET ObjectPTR TO THE TEXT MESSAGE AND RETURN IF THE MESSAGE IS FOUND
 // THE KEY CAN BE EITHER #MSGNUMBER OR A COMMAND, OR THE HASH OF AN OBJECT
 
-void libFindMsg(BINT message, WORDPTR table)
+void libFindMsg(int32_t message, WORDPTR table)
 {
 
     WORD key;

@@ -13,7 +13,7 @@ WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
         BYTEPTR end)
 {
 
-    BINT libcnt;
+    int32_t libcnt;
     LIBHANDLER han;
     WORD saveop = CurOpcode;
     if(!suggestion && !suggobject)
@@ -27,7 +27,7 @@ WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
 
     TokenStart = (WORDPTR) start;
     BlankStart = (WORDPTR) end;
-    TokenLen = (BINT) utf8nlen((char *)start, (char *)end);
+    TokenLen = (int32_t) utf8nlen((char *)start, (char *)end);
     SuggestedObject = suggobject;
     SuggestedOpcode = suggestion;
 
@@ -71,7 +71,7 @@ WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
         BYTEPTR end)
 {
 
-    BINT libcnt;
+    int32_t libcnt;
     LIBHANDLER han;
     WORD saveop = CurOpcode, prevsugg;
     WORDPTR prevsuggobj;
@@ -83,7 +83,7 @@ WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
 
     TokenStart = (WORDPTR) start;
     BlankStart = (WORDPTR) end;
-    TokenLen = (BINT) utf8nlen((char *)start, (char *)end);
+    TokenLen = (int32_t) utf8nlen((char *)start, (char *)end);
     SuggestedObject = (WORDPTR) zero_bint;
     SuggestedOpcode = -1;
 

@@ -103,7 +103,7 @@ void CheckTempBlocks()
 }
 
 void Patch(WORDPTR * start, WORDPTR * end, WORDPTR startfrom, WORDPTR endfrom,
-        BINT offset)
+        int32_t offset)
 {
     while(start != end) {
 
@@ -173,7 +173,7 @@ void rplGCollect()
 
     WORDPTR StartBlock, EndBlock;
     WORDPTR *CheckIdx, *CleanIdx;
-    BINT Offset;
+    int32_t Offset;
 
     CheckIdx = TempBlocks;
 
@@ -240,7 +240,7 @@ void rplGCollect()
 
         StartBlock =
                 (WORDPTR) (((intptr_t) * (CheckIdx)) & ~((intptr_t) 3));
-        Offset = (BINT) (EndBlock - StartBlock);
+        Offset = (int32_t) (EndBlock - StartBlock);
 
         // FIND END OF THE BLOCK TO MOVE
 

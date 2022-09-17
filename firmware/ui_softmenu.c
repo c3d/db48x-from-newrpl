@@ -15,7 +15,7 @@
 
 // RETURN THE NUMBER OF ITEMS IN A MENU
 
-BINT uiCountMenuItems(WORD MenuCode, WORDPTR menu)
+int32_t uiCountMenuItems(WORD MenuCode, WORDPTR menu)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS
@@ -43,14 +43,14 @@ BINT uiCountMenuItems(WORD MenuCode, WORDPTR menu)
     return 1;
 }
 
-WORDPTR uiGetLibObject(BINT libnum, WORD arg2, WORD arg3, WORD Opcode)
+WORDPTR uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
 {
     LIBHANDLER han = rplGetLibHandler(libnum);
     if(!han)
         return 0;
     WORD SavedOpcode = CurOpcode;
-    BINT SavedException = Exceptions;
-    BINT SavedErrorCode = ErrorCode;
+    int32_t SavedException = Exceptions;
+    int32_t SavedErrorCode = ErrorCode;
 
     Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
     CurOpcode = MKOPCODE(libnum, Opcode);
@@ -108,7 +108,7 @@ WORDPTR uiGetLibMsg(WORD MsgCode)
 // RETURN A POINTER TO A MENU ITEM OBJECT
 // FIRST ITEM = NUMBER 0
 
-WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, BINT item)
+WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
 // MENU IS VARS
@@ -160,7 +160,7 @@ WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, BINT item)
 
 // GET THE ACTION OBJECT OF A MENU ITEM
 
-WORDPTR uiGetMenuItemAction(WORDPTR item, BINT shift)
+WORDPTR uiGetMenuItemAction(WORDPTR item, int32_t shift)
 {
 
     if(!item)
@@ -292,10 +292,10 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
 // DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
 // DOES NOT CLEAR BACKGROUND
 
-void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, gglsurface * scr)
+void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor, gglsurface * scr)
 {
     WORDPTR ptr;
-    BINT flags = 0;
+    int32_t flags = 0;
     if(!item)
         return;
 
@@ -314,7 +314,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
                 rplPushData(item);
                 rplPushData(ptr);
 
-                BINT nresults = uiCmdRunTransparent(CMD_OVR_XEQ, 1, 1);
+                int32_t nresults = uiCmdRunTransparent(CMD_OVR_XEQ, 1, 1);
 
                 if(nresults == 1)
                     ptr = rplPopData();
@@ -339,8 +339,8 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
                     ptr = item;
                 else {
                     WORDPTR next = rplSkipOb(ptr);
-                    if(ISBINT(*next))
-                        flags = rplReadBINT(next);
+                    if(ISint32_t(*next))
+                        flags = rplReadint32_t(next);
                 }
             }
 
@@ -391,7 +391,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
 
 
 
-        BINT w = StringWidthN((char *)(ptr + 1),
+        int32_t w = StringWidthN((char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
                 FONT_MENU), pos;
 
@@ -454,7 +454,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
         // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
         WORDPTR *var = rplFindGlobal(ptr, 1);
 
-        BINT w = StringWidthN((char *)(ptr + 1),
+        int32_t w = StringWidthN((char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
                 FONT_MENU), pos;
 
@@ -561,7 +561,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
 
     // ALL OTHER OBJECTS NEED TO BE DECOMPILED, EXCEPT THE STRING AND GROBS
 
-    BINT totaln;
+    int32_t totaln;
     BYTEPTR string, endstring;
 
     // TODO: ADD GROBS HERE
@@ -570,9 +570,9 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
 
         WORD ptrprolog = *ptr;
 
-        BINT SavedException = Exceptions;
-        BINT SavedErrorCode = ErrorCode;
-        BINT removevalue = 0;
+        int32_t SavedException = Exceptions;
+        int32_t SavedErrorCode = ErrorCode;
+        int32_t removevalue = 0;
 
         if(ISUNIT(ptrprolog)) {
             REAL r;
@@ -602,7 +602,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
 
         if(removevalue) {
             // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
-            BINT k, offset;
+            int32_t k, offset;
             for(k = 0, offset = 0; k < totaln;
                     ++k, offset =
                     (BYTEPTR) utf8skip((char *)string + offset,
@@ -631,7 +631,7 @@ void uiDrawMenuItem(WORDPTR item, BINT palette_color, BINT palette_bkcolor, ggls
     if(flags&2) ggl_rect(scr,scr->left,scr->top,scr->right,scr->bottom,bcolor);
 
 
-    BINT w = StringWidthN((char *)string, (char *)endstring,
+    int32_t w = StringWidthN((char *)string, (char *)endstring,
             FONT_MENU), pos;
     if(w >= scr->right - scr->left)
         pos = scr->left + 1;

@@ -75,7 +75,7 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "##",
                         2))) {
             BYTEPTR numptr = (BYTEPTR) TokenStart;
-            BINT numwords = 0;
+            int32_t numwords = 0;
             numptr += 2;
             while(numptr < (BYTEPTR) BlankStart) {
                 if((*numptr >= '0') && (*numptr <= '9')) {
@@ -95,7 +95,7 @@ void LIB_HANDLER()
             if((numptr < (BYTEPTR) BlankStart) && (*numptr == ','))
                 ++numptr;       // SKIP THE COMMA TO POINT TO THE TEXT TO REPLACE
 
-            BINT endoffset = ((BYTEPTR) CompileStringEnd) - numptr;
+            int32_t endoffset = ((BYTEPTR) CompileStringEnd) - numptr;
 
             if(numwords == 1)
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, endoffset));

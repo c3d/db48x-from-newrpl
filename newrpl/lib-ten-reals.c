@@ -114,7 +114,7 @@ void rplNANToRReg(int num)
     RReg[num].data[0] = 0;
 }
 
-void rplBINTToRReg(int num, int64_t value)
+void rplint32_tToRReg(int num, int64_t value)
 {
     newRealFromint64_t(&RReg[num], value, 0);
 }
@@ -126,30 +126,30 @@ void rplReadReal(WORDPTR real, REAL * dec)
 {
     REAL_HEADER *head = (REAL_HEADER *) (real + 1);
     dec->flags = 0;
-    dec->data = (BINT *) (real + 2);
+    dec->data = (int32_t *) (real + 2);
     dec->len = head->len;
     dec->exp = head->exp;
     dec->flags |= head->flags;
 }
 
 // RETURN A REAL NUMBER OBJECT FLAGS WITHOUT READING THE NUMBER
-BINT rplReadRealFlags(WORDPTR object)
+int32_t rplReadRealFlags(WORDPTR object)
 {
     if(!ISREAL(*object))
         return 0;
 
     REAL_HEADER *head = (REAL_HEADER *) (object + 1);
-    return (BINT) head->flags;
+    return (int32_t) head->flags;
 
 }
 
 // CHECK IF AN OBJECT IS THE NUMBER ZERO
-BINT rplIsNumberZero(WORDPTR obj)
+int32_t rplIsNumberZero(WORDPTR obj)
 {
     if(ISCONSTANT(*obj))
         obj = rplConstant2Number(obj);
 
-    if(ISBINT(*obj)) {
+    if(ISint32_t(*obj)) {
         if(ISPROLOG(*obj)) {
             int64_t *ptr = (int64_t *) (obj + 1);
             return (*ptr == 0) ? 1 : 0;
@@ -158,7 +158,7 @@ BINT rplIsNumberZero(WORDPTR obj)
     }
     if(ISREAL(*obj)) {
         REAL_HEADER *head = (REAL_HEADER *) (obj + 1);
-        BINT *data = (BINT *) (obj + 2);
+        int32_t *data = (int32_t *) (obj + 2);
         if((head->len == 1) && ((head->flags & F_UNDINFINITY) == 0)
                 && (*data == 0))
             return 1;
@@ -200,7 +200,7 @@ WORDPTR rplNewRealInPlace(REAL * num, WORDPTR newreal)
 {
 
     REAL_HEADER real;
-    BINT correction;
+    int32_t correction;
 
     // REMOVE ALL TRAILING ZEROES
     correction = 0;
@@ -222,7 +222,7 @@ WORDPTR rplNewRealInPlace(REAL * num, WORDPTR newreal)
     // STORE THE PACKED EXPONENT WORD
     newreal[1] = real.word;
 
-    BINT count;
+    int32_t count;
     for(count = 0; count < num->len - correction; ++count) {
         newreal[count + 2] = (num->data[count + correction]);   // STORE ALL THE MANTISSA WORDS
     }
@@ -241,7 +241,7 @@ WORDPTR rplNewReal(REAL * num)
         return 0;
     }
 
-    num->data = (BINT *) ScratchPointer1;
+    num->data = (int32_t *) ScratchPointer1;
 
     rplNewRealInPlace(num, newreal);
 
@@ -267,7 +267,7 @@ void rplCompileReal(REAL * num)
 {
 
     REAL_HEADER real;
-    BINT correction;
+    int32_t correction;
 
     // REMOVE ALL TRAILING ZEROES
     correction = 0;
@@ -288,7 +288,7 @@ void rplCompileReal(REAL * num)
     // STORE THE PACKED EXPONENT WORD
     rplCompileAppend(real.word);
 
-    BINT count;
+    int32_t count;
     for(count = 0; count < num->len - correction; ++count) {
         rplCompileAppend(num->data[count + correction]);        // STORE ALL THE MANTISSA WORDS
         if(Exceptions)
@@ -392,7 +392,7 @@ void LIB_HANDLER()
 
         switch (OPCODE(CurOpcode)) {
         case OVR_ADD:
-            // ADD TWO BINTS FROM THE STACK
+            // ADD TWO int32_tS FROM THE STACK
             addReal(&RReg[0], &Darg1, &Darg2);
             rplNewRealFromRRegPush(0);
             if(!Exceptions)
@@ -448,9 +448,9 @@ void LIB_HANDLER()
                         finalize(&RReg[0]);
 
                         swapReal(&RReg[6], &RReg[0]);
-                        newRealFromBINT(&RReg[7], 90, 0);
+                        newRealFromint32_t(&RReg[7], 90, 0);
 
-                        BINT angmode =
+                        int32_t angmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -482,7 +482,7 @@ void LIB_HANDLER()
 
                     // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                    newRealFromBINT(&RReg[7], 180, 0);
+                    newRealFromint32_t(&RReg[7], 180, 0);
 
                     mulReal(&RReg[0], &Darg2, &RReg[7]);
                     divmodReal(&RReg[1], &RReg[9], &RReg[0], &RReg[7]); // REDUCE TO FIRST CIRCLE
@@ -499,7 +499,7 @@ void LIB_HANDLER()
 
                     powReal(&RReg[8], &Darg1, &Darg2);  // ONLY RReg[9] IS PRESERVED
 
-                    BINT angmode =
+                    int32_t angmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -572,9 +572,9 @@ void LIB_HANDLER()
                         finalize(&RReg[0]);
 
                         swapReal(&RReg[6], &RReg[0]);
-                        newRealFromBINT(&RReg[7], 90, 0);
+                        newRealFromint32_t(&RReg[7], 90, 0);
 
-                        BINT angmode =
+                        int32_t angmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -606,7 +606,7 @@ void LIB_HANDLER()
 
                     // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                    newRealFromBINT(&RReg[7], 180, 0);
+                    newRealFromint32_t(&RReg[7], 180, 0);
 
                     divReal(&RReg[0], &RReg[7], &Darg2);
                     divmodReal(&RReg[1], &RReg[9], &RReg[0], &RReg[7]); // REDUCE TO FIRST CIRCLE
@@ -623,7 +623,7 @@ void LIB_HANDLER()
 
                     xrootReal(&RReg[8], &Darg1, &Darg2);        // ONLY RReg[9] IS PRESERVED
 
-                    BINT angmode =
+                    int32_t angmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -721,7 +721,7 @@ void LIB_HANDLER()
                 rplCheckResultAndError(&RReg[0]);
                 return;
             }
-            rplNewSINTPush(cmpReal(&Darg1, &Darg2), DECBINT);
+            rplNewSINTPush(cmpReal(&Darg1, &Darg2), DECint32_t);
             return;
         case OVR_INV:
             if(iszeroReal(&Darg1)) {
@@ -814,8 +814,8 @@ void LIB_HANDLER()
         }
 
         BYTEPTR strptr = (BYTEPTR) TokenStart;
-        BINT isapprox = 0;
-        BINT tlen = TokenLen;
+        int32_t isapprox = 0;
+        int32_t tlen = TokenLen;
 
         uint64_t locale = rplGetSystemLocale();
 
@@ -859,7 +859,7 @@ void LIB_HANDLER()
         real.exp = RReg[0].exp;
 
         rplCompileAppend(real.word);    // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
-        BINT count;
+        int32_t count;
         for(count = 0; count < RReg[0].len; ++count) {
             rplCompileAppend(RReg[0].data[count]);      // STORE ALL THE MANTISSA WORDS
         }
@@ -882,7 +882,7 @@ void LIB_HANDLER()
 
         NUMFORMAT fmt;
 
-        BINT Format, sign;
+        int32_t Format, sign;
 
         rplGetSystemNumberFormat(&fmt);
 
@@ -908,7 +908,7 @@ void LIB_HANDLER()
 
         BYTEPTR string;
 
-        BINT len = formatlengthReal(&realnum, Format, fmt.Locale);
+        int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
         // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
         ScratchPointer1 = (WORDPTR) realnum.data;
@@ -918,9 +918,9 @@ void LIB_HANDLER()
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0, len);
 
-        realnum.data = (BINT *) ScratchPointer1;
-        fmt.SmallLimit.data = (BINT *) ScratchPointer2;
-        fmt.BigLimit.data = (BINT *) ScratchPointer3;
+        realnum.data = (int32_t *) ScratchPointer1;
+        fmt.SmallLimit.data = (int32_t *) ScratchPointer2;
+        fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
         // NOW USE IT
         string = (BYTEPTR) DecompStringEnd;
@@ -1022,7 +1022,7 @@ void LIB_HANDLER()
         };
         NUMFORMAT nformat;
         rplGetSystemNumberFormat(&nformat);
-        BINT mode = MODE_IP;
+        int32_t mode = MODE_IP;
         WORD num;
         int f, exitfor = 0;
         BYTEPTR ptr = (BYTEPTR) TokenStart;
@@ -1122,7 +1122,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
     {
         TypeInfo =
                 DOREAL * 100 + ((LIBNUM(*DecompileObject) -
@@ -1170,7 +1170,7 @@ void LIB_HANDLER()
                 return;
             }
             // CHECK FOR CORRUPTED DATA
-            BINT k;
+            int32_t k;
             for(k = 0; k < r.len; ++k) {
                 // IF THE NUMBER IS NOT NORMALIZED, ASSUME IT WAS CORRUPTED
                 if((r.data[k] < 0) || (r.data[k] >= 100000000)) {

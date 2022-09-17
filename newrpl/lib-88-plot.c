@@ -148,9 +148,9 @@ void rplCPlotNumber(int64_t num)
         return;
 
     // PACK THE NUMBER INTO A uint64_t (UP TO 5 BYTES USED)
-    BINT used = 0;
+    int32_t used = 0;
     BYTE bpack[8];
-    BINT sign;
+    int32_t sign;
 
     if(num < 0) {
         sign = 8;
@@ -186,7 +186,7 @@ void rplCPlotNumber(int64_t num)
     BYTEPTR end = (BYTEPTR) (obj + 1 + OBJSIZE(*obj));
 
     // HERE ptr POINTS TO THE FIRST AVAILABLE BYTE IN THE OBJECT
-    BINT needwords = (ptr + used + 3 - end) / 4;
+    int32_t needwords = (ptr + used + 3 - end) / 4;
     if(needwords > 0) {
         rplResizeLastObject(needwords);
         if(Exceptions)
@@ -197,7 +197,7 @@ void rplCPlotNumber(int64_t num)
     // COPY THE FIRST BYTE MODIFIED:
     --used;
     *ptr++ = bpack[used];
-    BINT k;
+    int32_t k;
     // THE REST OF THE NUMBER IS STORED IN LITTLE ENDIAN FORMAT
     for(k = 0; k < used; ++k) {
         *ptr++ = bpack[k];
@@ -209,7 +209,7 @@ void rplCPlotNumber(int64_t num)
 }
 
 // APPEND A COMMAND TO THE CURRENT PLOT
-void rplCPlotCmd(BINT cmd)
+void rplCPlotCmd(int32_t cmd)
 {
     WORDPTR obj = rplCPlotGetPtr();
     if(!obj)
@@ -262,7 +262,7 @@ BYTEPTR rplPlotSkip(BYTEPTR ptr)
     case 5:
         // STRING FOLLOWS, NEED TO READ 20-BIT LENGTH
     {
-        BINT len = ((*ptr & 0xf) << 16) | (ptr[2] << 8) | (ptr[1]);
+        int32_t len = ((*ptr & 0xf) << 16) | (ptr[2] << 8) | (ptr[1]);
         return ptr + 3 + len;
     }
     case 6:
@@ -276,7 +276,7 @@ BYTEPTR rplPlotSkip(BYTEPTR ptr)
 
 // DECODE A NUMBER INSIDE A PLOT OBJECT
 
-int64_t rplPlotNumber2BINT(BYTEPTR ptr)
+int64_t rplPlotNumber2int32_t(BYTEPTR ptr)
 {
 
     switch (*ptr >> 4) {
@@ -284,32 +284,32 @@ int64_t rplPlotNumber2BINT(BYTEPTR ptr)
         // NO OTHER BYTES
         return ptr[0] & 0xf;
     case 8:
-        return -((BINT) ptr[0] & 0xf);
+        return -((int32_t) ptr[0] & 0xf);
 
     case 1:
         // 1-BYTE FOLLOWS
-        return ((((BINT) ptr[0] & 0xf) << 8) | ((BINT) ptr[1]));
+        return ((((int32_t) ptr[0] & 0xf) << 8) | ((int32_t) ptr[1]));
     case 9:
         // 1-BYTE FOLLOWS
-        return -((((BINT) ptr[0] & 0xf) << 8) | ((BINT) ptr[1]));
+        return -((((int32_t) ptr[0] & 0xf) << 8) | ((int32_t) ptr[1]));
     case 2:
     case 5:
         // 2-BYTE FOLLOWS
-        return ((((BINT) ptr[0] & 0xf) << 16) | ((BINT) ptr[1]) | (((BINT)
+        return ((((int32_t) ptr[0] & 0xf) << 16) | ((int32_t) ptr[1]) | (((int32_t)
                         ptr[2]) << 8));
     case 10:
         // 2-BYTE FOLLOWS
-        return -((((BINT) ptr[0] & 0xf) << 16) | ((BINT) ptr[1]) | (((BINT)
+        return -((((int32_t) ptr[0] & 0xf) << 16) | ((int32_t) ptr[1]) | (((int32_t)
                         ptr[2]) << 8));
     case 3:
         // 3-BYTE FOLLOWS
-        return ((((BINT) ptr[0] & 0xf) << 24) | ((BINT) ptr[1]) | (((BINT)
-                        ptr[2]) << 8) | (((BINT) ptr[3]) << 16));
+        return ((((int32_t) ptr[0] & 0xf) << 24) | ((int32_t) ptr[1]) | (((int32_t)
+                        ptr[2]) << 8) | (((int32_t) ptr[3]) << 16));
 
     case 11:
         // 3-BYTE FOLLOWS
-        return -((((BINT) ptr[0] & 0xf) << 24) | ((BINT) ptr[1]) | (((BINT)
-                        ptr[2]) << 8) | (((BINT) ptr[3]) << 16));
+        return -((((int32_t) ptr[0] & 0xf) << 24) | ((int32_t) ptr[1]) | (((int32_t)
+                        ptr[2]) << 8) | (((int32_t) ptr[3]) << 16));
     case 4:
         // 4-BYTE FOLLOWS
         return ((((int64_t) ptr[0] & 0xf) << 32) | ((int64_t) ptr[1]) | (((int64_t)
@@ -456,11 +456,11 @@ void LIB_HANDLER()
 
         int64_t width, height;
 
-        width = rplReadNumberAsBINT(rplPeekData(2));
+        width = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
 
-        height = rplReadNumberAsBINT(rplPeekData(1));
+        height = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -557,7 +557,7 @@ void LIB_HANDLER()
 
         int64_t argnum;
 
-        argnum = rplReadNumberAsBINT(rplPeekData(1));
+        argnum = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -599,7 +599,7 @@ void LIB_HANDLER()
 
         int64_t argnum;
 
-        argnum = rplReadNumberAsBINT(rplPeekData(1));
+        argnum = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -641,7 +641,7 @@ void LIB_HANDLER()
 
         int64_t argnum;
 
-        argnum = rplReadNumberAsBINT(rplPeekData(1));
+        argnum = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -683,7 +683,7 @@ void LIB_HANDLER()
 
         int64_t argnum;
 
-        argnum = rplReadNumberAsBINT(rplPeekData(1));
+        argnum = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -797,10 +797,10 @@ void LIB_HANDLER()
 
         int64_t argnum1, argnum2;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(2));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        argnum2 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum2 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -845,10 +845,10 @@ void LIB_HANDLER()
 
         int64_t argnum1, argnum2;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(2));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        argnum2 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum2 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -893,7 +893,7 @@ void LIB_HANDLER()
 
         int64_t argnum1;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -936,10 +936,10 @@ void LIB_HANDLER()
 
         int64_t argnum1, argnum2;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(2));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        argnum2 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum2 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -984,10 +984,10 @@ void LIB_HANDLER()
 
         int64_t argnum1, argnum2;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(2));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        argnum2 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum2 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -1032,10 +1032,10 @@ void LIB_HANDLER()
 
         int64_t argnum1, argnum2;
 
-        argnum1 = rplReadNumberAsBINT(rplPeekData(2));
+        argnum1 = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        argnum2 = rplReadNumberAsBINT(rplPeekData(1));
+        argnum2 = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -1071,7 +1071,7 @@ void LIB_HANDLER()
         }
         int64_t libnum;
         if(ISNUMBER(*rplPeekData(3))) {
-            libnum = rplReadNumberAsBINT(rplPeekData(3));
+            libnum = rplReadNumberAsInt64(rplPeekData(3));
 
             if((libnum < 0) || (libnum > 4095)) {
                 rplError(ERR_INVALIDRENDERER);
@@ -1103,7 +1103,7 @@ void LIB_HANDLER()
 
         int64_t w, h;
 
-        w = rplReadNumberAsBINT(rplPeekData(2));
+        w = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -1112,7 +1112,7 @@ void LIB_HANDLER()
         if(w < 1)
             w = 1;
 
-        h = rplReadNumberAsBINT(rplPeekData(1));
+        h = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -1153,7 +1153,7 @@ void LIB_HANDLER()
 
         int k;
         for(k = 0; k < RSTATUS_SIZE; ++k) {
-            rstatus[k * 3 + 1] = MKPROLOG(DECBINT, 2);
+            rstatus[k * 3 + 1] = MKPROLOG(DECint32_t, 2);
             rstatus[k * 3 + 2] = 0;
             rstatus[k * 3 + 3] = 0;
         }
@@ -1221,7 +1221,7 @@ void LIB_HANDLER()
         BYTEPTR ptr = (BYTEPTR) (plotobj + 1);
         BYTEPTR end = ptr + PLTLEN(*plotobj);
 
-        BINT argn = 0;
+        int32_t argn = 0;
         LIBHANDLER rhandler = rplGetLibHandler(*RLIBPTR(rstatus));
 
         if(!rhandler) {
@@ -1322,7 +1322,7 @@ void LIB_HANDLER()
 
                 CurOpcode = MKOPCODE(*RLIBPTR(rstatus), CMD_PLTBASE + *ptr);
 
-                BINT ptroff = ptr - (BYTEPTR) plotobj;
+                int32_t ptroff = ptr - (BYTEPTR) plotobj;
 
                 (*rhandler) ();
 
@@ -1338,7 +1338,7 @@ void LIB_HANDLER()
             }
             else if(((*ptr >> 4) & 7) < 0x5) {
                 // IT'S A NUMBER
-                int64_t num = rplPlotNumber2BINT(ptr);
+                int64_t num = rplPlotNumber2int32_t(ptr);
 
                 // NOW PUT THE NUMBER
                 if(argn == 0)
@@ -1354,7 +1354,7 @@ void LIB_HANDLER()
             }
             else if((*ptr >> 4) == 0x5) {
                 // RETRIEVE A STRING
-                int64_t len = rplPlotNumber2BINT(ptr);
+                int64_t len = rplPlotNumber2int32_t(ptr);
 
                 //  TODO: FIGURE OUT HOW TO PASS THE STRING POINTER!
                 //  STACK LEVEL 1 ALWAYS CONTAINS THE PLOT OBJECT
@@ -1399,13 +1399,13 @@ void LIB_HANDLER()
 
         int64_t deltax, deltay;
 
-        deltax = rplReadNumberAsBINT(rplPeekData(2));
+        deltax = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions) {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
 
-        deltay = rplReadNumberAsBINT(rplPeekData(1));
+        deltay = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -1436,7 +1436,7 @@ void LIB_HANDLER()
 
         int64_t scfactor;
 
-        scfactor = rplReadNumberAsBINT(rplPeekData(1));
+        scfactor = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -1452,7 +1452,7 @@ void LIB_HANDLER()
     case OVR_SAME:
         // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
     {
-        BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+        int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
         rplDropData(2);
         if(same)
             rplPushTrue();
@@ -1530,8 +1530,8 @@ void LIB_HANDLER()
             BYTE bytes[4];
         } temp;
 
-        BINT count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
-        BINT stringmode = LIBNUM(*ScratchPointer4) & 4; // ARE WE COMPILING A STRING?
+        int32_t count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
+        int32_t stringmode = LIBNUM(*ScratchPointer4) & 4; // ARE WE COMPILING A STRING?
         if(count) {
             --CompileEnd;
             temp.word = *CompileEnd;    // GET LAST WORD
@@ -1539,7 +1539,7 @@ void LIB_HANDLER()
         BYTEPTR ptr = (BYTEPTR) TokenStart;
 
         if(stringmode) {
-            BINT addedbytes = 0;
+            int32_t addedbytes = 0;
             // COMPILE IT JUST LIKE A STRING
             do {
                 while(count < 4) {
@@ -1557,7 +1557,7 @@ void LIB_HANDLER()
                         BYTEPTR nptr = (BYTEPTR) ScratchPointer3;       // RESTORE SAVED STRING START LOCATION
 
                         // PATCH THE STRING LENGTH SO FAR
-                        addedbytes += rplPlotNumber2BINT(nptr); // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+                        addedbytes += rplPlotNumber2int32_t(nptr); // ADD THE NEW BYTES TO THE ORIGINAL SIZE
 
                         if(addedbytes >= 0x100000) {
                             // STRING IS TOO BIG!
@@ -1590,7 +1590,7 @@ void LIB_HANDLER()
                             *CompileEnd = temp.word;
                         }
 
-                        addedbytes += rplPlotNumber2BINT(nptr); // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+                        addedbytes += rplPlotNumber2int32_t(nptr); // ADD THE NEW BYTES TO THE ORIGINAL SIZE
 
                         if(addedbytes >= 0x100000) {
                             // STRING IS TOO BIG!
@@ -1660,8 +1660,8 @@ void LIB_HANDLER()
         }
 
         int64_t Locale = rplGetSystemLocale();
-        BINT ucode;
-        BINT isnum = 0;
+        int32_t ucode;
+        int32_t isnum = 0;
         int64_t number;
 
         do {
@@ -1673,9 +1673,9 @@ void LIB_HANDLER()
                         // END THE NUMBER
                         // COMPILE ITS BYTES
                         // PACK THE NUMBER INTO A uint64_t (UP TO 5 BYTES USED)
-                        BINT used = 0;
+                        int32_t used = 0;
                         BYTE bpack[8];
-                        BINT sign;
+                        int32_t sign;
 
                         if(isnum < 0)
                             sign = 8;
@@ -1710,7 +1710,7 @@ void LIB_HANDLER()
                         --used;
                         temp.bytes[count] = bpack[used];
                         ++count;
-                        BINT k;
+                        int32_t k;
                         for(k = 0; k < used; ++k) {
                             if(count > 3) {
                                 ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
@@ -1809,7 +1809,7 @@ void LIB_HANDLER()
 
                         ++ptr;
 
-                        BINT addedbytes = 0;
+                        int32_t addedbytes = 0;
                         // COMPILE IT JUST LIKE A STRING
                         do {
                             while(count < 4) {
@@ -1829,7 +1829,7 @@ void LIB_HANDLER()
                                     // UPDATE THE STRING SIZE AT START OF STRING
                                     BYTEPTR nptr = (BYTEPTR) ScratchPointer3;   // RESTORE SAVED STRING START LOCATION
 
-                                    addedbytes += rplPlotNumber2BINT(nptr);     // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+                                    addedbytes += rplPlotNumber2int32_t(nptr);     // ADD THE NEW BYTES TO THE ORIGINAL SIZE
 
                                     if(addedbytes >= 0x100000) {
                                         // STRING IS TOO BIG!
@@ -1862,7 +1862,7 @@ void LIB_HANDLER()
                                         *CompileEnd = temp.word;
                                     }
 
-                                    addedbytes += rplPlotNumber2BINT(nptr);     // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+                                    addedbytes += rplPlotNumber2int32_t(nptr);     // ADD THE NEW BYTES TO THE ORIGINAL SIZE
 
                                     if(addedbytes >= 0x100000) {
                                         // STRING IS TOO BIG!
@@ -1926,9 +1926,9 @@ void LIB_HANDLER()
                         // END THE NUMBER
                         // COMPILE ITS BYTES
                         // PACK THE NUMBER INTO A uint64_t (UP TO 5 BYTES USED)
-                        BINT used = 0;
+                        int32_t used = 0;
                         BYTE bpack[8];
-                        BINT sign;
+                        int32_t sign;
 
                         if(isnum < 0)
                             sign = 8;
@@ -1963,7 +1963,7 @@ void LIB_HANDLER()
                         --used;
                         temp.bytes[count] = bpack[used];
                         ++count;
-                        BINT k;
+                        int32_t k;
                         for(k = 0; k < used; ++k) {
                             if(count > 3) {
                                 ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
@@ -2018,7 +2018,7 @@ void LIB_HANDLER()
             int64_t Locale = rplGetSystemLocale();
             BYTEPTR ptr = (BYTEPTR) (DecompileObject + 1);
             BYTEPTR end = ptr + PLTLEN(*DecompileObject);
-            BINT needscomma = 0;
+            int32_t needscomma = 0;
 
             while(ptr < end) {
 
@@ -2028,7 +2028,7 @@ void LIB_HANDLER()
                         break;
                     }
 
-                    BINT off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (BYTEPTR) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
@@ -2038,17 +2038,17 @@ void LIB_HANDLER()
                 }
                 else if(((*ptr >> 4) & 7) < 0x5) {
                     // IT'S A NUMBER
-                    int64_t num = rplPlotNumber2BINT(ptr);
+                    int64_t num = rplPlotNumber2int32_t(ptr);
 
                     // NOW OUTPUT THE NUMBER IN DECIMAL
 
                     BYTE tmpbuffer[12]; // 2^36 USES 10 DIGITS + SIGN MAX.
 
-                    BINT nbytes =
-                            rplIntToString(num, DECBINT, tmpbuffer,
+                    int32_t nbytes =
+                            rplIntToString(num, DECint32_t, tmpbuffer,
                             tmpbuffer + 12);
 
-                    BINT off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (BYTEPTR) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
@@ -2060,9 +2060,9 @@ void LIB_HANDLER()
                 }
                 else if((*ptr >> 4) == 0x5) {
                     // OUTPUT A STRING
-                    int64_t len = rplPlotNumber2BINT(ptr);
+                    int64_t len = rplPlotNumber2int32_t(ptr);
 
-                    BINT off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (BYTEPTR) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
@@ -2119,7 +2119,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -2135,7 +2135,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -2145,7 +2145,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

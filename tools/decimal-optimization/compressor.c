@@ -83,7 +83,7 @@ extern void atanh_5_table(int exponent, REAL * real);
 // NEW CONVERTED TABLE
 int32_t ATAN_TABLE[COMP_WORDS_1 * COMP_DIGITS_2_2];
 
-//extern "C" void convert(BINT *dest,BINT *ptr,BINT nwords);
+//extern "C" void convert(int32_t *dest,int32_t *ptr,int32_t nwords);
 
 // THIS IS 224 FOR 9-DIGIT VERSION
 // CHANGED TO COMP_WORDS FOR 8-DIGIT RADIX VERSION
@@ -791,7 +791,7 @@ void getreal_table3(int exp)
     }
 }
 
-BINT real_storage[2 * ORG_WORDS];
+int32_t real_storage[2 * ORG_WORDS];
 
 int main_compressor()
 {
@@ -807,7 +807,7 @@ int main_compressor()
 
         // TRUNCATE WORDS
         if(COMP_DIGITS < ORG_DIGITS) {
-            BINT roundword;
+            int32_t roundword;
             int skipwords = num.len - COMP_WORDS;
             if(skipwords < 0)
                 skipwords = 0;
@@ -828,7 +828,7 @@ int main_compressor()
         for(j = 0; j < COMP_WORDS_1; ++j)
             ATAN_TABLE[idx * COMP_WORDS_1 + j] = 0;
 
-        copy_words((BINT *) ATAN_TABLE + idx * COMP_WORDS_1 + 1, num.data,
+        copy_words((int32_t *) ATAN_TABLE + idx * COMP_WORDS_1 + 1, num.data,
                 num.len);
         ATAN_TABLE[idx * COMP_WORDS_1] = num.exp;
     }
@@ -847,7 +847,7 @@ int main_compressor()
             printf("Exponent!!\n");
         }
 #else
-        if((BINT) (ATAN_TABLE[idx * COMP_WORDS_1]) != baseexp - idx) {
+        if((int32_t) (ATAN_TABLE[idx * COMP_WORDS_1]) != baseexp - idx) {
             printf("Exponent!!\n");
         }
 #endif

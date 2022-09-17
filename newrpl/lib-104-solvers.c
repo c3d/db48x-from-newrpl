@@ -164,7 +164,7 @@ void LIB_HANDLER()
                 }
                 // COUNT NUMBER OF ARGUMENTS
                 WORDPTR end = rplSkipOb(leftpart);
-                BINT nargs = 0;
+                int32_t nargs = 0;
                 leftpart = rplSymbMainOperatorPTR(leftpart) + 1;
                 while(leftpart < end) {
                     ++nargs;
@@ -298,7 +298,7 @@ void LIB_HANDLER()
             DSTop = dstkptr;
             return;
         }
-        rplNewSINTPush(12, DECBINT);
+        rplNewSINTPush(12, DECint32_t);
         rplCallOvrOperator(CMD_OVR_DIV);
 
         // MAIN LOOP NEEDS: ERR A B C FA FB FC AREA H_12
@@ -425,7 +425,7 @@ void LIB_HANDLER()
                 DSTop = dstkptr;
                 return;
             }
-            rplNewSINTPush(15, DECBINT);
+            rplNewSINTPush(15, DECint32_t);
             rplCallOvrOperator(CMD_OVR_DIV);
             if(Exceptions) {
                 DSTop = dstkptr;
@@ -656,7 +656,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT aff = fa.flags;
+            int32_t aff = fa.flags;
 
             fa.flags &= ~F_NEGATIVE;
             fb.flags &= ~F_NEGATIVE;    // TAKE ABSOLUTE VALUE FOR COMPARISON
@@ -665,7 +665,7 @@ void LIB_HANDLER()
             if(ltReal(&RReg[0], &err))
                 break;  // WE REACHED THE TOLERANCE
 
-            newRealFromBINT(&RReg[1], 5, -1);
+            newRealFromint32_t(&RReg[1], 5, -1);
 
             // IMPROVEMENT FOR FASTER CONVERGENCE, COMMENT TO DISABLE
             if(gtReal(&fb, &fa)) {
@@ -675,7 +675,7 @@ void LIB_HANDLER()
                 if(ltReal(&RReg[5], &fb))       // BIG VALUE > 3*SMALL
                 {
                     // USE THE QUARTER POINT INSTEAD OF THE CENTER
-                    newRealFromBINT(&RReg[1], 25, -2);
+                    newRealFromint32_t(&RReg[1], 25, -2);
                 }
             }
             else {
@@ -685,7 +685,7 @@ void LIB_HANDLER()
                 if(ltReal(&RReg[5], &fa))       // BIG VALUE > 3*SMALL
                 {
                     // USE THE QUARTER POINT INSTEAD OF THE CENTER
-                    newRealFromBINT(&RReg[1], 75, -2);
+                    newRealFromint32_t(&RReg[1], 75, -2);
                 }
             }
 
@@ -817,7 +817,7 @@ void LIB_HANDLER()
         WORDPTR *toler = DSTop - 1;
         WORDPTR *stksave = DSTop, *pointarray = DSTop;
 
-        BINT nvars = rplListLength(*listofvars), i, j;
+        int32_t nvars = rplListLength(*listofvars), i, j;
 
         if((rplListLength(*listmin) != nvars)
                 || (rplListLength(*listmax) != nvars)) {
@@ -852,7 +852,7 @@ void LIB_HANDLER()
         // 1.1 - GENERATE N+1 N-TUPLES WITHIN THE GIVEN VARIABLE RANGES, COMPUTE THE SCALAR VALUE, ADDED AT THE END OF THE N-TUPLE { X1 ... XN F(X) }, DISCARD ANY POINTS THAT PRODUCE +Inf
 
         REAL x1, x2, fx, tolerance;
-        BINT tries, maxtries;
+        int32_t tries, maxtries;
         maxtries = 2 * nvars;   // 2 BITS PER VARIABLE INDICATING STATE: 0=ORIGINAL, 1=MID-POINT, 2=CLOSE-QUARTER, 3=FAR QUARTER
         if(maxtries > 8)
             maxtries = 1 << 8;
@@ -893,7 +893,7 @@ void LIB_HANDLER()
                         addReal(&RReg[2], &x1, &RReg[1]);
                         addReal(&RReg[0], &RReg[2], &x2);       // 3*X1+X2
 
-                        newRealFromBINT(&RReg[1], 25, -2);      // RReg[1]=0.25
+                        newRealFromint32_t(&RReg[1], 25, -2);      // RReg[1]=0.25
                         mulReal(&RReg[2], &RReg[1], &RReg[0]);  // (3*x1+x2)/4
                         rplNewRealFromRRegPush(2);
                         if(Exceptions) {
@@ -916,7 +916,7 @@ void LIB_HANDLER()
                         addReal(&RReg[2], &x1, &RReg[1]);
                         addReal(&RReg[0], &RReg[2], &x2);       // 3*X1+X2
 
-                        newRealFromBINT(&RReg[1], 25, -2);      // RReg[1]=0.25
+                        newRealFromint32_t(&RReg[1], 25, -2);      // RReg[1]=0.25
                         mulReal(&RReg[2], &RReg[1], &RReg[0]);  // (3*x1+x2)/4
                         rplNewRealFromRRegPush(2);
                         if(Exceptions) {
@@ -932,7 +932,7 @@ void LIB_HANDLER()
                                 &x2);
 
                         addReal(&RReg[0], &x1, &x2);
-                        newRealFromBINT(&RReg[1], 5, -1);       // RReg[1]=0.5
+                        newRealFromint32_t(&RReg[1], 5, -1);       // RReg[1]=0.5
                         mulReal(&RReg[2], &RReg[1], &RReg[0]);  // (x1+x2)/2
                         rplNewRealFromRRegPush(2);
                         if(Exceptions) {
@@ -1056,7 +1056,7 @@ void LIB_HANDLER()
         // PHAM IMPROVEMENT TO NELDER-MEAD METHOD - QUASI GRADIENTS
 
         // MAIN LOOP:
-        BINT noprogress = 0;
+        int32_t noprogress = 0;
 #ifdef DEBUG_MEAD_NELDER
         int loopcount=1;
 #endif
@@ -1068,7 +1068,7 @@ void LIB_HANDLER()
 #endif
 
             // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
-            BINT weight = 1;
+            int32_t weight = 1;
             rplPushDataNoGrow(rplPeekData(2));
             // STARTING WEIGHT IS 1
             for(j = 4; j <= nvars + 2; ++j) {
@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
 
                 weight += j - 2;
                 //++weight;
-                rplNewBINTPush(j - 2, DECBINT);
+                rplNewint32_tPush(j - 2, DECint32_t);
                 if(Exceptions) {
                     DSTop = stksave;
                     return;
@@ -1096,7 +1096,7 @@ void LIB_HANDLER()
                     return;
                 }
             }
-            rplNewBINTPush(weight, DECBINT);
+            rplNewint32_tPush(weight, DECint32_t);
             rplRunAtomic(CMD_OVR_DIV);
             if(Exceptions) {
                 DSTop = stksave;
@@ -1160,7 +1160,7 @@ void LIB_HANDLER()
                         outoftolerance=1;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
                 }
 
-                rplBINTToRReg(1,nvars);
+                rplint32_tToRReg(1,nvars);
                 swapReal(&RReg[0],&RReg[9]);
                 divReal(&RReg[9],&RReg[0],&RReg[1]);    // RReg[9]= AVERAGE COMPONENT DISTANCE FROM X0 TO C, TO BE USED DURING GRADIENT STEP
 
@@ -1624,7 +1624,7 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(rplGetListElement(pointarray[nvars], j), &x1);      // W(j)
 
                 addReal(&RReg[0], &x1, &x2);
-                newRealFromBINT(&RReg[2], 5, -1);
+                newRealFromint32_t(&RReg[2], 5, -1);
                 mulReal(&RReg[1], &RReg[0], &RReg[2]);  //  (C(j)+W(j))/2
                 rplNewRealFromRRegPush(1);
                 if(Exceptions) {
@@ -1710,7 +1710,7 @@ void LIB_HANDLER()
             rplDropData((nvars + 1) * 2 + 1);   // DROP P(i), F(P), P'', F(P'') AND THE C POINT LIST
 
             for(j = 1; j <= nvars; ++j) {
-                newRealFromBINT(&RReg[4], 5, -1);       // 1/2
+                newRealFromint32_t(&RReg[4], 5, -1);       // 1/2
 
                 for(i = 1; i <= nvars; ++i) {
                     rplReadNumberAsReal(rplGetListElement(pointarray[0], i), &x1);      // X0(i)
@@ -1962,7 +1962,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1978,7 +1978,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -1987,7 +1987,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

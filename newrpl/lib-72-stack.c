@@ -184,7 +184,7 @@ void LIB_HANDLER()
         return;
     case DEPTH:
         //@SHORT_DESC=Get the current stack depth
-        rplNewBINTPush(rplDepthData(), DECBINT);
+        rplNewint32_tPush(rplDepthData(), DECint32_t);
         return;
     case DROP:
         //@SHORT_DESC=Remove an object from the stack
@@ -209,7 +209,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0 || rplDepthData() < count + 1) {
@@ -255,7 +255,7 @@ void LIB_HANDLER()
 
             return;
         }
-        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0 || rplDepthData() < count + 1) {
@@ -280,7 +280,7 @@ void LIB_HANDLER()
 
             return;
         }
-        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0) {
@@ -295,7 +295,7 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
         }
-        rplNewBINTPush(count, DECBINT);
+        rplNewint32_tPush(count, DECint32_t);
         return;
     }
     case NIP:
@@ -327,7 +327,7 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         if((level < 1) || (rplDepthData() < 1 + level)) {
@@ -358,7 +358,7 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -390,7 +390,7 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -451,7 +451,7 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -489,7 +489,7 @@ void LIB_HANDLER()
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
-        BINT protlevel = (BINT) ((WORDPTR *) rplPopRet() - DStk);
+        int32_t protlevel = (int32_t) ((WORDPTR *) rplPopRet() - DStk);
         if((DStkBottom + protlevel >= DStkBottom)
                 && (DStkBottom + protlevel < DSTop))
             DStkProtect = DStkBottom + protlevel;
@@ -621,10 +621,10 @@ void LIB_HANDLER()
         }
         int64_t snap, level;
 
-        snap = rplReadNumberAsBINT(rplPeekData(2));
+        snap = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
-        level = rplReadNumberAsBINT(rplPeekData(1));
+        level = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -656,7 +656,7 @@ void LIB_HANDLER()
         }
         int64_t snap;
 
-        snap = rplReadNumberAsBINT(rplPeekData(1));
+        snap = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -665,9 +665,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT depth = rplDepthSnapshot(snap);
+        int32_t depth = rplDepthSnapshot(snap);
 
-        WORDPTR newbint = rplNewBINT(depth, DECBINT);
+        WORDPTR newbint = rplNewint32_t(depth, DECint32_t);
         if(!newbint)
             return;
         rplOverwriteData(1, newbint);
@@ -750,7 +750,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -766,7 +766,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -776,7 +776,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

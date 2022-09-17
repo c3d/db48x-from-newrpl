@@ -77,7 +77,7 @@ void LIB_HANDLER()
         // COMPILE IDENTS QUOTED AND UNQUOTED, AND IF CurrentConstruct== NEWLOCALENV THEN ADD QUOTES
     {
         BYTEPTR tok = (BYTEPTR) TokenStart;
-        BINT len = TokenLen;
+        int32_t len = TokenLen;
 
         if(*tok == '\'') {
             // QUOTED IDENT OR ALGEBRAIC OBJECT
@@ -135,9 +135,9 @@ void LIB_HANDLER()
                return;
                }
                // WE POSSIBLY HAVE IMPLICIT MULTIPLICATION BETWEEN REAL AND IDENT
-               BINT numberlen=TI_LENGTH(RetNum);
+               int32_t numberlen=TI_LENGTH(RetNum);
                BYTEPTR splitpoint=(BYTEPTR)utf8nskip((char *)tok,(char *)BlankStart,numberlen);
-               BINT splitoff=splitpoint-(BYTEPTR)TokenStart;
+               int32_t splitoff=splitpoint-(BYTEPTR)TokenStart;
                if(rplIsValidIdent(splitpoint,(BYTEPTR)BlankStart)) {
                // CONFIRMED IMPLICIT MULTIPLICATION
                // TRY TO COMPILE AS NUMBER IDENT *
@@ -149,7 +149,7 @@ void LIB_HANDLER()
                }
 
                if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-               rplCompileBINT(getint64_tReal(&RReg[0]),(RReg[0].flags&F_APPROX)? DECBINTAPP:DECBINT);
+               rplCompileint32_t(getint64_tReal(&RReg[0]),(RReg[0].flags&F_APPROX)? DECint32_tAPP:DECint32_t);
                }
                else rplCompileReal(&RReg[0]);
                tok=((BYTEPTR)TokenStart)+splitoff;
@@ -258,7 +258,7 @@ void LIB_HANDLER()
             RetNum = OK_CONTINUE;
             return;
         }
-        BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+        int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
         if(Offset <= 32767 && Offset >= -32768) {
             rplCompileAppend(MKOPCODE(DOIDENT,
@@ -304,7 +304,7 @@ void LIB_HANDLER()
     case OPCODE_PROBETOKEN:
     {
         BYTEPTR tokptr, tokend, lastgood, tokstart;
-        BINT maxlen, len;
+        int32_t maxlen, len;
 
         tokstart = (BYTEPTR) TokenStart;
         tokend = (BYTEPTR) BlankStart;

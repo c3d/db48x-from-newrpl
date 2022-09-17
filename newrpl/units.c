@@ -257,7 +257,7 @@ const WORD const system_unit_defs[] = {
 
     //[60] = au
     MKPROLOG(DOUNIT, 7),
-    MKPROLOG(DECBINT, 2), 3568982636U, 34,
+    MKPROLOG(DECint32_t, 2), 3568982636U, 34,
     MKPROLOG(DOIDENT, 1), TEXT2WORD('m', 0, 0, 0), MAKESINT(1), MAKESINT(1),
 
     //[68] = b
@@ -298,7 +298,7 @@ const WORD const system_unit_defs[] = {
 
     //[117] = c
     MKPROLOG(DOUNIT, 11),
-    MKPROLOG(DECBINT, 2), 299792458, 0,
+    MKPROLOG(DECint32_t, 2), 299792458, 0,
     MKPROLOG(DOIDENT, 1), TEXT2WORD('m', 0, 0, 0), MAKESINT(1), MAKESINT(1),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('s', 0, 0, 0), MAKESINT(-1), MAKESINT(1),
 
@@ -326,7 +326,7 @@ const WORD const system_unit_defs[] = {
 
     //[159] = Ci
     MKPROLOG(DOUNIT, 7),
-    MKPROLOG(DECBINT, 2), 2640261632U, 8,
+    MKPROLOG(DECint32_t, 2), 2640261632U, 8,
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 'q', 0, 0), MAKESINT(1), MAKESINT(1),
 
     //[167] = ct
@@ -708,7 +708,7 @@ const WORD const system_unit_defs[] = {
 
     //[754]='pc' (parsec)
     MKPROLOG(DOUNIT, 11),
-    MKPROLOG(DECBINT, 2), 648000, 0,
+    MKPROLOG(DECint32_t, 2), 648000, 0,
     MKPROLOG(DOIDENT, 1), TEXT2WORD(0xcf, 0x80, 0, 0), MAKESINT(-1),
             MAKESINT(1),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('a', 'u', 0, 0), MAKESINT(1), MAKESINT(1),
@@ -1377,12 +1377,12 @@ const WORDPTR const system_unit_special[] = {
 #define RAD_IDENT 209   // [209]='r' (radian)
 #define GRAD_IDENT 109  // [109]='grad'
 
-BINT rplUnitExplode(WORDPTR unitobj)
+int32_t rplUnitExplode(WORDPTR unitobj)
 {
     WORDPTR *savestk = DSTop;
     if(!ISUNIT(*unitobj)) {
         unitobj = rplConstant2Number(unitobj);  // GET THE VALUE IF IT'S A CONSTANT
-        if(!ISBINT(*unitobj) && !ISPROLOG(*unitobj)) {
+        if(!ISint32_t(*unitobj) && !ISPROLOG(*unitobj)) {
             // IF IT'S NOT AN OBJECT, THEN IT'S A COMMAND THAT WILL RETURN A CONSTANT OR A UNIT
             rplCallOperator(*unitobj);
             if(DSTop == savestk + 1) {
@@ -1399,7 +1399,7 @@ BINT rplUnitExplode(WORDPTR unitobj)
             rplPushData(unitobj);
             if(ISANGLE(*unitobj)) {
                 // CONVERT THE ANGLE TO ANGULAR UNITS
-                BINT anglemode = ANGLEMODE(*unitobj);
+                int32_t anglemode = ANGLEMODE(*unitobj);
                 switch (anglemode) {
                 case ANGLEDEG:
                     rplOverwriteData(1, unitobj + 1);
@@ -1439,7 +1439,7 @@ BINT rplUnitExplode(WORDPTR unitobj)
 
     ScratchPointer1 = unitobj;
     ScratchPointer2 = rplSkipOb(unitobj);
-    BINT count = 0;
+    int32_t count = 0;
     ++ScratchPointer1;
     while(ScratchPointer1 < ScratchPointer2) {
         // PUSH ALL OBJECTS IN THE STACK AS-IS
@@ -1460,15 +1460,15 @@ BINT rplUnitExplode(WORDPTR unitobj)
 // DOES NOT CLEAN UP THE STACK
 // WARNING: THIS IS LOW-LEVEL, NO VALIDITY CHECKS DONE HERE
 
-WORDPTR rplUnitAssemble(BINT nlevels)
+WORDPTR rplUnitAssemble(int32_t nlevels)
 {
     // A SINGLE VALUE OBJECT WHERE ALL UNITS CANCELLED OUT
     // NO NEED TO CREATE A NEW OBJECT
     if(nlevels == 1)
         return rplPeekData(1);
     // COMPUTE THE REQUIRED SIZE
-    BINT size = 0;
-    BINT lvl;
+    int32_t size = 0;
+    int32_t lvl;
 
     for(lvl = 1; lvl <= nlevels; ++lvl)
         size += rplObjSize(rplPeekData(lvl));
@@ -1493,9 +1493,9 @@ WORDPTR rplUnitAssemble(BINT nlevels)
 
 // REMOVE AN ITEM AT THE GIVEN LEVEL OF THE STACK, INCLUDING ITS EXPONENT IF IT'S AN IDENT
 // RETURNS THE NUMBER OF ELEMENTS REMOVED FROM THE STACK
-BINT rplUnitPopItem(BINT level)
+int32_t rplUnitPopItem(int32_t level)
 {
-    BINT nitems;
+    int32_t nitems;
 
     if(level > rplDepthData())
         return 0;
@@ -1517,9 +1517,9 @@ BINT rplUnitPopItem(BINT level)
 }
 
 // COPY THE ITEM AT THE BOTTOM OF THE STACK
-void rplUnitPickItem(BINT level)
+void rplUnitPickItem(int32_t level)
 {
-    BINT nitems;
+    int32_t nitems;
 
     if(level > rplDepthData())
         return;
@@ -1541,7 +1541,7 @@ void rplUnitPickItem(BINT level)
 // REMOVES THE SECOND IDENTIFIER FROM THE STACK AND OVERWRITES THE FIRST ELEMENT WITH THE RESULT
 // LOW LEVEL, NO CHECKS OF ANY KIND DONE HERE
 // RETURNS THE NUMBER OF LEVELS CHANGED IN THE STACK (NEGATIVE=REMOVED ELEMENTS)
-BINT rplUnitMulItem(BINT level1, BINT level2)
+int32_t rplUnitMulItem(int32_t level1, int32_t level2)
 {
     if(ISIDENT(*rplPeekData(level1))) {
         if(!ISIDENT(*rplPeekData(level2))) {
@@ -1565,7 +1565,7 @@ BINT rplUnitMulItem(BINT level1, BINT level2)
             DSTop = stackptr;
             return 0;
         }
-        BINT sign = rplFractionAdd();
+        int32_t sign = rplFractionAdd();
         if(Exceptions) {
             DSTop = stackptr;
             return 0;
@@ -1634,12 +1634,12 @@ BINT rplUnitMulItem(BINT level1, BINT level2)
 // TO MULTIPLY ANY EXPONENTS IN level2 IDENTIFIERS
 // DOES NOT REMOVE ANYTHING FROM THE STACK, MODIFIES level2 ON THE SPOT
 // LOW LEVEL, NO CHECKS OF ANY KIND DONE HERE
-void rplUnitPowItem(BINT level1, BINT level2)
+void rplUnitPowItem(int32_t level1, int32_t level2)
 {
     if(ISIDENT(*rplPeekData(level2))) {
         // POW 2 IDENTIFIERS BY MULTIPLYING THEIR EXPONENTS
         WORDPTR *stackptr = DSTop;
-        BINT isident = ISIDENT(*rplPeekData(level1));
+        int32_t isident = ISIDENT(*rplPeekData(level1));
         if(isident)
             rplPushData(rplPeekData(level1 - 1));       // FIRST NUMERATOR
         else
@@ -1716,7 +1716,7 @@ void rplUnitPowItem(BINT level1, BINT level2)
 }
 
 // SKIPS AN ITEM (VALUE OR IDENT) AND RETURNS THE LEVEL OF THE NEXT ITEM
-BINT rplUnitSkipItem(BINT level)
+int32_t rplUnitSkipItem(int32_t level)
 {
     if(ISIDENT(*rplPeekData(level)))
         return level - 3;
@@ -1727,9 +1727,9 @@ BINT rplUnitSkipItem(BINT level)
 // AND PERFORMING FRACTION SIMPLIFICATION OF EXPONENTS
 // RETURNS THE NUMBER OF LEVELS LEFT IN THE STACK
 // AFTER SIMPLIFICATION
-BINT rplUnitSimplify(BINT nlevels)
+int32_t rplUnitSimplify(int32_t nlevels)
 {
-    BINT lvl = nlevels, lvl2, reduction;
+    int32_t lvl = nlevels, lvl2, reduction;
 
     while(lvl > 0) {
         lvl2 = rplUnitSkipItem(lvl);
@@ -1751,7 +1751,7 @@ BINT rplUnitSimplify(BINT nlevels)
 
             if(*rplPeekData(lvl - 1) == MAKESINT(0)) {
                 // NEED TO REMOVE THIS UNIT FROM THE LIST
-                BINT oldlvl = lvl;
+                int32_t oldlvl = lvl;
                 lvl = rplUnitSkipItem(lvl);
                 rplUnitPopItem(oldlvl);
                 nlevels -= oldlvl - lvl;
@@ -1798,7 +1798,7 @@ BINT rplUnitSimplify(BINT nlevels)
 
 // INVERT A SINGLE UNIT IDENTIFIER BY NEGATING ITS EXPONENT
 // RECEIVE THE LEVEL OF THE STACK WHERE THE IDENTIFIER IS
-void rplUnitInvert(BINT level)
+void rplUnitInvert(int32_t level)
 {
     if(!ISIDENT(*rplPeekData(level)))
         return;
@@ -1821,7 +1821,7 @@ void rplUnitInvert(BINT level)
 // B) INVERT THE UNIT PART OF THE DIVISOR
 // C) MULTIPLY/SIMPLIFY THE UNIT PORTION
 // RETURN THE NUMBER OF ELEMENTS AFTER THE SIMPLIFICATION
-BINT rplUnitDivide(BINT numlvl, BINT divlvl)
+int32_t rplUnitDivide(int32_t numlvl, int32_t divlvl)
 {
     WORDPTR *savestk = DSTop;
 
@@ -1856,9 +1856,9 @@ BINT rplUnitDivide(BINT numlvl, BINT divlvl)
 
 // RAISE A UNIT TO A REAL EXPONENT
 // RETURN THE NUMBER OF ELEMENTS AFTER THE SIMPLIFICATION
-BINT rplUnitPow(BINT lvlexp, BINT nlevels)
+int32_t rplUnitPow(int32_t lvlexp, int32_t nlevels)
 {
-    BINT lvl = nlevels;
+    int32_t lvl = nlevels;
 
     while(lvl > 0) {
 
@@ -1903,7 +1903,7 @@ const char *const siprefix_text[] = {
 
 // EXPONENT MODIFICATION DUE TO SI PREFIX
 
-const BINT const siprefix_exp[] = {
+const int32_t const siprefix_exp[] = {
     0,
     24,
     21,
@@ -1929,9 +1929,9 @@ const BINT const siprefix_exp[] = {
 
 // RETURN THE INDEX TO A SI PREFIX
 
-BINT rplUnitGetSIPrefix(WORDPTR ident)
+int32_t rplUnitGetSIPrefix(WORDPTR ident)
 {
-    BINT k, len, ilen;
+    int32_t k, len, ilen;
     BYTEPTR istart, iend;
 
 // FIND START AND END OF THE IDENT TEXT
@@ -1968,9 +1968,9 @@ BINT rplUnitGetSIPrefix(WORDPTR ident)
 // -1 = THEY ARE IDENTICAL
 // n = THEY DIFFER ONLY IN THE SI PREFIX, OTHERWISE IDENTICAL UNIT (n=SI PREFIX INDEX)
 
-BINT rplUnitCompare(WORDPTR ident, WORDPTR baseident)
+int32_t rplUnitCompare(WORDPTR ident, WORDPTR baseident)
 {
-    BINT siidx;
+    int32_t siidx;
 
     if(rplCompareIDENT(ident, baseident))
         return -1;
@@ -2027,7 +2027,7 @@ BINT rplUnitCompare(WORDPTR ident, WORDPTR baseident)
 // IF THE siindex POINTER IS NOT NULL, IT STORES THE
 // INDEX TO THE SI PREFIX THAT WAS FOUND IN THE GIVEN NAME
 
-WORDPTR *rplUnitFind(WORDPTR ident, BINT * siindex)
+WORDPTR *rplUnitFind(WORDPTR ident, int32_t * siindex)
 {
     static const BYTE const unitdir_name[] = "UNITS";
 
@@ -2035,7 +2035,7 @@ WORDPTR *rplUnitFind(WORDPTR ident, BINT * siindex)
             rplGetSettingsbyName((BYTEPTR) unitdir_name,
             (BYTEPTR) unitdir_name + 5);
     WORDPTR baseid;
-    BINT result;
+    int32_t result;
     WORDPTR *entry;
 
     if(unitdir_obj) {
@@ -2096,7 +2096,7 @@ WORDPTR *rplUnitFind(WORDPTR ident, BINT * siindex)
 // IF THE siindex POINTER IS NOT NULL, IT STORES THE
 // INDEX TO THE SI PREFIX THAT WAS FOUND IN THE GIVEN NAME
 
-WORDPTR *rplUnitFindCustom(WORDPTR ident, BINT * siindex)
+WORDPTR *rplUnitFindCustom(WORDPTR ident, int32_t * siindex)
 {
     static const BYTE const unitdir_name[] = "UNITS";
 
@@ -2104,7 +2104,7 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident, BINT * siindex)
             rplGetSettingsbyName((BYTEPTR) unitdir_name,
             (BYTEPTR) unitdir_name + 5);
     WORDPTR baseid;
-    BINT result;
+    int32_t result;
     WORDPTR *entry;
 
     if(unitdir_obj) {
@@ -2141,11 +2141,11 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident, BINT * siindex)
 // IF UNIT IS ALREADY A BASE UNIT, LEAVE AS-IS
 // RETURNS NUMBER OF LEVELS ADDED TO THE STACK
 
-BINT rplUnitExpand(BINT level)
+int32_t rplUnitExpand(int32_t level)
 {
     if(ISIDENT(*rplPeekData(level))) {
 
-        BINT siidx;
+        int32_t siidx;
         WORDPTR *entry = rplUnitFind(rplPeekData(level), &siidx);
 
         if(!entry) {
@@ -2157,7 +2157,7 @@ BINT rplUnitExpand(BINT level)
 
         // UNIT WAS FOUND
 
-        BINT nlevels = rplUnitExplode(entry[1]);
+        int32_t nlevels = rplUnitExplode(entry[1]);
         if(Exceptions) {
             DSTop = stktop;
             return 0;
@@ -2196,7 +2196,7 @@ BINT rplUnitExpand(BINT level)
 
         // NOW APPLY THE EXPONENT!
 
-        BINT lvl2 = nlevels;
+        int32_t lvl2 = nlevels;
 
         while(lvl2 > 0) {
             rplUnitPowItem(level + nlevels, lvl2);
@@ -2215,9 +2215,9 @@ BINT rplUnitExpand(BINT level)
 
 // RECURSIVELY EXPAND ALL UNITS USING THEIR DEFINITIONS UNTIL A BASE IS REACHED
 // RETURN THE NEW TOTAL NUMBER OF ELEMENTS
-BINT rplUnitToBase(BINT nlevels)
+int32_t rplUnitToBase(int32_t nlevels)
 {
-    BINT lvl = nlevels, morelevels;
+    int32_t lvl = nlevels, morelevels;
 
     while(lvl > 0) {
         morelevels = rplUnitExpand(lvl);
@@ -2238,10 +2238,10 @@ BINT rplUnitToBase(BINT nlevels)
 // RETURN TRUE/FALSE IF THE UNIT IN THE FIRST nlevels ARE CONSISTENT
 // WITH THE UNIT IN reflevel TO (nlevels+1)
 // BOTH UNITS MUST BE EXPLODED AND REDUCED TO BASE BEFOREHAND
-BINT rplUnitIsConsistent(BINT nlevels, BINT reflevel)
+int32_t rplUnitIsConsistent(int32_t nlevels, int32_t reflevel)
 {
     if(reflevel < nlevels) {
-        BINT tmp = reflevel;
+        int32_t tmp = reflevel;
         reflevel = nlevels;
         nlevels = tmp;
     }
@@ -2259,7 +2259,7 @@ BINT rplUnitIsConsistent(BINT nlevels, BINT reflevel)
     if(nlevels != reflevel - nlevels)
         return 0;       // UNITS MUST HAVE THE SAME NUMBER OF IDENTS TO BE CONSISTENT
 
-    BINT lvl = nlevels, lvl2 = reflevel;
+    int32_t lvl = nlevels, lvl2 = reflevel;
 
     while(lvl > 0) {
         if(!ISIDENT(*rplPeekData(lvl))) {
@@ -2307,14 +2307,14 @@ BINT rplUnitIsConsistent(BINT nlevels, BINT reflevel)
 // SPECIAL UNITS (TEMPERATURE) WHICH NEED SEPARATE HANDLING DUE TO
 // SCALE SHIFTING
 
-BINT rplUnitIsSpecial(WORDPTR unitobj)
+int32_t rplUnitIsSpecial(WORDPTR unitobj)
 {
     if(!ISUNIT(*unitobj))
         return 0;
 
     // THERE HAS TO BE ONE AND ONLY ONE IDENT
     WORDPTR id = unitobj + 1, end = rplSkipOb(unitobj);
-    BINT count = 0;
+    int32_t count = 0;
 
     while(id != end) {
         ++count;
@@ -2345,11 +2345,11 @@ BINT rplUnitIsSpecial(WORDPTR unitobj)
 // WITH THEIR SHIFTED-SCALE ABSOLUTE COUNTERPART
 // WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
 
-void rplUnitReplaceSpecial(BINT nlevels)
+void rplUnitReplaceSpecial(int32_t nlevels)
 {
-    BINT lvl = nlevels;
-    BINT value = 0;
-    BINT ident = 0;
+    int32_t lvl = nlevels;
+    int32_t value = 0;
+    int32_t ident = 0;
 
     // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
     while(lvl > 0) {
@@ -2400,11 +2400,11 @@ void rplUnitReplaceSpecial(BINT nlevels)
 // WITH THEIR SHIFTED-SCALE RELATIVE COUNTERPART
 // WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
 
-void rplUnitReverseReplaceSpecial(BINT nlevels)
+void rplUnitReverseReplaceSpecial(int32_t nlevels)
 {
-    BINT lvl = nlevels;
-    BINT value = 0;
-    BINT ident = 0;
+    int32_t lvl = nlevels;
+    int32_t value = 0;
+    int32_t ident = 0;
 
     // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
     while(lvl > 0) {
@@ -2456,7 +2456,7 @@ void rplUnitReverseReplaceSpecial(BINT nlevels)
 // ARGUMENT IS THE INDEX RETURNED BY rplUnitIsSpecial
 // WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
 
-void rplUnitReverseReplaceSpecial2(BINT isspec_idx)
+void rplUnitReverseReplaceSpecial2(int32_t isspec_idx)
 {
     WORDPTR *ptr = (WORDPTR *) system_unit_special;
 
@@ -2482,11 +2482,11 @@ void rplUnitReverseReplaceSpecial2(BINT isspec_idx)
 // WITH THEIR SHIFTED-SCALE ABSOLUTE COUNTERPART
 // WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
 
-void rplUnitSpecialToDelta(BINT nlevels)
+void rplUnitSpecialToDelta(int32_t nlevels)
 {
-    BINT lvl = nlevels;
-    BINT value = 0;
-    BINT ident = 0;
+    int32_t lvl = nlevels;
+    int32_t value = 0;
+    int32_t ident = 0;
 
     // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
     while(lvl > 0) {
@@ -2523,14 +2523,14 @@ void rplUnitSpecialToDelta(BINT nlevels)
 // OTHERWISE RETURN FALSE AND STACK UNMODIFIED
 // MAY TRIGGER ERRORS AND/OR GC
 
-BINT rplUnitIsNonDimensional(WORDPTR uobject)
+int32_t rplUnitIsNonDimensional(WORDPTR uobject)
 {
     if(!ISUNIT(*uobject)) {
         rplPushData(uobject);
         return 1;
     }
     WORDPTR *stkclean = DSTop;
-    BINT nlevels = rplUnitExplode(uobject);
+    int32_t nlevels = rplUnitExplode(uobject);
     if(Exceptions) {
         DSTop = stkclean;
         return 0;
@@ -2564,7 +2564,7 @@ BINT rplUnitIsNonDimensional(WORDPTR uobject)
 void rplUnitUnaryDoCmd()
 {
     WORDPTR *stkclean = DSTop;
-    BINT nlevels = rplUnitExplode(rplPeekData(1));
+    int32_t nlevels = rplUnitExplode(rplPeekData(1));
     if(Exceptions) {
         DSTop = stkclean;
         return;
@@ -2592,7 +2592,7 @@ void rplUnitUnaryDoCmd()
 void rplUnitUnaryDoCmdNonDimensional()
 {
     WORDPTR *stkclean = DSTop;
-    BINT nlevels = rplUnitExplode(rplPeekData(1));
+    int32_t nlevels = rplUnitExplode(rplPeekData(1));
     if(Exceptions) {
         DSTop = stkclean;
         return;
@@ -2628,8 +2628,8 @@ WORDPTR rplUnitApply(WORDPTR value, WORDPTR unitobj)
     if(!ISUNIT(*unitobj))
         return value;
 
-    BINT size = rplObjSize(unitobj) - rplObjSize(unitobj + 1) - 1;
-    BINT vsize = rplObjSize(value);
+    int32_t size = rplObjSize(unitobj) - rplObjSize(unitobj + 1) - 1;
+    int32_t vsize = rplObjSize(value);
 
     ScratchPointer1 = value;
     ScratchPointer2 = unitobj;

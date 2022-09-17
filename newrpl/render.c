@@ -80,8 +80,8 @@ void rndEvalCurve2(FPINT t, CURVEPT * bezier, CURVEPT * result, CURVEPT * deriv)
 // WRITE A VALUE IN THE BUFFER, RESIZE THE BUFFER AS NEEDED TO MAKE ROOM
 // RETURN 0 IF NOT ENOUGH MEMORY, MAY TRIGGER GC SO IT ALWAYS RETURNS A NEW (OR SAME) buffer
 
-WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, BINT scanline,
-        BINT nscans)
+WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, int32_t scanline,
+        int32_t nscans)
 {
     if(buffer[scanline + 2 * nscans] == buffer[scanline + nscans]) {
         // NO MORE AVAILABLE SLOTS IN THIS SCANLINE, RESIZE
@@ -93,11 +93,11 @@ WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, BINT scanline,
             return 0;
 
         // ADJUST BUFFER
-        BINT oldoffset = buffer[scanline], newoffset = 0;
-        BINT k;
+        int32_t oldoffset = buffer[scanline], newoffset = 0;
+        int32_t k;
 
         for(k = 0; k < nscans; ++k) {
-            BINT endofblock =
+            int32_t endofblock =
                     buffer[k] + buffer[k +
                     nscans] * sizeof(FPINT) / sizeof(WORD);
             if(newoffset < endofblock)
@@ -145,10 +145,10 @@ WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, BINT scanline,
 
 // EACH SCANLINE = ARRAY OF FPINT NUMBERS, X COORD. OF INTERSECTION OF POLYGON WITH THE SCAN
 
-WORDPTR rndScanPolygon(BINT npoints, CURVEPT * poly, FPINT starty, FPINT endy)
+WORDPTR rndScanPolygon(int32_t npoints, CURVEPT * poly, FPINT starty, FPINT endy)
 {
-    BINT k;
-    BINT nscans = endy - starty + 1;
+    int32_t k;
+    int32_t nscans = endy - starty + 1;
 // INTERMEDIATE BUFFER
 
     WORDPTR buffer =
@@ -178,7 +178,7 @@ WORDPTR rndScanPolygon(BINT npoints, CURVEPT * poly, FPINT starty, FPINT endy)
             FPINT incy = poly[k].y - poly[k - 1].y;
             FPINT incx = poly[k].x - poly[k - 1].x;
             FPINT x, y, dx, ey;
-            BINT scancnt;
+            int32_t scancnt;
             if(incy == 0)
                 break;  // NO NEED TO SCAN HORIZONTAL LINES
             if(incy > 0) {

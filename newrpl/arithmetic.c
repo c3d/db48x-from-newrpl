@@ -17,10 +17,10 @@
 // OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE
 // THE RETURN VALUE IS EITHER -1 OR THE ACTUAL FACTORIAL
 
-int64_t factorialBINT(BINT n)
+int64_t factorialint32_t(int32_t n)
 {
     int64_t result = 1;
-    BINT k;
+    int32_t k;
 
     for(k = 2; (k <= n) && (k <= 20); ++k)
         result = result * k;
@@ -31,7 +31,7 @@ int64_t factorialBINT(BINT n)
     newRealFromint64_t(&RReg[0], result, 0);
 
     for(; k <= n; ++k) {
-        newRealFromBINT(&RReg[1], k, 0);
+        newRealFromint32_t(&RReg[1], k, 0);
         mulReal(&RReg[0], &RReg[0], &RReg[1]);
         if(RReg[0].flags & (F_INFINITY | F_NOTANUMBER | F_OVERFLOW | F_ERROR)) {
             rplError(ERR_NUMBERTOOBIG);
@@ -581,12 +581,12 @@ const int const primesieve_unpack[8] = { 1, 7, 11, 13, 17, 19, 23, 29 };
 
 // RETURN THE SMALLEST "COULD_BE" PRIME NUMBER > n
 
-int64_t nextcbprimeBINT(int64_t n)
+int64_t nextcbprimeint32_t(int64_t n)
 {
-    BINT idx;
+    int32_t idx;
     if(n < MAX_PRIME) {
         idx = primesieve_pack[n % 30];
-        BINT off = n / 30;
+        int32_t off = n / 30;
 
         if(!off) {
             if(n < 2)
@@ -630,12 +630,12 @@ int64_t nextcbprimeBINT(int64_t n)
 // RETURN SMALLEST CONFIRMED PRIME NUMBER > n
 // OR -1 IF NEXT PRIME >2^63 (IN SUCH CASE USER NEEDS TO USE REAL NUMBERS)
 
-int64_t nextprimeBINT(int64_t n)
+int64_t nextprimeint32_t(int64_t n)
 {
-    BINT idx;
+    int32_t idx;
     if(n < MAX_PRIME) {
         idx = primesieve_pack[n % 30];
-        BINT off = n / 30;
+        int32_t off = n / 30;
 
         if(!off) {
             if(n < 2)
@@ -677,12 +677,12 @@ int64_t nextprimeBINT(int64_t n)
             return -1;  // OVERFLOW!
 
     }
-    while(!isprimeBINT(n));
+    while(!isprimeint32_t(n));
 
     return n;
 }
 
-BINT isprimeBINT(int64_t n)
+int32_t isprimeint32_t(int64_t n)
 {
     if(n < 0)
         n = -n;
@@ -716,28 +716,28 @@ BINT isprimeBINT(int64_t n)
     while(i * i <= n) {
         if(n % i == 0)
             return 0;
-        i = nextcbprimeBINT(i);
+        i = nextcbprimeint32_t(i);
     }
 
     return 1;
 }
 
-BINT isprimeReal(REAL * n)
+int32_t isprimeReal(REAL * n)
 {
     if(inint64_tRange(n)) {
         int64_t nbint = getint64_tReal(n);
-        return isprimeBINT(nbint);
+        return isprimeint32_t(nbint);
     }
 
     //  BIG INTEGERS HERE
 
     // MAKE POSITIVE
     n->flags &= ~F_NEGATIVE;
-    newRealFromBINT(&RReg[2], 30, 0);
+    newRealFromint32_t(&RReg[2], 30, 0);
 
     divmodReal(&RReg[0], &RReg[1], n, &RReg[2]);
 
-    BINT rem = getBINTReal(&RReg[1]);   // EXTRACT THE INTEGER REMAINDER
+    int32_t rem = getint32_tReal(&RReg[1]);   // EXTRACT THE INTEGER REMAINDER
 
     if(primesieve_pack[rem] < 0)
         return 0;
@@ -751,7 +751,7 @@ BINT isprimeReal(REAL * n)
         if(iszeroReal(&RReg[1]))
             return 0;
 
-        i = nextcbprimeBINT(i);
+        i = nextcbprimeint32_t(i);
     }
 
     // HERE WE TESTED ALL PRIMES UP TO 2^63 AND IT'S STILL PRIME!
@@ -764,14 +764,14 @@ BINT isprimeReal(REAL * n)
 
 // USES ALL RReg FROM 0 TO 4 INCLUSIVE
 // RETURN THE NEXT PRIME NUMBER IN RReg[regnum]
-void nextprimeReal(BINT regnum, REAL * n)
+void nextprimeReal(int32_t regnum, REAL * n)
 {
     // MAKE POSITIVE
     n->flags &= ~F_NEGATIVE;
 
     if(inint64_tRange(n)) {
         int64_t nbint = getint64_tReal(n);
-        int64_t next = nextprimeBINT(nbint);
+        int64_t next = nextprimeint32_t(nbint);
         if(next > 0) {
             newRealFromint64_t(&RReg[regnum], next, 0);
             return;
@@ -788,7 +788,7 @@ void nextprimeReal(BINT regnum, REAL * n)
     else
         copyReal(&RReg[0], n);
 
-    newRealFromBINT(&RReg[2], 30, 0);
+    newRealFromint32_t(&RReg[2], 30, 0);
 
     int64_t i = 0;
 
@@ -796,11 +796,11 @@ void nextprimeReal(BINT regnum, REAL * n)
 
         divmodReal(&RReg[3], &RReg[1], &RReg[0], &RReg[2]);
 
-        BINT rem = getBINTReal(&RReg[1]);       // EXTRACT THE INTEGER REMAINDER
+        int32_t rem = getint32_tReal(&RReg[1]);       // EXTRACT THE INTEGER REMAINDER
 
         if(primesieve_pack[rem] < 0) {
             // NOT PRIME, NEXT
-            BINT idx = primesieve_nextpack[rem];
+            int32_t idx = primesieve_nextpack[rem];
             // THIS IS LOW-LEVEL ACCESS TO DECIMAL LIBRARY FOR SPEED
             RReg[0].data[0] -= rem;
             RReg[0].data[0] += 30 * (idx >> 3);
@@ -817,8 +817,8 @@ void nextprimeReal(BINT regnum, REAL * n)
             divmodReal(&RReg[3], &RReg[1], &RReg[0], &RReg[4]);
             if(iszeroReal(&RReg[1])) {
                 // NOT PRIME, NEXT
-                rem = getBINTReal(&RReg[1]);    // EXTRACT THE INTEGER REMAINDER
-                BINT idx = primesieve_nextpack[rem];
+                rem = getint32_tReal(&RReg[1]);    // EXTRACT THE INTEGER REMAINDER
+                int32_t idx = primesieve_nextpack[rem];
                 // THIS IS LOW-LEVEL ACCESS TO DECIMAL LIBRARY FOR SPEED
                 RReg[0].data[0] -= rem;
                 RReg[0].data[0] += 30 * (idx >> 3);
@@ -827,7 +827,7 @@ void nextprimeReal(BINT regnum, REAL * n)
                 break;
             }
 
-            i = nextcbprimeBINT(i);
+            i = nextcbprimeint32_t(i);
         }
 
         // HERE WE TESTED ALL PRIMES UP TO 2^63 AND IT'S STILL PRIME!
@@ -844,7 +844,7 @@ void nextprimeReal(BINT regnum, REAL * n)
 // WHERE a AND b, AND mod ARE INTEGERS
 // mod HAS TO BE < 2^31 OTHERWISE USE THE REAL VERSION
 
-int64_t powmodBINT(int64_t a, int64_t b, int64_t mod)
+int64_t powmodint32_t(int64_t a, int64_t b, int64_t mod)
 {
     if(b == 0)
         return 1;       // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
@@ -880,7 +880,7 @@ int64_t powmodBINT(int64_t a, int64_t b, int64_t mod)
 void powmodReal(REAL * result, REAL * a, REAL * b, REAL * mod)
 {
     if(iszeroReal(b)) {
-        newRealFromBINT(result, 1, 0);  // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
+        newRealFromint32_t(result, 1, 0);  // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
         return;
     }
 
@@ -1256,7 +1256,7 @@ int64_t factorReal(REAL * result, REAL * n)
         }
 
         // d==n --> FAILURE, TRY ANOTHER STARTING POINT
-        startnum = nextprimeBINT(startnum);
+        startnum = nextprimeint32_t(startnum);
 
     }
     while((startnum < GIVEUP_PRIME) && !((ni > 0) && (startnum > ni)));

@@ -101,7 +101,7 @@ ARM_MODE  __attribute__((naked)) void start_os(int entrypoint)
 // Returns entrypoint of os
 int load_os(char *name)
 {
-    BINT err;
+    int32_t err;
 
     err = FSSetCurrentVolume(0);
     if (err != FS_OK) {

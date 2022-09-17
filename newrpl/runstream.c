@@ -22,16 +22,16 @@ extern const WORD bkpoint_seco[];
 // GET A HANDLER FOR A LIBRARY
 // IT'S FAST FOR SYSTEM LIBRARIES, MUCH SLOWER FOR USER LIBS
 
-LIBHANDLER rplGetLibHandler(BINT libnum)
+LIBHANDLER rplGetLibHandler(int32_t libnum)
 {
     if(libnum < MAXLOWLIBS)
         return LowLibRegistry[libnum];
     if(libnum > MAXLIBNUMBER - MAXSYSHILIBS)
         return SysHiLibRegistry[libnum - (MAXLIBNUMBER + 1 - MAXSYSHILIBS)];
     // DO A BINARY SEARCH FOR USER FUNCTIONS OTHERWISE
-    BINT lo = 0;
-    BINT hi = NumHiLibs - 1;
-    BINT x;
+    int32_t lo = 0;
+    int32_t hi = NumHiLibs - 1;
+    int32_t x;
     do {
         x = (hi + lo) / 2;
         if(HiLibNumbers[x] == libnum)
@@ -52,7 +52,7 @@ LIBHANDLER rplGetLibHandler(BINT libnum)
 }
 
 // DECREASE THE LIBRARY NUMBER, TO THE NEXT VALID HANDLER
-BINT rplGetNextLib(BINT libnum)
+int32_t rplGetNextLib(int32_t libnum)
 {
     if(libnum > MAXLIBNUMBER - MAXSYSHILIBS) {
         --libnum;
@@ -71,9 +71,9 @@ BINT rplGetNextLib(BINT libnum)
     if(libnum > MAXLOWLIBS) {
         // DO A BINARY SEARCH FOR USER FUNCTIONS OTHERWISE
         if(NumHiLibs > 0) {
-            BINT lo = 0;
-            BINT hi = NumHiLibs - 1;
-            BINT x;
+            int32_t lo = 0;
+            int32_t hi = NumHiLibs - 1;
+            int32_t x;
             do {
                 x = (hi + lo) / 2;
                 if(HiLibNumbers[x] == libnum) {
@@ -143,7 +143,7 @@ void rplInstallCoreLibraries()
 
 // INSTALL A LIBRARY HANDLER, RETURN 1 ON SUCCESS, 0 ON FAILURE
 
-BINT rplInstallLibrary(LIBHANDLER handler)
+int32_t rplInstallLibrary(LIBHANDLER handler)
 {
     uint16_t *listnumbers;
 
@@ -210,11 +210,11 @@ BINT rplInstallLibrary(LIBHANDLER handler)
             // ADD LIBRARY
             if(NumHiLibs >= MAXHILIBS)
                 return 0;
-            BINT *ptr = HiLibNumbers + NumHiLibs;
+            int32_t *ptr = HiLibNumbers + NumHiLibs;
             LIBHANDLER *libptr = HiLibRegistry + NumHiLibs;
 
             while(ptr > HiLibNumbers) {
-                if((UBINT) ptr[-1] > *listnumbers) {
+                if((uint32_t) ptr[-1] > *listnumbers) {
                     ptr[0] = ptr[-1];
                     libptr[0] = libptr[-1];
                     --ptr;
@@ -236,7 +236,7 @@ BINT rplInstallLibrary(LIBHANDLER handler)
         return 0;       // HANDLER FAILED TO REPORT ANY LIBRARY NUMBERS
 }
 
-void rplRemoveLibrary(BINT number)
+void rplRemoveLibrary(int32_t number)
 {
     if(number < 0 || number > MAXLIBNUMBER)
         return;
@@ -244,7 +244,7 @@ void rplRemoveLibrary(BINT number)
         LIBHANDLER han = LowLibRegistry[number];
         // REMOVE ALL LIBRARIES REGISTERED WITH THAT SAME HANDLE
         if(han) {
-            BINT k;
+            int32_t k;
             for(k = 0; k < MAXLOWLIBS; ++k)
                 if(LowLibRegistry[k] == han)
                     LowLibRegistry[k] = 0;
@@ -256,7 +256,7 @@ void rplRemoveLibrary(BINT number)
                 SysHiLibRegistry[number - (MAXLIBNUMBER - MAXSYSHILIBS + 1)];
         // REMOVE ALL LIBRARIES REGISTERED WITH THAT SAME HANDLE
         if(han) {
-            BINT k;
+            int32_t k;
             for(k = 0; k < MAXSYSHILIBS; ++k)
                 if(SysHiLibRegistry[k] == han)
                     SysHiLibRegistry[k] = 0;
@@ -266,7 +266,7 @@ void rplRemoveLibrary(BINT number)
 
     if(NumHiLibs <= 0)
         return;
-    BINT *ptr = HiLibNumbers, found = 0;
+    int32_t *ptr = HiLibNumbers, found = 0;
     LIBHANDLER *libptr = HiLibRegistry;
     LIBHANDLER han;
 
@@ -299,14 +299,14 @@ void rplRemoveLibrary(BINT number)
 // RETURNS 0 = FINISHED OK
 // 1 = SOME ERROR, MAY NEED CLEANUP
 // 2 = EXECUTION PAUSED DUE TO POWEROFF
-BINT rplRun(void)
+int32_t rplRun(void)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
     LIBHANDLER han;
     // CLEAR TEMPORARY SYSTEM FLAG ON EVERY SEPARATE EXECUTION
     rplClrSystemFlag(FL_FORCED_RAD);
 
-        BINT rpnmode =
+        int32_t rpnmode =
                 rplTestSystemFlag(FL_MODERPN) | (rplTestSystemFlag(FL_EXTENDEDRPN)
                 << 1);
     if(!rpnmode) {
@@ -602,7 +602,7 @@ BINT rplRun(void)
         if(DStkProtect!=DStkBottom) {
             // STACK IS NOT SETUP FOR RPN, NEEDS TO BE FILLED
             // PROVIDE RPN-MODE STACK BEHAVIOR
-            BINT nlevels = (rpnmode & 2) ? 8 : 4;
+            int32_t nlevels = (rpnmode & 2) ? 8 : 4;
             if(DSTop-DStkBottom>=nlevels) DStkProtect=DSTop-nlevels;
             else DStkProtect=DStkBottom;
         }
@@ -888,18 +888,18 @@ BINT rplRun(void)
             }
 
             // PROVIDE RPN-MODE STACK BEHAVIOR
-            BINT nlevels = (rpnmode & 2) ? 8 : 4;
+            int32_t nlevels = (rpnmode & 2) ? 8 : 4;
 
             // RPN STACK CORRECTION
             if(rplDepthData() > nlevels)
                 rplRemoveAtData(nlevels + 1, rplDepthData() - nlevels); // TRIM THE STACK IF MORE THAN 8 LEVELS
             if(rplDepthData() < nlevels)        // FILL THE STACK WITH THE T REGISTER IF LESS THAN 8 NUMBERS
             {
-                BINT offset=nlevels-rplDepthData();
+                int32_t offset=nlevels-rplDepthData();
                 rplExpandStack(offset);
                 // DISREGARD OF EXCEPTIONS, IF OUT OF MOEMORY WE SHOULD STILL HAVE ENOUGH SLACK IN THE STACK
                 DSTop+=offset;
-                BINT k;
+                int32_t k;
                 DStkProtect=DSTop-nlevels;
                 for(k = 1; k <= nlevels-offset; ++k)
                     DSTop[- k] = DSTop[-k-offset];
@@ -923,7 +923,7 @@ BINT rplRun(void)
 // RETURNS 0 = FINISHED OK
 // 1 = SOME ERROR, MAY NEED CLEANUP
 // 2 = EXECUTION PAUSED DUE TO POWEROFF
-BINT rplRunAtomic(WORD opcode)
+int32_t rplRunAtomic(WORD opcode)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
     WORDPTR obj = rplAllocTempObLowMem(2);
@@ -932,7 +932,7 @@ BINT rplRunAtomic(WORD opcode)
         obj[1] = CMD_ENDOFCODE;
         obj[2] = CMD_QSEMI;     // THIS IS FOR SAFETY REASONS
 
-        BINT rsave, lamsave, nlambase, retvalue;
+        int32_t rsave, lamsave, nlambase, retvalue;
         WORD exceptsave, errcodesave;
         // PRESERVE VARIOUS STACK POINTERS
         rplPushDataNoGrow(obj); // PRESERVE POINTER IN CASE OF GC
@@ -981,7 +981,7 @@ BINT rplRunAtomic(WORD opcode)
         while(retvalue);
 
         // MANUAL RESTORE
-        BINT allgood = 1;
+        int32_t allgood = 1;
         if(RSTop >= RStk + rsave)
             RSTop = RStk + rsave;       // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
         else {
@@ -1102,7 +1102,7 @@ inline WORD rplObjSize(WORDPTR ip)
 WORDPTR rplMakeNewCopy(WORDPTR object)
 {
     WORD prolog = *object;
-    BINT size = 0;
+    int32_t size = 0;
     if(ISPROLOG(prolog))
         size = OBJSIZE(prolog);
     ScratchPointer1 = object;
@@ -1121,7 +1121,7 @@ WORDPTR rplMakeNewCopy(WORDPTR object)
 void rplCopyObject(WORDPTR dest, WORDPTR src)
 {
     WORD prolog = *src;
-    BINT size;
+    int32_t size;
     if(ISPROLOG(prolog))
         size = OBJSIZE(prolog);
     else
@@ -1168,7 +1168,7 @@ void rplInitMemoryAllocator()
         RReg[count].len = 1;
     }
     // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
-    BINT2RealIdx = 0;
+    int32_t2RealIdx = 0;
 
     // INITIALIZE MEMORY ALLOCATOR FOR OTHER USES
     init_simpalloc();
@@ -1310,7 +1310,7 @@ void rplWarmInit(void)
         if(flags && ISLIST(*flags[1])) {
             // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
 
-            BINT nitems = rplListLength(flags[1]);
+            int32_t nitems = rplListLength(flags[1]);
             if(nitems >= 4) {
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
@@ -1318,11 +1318,11 @@ void rplWarmInit(void)
                 WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
                 WORDPTR numptr;
                 uint64_t *uptr;
-                BINT k;
+                int32_t k;
                 for(k = 1; k <= 4; ++k) {
                     numptr = rplGetListElement(flags[1], k);
-                    if(numptr && ISBINT(*numptr))
-                        value = rplReadBINT(numptr);
+                    if(numptr && ISint32_t(*numptr))
+                        value = rplReadint32_t(numptr);
                     else
                         value = 0;
                     uptr = (uint64_t *) nptr;
@@ -1339,7 +1339,7 @@ void rplWarmInit(void)
 
     // RESET ALL USER REGISTERS TO zero_bint
 
-    BINT k;
+    int32_t k;
     for(k = GC_UserRegisters - GC_PTRUpdate; k < MAX_GC_PTRUPDATE; ++k)
         GC_PTRUpdate[k] = (WORDPTR) zero_bint;
 
@@ -1405,7 +1405,7 @@ void rplHotInit()
         if(flags && ISLIST(*flags[1])) {
             // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
 
-            BINT nitems = rplListLength(flags[1]);
+            int32_t nitems = rplListLength(flags[1]);
             if(nitems >= 4) {
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
@@ -1413,11 +1413,11 @@ void rplHotInit()
                 WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
                 WORDPTR numptr;
                 uint64_t *uptr;
-                BINT k;
+                int32_t k;
                 for(k = 1; k <= 4; ++k) {
                     numptr = rplGetListElement(flags[1], k);
-                    if(numptr && ISBINT(*numptr))
-                        value = rplReadBINT(numptr);
+                    if(numptr && ISint32_t(*numptr))
+                        value = rplReadint32_t(numptr);
                     else
                         value = 0;
                     uptr = (uint64_t *) nptr;

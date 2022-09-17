@@ -6,9 +6,9 @@
 // RESTRICTIONS:
 // len HAS THE LOWEST 16 BITS = blen, HIGHER 16 BITS = alen
 
-void mul_real_opt(BINT * rdata, BINT * adata, BINT * bdata, UBINT len)
+void mul_real_opt(int32_t * rdata, int32_t * adata, int32_t * bdata, uint32_t len)
         __attribute__((naked));
-void mul_real_opt(BINT * rdata, BINT * adata, BINT * bdata, UBINT len)
+void mul_real_opt(int32_t * rdata, int32_t * adata, int32_t * bdata, uint32_t len)
 {
     asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
 
@@ -100,10 +100,10 @@ void mul_real_opt(BINT * rdata, BINT * adata, BINT * bdata, UBINT len)
 
 void _boot()
 {
-    BINT result[10];
-    BINT a[4] = { 12345678, 0, 0, 0 };
-    BINT b[4] = { 1, 1, 0, 0 };
-    UBINT len = 0x10002;
+    int32_t result[10];
+    int32_t a[4] = { 12345678, 0, 0, 0 };
+    int32_t b[4] = { 1, 1, 0, 0 };
+    uint32_t len = 0x10002;
 
     mul_real_opt(result, a, b, len);
 }

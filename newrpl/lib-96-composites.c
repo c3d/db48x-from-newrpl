@@ -159,7 +159,7 @@ void LIB_HANDLER()
 
             WORDPTR *stksave = DSTop;
             WORDPTR posobj, listelem;
-            BINT ndims, k, position;
+            int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
             }
@@ -175,7 +175,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -211,7 +211,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -243,7 +243,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    position = rplReadNumberAsBINT(posobj);
+                    position = rplReadNumberAsInt64(posobj);
 
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
@@ -284,8 +284,8 @@ void LIB_HANDLER()
             // DO IT FOR VECTORS AND MATRICES
             WORDPTR *stksave = DSTop;
             WORDPTR posobj;
-            BINT rows, cols, ndims;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -299,7 +299,7 @@ void LIB_HANDLER()
 
             // CHECK IF WE HAVE THE RIGHT POSITION
             if(ISLIST(*rplPeekData(2))) {
-                BINT nelem = rplListLengthFlat(rplPeekData(2));
+                int32_t nelem = rplListLengthFlat(rplPeekData(2));
 
                 if((nelem != ndims) && !((ndims == 2) && (nelem == 1))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -310,7 +310,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -323,7 +323,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -344,7 +344,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(2);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -441,7 +441,7 @@ void LIB_HANDLER()
 
             WORDPTR *stksave = DSTop;
             WORDPTR posobj, listelem;
-            BINT ndims, k, position;
+            int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
             }
@@ -457,7 +457,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -493,7 +493,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -525,7 +525,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    position = rplReadNumberAsBINT(posobj);
+                    position = rplReadNumberAsInt64(posobj);
 
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
@@ -562,16 +562,16 @@ void LIB_HANDLER()
             else
                 rplPushData(rplPeekData(2));
 
-            BINT carry = 1, llen, tpos;
+            int32_t carry = 1, llen, tpos;
             for(k = 1; (k <= ndims) && carry; ++k) {
-                position = rplReadNumberAsBINT(rplPeekData(k)) + carry; // INCREASE POSITION
+                position = rplReadNumberAsInt64(rplPeekData(k)) + carry; // INCREASE POSITION
 
                 // NOW GET THE PARENT LIST
                 int j;
                 listelem = ScratchPointer3;
                 for(j = 1; j < ndims - (k - 1); ++j) {
 
-                    tpos = rplReadNumberAsBINT(rplPeekData(ndims - (j - 1)));
+                    tpos = rplReadNumberAsInt64(rplPeekData(ndims - (j - 1)));
                     if(ISLIST(*listelem))
                         listelem = rplGetListElement(listelem, tpos);
                 }
@@ -587,7 +587,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                WORDPTR newnum = rplNewBINT(position, DECBINT);
+                WORDPTR newnum = rplNewint32_t(position, DECint32_t);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -619,8 +619,8 @@ void LIB_HANDLER()
             // DO IT FOR VECTORS AND MATRICES
             WORDPTR *stksave = DSTop;
             WORDPTR posobj;
-            BINT rows, cols, ndims, nelem = 0;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims, nelem = 0;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -645,7 +645,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -658,7 +658,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -679,7 +679,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(2);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -747,10 +747,10 @@ void LIB_HANDLER()
             }
 
             if(nelem != 2)
-                rplNewBINTPush((posrow - 1) * cols + poscol, DECBINT);
+                rplNewint32_tPush((posrow - 1) * cols + poscol, DECint32_t);
             else {
-                rplNewBINTPush(posrow, DECBINT);
-                rplNewBINTPush(poscol, DECBINT);
+                rplNewint32_tPush(posrow, DECint32_t);
+                rplNewint32_tPush(poscol, DECint32_t);
             }
             if(Exceptions) {
                 DSTop = stksave;
@@ -817,7 +817,7 @@ void LIB_HANDLER()
         if(ISLIST(*comp)) {
 
             WORDPTR posobj, listelem;
-            BINT ndims, k, position;
+            int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(1))) {
                 ndims = rplListLength(rplPeekData(1));
             }
@@ -836,7 +836,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -870,8 +870,8 @@ void LIB_HANDLER()
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
             WORDPTR posobj;
-            BINT rows, cols, ndims;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -885,7 +885,7 @@ void LIB_HANDLER()
 
             // CHECK IF WE HAVE THE RIGHT POSITION
             if(ISLIST(*rplPeekData(1))) {
-                BINT nelem = rplListLengthFlat(rplPeekData(1));
+                int32_t nelem = rplListLengthFlat(rplPeekData(1));
 
                 if((nelem != ndims) && !((ndims == 2) && (nelem == 1))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -896,7 +896,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -909,7 +909,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -930,7 +930,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(1);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1008,7 +1008,7 @@ void LIB_HANDLER()
 
             WORDPTR *stksave = DSTop;
             WORDPTR posobj, listelem;
-            BINT ndims, k, position;
+            int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(1))) {
                 ndims = rplListLength(rplPeekData(1));
             }
@@ -1027,7 +1027,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -1062,16 +1062,16 @@ void LIB_HANDLER()
             else
                 rplPushData(rplPeekData(2));
 
-            BINT carry = 1, llen, tpos;
+            int32_t carry = 1, llen, tpos;
             for(k = 1; (k <= ndims) && carry; ++k) {
-                position = rplReadNumberAsBINT(rplPeekData(k)) + carry; // INCREASE POSITION
+                position = rplReadNumberAsInt64(rplPeekData(k)) + carry; // INCREASE POSITION
 
                 // NOW GET THE PARENT LIST
                 int j;
                 listelem = ScratchPointer3;
                 for(j = 1; j < ndims - (k - 1); ++j) {
 
-                    tpos = rplReadNumberAsBINT(rplPeekData(ndims - (j - 1)));
+                    tpos = rplReadNumberAsInt64(rplPeekData(ndims - (j - 1)));
                     if(ISLIST(*listelem))
                         listelem = rplGetListElement(listelem, tpos);
                 }
@@ -1087,7 +1087,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                WORDPTR newnum = rplNewBINT(position, DECBINT);
+                WORDPTR newnum = rplNewint32_t(position, DECint32_t);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -1122,8 +1122,8 @@ void LIB_HANDLER()
             // DO IT FOR VECTORS AND MATRICES
             WORDPTR *stksave = DSTop;
             WORDPTR posobj;
-            BINT rows, cols, ndims, nelem = 0;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims, nelem = 0;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -1148,7 +1148,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1161,7 +1161,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -1182,7 +1182,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(1);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1228,10 +1228,10 @@ void LIB_HANDLER()
             }
 
             if(nelem != 2)
-                rplNewBINTPush((posrow - 1) * cols + poscol, DECBINT);
+                rplNewint32_tPush((posrow - 1) * cols + poscol, DECint32_t);
             else {
-                rplNewBINTPush(posrow, DECBINT);
-                rplNewBINTPush(poscol, DECBINT);
+                rplNewint32_tPush(posrow, DECint32_t);
+                rplNewint32_tPush(poscol, DECint32_t);
             }
             if(Exceptions) {
                 DSTop = stksave;
@@ -1276,7 +1276,7 @@ void LIB_HANDLER()
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
-            BINT nitems = rplListLength(comp);
+            int32_t nitems = rplListLength(comp);
             if(nitems > 0)
                 rplOverwriteData(1, rplGetListElement(comp, 1));
             else
@@ -1321,7 +1321,7 @@ void LIB_HANDLER()
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
-            BINT nitems = rplExplodeList2(comp);
+            int32_t nitems = rplExplodeList2(comp);
             WORDPTR newlist;
 
             if(Exceptions)
@@ -1394,7 +1394,7 @@ void LIB_HANDLER()
         if(ISUNIT(*comp)) {
             // SPLIT VALUE AND UNIT
 
-            BINT nitems = rplUnitExplode(comp);
+            int32_t nitems = rplUnitExplode(comp);
             rplOverwriteData(nitems + 1, rplPeekData(nitems));  // REPLACE ORIGINAL UNIT WITH THE VALUE
             rplOverwriteData(nitems, (WORDPTR) one_bint);       //  CHANGE VALUE TO 1
             WORDPTR newunit = rplUnitAssemble(nitems);
@@ -1411,12 +1411,12 @@ void LIB_HANDLER()
             // N
             // OPERATOR (PUSHED IN THE STACK AS OBJECT)
             WORDPTR *savestk = DSTop;
-            BINT nitems = rplSymbExplodeOneLevel(comp);
+            int32_t nitems = rplSymbExplodeOneLevel(comp);
             if(nitems > 1) {
 
                 if(*rplPeekData(1) == CMD_OVR_FUNCEVAL) {
                     --nitems;
-                    WORDPTR number = rplNewSINT(nitems - 2, DECBINT);
+                    WORDPTR number = rplNewSINT(nitems - 2, DECint32_t);
                     if(Exceptions || (!number)) {
                         DSTop = savestk;
                         return;
@@ -1477,7 +1477,7 @@ void LIB_HANDLER()
 
             WORDPTR *stksave = DSTop;
             WORDPTR posobj, listelem;
-            BINT ndims, k, position;
+            int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
             }
@@ -1493,7 +1493,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -1529,7 +1529,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                position = rplReadNumberAsBINT(posobj);
+                position = rplReadNumberAsInt64(posobj);
 
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
@@ -1566,7 +1566,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    position = rplReadNumberAsBINT(posobj);
+                    position = rplReadNumberAsInt64(posobj);
 
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
@@ -1607,8 +1607,8 @@ void LIB_HANDLER()
             // DO IT FOR VECTORS AND MATRICES
             WORDPTR *stksave = DSTop;
             WORDPTR posobj;
-            BINT rows, cols, ndims;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -1622,7 +1622,7 @@ void LIB_HANDLER()
 
             // CHECK IF WE HAVE THE RIGHT POSITION
             if(ISLIST(*rplPeekData(2))) {
-                BINT nelem = rplListLengthFlat(rplPeekData(2));
+                int32_t nelem = rplListLengthFlat(rplPeekData(2));
 
                 if((nelem != ndims) && !((ndims == 2) && (nelem == 1))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -1633,7 +1633,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1646,7 +1646,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -1667,7 +1667,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(2);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1693,7 +1693,7 @@ void LIB_HANDLER()
             }
 
             // CHECK IF THE OBJECT TO PUT IS VALID INSIDE A MATRIX
-            BINT putnrows, putncols, ismatrix;
+            int32_t putnrows, putncols, ismatrix;
 
             if(!ISMATRIX(*rplPeekData(1))) {
                 if(!rplMatrixIsAllowed(rplPeekData(1))) {
@@ -1725,7 +1725,7 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
-            BINT i, j;
+            int32_t i, j;
 
             for(i = 1; i <= putnrows; ++i) {
                 for(j = 1; j <= putncols; ++j) {
@@ -1763,8 +1763,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT orglen, replen, replpos;
-            replpos = rplReadNumberAsBINT(rplPeekData(2));
+            int32_t orglen, replen, replpos;
+            replpos = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
 
@@ -1776,8 +1776,8 @@ void LIB_HANDLER()
             }
 
             replen = rplStrLen(rplPeekData(1));
-            BINT posptr, posendptr;
-            BINT strend, repsize;
+            int32_t posptr, posendptr;
+            int32_t strend, repsize;
             BYTEPTR strstart, newstart, repstart;
 
             strstart = (BYTEPTR) (comp + 1);
@@ -1786,7 +1786,7 @@ void LIB_HANDLER()
             posptr = (BYTEPTR) utf8nskipst((char *)strstart, (char *)strstart + strend, replpos - 1) - strstart;        // START REPLACING
             posendptr = (BYTEPTR) utf8nskipst((char *)strstart + posptr, (char *)strstart + strend, replen) - strstart; // END REPLACING
 
-            BINT totalsize = (posptr) + repsize + (strend - posendptr);
+            int32_t totalsize = (posptr) + repsize + (strend - posendptr);
 
             WORDPTR newstring = rplCreateStringBySize(totalsize);
             if(!newstring)
@@ -1829,8 +1829,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(2))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
-            BINT pos = 1, llen;
-            BINT itemoff;
+            int32_t pos = 1, llen;
+            int32_t itemoff;
             WORDPTR *savestk = DSTop;
 
             llen = rplListLength(rplPeekData(2));
@@ -1845,7 +1845,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(2);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 ++pos;
@@ -1872,7 +1872,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT len1, len2, pos, maxpos;
+            int32_t len1, len2, pos, maxpos;
             BYTEPTR str1, str2, str1e, str2e;
 
             str2 = (BYTEPTR) (rplPeekData(1) + 1);
@@ -1897,7 +1897,7 @@ void LIB_HANDLER()
                             (char *)str2e, len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(2);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 str1 = (BYTEPTR) utf8skipst((char *)str1, (char *)(str1e));
@@ -1932,8 +1932,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(3))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
-            BINT pos, llen;
-            BINT itemoff;
+            int32_t pos, llen;
+            int32_t itemoff;
             WORDPTR *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2))) {
@@ -1941,7 +1941,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
 
             llen = rplListLength(rplPeekData(3));
 
@@ -1961,7 +1961,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(3);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 ++pos;
@@ -1987,7 +1987,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT len1, len2, pos, maxpos;
+            int32_t len1, len2, pos, maxpos;
             BYTEPTR str1, str2, str1e, str2e;
 
             if(!ISNUMBER(*rplPeekData(2))) {
@@ -1995,7 +1995,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
 
             str2 = (BYTEPTR) (rplPeekData(1) + 1);
             str1 = (BYTEPTR) (rplPeekData(3) + 1);
@@ -2027,7 +2027,7 @@ void LIB_HANDLER()
                             (char *)str2e, len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(3);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 str1 = (BYTEPTR) utf8skipst((char *)str1, (char *)(str1 + 4));
@@ -2062,7 +2062,7 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(2))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
-            BINT pos, llen;
+            int32_t pos, llen;
             WORDPTR *savestk = DSTop;
 
             llen = rplListLength(rplPeekData(2));
@@ -2077,7 +2077,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(2);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 --pos;
@@ -2102,7 +2102,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT len1, len2, pos, maxpos;
+            int32_t len1, len2, pos, maxpos;
             BYTEPTR str1, str2, str1ptr, str1end;
 
             str2 = (BYTEPTR) (rplPeekData(1) + 1);
@@ -2129,7 +2129,7 @@ void LIB_HANDLER()
                             len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(2);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 str1ptr = (BYTEPTR) utf8rskipst((char *)str1ptr, (char *)str1);
@@ -2164,7 +2164,7 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(3))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
-            BINT pos, llen;
+            int32_t pos, llen;
             WORDPTR *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2))) {
@@ -2172,7 +2172,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
 
             llen = rplListLength(rplPeekData(3));
 
@@ -2191,7 +2191,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(3);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 --pos;
@@ -2215,7 +2215,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT len1, len2, pos, maxpos;
+            int32_t len1, len2, pos, maxpos;
             BYTEPTR str1, str2, str1ptr, str1end;
 
             if(!ISNUMBER(*rplPeekData(2))) {
@@ -2223,7 +2223,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
 
             str2 = (BYTEPTR) (rplPeekData(1) + 1);
             str1 = (BYTEPTR) (rplPeekData(3) + 1);
@@ -2257,7 +2257,7 @@ void LIB_HANDLER()
                             len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(3);
-                    rplNewBINTPush(pos, DECBINT);
+                    rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
                 str1ptr = (BYTEPTR) utf8rskipst((char *)str1ptr, (char *)str1);
@@ -2292,8 +2292,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(3))) {
             // GET SUBLIST
-            BINT pos2;
-            BINT pos, llen;
+            int32_t pos2;
+            int32_t pos, llen;
             WORDPTR *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1))) {
@@ -2301,8 +2301,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
-            pos2 = rplReadNumberAsBINT(rplPeekData(1));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
+            pos2 = rplReadNumberAsInt64(rplPeekData(1));
 
             llen = rplListLength(rplPeekData(3));
 
@@ -2342,7 +2342,7 @@ void LIB_HANDLER()
 
         if(ISSTRING(*rplPeekData(3))) {
 
-            BINT len1, pos, pos2;
+            int32_t len1, pos, pos2;
             BYTEPTR str1, str2, end;
 
             if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
@@ -2355,8 +2355,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            pos = rplReadNumberAsBINT(rplPeekData(2));
-            pos2 = rplReadNumberAsBINT(rplPeekData(1));
+            pos = rplReadNumberAsInt64(rplPeekData(2));
+            pos2 = rplReadNumberAsInt64(rplPeekData(1));
 
             str1 = (BYTEPTR) (rplPeekData(3) + 1);
             end = str1 + rplStrSize(rplPeekData(3));
@@ -2390,9 +2390,9 @@ void LIB_HANDLER()
             WORDPTR comp = rplPeekData(3);
             WORDPTR *stksave = DSTop;
             WORDPTR posobj;
-            BINT rows, cols, ndims;
-            BINT posrow, poscol;
-            BINT posrow2, poscol2;
+            int32_t rows, cols, ndims;
+            int32_t posrow, poscol;
+            int32_t posrow2, poscol2;
 
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
@@ -2407,7 +2407,7 @@ void LIB_HANDLER()
 
             // GET THE POSITION
             if(ISLIST(*rplPeekData(2))) {
-                BINT nelem = rplListLengthFlat(rplPeekData(2));
+                int32_t nelem = rplListLengthFlat(rplPeekData(2));
 
                 if((nelem != ndims) && !((ndims == 2) && (nelem == 1))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -2418,7 +2418,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -2431,7 +2431,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol = rplReadNumberAsBINT(posobj);
+                    poscol = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -2452,7 +2452,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(2);
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -2470,7 +2470,7 @@ void LIB_HANDLER()
             }
 
             if(ISLIST(*rplPeekData(1))) {
-                BINT nelem = rplListLengthFlat(rplPeekData(1));
+                int32_t nelem = rplListLengthFlat(rplPeekData(1));
 
                 if((nelem != ndims) && !((ndims == 2) && (nelem == 1))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -2481,7 +2481,7 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-                posrow2 = rplReadNumberAsBINT(posobj);
+                posrow2 = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -2494,7 +2494,7 @@ void LIB_HANDLER()
                         rplError(ERR_INVALIDPOSITION);
                         return;
                     }
-                    poscol2 = rplReadNumberAsBINT(posobj);
+                    poscol2 = rplReadNumberAsInt64(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
                         return;
@@ -2515,7 +2515,7 @@ void LIB_HANDLER()
             }
             else {
                 posobj = rplPeekData(1);
-                posrow2 = rplReadNumberAsBINT(posobj);
+                posrow2 = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -2533,12 +2533,12 @@ void LIB_HANDLER()
             }
 
             if(posrow2 < posrow) {
-                BINT tmp = posrow2;
+                int32_t tmp = posrow2;
                 posrow2 = posrow;
                 posrow = tmp;
             }
             if(poscol2 < poscol) {
-                BINT tmp = poscol2;
+                int32_t tmp = poscol2;
                 poscol2 = poscol;
                 poscol = tmp;
             }
@@ -2566,7 +2566,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT i, j;
+            int32_t i, j;
 
             for(i = 1; i <= posrow2 - posrow + 1; ++i) {
                 for(j = 1; j <= poscol2 - poscol + 1; ++j) {
@@ -2606,39 +2606,39 @@ void LIB_HANDLER()
         WORDPTR arg = rplStripTag(rplPeekData(1));
 
         if(ISSTRING(*arg)) {
-            BINT size = rplStrSize(arg);
+            int32_t size = rplStrSize(arg);
             rplDropData(1);
-            rplNewBINTPush(size, DECBINT);
+            rplNewint32_tPush(size, DECint32_t);
             return;
         }
 
         if(ISNUMBER(*arg)) {
             REAL r;
             rplReadNumberAsReal(arg, &r);
-            BINT size = intdigitsReal(&r);
+            int32_t size = intdigitsReal(&r);
             if(size < 1)
                 size = 1;
             rplDropData(1);
-            rplNewBINTPush(size, DECBINT);
+            rplNewint32_tPush(size, DECint32_t);
             return;
         }
 
         if(ISLIST(*arg)) {
-            BINT size = rplListLength(arg);
+            int32_t size = rplListLength(arg);
             rplDropData(1);
-            rplNewBINTPush(size, DECBINT);
+            rplNewint32_tPush(size, DECint32_t);
             return;
         }
 
         if(ISMATRIX(*arg)) {
             WORDPTR *stksave = DSTop;
-            BINT rows, cols, dims;
+            int32_t rows, cols, dims;
             rows = rplMatrixRows(arg);
             cols = rplMatrixCols(arg);
             if(!rows)
                 dims = 1;
             else {
-                rplNewBINTPush(rows, DECBINT);
+                rplNewint32_tPush(rows, DECint32_t);
                 if(Exceptions) {
                     DSTop = stksave;
                     return;
@@ -2646,7 +2646,7 @@ void LIB_HANDLER()
                 dims = 2;
             }
 
-            rplNewBINTPush(cols, DECBINT);
+            rplNewint32_tPush(cols, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -2687,7 +2687,7 @@ void LIB_HANDLER()
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
-            BINT nitems = rplListLength(comp);
+            int32_t nitems = rplListLength(comp);
             if(nitems > 0)
                 rplOverwriteData(1, rplGetListElement(comp, nitems));
             else
@@ -2735,7 +2735,7 @@ void LIB_HANDLER()
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
-            BINT nitems = rplExplodeList2(comp);
+            int32_t nitems = rplExplodeList2(comp);
             WORDPTR newlist;
 
             if(Exceptions)
@@ -2838,7 +2838,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -2854,7 +2854,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -2864,7 +2864,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -434,7 +434,7 @@ void rplAddSystemFont(WORDPTR ident, WORDPTR font)
 
     WORDPTR fontlist =
             rplGetSettings((WORDPTR) sysfonts_ident), oldfont, endofobj;
-    BINT newsize;
+    int32_t newsize;
 
     if(fontlist) {
         endofobj = rplSkipOb(fontlist);
@@ -538,7 +538,7 @@ void rplPurgeSystemFont(WORDPTR ident)
     WORDPTR fontlist =
             rplGetSettings((WORDPTR) sysfonts_ident), oldfont, endofobj =
             rplSkipOb(fontlist);
-    BINT newsize, oldsize;
+    int32_t newsize, oldsize;
 
     if(fontlist) {
         oldfont = fontlist + 1;
@@ -595,7 +595,7 @@ void rplPurgeSystemFont(WORDPTR ident)
 }
 
 // CHANGE THE CURRENT FONT
-void rplSetCurrentFont(BINT area, WORDPTR ident)
+void rplSetCurrentFont(int32_t area, WORDPTR ident)
 {
     WORDPTR font = rplGetSystemFont(ident);
     if(!font) {
@@ -640,7 +640,7 @@ void rplSetCurrentFont(BINT area, WORDPTR ident)
 
 }
 
-WORDPTR rplGetCurrentFont(BINT area)
+WORDPTR rplGetCurrentFont(int32_t area)
 {
     WORDPTR fntid;
     switch (area) {
@@ -750,7 +750,7 @@ void LIB_HANDLER()
             switch (OPCODE(CurOpcode)) {
             case OVR_SAME:
             {
-                BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+                int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
                 rplDropData(2);
                 if(same)
                     rplPushTrue();
@@ -1135,7 +1135,7 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((BINT) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1143,7 +1143,7 @@ void LIB_HANDLER()
 
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             WORD value = 0;
-            BINT digit;
+            int32_t digit;
             while(ptr < (BYTEPTR) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
@@ -1179,8 +1179,8 @@ void LIB_HANDLER()
 
         WORD value = 0;
         WORD checksum = 0;
-        BINT ndigits = 0;
-        BINT dig;
+        int32_t ndigits = 0;
+        int32_t dig;
 
         if(LIBNUM(*ScratchPointer4) & 1) {
             // CONTINUE WHERE WE LEFT OFF
@@ -1193,7 +1193,7 @@ void LIB_HANDLER()
         }
 
         while((CompileEnd - ScratchPointer4 - 1) <
-                (BINT) OBJSIZE(*ScratchPointer4)) {
+                (int32_t) OBJSIZE(*ScratchPointer4)) {
             do {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     dig = (*ptr + 4);
@@ -1238,7 +1238,7 @@ void LIB_HANDLER()
             while(ptr != (BYTEPTR) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
-                            (BINT) OBJSIZE(*ScratchPointer4)))) {
+                            (int32_t) OBJSIZE(*ScratchPointer4)))) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum << 16));
@@ -1267,8 +1267,8 @@ void LIB_HANDLER()
             // DECOMPILE FONT
 
             rplDecompAppendString((BYTEPTR) "FONTDATA ");
-            BINT size = OBJSIZE(*DecompileObject);
-            BINT k, zero = 1, nibble;
+            int32_t size = OBJSIZE(*DecompileObject);
+            int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
                 nibble = (size >> (k * 4)) & 0xf;
                 if(!zero || nibble) {
@@ -1294,12 +1294,12 @@ void LIB_HANDLER()
             encoder[6] = 0;
 
             WORDPTR ptr = DecompileObject + 1;
-            BINT nwords = 0;
+            int32_t nwords = 0;
 
             while(size) {
                 // ENCODE THE 6 CHARACTERS
                 int k;
-                BINT chksum = 0;
+                int32_t chksum = 0;
                 for(k = 0; k < 5; ++k) {
                     encoder[k] = ((*ptr) >> (26 - 6 * k)) & 0x3f;
                     chksum +=
@@ -1382,7 +1382,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1398,7 +1398,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -1408,7 +1408,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

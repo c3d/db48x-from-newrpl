@@ -79,7 +79,7 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
         return 0;
-    if(!ISPROLOG(*(symbolic + 1)) && !ISBINT(*(symbolic + 1))
+    if(!ISPROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
             && !ISCONSTANT(*(symbolic + 1)))
         return *(symbolic + 1);
     return 0;
@@ -94,7 +94,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
         return 0;
-    if(!ISPROLOG(*(symbolic + 1)) && !ISBINT(*(symbolic + 1))
+    if(!ISPROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
             && !ISCONSTANT(*(symbolic + 1)))
         return (symbolic + 1);
     return 0;
@@ -113,7 +113,7 @@ WORDPTR rplSymbUnwrap(WORDPTR symbolic)
 
 // RETURN 1 IF THE OBJECT IS ALLOWED WITHIN A SYMBOLIC, OTHERWISE 0
 
-BINT rplIsAllowedInSymb(WORDPTR object)
+int32_t rplIsAllowedInSymb(WORDPTR object)
 {
     // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
     LIBHANDLER handler = rplGetLibHandler(LIBNUM(*object));
@@ -133,7 +133,7 @@ BINT rplIsAllowedInSymb(WORDPTR object)
             return 0;
         if(TI_TYPE(RetNum) == TITYPE_LIST) {
             // RECURSIVELY VERIFY THAT ALL ELEMENTS IN THE LIST ARE ALLOWED IN A SYMBOLIC!
-            BINT nitems = rplListLengthFlat(object);
+            int32_t nitems = rplListLengthFlat(object);
             WORDPTR objflat = rplGetListElementFlat(object, 1);
             while(nitems--) {
                 CurOpcode = MKOPCODE(LIBNUM(*objflat), OPCODE_GETINFO);
@@ -163,7 +163,7 @@ BINT rplIsAllowedInSymb(WORDPTR object)
 
 // OBTAIN INFORMATION ABOUT A COMMAND/OPERATOR
 
-BINT rplSymbGetTokenInfo(WORDPTR object)
+int32_t rplSymbGetTokenInfo(WORDPTR object)
 {
     // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
     LIBHANDLER handler = rplGetLibHandler(LIBNUM(*object));
@@ -186,16 +186,16 @@ BINT rplSymbGetTokenInfo(WORDPTR object)
 // TAKE 'nargs' ITEMS FROM THE STACK AND APPLY THE OPERATOR OPCODE
 // LEAVE THE NEW SYMBOLIC OBJECT IN THE STACK
 // NO ARGUMENT CHECKS!
-void rplSymbApplyOperator(WORD Opcode, BINT nargs)
+void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
 {
-    BINT f;
+    int32_t f;
     WORDPTR obj, ptr;
-    BINT size = 0;
+    int32_t size = 0;
     for(f = 1; f <= nargs; ++f) {
         obj = rplPeekData(f);
         if(ISSYMBOLIC(*obj)) {
             obj = rplSymbUnwrap(obj);
-            if(ISPROLOG(obj[1]) || ISBINT(obj[1]))
+            if(ISPROLOG(obj[1]) || ISint32_t(obj[1]))
                 ++obj;  // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
         }
         size += rplObjSize(obj);
@@ -213,7 +213,7 @@ void rplSymbApplyOperator(WORD Opcode, BINT nargs)
         obj = rplPeekData(f);
         if(ISSYMBOLIC(*obj)) {
             obj = rplSymbUnwrap(obj);
-            if(ISPROLOG(obj[1]) || ISBINT(obj[1]))
+            if(ISPROLOG(obj[1]) || ISint32_t(obj[1]))
                 ++obj;  // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
         }
         else {
@@ -223,7 +223,7 @@ void rplSymbApplyOperator(WORD Opcode, BINT nargs)
             }
         }
         if(ISLIST(*obj)) {
-            BINT listsize = OBJSIZE(*obj);
+            int32_t listsize = OBJSIZE(*obj);
             memmovew(ptr + 2, obj + 1, listsize - 1);
             ptr[0] = MKPROLOG(DOSYMB, listsize);
             ptr[1] = CMD_LISTOPENBRACKET;
@@ -246,12 +246,12 @@ WORDPTR rplComplexToSymb(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex))
             return complex;
-    BINT size, resize, imsize;
+    int32_t size, resize, imsize;
     size = rplObjSize(complex) + 5;     // DOSYMB + RE() DOSYMB * IM() i
     resize = rplObjSize(complex +1);
     imsize = rplObjSize(rplSkipOb(complex +1));
 
-    BINT ispolar = ISANGLE(*rplSkipOb(complex +1));
+    int32_t ispolar = ISANGLE(*rplSkipOb(complex +1));
     if(ispolar)
         size += 4;      // DOSYMB * RE() DOSYMB ^ e DOSYMB * i IM()
     WORDPTR newobj = rplAllocTempOb(size);
@@ -297,11 +297,11 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 {
     if(ISSYMBOLIC(*obj))
         return obj;
-    if(!ISPROLOG(*obj) && !ISBINT(*obj) && !ISCONSTANT(*obj))
+    if(!ISPROLOG(*obj) && !ISint32_t(*obj) && !ISCONSTANT(*obj))
         return obj;
 
     WORDPTR firstobj, endobj, ptr, destptr;
-    BINT wrapcount;
+    int32_t wrapcount;
 
     if(ISMATRIX(*obj)) {
         firstobj = rplMatrixGetFirstObj(obj);
@@ -333,15 +333,15 @@ WORDPTR rplSymbWrap(WORDPTR obj)
         destptr = newobj + (firstobj - obj);
 
         while(ptr != endobj) {
-            BINT size = rplObjSize(ptr);
+            int32_t size = rplObjSize(ptr);
             if(!ISSYMBOLIC(*ptr)) {
                 destptr[0] = MKPROLOG(DOSYMB, size);
                 ++destptr;
 
                 // PATCH ALL HASH TABLE OFFSETS
-                BINT tablesize = firstobj - obj - 2;
+                int32_t tablesize = firstobj - obj - 2;
                 WORDPTR tableptr = newobj + 2;
-                BINT k;
+                int32_t k;
                 for(k = 0; k < tablesize; ++k) {
                     if(tableptr[k] >= destptr - newobj)
                         tableptr[k]++;
@@ -370,7 +370,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
                 ++ptr;
                 continue;
             }
-            if(!ISPROLOG(*ptr) && !ISBINT(*ptr) && !ISCONSTANT(*ptr)) {
+            if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
                 ++ptr;
                 continue;
             }
@@ -399,7 +399,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
         destptr = newobj + 1;
 
         while(ptr != endobj) {
-            BINT size = rplObjSize(ptr);
+            int32_t size = rplObjSize(ptr);
 
             if(ISLIST(*ptr)) {
                 destptr[0] = ptr[0] + wrapcount;
@@ -407,7 +407,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
                 ++ptr;
                 continue;
             }
-            if(!ISPROLOG(*ptr) && !ISBINT(*ptr) && !ISCONSTANT(*ptr)) {
+            if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
                 *destptr = *ptr;
                 ++destptr;
                 ++ptr;
@@ -436,7 +436,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 
     // ALL OTHER OBJECTS ARE ATOMIC, ADD A SYMBOLIC WRAP
 
-    BINT size = rplObjSize(obj);
+    int32_t size = rplObjSize(obj);
 
     ScratchPointer1 = obj;
     WORDPTR newobject = rplAllocTempOb(size);
@@ -458,9 +458,9 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 //  ANALYZE 'nargs' ITEMS ON THE STACK AND WRAP THEM INTO A SYMBOLIC OBJECT
 // WHENEVER POSSIBLE (MOSTLY FOR NUMBERS)
 // NO ARGUMENT CHECKS!
-void rplSymbWrapN(BINT level, BINT nargs)
+void rplSymbWrapN(int32_t level, int32_t nargs)
 {
-    BINT f;
+    int32_t f;
     WORDPTR obj;
     for(f = 0; f < nargs; ++f) {
         obj = rplPeekData(f + level);
@@ -473,9 +473,9 @@ void rplSymbWrapN(BINT level, BINT nargs)
 // USES ScratchPointer1 FOR GC PROTECTION
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 
-BINT rplSymbExplode(WORDPTR object)
+int32_t rplSymbExplode(WORDPTR object)
 {
-    BINT count = 0, countops = 0, nargs = 0;
+    int32_t count = 0, countops = 0, nargs = 0;
 
     WORDPTR ptr, end, numbers;
     WORDPTR *sptr;
@@ -488,7 +488,7 @@ BINT rplSymbExplode(WORDPTR object)
             ++ptr;
             continue;
         }
-        if(!(ISPROLOG(*ptr) || ISBINT(*ptr) || ISCONSTANT(*ptr)))
+        if(!(ISPROLOG(*ptr) || ISint32_t(*ptr) || ISCONSTANT(*ptr)))
             ++countops;
         ++count;
         ptr = rplSkipOb(ptr);
@@ -520,7 +520,7 @@ BINT rplSymbExplode(WORDPTR object)
             continue;
         }
         *sptr = object;
-        if(!(ISPROLOG(*object) || ISBINT(*object) || ISCONSTANT(*object))) {
+        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             numbers[countops] = MAKESINT(nargs);
             --sptr;
             *sptr = &numbers[countops];
@@ -542,15 +542,15 @@ BINT rplSymbExplode(WORDPTR object)
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 // LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
 
-BINT rplSymbExplodeOneLevel(WORDPTR object)
+int32_t rplSymbExplodeOneLevel(WORDPTR object)
 {
-    BINT count = 0, countops = 0;
+    int32_t count = 0, countops = 0;
 
     ScratchPointer1 = rplSymbUnwrap(object) + 1;
     ScratchPointer2 = rplSkipOb(object);
 
     while(ScratchPointer1 < ScratchPointer2) {
-        if(!(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)
+        if(!(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                     || ISCONSTANT(*ScratchPointer1))) {
             ScratchPointer3 = ScratchPointer1;
             ++countops;
@@ -563,7 +563,7 @@ BINT rplSymbExplodeOneLevel(WORDPTR object)
     }
 
     if(countops) {
-        rplNewSINTPush(count, DECBINT);
+        rplNewSINTPush(count, DECint32_t);
         rplPushData(ScratchPointer3);
         ++countops;
     }
@@ -578,17 +578,17 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
 {
 
     WORDPTR *stkptr = exprstart;
-    BINT numobjects = 1, addcount = 0;
-    BINT size = 0, narg;
+    int32_t numobjects = 1, addcount = 0;
+    int32_t size = 0, narg;
 
-    BINT f;
+    int32_t f;
 
     for(f = 0; f < numobjects; ++f) {
         if(addcount) {
             numobjects += OBJSIZE(**stkptr) - 1;
             addcount = 0;
         }
-        if((!ISBINT(**stkptr)) && (!ISPROLOG(**stkptr)
+        if((!ISint32_t(**stkptr)) && (!ISPROLOG(**stkptr)
                     && !ISCONSTANT(**stkptr))) {
             addcount = 1;
             ++numobjects;
@@ -608,7 +608,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
     newptr = newobject;
     for(f = 0; f < numobjects; ++f) {
         object = *stkptr;
-        if(!(ISPROLOG(*object) || ISBINT(*object) || ISCONSTANT(*object))) {
+        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             // WE HAVE AN OPCODE, START A SYMBOLIC RIGHT HERE
             *newptr++ = MKPROLOG(DOSYMB, 0);
             *newptr++ = *object;        // STORE THE OPCODE
@@ -625,7 +625,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
                     *newptr++ = CMD_LISTOPENBRACKET;
                 // NOW COPY THE OBJECTS IN THE LIST
                 WORDPTR endobj = rplSkipOb(object) - 1; // STOP AT THE CMD_ENDLIST OBJECT
-                BINT k;
+                int32_t k;
                 object++;
                 while(object != endobj) {
                     if(*object == CMD_ENDLIST) {
@@ -641,7 +641,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
                         object++;
                         continue;
                     }
-                    for(k = 0; k < (BINT) rplObjSize(object); ++k)
+                    for(k = 0; k < (int32_t) rplObjSize(object); ++k)
                         *newptr++ = *object++;
                 }
 
@@ -672,7 +672,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
     for(; f > 0; --f) {
         ++stkptr;
         object = *stkptr;
-        if(!(ISPROLOG(*object) || ISBINT(*object) || ISCONSTANT(*object))) {
+        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             // FOUND AN OPERATOR, GET THE NUMBER OF ITEMS
             narg = OPCODE(**(stkptr - 1));
 
@@ -712,13 +712,13 @@ WORDPTR *rplSymbSkipInStack(WORDPTR * stkptr)
 {
     if(ISPROLOG(**stkptr))
         return --stkptr;
-    if(ISBINT(**stkptr) || ISCONSTANT(**stkptr))
+    if(ISint32_t(**stkptr) || ISCONSTANT(**stkptr))
         return --stkptr;
 
     // IT'S AN OPERATOR
     --stkptr;
 
-    BINT nargs = OPCODE(**stkptr) - 1;  // EXTRACT THE SINT
+    int32_t nargs = OPCODE(**stkptr) - 1;  // EXTRACT THE SINT
     --stkptr;
     while(nargs) {
         if(ISPROLOG(**stkptr)) {
@@ -726,7 +726,7 @@ WORDPTR *rplSymbSkipInStack(WORDPTR * stkptr)
             --nargs;
             continue;
         }
-        if(ISBINT(**stkptr) || ISCONSTANT(**stkptr)) {
+        if(ISint32_t(**stkptr) || ISCONSTANT(**stkptr)) {
             --stkptr;
             --nargs;
             continue;
@@ -774,9 +774,9 @@ ROMOBJECT mul_opcode[] = {
     (CMD_OVR_MUL)
 };
 
-WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
+WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 {
-    BINT numitems = rplSymbExplode(object);
+    int32_t numitems = rplSymbExplode(object);
     WORDPTR *stkptr, sobj, *endofstk;
 
     stkptr = DSTop - 1;
@@ -796,7 +796,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                 DSTop = endofstk + 1;
                 return 0;
             }
-            BINT numnew = rplSymbExplode(newobj);
+            int32_t numnew = rplSymbExplode(newobj);
             rplExpandStack(numnew);
             if(Exceptions) {
                 DSTop = endofstk + 1;
@@ -814,12 +814,12 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
             sobj = *stkptr;
         }
 
-        if(ISBINT(*sobj)) {
+        if(ISint32_t(*sobj)) {
             // THE OBJECT IS AN INTEGER NUMBER
-            int64_t num = rplReadBINT(sobj);
+            int64_t num = rplReadint32_t(sobj);
             if(num < 0) {
                 num = -num;
-                rplNewBINTPush(num, LIBNUM(*sobj));
+                rplNewint32_tPush(num, LIBNUM(*sobj));
                 if(Exceptions) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -923,9 +923,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
             if(**nextarg == (CMD_OVR_ADD)) {
                 // A SUM NEGATED? DISTRIBUTE THE OPERATOR OVER THE ARGUMENTS
 
-                BINT nargs = OPCODE(**(nextarg - 1)) - 1;
+                int32_t nargs = OPCODE(**(nextarg - 1)) - 1;
 
-                BINT c;
+                int32_t c;
                 nextarg -= 2;
                 for(c = 0; c < nargs; ++c) {
 
@@ -987,9 +987,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_ADD)) {
-            BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+            int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
-            BINT c, orignargs = nargs;
+            int32_t c, orignargs = nargs;
             WORDPTR *nextarg = stkptr - 2;
 
             for(c = 0; c < nargs; ++c) {
@@ -1016,7 +1016,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
             // HERE stkptr IS POINTING TO THE ORIGINAL SUM COMMAND
             // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
             if(orignargs != nargs) {
-                WORDPTR newnumber = rplNewSINT(nargs + 1, DECBINT);
+                WORDPTR newnumber = rplNewSINT(nargs + 1, DECint32_t);
                 if(!newnumber) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -1113,9 +1113,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
 
             if(**nextarg == (CMD_OVR_MUL)) {
 
-                BINT nargs = OPCODE(**(nextarg - 1)) - 1;
+                int32_t nargs = OPCODE(**(nextarg - 1)) - 1;
 
-                BINT c;
+                int32_t c;
                 nextarg -= 2;
                 for(c = 0; c < nargs; ++c) {
 
@@ -1163,7 +1163,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     WORDPTR *ptr = nextarg;
                     WORDPTR *nextptr = rplSymbSkipInStack(ptr);
                     WORDPTR *otherarg = nextptr, *endofotherarg;
-                    BINT k;
+                    int32_t k;
                     for(k = 0; k < nargs - 2 * c; ++k)
                         otherarg = rplSymbSkipInStack(otherarg);        // FIND THE ARGUMENT TO SWAP PLACES WITH
 
@@ -1171,7 +1171,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     // DO THE SWAP
                     if(otherarg - endofotherarg <= ptr - nextptr) {
                         // FIRST ARGUMENT IS BIGGER
-                        BINT offset =
+                        int32_t offset =
                                 (ptr - nextptr) - (otherarg - endofotherarg);
                         rplExpandStack(ptr - nextptr);  // NOW GROW THE STACK
                         if(Exceptions) {
@@ -1202,7 +1202,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     }
                     else {
                         // LAST ARGUMENT IS BIGGER
-                        BINT offset =
+                        int32_t offset =
                                 (otherarg - endofotherarg) - (ptr - nextptr);
                         rplExpandStack(otherarg - endofotherarg);       // NOW GROW THE STACK
                         if(Exceptions) {
@@ -1320,9 +1320,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_MUL)) {
-            BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+            int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
-            BINT c, orignargs = nargs;
+            int32_t c, orignargs = nargs;
             WORDPTR *nextarg = stkptr - 2;
 
             for(c = 0; c < nargs; ++c) {
@@ -1349,7 +1349,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
             // HERE stkptr IS POINTING TO THE ORIGINAL MUL COMMAND
             // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
             if(orignargs != nargs) {
-                WORDPTR newnumber = rplNewSINT(nargs + 1, DECBINT);
+                WORDPTR newnumber = rplNewSINT(nargs + 1, DECint32_t);
                 if(!newnumber) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -1367,16 +1367,16 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
         // *******************************************
         // SCAN THE SYMBOLIC FOR ITEM I)
         // I) SORT ALL MULTIPLICATIONS WITH INV(...) LAST, NON-INVERSE FACTORS FIRST
-        // ALSO, IF ALL FACTORS ARE INV(...), THEN ADD A BINT 1 AS FIRST ELEMENT (1/X)
+        // ALSO, IF ALL FACTORS ARE INV(...), THEN ADD A int32_t 1 AS FIRST ELEMENT (1/X)
 
         stkptr = DSTop - 1;
         while(stkptr != endofstk) {
             sobj = *stkptr;
 
             if(*sobj == (CMD_OVR_MUL)) {
-                BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+                int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
-                BINT c;
+                int32_t c;
                 WORDPTR *nextarg = stkptr - 2;
                 WORDPTR *firstarg = nextarg;
                 WORDPTR *firstinv = 0;
@@ -1386,7 +1386,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     if(**nextarg != (CMD_OVR_INV)) {
                         if(firstinv) {
                             // MOVE nextarg BEFORE firstinv
-                            BINT nterms = nextarg - rplSymbSkipInStack(nextarg);
+                            int32_t nterms = nextarg - rplSymbSkipInStack(nextarg);
                             // HERE THE LAYOUT IS: DSTop ... firstinv... otherobj ... nextarg ... otherobj... end
                             //                               ^________________________|
                             // GROW STACK BY nterms
@@ -1397,7 +1397,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                             }
                             // MOVE nextarg TO THE END OF STACK
                             WORDPTR *ptr = DSTop;
-                            BINT f;
+                            int32_t f;
                             for(f = 0; f < nterms; ++f)
                                 ptr[f] = nextarg[-(nterms - 1) + f];
                             // MOVE firstinv BACK
@@ -1428,10 +1428,10 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                 if(firstarg == firstinv) {
                     // ALL FACTORS ARE INVERTED
 
-                    // ADD A BINT 1 TO CREATE 1/X
+                    // ADD A int32_t 1 TO CREATE 1/X
                     WORDPTR *ptr = DSTop - 1;
 
-                    // MAKE A HOLE IN THE STACK TO ADD BINT ONE
+                    // MAKE A HOLE IN THE STACK TO ADD int32_t ONE
                     while(ptr != firstarg) {
                         *(ptr + 1) = *ptr;
                         --ptr;
@@ -1442,7 +1442,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     // INCREASE THE COUNT OF OBJECTS
                     int64_t numargs = OPCODE(*firstarg[2]);
                     ++numargs;
-                    WORDPTR nnum = rplNewSINT(numargs, DECBINT);
+                    WORDPTR nnum = rplNewSINT(numargs, DECint32_t);
                     if(Exceptions) {
                         DSTop = endofstk + 1;
                         return 0;
@@ -1488,7 +1488,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
         while(stkptr != endofstk) {
             sobj = *stkptr;
 
-            if(ISPROLOG(*sobj) || ISBINT(*sobj) || ISCONSTANT(*sobj)) {
+            if(ISPROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
                 --stkptr;
                 continue;
             }
@@ -1496,7 +1496,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
             if(*sobj != (CMD_OVR_MUL)) {
                 // EXCEPT MULTIPLICATIONS, CHECK IF ANY OTHER EXPRESSION STARTS WITH INV()
 
-                BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+                int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
                 WORDPTR *argptr = stkptr - 2;
 
@@ -1506,7 +1506,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
 
                         WORDPTR *ptr = DSTop - 1;
 
-                        // MAKE A HOLE IN THE STACK TO ADD BINT ONE
+                        // MAKE A HOLE IN THE STACK TO ADD int32_t ONE
                         while(ptr != argptr) {
                             *(ptr + 3) = *ptr;
                             --ptr;
@@ -1543,7 +1543,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
 }
 
 // CONVERT A SYMBOLIC OBJECT TO CANONICAL FORM
-WORDPTR rplSymbCanonicalForm(WORDPTR object, BINT fordisplay)
+WORDPTR rplSymbCanonicalForm(WORDPTR object, int32_t fordisplay)
 {
     WORDPTR *result = rplSymbExplodeCanonicalForm(object, fordisplay);
 
@@ -1564,19 +1564,19 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object, BINT fordisplay)
 // SIMPLIFIES BY DIVIDING BY THEIR GCD
 // RETURNS 1 IF THERE WERE CHANGES, 0 IF NO SIMPLIFICATION WAS POSSIBLE
 
-BINT rplFractionSimplify()
+int32_t rplFractionSimplify()
 {
 
     if((!ISNUMBER(*rplPeekData(1))) || (!ISNUMBER(*rplPeekData(2))))
         return 0;       // DON'T TRY TO SIMPLIFY IF NOT A NUMBER
 
-    BINT isapprox;
+    int32_t isapprox;
     isapprox = ISAPPROX(*rplPeekData(2)) | ISAPPROX(*rplPeekData(1));
 
     if(isapprox || ISREAL(*rplPeekData(2)) || ISREAL(*rplPeekData(1))) {
         // TREAT ALL NUMBERS AS REALS
 
-        BINT numneg, denneg;
+        int32_t numneg, denneg;
 
         rplNumberToRReg(0, rplPeekData(2));     // REGISTER 0 = NUMERATOR
         rplNumberToRReg(1, rplPeekData(1));     // REGISTER 1 = DENOMINATOR
@@ -1661,7 +1661,7 @@ BINT rplFractionSimplify()
         int64_t num;
         if(isintegerReal(&RReg[5]) && inint64_tRange(&RReg[5])) {
             num = getint64_tReal(&RReg[5]);
-            rplNewBINTPush(num, DECBINT | isapprox);
+            rplNewint32_tPush(num, DECint32_t | isapprox);
         }
         else {
             rplNewRealFromRRegPush(5);
@@ -1671,7 +1671,7 @@ BINT rplFractionSimplify()
             return 0;
         if(isintegerReal(&RReg[6]) && inint64_tRange(&RReg[6])) {
             num = getint64_tReal(&RReg[6]);
-            rplNewBINTPush(num, DECBINT | isapprox);
+            rplNewint32_tPush(num, DECint32_t | isapprox);
         }
         else {
             rplNewRealFromRRegPush(6);
@@ -1688,14 +1688,14 @@ BINT rplFractionSimplify()
 
     }
 
-    // BOTH NUMBERS ARE EXACT BINTS
+    // BOTH NUMBERS ARE EXACT int32_tS
 
     int64_t bnum, bden;
     int64_t tmpbig, tmpsmall, swap;
-    BINT numneg, denneg;
+    int32_t numneg, denneg;
 
-    bnum = rplReadBINT(rplPeekData(2));
-    bden = rplReadBINT(rplPeekData(1));
+    bnum = rplReadint32_t(rplPeekData(2));
+    bden = rplReadint32_t(rplPeekData(1));
 
     // GET THE SIGNS
     if(bnum < 0) {
@@ -1743,10 +1743,10 @@ BINT rplFractionSimplify()
     if(numneg ^ denneg)
         bnum = -bnum;
 
-    rplNewBINTPush(bnum, DECBINT);
+    rplNewint32_tPush(bnum, DECint32_t);
     if(Exceptions)
         return 0;
-    rplNewBINTPush(bden, DECBINT);
+    rplNewint32_tPush(bden, DECint32_t);
     if(Exceptions) {
         rplDropData(1);
         return 0;
@@ -1762,7 +1762,7 @@ BINT rplFractionSimplify()
 // CHECK IF ARGUMENT IN THE STACK IS A NUMERIC FRACTION
 // RETURNS TRUE/FALSE
 
-BINT rplSymbIsFractionInStack(WORDPTR * stkptr)
+int32_t rplSymbIsFractionInStack(WORDPTR * stkptr)
 {
 
     if(**stkptr == (CMD_OVR_UMINUS)) {
@@ -1773,7 +1773,7 @@ BINT rplSymbIsFractionInStack(WORDPTR * stkptr)
 //NOT A FRACTION UNLESS THERE'S A MULTIPLICATION
     if(**stkptr == (CMD_OVR_MUL)) {
         stkptr--;
-        BINT nargs = OBJSIZE(**stkptr) - 1;
+        int32_t nargs = OBJSIZE(**stkptr) - 1;
 // NOT A FRACTION IF MORE THAN 2 ARGUMENTS
         if(nargs != 2)
             return 0;
@@ -1820,7 +1820,7 @@ BINT rplSymbIsFractionInStack(WORDPTR * stkptr)
 
 void rplSymbFractionExtractNumDen(WORDPTR * stkptr)
 {
-    BINT negnum = 0, negden = 0;
+    int32_t negnum = 0, negden = 0;
     WORDPTR *savedstop = DSTop;
 
     if(**stkptr == (CMD_OVR_UMINUS)) {
@@ -1913,9 +1913,9 @@ void rplSymbFractionExtractNumDen(WORDPTR * stkptr)
 // DOES NOT APPLY ANY SIMPLIFICATION
 // MAKES RESULTING NUM AND DEN POSITIVE, AND RETURNS THE SIGN OF THE RESULTING FRACTION 0=POSITIVE, 1=NEGATIVE
 
-BINT rplFractionAdd()
+int32_t rplFractionAdd()
 {
-    BINT sign = 0;
+    int32_t sign = 0;
     rplPushData(rplPeekData(4));        // NUM1
     rplPushData(rplPeekData(2));        // DEN2
     rplCallOvrOperator((CMD_OVR_MUL));
@@ -1946,7 +1946,7 @@ BINT rplFractionAdd()
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
     WORDPTR numsign = rplPeekData(1);
     rplDropData(1);
-    if(ISBINT(*numsign)) {
+    if(ISint32_t(*numsign)) {
         if(*numsign != MAKESINT(0)) {
             rplPushData(rplPeekData(2));
             rplCallOvrOperator((CMD_OVR_NEG));
@@ -1964,7 +1964,7 @@ BINT rplFractionAdd()
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
     WORDPTR densign = rplPeekData(1);
     rplDropData(1);
-    if(ISBINT(*densign)) {
+    if(ISint32_t(*densign)) {
         if(*densign != MAKESINT(0)) {
             rplCallOvrOperator((CMD_OVR_NEG));
             sign ^= 1;
@@ -1983,10 +1983,10 @@ BINT rplFractionAdd()
 // RETURNS THE SIZE OF THE OBJECT IN WORDS, CALLER HAS TO UPDATE
 // ANY POINTERS INTO THE STACK THAT ARE > obj
 
-BINT rplSymbRemoveInStack(WORDPTR * obj)
+int32_t rplSymbRemoveInStack(WORDPTR * obj)
 {
     WORDPTR *end = rplSymbSkipInStack(obj);
-    BINT offset = obj - end;
+    int32_t offset = obj - end;
     ++end;
     ++obj;
 
@@ -2000,7 +2000,7 @@ BINT rplSymbRemoveInStack(WORDPTR * obj)
 
 // MAKE ROOM IN STACK TO INSERT nwords IMMEDIATELY BEFORE here
 // RETURNS nwords
-BINT rplSymbInsertInStack(WORDPTR * here, BINT nwords)
+int32_t rplSymbInsertInStack(WORDPTR * here, int32_t nwords)
 {
     rplExpandStack(nwords);
     if(Exceptions)
@@ -2018,7 +2018,7 @@ BINT rplSymbInsertInStack(WORDPTR * here, BINT nwords)
 
 // REMOVE nwords IMMEDIATELY AFTER here (INCLUDED)
 // RETURNS nwords
-BINT rplSymbDeleteInStack(WORDPTR * here, BINT nwords)
+int32_t rplSymbDeleteInStack(WORDPTR * here, int32_t nwords)
 {
     here++;
 
@@ -2040,8 +2040,8 @@ BINT rplSymbDeleteInStack(WORDPTR * here, BINT nwords)
 
 WORDPTR rplSymbNumericReduce(WORDPTR object)
 {
-    BINT numitems = rplSymbExplode(object);
-    BINT f, changed, origprec;
+    int32_t numitems = rplSymbExplode(object);
+    int32_t f, changed, origprec;
     WORDPTR *stkptr, sobj, *endofstk;
 
     origprec = Context.precdigits;
@@ -2060,7 +2060,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
         while(stkptr != endofstk) {
             sobj = *stkptr;
 
-            if(ISPROLOG(*sobj) || ISBINT(*sobj) || ISCONSTANT(*sobj)) {
+            if(ISPROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
                 --stkptr;
                 continue;
             }
@@ -2068,9 +2068,9 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             if((*sobj == (CMD_OVR_MUL)) || (*sobj == CMD_SYMBTOUNIT)) {
                 // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
 
-                BINT nargs = OPCODE(**(stkptr - 1)) - 1, redargs = 0;
+                int32_t nargs = OPCODE(**(stkptr - 1)) - 1, redargs = 0;
                 WORDPTR *argptr = stkptr - 2;
-                BINT simplified = 0, den_is_one = 0, num_is_one = 0, neg =
+                int32_t simplified = 0, den_is_one = 0, num_is_one = 0, neg =
                         0, approx = 0;
 
                 for(f = 0; f < nargs; ++f) {
@@ -2174,7 +2174,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
 
                 // SCAN ALL NUMERIC FACTORS IN THE DENOMINATOR AND MULTIPLY TOGETHER
-                BINT reddenom = 0, approxdenom = 0, addfactors = 0;
+                int32_t reddenom = 0, approxdenom = 0, addfactors = 0;
                 argptr = stkptr - 2;
 
                 for(f = 0; f < nargs - redargs; ++f) {
@@ -2308,15 +2308,15 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                     if((redargs > 0) || (reddenom > 0)) {
 
-                        BINT n = 1 + ((reddenom > 0) ? 1 : 0);
+                        int32_t n = 1 + ((reddenom > 0) ? 1 : 0);
                         // IF NUMERATOR IS NEGATIVE, STORE AS POSITIVE AND SET neg
-                        if(ISBINT(*rplPeekData(n))) {
-                            int64_t nnum = rplReadBINT(rplPeekData(n));
+                        if(ISint32_t(*rplPeekData(n))) {
+                            int64_t nnum = rplReadint32_t(rplPeekData(n));
                             // MARK TO ADD THE SIGN LATER
                             if(nnum < 0) {
                                 neg ^= 1;
                                 // KEEP THE NUMERATOR POSITIVE
-                                WORDPTR newnum = rplNewBINT(-nnum, DECBINT);
+                                WORDPTR newnum = rplNewint32_t(-nnum, DECint32_t);
                                 if(!newnum) {
                                     DSTop = endofstk + 1;
                                     return 0;
@@ -2375,8 +2375,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         // IF DENOMINATOR IS ONE, THEN DON'T INCLUDE IT IN THE OBJECT
 
-                        if(ISBINT(*rplPeekData(1))) {
-                            int64_t denom = rplReadBINT(rplPeekData(1));
+                        if(ISint32_t(*rplPeekData(1))) {
+                            int64_t denom = rplReadint32_t(rplPeekData(1));
                             if(denom == 1)
                                 den_is_one = 1;
                         }
@@ -2392,7 +2392,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         if(!den_is_one) {
                             // ONLY INSERT IN THE OBJECT IF THE DENOMINATOR IS NOT ONE
-                            BINT actualargs =
+                            int32_t actualargs =
                                     nargs - redargs - reddenom + ((redargs >
                                         0) ? 1 : 0);
                             if(num_is_one && (reddenom + redargs < nargs))
@@ -2441,7 +2441,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                     if(redargs + reddenom) {
                         // UPDATE THE ARGUMENT COUNT
-                        BINT newcount = nargs - redargs - reddenom + addfactors;
+                        int32_t newcount = nargs - redargs - reddenom + addfactors;
 
                         if(newcount < 2) {
                             // SINGLE ARGUMENT, SO REMOVE THE MULTIPLICATION
@@ -2456,7 +2456,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         }
                         else {
                             WORDPTR newnumber =
-                                    rplNewSINT(newcount + 1, DECBINT);
+                                    rplNewSINT(newcount + 1, DECint32_t);
                             if(!newnumber) {
                                 DSTop = endofstk + 1;
                                 return 0;
@@ -2476,7 +2476,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             if(*sobj == (CMD_OVR_ADD)) {
                 // SCAN ALL NUMERIC FACTORS AND ADD TOGETHER (INCLUDING FRACTIONS)
 
-                BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+                int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
                 WORDPTR *argptr = stkptr - 2;
 
                 WORDPTR *firstnum = 0, *secondnum = 0;
@@ -2507,7 +2507,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 // NOW COMPUTE THE RESULT
 
-                BINT isnegative = rplFractionAdd();
+                int32_t isnegative = rplFractionAdd();
 
                 if(Exceptions) {
                     rplBlameError(sobj);
@@ -2518,7 +2518,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // AND REPLACE IT IN THE ORIGINAL
 
                 // REMOVE ORIGINAL ARGUMENTS
-                BINT offset;
+                int32_t offset;
                 offset = rplSymbRemoveInStack(firstnum);
                 DSTop -= offset;
                 stkptr -= offset;
@@ -2530,11 +2530,11 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 // AND INSERT THE NEW ONE
 
-                BINT den_is_one = 0;
+                int32_t den_is_one = 0;
 
                 // CHECK IF DENOMINATOR IS ONE
-                if(ISBINT(*rplPeekData(1))) {
-                    int64_t denom = rplReadBINT(rplPeekData(1));
+                if(ISint32_t(*rplPeekData(1))) {
+                    int64_t denom = rplReadint32_t(rplPeekData(1));
                     if(denom == 1)
                         den_is_one = 1;
                 }
@@ -2598,7 +2598,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     stkptr -= offset;
                 }
                 else {
-                    WORDPTR newobj = rplNewSINT(nargs, DECBINT);
+                    WORDPTR newobj = rplNewSINT(nargs, DECint32_t);
                     if(!newobj)
                         return 0;
                     *(stkptr - 1) = newobj;
@@ -2614,9 +2614,9 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     && (*sobj != (CMD_EQUATIONOPERATOR))) {
                 // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
 
-                BINT nargs = OPCODE(**(stkptr - 1)) - 1;
+                int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
                 WORDPTR *argptr = stkptr - 2, *savedstop;
-                BINT notanumber = 0, approxnumber = 0;
+                int32_t notanumber = 0, approxnumber = 0;
                 for(f = 0; f < nargs; ++f) {
                     if(!ISNUMBERORUNIT(**argptr)) {
                         // CHECK IF IT'S A NEGATIVE NUMBER
@@ -2801,7 +2801,7 @@ void rplSymbAutoSimplify()
 
 // RETURN TRUE/FALSE IF THE GIVEN SYMBOLIC IS A RULE
 
-BINT rplSymbIsRule(WORDPTR ptr)
+int32_t rplSymbIsRule(WORDPTR ptr)
 {
     if(!ISSYMBOLIC(*ptr))
         return 0;
@@ -2812,7 +2812,7 @@ BINT rplSymbIsRule(WORDPTR ptr)
 
 // RETURN 1 IF THE GIVEN SYMBOLIC IS ONLY NUMERIC
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
-BINT rplSymbIsNumeric(WORDPTR ptr)
+int32_t rplSymbIsNumeric(WORDPTR ptr)
 {
     WORDPTR endofobj = rplSkipOb(ptr);
 
@@ -2839,14 +2839,14 @@ BINT rplSymbIsNumeric(WORDPTR ptr)
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES, CALLS A CUSTOM USER FUNCTION OR HAS ANY NON-ATOMIC OPERATION
 // IF THE OBJECT IS NUMERIC, ALSO CHECK FOR ZERO
 
-BINT rplSymbIsZero(WORDPTR ptr)
+int32_t rplSymbIsZero(WORDPTR ptr)
 {
     WORDPTR obj = ptr, end = rplSkipOb(obj);
-    BINT onezero = 0, allzeros = 1, optype = 0;
+    int32_t onezero = 0, allzeros = 1, optype = 0;
     if(ISSYMBOLIC(*obj))
         ++obj;
     while(obj != end) {
-        if(!(ISPROLOG(*obj) || ISBINT(*obj) || ISCONSTANT(*obj))) {
+        if(!(ISPROLOG(*obj) || ISint32_t(*obj) || ISCONSTANT(*obj))) {
             // SOME KIND OF OPERATION, THE ONLY THING ALLOWED IS UNARY PLUS OR MINUS BEFORE THE NUMBER ZERO
             switch (*obj) {
             case CMD_OVR_UMINUS:
@@ -2907,9 +2907,9 @@ void rplSymbNumericCompute()
 {
     WORDPTR *stksave = DSTop;
     WORDPTR *ptr = DSTop - 1;
-    BINT endoffset = rplObjSize(*ptr), partialoff = endoffset;
+    int32_t endoffset = rplObjSize(*ptr), partialoff = endoffset;
     WORD opcode = 0;
-    BINT offset = 0;
+    int32_t offset = 0;
 
     while(offset < endoffset) {
 
@@ -2956,7 +2956,7 @@ void rplSymbNumericCompute()
         }
     }
 
-    BINT nitems = DSTop - stksave;
+    int32_t nitems = DSTop - stksave;
     DSTop = stksave;
     if(nitems > 1)
         return;
@@ -2974,9 +2974,9 @@ void rplSymbNumericCompute()
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 // LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
 
-BINT rplSymbExplodeOneLevel2(WORDPTR object)
+int32_t rplSymbExplodeOneLevel2(WORDPTR object)
 {
-    BINT count = 0, countops = 0;
+    int32_t count = 0, countops = 0;
 
     if(ISSYMBOLIC(*object))
         ScratchPointer1 = rplSymbUnwrap(object) + 1;
@@ -2985,7 +2985,7 @@ BINT rplSymbExplodeOneLevel2(WORDPTR object)
     ScratchPointer2 = rplSkipOb(object);
 
     while(ScratchPointer1 < ScratchPointer2) {
-        if(!(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)
+        if(!(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                     || ISCONSTANT(*ScratchPointer1))) {
             ScratchPointer3 = ScratchPointer1;
             ++countops;
@@ -2998,7 +2998,7 @@ BINT rplSymbExplodeOneLevel2(WORDPTR object)
     }
 
     if(countops) {
-        rplNewSINTPush(count, DECBINT);
+        rplNewSINTPush(count, DECint32_t);
         rplPushData(ScratchPointer3);
         ++countops;
     }
@@ -3008,7 +3008,7 @@ BINT rplSymbExplodeOneLevel2(WORDPTR object)
 
 // RETURN 1 IF THE GIVEN SYMBOLIC IS A SINGLE NUMBER
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
-BINT rplSymbIsANumber(WORDPTR ptr)
+int32_t rplSymbIsANumber(WORDPTR ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
@@ -3020,12 +3020,12 @@ BINT rplSymbIsANumber(WORDPTR ptr)
 
 }
 
-BINT rplSymbIsIntegerNumber(WORDPTR ptr)
+int32_t rplSymbIsIntegerNumber(WORDPTR ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
 
-    if(ISBINT(*ptr))
+    if(ISint32_t(*ptr))
         return 1;
     if(ISREAL(*ptr)) {
         REAL n;
@@ -3038,14 +3038,14 @@ BINT rplSymbIsIntegerNumber(WORDPTR ptr)
 
 }
 
-BINT rplSymbIsOddNumber(WORDPTR ptr)
+int32_t rplSymbIsOddNumber(WORDPTR ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
 
-    if(ISBINT(*ptr)) {
+    if(ISint32_t(*ptr)) {
         int64_t n;
-        n = rplReadNumberAsBINT(ptr);
+        n = rplReadNumberAsInt64(ptr);
         if(n & 1)
             return 1;
         return 0;
@@ -3077,10 +3077,10 @@ enum
 typedef struct
 {
     WORDPTR *left, *right;
-    BINT leftnargs, rightnargs;
-    BINT leftidx, rightidx, leftrot, lrotbase;
-    BINT leftdepth, rightdepth;
-    BINT nlams;
+    int32_t leftnargs, rightnargs;
+    int32_t leftidx, rightidx, leftrot, lrotbase;
+    int32_t leftdepth, rightdepth;
+    int32_t nlams;
 } TRACK_STATE;
 
 // NO ARGUMENT CHECKS, INTERNAL USE ONLY, ptr MUST NOT BE NULL, stkbase MUST POINT AFTER VALID DATA ON THE STACK
@@ -3091,37 +3091,37 @@ typedef struct
 
 static void reloadPointers(WORDPTR * stkbase, TRACK_STATE * ptr)
 {
-    ptr->nlams = rplReadBINT(*(stkbase - 1));
+    ptr->nlams = rplReadint32_t(*(stkbase - 1));
     ptr->right = stkbase - 2 * ptr->nlams - 5;  // POINT TO THE RIGHT OPERATOR
     ptr->left = ptr->right - 1;
-    if(!ISPROLOG(**(ptr->right)) && !ISBINT(**(ptr->right))
+    if(!ISPROLOG(**(ptr->right)) && !ISint32_t(**(ptr->right))
             && !ISCONSTANT(**(ptr->right))) {
-        ptr->rightnargs = rplReadBINT(*((ptr->right) - 1));
+        ptr->rightnargs = rplReadint32_t(*((ptr->right) - 1));
         ptr->left--;
     }
     else
         ptr->rightnargs = 0;
     ptr->left -= ptr->rightnargs;
-    if(!ISPROLOG(**(ptr->left)) && !ISBINT(**(ptr->left))
+    if(!ISPROLOG(**(ptr->left)) && !ISint32_t(**(ptr->left))
             && !ISCONSTANT(**(ptr->right)))
-        ptr->leftnargs = rplReadBINT(*((ptr->left) - 1));
+        ptr->leftnargs = rplReadint32_t(*((ptr->left) - 1));
     else
         ptr->leftnargs = 0;
 
     {
-        int64_t tmpint = rplReadBINT(ptr->right[1]);
-        ptr->leftidx = (BINT) tmpint;
-        ptr->leftdepth = (BINT) (tmpint >> 32);
+        int64_t tmpint = rplReadint32_t(ptr->right[1]);
+        ptr->leftidx = (int32_t) tmpint;
+        ptr->leftdepth = (int32_t) (tmpint >> 32);
     }
     {
-        int64_t tmpint = rplReadBINT(ptr->right[2]);
-        ptr->rightidx = (BINT) tmpint;
-        ptr->rightdepth = (BINT) (tmpint >> 32);
+        int64_t tmpint = rplReadint32_t(ptr->right[2]);
+        ptr->rightidx = (int32_t) tmpint;
+        ptr->rightdepth = (int32_t) (tmpint >> 32);
     }
     {
-        int64_t tmpint = rplReadBINT(ptr->right[3]);
-        ptr->leftrot = (BINT) tmpint;
-        ptr->lrotbase = (BINT) (tmpint >> 32);
+        int64_t tmpint = rplReadint32_t(ptr->right[3]);
+        ptr->leftrot = (int32_t) tmpint;
+        ptr->lrotbase = (int32_t) (tmpint >> 32);
     }
 
 }
@@ -3134,7 +3134,7 @@ static void reloadLAMs(WORDPTR * orgrule, TRACK_STATE * ptr)
     if(Exceptions)
         return;
     rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
-    BINT oldnlams = rplLAMCount(0) - 1;
+    int32_t oldnlams = rplLAMCount(0) - 1;
     while(oldnlams < ptr->nlams) {
         rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
         if(Exceptions)
@@ -3152,18 +3152,18 @@ static void reloadLAMs(WORDPTR * orgrule, TRACK_STATE * ptr)
 static void updateCounters(TRACK_STATE * ptr)
 {
     ptr->right[1] =
-            rplNewBINT((((int64_t) ptr->leftdepth) << 32) + ptr->leftidx,
-            DECBINT);
+            rplNewint32_t((((int64_t) ptr->leftdepth) << 32) + ptr->leftidx,
+            DECint32_t);
     if(Exceptions)
         return;
     ptr->right[2] =
-            rplNewBINT((((int64_t) ptr->rightdepth) << 32) + ptr->rightidx,
-            DECBINT);
+            rplNewint32_t((((int64_t) ptr->rightdepth) << 32) + ptr->rightidx,
+            DECint32_t);
     if(Exceptions)
         return;
     ptr->right[3] =
-            rplNewBINT((((int64_t) ptr->lrotbase) << 32) + ptr->leftrot,
-            DECBINT);
+            rplNewint32_t((((int64_t) ptr->lrotbase) << 32) + ptr->leftrot,
+            DECint32_t);
     if(Exceptions)
         return;
 }
@@ -3171,7 +3171,7 @@ static void updateCounters(TRACK_STATE * ptr)
 // SAVE CURRENT LAM ENVIRONMENT TO THE STACK
 static void updateLAMs(TRACK_STATE * ptr)
 {
-    BINT newnlams = rplLAMCount(0) - 1;
+    int32_t newnlams = rplLAMCount(0) - 1;
     if(ptr->nlams < newnlams) {
         rplExpandStack(2 * (newnlams - ptr->nlams));
         if(Exceptions)
@@ -3189,7 +3189,7 @@ static void updateLAMs(TRACK_STATE * ptr)
         // STORE ALL LAMS
         memmovew(ptr->right + 4, nLAMBase + 4,
                 newnlams * 2 * sizeof(WORDPTR) / sizeof(WORD));
-        ptr->right[4 + 2 * newnlams] = rplNewSINT(newnlams, DECBINT);
+        ptr->right[4 + 2 * newnlams] = rplNewSINT(newnlams, DECint32_t);
         if(Exceptions)
             return;
         DSTop += 2 * (newnlams - ptr->nlams);
@@ -3201,7 +3201,7 @@ static void updateLAMs(TRACK_STATE * ptr)
 // REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
 // ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
 
-void rplSymbReplaceMatchHere(WORDPTR * rule, BINT startleftarg)
+void rplSymbReplaceMatchHere(WORDPTR * rule, int32_t startleftarg)
 {
     WORDPTR ruleleft = rplSymbMainOperatorPTR(*rule);
     if(*ruleleft == CMD_RULESEPARATOR)
@@ -3225,7 +3225,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, BINT startleftarg)
         DSTop = stksave;
         return;
     }
-    BINT nlams = rplLAMCount(lamenv), k;
+    int32_t nlams = rplLAMCount(lamenv), k;
 
     // REPLACE ALL LAMS WITH THEIR VALUES
     while(expstart >= stksave) {
@@ -3260,7 +3260,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, BINT startleftarg)
                             startleftarg + s.rightnargs) + 1, s.rightnargs - 1);
                 s.leftnargs -= s.rightnargs - 1;
                 s.left -= s.rightnargs - 1;
-                s.left[-1] = rplNewSINT(s.leftnargs, DECBINT);
+                s.left[-1] = rplNewSINT(s.leftnargs, DECint32_t);
             }
         }
 
@@ -3365,7 +3365,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, BINT startleftarg)
 
 // NEW VERSION 3 IMPLEMENTATION
 
-BINT rplSymbRuleMatch()
+int32_t rplSymbRuleMatch()
 {
     // MAKE SURE BOTH EXPRESSION AND RULE ARE IN CANONIC FORM
     WORDPTR newexp = rplSymbCanonicalForm(rplPeekData(2), 0);
@@ -3413,9 +3413,9 @@ BINT rplSymbRuleMatch()
     WORDPTR ruleleft = rplSymbMainOperatorPTR(*rule);
     if(*ruleleft == CMD_RULESEPARATOR)
         ++ruleleft;     // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
-    BINT ruleleftoffset = ruleleft - *rule;
-    BINT matchtype, matchstarted;
-    BINT baselevel;
+    int32_t ruleleftoffset = ruleleft - *rule;
+    int32_t matchtype, matchstarted;
+    int32_t baselevel;
 
     TRACK_STATE s;
 
@@ -3618,7 +3618,7 @@ BINT rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        BINT k;
+                        int32_t k;
                         for(k = 0; k < DSTop - topoflevel; ++k)
                             DSTop[k] = topoflevel[k];
                         s.left += k;
@@ -3797,8 +3797,8 @@ BINT rplSymbRuleMatch()
                             s.leftrot = s.lrotbase = 0;
                             s.nlams = 0;
                             // PUSH NEW INDEX
-                            rplNewBINTPush(((int64_t) s.leftdepth) << 32,
-                                    DECBINT);
+                            rplNewint32_tPush(((int64_t) s.leftdepth) << 32,
+                                    DECint32_t);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
                                 DSTop = expression;
@@ -3806,8 +3806,8 @@ BINT rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplNewBINTPush(((int64_t) s.rightdepth) << 32,
-                                    DECBINT);
+                            rplNewint32_tPush(((int64_t) s.rightdepth) << 32,
+                                    DECint32_t);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
                                 DSTop = expression;
@@ -3861,11 +3861,11 @@ BINT rplSymbRuleMatch()
                                 reloadPointers(s.left - ((s.leftnargs) ? (1 +
                                                 s.leftnargs) : 0), &p);
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     if(p.leftidx >= 1
                                             && p.leftidx <= p.leftnargs)
@@ -3906,11 +3906,11 @@ BINT rplSymbRuleMatch()
 
                             }
                             else {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -3961,7 +3961,7 @@ BINT rplSymbRuleMatch()
 
                             /*if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                                {
-                               BINT k;
+                               int32_t k;
 
                                if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
@@ -3973,11 +3973,11 @@ BINT rplSymbRuleMatch()
                                // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
                                if(rplCompareIDENT(*s.right,tmp)) {
                                // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                otherattr=rplSymbGetAttr(*s.left);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4013,9 +4013,9 @@ BINT rplSymbRuleMatch()
                                s.right=DSTop-1;
 
                                // LEFTARG AND RIGHTARG
-                               rplNewSINTPush(s.leftidx,DECBINT);
+                               rplNewSINTPush(s.leftidx,DECint32_t);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                               rplNewSINTPush(s.rightidx,DECBINT);
+                               rplNewSINTPush(s.rightidx,DECint32_t);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                rplPushData((WORDPTR)zero_bint);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4041,11 +4041,11 @@ BINT rplSymbRuleMatch()
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                }
 
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                otherattr=rplSymbGetAttr(rplPeekData(1));
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4065,7 +4065,7 @@ BINT rplSymbRuleMatch()
                                // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
                                // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
 
-                               BINT k;
+                               int32_t k;
                                // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
                                for(k=1;k<=p.leftnargs;++k) FINDARGUMENT(p.left,p.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k);
 
@@ -4079,7 +4079,7 @@ BINT rplSymbRuleMatch()
                                p.left-=p.leftnargs-p.leftidx;
                                p.right-=p.leftnargs-p.leftidx;
                                if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
-                               p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
+                               p.left[-1]=rplNewSINT(p.leftidx,DECint32_t);
                                p.leftnargs=p.leftidx;
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                }
@@ -4097,11 +4097,11 @@ BINT rplSymbRuleMatch()
                                if(s.leftnargs) {
                                // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                if(p.leftidx>=1 && p.leftidx<=p.leftnargs) otherattr=rplSymbGetAttr(FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
                                else if(p.leftidx==-1) otherattr=rplSymbGetAttr(*p.left);
@@ -4123,11 +4123,11 @@ BINT rplSymbRuleMatch()
                                updateCounters(&s);
 
                                } else {
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                otherattr=rplSymbGetAttr(*s.left);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4156,10 +4156,10 @@ BINT rplSymbRuleMatch()
                             if((**p.left == CMD_OVR_ADD)
                                     || (**p.left == CMD_OVR_MUL)) {
                                 // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
-                                BINT k;
+                                int32_t k;
 
-                                BINT otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
-                                BINT available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+                                int32_t otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                                int32_t available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
                                 if(available > 1) {
                                     // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
@@ -4187,11 +4187,11 @@ BINT rplSymbRuleMatch()
                                         return 0;
                                     }
 
-                                    BINT attr = rplGetIdentAttr(*s.right);
+                                    int32_t attr = rplGetIdentAttr(*s.right);
 
                                     if(attr) {
                                         // MATCH THE ATTRIBUTES
-                                        BINT otherattr;
+                                        int32_t otherattr;
 
                                         otherattr =
                                                 rplSymbGetAttr(rplPeekData(1));
@@ -4240,7 +4240,7 @@ BINT rplSymbRuleMatch()
                                         baselevel -= available - 1;
                                     p.left[-1] =
                                             rplNewSINT(p.leftnargs -
-                                            (available - 1), DECBINT);
+                                            (available - 1), DECint32_t);
 
                                     if(baselevel == DSTop - DStkBottom)
                                         baselevel += 2;
@@ -4272,11 +4272,11 @@ BINT rplSymbRuleMatch()
                                    }
                                  */
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     if(p.leftidx >= 1
                                             && p.leftidx <= p.leftnargs)
@@ -4320,11 +4320,11 @@ BINT rplSymbRuleMatch()
 
                             }
                             else {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -4389,11 +4389,11 @@ BINT rplSymbRuleMatch()
                             if(s.leftnargs) {
                                 // JUST CAPTURE THE CURRENT ARGUMENT
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     if(p.leftidx >= 1
                                             && p.leftidx <= p.leftnargs)
@@ -4441,11 +4441,11 @@ BINT rplSymbRuleMatch()
 
                             }
                             else {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -4506,7 +4506,7 @@ BINT rplSymbRuleMatch()
                             /*
                                if(**p.left==CMD_OVR_ADD)  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                                {
-                               BINT k;
+                               int32_t k;
 
                                if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
@@ -4518,11 +4518,11 @@ BINT rplSymbRuleMatch()
                                // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
                                if(rplCompareIDENT(*s.right,tmp)) {
                                // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                otherattr=rplSymbGetAttr(s.left);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4585,11 +4585,11 @@ BINT rplSymbRuleMatch()
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                }
 
-                               BINT attr=rplGetIdentAttr(*s.right);
+                               int32_t attr=rplGetIdentAttr(*s.right);
 
                                if(attr) {
                                // MATCH THE ATTRIBUTES
-                               BINT otherattr;
+                               int32_t otherattr;
 
                                otherattr=rplSymbGetAttr(rplPeekData(1));
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4613,7 +4613,7 @@ BINT rplSymbRuleMatch()
                                rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs),p.leftnargs-p.leftidx);
                                p.left-=p.leftnargs-p.leftidx;
                                if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
-                               p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
+                               p.left[-1]=rplNewSINT(p.leftidx,DECint32_t);
                                }
 
                                updateLAMs(&p);
@@ -4628,10 +4628,10 @@ BINT rplSymbRuleMatch()
                             if((**p.left == CMD_OVR_ADD)
                                     || (**p.left == CMD_OVR_MUL)) {
                                 // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
-                                BINT k;
+                                int32_t k;
 
-                                BINT otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
-                                BINT available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+                                int32_t otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                                int32_t available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
                                 if(available > 1) {
                                     // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
@@ -4659,11 +4659,11 @@ BINT rplSymbRuleMatch()
                                         return 0;
                                     }
 
-                                    BINT attr = rplGetIdentAttr(*s.right);
+                                    int32_t attr = rplGetIdentAttr(*s.right);
 
                                     if(attr) {
                                         // MATCH THE ATTRIBUTES
-                                        BINT otherattr;
+                                        int32_t otherattr;
 
                                         otherattr =
                                                 rplSymbGetAttr(rplPeekData(1));
@@ -4712,7 +4712,7 @@ BINT rplSymbRuleMatch()
                                         baselevel -= available - 1;
                                     p.left[-1] =
                                             rplNewSINT(p.leftnargs -
-                                            (available - 1), DECBINT);
+                                            (available - 1), DECint32_t);
 
                                     if(baselevel == DSTop - DStkBottom)
                                         baselevel += 2;
@@ -4743,11 +4743,11 @@ BINT rplSymbRuleMatch()
                                     break;
                                 }
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     if(p.leftidx >= 1
                                             && p.leftidx <= p.leftnargs)
@@ -4791,11 +4791,11 @@ BINT rplSymbRuleMatch()
 
                             }
                             else {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -4844,11 +4844,11 @@ BINT rplSymbRuleMatch()
                             // n = Match only a single number (real or integer)
                             if(rplSymbIsANumber(*s.left)) {
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -4897,17 +4897,17 @@ BINT rplSymbRuleMatch()
                             reloadPointers(s.left - ((s.leftnargs) ? (1 +
                                             s.leftnargs) : 0), &p);
 
-                            //BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
-                            //BINT available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+                            //int32_t otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                            //int32_t available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
                             if((**p.left == CMD_OVR_ADD)
                                     || (**p.left == CMD_OVR_MUL)) {
                                 // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
-                                BINT k;
-                                BINT taken;
+                                int32_t k;
+                                int32_t taken;
 
-                                BINT otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
-                                BINT available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+                                int32_t otherright = p.rightnargs - p.rightidx;    // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                                int32_t available = p.leftnargs - p.leftidx + 1 - otherright;      // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
                                 if(available > 1) {
                                     // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
@@ -4949,11 +4949,11 @@ BINT rplSymbRuleMatch()
                                         break;
                                     }
 
-                                    BINT attr = rplGetIdentAttr(*s.right);
+                                    int32_t attr = rplGetIdentAttr(*s.right);
 
                                     if(attr) {
                                         // MATCH THE ATTRIBUTES
-                                        BINT otherattr;
+                                        int32_t otherattr;
 
                                         otherattr =
                                                 rplSymbGetAttr(rplPeekData(1));
@@ -5004,7 +5004,7 @@ BINT rplSymbRuleMatch()
                                             baselevel -= taken - 1;
                                         p.left[-1] =
                                                 rplNewSINT(p.leftnargs -
-                                                (taken - 1), DECBINT);
+                                                (taken - 1), DECint32_t);
                                     }
 
                                     if(baselevel == DSTop - DStkBottom)
@@ -5029,11 +5029,11 @@ BINT rplSymbRuleMatch()
                             // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
                             if(s.leftnargs) {
 
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     if(p.leftidx >= 1
                                             && p.leftidx <= p.leftnargs)
@@ -5085,11 +5085,11 @@ BINT rplSymbRuleMatch()
 
                             }
                             else {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -5144,11 +5144,11 @@ BINT rplSymbRuleMatch()
                         case TEXT2WORD('.', 'i', 0, 0):
                             // i = Match only a single integer number
                             if(rplSymbIsIntegerNumber(*s.left)) {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
                                     if(Exceptions) {
@@ -5201,11 +5201,11 @@ BINT rplSymbRuleMatch()
                         case TEXT2WORD('.', 'v', 0, 0):
                             // v = Match a single variable name
                             if(ISIDENT(**s.left)) {
-                                BINT attr = rplGetIdentAttr(*s.right);
+                                int32_t attr = rplGetIdentAttr(*s.right);
 
                                 if(attr) {
                                     // MATCH THE ATTRIBUTES
-                                    BINT otherattr;
+                                    int32_t otherattr;
 
                                     otherattr = rplSymbGetAttr(*s.left);
 
@@ -5341,7 +5341,7 @@ BINT rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewint32_tPush(((int64_t) s.leftdepth + 1) << 32, DECint32_t);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5349,7 +5349,7 @@ BINT rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplNewBINTPush(((int64_t) s.rightdepth + 1) << 32, DECBINT);
+                    rplNewint32_tPush(((int64_t) s.rightdepth + 1) << 32, DECint32_t);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5695,7 +5695,7 @@ BINT rplSymbRuleMatch()
                             WORDPTR tmp =
                                     FINDARGUMENT(s.left, s.leftnargs,
                                     s.leftidx);
-                            BINT k;
+                            int32_t k;
                             for(k = s.leftidx; k < s.leftnargs; ++k)
                                 FINDARGUMENT(s.left, s.leftnargs, k) =
                                         FINDARGUMENT(s.left, s.leftnargs,
@@ -5843,7 +5843,7 @@ BINT rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewint32_tPush(((int64_t) s.leftdepth + 1) << 32, DECint32_t);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -6100,7 +6100,7 @@ BINT rplSymbRuleMatch()
                                 // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
                                 // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
 
-                                BINT k;
+                                int32_t k;
                                 // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
                                 for(k = 1; k <= p.leftnargs; ++k)
                                     FINDARGUMENT(p.left, p.leftnargs, k) =
@@ -6181,7 +6181,7 @@ BINT rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        BINT k;
+                        int32_t k;
                         for(k = 0; k < DSTop - topoflevel; ++k)
                             DSTop[k] = topoflevel[k];
                         s.left += k;
@@ -6317,7 +6317,7 @@ BINT rplSymbRuleMatch()
                                 reloadPointers(s.left - ((s.leftnargs) ? (1 +
                                                 s.leftnargs) : 0), &p);
 
-                                BINT k;
+                                int32_t k;
                                 // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
                                 for(k = 1; k <= p.leftnargs; ++k)
                                     FINDARGUMENT(p.left, p.leftnargs, k) =
@@ -6434,7 +6434,7 @@ BINT rplSymbRuleMatch()
     DSTop = expression + 1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
 
 // COUNT HOW MANY RESULTS WERE FOUND
-    BINT found = 0;
+    int32_t found = 0;
     WORDPTR *lamenv = LAMTop;
     while(lamenv > lamsave) {
         lamenv = rplGetNextLAMEnv(lamenv);
@@ -6488,7 +6488,7 @@ BINT rplSymbRuleMatch()
 // THE ATTRIBUTE OF THE SPECIAL VARIABLE AND THE MATCHING EXPRESSION MUST BE IDENTICAL.
 
 // COMPUTE THE RESULTING ATTRIBUTES OF A SYMBOLIC EXPRESSION
-BINT rplSymbCombineAttr(WORD operator, BINT rattr, BINT attr)
+int32_t rplSymbCombineAttr(WORD operator, int32_t rattr, int32_t attr)
 {
     // NOW COMBINE THE ATTRIBUTES BASED ON THE TYPE OF OPERATOR
 
@@ -6976,16 +6976,16 @@ BINT rplSymbCombineAttr(WORD operator, BINT rattr, BINT attr)
     return rattr;
 }
 
-BINT rplSymbGetAttr(WORDPTR object)
+int32_t rplSymbGetAttr(WORDPTR object)
 {
-    BINT rattr = -1, attr;
+    int32_t rattr = -1, attr;
     WORDPTR ptr, endofobj, finishedobject;
     WORD operator;
     WORDPTR *stksave = DSTop;
 
     rplPushDataNoGrow(object);
     rplPushDataNoGrow(object);
-    rplNewBINTPush(rattr, DECBINT);
+    rplNewint32_tPush(rattr, DECint32_t);
     if(Exceptions) {
         DSTop = stksave;
         return 0;
@@ -6995,7 +6995,7 @@ BINT rplSymbGetAttr(WORDPTR object)
     attr = -1;
 
     while(DSTop > stksave) {
-        rattr = rplReadBINT(rplPopData());
+        rattr = rplReadint32_t(rplPopData());
         ptr = rplPopData();
         ptr = rplSymbUnwrap(ptr);
         object = rplPopData();
@@ -7022,7 +7022,7 @@ BINT rplSymbGetAttr(WORDPTR object)
             rplPushDataNoGrow(object);
             rplPushDataNoGrow(rplSkipOb(ptr));
             ScratchPointer1 = ptr;
-            rplNewBINTPush(rattr, DECBINT);
+            rplNewint32_tPush(rattr, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return 0;
@@ -7038,7 +7038,7 @@ BINT rplSymbGetAttr(WORDPTR object)
             attr = -1;
         }
 
-        if(!ISPROLOG(*ptr) && !ISBINT(*ptr) && !ISCONSTANT(*ptr)) {
+        if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
             operator=* ptr;
             ++ptr;
         }
@@ -7110,7 +7110,7 @@ BINT rplSymbGetAttr(WORDPTR object)
                 rplPushDataNoGrow(object);
                 rplPushDataNoGrow(rplSkipOb(ptr));
                 ScratchPointer1 = ptr;
-                rplNewBINTPush(rattr, DECBINT);
+                rplNewint32_tPush(rattr, DECint32_t);
                 if(Exceptions) {
                     DSTop = stksave;
                     return 0;
@@ -7165,7 +7165,7 @@ WORDPTR rplSymbReplaceVar(WORDPTR symb, WORDPTR findvar, WORDPTR newvar)
     ScratchPointer2 = findvar;
     ScratchPointer3 = newvar;
 
-    BINT n = rplSymbExplode(symb);
+    int32_t n = rplSymbExplode(symb);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -7175,7 +7175,7 @@ WORDPTR rplSymbReplaceVar(WORDPTR symb, WORDPTR findvar, WORDPTR newvar)
     findvar = ScratchPointer2;
     newvar = ScratchPointer3;
 
-    BINT k;
+    int32_t k;
     for(k = 0; k < n; ++k) {
         if(rplCompareIDENT(*stkptr, findvar))
             *stkptr = newvar;

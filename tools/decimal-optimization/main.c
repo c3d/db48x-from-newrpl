@@ -16,13 +16,13 @@ int main()
     // INITIALIZE REGISTERS STORAGE
 
     int k,j;
-    BINT extranumber[REAL_REGISTER_STORAGE];
+    int32_t extranumber[REAL_REGISTER_STORAGE];
 
     initContext(TEST_DIGITS);
 
     for(k=0;k<REAL_REGISTERS;++k) {
         RReg[k].data=allocRegister();
-        newRealFromBINT(&RReg[k],0,0);
+        newRealFromint32_t(&RReg[k],0,0);
     }
 
    clock_t start,end;

@@ -91,7 +91,7 @@ void LIB_HANDLER()
 
             // COUNT HOW MANY LAMS ARE IN THE CONSTRUCT
             ScratchPointer1 = *(ValidateTop - 1);
-            BINT lamcount = 0;
+            int32_t lamcount = 0;
 
             // INITIALIZE AN ENVIRONMENT FOR COMPILE TIME
             rplCreateLAMEnvironment(ScratchPointer1);
@@ -160,7 +160,7 @@ void LIB_HANDLER()
                 return;
             }
             if(ISSYMBOLIC(*LastCompiledObject)) {
-                BINT lamcount = CurrentConstruct & 0xffff;
+                int32_t lamcount = CurrentConstruct & 0xffff;
                 if(!lamcount) {
                     RetNum = ERR_INVALID;
                     return;
@@ -201,7 +201,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -210,7 +210,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -40,7 +40,7 @@ void rplCompileInsert(WORDPTR position, WORD word)
 }
 
 // REMOVE WORDS THAT WERE ALLOCATED DURING COMPILATION
-void rplCompileRemoveWords(BINT nwords)
+void rplCompileRemoveWords(int32_t nwords)
 {
     CompileEnd -= nwords;
 }
@@ -50,7 +50,7 @@ void rplCompileRemoveWords(BINT nwords)
 // RETURNS A POINTER TO THE AREA OF MEMORY WHERE THE
 // CALLER WILL HAVE TO STORE THE WORDS
 
-WORDPTR rplCompileAppendWords(BINT nwords)
+WORDPTR rplCompileAppendWords(int32_t nwords)
 {
     CompileEnd += nwords;
     // ADJUST MEMORY AS NEEDED
@@ -77,7 +77,7 @@ WORDPTR rplReverseSkipOb(WORDPTR list_start, WORDPTR after_object)
 // ROTATES A FUNCTION ARGUMENT LIST SO THE FIRST ARGUMENT BECOMES THE LAST,
 // SECOND ARGUMENT BECOMES FIRST, ETC.
 // ONLY USED BY THE SPECIAL CASE FUNCEVAL TO MOVE THE NAME OF THE FUNCTION LAST
-BINT rplRotArgs(BINT nargs)
+int32_t rplRotArgs(int32_t nargs)
 {
 
     WORDPTR ptr = CompileEnd, symbstart = *(ValidateTop - 1) + 1;
@@ -92,7 +92,7 @@ BINT rplRotArgs(BINT nargs)
         return 0;       // TOO FEW ARGUMENTS!
     }
 
-    BINT firstsize = rplObjSize(ptr);
+    int32_t firstsize = rplObjSize(ptr);
     // ADJUST MEMORY AS NEEDED
     if(CompileEnd + firstsize >= TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
@@ -114,7 +114,7 @@ BINT rplRotArgs(BINT nargs)
 // ONLY CALLED BY THE COMPILER
 // ON ENTRY: CompileEnd = top of the output stream (pointing after the last object)
 //           *(ValidateTop-1) = START OF THE SYMBOLIC OBJECT
-static BINT rplInfixApply(WORD opcode, BINT nargs)
+static int32_t rplInfixApply(WORD opcode, int32_t nargs)
 {
     // FORMAT OF SYMBOLIC OBJECT:
     // DOSYMB PROLOG
@@ -159,16 +159,16 @@ static BINT rplInfixApply(WORD opcode, BINT nargs)
 // IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
 // (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
 
-WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
+WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 {
     // COMPILATION USES TEMPOB
     CompileEnd = TempObEnd;
 
     // START COMPILATION LOOP
-    BINT force_libnum, splittoken, validate = 0, infixmode;
-    BINT probe_libnum = 0, probe_tokeninfo = 0, previous_tokeninfo;
+    int32_t force_libnum, splittoken, validate = 0, infixmode;
+    int32_t probe_libnum = 0, probe_tokeninfo = 0, previous_tokeninfo;
     LIBHANDLER handler, ValidateHandler;
-    BINT libcnt, libnum;
+    int32_t libcnt, libnum;
     WORDPTR InfixOpTop = 0;
 
     LAMTopSaved = LAMTop;       // SAVE LAM ENVIRONMENT
@@ -224,9 +224,9 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
         else
             splittoken = 0;
 
-        TokenLen = (BINT) utf8nlen((char *)TokenStart, (char *)BlankStart);
-        BlankLen = (BINT) ((BYTEPTR) NextTokenStart - (BYTEPTR) BlankStart);
-        CurrentConstruct = (BINT) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+        TokenLen = (int32_t) utf8nlen((char *)TokenStart, (char *)BlankStart);
+        BlankLen = (int32_t) ((BYTEPTR) NextTokenStart - (BYTEPTR) BlankStart);
+        CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
         ValidateHandler = rplGetLibHandler(LIBNUM(CurrentConstruct));
         LastCompiledObject = CompileEnd;
         if(force_libnum < 0) {
@@ -305,7 +305,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                     *ValidateTop++ = CompileEnd - 1;    // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     libcnt = EXIT_LOOP;
                     force_libnum = -1;
-                    if(ISPROLOG((BINT) ** (ValidateTop - 1)))
+                    if(ISPROLOG((int32_t) ** (ValidateTop - 1)))
                         validate = 0;
                     else
                         validate = 1;
@@ -328,14 +328,14 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT) ** ValidateTop)) {
+                    if(ISPROLOG((int32_t) ** ValidateTop)) {
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         **ValidateTop =
                                 (**ValidateTop ^ OBJSIZE(**ValidateTop)) |
                                 (((WORD) ((intptr_t) CompileEnd -
                                         (intptr_t) * ValidateTop) >> 2) - 1);
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
-                        CurrentConstruct = (BINT) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler =
                                 rplGetLibHandler(LIBNUM(CurrentConstruct));
                         LastCompiledObject = *ValidateTop;
@@ -436,10 +436,10 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT) ** ValidateTop)) {
+                    if(ISPROLOG((int32_t) ** ValidateTop)) {
                         **ValidateTop = (**ValidateTop ^ OBJSIZE(**ValidateTop)) | (((WORD) ((intptr_t) CompileEnd - (intptr_t) * ValidateTop) >> 2) - 1);  // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
-                        CurrentConstruct = (BINT) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler =
                                 rplGetLibHandler(LIBNUM(CurrentConstruct));
                         LastCompiledObject = *ValidateTop;
@@ -511,12 +511,12 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                         NextTokenStart =
                                 (WORDPTR) (((char *)NextTokenStart) + 1);
                     TokenLen =
-                            (BINT) utf8nlen((char *)TokenStart,
+                            (int32_t) utf8nlen((char *)TokenStart,
                             (char *)BlankStart);
                     BlankLen =
-                            (BINT) ((BYTEPTR) NextTokenStart -
+                            (int32_t) ((BYTEPTR) NextTokenStart -
                             (BYTEPTR) BlankStart);
-                    CurrentConstruct = (BINT) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);       // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                    CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);       // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject = CompileEnd;
 
                     RetNum = -1;
@@ -708,7 +708,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                                     // REMOVE THE OPENING BRACKET
                                     InfixOpTop -= 4;
 
-                                    BINT nargs = 0;
+                                    int32_t nargs = 0;
                                     WORD brackettype = InfixOpTop[2];   // OPCODE WITH BRACKET TYPE TO DISTINGUISH BRACKETS
                                     WORDPTR list = TempObEnd + InfixOpTop[0];
                                     WORDPTR ptr = CompileEnd;
@@ -724,8 +724,8 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                                                 || (TI_TYPE(*(InfixOpTop -
                                                             1)) ==
                                                     TITYPE_CASFUNCTION))) {
-                                        BINT needargs =
-                                                (BINT) TI_NARGS(*(InfixOpTop -
+                                        int32_t needargs =
+                                                (int32_t) TI_NARGS(*(InfixOpTop -
                                                     1));
                                         if((needargs != 0xf)
                                                 && (nargs != needargs)) {
@@ -781,7 +781,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                                     // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
 
                                     while(InfixOpTop > (WORDPTR) ValidateTop) {
-                                        if((BINT) TI_PRECEDENCE(*(InfixOpTop -
+                                        if((int32_t) TI_PRECEDENCE(*(InfixOpTop -
                                                         1)) <
                                                 TI_PRECEDENCE(probe_tokeninfo))
                                         {
@@ -803,7 +803,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                                                         (TI_TYPE
                                                             (probe_tokeninfo) ==
                                                             TITYPE_CASBINARYOP_LEFT))
-                                                    && ((BINT)
+                                                    && ((int32_t)
                                                         TI_PRECEDENCE(*
                                                             (InfixOpTop - 1)) <=
                                                         TI_PRECEDENCE
@@ -881,14 +881,14 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT) ** ValidateTop)) {
+                    if(ISPROLOG((int32_t) ** ValidateTop)) {
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         **ValidateTop =
                                 (**ValidateTop ^ OBJSIZE(**ValidateTop)) |
                                 (((WORD) ((intptr_t) CompileEnd -
                                         (intptr_t) * ValidateTop) >> 2) - 1);
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
-                        CurrentConstruct = (BINT) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler =
                                 rplGetLibHandler(LIBNUM(CurrentConstruct));
                         LastCompiledObject = *ValidateTop;
@@ -922,7 +922,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
             LAMTop = LAMTopSaved;
             return 0;
         }
-        if(ISPROLOG((BINT) ** ValidateTop))
+        if(ISPROLOG((int32_t) ** ValidateTop))
             **ValidateTop |= ((WORD) ((intptr_t) CompileEnd - (intptr_t) * ValidateTop) >> 2) - 1;  // STORE THE SIZE OF THE COMPOSITE IN THE WORD
         rplCompileAppend(CMD_ENDOFCODE);
     }
@@ -946,7 +946,7 @@ WORDPTR rplCompile(BYTEPTR string, BINT length, BINT addwrapper)
 
         if(CompileEnd + TEMPOBSLACK > TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((BINT) (CompileEnd - TempOb) + TEMPOBSLACK);
+            growTempOb((int32_t) (CompileEnd - TempOb) + TEMPOBSLACK);
             if(Exceptions)
                 return 0;
         }
@@ -1020,7 +1020,7 @@ void rplDecompAppendUTF8(WORD utf8bytes)
 
 void rplDecompAppendString(BYTEPTR str)
 {
-    BINT len = stringlen((char *)str);
+    int32_t len = stringlen((char *)str);
 
     if(((WORDPTR) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {
@@ -1048,7 +1048,7 @@ void rplDecompAppendString(BYTEPTR str)
 // APPEND A STRING OF A GIVEN LENGTH
 // IF PASSED POINTER IS NULL, MEMORY IS RESERVED BUT NOTHING IS COPIED
 
-void rplDecompAppendString2(BYTEPTR str, BINT len)
+void rplDecompAppendString2(BYTEPTR str, int32_t len)
 {
     if(((WORDPTR) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {
@@ -1091,12 +1091,12 @@ void rplDecompAppendString2(BYTEPTR str, BINT len)
 // RETURNS A NEW STRING OBJECT IN TEMPOB
 #define SAVED_POINTERS  4
 
-WORDPTR rplDecompile(WORDPTR object, BINT flags)
+WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 {
     LIBHANDLER han;
-    BINT infixmode = 0, indent = 0, lastnewline = 0, lastnloffset = 0, maxwidth;
-    UBINT savecstruct = 0, savedecompmode = 0, dhints, savedhints = 0;
-    BINT validtop = 0, validbottom = 0;
+    int32_t infixmode = 0, indent = 0, lastnewline = 0, lastnloffset = 0, maxwidth;
+    uint32_t savecstruct = 0, savedecompmode = 0, dhints, savedhints = 0;
+    int32_t validtop = 0, validbottom = 0;
     WORDPTR *SavedRSTop = 0;
     if(flags & DECOMP_EMBEDDED) {
         SavedRSTop = RSTop;
@@ -1198,7 +1198,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
 
            if(*ptr=='\n') ++ptr;
 
-           BINT nchars=utf8nlenst(ptr,end);
+           int32_t nchars=utf8nlenst(ptr,end);
 
            indent=nchars;
 
@@ -1706,7 +1706,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                 LIBHANDLER handler;
                 // ADD THE OPERATOR AFTER THE LEFT OPERAND
                 WORD Operator = *(InfixOpTop - 2);
-                BINT no_output = 0;
+                int32_t no_output = 0;
 
                 SavedDecompObject = DecompileObject;
 
@@ -1749,7 +1749,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                 }
 
                 if(no_output == 0) {
-                    BINT libnum = LIBNUM(Operator);
+                    int32_t libnum = LIBNUM(Operator);
                     DecompileObject = &Operator;
                     CurOpcode =
                             MKOPCODE(libnum,
@@ -1796,7 +1796,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
             {
                 LIBHANDLER handler;
                 WORD Operator = *(InfixOpTop - 2);
-                BINT no_output = 0;
+                int32_t no_output = 0;
 
                 SavedDecompObject = DecompileObject;
 
@@ -1833,7 +1833,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
 
                 if(no_output == 0) {
 
-                    BINT libnum = LIBNUM(Operator);
+                    int32_t libnum = LIBNUM(Operator);
                     DecompileObject = &Operator;
                     CurOpcode =
                             MKOPCODE(libnum,
@@ -1970,7 +1970,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
             {
                 LIBHANDLER handler;
                 // ADD THE OPERATOR AFTER THE OPERAND
-                BINT libnum = LIBNUM(*(InfixOpTop - 2));
+                int32_t libnum = LIBNUM(*(InfixOpTop - 2));
                 SavedDecompObject = DecompileObject;
                 DecompileObject = InfixOpTop - 2;
                 CurOpcode =
@@ -2080,7 +2080,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                     WORD functype = *(InfixOpTop - 1);
 
                     if(TI_TYPE(functype) == TITYPE_OPENBRACKET) {
-                        BINT libnum = LIBNUM(*(InfixOpTop - 2));
+                        int32_t libnum = LIBNUM(*(InfixOpTop - 2));
                         WORD closebracket;
                         closebracket = *(InfixOpTop - 2) + 1;
                         DecompileObject = &closebracket;
@@ -2250,7 +2250,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
         // GUARANTEE MINIMUM SLACK SPACE
         if(CompileEnd + TEMPOBSLACK > TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((BINT) (CompileEnd - TempOb) + TEMPOBSLACK);
+            growTempOb((int32_t) (CompileEnd - TempOb) + TEMPOBSLACK);
             if(Exceptions) {
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
@@ -2308,13 +2308,13 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
 // CALL THIS FUNCTION ONLY FROM A OPCODE_DECOMP OR OPCODE_DECOMPEDIT HANDLER.
 
 // RETURNS 1 IF A NEWLINE WAS ADDED TO THE STREAM (NO SEPARATOR NEEDED), 0 IF NOTHING WAS DONE
-BINT rplDecompDoHintsWidth(BINT dhints)
+int32_t rplDecompDoHintsWidth(int32_t dhints)
 {
-    BINT flags = DecompMode >> 16;
-    BINT infixmode = DecompMode & 0xffff;
+    int32_t flags = DecompMode >> 16;
+    int32_t infixmode = DecompMode & 0xffff;
 
     if(!infixmode && !(flags & DECOMP_NOHINTS)) {
-        BINT indent = GET_INDENT(DecompHints);
+        int32_t indent = GET_INDENT(DecompHints);
 
         BYTEPTR start = (BYTEPTR) CompileEnd, ptr = (BYTEPTR) DecompStringEnd;
 
@@ -2333,7 +2333,7 @@ BINT rplDecompDoHintsWidth(BINT dhints)
             dhints |= HINT_NLAFTER;
 
         if(dhints & HINT_SUBINDENTBEFORE) {
-            BINT currentindent = 0;
+            int32_t currentindent = 0;
 
             // SET THE INDENTATION OF THE CURRENT LINE
             while((ptr < (BYTEPTR) DecompStringEnd) && (*ptr == ' ')) {

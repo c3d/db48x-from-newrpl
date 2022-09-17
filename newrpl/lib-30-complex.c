@@ -94,7 +94,7 @@ void rplImaginaryPart(WORDPTR complex, REAL * imag)
 }
 
 // RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
-BINT rplPolarComplexMode(WORDPTR complex)
+int32_t rplPolarComplexMode(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex))
             return ANGLENONE;
@@ -104,7 +104,7 @@ BINT rplPolarComplexMode(WORDPTR complex)
     return ANGLENONE;
 }
 
-BINT rplComplexClass(WORDPTR complex)
+int32_t rplComplexClass(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex))
     {
@@ -113,7 +113,7 @@ BINT rplComplexClass(WORDPTR complex)
             // TREAT ANGLES LIKE RAW NUMBERS
             ++complex;
         }
-        if(ISBINT(*complex))
+        if(ISint32_t(*complex))
         {
             // CAN ONLY BE ZERO
             if(rplIsNumberZero(complex))
@@ -122,7 +122,7 @@ BINT rplComplexClass(WORDPTR complex)
         }
         if(ISREAL(*complex))
         {
-            BINT rflags = rplReadRealFlags(complex);
+            int32_t rflags = rplReadRealFlags(complex);
             if(rplIsNumberZero(complex))
                     return CPLX_ZERO;
             switch (rflags & F_UNDINFINITY) {
@@ -140,7 +140,7 @@ BINT rplComplexClass(WORDPTR complex)
 
     }
 
-    BINT cclass = 0;
+    int32_t cclass = 0;
     WORDPTR re, im;
     re = ++complex;
     im = rplSkipOb(re);
@@ -150,7 +150,7 @@ BINT rplComplexClass(WORDPTR complex)
         ++im;
     }
 
-    BINT rflags, iflags;
+    int32_t rflags, iflags;
 
     rflags = rplReadRealFlags(re);
     iflags = rplReadRealFlags(im);
@@ -187,7 +187,7 @@ BINT rplComplexClass(WORDPTR complex)
 
 }
 
-// GETS THE REAL PART OF ANY NUMBER: IF BINT OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
+// GETS THE REAL PART OF ANY NUMBER: IF int32_t OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
 void rplReadCNumberAsReal(WORDPTR complex, REAL * real)
 {
     if(ISCOMPLEX(*complex))
@@ -202,14 +202,14 @@ void rplReadCNumberAsImag(WORDPTR complex, REAL * imag)
             rplImaginaryPart(complex, imag);
     else {
         // SET IMAG TO ZERO
-        imag->data = (BINT *) zero_data;
+        imag->data = (int32_t *) zero_data;
         imag->exp = 0;
         imag->flags = 0;
         imag->len = 1;
     }
 }
 
-void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, BINT * angmode)
+void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, int32_t * angmode)
 {
     if(ISCOMPLEX(*complex))
     {
@@ -228,7 +228,7 @@ void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, BINT * angmode)
     // IT'S A REAL NUMBER
 
     // SET IMAG TO ZERO
-    imag->data = (BINT *) zero_data;
+    imag->data = (int32_t *) zero_data;
     imag->exp = 0;
     imag->flags = 0;
     imag->len = 1;
@@ -241,7 +241,7 @@ void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, BINT * angmode)
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
+WORDPTR rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
 {
 
     if(angmode != ANGLENONE) {
@@ -251,7 +251,7 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
             // NEED TO MAKE IT POSITIVE
             real->flags ^= F_NEGATIVE;
             REAL pi;
-            BINT pidata;
+            int32_t pidata;
             // ADD 180 DEGREES
             switch (angmode) {
             case ANGLEDEG:
@@ -277,7 +277,7 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
                 decconst_PI(&pi);
                 break;
             }
-            BINT sign = imag->flags & F_NEGATIVE;
+            int32_t sign = imag->flags & F_NEGATIVE;
             imag->flags |= F_NEGATIVE;
 
             // CAREFUL, THIS OVERWRITES EITHER 0 OR 1, MAKE SURE THEY DON'T CONTAIN ANY VALUABLE DATA
@@ -300,7 +300,7 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
         }
     }
 
-    BINT size = 4 + real->len + imag->len;
+    int32_t size = 4 + real->len + imag->len;
 
     if(angmode != ANGLENONE)
         ++size;
@@ -314,8 +314,8 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
         return 0;
     }
 
-    real->data = (BINT *) ScratchPointer1;
-    imag->data = (BINT *) ScratchPointer2;
+    real->data = (int32_t *) ScratchPointer1;
+    imag->data = (int32_t *) ScratchPointer2;
 
     parts = rplNewRealInPlace(real, newobject + 1);
     end = rplNewRealInPlace(imag, parts + ((angmode != ANGLENONE) ? 1 : 0));
@@ -329,7 +329,7 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, BINT angmode)
 
 }
 
-void rplNewComplexPush(REAL * real, REAL * imag, BINT angmode)
+void rplNewComplexPush(REAL * real, REAL * imag, int32_t angmode)
 {
     WORDPTR newobject = rplNewComplex(real, imag, angmode);
     if(!newobject)
@@ -340,14 +340,14 @@ void rplNewComplexPush(REAL * real, REAL * imag, BINT angmode)
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-void rplRRegToComplexPush(BINT real, BINT imag, BINT angmode)
+void rplRRegToComplexPush(int32_t real, int32_t imag, int32_t angmode)
 {
     rplNewComplexPush(&RReg[real], &RReg[imag], angmode);
 }
 
 // NORMALIZE A COMPLEX OBJECT IN POLAR FORM TO THE FIRST CIRCLE
 // AND POSITIVE MAGNITUDE, USES ALL RREGS 0-3
-int rplNormalizeComplex(REAL * real, REAL * imag, BINT angmode)
+int rplNormalizeComplex(REAL * real, REAL * imag, int32_t angmode)
 {
     if(angmode == ANGLENONE)
         return 0;       // NOTHING TO NORMALIZE IN NON-POLAR NUMBERS
@@ -355,7 +355,7 @@ int rplNormalizeComplex(REAL * real, REAL * imag, BINT angmode)
         // NEED TO MAKE IT POSITIVE
         real->flags ^= F_NEGATIVE;
         REAL pi;
-        BINT pidata;
+        int32_t pidata;
 // ADD 180 DEGREES
         switch (angmode) {
         case ANGLEDEG:
@@ -381,7 +381,7 @@ int rplNormalizeComplex(REAL * real, REAL * imag, BINT angmode)
             decconst_PI(&pi);
             break;
         }
-        BINT sign = imag->flags & F_NEGATIVE;
+        int32_t sign = imag->flags & F_NEGATIVE;
         imag->flags |= F_NEGATIVE;
 
 // CAREFUL, THIS OVERWRITES EITHER 0 OR 1, MAKE SURE THEY DON'T CONTAIN ANY VALUABLE DATA
@@ -405,8 +405,8 @@ int rplNormalizeComplex(REAL * real, REAL * imag, BINT angmode)
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITES
 
-WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest,
-        BINT angmode)
+WORDPTR rplRRegToComplexInPlace(int32_t real, int32_t imag, WORDPTR dest,
+        int32_t angmode)
 {
     if(iszeroReal(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
@@ -424,7 +424,7 @@ WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest,
 
 // CONVERT TO CARTESIAN COORDINATES, RETURN RESULT IN RReg[0] AND RReg[1]
 // USES ALL RREGS FROM 0 TO 7
-void rplPolar2Rect(REAL * r, REAL * theta, BINT angmode)
+void rplPolar2Rect(REAL * r, REAL * theta, int32_t angmode)
 {
     if(angmode == ANGLENONE) {
         copyReal(&RReg[0], r);
@@ -449,7 +449,7 @@ void rplPolar2Rect(REAL * r, REAL * theta, BINT angmode)
 
 // WARNING: INPUTS CAN'T BE IN RReg 6 OR 7
 
-void rplRect2Polar(REAL * re, REAL * im, BINT angmode)
+void rplRect2Polar(REAL * re, REAL * im, int32_t angmode)
 {
     if(angmode == ANGLENONE) {
         copyReal(&RReg[0], re);
@@ -484,7 +484,7 @@ void rplRect2Polar(REAL * re, REAL * im, BINT angmode)
 }
 
 // RETURN 1 IF IT'S ZERO, OTHERWISE 0
-BINT rplIsZeroComplex(REAL * re, REAL * im, BINT angmode)
+int32_t rplIsZeroComplex(REAL * re, REAL * im, int32_t angmode)
 {
     if(angmode == ANGLENONE) {
         if(iszeroReal(re) && iszeroReal(im))
@@ -514,7 +514,7 @@ void LIB_HANDLER()
 
         int nargs = OVR_GETNARGS(CurOpcode);
         REAL Rarg1, Iarg1, Rarg2, Iarg2;
-        BINT amode1, amode2 = ANGLENONE, cclass1, cclass2 = CPLX_NORMAL;
+        int32_t amode1, amode2 = ANGLENONE, cclass1, cclass2 = CPLX_NORMAL;
 
         if(rplDepthData() < nargs) {
             rplError(ERR_BADARGCOUNT);
@@ -704,7 +704,7 @@ void LIB_HANDLER()
                 {
                     // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
                     // OTHERWISE IT'S UNDEFINED
-                    BINT right_direction = 0;
+                    int32_t right_direction = 0;
 
                     if(Rarg1.flags & F_NEGATIVE) {
                         // CHECK IF THE POLAR IS GOING IN THE PI DIRECTION
@@ -781,7 +781,7 @@ void LIB_HANDLER()
                 {
                     // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
                     // OTHERWISE IT'S UNDEFINED
-                    BINT right_direction = 0;
+                    int32_t right_direction = 0;
 
                     // CHECK IF THE POLAR IS GOING IN THE PI DIRECTION
                     if(Rarg2.flags & F_NEGATIVE) {
@@ -854,7 +854,7 @@ void LIB_HANDLER()
                 {
                     // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
                     // OTHERWISE IT'S UNDEFINED
-                    BINT right_direction = 0;
+                    int32_t right_direction = 0;
 
                     switch (amode1) {
                     case ANGLEDMS:
@@ -935,7 +935,7 @@ void LIB_HANDLER()
                 {
                     // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
                     // OTHERWISE IT'S UNDEFINED
-                    BINT right_direction = 0;
+                    int32_t right_direction = 0;
 
                     switch (amode2) {
                     case ANGLEDMS:
@@ -1273,7 +1273,7 @@ void LIB_HANDLER()
                 switch (cclass2) {
                 case CPLX_NORMAL:
                 {
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1344,7 +1344,7 @@ void LIB_HANDLER()
 
                 case CPLX_INF:
                 {
-                    BINT sign = (Rarg1.flags ^ Rarg2.flags) & F_NEGATIVE;
+                    int32_t sign = (Rarg1.flags ^ Rarg2.flags) & F_NEGATIVE;
 
                     Rarg1.flags = (Rarg1.flags & ~F_NEGATIVE) | sign;
                     rplNewRealPush(&Rarg1);
@@ -1405,7 +1405,7 @@ void LIB_HANDLER()
 
                     // RETURN DIRECTED INFINITY
                     REAL pi2;
-                    BINT amode =
+                    int32_t amode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
                     switch (amode) {
@@ -1635,7 +1635,7 @@ void LIB_HANDLER()
                         Iarg2.flags ^= F_NEGATIVE;
                     }
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1705,7 +1705,7 @@ void LIB_HANDLER()
                 case CPLX_INF:
                 {
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1870,7 +1870,7 @@ void LIB_HANDLER()
                 case CPLX_INF:
                 {
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1918,7 +1918,7 @@ void LIB_HANDLER()
                         Iarg1.flags ^= F_NEGATIVE;
                     }
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -2239,7 +2239,7 @@ void LIB_HANDLER()
                 switch (cclass2) {
                 case CPLX_NORMAL:
                 {
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -2441,7 +2441,7 @@ void LIB_HANDLER()
                         Iarg2.flags ^= F_NEGATIVE;
                     }
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -3830,7 +3830,7 @@ void LIB_HANDLER()
 
                         swapReal(&RReg[4], &RReg[0]);
 
-                        BINT resmode =
+                        int32_t resmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -4261,7 +4261,7 @@ void LIB_HANDLER()
 
                         trig_reduceangle(&RReg[4], ANGLEDEG);
 
-                        BINT resmode =
+                        int32_t resmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -4345,7 +4345,7 @@ void LIB_HANDLER()
 
                     trig_reduceangle(&RReg[4], ANGLEDEG);
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -4962,7 +4962,7 @@ void LIB_HANDLER()
 
                         swapReal(&RReg[4], &RReg[0]);
 
-                        BINT resmode =
+                        int32_t resmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -5285,7 +5285,7 @@ void LIB_HANDLER()
 
                         trig_reduceangle(&RReg[4], ANGLEDEG);
 
-                        BINT resmode =
+                        int32_t resmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -5369,7 +5369,7 @@ void LIB_HANDLER()
 
                     trig_reduceangle(&RReg[4], ANGLEDEG);
 
-                    BINT resmode =
+                    int32_t resmode =
                             rplTestSystemFlag(FL_ANGLEMODE1) |
                             (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -6082,7 +6082,7 @@ void LIB_HANDLER()
         }
         case OVR_XOR:
         {
-            BINT result = (cclass1 == CPLX_ZERO) ^ (cclass2 == CPLX_ZERO);
+            int32_t result = (cclass1 == CPLX_ZERO) ^ (cclass2 == CPLX_ZERO);
             if(result)
                 rplPushTrue();
             else
@@ -6344,8 +6344,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT angmode;
-        BINT cclass1 = rplComplexClass(rplPeekData(1));
+        int32_t angmode;
+        int32_t cclass1 = rplComplexClass(rplPeekData(1));
 
         switch (cclass1) {
         case CPLX_ZERO:
@@ -6389,7 +6389,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             // IT'S A DIRECTED INFINITY, THE REAL PART COULD BE -Inf, 0 or +Inf depending on the angle
-            BINT angmode;
+            int32_t angmode;
             REAL real, imag;
 
             rplReadCNumber(rplPeekData(1), &real, &imag, &angmode);
@@ -6479,8 +6479,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT angmode;
-        BINT cclass1 = rplComplexClass(rplPeekData(1));
+        int32_t angmode;
+        int32_t cclass1 = rplComplexClass(rplPeekData(1));
 
         switch (cclass1) {
         case CPLX_ZERO:
@@ -6534,7 +6534,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             // IT'S A DIRECTED INFINITY, THE IMAGINARY PART COULD BE -Inf, 0 or +Inf depending on the angle
-            BINT angmode;
+            int32_t angmode;
             REAL re, im;
 
             rplReadCNumber(rplPeekData(1), &re, &im, &angmode);
@@ -6618,14 +6618,14 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT cclass1 = rplComplexClass(rplPeekData(1));
+        int32_t cclass1 = rplComplexClass(rplPeekData(1));
 
         switch (cclass1) {
         case CPLX_ZERO:
             // UNDEFINED OR ZERO?
         {
             WORDPTR angle;
-            BINT angmode;
+            int32_t angmode;
             if(rplTestSystemFlag(FL_COMPLEXMODE)) {
                 // IN COMPLEX MODE, ARG(0) IS UNDEFINED
                 angle = 0;
@@ -6658,7 +6658,7 @@ void LIB_HANDLER()
         {
 
             // IT'S A NORMAL COMPLEX, NEED TO COMPUTE THE ARGUMENT
-            BINT angmode;
+            int32_t angmode;
             REAL real, imag;
 
             rplReadCNumber(rplPeekData(1), &real, &imag, &angmode);
@@ -6688,7 +6688,7 @@ void LIB_HANDLER()
         case CPLX_NORMAL | CPLX_POLAR:
         {
             // IT'S A NORMAL POLAR COMPLEX, NEED TO COMPUTE THE ARGUMENT BUT IN A PROPERLY REDUCED WAY
-            BINT angmode;
+            int32_t angmode;
             REAL real, imag;
 
             rplReadCNumber(rplPeekData(1), &real, &imag, &angmode);
@@ -6711,7 +6711,7 @@ void LIB_HANDLER()
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
         {
-            BINT angmode;
+            int32_t angmode;
             WORDPTR angle;
             REAL real, imag;
 
@@ -6804,8 +6804,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT angmode;
-        BINT cclass1 = rplComplexClass(rplPeekData(1));
+        int32_t angmode;
+        int32_t cclass1 = rplComplexClass(rplPeekData(1));
 
         switch (cclass1) {
         case CPLX_ZERO:
@@ -6920,7 +6920,7 @@ void LIB_HANDLER()
         }
 
         // VERIFY IF THE NUMBER IS VALID
-        BINT rfl, ifl;
+        int32_t rfl, ifl;
         rfl = rplReadRealFlags(rplPeekData(2));
 
         if(((rfl & F_UNDINFINITY) != 0)
@@ -6954,8 +6954,8 @@ void LIB_HANDLER()
         }
 
         // CONSTRUCT THE COMPLEX NUMBER
-        BINT sizer = rplObjSize(rplPeekData(2));
-        BINT sizei = rplObjSize(rplPeekData(1));
+        int32_t sizer = rplObjSize(rplPeekData(2));
+        int32_t sizei = rplObjSize(rplPeekData(1));
         WORDPTR newcplx = rplAllocTempOb(sizer + sizei);
         if(!newcplx) {
             return;
@@ -7023,7 +7023,7 @@ void LIB_HANDLER()
 
         if((LIBNUM(CurrentConstruct) == LIBRARY_NUMBER)
                 && ISPROLOG(CurrentConstruct)) {
-            BINT count = TokenLen;
+            int32_t count = TokenLen;
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             uint64_t Locale = rplGetSystemLocale();
 
@@ -7143,14 +7143,14 @@ void LIB_HANDLER()
             }
             else {
                 if(ISANGLE(*LastCompiledObject)) {
-                    BINT flags = rplReadRealFlags(LastCompiledObject + 1);
+                    int32_t flags = rplReadRealFlags(LastCompiledObject + 1);
                     if(flags & F_UNDINFINITY)
                         RetNum = ERR_INVALID;
                     else
                         RetNum = OK_INCARGCOUNT;
                 }
                 else {
-                    BINT flags = rplReadRealFlags(LastCompiledObject);
+                    int32_t flags = rplReadRealFlags(LastCompiledObject);
                     switch (flags & F_UNDINFINITY) {
                     case F_UNDINFINITY:
                     case F_NOTANUMBER:
@@ -7187,7 +7187,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -7203,7 +7203,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo =
                     LIBRARY_NUMBER * 100 + rplPolarComplexMode(ObjectPTR) + 1;
@@ -7213,7 +7213,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

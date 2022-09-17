@@ -98,9 +98,9 @@ const WORDPTR const ROMPTR_TABLE[] = {
 };
 
 // HIGHER LEVEL API USING ANGLE OBJECTS DIRECTLY
-void rplConvertAngleObj(WORDPTR angleobj, BINT newmode)
+void rplConvertAngleObj(WORDPTR angleobj, int32_t newmode)
 {
-    BINT oldmode;
+    int32_t oldmode;
     REAL oldang;
 
     if(ISANGLE(*angleobj)) {
@@ -114,14 +114,14 @@ void rplConvertAngleObj(WORDPTR angleobj, BINT newmode)
     trig_convertangle(&oldang, oldmode, newmode);
 }
 
-WORDPTR rplNewAngleFromNumber(WORDPTR numobj, BINT newmode)
+WORDPTR rplNewAngleFromNumber(WORDPTR numobj, int32_t newmode)
 {
     if(!ISNUMBER(*numobj)) {
         rplError(ERR_REALEXPECTED);
         return 0;
     }
     ScratchPointer1 = numobj;
-    BINT size = rplObjSize(numobj);
+    int32_t size = rplObjSize(numobj);
 
     WORDPTR newobj = rplAllocTempOb(size);
 
@@ -135,9 +135,9 @@ WORDPTR rplNewAngleFromNumber(WORDPTR numobj, BINT newmode)
 
 }
 
-WORDPTR rplNewAngleFromReal(REAL * number, BINT newmode)
+WORDPTR rplNewAngleFromReal(REAL * number, int32_t newmode)
 {
-    BINT size = number->len + 2;
+    int32_t size = number->len + 2;
 
     WORDPTR newobj = rplAllocTempOb(size);
 
@@ -204,7 +204,7 @@ void LIB_HANDLER()
                 // ARGUMENT CHECKS SHOULD NOT BE NECESSARY
 
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
-                //BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                //int32_t curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                 rplConvertAngleObj(rplPeekData(1), ANGLERAD /*curmode */ );
 
@@ -254,7 +254,7 @@ void LIB_HANDLER()
 // ANGLES ARE BASIC OBJECTS AND SHOULD STAY ANGLES AFTER ->NUM
                 /*
                    // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
-                   BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                   int32_t curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                    rplConvertAngleObj(rplPeekData(1),curmode);
                    // NEW ANGLE IS IN RReg[0]
@@ -339,7 +339,7 @@ void LIB_HANDLER()
 
                     // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
 
-                    BINT angmode = ANGLEMODE(*arg1);
+                    int32_t angmode = ANGLEMODE(*arg1);
                     if(angmode != ANGLEDMS) {
                         REAL arg1num;
 
@@ -383,7 +383,7 @@ void LIB_HANDLER()
 
                     // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
 
-                    BINT angmode = ANGLEMODE(*arg1);
+                    int32_t angmode = ANGLEMODE(*arg1);
 
                     if(angmode != ANGLEDMS) {
                         REAL arg1num;
@@ -426,7 +426,7 @@ void LIB_HANDLER()
                     // ANGLE DIVIDED BY ANGLE SHOULD PRODUCE A NUMBER
                     // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
 
-                    BINT angmode = ANGLEMODE(*arg1);
+                    int32_t angmode = ANGLEMODE(*arg1);
                     REAL arg1num, arg2num;
 
                     rplReadNumberAsReal(arg1 + 1, &arg1num);
@@ -463,7 +463,7 @@ void LIB_HANDLER()
 
                             // DO THE MULTIPLICATION OF NUMBER*ANGLE AND THE RESULT IS AN ANGLE
 
-                            BINT angmode;
+                            int32_t angmode;
                             if(ISANGLE(*arg1))
                                 angmode = ANGLEMODE(*arg1);
                             else
@@ -522,7 +522,7 @@ void LIB_HANDLER()
 
                             // DO THE DIVISION OF ANGLE/NUMBER AND THE RESULT IS AN ANGLE
 
-                            BINT angmode;
+                            int32_t angmode;
                             angmode = ANGLEMODE(*arg1);
                             REAL arg1num;
                             REAL arg2num;
@@ -573,7 +573,7 @@ void LIB_HANDLER()
                                 || (OPCODE(CurOpcode) == OVR_SUB)) {
 
                             // ADDING A NUMBER TO AN ANGLE SHOULD INTERPRET THE NUMBER AS IN THE CURRENT SYSTEM AND RETURN AN ANGLE
-                            BINT curmode =
+                            int32_t curmode =
                                     rplTestSystemFlag(FL_ANGLEMODE1) |
                                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -608,7 +608,7 @@ void LIB_HANDLER()
             // ALL OTHER OPERATORS SHOULD CONVERT TO RADIANS AND REMOVE TAGS
             // THEN PROCESS THE OPCODE NORMALLY.
 
-            //BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+            //int32_t curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
             if(ISANGLE(*arg1)) {
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
@@ -890,7 +890,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1), &num);
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEDEG);
@@ -912,7 +912,7 @@ void LIB_HANDLER()
         }
 
         if(ISCOMPLEX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode == ANGLENONE)
                 return; // NOTHING TO DO
@@ -937,7 +937,7 @@ void LIB_HANDLER()
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -947,7 +947,7 @@ void LIB_HANDLER()
             // EXPLODE ALL NUMBERS IN THE STACK
 
             WORDPTR *first = rplMatrixExplode();
-            BINT f;
+            int32_t f;
 
             for(f = 0; f < cols; ++f) {
                 // CONVERT ANY ANGLES TO THE PROPER SYSTEM
@@ -963,7 +963,7 @@ void LIB_HANDLER()
                     continue;
                 }
                 if(ISCOMPLEX(*first[f])) {
-                    BINT angmode = rplPolarComplexMode(first[f]);
+                    int32_t angmode = rplPolarComplexMode(first[f]);
 
                     if(angmode == ANGLENONE)
                         continue;
@@ -1050,7 +1050,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1), &num);
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLERAD);
@@ -1072,7 +1072,7 @@ void LIB_HANDLER()
         }
 
         if(ISCOMPLEX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode == ANGLENONE)
                 return; // NOTHING TO DO
@@ -1097,7 +1097,7 @@ void LIB_HANDLER()
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -1107,7 +1107,7 @@ void LIB_HANDLER()
             // EXPLODE ALL NUMBERS IN THE STACK
 
             WORDPTR *first = rplMatrixExplode();
-            BINT f;
+            int32_t f;
 
             for(f = 0; f < cols; ++f) {
                 // CONVERT ANY ANGLES TO THE PROPER SYSTEM
@@ -1123,7 +1123,7 @@ void LIB_HANDLER()
                     continue;
                 }
                 if(ISCOMPLEX(*first[f])) {
-                    BINT angmode = rplPolarComplexMode(first[f]);
+                    int32_t angmode = rplPolarComplexMode(first[f]);
 
                     if(angmode == ANGLENONE)
                         continue;
@@ -1210,7 +1210,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1), &num);
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEGRAD);
@@ -1232,7 +1232,7 @@ void LIB_HANDLER()
         }
 
         if(ISCOMPLEX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode == ANGLENONE)
                 return; // NOTHING TO DO
@@ -1257,7 +1257,7 @@ void LIB_HANDLER()
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -1267,7 +1267,7 @@ void LIB_HANDLER()
             // EXPLODE ALL NUMBERS IN THE STACK
 
             WORDPTR *first = rplMatrixExplode();
-            BINT f;
+            int32_t f;
 
             for(f = 0; f < cols; ++f) {
                 // CONVERT ANY ANGLES TO THE PROPER SYSTEM
@@ -1283,7 +1283,7 @@ void LIB_HANDLER()
                     continue;
                 }
                 if(ISCOMPLEX(*first[f])) {
-                    BINT angmode = rplPolarComplexMode(first[f]);
+                    int32_t angmode = rplPolarComplexMode(first[f]);
 
                     if(angmode == ANGLENONE)
                         continue;
@@ -1370,7 +1370,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1), &num);
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEDMS);
@@ -1392,7 +1392,7 @@ void LIB_HANDLER()
         }
 
         if(ISCOMPLEX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode == ANGLENONE)
                 return; // NOTHING TO DO
@@ -1417,7 +1417,7 @@ void LIB_HANDLER()
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -1427,7 +1427,7 @@ void LIB_HANDLER()
             // EXPLODE ALL NUMBERS IN THE STACK
 
             WORDPTR *first = rplMatrixExplode();
-            BINT f;
+            int32_t f;
 
             for(f = 0; f < cols; ++f) {
                 // CONVERT ANY ANGLES TO THE PROPER SYSTEM
@@ -1443,7 +1443,7 @@ void LIB_HANDLER()
                     continue;
                 }
                 if(ISCOMPLEX(*first[f])) {
-                    BINT angmode = rplPolarComplexMode(first[f]);
+                    int32_t angmode = rplPolarComplexMode(first[f]);
 
                     if(angmode == ANGLENONE)
                         continue;
@@ -1508,7 +1508,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBERCPLX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode == ANGLENONE)
                 return; // NOTHING TO DO
@@ -1532,7 +1532,7 @@ void LIB_HANDLER()
             // CONVERT TO RECTANGULAR
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -1593,7 +1593,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBERCPLX(*rplPeekData(1))) {
-            BINT angmode = rplPolarComplexMode(rplPeekData(1));
+            int32_t angmode = rplPolarComplexMode(rplPeekData(1));
 
             if(angmode != ANGLENONE)
                 return; // NOTHING TO DO
@@ -1622,8 +1622,8 @@ void LIB_HANDLER()
             // CONVERT TO POLAR (CYLINDRICAL)
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-            BINT need_rect = 0;
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t need_rect = 0;
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
                 return;
@@ -1639,7 +1639,7 @@ void LIB_HANDLER()
                 need_rect = 1;
             }
 
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1700,8 +1700,8 @@ void LIB_HANDLER()
             // CONVERT TO SPHERICAL COORDINATES
 
             WORDPTR matrix = rplPeekData(1);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-            BINT need_rect = 0;
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t need_rect = 0;
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -1719,7 +1719,7 @@ void LIB_HANDLER()
                 need_rect = 1;
             }
 
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1783,16 +1783,16 @@ void LIB_HANDLER()
         if(!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "∡", 1)) {
 
             // POINT TO THE LAST CHARACTER
-            BINT tlen = TokenLen - 1;
+            int32_t tlen = TokenLen - 1;
             BYTEPTR ptr =
                     (BYTEPTR) utf8nskip((char *)TokenStart, (char *)BlankStart,
                     tlen);
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             BYTEPTR strptr =
                     (BYTEPTR) utf8skip((char *)TokenStart, (char *)BlankStart);
-            BINT isapprox = 0;
+            int32_t isapprox = 0;
 
             if(!utf8ncmp2((char *)ptr, (char *)BlankStart, "°", 1)) {
                 angmode = ANGLEDEG;
@@ -1844,7 +1844,7 @@ void LIB_HANDLER()
 
             if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                 int64_t num = getint64_tReal(&RReg[0]);
-                rplCompileBINT(num, DECBINT | isapprox);
+                rplCompileint32_t(num, DECint32_t | isapprox);
             }
 
             else {
@@ -1856,7 +1856,7 @@ void LIB_HANDLER()
                 real.exp = RReg[0].exp;
 
                 rplCompileAppend(real.word);    // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
-                BINT count;
+                int32_t count;
                 for(count = 0; count < RReg[0].len; ++count) {
                     rplCompileAppend(RReg[0].data[count]);      // STORE ALL THE MANTISSA WORDS
                 }
@@ -1893,7 +1893,7 @@ void LIB_HANDLER()
 
             NUMFORMAT fmt;
 
-            BINT Format, sign;
+            int32_t Format, sign;
 
             rplGetSystemNumberFormat(&fmt);
 
@@ -1921,7 +1921,7 @@ void LIB_HANDLER()
 
             BYTEPTR string;
 
-            BINT len = formatlengthReal(&realnum, Format, fmt.Locale);
+            int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
             // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
             ScratchPointer1 = (WORDPTR) realnum.data;
@@ -1931,9 +1931,9 @@ void LIB_HANDLER()
             // RESERVE THE MEMORY FIRST
             rplDecompAppendString2(0, len);
 
-            realnum.data = (BINT *) ScratchPointer1;
-            fmt.SmallLimit.data = (BINT *) ScratchPointer2;
-            fmt.BigLimit.data = (BINT *) ScratchPointer3;
+            realnum.data = (int32_t *) ScratchPointer1;
+            fmt.SmallLimit.data = (int32_t *) ScratchPointer2;
+            fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
             // NOW USE IT
             string = (BYTEPTR) DecompStringEnd;
@@ -2015,7 +2015,7 @@ void LIB_HANDLER()
         };
         NUMFORMAT nformat;
         rplGetSystemNumberFormat(&nformat);
-        BINT mode = MODE_IP;
+        int32_t mode = MODE_IP;
         WORD num;
         int f, exitfor = 0;
         BYTEPTR ptr = (BYTEPTR) TokenStart;
@@ -2141,7 +2141,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -2151,7 +2151,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;
@@ -2202,7 +2202,7 @@ void LIB_HANDLER()
                     return;
                 }
                 // CHECK FOR CORRUPTED DATA
-                BINT k;
+                int32_t k;
                 for(k = 0; k < r.len; ++k) {
                     // IF THE NUMBER IS NOT NORMALIZED, ASSUME IT WAS CORRUPTED
                     if((r.data[k] < 0) || (r.data[k] >= 100000000)) {

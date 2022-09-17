@@ -155,20 +155,20 @@ enum CompileErrors
     OK_TOKENINFO = 0x40000000
 };
 
-void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[],
+void libCompileCmds(int32_t libnum, char *libnames[], WORD libopcodes[],
         int numcmds);
 void libDecompileCmds(char *libnames[], WORD libopcodes[], int numcmds);
-void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
+void libProbeCmds(char *libnames[], int32_t tokeninfo[], int numcmds);
 void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
-        BINT tokeninfo[], int numcmds);
-void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
-void libGetRomptrID(BINT libnum, WORDPTR * table, WORDPTR ptr);
+        int32_t tokeninfo[], int numcmds);
+void libGetInfo2(WORD opcode, char *libnames[], int32_t tokeninfo[], int numcmds);
+void libGetRomptrID(int32_t libnum, WORDPTR * table, WORDPTR ptr);
 void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash);
-void libAutoCompleteNext(BINT libnum, char *libnames[], int numcmds);
-void libAutoCompletePrev(BINT libnum, char *libnames[], int numcmds);
-void libFindMsg(BINT message, WORDPTR table);
+void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds);
+void libAutoCompletePrev(int32_t libnum, char *libnames[], int numcmds);
+void libFindMsg(int32_t message, WORDPTR table);
 WORD libComputeHash(WORDPTR object);
-WORD libComputeHash2(WORDPTR start, BINT nwords);
+WORD libComputeHash2(WORDPTR start, int32_t nwords);
 
 // BITS USED IN MOST OBJECTS
 #define APPROX_BIT    1
@@ -223,23 +223,23 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 
 #define MIN_SINT    -131072
 #define MAX_SINT    +131071
-#define MAX_BINT    +9223372036854775807LL
-#define MIN_BINT    (-9223372036854775807LL-1LL)
+#define MAX_int32_t    +9223372036854775807LL
+#define MIN_int32_t    (-9223372036854775807LL-1LL)
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
 #define SECO          9
 #define DOCOL         8
 #define DOREAL       10
 #define DOREALAPP    (DOREAL|APPROX_BIT)
-#define DOBINT       12 // JUST A GENERIC ALIAS
-#define BINBINT      12
-#define DECBINT      14
-#define OCTBINT      16
-#define HEXBINT      18
-#define BINBINTAPP   (BINBINT|APPROX_BIT)
-#define DECBINTAPP   (DECBINT|APPROX_BIT)
-#define OCTBINTAPP   (OCTBINT|APPROX_BIT)
-#define HEXBINTAPP   (HEXBINT|APPROX_BIT)
+#define DOint32_t       12 // JUST A GENERIC ALIAS
+#define BINint32_t      12
+#define DECint32_t      14
+#define OCTint32_t      16
+#define HEXint32_t      18
+#define BINint32_tAPP   (BINint32_t|APPROX_BIT)
+#define DECint32_tAPP   (DECint32_t|APPROX_BIT)
+#define OCTint32_tAPP   (OCTint32_t|APPROX_BIT)
+#define HEXint32_tAPP   (HEXint32_t|APPROX_BIT)
 
 #define DOCOMMENT   20  // LIBRARIES 20,21,22, 23 ARE COMMENTS
 
@@ -306,7 +306,7 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 #define ISHIDDENIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&HIDDEN_BIT) )
 #define ISLOCKEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&READONLY_BIT) )
 #define ISREALIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&REALASSUME_BIT))
-#define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
+#define ISint32_t(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINint32_t) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXint32_t)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~1)==DOLIST))
 #define ISAUTOEXPLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST+1))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
@@ -316,13 +316,13 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 #define ISCPLXCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 #define ISSECO(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==SECO))
-#define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
-#define ISNUMBERORANGLE(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISANGLE(prolog)||ISREALCONSTANT(prolog))
-#define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog)||ISCONSTANT(prolog))
+#define ISNUMBER(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
+#define ISNUMBERORANGLE(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISANGLE(prolog)||ISREALCONSTANT(prolog))
+#define ISNUMBERCPLX(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog)||ISCONSTANT(prolog))
 #define ISSTRING(prolog) (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
 
 #define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
-#define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISUNIT(prolog)||ISANGLE(prolog))
+#define ISNUMBERORUNIT(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISUNIT(prolog)||ISANGLE(prolog))
 
 #define ISANGLE(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOANGLE))
 
@@ -348,20 +348,20 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 
 #define ISTAG(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOTAG))
 
-#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
+#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (int32_t)(LIBNUM(prolog)&3):(int32_t)ANGLENONE) )
 
-// THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
-#define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
+// THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE int32_t0 OR THE REAL0
+#define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTint32_t))
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
-#define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
-#define MAKESINTH(a) MKOPCODE(HEXBINT,(a)&0x3ffff)
-#define MAKEint64_t(a) MKPROLOG(DECBINT,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
+#define MAKESINT(a) MKOPCODE(DECint32_t,(a)&0x3ffff)
+#define MAKESINTH(a) MKOPCODE(HEXint32_t,(a)&0x3ffff)
+#define MAKEint64_t(a) MKPROLOG(DECint32_t,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
-#define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
+#define MAKEMSG(lib,num) MKOPCODE(DECint32_t, (((lib)&0xfff)<<7) | ((num)&0x7f))
 #define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
 #define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
@@ -396,14 +396,14 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 #define ROMOBJECT const WORD const ROMOBJECTS
 
 #define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)&0x3f)<<5)|(((off)&0x1f))) )
-#define ROMPTRID_IDX(id) ((BINT)((id)>>5)&0x3f)
+#define ROMPTRID_IDX(id) ((int32_t)((id)>>5)&0x3f)
 #define ROMPTRID_OFF(id) ((id)&0x1f)
 #define ROMPTRID_LIB(id) ((((id)>>12)&0xf00)|(((id)>>11)&0xff))
 
 #define ISROMPTRID(id) ( (LIBNUM(id)&0xff0) == LIB_ROMPTR)
 
 // MACRO TO INCLUDE PRECOMPILED BINARIES
-// IT REPLACES ALL OBJECTS WITH BINT ZERO IF NO_RPL_OBJECTS IS DEFINED
+// IT REPLACES ALL OBJECTS WITH int32_t ZERO IF NO_RPL_OBJECTS IS DEFINED
 #ifndef  NO_RPL_OBJECTS
 #define INCLUDE_ROMOBJECT(id_name) extern ROMOBJECT id_name[]
 #else

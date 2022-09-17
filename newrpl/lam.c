@@ -23,7 +23,7 @@ const char const subscriptChars[] = "₀₁₂₃₄₅₆₇₈₉";
 void growLAMs(WORD newtotalsize)
 {
     WORDPTR *newlam;
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
 
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;
@@ -71,7 +71,7 @@ void shrinkLAMs(WORD newtotalsize)
 
 // LAM STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
 // RETURN THE LAM NUMBER IN THE CURRENT ENVIRONMENT (FOR USE WITH FAST GETLAMn FUNCTIONS)
-BINT rplCreateLAM(WORDPTR nameobj, WORDPTR value)
+int32_t rplCreateLAM(WORDPTR nameobj, WORDPTR value)
 {
     *LAMTop++ = nameobj;
     *LAMTop++ = value;
@@ -91,11 +91,11 @@ void rplCreateLAMEnvironment(WORDPTR owner)
     rplCreateLAM((WORDPTR) lam_baseseco_bint, owner);
 }
 
-BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
+int32_t rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
 {
-    BINT len = nameend - name;
-    BINT nwords = (len + 3) >> 2;
-    BINT extra = (nwords << 2) - len;
+    int32_t len = nameend - name;
+    int32_t nwords = (len + 3) >> 2;
+    int32_t extra = (nwords << 2) - len;
     if((((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENT, nwords))
             && (((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENTATTR,
                     nwords + 1)))
@@ -122,9 +122,9 @@ BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
 }
 
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
-BINT rplCompareIDENT(WORDPTR id1, WORDPTR id2)
+int32_t rplCompareIDENT(WORDPTR id1, WORDPTR id2)
 {
-    BINT nwords, nwords2;
+    int32_t nwords, nwords2;
 
     nwords = rplObjSize(id1);
     if(LIBNUM(*id1) & HASATTR_BIT)
@@ -186,12 +186,12 @@ WORDPTR rplSetIdentAttr(WORDPTR name, WORD attr, WORD attrmask)
 }
 
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
-BINT rplCompareObjects(WORDPTR id1, WORDPTR id2)
+int32_t rplCompareObjects(WORDPTR id1, WORDPTR id2)
 {
     if(id1 == id2)
         return 1;
 
-    BINT nwords;
+    int32_t nwords;
 
     nwords = rplObjSize(id1);
 
@@ -208,7 +208,7 @@ BINT rplCompareObjects(WORDPTR id1, WORDPTR id2)
 // FINDS A LAM, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE LAM ENVIRONMENT
 // DOES NOT STOP FOR CURRENT SECONDARY
 
-WORDPTR *rplFindLAMbyName(BYTEPTR name, BINT len, BINT scanparents)
+WORDPTR *rplFindLAMbyName(BYTEPTR name, int32_t len, int32_t scanparents)
 {
     WORDPTR *ltop = LAMTop, *stop =
             scanparents ? LAMs : (nLAMBase ? nLAMBase : LAMs);
@@ -223,7 +223,7 @@ WORDPTR *rplFindLAMbyName(BYTEPTR name, BINT len, BINT scanparents)
     return 0;
 }
 
-WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents)
+WORDPTR *rplFindLAM(WORDPTR nameobj, int32_t scanparents)
 {
     WORDPTR *ltop = LAMTop, *stop =
             scanparents ? LAMs : (nLAMBase ? nLAMBase : LAMs);
@@ -254,13 +254,13 @@ WORDPTR rplGetLAM(WORDPTR nameobj)
 
 // VERY FAST GETLAM, NO ERROR CHECKS!
 // ONLY USED BY SYSTEM LIBRARIES
-inline WORDPTR *rplGetLAMn(BINT idx)
+inline WORDPTR *rplGetLAMn(int32_t idx)
 {
     return nLAMBase + 2 * idx + 1;
 }
 
 // RETURN A POINTER TO THE THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
-inline WORDPTR *rplGetLAMnName(BINT idx)
+inline WORDPTR *rplGetLAMnName(int32_t idx)
 {
     return nLAMBase + 2 * idx;
 }
@@ -268,20 +268,20 @@ inline WORDPTR *rplGetLAMnName(BINT idx)
 // VERY FAST GETLAM, NO ERROR CHECKS!
 // ONLY USED BY SYSTEM LIBRARIES
 // GET THE CONTENT OF A LAM IN A GIVEN ENVIRONMENT
-inline WORDPTR *rplGetLAMnEnv(WORDPTR * LAMEnv, BINT idx)
+inline WORDPTR *rplGetLAMnEnv(WORDPTR * LAMEnv, int32_t idx)
 {
     return (WORDPTR *) (LAMEnv + 2 * idx + 1);
 }
 
 // RETURN THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
 // IN THE GIVEN ENVIRONMENT
-inline WORDPTR *rplGetLAMnNameEnv(WORDPTR * LAMEnv, BINT idx)
+inline WORDPTR *rplGetLAMnNameEnv(WORDPTR * LAMEnv, int32_t idx)
 {
     return (WORDPTR *) (LAMEnv + 2 * idx);
 }
 
 // FAST PUTLAM, NO ERROR CHECKS!
-inline void rplPutLAMn(BINT idx, WORDPTR object)
+inline void rplPutLAMn(int32_t idx, WORDPTR object)
 {
     nLAMBase[2 * idx + 1] = object;
 }
@@ -289,7 +289,7 @@ inline void rplPutLAMn(BINT idx, WORDPTR object)
 // COUNT HOW MANY LAMS IN THE GIVEN ENVIRONMENT
 // LAMS ARE NUMBERED FROM 1 TO THE RETURNED NUMBER (INCLUSIVE)
 // IF GIVEN ENVIRONMENT IS NULL, RETURN COUNT ON THE TOP ENVIRONMENT
-BINT rplLAMCount(WORDPTR * LAMEnvironment)
+int32_t rplLAMCount(WORDPTR * LAMEnvironment)
 {
     // FIND THE END OF THE GIVEN ENVIRONMENT
     if(!LAMEnvironment)
@@ -301,7 +301,7 @@ BINT rplLAMCount(WORDPTR * LAMEnvironment)
             break;
         endofenv += 2;
     }
-    return ((BINT) (endofenv - LAMEnvironment - 2)) >> 1;
+    return ((int32_t) (endofenv - LAMEnvironment - 2)) >> 1;
 }
 
 // REMOVE ALL LAMS CREATED BY THE GIVEN SECONDARY AND BELOW
@@ -347,7 +347,7 @@ WORDPTR *rplGetNextLAMEnv(WORDPTR * startpoint)
 // BASED ON CURRENT EXECUTION STATE:
 // A) IF CURRENT SECONDARY DOESN'T HAVE AN ENVIRONMENT, CREATE ONE
 // B) IF EXISTING ENVIRONMENT IS INSIDE A LOOP OR OTHER CONSTRUCT, NO NEED FOR ONE
-BINT rplNeedNewLAMEnv()
+int32_t rplNeedNewLAMEnv()
 {
     // FIRST DETERMINE THE ADDRESS OF THE CURRENT SECONDARY
     WORDPTR *rsptr = RSTop - 1;
@@ -453,7 +453,7 @@ BINT rplNeedNewLAMEnv()
 }
 
 // SAME AS rplNeedNewLAMEnv() BUT TO BE USED DURING COMPILATION, FOR LOCAL VAR TRACING.
-BINT rplNeedNewLAMEnvCompiler()
+int32_t rplNeedNewLAMEnvCompiler()
 {
     // FIRST DETERMINE THE ADDRESS OF THE CURRENT SECONDARY
     WORDPTR *rsptr = ValidateTop - 1;
@@ -523,7 +523,7 @@ void rplClearLAMs()
     LAMTop = nLAMBase = LAMs;
 }
 
-void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
+void rplCompileIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
 {
     // CHECK IF THERE'S SUBSCRIPT ATTRIBUTES TO THIS IDENT
     WORD attr = 0;
@@ -567,8 +567,8 @@ void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
     }
 
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
-    BINT lenwords = (tokend - tok + 3) >> 2;
-    BINT len = tokend - tok;
+    int32_t lenwords = (tokend - tok + 3) >> 2;
+    int32_t len = tokend - tok;
     ScratchPointer1 = (WORDPTR) tok;
     if(attr) {
         ++lenwords;
@@ -588,7 +588,7 @@ void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
     }
     if(len) {
         nextword = 0;
-        BINT rot = 0;
+        int32_t rot = 0;
         while(len) {
             // WARNING: THIS IS LITTLE ENDIAN ONLY!
             nextword |= (*tok) << rot;
@@ -609,11 +609,11 @@ void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
 // RETURNS NULL ON ERROR, DOESN'T CHECK IF IDENT IS VALID!
 // USER MUST CALL rplIsValidIdent() BEFORE CALLING THIS FUNCTION
 
-WORDPTR rplCreateIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
+WORDPTR rplCreateIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
 {
     // CREATE THE OBJECT
-    BINT lenwords = (tokend - tok + 3) >> 2;
-    BINT len = tokend - tok;
+    int32_t lenwords = (tokend - tok + 3) >> 2;
+    int32_t len = tokend - tok;
 
     ScratchPointer1 = (WORDPTR) tok;
 
@@ -635,7 +635,7 @@ WORDPTR rplCreateIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
     }
     if(len) {
         nextword = 0;
-        BINT rot = 0;
+        int32_t rot = 0;
         while(len) {
             // WARNING: THIS IS LITTLE ENDIAN ONLY!
             nextword |= (*tok) << rot;
@@ -671,9 +671,9 @@ WORDPTR rplCreateIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend)
 // ≤0
 // <0
 
-BINT rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
+int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
 {
-    BINT attr = 0;
+    int32_t attr = 0;
     if(st >= end)
         return -1;
     switch (*st) {
@@ -755,11 +755,11 @@ BINT rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
 
 }
 
-BINT rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend)
+int32_t rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend)
 {
     BYTEPTR ptr;
-    BINT char1, char2;
-    BINT argsep;
+    int32_t char1, char2;
+    int32_t argsep;
     BYTEPTR attribend, attribst;
 
     if(tokend <= tok)
@@ -816,16 +816,16 @@ BINT rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend)
 }
 
 // DETERMINE THE LENGTH OF AN IDENT STRING IN BYTES (NOT CHARACTERS)
-BINT rplGetIdentLength(WORDPTR ident)
+int32_t rplGetIdentLength(WORDPTR ident)
 {
-    BINT len = OBJSIZE(*ident);
+    int32_t len = OBJSIZE(*ident);
     if(LIBNUM(*ident) & HASATTR_BIT)
         --len;
     if(!len)
         return 0;
 
     WORD lastword = *(ident + len);
-    BINT usedbytes = 0;
+    int32_t usedbytes = 0;
     while(!(lastword & 0xff000000) && (usedbytes < 4)) {
         lastword <<= 8;
         ++usedbytes;

@@ -90,7 +90,7 @@ const char *const LIB_NAMES[] = { COMMAND_LIST };
 // AND A LIST WITH THE SYMBOLIC TOKENINFO DATA
 #define CMD(a,b) b
 #define ECMD(a,b,c) c
-const BINT const LIB_TOKENINFO[] = { COMMAND_LIST };
+const int32_t const LIB_TOKENINFO[] = { COMMAND_LIST };
 
 #undef ECMD
 #undef CMD

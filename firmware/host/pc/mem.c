@@ -23,9 +23,9 @@ WORD dir_memory[DIR_SIZE];
 WORD lam_memory[LAM_SIZE];
 WORD tempob_memory[TEMPOB_SIZE];
 WORDPTR tempblk_memory[TEMPBLK_SIZE];
-BINT dstk_used, rstk_used, dir_used, lam_used, tempob_used,
+int32_t dstk_used, rstk_used, dir_used, lam_used, tempob_used,
         tempblk_used;
-BINT memmap_intact = 0;
+int32_t memmap_intact = 0;
 
 int halGetFreePages()
 {
@@ -51,10 +51,10 @@ int halGetTotalPages()
 // RETURN SAME base OR A NEW LOCATION OF base
 // RETURN NULL IF NOT ENOUGH MEMORY
 
-WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
+WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
 {
     int maxpages;
-    BINT *current;
+    int32_t *current;
     switch (zone) {
 
     case MEM_AREA_RSTK:

@@ -28,7 +28,7 @@ int halGetTotalPages()
 // RETURN SAME base OR A NEW LOCATION OF base
 // RETURN NULL IF NOT ENOUGH MEMORY
 
-WORDPTR *halGrowMemory(BINT zone, WORDPTR * base, BINT newsize)
+WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
 {
     int *mmubase;
     int maxpages;

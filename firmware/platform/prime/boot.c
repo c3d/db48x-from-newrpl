@@ -430,7 +430,7 @@ static const WORD const crctable[256] = {
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-static WORD crc32(WORD oldcrc, BYTEPTR data, BINT len)
+static WORD crc32(WORD oldcrc, BYTEPTR data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)

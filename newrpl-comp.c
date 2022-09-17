@@ -62,7 +62,7 @@ void compShowErrorMsg(char *inputfile, char *mainbuffer, FILE * stream)
         }
         fprintf(stream, " Exception: ");
 
-        BINT ecode;
+        int32_t ecode;
         for(errbit = 0; errbit < 8; ++errbit)   // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
         {
             if(Exceptions & (1 << errbit)) {
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     if(outputtype == OUTPUT_BINARY) {
         // WRITE THE BINARY FILE MARKER
         WORD marker[3] = {
-            MKPROLOG(HEXBINT, 2),       // PROLOG OF A 64-BIT BINT
+            MKPROLOG(HEXint32_t, 2),       // PROLOG OF A 64-BIT int32_t
             0x4c50526e, // STRING "nRPL"
             1   // VERSION OF THE newRPL BINARY FORMAT
         };

@@ -20,7 +20,7 @@ extern const WORD const root_dir_handle[];
 void growDirs(WORD newtotalsize)
 {
     WORDPTR *newdir;
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;
 
@@ -212,14 +212,14 @@ void rplCreateGlobalInDir(WORDPTR nameobj, WORDPTR value, WORDPTR * parentdir)
 
 }
 
-// LOW-LEVEL: MAKE ROOM FOR N GLOBALS, ALL ASSIGNED ZERO_BINT FOR NAME AND VALUE
+// LOW-LEVEL: MAKE ROOM FOR N GLOBALS, ALL ASSIGNED ZERO_int32_t FOR NAME AND VALUE
 
-WORDPTR *rplCreateNGlobalsInDir(BINT n, WORDPTR * parentdir)
+WORDPTR *rplCreateNGlobalsInDir(int32_t n, WORDPTR * parentdir)
 {
     WORDPTR *direntry = parentdir + 4;  // POINT TO THE FIRST ENTRY IN THE DIRECTORY
 
     if(DirSize <=
-            (BINT) (DirsTop - Directories + DIRSLACK +
+            (int32_t) (DirsTop - Directories + DIRSLACK +
                 ((2 * n * sizeof(WORDPTR)) / sizeof(WORD))))
         growDirs((WORD) (DirsTop - Directories + DIRSLACK +
                     ((2 * n * sizeof(WORDPTR)) / sizeof(WORD))));
@@ -345,7 +345,7 @@ WORDPTR *rplGetParentDir(WORDPTR * directory)
 
 // FINDS A GLOBAL, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE DIRECTORY ENVIRONMENT
 
-WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, BINT scanparents)
+WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, int32_t scanparents)
 {
     WORDPTR *direntry = CurrentDir + 4;
     WORDPTR parentdir;
@@ -369,7 +369,7 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, BINT scanparents)
 }
 
 WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend,
-        WORDPTR * parent, BINT scanparents)
+        WORDPTR * parent, int32_t scanparents)
 {
     WORDPTR *direntry = parent + 4;
     WORDPTR parentdir;
@@ -391,7 +391,7 @@ WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend,
     return 0;
 }
 
-WORDPTR *rplFindGlobalInDir(WORDPTR nameobj, WORDPTR * parent, BINT scanparents)
+WORDPTR *rplFindGlobalInDir(WORDPTR nameobj, WORDPTR * parent, int32_t scanparents)
 {
     WORDPTR *direntry = parent;
     WORDPTR parentdir;
@@ -415,7 +415,7 @@ WORDPTR *rplFindGlobalInDir(WORDPTR nameobj, WORDPTR * parent, BINT scanparents)
     return 0;
 }
 
-WORDPTR *rplFindGlobal(WORDPTR nameobj, BINT scanparents)
+WORDPTR *rplFindGlobal(WORDPTR nameobj, int32_t scanparents)
 {
     return rplFindGlobalInDir(nameobj, CurrentDir, scanparents);
 }
@@ -423,13 +423,13 @@ WORDPTR *rplFindGlobal(WORDPTR nameobj, BINT scanparents)
 // GET A POINTER TO THE KEY/VALUD PAIR AT idx WITHIN directory
 // RETURN NULL IF idx IS NOT WITHIN 0<idx<NITEMS IN DIRECTORY
 
-WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx, WORDPTR * directory)
+WORDPTR *rplFindVisibleGlobalByIndexInDir(int32_t idx, WORDPTR * directory)
 {
-    BINT nitems = *(directory[1] + 1);
+    int32_t nitems = *(directory[1] + 1);
 
     if((idx < 0) || (idx >= nitems))
         return 0;
-    BINT k = 4;
+    int32_t k = 4;
     while(*directory[k] != DIR_END_MARKER) {
         if(ISIDENT(*directory[k]) && !ISHIDDENIDENT(*directory[k]))
             --idx;
@@ -441,7 +441,7 @@ WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx, WORDPTR * directory)
 }
 
 // SAME AS ABOVE BUT FOR CURRENT DIRECTORY ONLY
-WORDPTR *rplFindVisibleGlobalByIndex(BINT idx)
+WORDPTR *rplFindVisibleGlobalByIndex(int32_t idx)
 {
     return rplFindVisibleGlobalByIndexInDir(idx, CurrentDir);
 }
@@ -449,9 +449,9 @@ WORDPTR *rplFindVisibleGlobalByIndex(BINT idx)
 // GET A POINTER TO THE KEY/VALUD PAIR AT idx WITHIN directory
 // RETURN NULL IF idx IS NOT WITHIN 0<idx<NITEMS IN DIRECTORY
 
-WORDPTR *rplFindGlobalByIndexInDir(BINT idx, WORDPTR * directory)
+WORDPTR *rplFindGlobalByIndexInDir(int32_t idx, WORDPTR * directory)
 {
-    BINT nitems = *(directory[1] + 1);
+    int32_t nitems = *(directory[1] + 1);
 
     if((idx < 0) || (idx >= nitems))
         return 0;
@@ -459,18 +459,18 @@ WORDPTR *rplFindGlobalByIndexInDir(BINT idx, WORDPTR * directory)
 }
 
 // SAME AS ABOVE BUT FOR CURRENT DIRECTORY ONLY
-WORDPTR *rplFindGlobalByIndex(BINT idx)
+WORDPTR *rplFindGlobalByIndex(int32_t idx)
 {
     return rplFindGlobalByIndexInDir(idx, CurrentDir);
 }
 
 // GET TOTAL NUMBER OF VARIABLES IN THE DIRECTORY
-BINT rplGetVarCountInDir(WORDPTR * directory)
+int32_t rplGetVarCountInDir(WORDPTR * directory)
 {
     return *(directory[1] + 1);
 }
 
-BINT rplGetVarCount()
+int32_t rplGetVarCount()
 {
     return *(CurrentDir[1] + 1);
 }
@@ -478,9 +478,9 @@ BINT rplGetVarCount()
 // GET TOTAL NUMBER OF VISIBLE VARIABLES IN THE DIRECTORY
 // SKIPS ANY VARIABLES WHERE THE KEY IS NOT A NUMBER OR
 // ANY IDENTS THAT ARE MARKED AS HIDDEN (BY PROLOG DOIDENTEVAL...)
-BINT rplGetVisibleVarCountInDir(WORDPTR * directory)
+int32_t rplGetVisibleVarCountInDir(WORDPTR * directory)
 {
-    BINT n = 0;
+    int32_t n = 0;
     WORDPTR *dirptr = directory + 4;
     while(**dirptr != DIR_END_MARKER) {
         if(ISIDENT(**dirptr) && !ISHIDDENIDENT(**dirptr))
@@ -490,7 +490,7 @@ BINT rplGetVisibleVarCountInDir(WORDPTR * directory)
     return n;
 }
 
-BINT rplGetVisibleVarCount()
+int32_t rplGetVisibleVarCount()
 {
     return rplGetVisibleVarCountInDir(CurrentDir);
 }
@@ -637,10 +637,10 @@ WORDPTR rplGetDirName(WORDPTR * dir)
 // OR THE NAME AT THE MAXIMUM REQUESTED DEPTH
 // buffer MUST BE PREALLOCATED AND CONTAIN SPACE FOR UP TO maxdepth POINTERS
 // RETURNS THE NUMBER OF POINTERS STORED IN buffer
-BINT rplGetFullPath(WORDPTR * dir, WORDPTR * buffer, BINT maxdepth)
+int32_t rplGetFullPath(WORDPTR * dir, WORDPTR * buffer, int32_t maxdepth)
 {
     WORDPTR *parent, *pptr;
-    BINT nptrs = 0;
+    int32_t nptrs = 0;
 
     while(dir && (nptrs < maxdepth)) {
         parent = rplFindDirbyHandle(dir[3]);
@@ -740,7 +740,7 @@ void rplWipeDir(WORDPTR * directory)
         return;
 
     // PUSH THE HANDLE TO PURGE LATER
-    rplNewBINTPush(direntry - directory, DECBINT);
+    rplNewint32_tPush(direntry - directory, DECint32_t);
     rplPushData(directory[1]);
     if(Exceptions) {
         DSTop = Stacksave;
@@ -750,7 +750,7 @@ void rplWipeDir(WORDPTR * directory)
     while(DSTop != Stacksave) {
 
         directory = rplFindDirbyHandle(rplPopData());
-        direntry = directory + rplReadBINT(rplPopData());
+        direntry = directory + rplReadint32_t(rplPopData());
         if(!directory)
             continue;   // SAFEGUARD IN CASE OF DUPLICATED ENTRIES POINTING TO THE SAME DIRECTORY
 
@@ -768,7 +768,7 @@ void rplWipeDir(WORDPTR * directory)
                 if(dirsize) {
                     // NON-EMPTY DIR, RECURSE INTO IT
                     ScratchPointer1 = *(direntry + 1);  // PROTECT THE HANDLE FROM GC
-                    rplNewBINTPush(direntry + 2 - directory, DECBINT);  // RESUME AT THE FOLLOWING ENTRY
+                    rplNewint32_tPush(direntry + 2 - directory, DECint32_t);  // RESUME AT THE FOLLOWING ENTRY
                     rplPushData(directory[1]);
                     if(Exceptions) {
                         DSTop = Stacksave;
@@ -997,7 +997,7 @@ void rplPurgeSettings(WORDPTR nameobj)
 }
 
 // RETURN TRUE IF A VARIABLE IS VISIBLE IN A DIRECTORY
-BINT rplIsVarVisible(WORDPTR * var)
+int32_t rplIsVarVisible(WORDPTR * var)
 {
     if(ISHIDDENIDENT(**var))
         return 1;
@@ -1005,7 +1005,7 @@ BINT rplIsVarVisible(WORDPTR * var)
 }
 
 // RETURN TRUE IF A VARIABLE IS LOCKED IN A DIRECTORY
-BINT rplIsVarReadOnly(WORDPTR * var)
+int32_t rplIsVarReadOnly(WORDPTR * var)
 {
     if(ISLOCKEDIDENT(**var))
         return 1;
@@ -1013,7 +1013,7 @@ BINT rplIsVarReadOnly(WORDPTR * var)
 }
 
 // RETURN TRUE IF A VARIABLE IS IS A DIRECTORY
-BINT rplIsVarDirectory(WORDPTR * var)
+int32_t rplIsVarDirectory(WORDPTR * var)
 {
     if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR))
         return 1;
@@ -1021,7 +1021,7 @@ BINT rplIsVarDirectory(WORDPTR * var)
 }
 
 // RETURN TRUE IF A VARIABLE IS IS AN EMPTY DIRECTORY
-BINT rplIsVarEmptyDir(WORDPTR * var)
+int32_t rplIsVarEmptyDir(WORDPTR * var)
 {
     if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         WORD dirsize = *(*(var + 1) + 1);
@@ -1048,7 +1048,7 @@ BINT rplIsVarEmptyDir(WORDPTR * var)
 // PATH CAN BE ABSOLUTE OR RELATIVE TO CurrentDir
 // LIST MAY CONTAIN HOME AND UPDIR
 
-WORDPTR *rplFindDirFromPath(WORDPTR pathlist, BINT uselastname)
+WORDPTR *rplFindDirFromPath(WORDPTR pathlist, int32_t uselastname)
 {
     WORDPTR ident, last;
     if(!ISLIST(*pathlist))
@@ -1097,11 +1097,11 @@ WORDPTR *rplFindDirFromPath(WORDPTR pathlist, BINT uselastname)
 
 // FIND A SPECIFIC PROPERTY. IF propname==0 FINDS ANY PROPERTY OF THE GIVEN VARIABLE
 WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj, WORD propname,
-        WORDPTR * parent, BINT scanparents)
+        WORDPTR * parent, int32_t scanparents)
 {
     WORDPTR *direntry = parent;
     WORDPTR parentdir;
-    BINT idlen = rplGetIdentLength(nameobj);
+    int32_t idlen = rplGetIdentLength(nameobj);
     BYTEPTR nameptr = (BYTEPTR) (nameobj + 1);
 
     if(!parent)
@@ -1156,7 +1156,7 @@ void rplCreateGlobalPropInDir(WORDPTR nameobj, WORD propname, WORDPTR value,
         WORDPTR * parentdir)
 {
     WORDPTR newname;
-    BINT len = rplGetIdentLength(nameobj);
+    int32_t len = rplGetIdentLength(nameobj);
     ScratchPointer1 = value;
     ScratchPointer2 = nameobj;
     newname = rplAllocTempOb((len + 10) >> 2);
@@ -1204,7 +1204,7 @@ void rplDoAutoEval(WORDPTR varname, WORDPTR * indir)
                 if(var) {
                     // EXPLODE THE DEPENDENCY LIST ON THE STACK
                     if(ISLIST(*var[1])) {
-                        BINT k = rplListLength(var[1]);
+                        int32_t k = rplListLength(var[1]);
                         rplExpandStack(k);
                         if(Exceptions) {
                             DSTop = stksave;
@@ -1413,7 +1413,7 @@ WORDPTR rplMakeIdentNoProps(WORDPTR ident)
     WORDPTR newident = rplAllocTempOb((ptr - start + 3) >> 2);
     if(newident) {
         newident[0] = MKPROLOG(DOIDENT, (ptr - start + 3) >> 2);
-        BINT nchars = ptr - start;
+        int32_t nchars = ptr - start;
         int k;
         ptr = (BYTEPTR) (newident + 1);
         for(k = 0; k < nchars; ++k)
@@ -1466,7 +1466,7 @@ static void ClrLAMonStack(WORDPTR * bottom, WORDPTR cmdlist)
 
 // PUSH ALL DEPENDENCIES OF A PROGRAM ON THE STACK, RETURN THE NUMBER OF THEM
 // USES 3 SCRATCHPOINTERS
-BINT rplGetDependency(WORDPTR program)
+int32_t rplGetDependency(WORDPTR program)
 {
     if(!program)
         return 0;
@@ -1495,7 +1495,7 @@ BINT rplGetDependency(WORDPTR program)
 
         if(((*ptr) & ~0xffff) == MKOPCODE(DOIDENT, NEWNLOCALS)) {
             // NEW LOCAL VAR DEFINITIONS ARE NOT REALLY DEPENDENCIES, MARK AS NOT-DEPENDENCY
-            BINT nlocals = *ptr & 0xffff;
+            int32_t nlocals = *ptr & 0xffff;
             ScratchPointer2 = ptr;
             ScratchPointer3 = end;
             while(nlocals) {
@@ -1642,7 +1642,7 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
 {
 
     WORDPTR *stkbase = DSTop;
-    BINT oldnum, newnum;
+    int32_t oldnum, newnum;
 
     ScratchPointer4 = varname;
     ScratchPointer5 = newdefn;
@@ -1651,14 +1651,14 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
     newnum = rplGetDependency(newdefn);
     varname = ScratchPointer4;
 
-    BINT k;
-    BINT hasdepend;
+    int32_t k;
+    int32_t hasdepend;
     for(k = 0; k < oldnum; ++k) {
         WORDPTR *var = rplFindGlobalPropInDir(stkbase[k], IDPROP_DEPN, dir, 0);
         if(var) {
             if(ISLIST(*var[1])) {
                 WORDPTR ptr = var[1] + 1, end = rplSkipOb(var[1]);
-                BINT totalsize = 0, addvar = 0;
+                int32_t totalsize = 0, addvar = 0;
 
                 // COMPUTE THE SIZE OF THE LIST AFTER REMOVING THE OLD DEPENDENCY
                 while(ptr < end) {
@@ -1668,7 +1668,7 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
                 }
 
                 // ADD THE SIZE OF THE NEW VARNAME IF IT IS IN THE NEW DEPENDENCY
-                BINT j;
+                int32_t j;
                 for(j = 0; j < newnum; ++j) {
                     if(rplCompareIDENT(stkbase[k], stkbase[oldnum + j])) {
                         totalsize += rplObjSize(varname);
@@ -1732,7 +1732,7 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
         else {
             // THIS DEPENDENCY TREE WAS BROKEN,CHECK IF WE SHOULD ADD THE DEPENDENCY
             hasdepend = 0;
-            BINT j, addvar = 0;
+            int32_t j, addvar = 0;
             for(j = 0; j < newnum; ++j) {
                 if(rplCompareIDENT(stkbase[k], stkbase[oldnum + j])) {
                     ++addvar;
@@ -1803,7 +1803,7 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
         if(var) {
             if(ISLIST(*var[1])) {
                 WORDPTR ptr = var[1] + 1, end = rplSkipOb(var[1]);
-                BINT totalsize = 0;
+                int32_t totalsize = 0;
 
                 // COMPUTE THE SIZE OF THE LIST AFTER REMOVING THE OLD DEPENDENCY
                 while(ptr < end) {
@@ -1891,10 +1891,10 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir, WORDPTR olddefn,
 
 // COMPUTE SIZE OF DIRECTORY TREE (INCLUDES SIZE OF ALL NAMES, OBJECTS, AND PACKED SUBDIRECTORY OBJECTS)
 
-BINT rplGetDirSize(WORDPTR * directory)
+int32_t rplGetDirSize(WORDPTR * directory)
 {
     WORDPTR *entry = rplFindFirstInDir(directory);
-    BINT size = 0;
+    int32_t size = 0;
     while(entry) {
         if(ISIDENT(*entry[0])) {
             // ONLY CONSIDER DIRECTORY ENTRIES THAT HAVE PROPER NAMES

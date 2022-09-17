@@ -524,7 +524,7 @@ void LIB_HANDLER()
             switch (OPCODE(CurOpcode)) {
             case OVR_SAME:
             {
-                BINT same = rplCompareIDENT(rplPeekData(1), rplPeekData(2));
+                int32_t same = rplCompareIDENT(rplPeekData(1), rplPeekData(2));
                 rplDropData(2);
                 if(same)
                     rplPushTrue();
@@ -547,8 +547,8 @@ void LIB_HANDLER()
     // SPECIAL OPCODES
     if(OPCODE(CurOpcode) & 0x70000) {
         // IT'S ONE OF THE COMPACT OPCODES
-        BINT op = OPCODE(CurOpcode) & 0x70000;
-        BINT num = OPCODE(CurOpcode) & 0xffff;
+        int32_t op = OPCODE(CurOpcode) & 0x70000;
+        int32_t num = OPCODE(CurOpcode) & 0xffff;
         if(num & 0x8000)
             num |= 0xFFFF0000;  // GET NEGATIVE LAMS TOO!
 
@@ -585,7 +585,7 @@ void LIB_HANDLER()
             }
 
             // CHECK ALL ARGUMENTS
-            BINT cnt = num;
+            int32_t cnt = num;
             while(cnt) {
                 if(!ISIDENT(*rplPeekData(cnt))) {
                     rplError(ERR_IDENTEXPECTED);
@@ -597,7 +597,7 @@ void LIB_HANDLER()
             // CREATE A NEW LAM ENVIRONMENT FOR THIS SECONDARY
             rplCreateLAMEnvironment(rplPeekRet(1));
             rplPushRet((WORDPTR) abnd_prog);    // PUT ABND IN THE STACK TO DO THE CLEANUP
-            BINT offset = num;
+            int32_t offset = num;
             // NOW CREATE ALL LOCAL VARIABLES
             while(num) {
                 rplCreateLAM(rplPeekData(num), rplPeekData(num + offset));
@@ -630,7 +630,7 @@ void LIB_HANDLER()
 
         // FIND LOCAL VARIABLE IN THE CURRENT SCOPE ONLY
         WORDPTR *val = rplFindLAM(rplStripTag(rplPeekData(1)), 0);
-        BINT neednewenv = rplNeedNewLAMEnv();
+        int32_t neednewenv = rplNeedNewLAMEnv();
 
         if(val && !neednewenv) {
             val[1] = rplPeekData(2);
@@ -762,7 +762,7 @@ void LIB_HANDLER()
         // HIDE ALL LOCAL VARIABLES AFTER THIS POINT FROM ANY CHILD PROCESSES
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
 
-        BINT neednewenv = rplNeedNewLAMEnv();
+        int32_t neednewenv = rplNeedNewLAMEnv();
 
         // LAM WAS NOT FOUND, CREATE A NEW ONE
         if(neednewenv) {
@@ -782,7 +782,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Unhide local variables from subroutines
         //@NEW
         // REMOVE PROTECTION FOR LOCAL VARIABLES HIDDEN WITH HIDELOCALS
-        BINT neednewenv = rplNeedNewLAMEnv();
+        int32_t neednewenv = rplNeedNewLAMEnv();
 
         // LAM WAS NOT FOUND, CREATE A NEW ONE
         if(neednewenv) {
@@ -826,7 +826,7 @@ void LIB_HANDLER()
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object, prevobject;
-            BINT notrack = 0;
+            int32_t notrack = 0;
             if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object = TempObEnd;     // START OF COMPILATION
@@ -989,7 +989,7 @@ void LIB_HANDLER()
                     }
 
                     // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
-                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+                    int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
                     // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
                     if(Offset <= 32767 && Offset >= -32768) {
@@ -1047,7 +1047,7 @@ void LIB_HANDLER()
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object;
-            BINT notrack = 0;
+            int32_t notrack = 0;
             if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object = TempObEnd;     // START OF COMPILATION
@@ -1201,7 +1201,7 @@ void LIB_HANDLER()
                     }
 
                     // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
-                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+                    int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
                     if(Offset <= 32767 && Offset >= -32768) {
                         CompileEnd = prevobject;
@@ -1257,7 +1257,7 @@ void LIB_HANDLER()
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
-            BINT len = OBJSIZE(*DecompileObject);
+            int32_t len = OBJSIZE(*DecompileObject);
             if(LIBNUM(*DecompileObject) & HASATTR_BIT)
                 --len;
             BYTEPTR ptr = (BYTEPTR) (DecompileObject + len);
@@ -1271,7 +1271,7 @@ void LIB_HANDLER()
             if((OPCODE(CurOpcode) == OPCODE_DECOMPEDIT)) {
                 WORD attr = rplGetIdentAttr(DecompileObject);
                 if(attr&IDATTR_ALLHINTS) {
-                    BINT noinf = 0;
+                    int32_t noinf = 0;
                     // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
                     rplDecompAppendChar(':');
                     if(attr & IDATTR_ODD)
@@ -1319,7 +1319,7 @@ void LIB_HANDLER()
                     rplDecompAppendChar(':');
                     // OBSOLETE NUMBER SYSTEM REMOVED
                     /*
-                       BINT rot=0;
+                       int32_t rot=0;
                        while((rot<32)&&((attr>>rot)!=0)) {
                        rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
                        rot+=4;
@@ -1355,7 +1355,7 @@ void LIB_HANDLER()
             while(object < DecompileObject);
 
             // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
-            BINT notrack = 0;
+            int32_t notrack = 0;
             // CHECK FOR CONDITIONAL VARIABLE CREATION!
             WORDPTR *construct = ValidateTop - 1;
             while(construct >= ValidateBottom) {
@@ -1528,7 +1528,7 @@ void LIB_HANDLER()
             }
 
             rplCreateLAMEnvironment(*prevconst + 1);    // OWNER WILL BE THE SECONDARY
-            BINT offset = 0;
+            int32_t offset = 0;
 
             // HERE WE HAVE *prevconst POINTING TO THE XEQSECO COMMAND
             // ADD 2 TO SKIP THE WORD + PROLOG OF THE SECO
@@ -1580,7 +1580,7 @@ void LIB_HANDLER()
         case GETLAMN:
         {
 
-            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            int32_t num = OPCODE(*DecompileObject) & 0xffff;
             if(num & 0x8000)
                 num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
@@ -1591,7 +1591,7 @@ void LIB_HANDLER()
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
                 rplDecompAppendString((BYTEPTR) "GETLAM");
-                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
                 if(result < 0) {
@@ -1599,7 +1599,7 @@ void LIB_HANDLER()
                     result = -result;
                 }
 
-                BINT digit = 0;
+                int32_t digit = 0;
                 char basechr = '0';
                 while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
@@ -1623,7 +1623,7 @@ void LIB_HANDLER()
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len = OBJSIZE(*name);
+            int32_t len = OBJSIZE(*name);
 
             WORD lastword = name[len];
 
@@ -1641,7 +1641,7 @@ void LIB_HANDLER()
 
         case GETLAMNEVAL:
         {
-            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            int32_t num = OPCODE(*DecompileObject) & 0xffff;
             if(num & 0x8000)
                 num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
@@ -1652,7 +1652,7 @@ void LIB_HANDLER()
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
                 rplDecompAppendString((BYTEPTR) "GETLAM");
-                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
                 if(result < 0) {
@@ -1660,7 +1660,7 @@ void LIB_HANDLER()
                     result = -result;
                 }
 
-                BINT digit = 0;
+                int32_t digit = 0;
                 char basechr = '0';
                 while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
@@ -1684,7 +1684,7 @@ void LIB_HANDLER()
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len = OBJSIZE(*name);
+            int32_t len = OBJSIZE(*name);
 
             WORD lastword = name[len];
 
@@ -1703,7 +1703,7 @@ void LIB_HANDLER()
 
         case PUTLAMN:
         {
-            BINT num = OPCODE(*DecompileObject) & 0xffff;
+            int32_t num = OPCODE(*DecompileObject) & 0xffff;
             if(num & 0x8000)
                 num |= 0xFFFF0000;      // GET NEGATIVE LAMS TOO!
 
@@ -1712,7 +1712,7 @@ void LIB_HANDLER()
             if(!name) {
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
                 rplDecompAppendString((BYTEPTR) "PUTLAM");
-                BINT result = OPCODE(*DecompileObject) & 0xffff;
+                int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
                 if(result < 0) {
@@ -1720,7 +1720,7 @@ void LIB_HANDLER()
                     result = -result;
                 }
 
-                BINT digit = 0;
+                int32_t digit = 0;
                 char basechr = '0';
                 while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
@@ -1748,7 +1748,7 @@ void LIB_HANDLER()
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            BINT len = OBJSIZE(*name);
+            int32_t len = OBJSIZE(*name);
 
             WORD lastword = name[len];
 
@@ -1798,7 +1798,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo =
                     LIBRARY_NUMBER * 100 + (LIBNUM(*ObjectPTR) -
@@ -1809,7 +1809,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
 
@@ -1841,13 +1841,13 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
 
             // IDENTS ARE ZERO-PADDED STRINGS, DETERMINE THE ACTUAL NUMBER OF BYTES USED
-            BINT len = OBJSIZE(*ObjectPTR);
+            int32_t len = OBJSIZE(*ObjectPTR);
             if(len < 1) {
                 RetNum = ERR_INVALID;
                 return;
             }
             WORD lastword = *(ObjectPTR + len);
-            BINT usedbytes = 0;
+            int32_t usedbytes = 0;
             while(!(lastword & 0xff000000) && (usedbytes < 4)) {
                 lastword <<= 8;
                 ++usedbytes;

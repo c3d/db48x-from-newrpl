@@ -365,8 +365,8 @@ void LIB_HANDLER()
         {
             WORDPTR comp = rplPeekData(1);
             WORDPTR posobj;
-            BINT rows, cols, ndims;
-            BINT posrow, poscol;
+            int32_t rows, cols, ndims;
+            int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
             cols = rplMatrixCols(comp);
 
@@ -405,7 +405,7 @@ void LIB_HANDLER()
 
             }
 
-            poscol = rplReadNumberAsBINT(posobj);
+            poscol = rplReadNumberAsInt64(posobj);
             if(Exceptions) {
                 rplError(ERR_INVALIDPOSITION);
                 return;
@@ -433,7 +433,7 @@ void LIB_HANDLER()
 
                 }
 
-                posrow = rplReadNumberAsBINT(posobj);
+                posrow = rplReadNumberAsInt64(posobj);
                 if(Exceptions) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -657,8 +657,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX B
                 // OPERATION IS VALID IF B IS A SCALAR
                 if(ISMATRIX(*b)) {
-                    BINT rows = rplMatrixRows(b);
-                    BINT cols = rplMatrixCols(b);
+                    int32_t rows = rplMatrixRows(b);
+                    int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(b, 1, 1);
@@ -674,8 +674,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX A
                 // OPERATION IS VALID IF A IS A SCALAR
                 if(ISMATRIX(*a)) {
-                    BINT rows = rplMatrixRows(a);
-                    BINT cols = rplMatrixCols(a);
+                    int32_t rows = rplMatrixRows(a);
+                    int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(a, 1, 1);
@@ -708,8 +708,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX B
                 // OPERATION IS VALID IF B IS A SCALAR
                 if(ISMATRIX(*b)) {
-                    BINT rows = rplMatrixRows(b);
-                    BINT cols = rplMatrixCols(b);
+                    int32_t rows = rplMatrixRows(b);
+                    int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(b, 1, 1);
@@ -725,8 +725,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX A
                 // OPERATION IS VALID IF A IS A SCALAR
                 if(ISMATRIX(*a)) {
-                    BINT rows = rplMatrixRows(a);
-                    BINT cols = rplMatrixCols(a);
+                    int32_t rows = rplMatrixRows(a);
+                    int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(a, 1, 1);
@@ -834,7 +834,7 @@ void LIB_HANDLER()
             }
 
             WORDPTR a = rplPeekData(2), b = rplPeekData(1);
-            BINT neg = 0;
+            int32_t neg = 0;
 
             // ONLY MATRIX RAISED TO NUMERIC POWER IS SUPPORTED
             if(!ISMATRIX(*a)) {
@@ -868,7 +868,7 @@ void LIB_HANDLER()
                 }
 
             }
-            BINT rows = MATROWS(a[1]), cols = MATCOLS(a[1]);
+            int32_t rows = MATROWS(a[1]), cols = MATCOLS(a[1]);
 
             if(rows != cols) {
                 rplError(ERR_SQUAREMATRIXONLY);
@@ -876,7 +876,7 @@ void LIB_HANDLER()
             }
 
             // TODO: CHECK FOR INTEGER RANGE AND ISSUE "Integer too large" ERROR
-            int64_t exp = rplReadNumberAsBINT(b);
+            int64_t exp = rplReadNumberAsInt64(b);
             if(Exceptions)
                 return;
             if(neg)
@@ -889,7 +889,7 @@ void LIB_HANDLER()
                 exp = -exp;
             }
 
-            BINT hasresult = 0;
+            int32_t hasresult = 0;
             while(exp) {
                 if(exp & 1) {
                     if(!hasresult) {
@@ -932,8 +932,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX B
                 // OPERATION IS VALID IF B IS A SCALAR
                 if(ISMATRIX(*b)) {
-                    BINT rows = rplMatrixRows(b);
-                    BINT cols = rplMatrixCols(b);
+                    int32_t rows = rplMatrixRows(b);
+                    int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(b, 1, 1);
@@ -965,8 +965,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX A
                 // OPERATION IS VALID IF A IS A SCALAR
                 if(ISMATRIX(*a)) {
-                    BINT rows = rplMatrixRows(a);
-                    BINT cols = rplMatrixCols(a);
+                    int32_t rows = rplMatrixRows(a);
+                    int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(a, 1, 1);
@@ -999,8 +999,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX B
                 // OPERATION IS VALID IF B IS A SCALAR
                 if(ISMATRIX(*b)) {
-                    BINT rows = rplMatrixRows(b);
-                    BINT cols = rplMatrixCols(b);
+                    int32_t rows = rplMatrixRows(b);
+                    int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(b, 1, 1);
@@ -1032,8 +1032,8 @@ void LIB_HANDLER()
                 // CHECK DIMENSIONS OF MATRIX A
                 // OPERATION IS VALID IF A IS A SCALAR
                 if(ISMATRIX(*a)) {
-                    BINT rows = rplMatrixRows(a);
-                    BINT cols = rplMatrixCols(a);
+                    int32_t rows = rplMatrixRows(a);
+                    int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
                         WORDPTR scalar = rplMatrixGet(a, 1, 1);
@@ -1071,14 +1071,14 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(1))) {
             rplExplodeList(rplPeekData(1));
-            BINT ndims = rplReadNumberAsBINT(rplPopData());
+            int32_t ndims = rplReadNumberAsInt64(rplPopData());
             if((ndims < 1) || (ndims > 2)) {
                 DSTop = Savestk;
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplPopData());
+            cols = rplReadNumberAsInt64(rplPopData());
             if(Exceptions) {
                 DSTop = Savestk;
                 return;
@@ -1086,7 +1086,7 @@ void LIB_HANDLER()
 
             if(ndims == 2) {
 
-                rows = rplReadNumberAsBINT(rplPopData());
+                rows = rplReadNumberAsInt64(rplPopData());
                 if(Exceptions) {
                     DSTop = Savestk;
                     return;
@@ -1109,7 +1109,7 @@ void LIB_HANDLER()
         else {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(rplPopData());
+            cols = rplReadNumberAsInt64(rplPopData());
             if(Exceptions) {
                 DSTop = Savestk;
                 return;
@@ -1126,7 +1126,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
-        BINT elements = (rows) ? rows * cols : cols;
+        int32_t elements = (rows) ? rows * cols : cols;
 
         if(rplDepthData() < elements) {
             rplError(ERR_BADARGCOUNT);
@@ -1158,7 +1158,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR matrix = rplPeekData(1);
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
         WORDPTR *elem = rplMatrixExplode();
         if(Exceptions)
@@ -1170,8 +1170,8 @@ void LIB_HANDLER()
         DSTop--;
 
         if(rows)
-            rplNewBINTPush(rows, DECBINT);
-        rplNewBINTPush(cols, DECBINT);
+            rplNewint32_tPush(rows, DECint32_t);
+        rplNewint32_tPush(cols, DECint32_t);
         rplPushData((WORDPTR) ((rows) ? two_bint : one_bint));
         rplCreateList();
 
@@ -1194,9 +1194,9 @@ void LIB_HANDLER()
         WORDPTR matrix = rplPeekData(1);
         WORDPTR *matptr = DSTop - 1;
         WORDPTR elem;
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-        BINT nrows = (rows) ? rows : 1;
-        BINT i, j;
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t nrows = (rows) ? rows : 1;
+        int32_t i, j;
 
         for(j = 1; j <= cols; ++j) {
             for(i = 1; i <= nrows; ++i)
@@ -1216,7 +1216,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewBINTPush(cols, DECBINT);
+        rplNewint32_tPush(cols, DECint32_t);
 
         return;
 
@@ -1244,10 +1244,10 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(3);
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
         WORDPTR *matptr = DSTop - 3;
 
@@ -1272,7 +1272,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT j;
+            int32_t j;
             WORDPTR *stkelem;
             for(j = 1; j < nelem; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols + 1, 1, j);
@@ -1310,7 +1310,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR mat2 = rplPeekData(2);
-        BINT rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
+        int32_t rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
 
         // CHECK PROPER SIZE
 
@@ -1333,7 +1333,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
         WORDPTR *stkelem;
         for(j = 1; j < nelem; ++j) {
             for(i = 1; i <= rows; ++i) {
@@ -1386,11 +1386,11 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t ncol = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t ncol = rplReadNumberAsInt64(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(2);
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-        BINT nrows = (rows) ? rows : 1;
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t nrows = (rows) ? rows : 1;
 
         WORDPTR *matptr = DSTop - 2;
 
@@ -1412,7 +1412,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
         WORDPTR *stkelem;
         for(j = 1; j < ncol; ++j) {
             for(i = 1; i <= nrows; ++i) {
@@ -1480,20 +1480,20 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
         if(rplDepthData() < nelem + 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        BINT i, j;
-        BINT veclen = 0;
+        int32_t i, j;
+        int32_t veclen = 0;
 
         for(i = 2; i <= nelem + 1; ++i) {
             if(ISMATRIX(*rplPeekData(i))) {
                 WORDPTR matrix = rplPeekData(i);
-                BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+                int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
                 if(rows) {
                     rplError(ERR_VECTOREXPECTED);
@@ -1585,9 +1585,9 @@ void LIB_HANDLER()
 
         WORDPTR matrix = rplPeekData(1);
         WORDPTR *matptr = DSTop - 1;
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-        BINT nrows = (rows) ? rows : 1;
-        BINT i;
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t nrows = (rows) ? rows : 1;
+        int32_t i;
 
         if(nrows > cols)
             nrows = cols;
@@ -1621,7 +1621,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR matrix = rplPeekData(2);
-        BINT drows = MATROWS(matrix[1]), dcols = MATCOLS(matrix[1]);
+        int32_t drows = MATROWS(matrix[1]), dcols = MATCOLS(matrix[1]);
 
         if(drows) {
             rplError(ERR_VECTOREXPECTED);
@@ -1633,14 +1633,14 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(1))) {
             rplExplodeList(rplPeekData(1));
-            BINT ndims = rplReadNumberAsBINT(rplPopData());
+            int32_t ndims = rplReadNumberAsInt64(rplPopData());
             if((ndims < 1) || (ndims > 2)) {
                 DSTop = Savestk;
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplPopData());
+            cols = rplReadNumberAsInt64(rplPopData());
             if(Exceptions) {
                 DSTop = Savestk;
                 return;
@@ -1648,7 +1648,7 @@ void LIB_HANDLER()
 
             if(ndims == 2) {
 
-                rows = rplReadNumberAsBINT(rplPopData());
+                rows = rplReadNumberAsInt64(rplPopData());
                 if(Exceptions) {
                     DSTop = Savestk;
                     return;
@@ -1668,7 +1668,7 @@ void LIB_HANDLER()
         else {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(rplPeekData(1));
+            cols = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions) {
                 DSTop = Savestk;
                 return;
@@ -1685,9 +1685,9 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
-        BINT elements = (rows) ? rows * cols : cols;
+        int32_t elements = (rows) ? rows * cols : cols;
 
-        BINT i;
+        int32_t i;
         WORDPTR *first = DSTop;
         for(i = 0; i < elements; ++i)
             rplPushData((WORDPTR) zero_bint);
@@ -1739,9 +1739,9 @@ void LIB_HANDLER()
         WORDPTR matrix = rplPeekData(1);
         WORDPTR *matptr = DSTop - 1;
         WORDPTR elem;
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-        BINT nrows = (rows) ? rows : 1;
-        BINT i, j;
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t nrows = (rows) ? rows : 1;
+        int32_t i, j;
 
         if(!rows) {
             // USE VECTORS AS VERTICAL COLUMNS
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewBINTPush(nrows, DECBINT);
+        rplNewint32_tPush(nrows, DECint32_t);
 
         return;
 
@@ -1796,10 +1796,10 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(3);
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
         WORDPTR *matptr = DSTop - 3;
 
@@ -1824,7 +1824,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT j;
+            int32_t j;
             WORDPTR *stkelem;
             for(j = 1; j < nelem; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols + 1, 1, j);
@@ -1862,7 +1862,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR mat2 = rplPeekData(2);
-        BINT rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
+        int32_t rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
 
         // CHECK PROPER SIZE
 
@@ -1884,7 +1884,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
         WORDPTR *stkelem;
         for(i = 1; i < nelem; ++i) {
             for(j = 1; j <= cols; ++j) {
@@ -1938,11 +1938,11 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nrow = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nrow = rplReadNumberAsInt64(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(2);
-        BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
-        BINT nrows = (rows) ? rows : 1;
+        int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+        int32_t nrows = (rows) ? rows : 1;
 
         WORDPTR *matptr = DSTop - 2;
 
@@ -1970,7 +1970,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
         WORDPTR *stkelem;
         for(i = 1; i < nrow; ++i) {
             for(j = 1; j <= cols; ++j) {
@@ -2041,20 +2041,20 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
         if(rplDepthData() < nelem + 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        BINT i, j;
-        BINT veclen = 0;
+        int32_t i, j;
+        int32_t veclen = 0;
 
         for(i = 2; i <= nelem + 1; ++i) {
             if(ISMATRIX(*rplPeekData(i))) {
                 WORDPTR matrix = rplPeekData(i);
-                BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+                int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
                 if(rows) {
                     rplError(ERR_VECTOREXPECTED);
@@ -2185,7 +2185,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR matrix = rplPeekData(1);
-        BINT rows = MATROWS(matrix[1]);
+        int32_t rows = MATROWS(matrix[1]);
 
         if((rows != 0) && (rows != 1)) {
             rplError(ERR_VECTOREXPECTED);
@@ -2239,14 +2239,14 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth = (BINT) (DSTop - prevDStk);
+        int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
         // COMPUTE THE REQUIRED SIZE
 
         if(OPCODE(*(IPtr - 1)) == OVR_ISTRUE) {
             // SPECIAL CASE ISTRUE DOESN'T RETURN A MATRIX
-            BINT istrue = 0;
-            BINT k;
+            int32_t istrue = 0;
+            int32_t k;
             for(k = 1; k <= newdepth; ++k) {
                 if(!rplIsFalse(rplPeekData(k)))
                     istrue = 1;
@@ -2266,8 +2266,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT totalsize = rplMatrixGetFirstObj(matrix) - matrix;
-        BINT k;
+        int32_t totalsize = rplMatrixGetFirstObj(matrix) - matrix;
+        int32_t k;
         for(k = 1; k <= newdepth; ++k) {
             totalsize += rplObjSize(rplPeekData(k));
         }
@@ -2289,8 +2289,8 @@ void LIB_HANDLER()
         newmat[0] = MKPROLOG(DOMATRIX, totalsize - 1);
         newmat[1] = matrix[1];  // SAME SIZE AS ORIGINAL MATRIX
 
-        BINT nelem = nextobj - matrix - 2;
-        BINT oldidx;
+        int32_t nelem = nextobj - matrix - 2;
+        int32_t oldidx;
         WORDPTR oldobj, newobj, firstobj, oldfirst, oldptr;
 
         // FILL THE MATRIX WITH ALL THE OBJECTS FROM THE STACK
@@ -2356,7 +2356,7 @@ void LIB_HANDLER()
         if(ISMATRIX(*rplPeekData(1))) {
             // MATRIX TO LIST
 
-            BINT cols, rows, i, j;
+            int32_t cols, rows, i, j;
             WORDPTR *mat = DSTop - 1;
             cols = rplMatrixCols(*mat);
             rows = rplMatrixRows(*mat);
@@ -2366,14 +2366,14 @@ void LIB_HANDLER()
                     for(j = 1; j <= cols; ++j) {
                         rplPushData(rplMatrixFastGet(*mat, i, j));
                     }
-                    rplNewBINTPush(cols, DECBINT);
+                    rplNewint32_tPush(cols, DECint32_t);
                     rplCreateList();
                     if(Exceptions) {
                         DSTop = mat + 1;
                         return;
                     }
                 }
-                rplNewBINTPush(rows, DECBINT);
+                rplNewint32_tPush(rows, DECint32_t);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -2384,7 +2384,7 @@ void LIB_HANDLER()
                 for(j = 1; j <= cols; ++j) {
                     rplPushData(rplMatrixFastGet(*mat, 1, j));
                 }
-                rplNewBINTPush(cols, DECBINT);
+                rplNewint32_tPush(cols, DECint32_t);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -2400,7 +2400,7 @@ void LIB_HANDLER()
         if(ISLIST(*rplPeekData(1))) {
             // LIST TO MATRIX
 
-            BINT cols, rows, i, j, tmpcols;
+            int32_t cols, rows, i, j, tmpcols;
             WORDPTR *lst = DSTop - 1, lstptr;
             cols = 0;
             // DETERMINE IF DIMENSIONS ARE SUITABLE
@@ -2494,8 +2494,8 @@ void LIB_HANDLER()
         }
 
         WORDPTR lelem = *a + 1, endoflist = rplSkipOb(*a);
-        BINT ncols = 0, nvecs = 0, allzeros;
-        BINT i, j, k;
+        int32_t ncols = 0, nvecs = 0, allzeros;
+        int32_t i, j, k;
 
         while((lelem < endoflist) && (*lelem != CMD_ENDLIST)) {
 
@@ -2518,7 +2518,7 @@ void LIB_HANDLER()
                 ncols = rplMatrixCols(lelem);
 
             //  EXPAND THE VALID VECTOR
-            BINT off = lelem - *a;      // PROTECT FROM GC
+            int32_t off = lelem - *a;      // PROTECT FROM GC
             for(k = 1; k <= ncols; ++k) {
                 rplPushData(rplMatrixGet(lelem, 1, k));
                 if(Exceptions) {
@@ -2608,7 +2608,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -2627,7 +2627,7 @@ void LIB_HANDLER()
             return;
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        BINT canreduce = rplMatrixBareissEx(a, 0, rows, cols, 1);
+        int32_t canreduce = rplMatrixBareissEx(a, 0, rows, cols, 1);
         if(!canreduce)
             rplError(ERR_SINGULARMATRIX);
         if(Exceptions) {
@@ -2637,7 +2637,7 @@ void LIB_HANDLER()
 
         // CREATE THE DIAGONAL VECTOR
         // Dii=u(i,i)*u(i-1,i-1)
-        BINT k, j;
+        int32_t k, j;
 
         for(k = 1; k <= rows; ++k) {
             rplPushData(*rplMatrixFastGetEx(first, cols, k, k));
@@ -2705,14 +2705,14 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
         if(!rows)
             rows = 1;
 
-        BINT i, j;
+        int32_t i, j;
 
         for(j = 1; j <= cols; ++j) {
 
@@ -2790,20 +2790,20 @@ void LIB_HANDLER()
             var = DSTop - 2;
 
         if(ISLIST(**var)) {
-            BINT ndims = rplListLength(*var);
+            int32_t ndims = rplListLength(*var);
             if((ndims < 1) || (ndims > 2)) {
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplGetListElement(*var, 1));
+            cols = rplReadNumberAsInt64(rplGetListElement(*var, 1));
             if(Exceptions) {
                 return;
             }
 
             if(ndims == 2) {
                 rows = cols;
-                cols = rplReadNumberAsBINT(rplGetListElement(*var, 2));
+                cols = rplReadNumberAsInt64(rplGetListElement(*var, 2));
                 if(Exceptions) {
                     return;
                 }
@@ -2816,7 +2816,7 @@ void LIB_HANDLER()
         else if(ISNUMBER(**var)) {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(*var);
+            cols = rplReadNumberAsInt64(*var);
             if(Exceptions) {
                 return;
             }
@@ -2920,8 +2920,8 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *v1 = DSTop - 2, *v2 = DSTop - 1;
-        BINT rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
-        BINT cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
+        int32_t rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
+        int32_t cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
 
         if((rows1 > 1) || (rows2 > 1)) {
             rplError(ERR_VECTOREXPECTED);
@@ -3070,16 +3070,16 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *m = DSTop - 3;
-        BINT rows = rplMatrixRows(*m);
-        BINT cols = rplMatrixCols(*m);
+        int32_t rows = rplMatrixRows(*m);
+        int32_t cols = rplMatrixCols(*m);
 
         if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
         int64_t cfrom, cto;
-        cfrom = rplReadNumberAsBINT(rplPeekData(2));
-        cto = rplReadNumberAsBINT(rplPeekData(1));
+        cfrom = rplReadNumberAsInt64(rplPeekData(2));
+        cto = rplReadNumberAsInt64(rplPeekData(1));
 
         if((cfrom < 1) || (cfrom > cols) || (cto < 1) || (cto > cols)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -3089,7 +3089,7 @@ void LIB_HANDLER()
 // SWAP THE COLUMNS INTERNALLY TO REDUCE OVERHEAD
         WORDPTR newmat = rplMakeNewCopy(*m);
         WORD offset;
-        BINT i;
+        int32_t i;
 
 #define MATOFFSET(matrix,row,col) ((matrix)[2+(((row)-1)*cols+((col)-1))])
 
@@ -3123,7 +3123,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -3158,7 +3158,7 @@ void LIB_HANDLER()
 
         // FIRST CHECK THE SIGN CHANGE DUE TO ROW PERMUTATIONS
 
-        BINT k, count = 0;
+        int32_t k, count = 0;
         idx = *(a - 1); // RETRIEVE THE INDEX ADDRESS IN CASE IT MOVED
         for(k = 1; k <= rows; ++k)
             if(idx[k] != (WORD) k)
@@ -3201,8 +3201,8 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *v1 = DSTop - 2, *v2 = DSTop - 1;
-        BINT rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
-        BINT cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
+        int32_t rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
+        int32_t cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
 
         if((rows1 > 1) || (rows2 > 1)) {
             rplError(ERR_VECTOREXPECTED);
@@ -3213,7 +3213,7 @@ void LIB_HANDLER()
 
         // FIRST COMPONENT
 
-        BINT k;
+        int32_t k;
         for(k = 1; k <= cols1; ++k) {
             rplPushData(rplMatrixFastGet(*v1, 1, k));
             rplPushData(rplMatrixFastGet(*v2, 1, k));
@@ -3268,7 +3268,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -3327,8 +3327,8 @@ void LIB_HANDLER()
             // CHECK DIMENSIONS OF MATRIX B
             // OPERATION IS VALID IF B IS A SCALAR
             if(ISMATRIX(*b)) {
-                BINT rows = rplMatrixRows(b);
-                BINT cols = rplMatrixCols(b);
+                int32_t rows = rplMatrixRows(b);
+                int32_t cols = rplMatrixCols(b);
                 if((rows < 2) && (cols == 1)) {
                     // OPERATION IS SCALAR, ACCEPT IT
                     WORDPTR scalar = rplMatrixGet(b, 1, 1);
@@ -3344,8 +3344,8 @@ void LIB_HANDLER()
             // CHECK DIMENSIONS OF MATRIX A
             // OPERATION IS VALID IF A IS A SCALAR
             if(ISMATRIX(*a)) {
-                BINT rows = rplMatrixRows(a);
-                BINT cols = rplMatrixCols(a);
+                int32_t rows = rplMatrixRows(a);
+                int32_t cols = rplMatrixCols(a);
                 if((rows < 2) && (cols == 1)) {
                     // OPERATION IS SCALAR, ACCEPT IT
                     WORDPTR scalar = rplMatrixGet(a, 1, 1);
@@ -3378,14 +3378,14 @@ void LIB_HANDLER()
         }
 
         WORDPTR *savestk = DSTop;
-        int64_t n = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t n = rplReadNumberAsInt64(rplPeekData(1));
 
         if(n < 1) {
             rplError(ERR_INVALIDDIMENSION);
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
 
         for(i = 1; i <= n; ++i) {
             for(j = 1; j <= n; ++j) {
@@ -3395,7 +3395,7 @@ void LIB_HANDLER()
                     // CREATE THE FRACTION IN CANONICAL FORM TO SAVE THE AUTOSIMPLIFY STEP
                     rplPushData((WORDPTR) one_bint);
                     if(i + j - 1 > 1) {
-                        rplNewBINTPush(i + j - 1, DECBINT);
+                        rplNewint32_tPush(i + j - 1, DECint32_t);
                         if(Exceptions) {
                             DSTop = savestk;
                             return;
@@ -3446,8 +3446,8 @@ void LIB_HANDLER()
         }
 
         WORDPTR lelem = *a + 1, endoflist = rplSkipOb(*a);
-        BINT ncols = 0, nvecs = 0, allzeros;
-        BINT i, j, k;
+        int32_t ncols = 0, nvecs = 0, allzeros;
+        int32_t i, j, k;
 
         while((lelem < endoflist) && (*lelem != CMD_ENDLIST)) {
 
@@ -3470,7 +3470,7 @@ void LIB_HANDLER()
                 ncols = rplMatrixCols(lelem);
 
             //  EXPAND THE VALID VECTOR
-            BINT off = lelem - *a;      // PROTECT FROM GC
+            int32_t off = lelem - *a;      // PROTECT FROM GC
             for(k = 1; k <= ncols; ++k) {
                 rplPushData(rplMatrixGet(lelem, 1, k));
                 if(Exceptions) {
@@ -3507,7 +3507,7 @@ void LIB_HANDLER()
                 ncols = rplMatrixCols(lelem);
 
             //  EXPAND THE VALID VECTOR
-            BINT off = lelem - *b;      // PROTECT FROM GC
+            int32_t off = lelem - *b;      // PROTECT FROM GC
             for(k = 1; k <= ncols; ++k) {
                 rplPushData(rplMatrixGet(lelem, 1, k));
                 if(Exceptions) {
@@ -3613,20 +3613,20 @@ void LIB_HANDLER()
             var = DSTop - 1;
 
         if(ISLIST(**var)) {
-            BINT ndims = rplListLength(*var);
+            int32_t ndims = rplListLength(*var);
             if((ndims < 1) || (ndims > 2)) {
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplGetListElement(*var, 1));
+            cols = rplReadNumberAsInt64(rplGetListElement(*var, 1));
             if(Exceptions) {
                 return;
             }
 
             if(ndims == 2) {
                 rows = cols;
-                cols = rplReadNumberAsBINT(rplGetListElement(*var, 2));
+                cols = rplReadNumberAsInt64(rplGetListElement(*var, 2));
                 if(Exceptions) {
                     return;
                 }
@@ -3639,7 +3639,7 @@ void LIB_HANDLER()
         else if(ISNUMBER(**var)) {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(*var);
+            cols = rplReadNumberAsInt64(*var);
             if(Exceptions) {
                 return;
             }
@@ -3697,8 +3697,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT nrows = rplMatrixRows(*a);
-        BINT ncols = rplMatrixCols(*a);
+        int32_t nrows = rplMatrixRows(*a);
+        int32_t ncols = rplMatrixCols(*a);
 
         if(!nrows) {
             rplError(ERR_INVALIDDIMENSION);
@@ -3727,8 +3727,8 @@ void LIB_HANDLER()
         // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
 
         WORDPTR *base = DSTop;
-        BINT nvecs = ncols, allzeros;
-        BINT i, j;
+        int32_t nvecs = ncols, allzeros;
+        int32_t i, j;
 
         for(i = 1; i <= nvecs; ++i) {
 
@@ -3805,8 +3805,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT nrows = rplMatrixRows(*a);
-        BINT ncols = rplMatrixCols(*a);
+        int32_t nrows = rplMatrixRows(*a);
+        int32_t ncols = rplMatrixCols(*a);
 
         if(!nrows) {
             rplError(ERR_INVALIDDIMENSION);
@@ -3832,7 +3832,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j, k, nvecs;
+        int32_t i, j, k, nvecs;
 
         for(i = 1; i <= ncols; ++i) {
             if(i <= nrows) {
@@ -3955,7 +3955,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -3980,7 +3980,7 @@ void LIB_HANDLER()
         rplPushData(idx);
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        BINT canreduce = rplMatrixBareissEx(a, indexptr, rows, cols, 0);
+        int32_t canreduce = rplMatrixBareissEx(a, indexptr, rows, cols, 0);
         if(!canreduce)
             rplError(ERR_SINGULARMATRIX);
         if(Exceptions) {
@@ -3991,7 +3991,7 @@ void LIB_HANDLER()
         // SPLIT L AND U
 
         WORDPTR *lfirst = DSTop;
-        BINT k, j;
+        int32_t k, j;
 
         rplExpandStack(rows * cols);
         if(Exceptions) {
@@ -4147,9 +4147,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT nrows = rplMatrixRows(*a);
-        BINT ncols = rplMatrixCols(*a);
-        BINT k, j;
+        int32_t nrows = rplMatrixRows(*a);
+        int32_t ncols = rplMatrixCols(*a);
+        int32_t k, j;
 
         if(nrows != ncols) {
             rplError(ERR_SQUAREMATRIXONLY);
@@ -4283,7 +4283,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -4338,7 +4338,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -4355,15 +4355,15 @@ void LIB_HANDLER()
         }
 
         // COUNT THE ROWS WITH A ZERO IN THE DIAGONAL
-        BINT k;
-        BINT rank = rows;
+        int32_t k;
+        int32_t rank = rows;
         for(k = 1; k <= rows; ++k) {
             if(rplSymbIsZero(*rplMatrixFastGetEx(a + 1, cols, k, k)))
                 --rank;
         }
 
         DSTop = savestk;
-        WORDPTR rankobj = rplNewBINT(rank, DECBINT);
+        WORDPTR rankobj = rplNewint32_t(rank, DECint32_t);
         if(!rankobj)
             return;
 
@@ -4404,20 +4404,20 @@ void LIB_HANDLER()
             var = DSTop - 1;
 
         if(ISLIST(**var)) {
-            BINT ndims = rplListLength(*var);
+            int32_t ndims = rplListLength(*var);
             if((ndims < 1) || (ndims > 2)) {
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplGetListElement(*var, 1));
+            cols = rplReadNumberAsInt64(rplGetListElement(*var, 1));
             if(Exceptions) {
                 return;
             }
 
             if(ndims == 2) {
                 rows = cols;
-                cols = rplReadNumberAsBINT(rplGetListElement(*var, 2));
+                cols = rplReadNumberAsInt64(rplGetListElement(*var, 2));
                 if(Exceptions) {
                     return;
                 }
@@ -4430,7 +4430,7 @@ void LIB_HANDLER()
         else if(ISNUMBER(**var)) {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(*var);
+            cols = rplReadNumberAsInt64(*var);
             if(Exceptions) {
                 return;
             }
@@ -4457,18 +4457,18 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
-        BINT nelem = rows ? rows * cols : cols;
+        int32_t nelem = rows ? rows * cols : cols;
 
         rplExpandStack(nelem);
         if(Exceptions)
             return;
 
         WORDPTR *first = DSTop;
-        BINT k;
-        BINT random;
+        int32_t k;
+        int32_t random;
         for(k = 0; k < nelem; ++k) {
             random = (rplRandomNext() >> 8) % 19;
-            rplNewBINTPush(random - 9, DECBINT);
+            rplNewint32_tPush(random - 9, DECint32_t);
             if(Exceptions) {
                 DSTop = first;
                 return;
@@ -4499,8 +4499,8 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *m = DSTop - 3;
-        BINT rows = rplMatrixRows(*m);
-        BINT cols = rplMatrixCols(*m);
+        int32_t rows = rplMatrixRows(*m);
+        int32_t cols = rplMatrixCols(*m);
 
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
@@ -4512,7 +4512,7 @@ void LIB_HANDLER()
             cols = 1;
         }
         int64_t row;
-        row = rplReadNumberAsBINT(rplPeekData(1));
+        row = rplReadNumberAsInt64(rplPeekData(1));
 
         if((row < 1) || (row > rows)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -4529,7 +4529,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i;
+        int32_t i;
 
         for(i = 1; i <= cols; ++i) {
             rplPushData(*factor);
@@ -4582,8 +4582,8 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *m = DSTop - 4;
-        BINT rows = rplMatrixRows(*m);
-        BINT cols = rplMatrixCols(*m);
+        int32_t rows = rplMatrixRows(*m);
+        int32_t cols = rplMatrixCols(*m);
 
         if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_INTEGEREXPECTED);
@@ -4595,8 +4595,8 @@ void LIB_HANDLER()
             cols = 1;
         }
         int64_t rowf, rowto;
-        rowf = rplReadNumberAsBINT(rplPeekData(2));
-        rowto = rplReadNumberAsBINT(rplPeekData(1));
+        rowf = rplReadNumberAsInt64(rplPeekData(2));
+        rowto = rplReadNumberAsInt64(rplPeekData(1));
 
         if((rowf < 1) || (rowf > rows) || (rowto < 1) || (rowto > rows)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -4613,7 +4613,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i;
+        int32_t i;
 
         for(i = 1; i <= cols; ++i) {
             rplPushData(*factor);
@@ -4697,20 +4697,20 @@ void LIB_HANDLER()
         // NOW CHECK THE NEW SIZE
 
         if(ISLIST(*rplPeekData(1))) {
-            BINT ndims = rplListLength(rplPeekData(1));
+            int32_t ndims = rplListLength(rplPeekData(1));
             if((ndims < 1) || (ndims > 2)) {
                 rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
-            cols = rplReadNumberAsBINT(rplGetListElement(rplPeekData(1), 1));
+            cols = rplReadNumberAsInt64(rplGetListElement(rplPeekData(1), 1));
             if(Exceptions) {
                 return;
             }
 
             if(ndims == 2) {
                 rows = cols;
-                cols = rplReadNumberAsBINT(rplGetListElement(rplPeekData(1),
+                cols = rplReadNumberAsInt64(rplGetListElement(rplPeekData(1),
                             2));
                 if(Exceptions) {
                     return;
@@ -4724,7 +4724,7 @@ void LIB_HANDLER()
         else if(ISNUMBER(*rplPeekData(1))) {
             // IT HAS TO BE A NUMBER
 
-            cols = rplReadNumberAsBINT(rplPeekData(1));
+            cols = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions) {
                 return;
             }
@@ -4762,7 +4762,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, totalelem, actualelem;
+        int32_t i, totalelem, actualelem;
 
         totalelem = rows ? rows * cols : cols;
 
@@ -4813,7 +4813,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -4856,7 +4856,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -4865,7 +4865,7 @@ void LIB_HANDLER()
             cols = 1;
         }
 
-        BINT i, j;
+        int32_t i, j;
 
         for(j = 1; j <= cols; ++j) {
             for(i = 1; i <= rows; ++i) {
@@ -4921,7 +4921,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -5022,8 +5022,8 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *m = DSTop - 3;
-        BINT rows = rplMatrixRows(*m);
-        BINT cols = rplMatrixCols(*m);
+        int32_t rows = rplMatrixRows(*m);
+        int32_t cols = rplMatrixCols(*m);
 
         if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_INTEGEREXPECTED);
@@ -5035,8 +5035,8 @@ void LIB_HANDLER()
             cols = 1;
         }
         int64_t rfrom, rto;
-        rfrom = rplReadNumberAsBINT(rplPeekData(2));
-        rto = rplReadNumberAsBINT(rplPeekData(1));
+        rfrom = rplReadNumberAsInt64(rplPeekData(2));
+        rto = rplReadNumberAsInt64(rplPeekData(1));
 
         if((rfrom < 1) || (rfrom > rows) || (rto < 1) || (rto > rows)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -5046,7 +5046,7 @@ void LIB_HANDLER()
 // SWAP THE ROWS INTERNALLY TO REDUCE OVERHEAD
         WORDPTR newmat = rplMakeNewCopy(*m);
         WORD offset;
-        BINT i;
+        int32_t i;
 
 #define MATOFFSET(matrix,row,col) ((matrix)[2+(((row)-1)*cols+((col)-1))])
 
@@ -5104,7 +5104,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT k, rows, cols;
+        int32_t k, rows, cols;
 
         if(ISMATRIX(*rplPeekData(1))) {
             rows = rplMatrixRows(rplPeekData(1));
@@ -5254,7 +5254,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i, j;
+        int32_t i, j;
 
         // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
         // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
@@ -5334,7 +5334,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT rows, cols;
+        int32_t rows, cols;
         rows = rplMatrixRows(*a);
         cols = rplMatrixCols(*a);
 
@@ -5359,7 +5359,7 @@ void LIB_HANDLER()
         rplPushData(idx);
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        BINT canreduce = rplMatrixBareissEx(a, indexptr, rows, cols, 0);
+        int32_t canreduce = rplMatrixBareissEx(a, indexptr, rows, cols, 0);
         if(!canreduce)
             rplError(ERR_SINGULARMATRIX);
         if(Exceptions) {
@@ -5370,7 +5370,7 @@ void LIB_HANDLER()
         // SPLIT L AND U
 
         WORDPTR *lfirst = DSTop;
-        BINT k, j;
+        int32_t k, j;
 
         rplExpandStack(rows * cols);
         if(Exceptions) {
@@ -5561,7 +5561,7 @@ void LIB_HANDLER()
 
         // WE HAVE A MATRIX IN object, NOT NECESSARILY THE ARGUMENT WE RECEIVED
 
-        BINT isprog = 0;
+        int32_t isprog = 0;
         if(ISPROGRAM(*rplPeekData(1)))
             isprog = 1;
         else if(!(ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)))) {
@@ -5646,17 +5646,17 @@ void LIB_HANDLER()
             // LAM 4 = i, LAM 5=j
 
             // SET THE CORRECT VALUES FOR i,j
-            BINT row, cols, col;
+            int32_t row, cols, col;
             cols = rplMatrixCols(*rplGetLAMn(1));
-            BINT index = rplReadBINT(*rplGetLAMn(3));
+            int32_t index = rplReadint32_t(*rplGetLAMn(3));
             row = index / cols;
             col = index - cols * row;
 
-            WORDPTR number = rplNewBINT(row + 1, DECBINT);
+            WORDPTR number = rplNewint32_t(row + 1, DECint32_t);
             if(!number)
                 return;
             rplPutLAMn(4, number);
-            number = rplNewBINT(col + 1, DECBINT);
+            number = rplNewint32_t(col + 1, DECint32_t);
             if(!number)
                 return;
             rplPutLAMn(5, number);
@@ -5671,13 +5671,13 @@ void LIB_HANDLER()
             // THIS IS A SYMBOLIC EXPRESSION, CREATE RULES AND APPLY THEM
 
             // SET THE CORRECT VALUES FOR i,j
-            BINT row, cols, col;
+            int32_t row, cols, col;
             cols = rplMatrixCols(*rplGetLAMn(1));
-            BINT index = rplReadBINT(*rplGetLAMn(3));
+            int32_t index = rplReadint32_t(*rplGetLAMn(3));
             row = index / cols;
             col = index - cols * row;
 
-            WORDPTR number = rplNewBINT(row + 1, DECBINT);
+            WORDPTR number = rplNewint32_t(row + 1, DECint32_t);
             if(!number)
                 return;
 
@@ -5688,7 +5688,7 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
 
-            number = rplNewBINT(col + 1, DECBINT);
+            number = rplNewint32_t(col + 1, DECint32_t);
             if(!number)
                 return;
             // CREATE RULE TO SUBSTITUTE COLUMN
@@ -5733,11 +5733,11 @@ void LIB_HANDLER()
 
         // TODO STARTS HERE...
         WORDPTR matrix = *rplGetLAMn(1);
-        BINT index = rplReadBINT(*rplGetLAMn(3));
+        int32_t index = rplReadint32_t(*rplGetLAMn(3));
         if(Exceptions)
             return;
 
-        BINT nelem = rplMatrixRows(matrix);
+        int32_t nelem = rplMatrixRows(matrix);
         if(!nelem)
             nelem = 1;
         nelem *= rplMatrixCols(matrix);
@@ -5747,7 +5747,7 @@ void LIB_HANDLER()
         if(index < nelem - 1) {
             // LEAVE THE CURRENT RESULT ON THE STACK
             // INCREASE THE INDEX
-            WORDPTR number = rplNewBINT(index + 1, DECBINT);
+            WORDPTR number = rplNewint32_t(index + 1, DECint32_t);
             if(!number)
                 return;
             rplPutLAMn(3, number);
@@ -5762,7 +5762,7 @@ void LIB_HANDLER()
 
         WORDPTR *prevDStk = rplUnprotectData();
 
-        BINT newdepth = (BINT) (DSTop - prevDStk);
+        int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
         if(newdepth != nelem) {
             rplError(ERR_INCOMPATIBLEDIMENSION);
@@ -5774,8 +5774,8 @@ void LIB_HANDLER()
         }
         // COMPUTE THE REQUIRED SIZE
 
-        BINT totalsize = rplMatrixGetFirstObj(matrix) - matrix;
-        BINT k;
+        int32_t totalsize = rplMatrixGetFirstObj(matrix) - matrix;
+        int32_t k;
         for(k = 1; k <= newdepth; ++k) {
             totalsize += rplObjSize(rplPeekData(k));
         }
@@ -5882,7 +5882,7 @@ void LIB_HANDLER()
                     else {
                         // THERE SHOULD BE A SIZE WORD ALREADY
                         // INCREASE THE ROW COUNT
-                        BINT rows = MATROWS(matrix[1]), cols =
+                        int32_t rows = MATROWS(matrix[1]), cols =
                                 MATCOLS(matrix[1]);
                         if(!rows) {
                             // VECTOR CAN'T OPEN A SECOND DIMENSION
@@ -5931,8 +5931,8 @@ void LIB_HANDLER()
                 return;
             }
             WORDPTR matrix = *(ValidateTop - 1);
-            BINT rows, cols;
-            BINT totalelements;
+            int32_t rows, cols;
+            int32_t totalelements;
 
             if(CompileEnd > matrix + 1) {
                 rows = MATROWS(matrix[1]);
@@ -5960,7 +5960,7 @@ void LIB_HANDLER()
                 // CHECK FULL ROW SIZE IS CORRECT
                 // BY CHECKING THE NEXT EMPTY OBJECT IS THE START OF A ROW
 
-                BINT count;
+                int32_t count;
                 WORDPTR index = matrix + 2;
 
                 count = 0;
@@ -6001,7 +6001,7 @@ void LIB_HANDLER()
             // NOW WRITE THE INDICES. ALL OFFSETS ARE RELATIVE TO MATRIX PROLOG!
             WORDPTR ptr = matrix + 2, objptr =
                     ptr + totalelements, nextobj, index;
-            BINT count = 0;
+            int32_t count = 0;
 
             while((objptr < endofobjects) && (count < totalelements)) {
                 *ptr = objptr - matrix;
@@ -6075,15 +6075,15 @@ void LIB_HANDLER()
 
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendString((BYTEPTR) "[ ");
-            BINT rows = MATROWS(*(DecompileObject + 1)), cols =
+            int32_t rows = MATROWS(*(DecompileObject + 1)), cols =
                     MATCOLS(*(DecompileObject + 1));
-            BINT doublebracket = rows;
+            int32_t doublebracket = rows;
 
             if(!rows)
                 ++rows;
 
             // SCAN THE INDEX AND OUTPUT ALL OBJECTS INSIDE
-            BINT i, j;
+            int32_t i, j;
 
             for(i = 0; i < rows; ++i) {
                 if(doublebracket) {
@@ -6098,7 +6098,7 @@ void LIB_HANDLER()
                     return;
                 }
                 for(j = 0; j < cols; ++j) {
-                    BINT offset = *(DecompileObject + 2 + i * cols + j);
+                    int32_t offset = *(DecompileObject + 2 + i * cols + j);
 
                     rplDecompile(DecompileObject + offset, DECOMP_EMBEDDED | ((CurOpcode == OPCODE_DECOMPEDIT) ? (DECOMP_EDIT | DECOMP_NOHINTS) : DECOMP_NOHINTS));     // RUN EMBEDDED
                     if(Exceptions) {
@@ -6174,8 +6174,8 @@ void LIB_HANDLER()
 
         else {
             // IF THIS IS THE FIRST ROW, INCREASE THE COLUMN COUNT
-            BINT dimlevel = OBJSIZE(CurrentConstruct);
-            BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
+            int32_t dimlevel = OBJSIZE(CurrentConstruct);
+            int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
                 // THIS IS A MATRIX, ONLY ALLOW ELEMENTS INSIDE LEVEL 1
@@ -6219,7 +6219,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -6235,7 +6235,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -6245,7 +6245,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

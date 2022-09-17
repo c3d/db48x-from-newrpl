@@ -66,12 +66,12 @@ const WORDPTR const ROMPTR_TABLE[] = {
 };
 
 // STRIP THE TAGS FROM N LEVELS OF THE STACK DURING ARGUMENT CHECKING
-BINT rplStripTagStack(BINT nlevels)
+int32_t rplStripTagStack(int32_t nlevels)
 {
     if(nlevels > DSTop - DStkBottom)
         nlevels = DSTop - DStkBottom;
-    BINT k;
-    BINT changed = 0;
+    int32_t k;
+    int32_t changed = 0;
     for(k = 1; k <= nlevels; ++k)
         if(ISTAG(*DSTop[-k])) {
             changed = 1;
@@ -152,7 +152,7 @@ void LIB_HANDLER()
 
         // CHECK IF THE TAG IS VALID: IT MAY CONTAIN NO SPACES AND NO COLONS
 
-        BINT len = rplStrLen(rplPeekData(2));
+        int32_t len = rplStrLen(rplPeekData(2));
         //BYTEPTR ptr=(BYTEPTR)(rplPeekData(2)+1);
 
         if(len < 1) {
@@ -161,7 +161,7 @@ void LIB_HANDLER()
         }
         // ALLOW ARBITRARY STRINGS...
         /*
-           BINT cp;
+           int32_t cp;
            while(len) {
            cp=utf82cp((char *)ptr,(char *)ptr+4);
            if((cp==' ')||(cp==':')) {
@@ -174,7 +174,7 @@ void LIB_HANDLER()
          */
 
         // IF WE GOT HERE WE HAVE A VALID STRING
-        BINT newsize = rplObjSize(rplPeekData(1)) + rplObjSize(rplPeekData(2));
+        int32_t newsize = rplObjSize(rplPeekData(1)) + rplObjSize(rplPeekData(2));
         WORDPTR newobj = rplAllocTempOb(newsize);
         if(!newobj)
             return;
@@ -227,10 +227,10 @@ void LIB_HANDLER()
             return;
         }
         // IF WE'VE BEEN HERE BEFORE, THEN WE ARE INSIDE THE TAG ITSELF
-        if(CurrentConstruct == (UBINT) MKPROLOG(LIBRARY_NUMBER, 0)) {
+        if(CurrentConstruct == (uint32_t) MKPROLOG(LIBRARY_NUMBER, 0)) {
             // NEED TO MANUALLY COMPILE THE STRING
-            BINT nbytes = (BYTEPTR) BlankStart - (BYTEPTR) TokenStart - 1;
-            BINT lastword = nbytes & 3;
+            int32_t nbytes = (BYTEPTR) BlankStart - (BYTEPTR) TokenStart - 1;
+            int32_t lastword = nbytes & 3;
             if(lastword)
                 lastword = 4 - lastword;
             ++ptr;
@@ -334,7 +334,7 @@ void LIB_HANDLER()
 
         // PROBE LIBRARY COMMANDS FIRST
 
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -350,7 +350,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -360,7 +360,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

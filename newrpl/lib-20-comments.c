@@ -62,9 +62,9 @@ const WORDPTR const ROMPTR_TABLE[] = {
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
 // LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
-void rplSetCommentLength(WORDPTR string, BINT length)
+void rplSetCommentLength(WORDPTR string, int32_t length)
 {
-    BINT padding = (4 - ((length) & 3)) & 3;
+    int32_t padding = (4 - ((length) & 3)) & 3;
 
     *string = MKPROLOG(LIBRARY_NUMBER + padding, (length + 3) >> 2);
 }
@@ -144,7 +144,7 @@ void LIB_HANDLER()
         }
 
         // SCAN THE EXECUTABLE TO DETERMINE SIZE WITHOUT COMMENTS
-        BINT newsize = 1;
+        int32_t newsize = 1;
 
         WORDPTR ptr, end;
         WORDPTR *Stacksave = DSTop;
@@ -158,14 +158,14 @@ void LIB_HANDLER()
 
             if(Stacksave != DSTop) {
                 // CONTINUE OBJECT WHERE WE LEFT OFF
-                newsize += rplReadBINT(rplPopData());
+                newsize += rplReadint32_t(rplPopData());
                 end = rplSkipOb(rplPopData());
             }
 
             while(ptr != end) {
                 if(ISPROGRAM(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewBINTPush(newsize, DECBINT);
+                    rplNewint32_tPush(newsize, DECint32_t);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -178,7 +178,7 @@ void LIB_HANDLER()
                 }
                 if(ISLIST(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewBINTPush(newsize, DECBINT);
+                    rplNewint32_tPush(newsize, DECint32_t);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -192,7 +192,7 @@ void LIB_HANDLER()
 
                 if(ISCOMMENT(*ptr)) {
                     // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
-                    BINT len = OBJSIZE(*ptr);
+                    int32_t len = OBJSIZE(*ptr);
                     if(!((len > 0) && ((ptr[1] & 0xff) == '@')
                                 && (((ptr[1] >> 8) & 0xff) != '@'))) {
                         // NOT A PERMANENT COMMENT SKIP AND CONTINUE
@@ -236,7 +236,7 @@ void LIB_HANDLER()
 
             if(Stacksave != DSTop) {
                 // CONTINUE OBJECT WHERE WE LEFT OFF
-                newsize += rplReadBINT(rplPopData());
+                newsize += rplReadint32_t(rplPopData());
                 end = rplSkipOb(rplPopData());
                 ScratchPointer3 = rplPopData();
             }
@@ -245,7 +245,7 @@ void LIB_HANDLER()
                 if(ISPROGRAM(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewBINTPush(newsize, DECBINT);
+                    rplNewint32_tPush(newsize, DECint32_t);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -261,7 +261,7 @@ void LIB_HANDLER()
                 if(ISLIST(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewBINTPush(newsize, DECBINT);
+                    rplNewint32_tPush(newsize, DECint32_t);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -277,7 +277,7 @@ void LIB_HANDLER()
 
                 if(ISCOMMENT(*ptr)) {
                     // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
-                    BINT len = OBJSIZE(*ptr);
+                    int32_t len = OBJSIZE(*ptr);
                     if(!((len > 0) && ((ptr[1] & 0xff) == '@')
                                 && (((ptr[1] >> 8) & 0xff) != '@'))) {
                         // NOT A PERMANENT COMMENT SKIP AND CONTINUE
@@ -337,7 +337,7 @@ void LIB_HANDLER()
                 BYTE bytes[4];
             } temp;
 
-            BINT count = 0, mode = 1, endmark = 0;
+            int32_t count = 0, mode = 1, endmark = 0;
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             ++ptr;      // SKIP THE INITIAL AT
 
@@ -432,7 +432,7 @@ void LIB_HANDLER()
             WORD word;
             BYTE bytes[4];
         } temp;
-        BINT mode = 1, endmark = 0;
+        int32_t mode = 1, endmark = 0;
         if(CompileEnd > ScratchPointer4 + 1) {
             // GET THE FIRST WORD TO EXTRACT THE COMMENT MODE
             temp.word = *(ScratchPointer4 + 1);
@@ -446,7 +446,7 @@ void LIB_HANDLER()
 
         mode |= 0x40000000;
 
-        BINT count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
+        int32_t count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
 
         if(count) {
             --CompileEnd;
@@ -538,7 +538,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendChar('@');
-            BINT len =
+            int32_t len =
                     (OBJSIZE(*DecompileObject) << 2) -
                     (LIBNUM(*DecompileObject) & 3);
             BYTEPTR string = (BYTEPTR) (DecompileObject + 1);
@@ -596,7 +596,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -612,7 +612,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -621,7 +621,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

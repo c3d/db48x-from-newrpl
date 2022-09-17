@@ -16,7 +16,7 @@ void growRStk(WORD newtotalsize)
 {
     WORDPTR *newrstk;
 
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
 
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;
@@ -115,7 +115,7 @@ void rplClearRStk()
 }
 
 // RETURN THE DEPTH OF THE RETURN STACK
-BINT rplDepthRet()
+int32_t rplDepthRet()
 {
     return RSTop - RStk;
 }

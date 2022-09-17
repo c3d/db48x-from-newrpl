@@ -13,7 +13,7 @@ extern ROMOBJECT nullptr_catastrophic_seco[];
 
 // THIS IS THE TRAP THAT HANDLES REAL NUMBER EXCEPTIONS AND CONVERTS THEM
 // TO RPL KERNEL EXCEPTIONS
-void decTrapHandler(BINT error)
+void decTrapHandler(int32_t error)
 {
     // SIMPLY COPY THE MATHEMATIC EXCEPTIONS INTO THE UPPER 16 BITS OF OUR EXCEPTION WORD
     Exceptions |= error;
@@ -130,8 +130,8 @@ void rplClearErrors()
 // BLAME A USER COMMAND, NOT A ROM INTERNAL COMMAND FOR AN ERROR
 void rplBlameUserCommand()
 {
-    BINT depth = rplDepthRet();
-    BINT idx = 1;
+    int32_t depth = rplDepthRet();
+    int32_t idx = 1;
     WORDPTR cmdpointer = ExceptionPointer;
 
     while(!rplIsTempObPointer(cmdpointer) && (idx <= depth)) {

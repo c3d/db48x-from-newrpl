@@ -212,7 +212,7 @@ void LIB_HANDLER()
                 return;
             }
             // AND PUT BACK THE SAME UNIT
-            BINT nlevels = rplUnitExplode(rplPeekData(2));
+            int32_t nlevels = rplUnitExplode(rplPeekData(2));
             rplUnitPopItem(nlevels);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -256,11 +256,11 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
-            BINT bothunit = (ISUNIT(*rplPeekData(1))
+            int32_t isspec1, isspec2;
+            int32_t bothunit = (ISUNIT(*rplPeekData(1))
                     && ISUNIT(*rplPeekData(2)));
 
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
@@ -330,10 +330,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2, bothunit;
+            int32_t isspec1, isspec2, bothunit;
 
             bothunit = (ISUNIT(*rplPeekData(1)) && ISUNIT(*rplPeekData(2)));
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
@@ -396,10 +396,10 @@ void LIB_HANDLER()
                 (*symblib) ();
                 return;
             }
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
             isspec1 = rplUnitIsSpecial(rplPeekData(2));
 
@@ -469,7 +469,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -551,10 +551,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
             isspec1 = rplUnitIsSpecial(rplPeekData(2));
 
@@ -624,7 +624,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -707,10 +707,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1;
+            int32_t nlevels1;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1;
+            int32_t isspec1;
 
             rplOverwriteData(1, rplConstant2Number(rplPeekData(1)));    // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
 
@@ -773,10 +773,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1;
+            int32_t nlevels1;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1;
+            int32_t isspec1;
 
             rplOverwriteData(1, rplConstant2Number(rplPeekData(1)));    // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
             if(ISUNIT(*rplPeekData(1))) {
@@ -843,10 +843,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2, swap = 0;
+            int32_t nlevels1, nlevels2, swap = 0;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -861,10 +861,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -929,7 +929,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -988,10 +988,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2, swap = 0;
+            int32_t nlevels1, nlevels2, swap = 0;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1006,10 +1006,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1074,7 +1074,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1130,10 +1130,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2, swap = 0;
+            int32_t nlevels1, nlevels2, swap = 0;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1148,10 +1148,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1216,7 +1216,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1272,10 +1272,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2, swap = 0;
+            int32_t nlevels1, nlevels2, swap = 0;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1290,10 +1290,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1358,7 +1358,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1413,10 +1413,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2, swap = 0;
+            int32_t nlevels1, nlevels2, swap = 0;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1431,10 +1431,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1499,7 +1499,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1579,10 +1579,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1596,10 +1596,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     WORDPTR tmp = rplPeekData(1);
@@ -1663,7 +1663,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1713,10 +1713,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1, nlevels2;
+            int32_t nlevels1, nlevels2;
             WORDPTR *stkclean = DSTop;
 
-            BINT isspec1, isspec2;
+            int32_t isspec1, isspec2;
 
             if(ISREAL(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
@@ -1730,10 +1730,10 @@ void LIB_HANDLER()
                 }
 
             }
-            if(ISBINT(*rplPeekData(2))) {
+            if(ISint32_t(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                int64_t num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
                     WORDPTR tmp = rplPeekData(1);
@@ -1797,7 +1797,7 @@ void LIB_HANDLER()
             }
 
             // BOTH UNITS WERE REDUCED TO THE BASE
-            BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+            int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
             if(!result) {
                 rplError(ERR_INCONSISTENTUNITS);
                 DSTop = stkclean;
@@ -1878,7 +1878,7 @@ void LIB_HANDLER()
             // NEED TO REPLACE THE IDENT WITH A NEW
             // ONE THAT DOESN'T HAVE THE RIGHT ARROW
 
-            BINT newlen = rplGetIdentLength(name);
+            int32_t newlen = rplGetIdentLength(name);
 
             if(newlen <= 1) {
                 rplError(ERR_INVALIDUNITNAME);
@@ -1904,7 +1904,7 @@ void LIB_HANDLER()
         // HERE WE HAVE A PROPER NAME AND UNIT OBJECT
 
         // CHECK IF THE UNIT EXISTS OR CONFLICTS WITH ANOTHER UNIT
-        BINT siindex = 0;
+        int32_t siindex = 0;
         WORDPTR *found = rplUnitFindCustom(name, &siindex);
 
         if(found) {
@@ -1979,7 +1979,7 @@ void LIB_HANDLER()
             rplError(ERR_UNDEFINEDUNIT);
             return;
         }
-        BINT siindex = 0;
+        int32_t siindex = 0;
         WORDPTR *found = rplUnitFindCustom(name, &siindex);
 
         if((!found) || (siindex != 0)) {
@@ -2012,7 +2012,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR *stkclean = DSTop;
-        BINT nlevels = rplUnitExplode(rplPeekData(1));
+        int32_t nlevels = rplUnitExplode(rplPeekData(1));
         if(Exceptions) {
             DSTop = stkclean;
             return;
@@ -2041,9 +2041,9 @@ void LIB_HANDLER()
            return;
            } */
 
-        BINT nlevels1, nlevels2;
+        int32_t nlevels1, nlevels2;
         WORDPTR *stkclean = DSTop;
-        BINT isspec1, isspec2;
+        int32_t isspec1, isspec2;
         isspec1 = rplUnitIsSpecial(rplPeekData(1));
         isspec2 = rplUnitIsSpecial(rplPeekData(2));
 
@@ -2097,7 +2097,7 @@ void LIB_HANDLER()
         }
 
         // BOTH UNITS WERE REDUCED TO THE BASE
-        BINT result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
+        int32_t result = rplUnitIsConsistent(nlevels1 + nlevels2, nlevels2);
         if(!result) {
             rplError(ERR_INCONSISTENTUNITS);
             DSTop = stkclean;
@@ -2221,7 +2221,7 @@ void LIB_HANDLER()
 
         if(ISSYMBOLIC(*val)) {
             val = rplSymbUnwrap(val);
-            if(ISBINT(val[1]) || ISPROLOG(val[1])) {
+            if(ISint32_t(val[1]) || ISPROLOG(val[1])) {
                 // THIS IS AN ATOMIC EXPRESSION, OPERATE DIRECTLY ON THE OBJECT
                 ++val;
             }   // OTHERWISE IT CONTAINS OPERATORS, SO KEEP IT SYMBOLIC
@@ -2261,7 +2261,7 @@ void LIB_HANDLER()
            return;
            } */
         WORDPTR *stkclean = DSTop;
-        BINT nlevels = rplUnitExplode(rplPeekData(1));
+        int32_t nlevels = rplUnitExplode(rplPeekData(1));
         if(Exceptions) {
             DSTop = stkclean;
             return;
@@ -2307,7 +2307,7 @@ void LIB_HANDLER()
 
         WORDPTR *entry;
         WORDPTR *savestk = DSTop;
-        BINT count = 0;
+        int32_t count = 0;
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT ALL IDENTS
         entry = rplFindFirstByHandle(unitdir_obj);
         while(entry) {
@@ -2388,14 +2388,14 @@ void LIB_HANDLER()
             // MAXIMUM 8 LEVELS SUPPORTED
 
             BYTEPTR nextptr, endptr;
-            BINT count = 0;
-            BINT exponent = 1, negexp = 0, needident = 0, needexp = 0;
-            BINT groupoff[8];
-            BINT groupexp[8];
-            BINT groupidx = 0;
+            int32_t count = 0;
+            int32_t exponent = 1, negexp = 0, needident = 0, needexp = 0;
+            int32_t groupoff[8];
+            int32_t groupexp[8];
+            int32_t groupidx = 0;
             uint64_t Locale = rplGetSystemLocale();
-            BINT toklen;
-            BINT tokstart = 1;
+            int32_t toklen;
+            int32_t tokstart = 1;
 
             nextptr = ptr + 1;
             endptr = (BYTEPTR) BlankStart;
@@ -2479,7 +2479,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    BINT nletters = utf8nlen((char *)nextptr, (char *)nameend);
+                    int32_t nletters = utf8nlen((char *)nextptr, (char *)nameend);
                     // COMPILE THE IDENT
 
                     rplCompileIDENT(DOIDENT, nextptr, nameend);
@@ -2510,7 +2510,7 @@ void LIB_HANDLER()
                             return;
                         }
                         if(needexp) {
-                            BINT finalexp = (negexp) ? -exponent : exponent;
+                            int32_t finalexp = (negexp) ? -exponent : exponent;
                             rplCompileAppend(MAKESINT(finalexp));
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
@@ -2559,7 +2559,7 @@ void LIB_HANDLER()
                                     return;
                                 }
 
-                                BINT nletters =
+                                int32_t nletters =
                                         utf8nlen((char *)nextptr,
                                         (char *)numend);
 
@@ -2657,7 +2657,7 @@ void LIB_HANDLER()
 
                                 rplOneToRReg(1);
 
-                                BINT nletters =
+                                int32_t nletters =
                                         utf8nlen((char *)nextptr,
                                         (char *)numend);
 
@@ -2675,7 +2675,7 @@ void LIB_HANDLER()
                             // MULTIPLY THEIR EXPONENTS BY THIS ONE
 
                             WORDPTR groupptr, unitptr, numptr, denptr;
-                            BINT groupsize, offset = 0;
+                            int32_t groupsize, offset = 0;
                             REAL orgnum, orgden;
 
                             groupptr =
@@ -2701,7 +2701,7 @@ void LIB_HANDLER()
 
                                 // AND COMPILE THEM AS NEW
 
-                                BINT unitlen = rplObjSize(unitptr);
+                                int32_t unitlen = rplObjSize(unitptr);
 
                                 rplCompileAppendWords(unitlen); // MAKE A COPY OF THE IDENT
                                 if(Exceptions) {
@@ -2726,8 +2726,8 @@ void LIB_HANDLER()
                                         && inint64_tRange(&RReg[2])) {
                                     // EXPONENT IS AN INTEGER
                                     int64_t finalexp = getint64_tReal(&RReg[2]);
-                                    // COMPILE AS A BINT OR A SINT
-                                    rplCompileBINT(finalexp, DECBINT);
+                                    // COMPILE AS A int32_t OR A SINT
+                                    rplCompileint32_t(finalexp, DECint32_t);
                                     if(Exceptions) {
                                         RetNum = ERR_INVALID;
                                         return;
@@ -2749,8 +2749,8 @@ void LIB_HANDLER()
                                     // EXPONENT IS AN INTEGER
                                     int64_t finalexp = getint64_tReal(&RReg[3]);
 
-                                    // COMPILE AS A BINT OR A SINT
-                                    rplCompileBINT(finalexp, DECBINT);
+                                    // COMPILE AS A int32_t OR A SINT
+                                    rplCompileint32_t(finalexp, DECint32_t);
                                     if(Exceptions) {
                                         RetNum = ERR_INVALID;
                                         return;
@@ -2793,7 +2793,7 @@ void LIB_HANDLER()
 
                     if(*nextptr == '*') {
                         if(needexp) {
-                            BINT finalexp = (negexp) ? -exponent : exponent;
+                            int32_t finalexp = (negexp) ? -exponent : exponent;
                             rplCompileAppend(MAKESINT(finalexp));
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
@@ -2814,7 +2814,7 @@ void LIB_HANDLER()
                     }
                     if(*nextptr == '/') {
                         if(needexp) {
-                            BINT finalexp = (negexp) ? -exponent : exponent;
+                            int32_t finalexp = (negexp) ? -exponent : exponent;
                             rplCompileAppend(MAKESINT(finalexp));
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
@@ -2870,7 +2870,7 @@ void LIB_HANDLER()
                                 return;
                             }
 
-                            BINT nletters =
+                            int32_t nletters =
                                     utf8nlen((char *)nextptr, (char *)numend);
 
                             count += nletters;
@@ -2949,8 +2949,8 @@ void LIB_HANDLER()
                                 if(negexp)
                                     finalexp = -finalexp;
 
-                                // COMPILE AS A BINT OR A SINT
-                                rplCompileBINT(finalexp, DECBINT);
+                                // COMPILE AS A int32_t OR A SINT
+                                rplCompileint32_t(finalexp, DECint32_t);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
@@ -2959,7 +2959,7 @@ void LIB_HANDLER()
                             }
                             else {
                                 // EXPONENT WILL HAVE TO BE A REAL
-                                BINT sign = (negexp) ? -exponent : exponent;
+                                int32_t sign = (negexp) ? -exponent : exponent;
 
                                 if(sign < 0)
                                     RReg[0].flags ^= F_NEGATIVE;
@@ -2977,8 +2977,8 @@ void LIB_HANDLER()
                                 // EXPONENT IS AN INTEGER
                                 int64_t finalexp = getint64_tReal(&RReg[1]);
 
-                                // COMPILE AS A BINT OR A SINT
-                                rplCompileBINT(finalexp, DECBINT);
+                                // COMPILE AS A int32_t OR A SINT
+                                rplCompileint32_t(finalexp, DECint32_t);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
@@ -3033,7 +3033,7 @@ void LIB_HANDLER()
                                 return;
                             }
 
-                            BINT nletters =
+                            int32_t nletters =
                                     utf8nlen((char *)nextptr, (char *)numend);
 
                             if(isintegerReal(&RReg[0])
@@ -3044,8 +3044,8 @@ void LIB_HANDLER()
                                 if(negexp)
                                     finalexp = -finalexp;
 
-                                // COMPILE AS A BINT OR A SINT
-                                rplCompileBINT(finalexp, DECBINT);
+                                // COMPILE AS A int32_t OR A SINT
+                                rplCompileint32_t(finalexp, DECint32_t);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
@@ -3055,7 +3055,7 @@ void LIB_HANDLER()
                             }
                             else {
                                 // EXPONENT WILL HAVE TO BE A REAL
-                                BINT sign = (negexp) ? -exponent : exponent;
+                                int32_t sign = (negexp) ? -exponent : exponent;
 
                                 if(sign < 0)
                                     RReg[0].flags ^= F_NEGATIVE;
@@ -3092,7 +3092,7 @@ void LIB_HANDLER()
             }   // END WHILE
 
             if(needexp) {
-                BINT finalexp = (negexp) ? -exponent : exponent;
+                int32_t finalexp = (negexp) ? -exponent : exponent;
                 rplCompileAppend(MAKESINT(finalexp));
                 rplCompileAppend(MAKESINT(1));
 
@@ -3116,7 +3116,7 @@ void LIB_HANDLER()
                     return;
                 }
                 // FIX THE SIZE OF THE OBJECT
-                BINT sizewords = CompileEnd - ScratchPointer2;
+                int32_t sizewords = CompileEnd - ScratchPointer2;
                 *ScratchPointer2 = MKPROLOG(LIBRARY_NUMBER, sizewords - 1);
                 // AND ADD THE UNIT APPLY OPERATOR
 
@@ -3216,7 +3216,7 @@ void LIB_HANDLER()
             // AND SKIP THE NUMERIC PART OF THE UNIT IF IT WAS
 
             BYTEPTR decstring = (BYTEPTR) DecompStringEnd;
-            BINT closebracket = 1, addnumber = 1;
+            int32_t closebracket = 1, addnumber = 1;
 
             if((decstring[-2] != '_') || (decstring[-1] != '[')) {
 
@@ -3251,10 +3251,10 @@ void LIB_HANDLER()
 
             }
 
-            BINT offset = 1;
-            BINT totalsize = rplObjSize(DecompileObject);
-            BINT needmult = 0;
-            BINT Format = 4 | ((CurOpcode == OPCODE_DECOMPEDIT) ? FMT_CODE : 0);        // SIMPLE FORMAT FOR ALL EXPONENTS, ONLY 4 DECIMAL PLACES IS ENOUGH
+            int32_t offset = 1;
+            int32_t totalsize = rplObjSize(DecompileObject);
+            int32_t needmult = 0;
+            int32_t Format = 4 | ((CurOpcode == OPCODE_DECOMPEDIT) ? FMT_CODE : 0);        // SIMPLE FORMAT FOR ALL EXPONENTS, ONLY 4 DECIMAL PLACES IS ENOUGH
             uint64_t Locale = rplGetSystemLocale();
 
             offset += rplObjSize(DecompileObject + 1);  // SKIP THE MAIN VALUE
@@ -3317,7 +3317,7 @@ void LIB_HANDLER()
 
                         BYTEPTR string;
 
-                        BINT len = formatlengthReal(&rnum, Format, Locale);
+                        int32_t len = formatlengthReal(&rnum, Format, Locale);
 
                         // RESERVE THE MEMORY FIRST
                         rplDecompAppendString2(0, len);
@@ -3362,7 +3362,7 @@ void LIB_HANDLER()
 
                         BYTEPTR string;
 
-                        BINT len = formatlengthReal(&rnum, Format, Locale);
+                        int32_t len = formatlengthReal(&rnum, Format, Locale);
 
                         // RESERVE THE MEMORY FIRST
                         rplDecompAppendString2(0, len);
@@ -3456,7 +3456,7 @@ void LIB_HANDLER()
         if((TokenLen >= 2) && (ptr[0] == '_') && (ptr[1] == '[')) {
 
             BYTEPTR endptr;
-            BINT count = 2;
+            int32_t count = 2;
             // FIND MATCHING BRACKET
             endptr = ptr + 2;
 
@@ -3472,7 +3472,7 @@ void LIB_HANDLER()
             return;
         }
 
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
         return;
 
@@ -3488,7 +3488,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -3498,7 +3498,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

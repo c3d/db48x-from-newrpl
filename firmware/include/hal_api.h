@@ -1123,7 +1123,7 @@ int         usb_isconfigured();
 
 // HIGHER LEVEL MEMORY MANAGEMENT
 
-WORDPTR    *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize);
+WORDPTR    *halGrowMemory(int32_t zone, WORDPTR *base, int32_t newsize);
 int         halGetFreePages();
 int         halGetTotalPages();
 int         halCheckMemoryMap();
@@ -1133,11 +1133,11 @@ void        halInitMemoryMap();
 
 // HIGHER LEVEL GLOBAL VARIABLES
 
-extern BINT halFlags;
+extern int32_t halFlags;
 extern void (*halProcesses[3])(void);
 extern HEVENT halBusyEvent, halTimeoutEvent;
-extern BINT   halLongKeyPending;
-extern BINT   halKeyMenuSwitch;
+extern int32_t   halLongKeyPending;
+extern int32_t   halKeyMenuSwitch;
 
 // HIGHER LEVEL HAL FUNCTIONS
 
@@ -1193,8 +1193,8 @@ void          halSetMenu2Height(int h);
 WORDPTR       halGetCommandName(WORDPTR NameObject);
 
 // HIGHER LEVEL UI
-BINT          halGetContext();
-void          halSetContext(BINT KeyContext);
+int32_t          halGetContext();
+void          halSetContext(int32_t KeyContext);
 void          halSetCmdLineMode(BYTE mode);
 BYTE          halGetCmdLineMode();
 void          halForceAlphaModeOn();
@@ -1216,14 +1216,14 @@ void          halSwitch2Stack();
 #define OL_EXITONERROR   256 // EXIT THE POL IF THERE ARE ANY EXCEPTIONS
 
 // OUTER LOOP
-void           halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), BINT flags);
+void           halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), int32_t flags);
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
 int            halExitOuterLoop();
 
 // KEYBOARD FUNCTIONS
 void           halInitKeyboard();
-BINT           halWaitForKey();
-BINT           halWaitForKeyTimeout(BINT timeoutms);
+int32_t           halWaitForKey();
+int32_t           halWaitForKeyTimeout(int32_t timeoutms);
 void           halPostKeyboardMessage(WORD keymsg);
 int            halDoDefaultKey(WORD keymsg);
 int            halDoCustomKey(WORD keymsg);

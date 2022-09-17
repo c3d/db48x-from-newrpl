@@ -455,7 +455,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         if(ISNUMBER(*rplPeekData(1))) {
-            int64_t errorcode = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t errorcode = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
             if((errorcode < 0) || (errorcode >= 0x7ffff)) {
@@ -472,8 +472,8 @@ void LIB_HANDLER()
                 return;
             }
             WORD SavedOpcode = CurOpcode;
-            BINT SavedException = Exceptions;
-            BINT SavedErrorCode = ErrorCode;
+            int32_t SavedException = Exceptions;
+            int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
             CurOpcode = MKOPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
@@ -516,7 +516,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall the previous error code
         //@INCOMPAT
         // GET THE PREVIOUS ERROR CODE
-        BINT msgcode;
+        int32_t msgcode;
         if(TrappedExceptions == EX_ERRORCODE)
             msgcode = TrappedErrorCode;
         else {
@@ -533,7 +533,7 @@ void LIB_HANDLER()
             }
         }
 
-        rplNewSINTPush(msgcode, HEXBINT);
+        rplNewSINTPush(msgcode, HEXint32_t);
         return;
 
     }
@@ -543,7 +543,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall the previous error message
         //@INCOMPAT
         // GET THE PREVIOUS ERROR CODE
-        BINT msgcode;
+        int32_t msgcode;
         WORDPTR string = 0;
         if(TrappedExceptions == EX_ERRORCODE)
             msgcode = TrappedErrorCode;
@@ -566,8 +566,8 @@ void LIB_HANDLER()
         }
         else {
             WORD SavedOpcode = CurOpcode;
-            BINT SavedException = Exceptions;
-            BINT SavedErrorCode = ErrorCode;
+            int32_t SavedException = Exceptions;
+            int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
             CurOpcode = MKOPCODE(LIBFROMMSG(msgcode), OPCODE_LIBMSG);
@@ -650,7 +650,7 @@ void LIB_HANDLER()
             }
         }
 
-        int64_t off = rplReadNumberAsBINT(offset);
+        int64_t off = rplReadNumberAsInt64(offset);
 
         if(off < 0) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
@@ -673,7 +673,7 @@ void LIB_HANDLER()
         BreakPt1Arg = condition;
         BreakPt1Pointer = ptr;
 
-        BINT flags = BKPT_ENABLED | BKPT_LOCATION;
+        int32_t flags = BKPT_ENABLED | BKPT_LOCATION;
         if(condition)
             flags |= BKPT_COND;
 
@@ -719,7 +719,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         if(ISNUMBER(*rplPeekData(1))) {
-            int64_t errorcode = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t errorcode = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
             if((errorcode < 0) || (errorcode >= 0x7ffff)) {
@@ -736,8 +736,8 @@ void LIB_HANDLER()
                 return;
             }
             WORD SavedOpcode = CurOpcode;
-            BINT SavedException = Exceptions;
-            BINT SavedErrorCode = ErrorCode;
+            int32_t SavedException = Exceptions;
+            int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
             CurOpcode = MKOPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
@@ -854,7 +854,7 @@ void LIB_HANDLER()
     case OVR_SAME:
         // COMPARE PROGRAMS AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
     {
-        BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+        int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
         rplDropData(2);
         if(same)
             rplPushTrue();
@@ -1040,7 +1040,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1057,7 +1057,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -1068,7 +1068,7 @@ void LIB_HANDLER()
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
 
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

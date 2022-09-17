@@ -134,7 +134,7 @@ void LIB_HANDLER()
         if(Exceptions)
             return;
         if(iszeroReal(&r))
-            rplLoadBINTAsReal(halTicks(), &r);
+            rplLoadInt64AsReal(halTicks(), &r);
         uint64_t seed = 12345678901234567890ULL;
         int k;
         for(k = 0; k < r.len; ++k) {
@@ -149,8 +149,8 @@ void LIB_HANDLER()
         // GET A RANDOM NUMBER AT LEAST AT CURRENT PRECISION
     {
         //@SHORT_DESC=Generate a random real number
-        BINT nwords = (Context.precdigits + 7) >> 3;
-        BINT k;
+        int32_t nwords = (Context.precdigits + 7) >> 3;
+        int32_t k;
 
         RReg[0].exp = -nwords * 8;
         RReg[0].flags = 0;
@@ -262,7 +262,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -278,7 +278,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -287,7 +287,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

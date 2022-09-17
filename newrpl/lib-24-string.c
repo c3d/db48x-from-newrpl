@@ -90,10 +90,10 @@ const WORDPTR const ROMPTR_TABLE[] = {
 };
 
 // COMPUTE THE STRING LENGTH IN CODE POINTS
-BINT rplStrLenCp(WORDPTR string)
+int32_t rplStrLenCp(WORDPTR string)
 {
     if(ISSTRING(*string)) {
-        BINT len = STRLEN(*string);
+        int32_t len = STRLEN(*string);
         BYTEPTR start = (BYTEPTR) (string + 1);
         return utf8nlen((char *)start, (char *)(start + len));
     }
@@ -101,10 +101,10 @@ BINT rplStrLenCp(WORDPTR string)
 }
 
 // COMPUTE THE STRING LENGTH IN CHARACTERS
-BINT rplStrLen(WORDPTR string)
+int32_t rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string)) {
-        BINT len = STRLEN(*string);
+        int32_t len = STRLEN(*string);
         BYTEPTR start = (BYTEPTR) (string + 1);
         return utf8nlenst((char *)start, (char *)(start + len));
     }
@@ -112,7 +112,7 @@ BINT rplStrLen(WORDPTR string)
 }
 
 // COMPUTE THE STRING LENGTH IN BYTES
-BINT rplStrSize(WORDPTR string)
+int32_t rplStrSize(WORDPTR string)
 {
     if(ISSTRING(*string))
         return STRLEN(*string);
@@ -120,13 +120,13 @@ BINT rplStrSize(WORDPTR string)
 }
 
 // COMPARE 2 STRINGS
-BINT rplStringCompare(WORDPTR str1, WORDPTR str2)
+int32_t rplStringCompare(WORDPTR str1, WORDPTR str2)
 {
     if(str1 == str2)
         return 1;
 
-    BINT nwords;
-    BINT padding = LIBNUM(*str1) & 3;
+    int32_t nwords;
+    int32_t padding = LIBNUM(*str1) & 3;
 
     nwords = OBJSIZE(*str1);
 
@@ -152,9 +152,9 @@ BINT rplStringCompare(WORDPTR str1, WORDPTR str2)
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN BYTES
 // LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
-void rplSetStringLength(WORDPTR string, BINT length)
+void rplSetStringLength(WORDPTR string, int32_t length)
 {
-    BINT padding = (4 - ((length) & 3)) & 3;
+    int32_t padding = (4 - ((length) & 3)) & 3;
 
     *string = MKPROLOG(DOSTRING + padding, (length + 3) >> 2);
 }
@@ -164,13 +164,13 @@ void rplSetStringLength(WORDPTR string, BINT length)
 // RETURN AN OFFSET TO THE START OF THE REQUESTED LINE
 // IF LINE<1 OR LINE>NUMBER OF LINES IN THE STRING, RETURNS -1
 //
-BINT rplStringGetLinePtr(WORDPTR str, BINT line)
+int32_t rplStringGetLinePtr(WORDPTR str, int32_t line)
 {
     if(!ISSTRING(*str))
         return -1;
     BYTEPTR start = (BYTEPTR) (str + 1), ptr;
-    BINT len = STRLEN(*str);
-    BINT count = 1;
+    int32_t len = STRLEN(*str);
+    int32_t count = 1;
 
     ptr = start;
     while(count < line) {
@@ -188,12 +188,12 @@ BINT rplStringGetLinePtr(WORDPTR str, BINT line)
     return ptr - start;
 }
 
-BINT rplStringGetNextLine(WORDPTR str, BINT prevlineoff)
+int32_t rplStringGetNextLine(WORDPTR str, int32_t prevlineoff)
 {
     if(!ISSTRING(*str))
         return -1;
     BYTEPTR start = (BYTEPTR) (str + 1), ptr;
-    BINT len = STRLEN(*str);
+    int32_t len = STRLEN(*str);
 
     if(prevlineoff >= len)
         return -1;
@@ -210,13 +210,13 @@ BINT rplStringGetNextLine(WORDPTR str, BINT prevlineoff)
     return ptr - start;
 }
 
-BINT rplStringCountLines(WORDPTR str)
+int32_t rplStringCountLines(WORDPTR str)
 {
     if(!ISSTRING(*str))
         return -1;
     BYTEPTR start = (BYTEPTR) (str + 1), ptr;
-    BINT len = STRLEN(*str);
-    BINT count = 1;
+    int32_t len = STRLEN(*str);
+    int32_t count = 1;
 
     ptr = start;
     while(ptr - start < len) {
@@ -234,8 +234,8 @@ BINT rplStringCountLines(WORDPTR str)
 // USES SCRATCHPOINTER1 IN CASE text IS IN TEMPOB
 WORDPTR rplCreateString(BYTEPTR text, BYTEPTR textend)
 {
-    BINT lenbytes = textend - text;
-    BINT len = (lenbytes + 3) >> 2;
+    int32_t lenbytes = textend - text;
+    int32_t len = (lenbytes + 3) >> 2;
     if(lenbytes < 0)
         return 0;
     ScratchPointer1 = (WORDPTR) text;
@@ -259,9 +259,9 @@ WORDPTR rplCreateString(BYTEPTR text, BYTEPTR textend)
 // CREATE A NEW STRING OBEJCT BY SIZE AND RETURN ITS ADDRESS
 // RETURNS NULL IF ANY ERRORS
 // MAY TRIGGER A GC
-WORDPTR rplCreateStringBySize(BINT lenbytes)
+WORDPTR rplCreateStringBySize(int32_t lenbytes)
 {
-    BINT len = (lenbytes + 3) >> 2;
+    int32_t len = (lenbytes + 3) >> 2;
     if(lenbytes < 0)
         return 0;
     WORDPTR newstring = rplAllocTempOb(len);
@@ -343,10 +343,10 @@ BYTEPTR rplNextSep(BYTEPTR start, BYTEPTR end, BYTEPTR sepstart, BYTEPTR sepend)
     return start;
 }
 
-BINT rplCountTokens(BYTEPTR start, BYTEPTR end, BYTEPTR sepstart,
+int32_t rplCountTokens(BYTEPTR start, BYTEPTR end, BYTEPTR sepstart,
         BYTEPTR sepend)
 {
-    BINT count = 0;
+    int32_t count = 0;
 
     BYTEPTR token = rplSkipSep(start, end, sepstart, sepend);
     BYTEPTR nextblank;
@@ -382,7 +382,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT nitems;
+        int32_t nitems;
         WORDPTR list, item;
 
         if(ISLIST(*rplPeekData(1))) {
@@ -410,17 +410,17 @@ void LIB_HANDLER()
 
         int64_t ucode;
         WORD utfchar;
-        BINT len;
+        int32_t len;
 
         while(nitems--) {
 
-            ucode = rplReadNumberAsBINT(item);
+            ucode = rplReadNumberAsInt64(item);
             if(Exceptions) {
                 rplTruncateLastObject(newstring);       // COMPLETELY REMOVE THE OBJECT
                 return;
             }
 
-            utfchar = cp2utf8((UBINT) ucode);
+            utfchar = cp2utf8((uint32_t) ucode);
 
             if(utfchar == (WORD) - 1) {
                 rplError(ERR_INVALIDCODEPOINT);
@@ -474,14 +474,14 @@ void LIB_HANDLER()
         ScratchPointer2 =
                 (WORDPTR) (((BYTEPTR) ScratchPointer1) + STRLEN(*strobj) - 1);
 
-        BINT utfchar, count = 0;
+        int32_t utfchar, count = 0;
 
         while(ScratchPointer1 <= ScratchPointer2) {
 
             utfchar =
                     utf82cp((char *)ScratchPointer1,
                     ((char *)ScratchPointer2) + 1);
-            rplNewBINTPush(utfchar, HEXBINT);
+            rplNewint32_tPush(utfchar, HEXint32_t);
             ++count;
             if(Exceptions)
                 return;
@@ -491,7 +491,7 @@ void LIB_HANDLER()
                     ((char *)ScratchPointer2) + 1);
         }
 
-        rplNewBINTPush(count, DECBINT);
+        rplNewint32_tPush(count, DECint32_t);
         rplCreateList();
 
         rplOverwriteData(2, rplPeekData(1));
@@ -508,7 +508,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT flag = rplTestSystemFlag(FL_DECOMPEDIT);
+        int32_t flag = rplTestSystemFlag(FL_DECOMPEDIT);
 
         WORDPTR string = rplDecompile(rplPeekData(1), flag ? DECOMP_EDIT : 0);
 
@@ -572,7 +572,7 @@ void LIB_HANDLER()
             rplError(ERR_STRINGEXPECTED);
             return;
         }
-        BINT length = STRLEN(*string);
+        int32_t length = STRLEN(*string);
         WORDPTR newobj = rplCompile((BYTEPTR) (string + 1), length, 1);
 
         if(!newobj) {
@@ -618,7 +618,7 @@ void LIB_HANDLER()
         newptr = (BYTEPTR) (newobj + 1);
         newptr += STRLEN(*oldobj);      // END OF STRING
 
-        BINT nbytes;
+        int32_t nbytes;
         while(oldptr != endptr) {
             nbytes = (BYTEPTR) utf8skipst((char *)oldptr,
                     (char *)endptr) - oldptr;
@@ -658,11 +658,11 @@ void LIB_HANDLER()
         sepstart = (BYTEPTR) (rplPeekData(1) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(1));
 
-        BINT count = rplCountTokens(strstart, strend, sepstart, sepend);
+        int32_t count = rplCountTokens(strstart, strend, sepstart, sepend);
 
         rplDropData(2);
 
-        rplNewBINTPush(count, DECBINT);
+        rplNewint32_tPush(count, DECint32_t);
 
         return;
 
@@ -699,7 +699,7 @@ void LIB_HANDLER()
         sepstart = (BYTEPTR) (rplPeekData(2) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(2));
 
-        BINT n = rplReadNumberAsBINT(rplPeekData(1));
+        int32_t n = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -758,7 +758,7 @@ void LIB_HANDLER()
         sepstart = (BYTEPTR) (rplPeekData(2) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(2));
 
-        BINT n = rplReadNumberAsBINT(rplPeekData(1));
+        int32_t n = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -774,7 +774,7 @@ void LIB_HANDLER()
         }
 
         // WE HAVE THE TOKEN, COMPUTE THE POSITION
-        BINT pos;
+        int32_t pos;
 
         if(strstart == strend)
             pos = -1;
@@ -790,7 +790,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(3);
-        rplNewBINTPush(pos, DECBINT);
+        rplNewint32_tPush(pos, DECint32_t);
         return;
 
     }
@@ -920,7 +920,7 @@ void LIB_HANDLER()
 
         WORDPTR string = rplPeekData(1);
         rplDropData(1);
-        rplNewBINTPush(rplStrLen(string), DECBINT);
+        rplNewint32_tPush(rplStrLen(string), DECint32_t);
 
         return;
     }
@@ -944,7 +944,7 @@ void LIB_HANDLER()
 
         WORDPTR string = rplPeekData(1);
         rplDropData(1);
-        rplNewBINTPush(rplStrLenCp(string), DECBINT);
+        rplNewint32_tPush(rplStrLenCp(string), DECint32_t);
 
         return;
 
@@ -972,8 +972,8 @@ void LIB_HANDLER()
         BYTEPTR start = (BYTEPTR) (rplPeekData(1) + 1);
         BYTEPTR end = start + rplStrSize(rplPeekData(1));
         BYTEPTR nstrptr;
-        BINT totalsize = 4, size = 0;
-        BINT nbytes, k;
+        int32_t totalsize = 4, size = 0;
+        int32_t nbytes, k;
         nstrptr = (BYTEPTR) (newstring + 1);
 
         while(start < end) {
@@ -981,7 +981,7 @@ void LIB_HANDLER()
             k = 0;
             while(unicodeBuffer[k] != 0) {
 
-                UBINT cp = cp2utf8(unicodeBuffer[k]);
+                uint32_t cp = cp2utf8(unicodeBuffer[k]);
 
                 while(cp & 0xff) {
 
@@ -1037,7 +1037,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT lenstr1, lenfind, lenfindcp, pos, maxpos, sizestr1, sizefind,
+        int32_t lenstr1, lenfind, lenfindcp, pos, maxpos, sizestr1, sizefind,
                 sizerepl;
         BYTEPTR str1, find, repl, end1;
 
@@ -1060,7 +1060,7 @@ void LIB_HANDLER()
         maxpos = lenstr1 - lenfind + 1;
 
         WORDPTR newstring = rplCreateStringBySize(1);
-        BINT newsize = 0, rcount = 0;
+        int32_t newsize = 0, rcount = 0;
 
         repl = (BYTEPTR) (rplPeekData(1) + 1);
         find = (BYTEPTR) (rplPeekData(2) + 1);
@@ -1074,9 +1074,9 @@ void LIB_HANDLER()
             if(utf8ncmp2((char *)nextchar, (char *)end1, (char *)find,
                         lenfindcp) == 0) {
                 // FOUND A MATCH, COPY THE STRING SO FAR AND THE REPLACEMENT
-                BINT newsize2 = newsize + (nextchar - str1) + sizerepl;
+                int32_t newsize2 = newsize + (nextchar - str1) + sizerepl;
                 if(((newsize2 + 3) >> 2) > ((newsize + 3) >> 2)) {
-                    BINT endoff = end1 - str1;
+                    int32_t endoff = end1 - str1;
                     ScratchPointer1 = (WORDPTR) str1;
                     ScratchPointer2 = (WORDPTR) find;
                     ScratchPointer3 = (WORDPTR) repl;
@@ -1112,9 +1112,9 @@ void LIB_HANDLER()
 
         // NOT FOUND
         // FOUND A MATCH, COPY THE STRING SO FAR AND THE REPLACEMENT
-        BINT newsize2 = newsize + (end1 - str1);
+        int32_t newsize2 = newsize + (end1 - str1);
         if(((newsize2 + 3) >> 2) > ((newsize + 3) >> 2)) {
-            BINT endoff = end1 - str1;
+            int32_t endoff = end1 - str1;
             ScratchPointer1 = (WORDPTR) str1;
             ScratchPointer2 = (WORDPTR) find;
             ScratchPointer3 = (WORDPTR) repl;
@@ -1134,7 +1134,7 @@ void LIB_HANDLER()
             rplSetStringLength(newstring, newsize2);
             rplDropData(3);
             rplPushDataNoGrow(newstring);
-            rplNewBINTPush(rcount, DECBINT);
+            rplNewint32_tPush(rcount, DECint32_t);
             return;
         }
         rplDropData(2);
@@ -1152,7 +1152,7 @@ void LIB_HANDLER()
 
         WORDPTR *savestk = DSTop;
         WORDPTR str1, str2;
-        BINT flag = rplTestSystemFlag(FL_DECOMPEDIT);
+        int32_t flag = rplTestSystemFlag(FL_DECOMPEDIT);
 
         if(!ISSTRING(*rplPeekData(2))) {
             str1 = rplDecompile(rplPeekData(2),
@@ -1180,8 +1180,8 @@ void LIB_HANDLER()
         else
             rplPushData(rplPeekData(2));
 
-        BINT len1 = STRLEN(*rplPeekData(2));
-        BINT len2 = STRLEN(*rplPeekData(1));
+        int32_t len1 = STRLEN(*rplPeekData(2));
+        int32_t len2 = STRLEN(*rplPeekData(1));
 
         WORDPTR newobject = rplAllocTempOb((len1 + len2 + 3) >> 2);
         if(!newobject) {
@@ -1195,7 +1195,7 @@ void LIB_HANDLER()
         memmoveb(newobject + 1, str1 + 1, len1);
         memmoveb(((BYTEPTR) newobject) + len1 + 4, str2 + 1, len2);
 
-        BINT padding = (4 - ((len1 + len2) & 3)) & 3;
+        int32_t padding = (4 - ((len1 + len2) & 3)) & 3;
 
         *newobject = MKPROLOG(DOSTRING + padding, (len1 + len2 + 3) >> 2);
 
@@ -1319,7 +1319,7 @@ void LIB_HANDLER()
                 BYTE bytes[4];
             } temp;
 
-            BINT count = 0, escape = 0, code = 0;
+            int32_t count = 0, escape = 0, code = 0;
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             ++ptr;      // SKIP THE QUOTE
             do {
@@ -1328,7 +1328,7 @@ void LIB_HANDLER()
                         // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
                         if(escape > 1) {
                             // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                            UBINT codebytes = cp2utf8(code);
+                            uint32_t codebytes = cp2utf8(code);
                             do {
                                 if(count == 0)
                                     temp.word = 0;
@@ -1364,7 +1364,7 @@ void LIB_HANDLER()
                     if((*ptr == '\"') && (escape != 1)) {
                         if(escape > 1) {
                             // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                            UBINT codebytes = cp2utf8(code);
+                            uint32_t codebytes = cp2utf8(code);
                             do {
                                 if(count == 0)
                                     temp.word = 0;
@@ -1415,7 +1415,7 @@ void LIB_HANDLER()
 
                     if(escape > 5) {
                         // ALREADY HAVE 4 DIGITS, WE ARE DONE
-                        UBINT codebytes = cp2utf8(code);
+                        uint32_t codebytes = cp2utf8(code);
                         do {
                             if(count == 0)
                                 temp.word = 0;
@@ -1455,7 +1455,7 @@ void LIB_HANDLER()
 
                     if(escape > 1) {
                         // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                        UBINT codebytes = cp2utf8(code);
+                        uint32_t codebytes = cp2utf8(code);
                         do {
                             if(count == 0)
                                 temp.word = 0;
@@ -1525,9 +1525,9 @@ void LIB_HANDLER()
             BYTE bytes[4];
         } temp;
 
-        BINT escape = 0, code = 0;
+        int32_t escape = 0, code = 0;
 
-        BINT count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
+        int32_t count = (4 - (LIBNUM(*ScratchPointer4) & 3)) & 3;  // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
         if(count) {
             --CompileEnd;
             temp.word = *CompileEnd;    // GET LAST WORD
@@ -1540,7 +1540,7 @@ void LIB_HANDLER()
                     // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
                     if(escape > 1) {
                         // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                        UBINT codebytes = cp2utf8(code);
+                        uint32_t codebytes = cp2utf8(code);
                         do {
                             if(count == 0)
                                 temp.word = 0;
@@ -1576,7 +1576,7 @@ void LIB_HANDLER()
                 if((*ptr == '\"') && (escape != 1)) {
                     if(escape > 1) {
                         // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                        UBINT codebytes = cp2utf8(code);
+                        uint32_t codebytes = cp2utf8(code);
                         do {
                             if(count == 0)
                                 temp.word = 0;
@@ -1625,7 +1625,7 @@ void LIB_HANDLER()
                 }
                 if(escape > 5) {
                     // ALREADY HAVE 4 DIGITS, WE ARE DONE
-                    UBINT codebytes = cp2utf8(code);
+                    uint32_t codebytes = cp2utf8(code);
                     do {
                         if(count == 0)
                             temp.word = 0;
@@ -1664,7 +1664,7 @@ void LIB_HANDLER()
 
                 if(escape > 1) {
                     // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
-                    UBINT codebytes = cp2utf8(code);
+                    uint32_t codebytes = cp2utf8(code);
                     do {
                         if(count == 0)
                             temp.word = 0;
@@ -1820,7 +1820,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1836,7 +1836,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -1845,7 +1845,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

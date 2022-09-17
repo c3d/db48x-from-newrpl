@@ -5,7 +5,7 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-// LIBRARY ONE DEFINES THE BASIC TYPES BINT AND SINT
+// LIBRARY ONE DEFINES THE BASIC TYPES int32_t AND SINT
 
 #include "libraries.h"
 
@@ -42,9 +42,9 @@
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS \
-            DECBINT,BINBINT,OCTBINT,HEXBINT, \
-            DECBINT|APPROX_BIT,BINBINT|APPROX_BIT, \
-            OCTBINT|APPROX_BIT,HEXBINT|APPROX_BIT
+            DECint32_t,BINint32_t,OCTint32_t,HEXint32_t, \
+            DECint32_t|APPROX_BIT,BINint32_t|APPROX_BIT, \
+            OCTint32_t|APPROX_BIT,HEXint32_t|APPROX_BIT
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
@@ -58,9 +58,9 @@
 // MACRO TO GET NUMBER OF BITS IN THE BASE
 // 1= BINARY, 3=OCTAL, 4=HEX, AND 2=DECIMAL
 
-#define GETBASE(libnum) (((libnum)-(BINBINT-2))>>1)
+#define GETBASE(libnum) (((libnum)-(BINint32_t-2))>>1)
 
-#define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
+#define LIBFROMBASE(base) ((base<<1)+(BINint32_t-2))
 
 const uint64_t const powersof10[20] = {
     1000000000000000000LL,
@@ -204,7 +204,7 @@ void rplNewSINTPush(int num, int base)
 
 }
 
-WORDPTR rplNewBINT(int64_t num, int base)
+WORDPTR rplNewint32_t(int64_t num, int base)
 {
     WORDPTR obj;
 
@@ -228,7 +228,7 @@ WORDPTR rplNewBINT(int64_t num, int base)
 }
 
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
-WORDPTR rplWriteBINT(int64_t num, int base, WORDPTR dest)
+WORDPTR rplWriteint32_t(int64_t num, int base, WORDPTR dest)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
@@ -245,7 +245,7 @@ WORDPTR rplWriteBINT(int64_t num, int base, WORDPTR dest)
 }
 
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
-void rplCompileBINT(int64_t num, int base)
+void rplCompileint32_t(int64_t num, int base)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
@@ -258,7 +258,7 @@ void rplCompileBINT(int64_t num, int base)
     }
 }
 
-void rplNewBINTPush(int64_t num, int base)
+void rplNewint32_tPush(int64_t num, int base)
 {
     WORDPTR obj;
 
@@ -281,7 +281,7 @@ void rplNewBINTPush(int64_t num, int base)
     rplPushData(obj);
 }
 
-int64_t rplReadBINT(WORDPTR ptr)
+int64_t rplReadint32_t(WORDPTR ptr)
 {
     int64_t result;
     if(ISPROLOG(*ptr))
@@ -308,7 +308,7 @@ void rplPushTrue()
 
 }
 
-BINT rplIsFalse(WORDPTR objptr)
+int32_t rplIsFalse(WORDPTR objptr)
 {
     objptr = rplConstant2Number(objptr);
 
@@ -317,8 +317,8 @@ BINT rplIsFalse(WORDPTR objptr)
 
     if(IS_FALSE(*objptr))
         return 1;
-    if(ISBINT(*objptr)) {
-        if(rplReadBINT(objptr) == 0)
+    if(ISint32_t(*objptr)) {
+        if(rplReadint32_t(objptr) == 0)
             return 1;
         return 0;
     }
@@ -332,7 +332,7 @@ BINT rplIsFalse(WORDPTR objptr)
 
     if(ISCOMPLEX(*objptr)) {
         REAL re, im;
-        BINT angmode;
+        int32_t angmode;
 
         rplReadCNumber(objptr, &re, &im, &angmode);
         return rplIsZeroComplex(&re, &im, angmode);
@@ -341,19 +341,19 @@ BINT rplIsFalse(WORDPTR objptr)
     return 0;
 }
 
-BINT rplIsTrue(WORDPTR objptr)
+int32_t rplIsTrue(WORDPTR objptr)
 {
     return rplIsFalse(objptr) ^ 1;
 }
 
-BINT rplIsNegative(WORDPTR objptr)
+int32_t rplIsNegative(WORDPTR objptr)
 {
     objptr = rplConstant2Number(objptr);
     if(ISANGLE(*objptr))
         ++objptr;       // POINT TO THE NUMBER INSIDE THE ANGLE
 
-    if(ISBINT(*objptr)) {
-        if(rplReadBINT(objptr) < 0)
+    if(ISint32_t(*objptr)) {
+        if(rplReadint32_t(objptr) < 0)
             return 1;
         return 0;
     }
@@ -367,7 +367,7 @@ BINT rplIsNegative(WORDPTR objptr)
 
     if(ISCOMPLEX(*objptr)) {
         REAL re, im;
-        BINT angmode;
+        int32_t angmode;
 
         rplReadCNumber(objptr, &re, &im, &angmode);
         if(re.flags & F_NEGATIVE)
@@ -378,24 +378,24 @@ BINT rplIsNegative(WORDPTR objptr)
     return 0;
 }
 
-// READS A SINT, BINT OR REAL INTO A REAL NUMBER REGISTER
+// READS A SINT, int32_t OR REAL INTO A REAL NUMBER REGISTER
 void rplNumberToRReg(int num, WORDPTR number)
 {
     number = rplConstant2Number(number);
     if(ISREAL(*number))
         rplCopyRealToRReg(num, number);
-    else if(ISBINT(*number))
-        rplBINTToRReg(num, rplReadBINT(number));
+    else if(ISint32_t(*number))
+        rplint32_tToRReg(num, rplReadint32_t(number));
     else {
         rplError(ERR_REALEXPECTED);
     }
 }
 
-// READ A SINT, BINT OR REAL AS A 64-BIT INTEGER
+// READ A SINT, int32_t OR REAL AS A 64-BIT INTEGER
 // ROUNDING A REAL IS BY TRUNCATION
 // DOES CHECK FOR OVERFLOW!
 
-int64_t rplReadNumberAsBINT(WORDPTR number)
+int64_t rplReadNumberAsInt64(WORDPTR number)
 {
     int64_t value;
   readnumberbint_recheck:
@@ -413,8 +413,8 @@ int64_t rplReadNumberAsBINT(WORDPTR number)
         value = getint64_tReal(&dec);
         return value;
     }
-    else if(ISBINT(*number))
-        return rplReadBINT(number);
+    else if(ISint32_t(*number))
+        return rplReadint32_t(number);
     else {
         if(ISTAG(*number)) {
             number = rplStripTag(number);
@@ -441,15 +441,15 @@ void rplReadNumberAsReal(WORDPTR number, REAL * dec)
         ++number;
     if(ISREAL(*number))
         rplReadReal(number, dec);
-    else if(ISBINT(*number)) {
+    else if(ISint32_t(*number)) {
         // PROVIDE STORAGE
-        dec->data = RDigits + BINT2RealIdx * BINT_REGISTER_STORAGE;
-        newRealFromint64_t(dec, rplReadBINT(number), 0);
+        dec->data = RDigits + int32_t2RealIdx * int32_t_REGISTER_STORAGE;
+        newRealFromint64_t(dec, rplReadint32_t(number), 0);
         if(ISAPPROX(*number))
             dec->flags |= F_APPROX;
-        ++BINT2RealIdx;
-        if(BINT2RealIdx >= BINT2REAL)
-            BINT2RealIdx = 0;
+        ++int32_t2RealIdx;
+        if(int32_t2RealIdx >= int32_t2REAL)
+            int32_t2RealIdx = 0;
     }
     else {
         if(ISTAG(*number)) {
@@ -468,14 +468,14 @@ void rplReadNumberAsReal(WORDPTR number, REAL * dec)
 // TEMPORARY DATA STORAGE FOR UP TO 4 NUMBERS
 // IF CALLED MORE THAN 4 TIMES IT MIGHT OVERWRITE THE PREVIOUS
 
-void rplLoadBINTAsReal(int64_t number, REAL * dec)
+void rplLoadInt64AsReal(int64_t number, REAL * dec)
 {
     // PROVIDE STORAGE
-    dec->data = RDigits + BINT2RealIdx * BINT_REGISTER_STORAGE;
+    dec->data = RDigits + int32_t2RealIdx * int32_t_REGISTER_STORAGE;
     newRealFromint64_t(dec, number, 0);
-    ++BINT2RealIdx;
-    if(BINT2RealIdx >= BINT2REAL)
-        BINT2RealIdx = 0;
+    ++int32_t2RealIdx;
+    if(int32_t2RealIdx >= int32_t2REAL)
+        int32_t2RealIdx = 0;
 }
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
@@ -492,10 +492,10 @@ static int rpl_log2(int64_t number, int bits)
 }
 
 // CONVERT TO STRING AND RETURN THE NUMBER OF BYTES OUTPUT
-BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer)
+int32_t rplIntToString(int64_t number, int32_t base, BYTEPTR buffer, BYTEPTR endbuffer)
 {
 
-    base -= DOBINT;
+    base -= DOint32_t;
 
     if(base == 2) {
         // THIS IS A BASE-10 NUMBER
@@ -503,13 +503,13 @@ BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer
 
         REAL realnum;
 
-        BINT sign;
+        int32_t sign;
 
         NUMFORMAT fmt;
 
         rplGetSystemNumberFormat(&fmt);
 
-        rplLoadBINTAsReal(number, &realnum);
+        rplLoadInt64AsReal(number, &realnum);
 
         sign = realnum.flags & F_NEGATIVE;
 
@@ -521,7 +521,7 @@ BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer
 
         BYTEPTR string;
 
-        BINT len = formatlengthReal(&realnum, 0, fmt.Locale);
+        int32_t len = formatlengthReal(&realnum, 0, fmt.Locale);
 
         if(len + 1 > endbuffer - buffer)
             return 0;
@@ -537,7 +537,7 @@ BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer
         // base HAS THE NUMBER OF BITS PER DIGIT
         BYTEPTR ptr = buffer;
         uint64_t unumber;
-        BINT digit, neg;
+        int32_t digit, neg;
 
         if(number < 0) {
             *ptr++ = '-';
@@ -590,7 +590,7 @@ BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
-        // NORMAL BEHAVIOR FOR A BINT IS TO PUSH THE OBJECT ON THE STACK:
+        // NORMAL BEHAVIOR FOR A int32_t IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
     }
@@ -604,7 +604,7 @@ void LIB_HANDLER()
         REAL rop1, rop2;
         int op1type = 0, op2type = 0;
         int op1app = 0, op2app = 0;
-        int op1base = DECBINT;
+        int op1base = DECint32_t;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
 #define arg1 ScratchPointer1
@@ -619,11 +619,11 @@ void LIB_HANDLER()
         if(nargs == 1) {
             // UNARY OPERATORS
             arg1 = rplPeekData(1);
-            if(!ISBINT(*arg1)) {
+            if(!ISint32_t(*arg1)) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
             }
-            op1 = rplReadBINT(arg1);
+            op1 = rplReadint32_t(arg1);
             rplDropData(1);
 
         }
@@ -637,8 +637,8 @@ void LIB_HANDLER()
                 op1app = rop1.flags & F_APPROX;
             }
             else {
-                if(ISBINT(*arg1)) {
-                    op1 = rplReadBINT(arg1);
+                if(ISint32_t(*arg1)) {
+                    op1 = rplReadint32_t(arg1);
                     op1type = 0;
                     op1app = ISAPPROX(*arg1);
                     op1base = LIBNUM(*arg1) & ~APPROX_BIT;
@@ -655,8 +655,8 @@ void LIB_HANDLER()
                 op1app = rop2.flags & F_APPROX;
             }
             else {
-                if(ISBINT(*arg2)) {
-                    op2 = rplReadBINT(arg2);
+                if(ISint32_t(*arg2)) {
+                    op2 = rplReadint32_t(arg2);
                     op2type = 0;
                     op2app = ISAPPROX(*arg2);
                 }
@@ -693,7 +693,7 @@ void LIB_HANDLER()
             // ADD TWO NUMBERS FROM THE STACK
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(1, op2);
+                    rplint32_tToRReg(1, op2);
                     addReal(&RReg[0], &rop1, &RReg[1]);
 
                     if(op1app || op2app)
@@ -702,12 +702,12 @@ void LIB_HANDLER()
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
-                    rplBINTToRReg(1, op1);
+                    rplint32_tToRReg(1, op1);
 
                     addReal(&RReg[0], &RReg[1], &rop2);
-                    if(op1base != DECBINT) {
+                    if(op1base != DECint32_t) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewBINTPush(getint64_tReal(&RReg[0]),
+                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -731,18 +731,18 @@ void LIB_HANDLER()
             int64_t minop2;
 
             if(op1 > 0) {
-                maxop2 = MAX_BINT - op1;
-                minop2 = MIN_BINT;
+                maxop2 = MAX_int32_t - op1;
+                minop2 = MIN_int32_t;
             }
             else {
-                maxop2 = MAX_BINT;
-                minop2 = MIN_BINT - op1;
+                maxop2 = MAX_int32_t;
+                minop2 = MIN_int32_t - op1;
             }
 
             if((op2 > maxop2) || (op2 < minop2)) {
                 // CONVERT BOTH TO REALS
-                rplBINTToRReg(1, op1);
-                rplBINTToRReg(2, op2);
+                rplint32_tToRReg(1, op1);
+                rplint32_tToRReg(2, op2);
 
                 addReal(&RReg[0], &RReg[1], &RReg[2]);
 
@@ -755,7 +755,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            rplNewBINTPush(op1 + op2,
+            rplNewint32_tPush(op1 + op2,
                     LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             return;
         }
@@ -763,7 +763,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(1, -op2);
+                    rplint32_tToRReg(1, -op2);
 
                     addReal(&RReg[0], &rop1, &RReg[1]);
                     if(op1app || op2app)
@@ -772,13 +772,13 @@ void LIB_HANDLER()
                 }
 
                 if(op2type) {
-                    rplBINTToRReg(1, op1);
+                    rplint32_tToRReg(1, op1);
 
                     subReal(&RReg[0], &RReg[1], &rop2);
 
-                    if(op1base != DECBINT) {
+                    if(op1base != DECint32_t) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewBINTPush(getint64_tReal(&RReg[0]),
+                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -803,18 +803,18 @@ void LIB_HANDLER()
             int64_t minop2;
 
             if(op1 > 0) {
-                maxop2 = MAX_BINT - op1;
-                minop2 = MIN_BINT;
+                maxop2 = MAX_int32_t - op1;
+                minop2 = MIN_int32_t;
             }
             else {
-                maxop2 = MAX_BINT;
-                minop2 = MIN_BINT - op1;
+                maxop2 = MAX_int32_t;
+                minop2 = MIN_int32_t - op1;
             }
 
             if((-op2 > maxop2) || (-op2 < minop2)) {
                 // CONVERT BOTH TO REALS
-                rplBINTToRReg(1, op1);
-                rplBINTToRReg(2, op2);
+                rplint32_tToRReg(1, op1);
+                rplint32_tToRReg(2, op2);
 
                 subReal(&RReg[0], &RReg[1], &RReg[2]);
 
@@ -827,14 +827,14 @@ void LIB_HANDLER()
 
                 return;
             }
-            rplNewBINTPush(op1 - op2,
+            rplNewint32_tPush(op1 - op2,
                     LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             return;
         }
         case OVR_MUL:
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(1, op2);
+                    rplint32_tToRReg(1, op2);
 
                     mulReal(&RReg[0], &rop1, &RReg[1]);
                     if(op1app || op2app)
@@ -844,13 +844,13 @@ void LIB_HANDLER()
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
-                    rplBINTToRReg(1, op1);
+                    rplint32_tToRReg(1, op1);
 
                     mulReal(&RReg[0], &RReg[1], &rop2);
 
-                    if(op1base != DECBINT) {
+                    if(op1base != DECint32_t) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewBINTPush(getint64_tReal(&RReg[0]),
+                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -874,7 +874,7 @@ void LIB_HANDLER()
 
             // O1*O2 > 2^63 --> LOG2(O1)+LOG2(O2) > LOG2(2^63)
             // LOG2(O1)+LOG2(O2) > 63 MEANS OVERFLOW
-            BINT sign1 = (op1 < 0) ^ (op2 < 0);
+            int32_t sign1 = (op1 < 0) ^ (op2 < 0);
 
             if(op1 < 0)
                 op1 = -op1;
@@ -890,17 +890,17 @@ void LIB_HANDLER()
                 if(rpl_log2(op1, 64) + rpl_log2(op2, 32) < 63) {
                     op1 *= op2;
                     if(sign1)
-                        rplNewBINTPush(-op1,
+                        rplNewint32_tPush(-op1,
                                 LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
                     else
-                        rplNewBINTPush(op1,
+                        rplNewint32_tPush(op1,
                                 LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
                     return;
                 }
             }
 
-            rplBINTToRReg(1, op1);
-            rplBINTToRReg(2, op2);
+            rplint32_tToRReg(1, op1);
+            rplint32_tToRReg(2, op2);
 
             mulReal(&RReg[0], &RReg[1], &RReg[2]);
 
@@ -917,7 +917,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(1, op2);
+                    rplint32_tToRReg(1, op2);
 
                     divReal(&RReg[0], &rop1, &RReg[1]);
 
@@ -932,7 +932,7 @@ void LIB_HANDLER()
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
-                    rplBINTToRReg(1, op1);
+                    rplint32_tToRReg(1, op1);
 
                     divReal(&RReg[0], &RReg[1], &rop2);
 
@@ -941,9 +941,9 @@ void LIB_HANDLER()
                             RReg[0].flags |= F_UNDINFINITY;
                     }
 
-                    if(op1base != DECBINT) {
+                    if(op1base != DECint32_t) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewBINTPush(getint64_tReal(&RReg[0]),
+                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -964,8 +964,8 @@ void LIB_HANDLER()
 
                 return;
             }
-            rplBINTToRReg(1, op1);
-            rplBINTToRReg(2, op2);
+            rplint32_tToRReg(1, op1);
+            rplint32_tToRReg(2, op2);
 
             divReal(&RReg[0], &RReg[1], &RReg[2]);
 
@@ -982,7 +982,7 @@ void LIB_HANDLER()
             }
             else {
                 int64_t result = getint64_tReal(&RReg[0]);
-                rplNewBINTPush(result,
+                rplNewint32_tPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
             if(!Exceptions)
@@ -996,13 +996,13 @@ void LIB_HANDLER()
 
                 if(op1type) {
                     // INTEGER POWER OF A REAL NUMBER
-                    BINT isneg = op2 & 1;
+                    int32_t isneg = op2 & 1;
                     if(rop1.flags & F_NEGATIVE)
                         rop1.flags ^= F_NEGATIVE;
                     else
                         isneg = 0;
 
-                    rplBINTToRReg(1, op2);
+                    rplint32_tToRReg(1, op2);
                     powReal(&RReg[0], &rop1, &RReg[1]);
 
                     if(isneg)
@@ -1020,7 +1020,7 @@ void LIB_HANDLER()
 
                         // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                        newRealFromBINT(&RReg[7], 180, 0);
+                        newRealFromint32_t(&RReg[7], 180, 0);
 
                         mulReal(&RReg[0], &rop2, &RReg[7]);
                         divmodReal(&RReg[1], &RReg[9], &RReg[0], &RReg[7]);     // REDUCE TO FIRST CIRCLE
@@ -1034,11 +1034,11 @@ void LIB_HANDLER()
                         if(isoddReal(&RReg[1])) subReal(&RReg[9],&RReg[9],&RReg[7]);
 
 
-                        rplBINTToRReg(6, -op1);
+                        rplint32_tToRReg(6, -op1);
 
                         powReal(&RReg[8], &RReg[6], &rop2);     // ONLY RReg[9] IS PRESERVED
 
-                        BINT angmode =
+                        int32_t angmode =
                                 rplTestSystemFlag(FL_ANGLEMODE1) |
                                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1053,7 +1053,7 @@ void LIB_HANDLER()
 
                     }
 
-                    rplBINTToRReg(1, op1);
+                    rplint32_tToRReg(1, op1);
                     powReal(&RReg[0], &RReg[1], &rop2);
 
                 }
@@ -1065,11 +1065,11 @@ void LIB_HANDLER()
             }
 
             // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
-            BINT isneg = ((op1 < 0) ? (op2 & 1) : 0);
+            int32_t isneg = ((op1 < 0) ? (op2 & 1) : 0);
             if(op1 < 0)
                 op1 = -op1;
-            rplBINTToRReg(1, op1);
-            rplBINTToRReg(2, op2);
+            rplint32_tToRReg(1, op1);
+            rplint32_tToRReg(2, op2);
 
             powReal(&RReg[0], &RReg[1], &RReg[2]);
 
@@ -1078,7 +1078,7 @@ void LIB_HANDLER()
 
             if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                 int64_t result = getint64_tReal(&RReg[0]);
-                rplNewBINTPush(result,
+                rplNewint32_tPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
             else
@@ -1094,13 +1094,13 @@ void LIB_HANDLER()
             if(op1type)
                 copyReal(&RReg[6], &rop1);
             else
-                rplBINTToRReg(6, op1);
+                rplint32_tToRReg(6, op1);
             if(op1app)
                 RReg[6].flags |= F_APPROX;
             if(op2type)
                 copyReal(&RReg[7], &rop2);
             else
-                rplBINTToRReg(7, op2);
+                rplint32_tToRReg(7, op2);
             if(op2app)
                 RReg[7].flags |= F_APPROX;
 
@@ -1130,14 +1130,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT isneg = RReg[6].flags & F_NEGATIVE;
+            int32_t isneg = RReg[6].flags & F_NEGATIVE;
             if(RReg[6].flags & F_NEGATIVE) {
                 // RESULT IS LIKELY COMPLEX
                 // a^(1/n)= ABS(a)^(1/n) * (cos(pi/n)+i*sin(pi/n))
 
                 // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                newRealFromBINT(&RReg[5], 180, 0);
+                newRealFromint32_t(&RReg[5], 180, 0);
 
                 divReal(&RReg[0], &RReg[5], &RReg[7]);
                 divmodReal(&RReg[1], &RReg[9], &RReg[0], &RReg[5]);     // REDUCE TO FIRST CIRCLE
@@ -1158,12 +1158,12 @@ void LIB_HANDLER()
             if(!isneg) {
                 if(isintegerReal(&RReg[8]) && inint64_tRange(&RReg[8])) {
                     int64_t result = getint64_tReal(&RReg[8]);
-                    BINT base;
+                    int32_t base;
                     if(op1type)
-                        base = DECBINT;
+                        base = DECint32_t;
                     else
                         base = LIBNUM(*arg1);
-                    rplNewBINTPush(result, base | (LIBNUM(*arg2) & APPROX_BIT));
+                    rplNewint32_tPush(result, base | (LIBNUM(*arg2) & APPROX_BIT));
                 }
                 else
                     rplNewRealFromRRegPush(8);
@@ -1175,7 +1175,7 @@ void LIB_HANDLER()
 
             // RETURN A POLAR COMPLEX
 
-            BINT angmode =
+            int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
 
@@ -1196,7 +1196,7 @@ void LIB_HANDLER()
             if(op1type || op2type) {
                 if(op1type) {
                     // ROUND TO INTEGER
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res)
                         rplPushData((WORDPTR) zero_bint);
@@ -1206,7 +1206,7 @@ void LIB_HANDLER()
 
                 if(op2type) {
                     // ROUND TO INTEGER
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res)
                         rplPushData((WORDPTR) zero_bint);
@@ -1228,7 +1228,7 @@ void LIB_HANDLER()
             if(op1type || op2type) {
                 if(op1type) {
                     // ROUND TO INTEGER
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res)
                         rplPushData((WORDPTR) one_bint);
@@ -1239,7 +1239,7 @@ void LIB_HANDLER()
 
                 if(op2type) {
                     // ROUND TO INTEGER
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res)
                         rplPushData((WORDPTR) one_bint);
@@ -1258,7 +1258,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res < 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1266,7 +1266,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                 }
                 if(op2type) {
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res < 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1286,7 +1286,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res > 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1294,7 +1294,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                 }
                 if(op2type) {
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res > 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1315,7 +1315,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res <= 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1323,7 +1323,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                 }
                 if(op2type) {
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res <= 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1343,7 +1343,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res >= 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1351,7 +1351,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                 }
                 if(op2type) {
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res >= 0)
                         rplPushData((WORDPTR) one_bint);
@@ -1375,7 +1375,7 @@ void LIB_HANDLER()
                     if(!isintegerReal(&rop1))
                         rplPushData((WORDPTR) zero_bint);
                     else {
-                        rplBINTToRReg(0, op2);
+                        rplint32_tToRReg(0, op2);
                         int res = eqReal(&rop1, &RReg[0]);
                         if(res)
                             rplPushData((WORDPTR) one_bint);
@@ -1388,7 +1388,7 @@ void LIB_HANDLER()
                     if(!isintegerReal(&rop2))
                         rplPushData((WORDPTR) zero_bint);
                     else {
-                        rplBINTToRReg(0, op1);
+                        rplint32_tToRReg(0, op1);
                         int res = eqReal(&RReg[0], &rop2);
                         if(res)
                             rplPushData((WORDPTR) one_bint);
@@ -1431,7 +1431,7 @@ void LIB_HANDLER()
         {
             if(op1type || op2type) {
                 if(op1type) {
-                    rplBINTToRReg(0, op2);
+                    rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res < 0)
                         rplPushData((WORDPTR) minusone_bint);
@@ -1441,7 +1441,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                 }
                 if(op2type) {
-                    rplBINTToRReg(0, op1);
+                    rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res < 0)
                         rplPushData((WORDPTR) minusone_bint);
@@ -1473,7 +1473,7 @@ void LIB_HANDLER()
             }
             else {
                 rplOneToRReg(0);
-                rplBINTToRReg(1, op1);
+                rplint32_tToRReg(1, op1);
                 divReal(&RReg[2], &RReg[0], &RReg[1]);
             }
 
@@ -1485,7 +1485,7 @@ void LIB_HANDLER()
         case OVR_NEG:
         case OVR_UMINUS:
             op1 = -op1;
-            rplNewBINTPush(op1, LIBNUM(*arg1));
+            rplNewint32_tPush(op1, LIBNUM(*arg1));
             return;
         case OVR_UPLUS:
         case OVR_FUNCEVAL:
@@ -1498,7 +1498,7 @@ void LIB_HANDLER()
             return;
         case OVR_ABS:
             if(op1 < 0)
-                rplNewBINTPush(-op1, LIBNUM(*arg1));
+                rplNewint32_tPush(-op1, LIBNUM(*arg1));
             else
                 rplPushData(arg1);
             return;
@@ -1548,19 +1548,19 @@ void LIB_HANDLER()
             // COMPILE RETURNS:
             // RetNum =  enum CompileErrors
         {
-            if(LIBNUM(CurOpcode) != DOBINT) {
+            if(LIBNUM(CurOpcode) != DOint32_t) {
                 // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
                 RetNum = ERR_NOTMINE;
                 return;
             }
 
             uint64_t Locale = rplGetSystemLocale();
-            // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
+            // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
             strptr = (BYTEPTR) TokenStart;
             strend = (BYTEPTR) BlankStart;
             base = 10;
-            libbase = DECBINT;
+            libbase = DECint32_t;
             neg = 0;
             argnum1 = TokenLen; // LOCAL COPY
 
@@ -1604,19 +1604,19 @@ void LIB_HANDLER()
                 }
                 if((basechr == 'h') || (basechr == 'H')) {
                     base = 16;
-                    libbase = HEXBINT | (libbase & APPROX_BIT);
+                    libbase = HEXint32_t | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
                 if((basechr == 'o') || (basechr == 'O')) {
                     base = 8;
-                    libbase = OCTBINT | (libbase & APPROX_BIT);
+                    libbase = OCTint32_t | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
                 if((basechr == 'b') || (basechr == 'B')) {
                     base = 2;
-                    libbase = BINBINT | (libbase & APPROX_BIT);
+                    libbase = BINint32_t | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
@@ -1682,7 +1682,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            // FINISHED CONVERSION, NOW COMPILE TO SINT OR BINT AS NEEDED
+            // FINISHED CONVERSION, NOW COMPILE TO SINT OR int32_t AS NEEDED
             if(neg)
                 result = -result;
 
@@ -1724,7 +1724,7 @@ void LIB_HANDLER()
 
                 NUMFORMAT fmt;
 
-                BINT Format, sign;
+                int32_t Format, sign;
 
                 rplGetSystemNumberFormat(&fmt);
 
@@ -1752,7 +1752,7 @@ void LIB_HANDLER()
 
                 BYTEPTR string;
 
-                BINT len = formatlengthReal(&realnum, Format, fmt.Locale);
+                int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
                 // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
                 ScratchPointer1 = (WORDPTR) realnum.data;
@@ -1762,9 +1762,9 @@ void LIB_HANDLER()
                 // RESERVE THE MEMORY FIRST
                 rplDecompAppendString2(0, len);
 
-                realnum.data = (BINT *) ScratchPointer1;
-                fmt.SmallLimit.data = (BINT *) ScratchPointer2;
-                fmt.BigLimit.data = (BINT *) ScratchPointer3;
+                realnum.data = (int32_t *) ScratchPointer1;
+                fmt.SmallLimit.data = (int32_t *) ScratchPointer2;
+                fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
                 // NOW USE IT
                 string = (BYTEPTR) DecompStringEnd;
@@ -1857,11 +1857,11 @@ void LIB_HANDLER()
 
         {
 
-            // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
+            // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
             strptr = (BYTEPTR) TokenStart;
             base = 10;
-            libbase = DECBINT;
+            libbase = DECint32_t;
             neg = 0;
             argnum1 = TokenLen; // LOCAL COPY
 
@@ -1871,7 +1871,7 @@ void LIB_HANDLER()
                else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
              */
 
-            if(LIBNUM(CurOpcode) != DOBINT) {
+            if(LIBNUM(CurOpcode) != DOint32_t) {
                 // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
                 RetNum = ERR_NOTMINE;
                 return;
@@ -2001,7 +2001,7 @@ void LIB_HANDLER()
             //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
             //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
             // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         {
             TypeInfo =
                     DOREAL * 100 + 2 + ((LIBNUM(*ObjectPTR) -

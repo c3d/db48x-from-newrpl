@@ -234,7 +234,7 @@ void LIB_HANDLER()
             rplError(ERR_EMPTYCLIPBOARD);
         else {
             if(ISAUTOEXPLIST(*object)) {
-                BINT nitems = rplListLength(object);
+                int32_t nitems = rplListLength(object);
                 rplExpandStack(nitems);
                 if(Exceptions)
                     return;
@@ -323,7 +323,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT keycode = rplKeyName2Msg(rplPeekData(1));
+        int32_t keycode = rplKeyName2Msg(rplPeekData(1));
 
         if(!keycode) {
             rplError(ERR_INVALIDKEYNAME);
@@ -357,7 +357,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT knum = 0;
+        int32_t knum = 0;
         int k;
         for(k = 0; k < 63; ++k) {
             if(key & (1LL << k)) {
@@ -371,7 +371,7 @@ void LIB_HANDLER()
             }
 
         }
-        rplNewBINTPush(knum, DECBINT);
+        rplNewint32_tPush(knum, DECint32_t);
 
         return;
 
@@ -456,7 +456,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -486,7 +486,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -516,7 +516,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -547,7 +547,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -577,7 +577,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -769,7 +769,7 @@ void LIB_HANDLER()
 
         for(k=0;k<PALETTE_SIZE;++k)
         {
-            color=rplReadNumberAsBINT(obj);
+            color=rplReadNumberAsInt64(obj);
             if(Exceptions) return;
             palette[k]=(WORD)color;
             obj=rplSkipOb(obj);
@@ -854,7 +854,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -870,7 +870,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -880,7 +880,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

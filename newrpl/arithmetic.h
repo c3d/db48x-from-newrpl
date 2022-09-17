@@ -56,24 +56,24 @@ void hyp_atanh(REAL *);
 void hyp_asinh(REAL *);
 void hyp_acosh(REAL *);
 
-void trig_convertangle(REAL *, BINT oldangmode, BINT newangmode);
-void trig_reduceangle(REAL * angle, BINT angmode);
-void trig_sincos(REAL *, BINT angmode);
-void trig_sin(REAL *, BINT angmode);
-void trig_cos(REAL *, BINT angmode);
-void trig_tan(REAL *, BINT angmode);
-void trig_atan2(REAL *, REAL *, BINT angmode);
-void trig_asin(REAL *, BINT angmode);
-void trig_acos(REAL *, BINT angmode);
+void trig_convertangle(REAL *, int32_t oldangmode, int32_t newangmode);
+void trig_reduceangle(REAL * angle, int32_t angmode);
+void trig_sincos(REAL *, int32_t angmode);
+void trig_sin(REAL *, int32_t angmode);
+void trig_cos(REAL *, int32_t angmode);
+void trig_tan(REAL *, int32_t angmode);
+void trig_atan2(REAL *, REAL *, int32_t angmode);
+void trig_asin(REAL *, int32_t angmode);
+void trig_acos(REAL *, int32_t angmode);
 
-int64_t factorialBINT(BINT n);
-int64_t nextcbprimeBINT(int64_t n);
-int64_t nextprimeBINT(int64_t n);
-BINT isprimeBINT(int64_t n);
-void nextprimeReal(BINT regnum, REAL * n);
-BINT isprimeReal(REAL * n);
+int64_t factorialint32_t(int32_t n);
+int64_t nextcbprimeint32_t(int64_t n);
+int64_t nextprimeint32_t(int64_t n);
+int32_t isprimeint32_t(int64_t n);
+void nextprimeReal(int32_t regnum, REAL * n);
+int32_t isprimeReal(REAL * n);
 
-int64_t powmodBINT(int64_t a, int64_t b, int64_t mod);
+int64_t powmodint32_t(int64_t a, int64_t b, int64_t mod);
 void powmodReal(REAL * result, REAL * a, REAL * b, REAL * mod);
 
 void gcdReal(REAL * result, REAL * a, REAL * b);

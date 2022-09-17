@@ -153,7 +153,7 @@ void LIB_HANDLER()
             switch (OPCODE(CurOpcode)) {
             case OVR_SAME:
             {
-                BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+                int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
                 rplDropData(2);
                 if(same)
                     rplPushTrue();
@@ -197,7 +197,7 @@ void LIB_HANDLER()
                 LIB_NUMBEROFCMDS);
         if(RetNum == OK_CONTINUE) {
             // ENCAPSULATE THE OPCODE INSIDE AN OBJECT
-            rplCompileAppend(MKOPCODE(DECBINT, OPCODE(*(CompileEnd - 1))));
+            rplCompileAppend(MKOPCODE(DECint32_t, OPCODE(*(CompileEnd - 1))));
             if(CompileEnd[-2] & 1) {
                 // THIS IS A COMPLEX CONSTANT, JUST REPEAT THE OPCODE
                 rplCompileAppend(*(CompileEnd - 1));
@@ -258,7 +258,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -274,13 +274,13 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         // FOR CONSTANTS: TYPE=55 (CONSTANT), SUBTYPE = 0.10 = REAL, 0.11 = NEGATIVE REAL, 0.12 = INFINITE REAL, 0.20 = COMPLEX, 0.22 = INF COMPLEX, 0.30 = MATRIX, 0.40 = UNIT (ASSUMED REAL VALUE)
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
             libGetInfo2(ObjectPTR[1], (char **)LIB_NAMES,
-                    (BINT *) LIB_TOKENINFO, LIB_NUMBEROFCMDS);
+                    (int32_t *) LIB_TOKENINFO, LIB_NUMBEROFCMDS);
             if(TI_TYPE(RetNum) == TITYPE_REAL)
                 TypeInfo += 10;
             else if(TI_TYPE(RetNum) == TITYPE_REALNEG)
@@ -299,7 +299,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
 

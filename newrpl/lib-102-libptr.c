@@ -342,7 +342,7 @@ int64_t rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
         return -1;
 
     WORDPTR cmd, libend;
-    BINT idx;   //,ncommands;
+    int32_t idx;   //,ncommands;
 
     do {
 
@@ -399,8 +399,8 @@ int64_t rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
         return -1;
 
     WORDPTR cmd, libend;
-    BINT idx;   //,ncommands;
-    BINT len, maxlen, chosenidx;
+    int32_t idx;   //,ncommands;
+    int32_t len, maxlen, chosenidx;
     WORD chosenlib;
     WORDPTR chosencmd;
 
@@ -556,7 +556,7 @@ void LIB_HANDLER()
         // CHECK FOR VALID $LIBID
 
         WORD libid = 0;
-        BINT nvisible, nhidden, nsizeextra, datasize;
+        int32_t nvisible, nhidden, nsizeextra, datasize;
         WORDPTR *object;
         WORDPTR *stksave = DSTop;
 
@@ -655,7 +655,7 @@ void LIB_HANDLER()
             return;
         }
 
-        // RESERVED FOR FUTURE USE, TAKES 1-WORD NULL NAME, 1-WORD INFO, 1-WORD NULL HELP, 1-WORD FOR THE ZERO_BINT
+        // RESERVED FOR FUTURE USE, TAKES 1-WORD NULL NAME, 1-WORD INFO, 1-WORD NULL HELP, 1-WORD FOR THE ZERO_int32_t
         rplPushData((WORDPTR) nulllam_ident);
         rplPushData((WORDPTR) zero_bint);
         if(Exceptions) {
@@ -721,7 +721,7 @@ void LIB_HANDLER()
         if(stksave[5] == (WORDPTR) empty_list) {
 
             int k;
-            BINT listsize = 1 + 3 * nvisible;   // ENDLIST + LIBPTR FOR EACH VISIBLE VARIABLE
+            int32_t listsize = 1 + 3 * nvisible;   // ENDLIST + LIBPTR FOR EACH VISIBLE VARIABLE
 
             WORDPTR defmenu = rplAllocTempOb(listsize);
             // COMPUTE THE SIZE OF A MENU
@@ -839,7 +839,7 @@ void LIB_HANDLER()
 
         // PASS 2 - CREATION OF THE OBJECT
 
-        BINT totalsize = 3 + (nvisible + nhidden) + datasize + nsizeextra;
+        int32_t totalsize = 3 + (nvisible + nhidden) + datasize + nsizeextra;
 
         WORDPTR newobj = rplAllocTempOb(totalsize);
 
@@ -855,7 +855,7 @@ void LIB_HANDLER()
         newobj[3] = MAKESINT(nvisible + nhidden);
 
         int k, totaln = nvisible + nhidden;
-        BINT offset = 4 + totaln;
+        int32_t offset = 4 + totaln;
 
         for(k = 0; k < totaln; ++k) {
             // ADD COMMAND NAME
@@ -871,8 +871,8 @@ void LIB_HANDLER()
                 if(object && (info > object[1])
                         && (info < rplSkipOb(object[1]))) {
 
-                    BINT nargs = rplReadNumberAsBINT(info);
-                    BINT allow = !rplIsFalse(rplSkipOb(info));
+                    int32_t nargs = rplReadNumberAsInt64(info);
+                    int32_t allow = !rplIsFalse(rplSkipOb(info));
 
                     newobj[offset] = MAKESINT((nargs << 8) | ((allow) ? 1 : 0));
                 }
@@ -955,7 +955,7 @@ void LIB_HANDLER()
                         newobj[offset++] = newobj[2];
                         newobj[offset++] = (stkscan - stksave) / 2;
 
-                        BINT sizedelta = 3 - rplObjSize(prog);
+                        int32_t sizedelta = 3 - rplObjSize(prog);
 
                         WORDPTR *sptr = DSTop;
                         while(sptr < stktop) {
@@ -1108,7 +1108,7 @@ void LIB_HANDLER()
     case OVR_SAME:
         // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
     {
-        BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+        int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
         rplDropData(2);
         if(same)
             rplPushTrue();
@@ -1167,7 +1167,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         int64_t mcode;
-        mcode = rplReadNumberAsBINT(rplPeekData(1));
+        mcode = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         WORD libid;
@@ -1181,12 +1181,12 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        WORDPTR newmenu = rplNewBINT(mcode, HEXBINT);
+        WORDPTR newmenu = rplNewint32_t(mcode, HEXint32_t);
         if(!newmenu)
             return;
 
         rplPushDataNoGrow(newmenu);
-        BINT menu = rplGetActiveMenu();
+        int32_t menu = rplGetActiveMenu();
         rplSaveMenuHistory(menu);
         rplChangeMenu(menu, rplPopData());
 
@@ -1211,7 +1211,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         int64_t mcode;
-        mcode = rplReadNumberAsBINT(rplPeekData(1));
+        mcode = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         WORD libid;
@@ -1225,11 +1225,11 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        WORDPTR newmenu = rplNewBINT(mcode, HEXBINT);
+        WORDPTR newmenu = rplNewint32_t(mcode, HEXint32_t);
         if(!newmenu)
             return;
 
-        BINT menu = rplGetLastMenu();
+        int32_t menu = rplGetLastMenu();
         if(CurOpcode == CMD_LIBMENUOTHR) {
             // USE THE OTHER MENU
             if(menu == 1)
@@ -1550,7 +1550,7 @@ void LIB_HANDLER()
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             int rot = 0;
             WORD libid = 0, libcmd;
-            BINT cp;
+            int32_t cp;
             while(ptr < (BYTEPTR) BlankStart) {
                 if(*ptr == '.')
                     break;
@@ -1599,7 +1599,7 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((BINT) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1607,7 +1607,7 @@ void LIB_HANDLER()
 
             BYTEPTR ptr = (BYTEPTR) TokenStart;
             WORD value = 0;
-            BINT digit;
+            int32_t digit;
             while(ptr < (BYTEPTR) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
@@ -1643,8 +1643,8 @@ void LIB_HANDLER()
 
         WORD value = 0;
         WORD checksum = 0;
-        BINT ndigits = 0;
-        BINT dig;
+        int32_t ndigits = 0;
+        int32_t dig;
 
         if(LIBNUM(*ScratchPointer4) & 1) {
             // CONTINUE WHERE WE LEFT OFF
@@ -1657,7 +1657,7 @@ void LIB_HANDLER()
         }
 
         while(((CompileEnd - ScratchPointer4 - 1) <
-                    (BINT) OBJSIZE(*ScratchPointer4))) {
+                    (int32_t) OBJSIZE(*ScratchPointer4))) {
             do {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     dig = (*ptr + 4);
@@ -1702,7 +1702,7 @@ void LIB_HANDLER()
             while(ptr != (BYTEPTR) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
-                            (BINT) OBJSIZE(*ScratchPointer4)))) {
+                            (int32_t) OBJSIZE(*ScratchPointer4)))) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum << 16));
@@ -1753,7 +1753,7 @@ void LIB_HANDLER()
                     ++ptr;
                     rplDecompAppendChar('.');
                     BYTE buffer[22];
-                    BINT n = rplIntToString(DecompileObject[2], DECBINT, buffer,
+                    int32_t n = rplIntToString(DecompileObject[2], DECint32_t, buffer,
                             buffer + 22);
                     ptr = buffer;
                     while(n--) {
@@ -1776,8 +1776,8 @@ void LIB_HANDLER()
             // DECOMPILE LIBRARY
 
             rplDecompAppendString((BYTEPTR) "LIBRARY ");
-            BINT size = OBJSIZE(*DecompileObject);
-            BINT k, zero = 1, nibble;
+            int32_t size = OBJSIZE(*DecompileObject);
+            int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
                 nibble = (size >> (k * 4)) & 0xf;
                 if(!zero || nibble) {
@@ -1803,12 +1803,12 @@ void LIB_HANDLER()
             encoder[6] = 0;
 
             WORDPTR ptr = DecompileObject + 1;
-            BINT nwords = 0;
+            int32_t nwords = 0;
 
             while(size) {
                 // ENCODE THE 6 CHARACTERS
                 int k;
-                BINT chksum = 0;
+                int32_t chksum = 0;
                 for(k = 0; k < 5; ++k) {
                     encoder[k] = ((*ptr) >> (26 - 6 * k)) & 0x3f;
                     chksum +=
@@ -1900,11 +1900,11 @@ void LIB_HANDLER()
 
         if(libptr >= 0) {
             // FOUND A MATCH!
-            BINT len =
+            int32_t len =
                     utf8nlenst((char *)(cmdinfo + 1),
                     ((char *)(cmdinfo + 1)) + rplGetIdentLength(cmdinfo));
-            BINT nargs = OPCODE(*rplSkipOb(cmdinfo));
-            BINT allow = nargs & 1;
+            int32_t nargs = OPCODE(*rplSkipOb(cmdinfo));
+            int32_t allow = nargs & 1;
 
             nargs >>= 8;
 
@@ -1917,7 +1917,7 @@ void LIB_HANDLER()
             return;
         }
 
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1933,7 +1933,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBNUM(*ObjectPTR) * 100;
@@ -1944,9 +1944,9 @@ void LIB_HANDLER()
                 // FOUND A MATCH!
                 WORDPTR cmdinfo = rplGetLibPtrName(ObjectPTR);
                 if(cmdinfo) {
-                    BINT nargs = OPCODE(*rplSkipOb(cmdinfo));
-                    BINT allow = nargs & 1;
-                    BINT len;
+                    int32_t nargs = OPCODE(*rplSkipOb(cmdinfo));
+                    int32_t allow = nargs & 1;
+                    int32_t len;
 
                     if(ISIDENT(*cmdinfo))
                         len = utf8nlenst((char *)(cmdinfo + 1),
@@ -1973,7 +1973,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;
@@ -2021,7 +2021,7 @@ void LIB_HANDLER()
         if(libdir) {
 
             WORD prevlibid = 0;
-            BINT previdx = 0;
+            int32_t previdx = 0;
             if(ISPROLOG(SuggestedOpcode) && SuggestedObject) {
                 if(ISLIBPTR(SuggestedOpcode)) {
                     prevlibid = SuggestedObject[1];
@@ -2036,7 +2036,7 @@ void LIB_HANDLER()
 
                     if(ISIDENT(*direntry[0]) && (OBJSIZE(*direntry[0]) == 1)) {
 
-                        BINT nentries = OPCODE(direntry[1][3]);
+                        int32_t nentries = OPCODE(direntry[1][3]);
                         // COMPARE LIBRARY ID
                         if(prevlibid) {
                             // SKIP UNTIL WE FIND THE PREVIOUS LIBRARY
@@ -2060,9 +2060,9 @@ void LIB_HANDLER()
                                     OPCODE(direntry[1][previdx + 3]));
                             if(ISIDENT(*nameptr)) {
                                 // COMPARE IDENT WITH THE GIVEN TOKEN
-                                BINT len, idlen = rplGetIdentLength(nameptr);   // LENGTH IN BYTES
+                                int32_t len, idlen = rplGetIdentLength(nameptr);   // LENGTH IN BYTES
                                 len = utf8nlen((char *)(nameptr + 1), (char *)(nameptr + 1) + idlen);   // LENGTH IN UNICODE CHARACTERS
-                                if((len >= (BINT) TokenLen)
+                                if((len >= (int32_t) TokenLen)
                                         && (!utf8ncmp2((char *)TokenStart,
                                                 (char *)BlankStart,
                                                 (char *)(nameptr + 1),
@@ -2084,7 +2084,7 @@ void LIB_HANDLER()
                                     SuggestedOpcode = newobj[0];
                                     return;
                                 }
-                                BINT firstchar =
+                                int32_t firstchar =
                                         utf82cp((char *)(nameptr + 1),
                                         (char *)(nameptr + 1) + idlen);
 
@@ -2095,7 +2095,7 @@ void LIB_HANDLER()
                                         ) {
                                     // SKIP THE FIRST CHARACTER AND CHECK AGAIN
                                     --len;
-                                    if((len >= (BINT) TokenLen)
+                                    if((len >= (int32_t) TokenLen)
                                             && (!utf8ncmp2((char *)TokenStart,
                                                     (char *)BlankStart,
                                                     utf8skipst((char *)(nameptr

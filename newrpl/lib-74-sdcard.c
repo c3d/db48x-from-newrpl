@@ -117,7 +117,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 
 #ifndef CONFIG_NO_FSYSTEM
 // CONVERT FILE SYSTEM ERROR MESSAGE INTO THIS LIBRARY ERRORS
-BINT rplFSError2Error(BINT err)
+int32_t rplFSError2Error(int32_t err)
 {
     switch (err) {
     case FS_EOF:       // END OF FILE
@@ -150,7 +150,7 @@ BINT rplFSError2Error(BINT err)
     }
 }
 
-BINT rplPathFromList(BYTEPTR path, WORDPTR list)
+int32_t rplPathFromList(BYTEPTR path, WORDPTR list)
 {
     WORDPTR ptr = list + 1;
     WORDPTR eol = rplSkipOb(list);
@@ -165,7 +165,7 @@ BINT rplPathFromList(BYTEPTR path, WORDPTR list)
             path[off] = '/';
             ++off;
         }
-        BINT len;
+        int32_t len;
         if(ISSTRING(*ptr))
             len = rplStrSize(ptr);
         else {
@@ -266,7 +266,7 @@ void LIB_HANDLER()
         // REINIT FILE SYSTEM
         int error = FSRestart();
         if(error != FS_OK) {
-            rplNewBINTPush((int64_t) FSystem.CurrentVolume, HEXBINT);
+            rplNewint32_tPush((int64_t) FSystem.CurrentVolume, HEXint32_t);
             rplError(rplFSError2Error(error));
         }
         return;
@@ -283,11 +283,11 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        int64_t partnum = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t partnum = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
-        BINT ismounted = FSVolumeInserted(partnum - 3);
+        int32_t ismounted = FSVolumeInserted(partnum - 3);
 
         if(ismounted == FS_OK) {
             FSSetCurrentVolume(partnum - 3);
@@ -324,7 +324,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -337,7 +337,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -358,7 +358,7 @@ void LIB_HANDLER()
             rplError(rplFSError2Error(err));
             return;
         }
-        BINT objlen = rplObjSize(rplPeekData(2));
+        int32_t objlen = rplObjSize(rplPeekData(2));
         if(FSWrite((unsigned char *)fileprolog, 4, objfile) != 4) {
             FSClose(objfile);
             rplError(ERR_CANTWRITE);
@@ -366,7 +366,7 @@ void LIB_HANDLER()
         }
         err = FSWrite((unsigned char *)rplPeekData(2), objlen * sizeof(WORD),
                 objfile);
-        if(err != objlen * (BINT) sizeof(WORD)) {
+        if(err != objlen * (int32_t) sizeof(WORD)) {
             FSClose(objfile);
             rplError(ERR_CANTWRITE);
             return;
@@ -400,7 +400,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -414,7 +414,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -435,7 +435,7 @@ void LIB_HANDLER()
             rplError(rplFSError2Error(err));
             return;
         }
-        BINT objlen = FSFileLength(objfile);
+        int32_t objlen = FSFileLength(objfile);
         if(FSRead((unsigned char *)(RReg[0].data), 4, objfile) != 4) {
             FSClose(objfile);
             rplError(ERR_NOTANRPLFILE);
@@ -457,8 +457,8 @@ void LIB_HANDLER()
                 rplError(ERR_NOTANRPLFILE);
                 return;
             }
-            BINT objsize = rplObjSize((WORDPTR) RReg[0].data);
-            if(objsize * (BINT) sizeof(WORD) < objlen) {
+            int32_t objsize = rplObjSize((WORDPTR) RReg[0].data);
+            if(objsize * (int32_t) sizeof(WORD) < objlen) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
@@ -471,7 +471,7 @@ void LIB_HANDLER()
             newobj[0] = (WORD) RReg[0].data[0];
             if(FSRead((unsigned char *)(newobj + 1),
                         (objsize - 1) * sizeof(WORD),
-                        objfile) != (objsize - 1) * (BINT) sizeof(WORD)) {
+                        objfile) != (objsize - 1) * (int32_t) sizeof(WORD)) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
@@ -516,7 +516,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -530,7 +530,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -543,7 +543,7 @@ void LIB_HANDLER()
 
         // TRY TO CHANGE CURRENT DIR
 
-        BINT err = FSChdir((char *)path);
+        int32_t err = FSChdir((char *)path);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -561,7 +561,7 @@ void LIB_HANDLER()
         //@NEW
         // TRY TO CHANGE CURRENT DIR
 
-        BINT err = FSChdir("..");
+        int32_t err = FSChdir("..");
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -593,7 +593,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -607,7 +607,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -620,7 +620,7 @@ void LIB_HANDLER()
 
         // TRY TO CHANGE CURRENT DIR
 
-        BINT err = FSMkdir((char *)path);
+        int32_t err = FSMkdir((char *)path);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -654,7 +654,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -668,7 +668,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -681,7 +681,7 @@ void LIB_HANDLER()
 
         // TRY TO DELETE CURRENT DIR
 
-        BINT err = FSRmdir((char *)path);
+        int32_t err = FSRmdir((char *)path);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -715,7 +715,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -729,7 +729,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -742,7 +742,7 @@ void LIB_HANDLER()
 
         // TRY TO DELETE CURRENT DIR
 
-        BINT err = FSDelete((char *)path);
+        int32_t err = FSDelete((char *)path);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -776,7 +776,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -790,7 +790,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -803,7 +803,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err = FSOpen((char *)path, FSMODE_READ, &handle);
+        int32_t err = FSOpen((char *)path, FSMODE_READ, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -812,7 +812,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
+        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
 
         return;
 
@@ -840,7 +840,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -854,7 +854,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -867,7 +867,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err =
+        int32_t err =
                 FSOpen((char *)path, FSMODE_WRITE | FSMODE_WRITEBUFFERS,
                 &handle);
 
@@ -878,7 +878,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
+        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
 
         return;
 
@@ -906,7 +906,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -920,7 +920,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -933,7 +933,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err = FSOpen((char *)path, FSMODE_WRITE | FSMODE_APPEND, &handle);
+        int32_t err = FSOpen((char *)path, FSMODE_WRITE | FSMODE_APPEND, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -942,7 +942,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
+        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
 
         return;
 
@@ -970,7 +970,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -984,7 +984,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -997,7 +997,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err = FSOpen((char *)path, FSMODE_WRITE | FSMODE_MODIFY, &handle);
+        int32_t err = FSOpen((char *)path, FSMODE_WRITE | FSMODE_MODIFY, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1006,7 +1006,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
+        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
 
         return;
 
@@ -1023,14 +1023,14 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1060,7 +1060,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
@@ -1070,17 +1070,17 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
-        int64_t nchars = rplReadNumberAsBINT(rplPeekData(2));
-        BINT bufsize = REAL_REGISTER_STORAGE * 4;
+        int64_t num = rplReadint32_t(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsInt64(rplPeekData(2));
+        int32_t bufsize = REAL_REGISTER_STORAGE * 4;
         BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data;
         int64_t currentpos;
         if(Exceptions)
             return;
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
-        BINT readblock, charcount, bytecount, bufused;
+        int32_t err = FSGetFileFromHandle(num, &handle);
+        int32_t readblock, charcount, bytecount, bufused;
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1182,7 +1182,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
@@ -1192,12 +1192,12 @@ void LIB_HANDLER()
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
         BYTEPTR stringstart = (BYTEPTR) (rplPeekData(2) + 1);
-        BINT nbytes = rplStrSize(rplPeekData(2));
+        int32_t nbytes = rplStrSize(rplPeekData(2));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1236,21 +1236,21 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
-        BINT bufsize = REAL_REGISTER_STORAGE * 4, readblock;
+        int32_t bufsize = REAL_REGISTER_STORAGE * 4, readblock;
         BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data, ptr;
         int64_t currentpos, bytecount;
         if(Exceptions)
             return;
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1333,7 +1333,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
@@ -1342,19 +1342,19 @@ void LIB_HANDLER()
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
-        BINT seek_from = FSSEEK_CUR;
+        int32_t seek_from = FSSEEK_CUR;
         if(OPCODE(CurOpcode) == SDSEEKSTA)
             seek_from = FSSEEK_SET;
         if(OPCODE(CurOpcode) == SDSEEKEND)
             seek_from = FSSEEK_END;
 
-        int64_t num = rplReadBINT(rplPeekData(1));
-        int64_t offset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t num = rplReadint32_t(rplPeekData(1));
+        int64_t offset = rplReadNumberAsInt64(rplPeekData(2));
         if(Exceptions)
             return;
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1379,15 +1379,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1397,7 +1397,7 @@ void LIB_HANDLER()
         int64_t pos = FSTell(handle);
 
         rplDropData(1);
-        rplNewBINTPush(pos, DECBINT);
+        rplNewint32_tPush(pos, DECint32_t);
 
         return;
     }
@@ -1413,15 +1413,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1431,7 +1431,7 @@ void LIB_HANDLER()
         int64_t len = FSFileLength(handle);
 
         rplDropData(1);
-        rplNewBINTPush(len, DECBINT);
+        rplNewint32_tPush(len, DECint32_t);
 
         return;
     }
@@ -1448,15 +1448,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1494,7 +1494,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -1508,7 +1508,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -1521,7 +1521,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err = FSOpenDir((char *)path, &handle);
+        int32_t err = FSOpenDir((char *)path, &handle);
 
         if((err != FS_OK) && (err != FS_OPENDIR)) {
             rplError(rplFSError2Error(err));
@@ -1530,7 +1530,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
+        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
 
         return;
 
@@ -1547,15 +1547,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1629,7 +1629,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewBINTPush(entry.FileSize, DECBINT);
+        rplNewint32_tPush(entry.FileSize, DECint32_t);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1641,7 +1641,7 @@ void LIB_HANDLER()
         FSGetWriteTime(&entry, &date);
         if(date.tm_mday != 0)   // DAY IS 1-BASED, THEREFORE DAY=0 MEANS DATE/TIME NOT SET
         {
-            rplBINTToRReg(0,
+            rplint32_tToRReg(0,
                     (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
                         1) * 10000 + (int64_t) date.tm_mday * 1000000);
             RReg[0].exp -= 6;
@@ -1652,7 +1652,7 @@ void LIB_HANDLER()
                 return;
             }
             // LAST MODIFIED TIME
-            rplBINTToRReg(0,
+            rplint32_tToRReg(0,
                     (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
                     (int64_t) date.tm_hour * 10000);
             RReg[0].exp -= 4;
@@ -1688,15 +1688,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1745,7 +1745,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewBINTPush(entry.FileSize, DECBINT);
+        rplNewint32_tPush(entry.FileSize, DECint32_t);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1755,7 +1755,7 @@ void LIB_HANDLER()
         // LAST MODIFIED DATE
         struct compact_tm date;
         FSGetWriteTime(&entry, &date);
-        rplBINTToRReg(0,
+        rplint32_tToRReg(0,
                 (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
                     1) * 10000 + (int64_t) date.tm_mday * 1000000);
         RReg[0].exp -= 6;
@@ -1768,7 +1768,7 @@ void LIB_HANDLER()
 
         // LAST MODIFIED TIME
 
-        rplBINTToRReg(0,
+        rplint32_tToRReg(0,
                 (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
                 (int64_t) date.tm_hour * 10000);
         RReg[0].exp -= 4;
@@ -1796,15 +1796,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INVALIDHANDLE);
             return;
         }
 
-        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadint32_t(rplPeekData(1));
 
         FS_FILE *handle;
-        BINT err = FSGetFileFromHandle(num, &handle);
+        int32_t err = FSGetFileFromHandle(num, &handle);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -1882,7 +1882,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewBINTPush(entry.FileSize, DECBINT);
+        rplNewint32_tPush(entry.FileSize, DECint32_t);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1892,7 +1892,7 @@ void LIB_HANDLER()
         // LAST MODIFIED DATE
         struct compact_tm date;
         FSGetWriteTime(&entry, &date);
-        rplBINTToRReg(0,
+        rplint32_tToRReg(0,
                 (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
                     1) * 10000 + (int64_t) date.tm_mday * 1000000);
         RReg[0].exp -= 6;
@@ -1905,7 +1905,7 @@ void LIB_HANDLER()
 
         // LAST MODIFIED TIME
 
-        rplBINTToRReg(0,
+        rplint32_tToRReg(0,
                 (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
                 (int64_t) date.tm_hour * 10000);
         RReg[0].exp -= 4;
@@ -1950,7 +1950,7 @@ void LIB_HANDLER()
         BYTEPTR pathto = (BYTEPTR) RReg[1].data;
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(pathto, rplPeekData(1) + 1, pathlen);
             pathto[pathlen] = 0;        // NULL TERMINATED STRING
         }
@@ -1964,7 +1964,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(pathto, rplPeekData(1) + 1, pathlen);
             pathto[pathlen] = 0;        // NULL TERMINATED STRING
 
@@ -1976,7 +1976,7 @@ void LIB_HANDLER()
         }
 
         if(ISIDENT(*rplPeekData(2))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(2));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(2));
             memmoveb(pathfrom, rplPeekData(2) + 1, pathlen);
             pathfrom[pathlen] = 0;      // NULL TERMINATED STRING
         }
@@ -1990,7 +1990,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(2))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(2));
+            int32_t pathlen = rplStrSize(rplPeekData(2));
             memmoveb(pathfrom, rplPeekData(2) + 1, pathlen);
             pathfrom[pathlen] = 0;      // NULL TERMINATED STRING
 
@@ -2003,7 +2003,7 @@ void LIB_HANDLER()
 
         // FINALLY, COPY THE FILE
         FS_FILE *handleto, *handlefrom;
-        BINT err = FSOpen((char *)pathto, FSMODE_WRITE, &handleto);
+        int32_t err = FSOpen((char *)pathto, FSMODE_WRITE, &handleto);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -2019,7 +2019,7 @@ void LIB_HANDLER()
 
         // JUST READ AND WRITE, USE REAL NUMBERS AS STORAGE
 
-        BINT nbytes = FSFileLength(handlefrom);
+        int32_t nbytes = FSFileLength(handlefrom);
 
         // WARNING: THIS ASSUMES REAL_REGISTER_STORAGE > 1024 BYTES
         // MAKE SURE THIS IS TRUE!
@@ -2092,7 +2092,7 @@ void LIB_HANDLER()
         BYTEPTR pathto = (BYTEPTR) RReg[1].data;
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(pathto, rplPeekData(1) + 1, pathlen);
             pathto[pathlen] = 0;        // NULL TERMINATED STRING
         }
@@ -2106,7 +2106,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(pathto, rplPeekData(1) + 1, pathlen);
             pathto[pathlen] = 0;        // NULL TERMINATED STRING
 
@@ -2118,7 +2118,7 @@ void LIB_HANDLER()
         }
 
         if(ISIDENT(*rplPeekData(2))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(2));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(2));
             memmoveb(pathfrom, rplPeekData(2) + 1, pathlen);
             pathfrom[pathlen] = 0;      // NULL TERMINATED STRING
         }
@@ -2132,7 +2132,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(2))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(2));
+            int32_t pathlen = rplStrSize(rplPeekData(2));
             memmoveb(pathfrom, rplPeekData(2) + 1, pathlen);
             pathfrom[pathlen] = 0;      // NULL TERMINATED STRING
 
@@ -2144,7 +2144,7 @@ void LIB_HANDLER()
         }
 
         // FINALLY, MOVE THE FILE
-        BINT err = FSRename((char *)pathfrom, (char *)pathto);
+        int32_t err = FSRename((char *)pathfrom, (char *)pathto);
 
         if(err != FS_OK) {
             rplError(rplFSError2Error(err));
@@ -2161,7 +2161,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Get the path to current directory
         //@NEW
         // RETURN THE CURRENT WORK DIRECTORY
-        BINT cvol = FSGetCurrentVolume();
+        int32_t cvol = FSGetCurrentVolume();
 
         if(cvol < 0) {
             rplError(rplFSError2Error(cvol));
@@ -2195,7 +2195,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Get the free space in the current volume
         //@NEW
         // RETURN THE FREE SPACE IN BYTES IN THE CURRENT PARTITION
-        BINT cvol = FSGetCurrentVolume();
+        int32_t cvol = FSGetCurrentVolume();
 
         if(cvol < 0) {
             rplError(rplFSError2Error(cvol));
@@ -2208,7 +2208,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplNewBINTPush(size * 512, DECBINT);
+        rplNewint32_tPush(size * 512, DECint32_t);
 
         return;
     }
@@ -2236,7 +2236,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -2249,7 +2249,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -2321,7 +2321,7 @@ void LIB_HANDLER()
         // USE RReg[0] TO STORE THE FILE PATH
 
         if(ISIDENT(*rplPeekData(1))) {
-            BINT pathlen = rplGetIdentLength(rplPeekData(1));
+            int32_t pathlen = rplGetIdentLength(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
         }
@@ -2334,7 +2334,7 @@ void LIB_HANDLER()
         }
         else if(ISSTRING(*rplPeekData(1))) {
             // FULL PATH GIVEN
-            BINT pathlen = rplStrSize(rplPeekData(1));
+            int32_t pathlen = rplStrSize(rplPeekData(1));
             memmoveb(path, rplPeekData(1) + 1, pathlen);
             path[pathlen] = 0;  // NULL TERMINATED STRING
 
@@ -2395,14 +2395,14 @@ void LIB_HANDLER()
         //@SHORT_DESC=Get the current partition number
         //@NEW
         // RETURN THE CURRENT VOLUME AS A NUMBER THAT CAN BE USED BY SDSETPART LATER
-        BINT cvol = FSGetCurrentVolume();
+        int32_t cvol = FSGetCurrentVolume();
 
         if(cvol < 0) {
             rplError(rplFSError2Error(cvol));
             return;
         }
 
-        rplNewBINTPush(cvol + 3, DECBINT);
+        rplNewint32_tPush(cvol + 3, DECint32_t);
         return;
     }
 
@@ -2473,7 +2473,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -2489,7 +2489,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -2499,7 +2499,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

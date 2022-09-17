@@ -171,7 +171,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Compute the sine
         REAL dec;
-        BINT angmode;
+        int32_t angmode;
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -193,7 +193,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -340,7 +340,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Compute the cosine
         REAL dec;
-        BINT angmode;
+        int32_t angmode;
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -365,7 +365,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -513,7 +513,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Compute the tangent
         REAL dec;
-        BINT angmode;
+        int32_t angmode;
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -538,7 +538,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -717,7 +717,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -748,7 +748,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -800,7 +800,7 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2], 5, -1);
+            newRealFromint32_t(&RReg[2], 5, -1);
 
             mulReal(&RReg[1], &RReg[0], &RReg[2]);      // ANGLE/2 TO GET THE SQUARE ROOT
 
@@ -909,7 +909,7 @@ void LIB_HANDLER()
             return;
         REAL one, pi_2;
         decconst_One(&one);
-        BINT signy = y.flags & F_NEGATIVE;
+        int32_t signy = y.flags & F_NEGATIVE;
         y.flags ^= signy;
 
         if(gtReal(&y, &one)) {
@@ -963,7 +963,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT angmode;
+        int32_t angmode;
         angmode =
                 rplTestSystemFlag(FL_ANGLEMODE1) |
                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
@@ -1009,7 +1009,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -1041,7 +1041,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1093,7 +1093,7 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2], 5, -1);
+            newRealFromint32_t(&RReg[2], 5, -1);
 
             mulReal(&RReg[1], &RReg[0], &RReg[2]);      // ANGLE/2 TO GET THE SQUARE ROOT
 
@@ -1203,7 +1203,7 @@ void LIB_HANDLER()
             return;
         REAL one, pi;
         decconst_One(&one);
-        BINT signy = y.flags & F_NEGATIVE;
+        int32_t signy = y.flags & F_NEGATIVE;
         y.flags ^= signy;
 
         if(gtReal(&y, &one)) {
@@ -1262,7 +1262,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT angmode;
+        int32_t angmode;
         angmode =
                 rplTestSystemFlag(FL_ANGLEMODE1) |
                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
@@ -1309,12 +1309,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im, pi2;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1347,7 +1347,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_MALFORMED:
         {
             REAL re, im, pi2;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1404,7 +1404,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
             // ATAN OF A COMPLEX NUMBER
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1487,7 +1487,7 @@ void LIB_HANDLER()
 
             RReg[9].flags ^= F_NEGATIVE;        // i*ln(...)=
 
-            newRealFromBINT(&RReg[2], 5, -1);
+            newRealFromint32_t(&RReg[2], 5, -1);
 
             mulReal(&RReg[3], &RReg[0], &RReg[2]);      // IMAGINARY PART
             swapReal(&RReg[3], &RReg[0]);
@@ -1549,7 +1549,7 @@ void LIB_HANDLER()
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
         rplOneToRReg(7);
 
-        BINT angmode;
+        int32_t angmode;
         angmode =
                 rplTestSystemFlag(FL_ANGLEMODE1) |
                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
@@ -1602,7 +1602,7 @@ void LIB_HANDLER()
         if(Exceptions)
             return;
 
-        BINT angmode;
+        int32_t angmode;
         angmode =
                 rplTestSystemFlag(FL_ANGLEMODE1) |
                 (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
@@ -1648,7 +1648,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -1696,7 +1696,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
             // LOGARITHM OF A COMPLEX NUMBER
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1838,12 +1838,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1861,7 +1861,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -1928,7 +1928,7 @@ void LIB_HANDLER()
 
         if(ISCOMPLEX(*arg)) {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2030,12 +2030,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2050,7 +2050,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2140,7 +2140,7 @@ void LIB_HANDLER()
             // SINH OF A COMPLEX NUMBER
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2306,7 +2306,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
@@ -2321,7 +2321,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2410,7 +2410,7 @@ void LIB_HANDLER()
             // COSH OF A COMPLEX NUMBER
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2575,19 +2575,19 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
             // TANH(+/-Inf)=+/- 1
             rplDropData(1);
             if(re.flags & F_NEGATIVE)
-                rplNewBINTPush(-1, DECBINT);
+                rplNewint32_tPush(-1, DECint32_t);
             else
                 rplPushData((WORDPTR) one_bint);
             return;
@@ -2596,7 +2596,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2619,7 +2619,7 @@ void LIB_HANDLER()
             switch (cmpReal(&im, &pi2)) {
             case 1:    // ARG(Z)> PI/2
                 rplDropData(1);
-                rplNewBINTPush(-1, DECBINT);
+                rplNewint32_tPush(-1, DECint32_t);
                 return;
             case -1:
                 rplOverwriteData(1, (WORDPTR) one_bint);
@@ -2663,7 +2663,7 @@ void LIB_HANDLER()
             // TANH OF A COMPLEX NUMBER
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2816,12 +2816,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2837,7 +2837,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2909,7 +2909,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -2960,7 +2960,7 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2], 5, -1);
+            newRealFromint32_t(&RReg[2], 5, -1);
 
             mulReal(&RReg[1], &RReg[0], &RReg[2]);      // ANGLE/2 TO GET THE SQUARE ROOT
 
@@ -3100,7 +3100,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_POLAR:
@@ -3139,7 +3139,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3195,7 +3195,7 @@ void LIB_HANDLER()
 
             addReal(&RReg[1], &RReg[8], &RReg[0]);
 
-            newRealFromBINT(&RReg[2], 5, -1);
+            newRealFromint32_t(&RReg[2], 5, -1);
 
             mulReal(&RReg[9], &RReg[1], &RReg[2]);      // (ANG1+ANG2)/2 TO GET THE SQUARE ROOT
 
@@ -3311,7 +3311,7 @@ void LIB_HANDLER()
 
                 addReal(&RReg[1], &RReg[0], &x);
                 subReal(&RReg[2], &x, &RReg[0]);
-                BINT i = 0;
+                int32_t i = 0;
                 if(RReg[1].flags & F_NEGATIVE)
                     ++i;
                 if(RReg[2].flags & F_NEGATIVE)
@@ -3410,13 +3410,13 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL pi2;
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3439,7 +3439,7 @@ void LIB_HANDLER()
         {
             REAL pi2;
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3463,7 +3463,7 @@ void LIB_HANDLER()
         {
             REAL pi2;
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3523,7 +3523,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             REAL re, im, one;
-            BINT angmode;
+            int32_t angmode;
 
             decconst_One(&one);
 
@@ -3584,7 +3584,7 @@ void LIB_HANDLER()
 
             finalize(&RReg[0]); // LN(r')
 
-            newRealFromBINT(&RReg[1], 5, -1);
+            newRealFromint32_t(&RReg[1], 5, -1);
 
             mulReal(&RReg[8], &RReg[1], &RReg[0]);      // 1/2* LN(...)
             mulReal(&RReg[2], &RReg[1], &RReg[9]);
@@ -3646,9 +3646,9 @@ void LIB_HANDLER()
             return;
 
         rplOneToRReg(0);
-        BINT signx = x.flags;
+        int32_t signx = x.flags;
         x.flags &= ~F_NEGATIVE;
-        BINT ismorethan1 = cmpReal(&x, &RReg[0]);
+        int32_t ismorethan1 = cmpReal(&x, &RReg[0]);
         x.flags = signx;
 
         if(ismorethan1 == 1)    // x > 1.0
@@ -3675,7 +3675,7 @@ void LIB_HANDLER()
                 hyp_ln(&RReg[8]);
                 normalize(&RReg[0]);
 
-                newRealFromBINT(&RReg[1], 5, -1);
+                newRealFromint32_t(&RReg[1], 5, -1);
 
                 mulReal(&RReg[8], &RReg[0], &RReg[1]);
 
@@ -3757,12 +3757,12 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3810,7 +3810,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_MALFORMED:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
             REAL pi4;
 
             rplReadCNumber(arg, &re, &im, &angmode);
@@ -3861,7 +3861,7 @@ void LIB_HANDLER()
         {
             REAL pi;
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -3882,13 +3882,13 @@ void LIB_HANDLER()
             if(angmode != ANGLEDMS) {
 
                 // DIVIDE BY TWO = * 5/10
-                rplBINTToRReg(0, 5);
+                rplint32_tToRReg(0, 5);
                 mulReal(&RReg[1], &im, &RReg[0]);
                 RReg[1].exp--;
 
             }
             else {
-                BINT isodddeg, isoddmin;
+                int32_t isodddeg, isoddmin;
 
                 isodddeg = isoddReal(&im);
                 im.exp += 2;
@@ -3896,18 +3896,18 @@ void LIB_HANDLER()
                 im.exp -= 2;
 
                 // DIVIDE BY TWO = * 5/10
-                rplBINTToRReg(0, 5);
+                rplint32_tToRReg(0, 5);
                 mulReal(&RReg[1], &im, &RReg[0]);
                 RReg[1].exp--;
 
                 if(isodddeg) {
-                    rplBINTToRReg(0, 2);
+                    rplint32_tToRReg(0, 2);
                     RReg[0].exp--;
                     subReal(&RReg[2], &RReg[1], &RReg[0]);
                     swapReal(&RReg[2], &RReg[1]);
                 }
                 if(isoddmin) {
-                    rplBINTToRReg(0, 2);
+                    rplint32_tToRReg(0, 2);
                     RReg[0].exp -= 3;
                     subReal(&RReg[2], &RReg[1], &RReg[0]);
                     swapReal(&RReg[2], &RReg[1]);
@@ -4026,7 +4026,7 @@ void LIB_HANDLER()
                     return;
             }
 
-            BINT iscplx = x.flags & F_NEGATIVE;
+            int32_t iscplx = x.flags & F_NEGATIVE;
             if(iscplx && !rplTestSystemFlag(FL_COMPLEXMODE)) {
                 rplError(ERR_ARGOUTSIDEDOMAIN);
                 return;
@@ -4051,7 +4051,7 @@ void LIB_HANDLER()
         {
             REAL pi;
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4072,12 +4072,12 @@ void LIB_HANDLER()
             if(angmode != ANGLEDMS) {
 
                 // DIVIDE BY TWO = * 5/10
-                rplBINTToRReg(0, 5);
+                rplint32_tToRReg(0, 5);
                 RReg[0].exp--;
                 mulReal(&RReg[8], &im, &RReg[0]);
             }
             else {
-                BINT isodddeg, isoddmin;
+                int32_t isodddeg, isoddmin;
 
                 isodddeg = isoddReal(&im);
                 im.exp += 2;
@@ -4153,7 +4153,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -4201,7 +4201,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
             // LOGARITHM OF A COMPLEX NUMBER
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4335,12 +4335,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4382,7 +4382,7 @@ void LIB_HANDLER()
 
         if(ISCOMPLEX(*arg)) {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4502,12 +4502,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4525,7 +4525,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_POLAR:
         {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4592,7 +4592,7 @@ void LIB_HANDLER()
 
         if(ISCOMPLEX(*arg)) {
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4691,7 +4691,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass = rplComplexClass(arg);
+        int32_t cclass = rplComplexClass(arg);
         switch (cclass) {
         case CPLX_INF:
         case CPLX_INF | CPLX_MALFORMED:
@@ -4736,7 +4736,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
             // LOGARITHM OF A COMPLEX NUMBER
             REAL re, im;
-            BINT angmode;
+            int32_t angmode;
 
             rplReadCNumber(arg, &re, &im, &angmode);
 
@@ -4927,7 +4927,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -4943,7 +4943,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -4953,7 +4953,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

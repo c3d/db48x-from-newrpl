@@ -16,9 +16,9 @@
 // EXPAND A COMPOSITE IN THE STACK AND STORES THE NUMBER OF ELEMENTS AT THE END
 // USES 2 SCRATCH POINTERS
 
-BINT rplExplodeList(WORDPTR composite)
+int32_t rplExplodeList(WORDPTR composite)
 {
-    BINT count = 0;
+    int32_t count = 0;
     ScratchPointer1 = composite + 1;
     ScratchPointer2 = composite + OBJSIZE(*composite);  // POINT TO THE END MARKER
     while(ScratchPointer1 < ScratchPointer2) {
@@ -26,7 +26,7 @@ BINT rplExplodeList(WORDPTR composite)
         ScratchPointer1 = rplSkipOb(ScratchPointer1);
         ++count;
     }
-    rplNewBINTPush(count, DECBINT);
+    rplNewint32_tPush(count, DECint32_t);
     return count;
 }
 
@@ -34,9 +34,9 @@ BINT rplExplodeList(WORDPTR composite)
 // DOESN'T PUSH THE NUMBER OF ELEMENTS, JUST RETURNS IT
 // USES 2 SCRATCH POINTERS
 
-BINT rplExplodeList2(WORDPTR composite)
+int32_t rplExplodeList2(WORDPTR composite)
 {
-    BINT count = 0;
+    int32_t count = 0;
     ScratchPointer1 = composite + 1;
     ScratchPointer2 = composite + OBJSIZE(*composite);  // POINT TO THE END MARKER
     while(ScratchPointer1 < ScratchPointer2) {
@@ -47,9 +47,9 @@ BINT rplExplodeList2(WORDPTR composite)
     return count;
 }
 
-BINT rplListLength(WORDPTR composite)
+int32_t rplListLength(WORDPTR composite)
 {
-    BINT count = 0;
+    int32_t count = 0;
     WORDPTR ptr = composite + 1;
     WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end) {
@@ -60,9 +60,9 @@ BINT rplListLength(WORDPTR composite)
 }
 
 // RETURN THE LENGTH OF A "FLAT" LIST, AS IF LISTS INSIDE THE LIST WERE EXPLODED
-BINT rplListLengthFlat(WORDPTR composite)
+int32_t rplListLengthFlat(WORDPTR composite)
 {
-    BINT count = 0, depth = 0;
+    int32_t count = 0, depth = 0;
     WORDPTR ptr = composite + 1;
     WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end) {
@@ -85,9 +85,9 @@ BINT rplListLengthFlat(WORDPTR composite)
 
 // GET AN ELEMENT FROM A "FLAT" VIEW OF THE LIST
 
-WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos)
+WORDPTR rplGetListElementFlat(WORDPTR composite, int32_t pos)
 {
-    BINT count = 1;
+    int32_t count = 1;
     WORDPTR ptr = composite + 1;
     WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count <= pos) {
@@ -109,11 +109,11 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos)
     return ptr;
 }
 
-WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
+WORDPTR rplGetListElement(WORDPTR composite, int32_t pos)
 {
     if(pos < 1)
         return 0;
-    BINT count = 1;
+    int32_t count = 1;
     WORDPTR ptr = composite + 1;
     WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count < pos) {
@@ -146,9 +146,9 @@ WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem)
 // RETURNS FALSE (0) IF THE ELEMENT IS NOT AT THE END OF A SUBLIST IN A "FLAT" LIST
 // OTHERWISE RETURNS THE POSITION OF THE FIRST ELEMENT IN THE LIST THAT CONTAINS THE OBJECT
 
-BINT rplIsLastElementFlat(WORDPTR composite, BINT pos)
+int32_t rplIsLastElementFlat(WORDPTR composite, int32_t pos)
 {
-    BINT count = 1, depth = 0, startpos = 1;
+    int32_t count = 1, depth = 0, startpos = 1;
     WORDPTR ptr = composite + 1;
     WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count < pos) {
@@ -180,13 +180,13 @@ BINT rplIsLastElementFlat(WORDPTR composite, BINT pos)
 void rplCreateList()
 {
     // NO ARGUMENT CHECKING
-    int64_t num = rplReadNumberAsBINT(rplPeekData(1));
+    int64_t num = rplReadNumberAsInt64(rplPeekData(1));
     if(rplDepthData() < num + 1) {
         rplError(ERR_BADARGCOUNT);
         return;
     }
-    BINT size = 1;      // 1 WORD FOR THE END MARKER
-    BINT count;
+    int32_t size = 1;      // 1 WORD FOR THE END MARKER
+    int32_t count;
     for(count = 0; count < num; ++count) {
         size += rplObjSize(rplPeekData(2 + count));
     }
@@ -211,11 +211,11 @@ void rplCreateList()
 }
 
 // CREATE A NEW LIST. STACK LEVEL A.. N+A = OBJECTS
-WORDPTR rplCreateListN(BINT num, BINT level, BINT remove)
+WORDPTR rplCreateListN(int32_t num, int32_t level, int32_t remove)
 {
     // NO ARGUMENT CHECKING
-    BINT size = 1;      // 1 WORD FOR THE END MARKER
-    BINT count;
+    int32_t size = 1;      // 1 WORD FOR THE END MARKER
+    int32_t count;
     for(count = level; count < level + num; ++count) {
         size += rplObjSize(rplPeekData(count));
     }
@@ -285,7 +285,7 @@ void rplListBinaryDoCmd()
     }
     else if(ISLIST(*rplPeekData(2)) && !ISLIST(*rplPeekData(1))) {
 
-        BINT size1 = rplObjSize(rplPeekData(1));
+        int32_t size1 = rplObjSize(rplPeekData(1));
         WORDPTR *savestk = DSTop;
 
         WORDPTR newobj = rplAllocTempOb(2 + size1);
@@ -317,7 +317,7 @@ void rplListBinaryDoCmd()
     }
     else if(!ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))) {
 
-        BINT size1 = rplObjSize(rplPeekData(2));
+        int32_t size1 = rplObjSize(rplPeekData(2));
         WORDPTR *savestk = DSTop;
 
         WORDPTR newobj = rplAllocTempOb(3 + size1);
@@ -386,7 +386,7 @@ void rplListBinaryNoResultDoCmd()
     }
     else if(ISLIST(*rplPeekData(2)) && !ISLIST(*rplPeekData(1))) {
 
-        BINT size1 = rplObjSize(rplPeekData(1));
+        int32_t size1 = rplObjSize(rplPeekData(1));
         WORDPTR *savestk = DSTop;
 
         WORDPTR newobj = rplAllocTempOb(2 + size1);
@@ -418,7 +418,7 @@ void rplListBinaryNoResultDoCmd()
     }
     else if(!ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))) {
 
-        BINT size1 = rplObjSize(rplPeekData(2));
+        int32_t size1 = rplObjSize(rplPeekData(2));
         WORDPTR *savestk = DSTop;
 
         WORDPTR newobj = rplAllocTempOb(3 + size1);
@@ -541,9 +541,9 @@ void rplListUnaryNoResultDoCmd()
 // APPEND AN ITEM TO THE END OF THE LIST, DROP THE FIRST
 // ELEMENT IF NEEDED TO KEEP THE LIST AT N ELEMENTS MAX.
 // USES ScratchPointers 1 THRU 3
-WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, BINT nmax)
+WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, int32_t nmax)
 {
-    BINT nitems;
+    int32_t nitems;
     WORDPTR *savestk = DSTop;
 
     ScratchPointer3 = object;
@@ -573,15 +573,15 @@ WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, BINT nmax)
 // CREATE A NEW LIST REPLACING THE OBJECT AT position WITH THE GIVEN object
 // RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
 // USES SCRATCHPOINTERS 1 AND 2
-WORDPTR rplListReplace(WORDPTR list, BINT position, WORDPTR object)
+WORDPTR rplListReplace(WORDPTR list, int32_t position, WORDPTR object)
 {
-    BINT newobjsize = rplObjSize(object);
+    int32_t newobjsize = rplObjSize(object);
     WORDPTR oldobject = rplGetListElement(list, position);
     if(!oldobject)
         return 0;       // INVALID INDEX?
-    BINT oldobjsize = rplObjSize(oldobject);
-    BINT oldobjoffset = oldobject - list;
-    BINT newsize = OBJSIZE(*list) + newobjsize - oldobjsize;
+    int32_t oldobjsize = rplObjSize(oldobject);
+    int32_t oldobjoffset = oldobject - list;
+    int32_t newsize = OBJSIZE(*list) + newobjsize - oldobjsize;
     ScratchPointer1 = list;
     ScratchPointer2 = object;
     WORDPTR newlist = rplAllocTempOb(newsize);
@@ -599,10 +599,10 @@ WORDPTR rplListReplace(WORDPTR list, BINT position, WORDPTR object)
 // CREATE A NEW LIST REPLACING MULTIPLE OBJECTS AT position WITH THE GIVEN object (IF A LIST, IT'S EXPLODED ON REPLACEMENT)
 // RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
 // USES SCRATCHPOINTERS 1 AND 2
-WORDPTR rplListReplaceMulti(WORDPTR list, BINT position, WORDPTR object)
+WORDPTR rplListReplaceMulti(WORDPTR list, int32_t position, WORDPTR object)
 {
-    BINT numnewobj, llen, endpos;
-    BINT newobjsize, oldobjsize, oldobjoffset;
+    int32_t numnewobj, llen, endpos;
+    int32_t newobjsize, oldobjsize, oldobjoffset;
     WORDPTR oldobject;
 
     newobjsize = rplObjSize(object);
@@ -644,15 +644,15 @@ WORDPTR rplListReplaceMulti(WORDPTR list, BINT position, WORDPTR object)
 
 // List handling for funtions with many arguments, only one of them can be a list
 
-void rplListMultiArgDoCmd(BINT nargs)
+void rplListMultiArgDoCmd(int32_t nargs)
 {
-    BINT k;
+    int32_t k;
     for(k = nargs; k >= 1; --k) {
 
         if(ISLIST(*rplPeekData(k))) {
 
-            BINT j;
-            BINT size1 = 0;
+            int32_t j;
+            int32_t size1 = 0;
 
             // GET THE SIZE OF ALL OTHER ARGUMENTS
             for(j = 1; j <= nargs; ++j) {
@@ -671,7 +671,7 @@ void rplListMultiArgDoCmd(BINT nargs)
             newobj[0] = MKPROLOG(DOCOL, 6 + size1);
 
             // COPY ALL OTHER ARGUMENTS
-            BINT offset = 1;
+            int32_t offset = 1;
             for(j = nargs; j >= 1; --j) {
                 if(j != k) {
                     rplCopyObject(newobj + offset, rplPeekData(j));
@@ -742,12 +742,12 @@ void rplListMultiArgDoCmd(BINT nargs)
 // INPUT ARGUMENTS ARE 2 OBJECTS (LISTS) ON THE STACK
 // RETURNS 1 IF THEY ARE THE SAME
 
-BINT rplListSame()
+int32_t rplListSame()
 {
     WORDPTR *a = DSTop - 2;
     WORDPTR *b = DSTop - 1;
-    BINT aend, bend;
-    BINT aptr, bptr;
+    int32_t aend, bend;
+    int32_t aptr, bptr;
 
     aend = rplObjSize(*a);
     bend = rplObjSize(*b);
@@ -779,7 +779,7 @@ BINT rplListSame()
 
 void rplListExpandCases()
 {
-    BINT nelem1, nelem2, size1, size2;
+    int32_t nelem1, nelem2, size1, size2;
     WORDPTR list1, list2;
 
     list1 = rplPeekData(2);
@@ -823,7 +823,7 @@ void rplListExpandCases()
     newlist1[size1 * nelem2 + 1] = CMD_ENDLIST;
 
     WORDPTR src, srcptr, dest, srcend;
-    BINT k;
+    int32_t k;
 
     src = list1;
     dest = newlist1 + 1;
@@ -859,7 +859,7 @@ void rplListExpandCases()
 }
 
 // RETURN TRUE IF ANY OF THE OBJECTS WITHIN A LIST IS A LIST
-BINT rplListHasLists(WORDPTR list)
+int32_t rplListHasLists(WORDPTR list)
 {
     WORDPTR endlist = rplSkipOb(list);
     ++list;

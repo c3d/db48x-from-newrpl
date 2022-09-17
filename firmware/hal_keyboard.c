@@ -15,10 +15,10 @@
 #include <sysvars.h>
 #include <ui.h>
 
-static inline WORDPTR rplDecompileAnyway(WORDPTR object, BINT flags)
+static inline WORDPTR rplDecompileAnyway(WORDPTR object, int32_t flags)
 {
-    BINT SavedException = Exceptions;
-    BINT SavedErrorCode = ErrorCode;
+    int32_t SavedException = Exceptions;
+    int32_t SavedErrorCode = ErrorCode;
 
     Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -31,10 +31,10 @@ static inline WORDPTR rplDecompileAnyway(WORDPTR object, BINT flags)
 }
 
 // Sets pointers to string. Returns string length in code points
-static BINT rplGetStringPointers(WORDPTR object, BYTEPTR *start, BYTEPTR *end)
+static int32_t rplGetStringPointers(WORDPTR object, BYTEPTR *start, BYTEPTR *end)
 {
     *start = (BYTEPTR) (object + 1);
-    BINT totaln = rplStrLenCp(object);
+    int32_t totaln = rplStrLenCp(object);
     *end = (BYTEPTR) utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
     return totaln;
 }
@@ -42,7 +42,7 @@ static BINT rplGetStringPointers(WORDPTR object, BYTEPTR *start, BYTEPTR *end)
 // Decompiles object and sets pointers to resulting string
 // Returns 0 on error with target pointers set to null
 // Returns string length in code points if ok with target pointers set
-static BINT rplGetDecompiledString(WORDPTR object, BINT flags, BYTEPTR *start, BYTEPTR *end)
+static int32_t rplGetDecompiledString(WORDPTR object, int32_t flags, BYTEPTR *start, BYTEPTR *end)
 {
     WORDPTR opname = rplDecompileAnyway(object, flags);
     if (!opname) {
@@ -57,9 +57,9 @@ static BINT rplGetDecompiledString(WORDPTR object, BINT flags, BYTEPTR *start, B
 // Decompiles object and sets pointers to resulting string with tickmarks removed
 // returns 0 on error with target pointers set to null
 // returns 1 if ok with target pointers set
-static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, BINT flags, BYTEPTR *start, BYTEPTR *end)
+static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, int32_t flags, BYTEPTR *start, BYTEPTR *end)
 {
-    BINT totaln = rplGetDecompiledString(object, flags, start, end);
+    int32_t totaln = rplGetDecompiledString(object, flags, start, end);
     if (!totaln)
         return 0;
 
@@ -75,7 +75,7 @@ static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, BINT flags, BY
 
 // WAITS FOR A KEY TO BE PRESSED IN SLOW MODE
 
-BINT halWaitForKey()
+int32_t halWaitForKey()
 {
     unsigned keymsg;
     int wokeup;
@@ -128,7 +128,7 @@ void timeouthandler()
     halFlags |= HAL_TIMEOUT;
 }
 
-BINT halWaitForKeyTimeout(BINT timeoutms)
+int32_t halWaitForKeyTimeout(int32_t timeoutms)
 {
     unsigned keymsg;
     int wokeup;
@@ -200,13 +200,13 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
 // ID= N*8 --> USER CONTEXTS FROM N=100 AND UP TO 16250 ARE FREE TO USE
 
 // SET THE KEYBOARD CONTEXT
-void halSetContext(BINT KeyContext)
+void halSetContext(int32_t KeyContext)
 {
     halScreen.KeyContext = KeyContext;
 }
 
 // AND RETRIEVE
-BINT halGetContext()
+int32_t halGetContext()
 {
     return halScreen.KeyContext;
 }
@@ -214,7 +214,7 @@ BINT halGetContext()
 // TOGGLES BETWEEN ALPHA AND ANOTHER MODE
 // isalpha TELLS IF ALPHA MODE IS ACTIVE, TO
 // KEEP THE CURSOR IN SYNC
-void halSwapCmdLineMode(BINT isalpha)
+void halSwapCmdLineMode(int32_t isalpha)
 {
     int tmp = halScreen.CursorState;
 
@@ -268,7 +268,7 @@ void dummyKeyhandler(WORD keymsg)
 // 0 IF ERROR.
 // WHEN 1, THE STACK CONTAINS THE OBJECT/S COMPILED
 // WHEN 0, THE COMMAND LINE IS STILL OPEN, WITH THE ERROR HIGHLIGHTED
-BINT endCmdLineAndCompile()
+int32_t endCmdLineAndCompile()
 {
     WORDPTR text = uiGetCmdLineText();
     if(!text) {
@@ -276,7 +276,7 @@ BINT endCmdLineAndCompile()
                 EX_CONT | EX_WARM | EX_RESET);
         return 0;
     }
-    BINT len = rplStrSize(text);
+    int32_t len = rplStrSize(text);
     WORDPTR newobject;
     if(len) {
         newobject = rplCompile((BYTEPTR) (text + 1), len, 1);
@@ -349,9 +349,9 @@ BINT endCmdLineAndCompile()
             rplSetEntryPoint(newobject);
 
             // RUN AND CLEANUP PROPERLY
-            BINT rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
+            int32_t rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
                     nLAMBase - LAMs;
-            BINT result = rplRun();
+            int32_t result = rplRun();
 
             switch (result) {
             case CLEAN_RUN:
@@ -540,7 +540,7 @@ void numberKeyHandler(WORD keymsg)
         else
             uiOpenCmdLine('D');
     }
-    BINT number;
+    int32_t number;
     switch (KM_KEY(keymsg)) {
     case KB_1:
         number = '1';
@@ -598,7 +598,7 @@ void uiCmdRun(WORD Opcode)
         obj[1] = CMD_ENDOFCODE;
         obj[2] = CMD_QSEMI;     // THIS IS FOR SAFETY REASONS
         rplSetEntryPoint(obj);
-        BINT iseval = (Opcode == (CMD_OVR_XEQ)) || (Opcode == (CMD_OVR_EVAL))
+        int32_t iseval = (Opcode == (CMD_OVR_XEQ)) || (Opcode == (CMD_OVR_EVAL))
                 || (Opcode == (CMD_OVR_EVAL1));
 
         if(iseval) {
@@ -610,9 +610,9 @@ void uiCmdRun(WORD Opcode)
         }
         else
             BlameCmd = 0;
-        BINT rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
+        int32_t rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
                 nLAMBase - LAMs;
-        BINT result = rplRun();
+        int32_t result = rplRun();
         switch (result) {
 
         case CLEAN_RUN:
@@ -745,7 +745,7 @@ void uiCmdRun(WORD Opcode)
 
 }
 
-void uiCmdRunHide(WORD Opcode, BINT narguments)
+void uiCmdRunHide(WORD Opcode, int32_t narguments)
 {
     WORDPTR obj = rplAllocTempObLowMem(2);
     if(obj) {
@@ -763,7 +763,7 @@ void uiCmdRunHide(WORD Opcode, BINT narguments)
         obj[1] = CMD_ENDOFCODE;
         obj[2] = CMD_QSEMI;     // THIS IS FOR SAFETY REASONS
         rplSetEntryPoint(obj);
-        BINT iseval = (Opcode == (CMD_OVR_XEQ)) || (Opcode == (CMD_OVR_EVAL))
+        int32_t iseval = (Opcode == (CMD_OVR_XEQ)) || (Opcode == (CMD_OVR_EVAL))
                 || (Opcode == (CMD_OVR_EVAL1));
 
         if(iseval) {
@@ -775,9 +775,9 @@ void uiCmdRunHide(WORD Opcode, BINT narguments)
         }
         else
             BlameCmd = 0;
-        BINT rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
+        int32_t rstksave = RSTop - RStk, lamsave = LAMTop - LAMs, nlambase =
                 nLAMBase - LAMs;
-        BINT result = rplRun();
+        int32_t result = rplRun();
         switch (result) {
 
         case CLEAN_RUN:
@@ -915,7 +915,7 @@ void uiCmdRunHide(WORD Opcode, BINT narguments)
 // THE COMMAND RECEIVES nargs IN THE STACK AND RETURNS AT MOST nresults
 // IT RETURNS THE NUMBER OF RESULTS LEFT IN THE STACK
 
-BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
+int32_t uiCmdRunTransparent(WORD Opcode, int32_t nargs, int32_t nresults)
 {
     WORDPTR obj = rplAllocTempObLowMem(2);
     if(obj) {
@@ -923,7 +923,7 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
         obj[1] = CMD_ENDOFCODE;
         obj[2] = CMD_QSEMI;     // THIS IS FOR SAFETY REASONS
 
-        BINT rsave, lamsave, nlambase, retvalue;
+        int32_t rsave, lamsave, nlambase, retvalue;
         WORD exceptsave, errcodesave;
         // PRESERVE VARIOUS STACK POINTERS
 
@@ -971,8 +971,8 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
 
         // CLEAN THE STACK
         if(rplDepthData() > nresults) {
-            BINT f;
-            BINT depth = rplDepthData(), offset = depth - nresults;
+            int32_t f;
+            int32_t depth = rplDepthData(), offset = depth - nresults;
             for(f = depth; f > depth - nresults; --f) {
                 rplOverwriteData(f, rplPeekData(f - offset));
             }
@@ -1011,9 +1011,9 @@ BINT uiCmdRunTransparent(WORD Opcode, BINT nargs, BINT nresults)
 // RESTURE THE STACK TO WHAT IT WAS AT THE GIVEN LEVEL
 // LEVEL 1 = MOST IMMEDIATE ... LEVEL StkUndoLevel = OLDEST
 // SPECIAL CASE: LEVEL 0 = USER'S CURRENT STACK
-BINT uiRestoreUndoLevel(BINT level)
+int32_t uiRestoreUndoLevel(int32_t level)
 {
-    BINT nlevels = rplCountSnapshots();
+    int32_t nlevels = rplCountSnapshots();
 
     if(level < 1)
         return halScreen.StkCurrentLevel;
@@ -1054,7 +1054,7 @@ void uiStackRedo()
 //    IsFunc == 2 --> IN ALG MODE, RUN THE OPCODE DIRECTLY, AS IN 'D' MODE
 //    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
 
-void cmdKeyHandler(WORD Opcode, BYTEPTR Progmode, BINT IsFunc)
+void cmdKeyHandler(WORD Opcode, BYTEPTR Progmode, int32_t IsFunc)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -1171,7 +1171,7 @@ void transpcmdKeyHandler(WORD Opcode)
 
 }
 
-void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
+void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 {
 #ifdef TARGET_PRIME1
     // SWITCH MENUS
@@ -1203,8 +1203,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
             // ACTION WHEN IN THE STACK
             int64_t mcode = rplGetMenuCode(menunum);
             WORDPTR menu = uiGetLibMenu(mcode);
-            BINT nitems = uiCountMenuItems(mcode, menu);
-            BINT idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
+            int32_t nitems = uiCountMenuItems(mcode, menu);
+            int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
 
             rplSetLastMenu(menunum);
 
@@ -1235,7 +1235,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
             WORDPTR action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
             WORD Opcode = 0;
-            BINT hideargument = 1;
+            int32_t hideargument = 1;
 
             if(!action)
                 return;
@@ -1264,7 +1264,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1309,7 +1309,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1352,7 +1352,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1394,8 +1394,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
         // ACTION INSIDE THE EDITOR
         int64_t mcode = rplGetMenuCode(menunum);
         WORDPTR menu = uiGetLibMenu(mcode);
-        BINT nitems = uiCountMenuItems(mcode, menu);
-        BINT idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
+        int32_t nitems = uiCountMenuItems(mcode, menu);
+        int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
 
         rplSetLastMenu(menunum);
 
@@ -1426,7 +1426,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
         WORDPTR action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
         WORD Opcode = 0;
-        BINT hideargument = 1;
+        int32_t hideargument = 1;
 
         if(!action)
             return;
@@ -1512,7 +1512,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                 if(!numobject || Exceptions)
                     return;
@@ -1583,7 +1583,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                             if(string) {
 
                                 uiSeparateToken();
-                                BINT nlines =
+                                int32_t nlines =
                                         uiInsertCharactersN(string, endstring);
                                 if(nlines)
                                     uiStretchCmdLine(nlines);
@@ -1632,7 +1632,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                             }
 
                             if(string) {
-                                BINT nlines =
+                                int32_t nlines =
                                         uiInsertCharactersN(string, endstring);
                                 if(nlines)
                                     uiStretchCmdLine(nlines);
@@ -1673,7 +1673,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                             }
                             if(string) {
                                 uiSeparateToken();
-                                BINT nlines =
+                                int32_t nlines =
                                         uiInsertCharactersN(string, endstring);
                                 if(nlines)
                                     uiStretchCmdLine(nlines);
@@ -1744,7 +1744,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1766,7 +1766,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     BYTEPTR string, endstring;
                     string = (BYTEPTR) (action + 2);
                     endstring = string + rplGetIdentLength(action + 1);
-                    BINT nlines = uiInsertCharactersN(string, endstring);
+                    int32_t nlines = uiInsertCharactersN(string, endstring);
                     if(nlines)
                         uiStretchCmdLine(nlines);
                     uiAutocompleteUpdate();
@@ -1900,9 +1900,9 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 {
 
                     // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException = Exceptions;
-                    BINT SavedErrorCode = ErrorCode;
-                    BINT removevalue;
+                    int32_t SavedException = Exceptions;
+                    int32_t SavedErrorCode = ErrorCode;
+                    int32_t removevalue;
 
                     if(ISNUMBER(action[1])) {
                         REAL r;
@@ -1923,11 +1923,11 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                         break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string, endstring;
-                    BINT totaln = rplGetStringPointers(opname, &string, &endstring);
+                    int32_t totaln = rplGetStringPointers(opname, &string, &endstring);
 
                     if(removevalue) {
                         // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
-                        BINT k, offset;
+                        int32_t k, offset;
                         for(k = 0, offset = 0; k < totaln;
                                 ++k, offset =
                                 (BYTEPTR) utf8skip((char *)string + offset,
@@ -2006,7 +2006,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    BINT nlines = uiInsertCharactersN(string, endstring);
+                    int32_t nlines = uiInsertCharactersN(string, endstring);
                     if(nlines)
                         uiStretchCmdLine(nlines);
 
@@ -2022,7 +2022,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 case 'P':
                 {
 
-                    BINT dhints = 0;
+                    int32_t dhints = 0;
 
                     if(!rplTestSystemFlag(FL_AUTOINDENT)) {
 
@@ -2049,7 +2049,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    BINT nlines = 0;
+                    int32_t nlines = 0;
 
                     if(dhints & HINT_ALLBEFORE) {
                         if(dhints & HINT_ADDINDENTBEFORE)
@@ -2058,8 +2058,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                             halScreen.CmdLineIndent -= 2;
 
                         if(dhints & HINT_NLBEFORE) {
-                            BINT isempty;
-                            BINT nlvl = uiGetIndentLevel(&isempty);
+                            int32_t isempty;
+                            int32_t nlvl = uiGetIndentLevel(&isempty);
                             // IF THE LINE IS EMPTY DON'T ADD A NEW LINE
                             if(isempty) {
                                 if(dhints & HINT_ADDINDENTBEFORE)
@@ -2093,7 +2093,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                         if(dhints & HINT_SUBINDENTAFTER)
                             halScreen.CmdLineIndent -= 2;
                         if(dhints & HINT_NLAFTER) {
-                            BINT nlvl = uiGetIndentLevel(0);
+                            int32_t nlvl = uiGetIndentLevel(0);
 
                             uiInsertCharacters((BYTEPTR) "\n");
 
@@ -2124,7 +2124,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
+                WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                 if(!numobject || Exceptions)
                     return;
@@ -2221,7 +2221,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
-                BINT nlines = uiInsertCharactersN(string, endstring);
+                int32_t nlines = uiInsertCharactersN(string, endstring);
                 if(nlines)
                     uiStretchCmdLine(nlines);
 
@@ -2252,7 +2252,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
 }
 
-void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, BINT separate)
+void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, int32_t separate)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2334,7 +2334,7 @@ void newlineKeyHandler(WORD keymsg)
 
     // INCREASE THE HEIGHT ON-SCREEN UP TO THE MAXIMUM
     uiStretchCmdLine(1);
-    BINT ilvl = uiGetIndentLevel(0);
+    int32_t ilvl = uiGetIndentLevel(0);
 
     // ADD A NEW LINE
     uiInsertCharacters((BYTEPTR) "\n");
@@ -2446,7 +2446,7 @@ void cutclipKeyHandler(WORD keymsg)
             return;
         }
         if(halGetContext() & CONTEXT_INTSTACK) {
-            BINT selst, selend;
+            int32_t selst, selend;
             switch (halScreen.StkSelStatus) {
             case 0:    // NO ITEMS SELECTED
                 if((halScreen.StkPointer < 1)
@@ -2599,7 +2599,7 @@ void copyclipKeyHandler(WORD keymsg)
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
         if(halGetContext() & CONTEXT_INTSTACK) {
-            BINT selst, selend;
+            int32_t selst, selend;
             switch (halScreen.StkSelStatus) {
             case 0:    // NO ITEMS SELECTED
                 if((halScreen.StkPointer < 1)
@@ -2710,13 +2710,13 @@ void pasteclipKeyHandler(WORD keymsg)
         }
 
         if(halGetContext() & CONTEXT_INTSTACK) {
-            BINT depth = rplDepthData();
-            BINT clevel =
+            int32_t depth = rplDepthData();
+            int32_t clevel =
                     (halScreen.StkPointer >
                     depth) ? depth : halScreen.StkPointer;
 
             uiCmdRun(CMD_PASTECLIP);
-            BINT nitems = rplDepthData() - depth;
+            int32_t nitems = rplDepthData() - depth;
             if(Exceptions) {
                 halShowErrorMsg();
                 Exceptions = 0;
@@ -2758,9 +2758,9 @@ void pasteclipKeyHandler(WORD keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        BINT depth = rplDepthData();
+        int32_t depth = rplDepthData();
         uiCmdRun(CMD_PASTECLIP);
-        BINT nitems = rplDepthData() - depth;
+        int32_t nitems = rplDepthData() - depth;
         while(nitems >= 1) {
             WORDPTR object = rplPeekData(nitems);
             if(!ISSTRING(*object)) {
@@ -2837,7 +2837,7 @@ void backspKeyHandler(WORD keymsg)
                 // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
 
                 if(halScreen.StkPointer > halScreen.StkSelStart) {
-                    BINT count =
+                    int32_t count =
                             ((halScreen.StkPointer >
                                 rplDepthData())? rplDepthData() : halScreen.
                             StkPointer) - halScreen.StkSelStart + 1;
@@ -2924,7 +2924,7 @@ void backspKeyHandler(WORD keymsg)
 
                 }
 
-                BINT count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
+                int32_t count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
                 rplRemoveAtData(halScreen.StkSelStart, count);
                 if(halScreen.StkPointer > halScreen.StkSelEnd)
                     halScreen.StkPointer -= count;
@@ -3035,7 +3035,7 @@ void leftKeyHandler(WORD keymsg)
                             StkPointer);
 
                     // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
-                    BINT count =
+                    int32_t count =
                             halScreen.StkSelEnd - halScreen.StkSelStart + 1;
 
                     while(count--) {
@@ -3068,7 +3068,7 @@ void leftKeyHandler(WORD keymsg)
                     endptr = DSTop - halScreen.StkPointer - 1;
 
                     // DO ROT UNTIL THE ENTIRE BLOCK MOVED
-                    BINT count =
+                    int32_t count =
                             halScreen.StkSelEnd - halScreen.StkSelStart + 1;
                     while(count--) {
                         cptr = stptr;
@@ -3119,7 +3119,7 @@ void leftKeyHandler(WORD keymsg)
 
     }
     else {
-        BINT line = halScreen.LineCurrent;
+        int32_t line = halScreen.LineCurrent;
         uiCursorLeft(1);
         if(line != halScreen.LineCurrent)
             halScreen.CmdLineIndent = 0;
@@ -3254,9 +3254,9 @@ void rightKeyHandler(WORD keymsg)
             {
                 if(halScreen.StkPointer > halScreen.StkSelEnd) {
                     // MAKE HOLE
-                    BINT count =
+                    int32_t count =
                             halScreen.StkSelEnd - halScreen.StkSelStart + 1;
-                    BINT stkptr = halScreen.StkPointer;
+                    int32_t stkptr = halScreen.StkPointer;
                     if(halScreen.StkPointer > rplDepthData())
                         stkptr = rplDepthData();
 
@@ -3282,7 +3282,7 @@ void rightKeyHandler(WORD keymsg)
                 if(halScreen.StkPointer < halScreen.StkSelStart) {
 
                     // MAKE HOLE
-                    BINT count =
+                    int32_t count =
                             halScreen.StkSelEnd - halScreen.StkSelStart + 1;
 
                     rplExpandStack(count);
@@ -3335,7 +3335,7 @@ void rightKeyHandler(WORD keymsg)
         }
     }
     else {
-        BINT line = halScreen.LineCurrent;
+        int32_t line = halScreen.LineCurrent;
         uiCursorRight(1);
         if(line != halScreen.LineCurrent)
             halScreen.CmdLineIndent = 0;
@@ -3424,11 +3424,11 @@ void downKeyHandler(WORD keymsg)
 
             if(rplDepthData() >= 1) {
                 WORDPTR prefwidth = rplGetSettings((WORDPTR) editwidth_ident);
-                BINT width;
+                int32_t width;
                 if(!prefwidth)
                     width = 0;
                 else
-                    width = rplReadNumberAsBINT(prefwidth);
+                    width = rplReadNumberAsInt64(prefwidth);
                 if(Exceptions) {
                     width = 0;
                     Exceptions = 0;
@@ -3459,7 +3459,7 @@ void downKeyHandler(WORD keymsg)
                     uiOpenCmdLine('X');
                 else
                     uiOpenCmdLine(cursorstart);
-                BINT lines = uiSetCmdLineText(text);
+                int32_t lines = uiSetCmdLineText(text);
                 if(lines > 1) {
                     uiStretchCmdLine(lines - 1);
                     halScreen.LineVisible = 1;
@@ -3759,7 +3759,7 @@ void chsKeyHandler(WORD keymsg)
 
         BYTEPTR startnum;
         BYTEPTR endnum;
-        BINT flags;
+        int32_t flags;
         BYTEPTR line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
@@ -3841,7 +3841,7 @@ void chsKeyHandler(WORD keymsg)
                         (BYTEPTR) utf8rskipst((char *)startnum, (char *)line);
                 if(startnum != prevstnum)
                     ++moveleft;
-                BINT char1, char2;
+                int32_t char1, char2;
                 extern const char const forbiddenChars[];
                 while(startnum >= line) {
                     BYTEPTR ptr = (BYTEPTR) forbiddenChars;
@@ -3916,11 +3916,11 @@ void chsKeyHandler(WORD keymsg)
         }
         else {
             // WE FOUND A NUMBER
-            BINT oldposition = halScreen.CursorPosition;
+            int32_t oldposition = halScreen.CursorPosition;
             // IF THIS IS A NUMBER WITH AN EXPONENT, SEE IF WE NEED TO CHANGE THE SIGN OF THE NUMBER OR THE EXPONENT
             if((flags >> 16) & 4) {
                 // LOOK FOR THE 'e' OR 'E'
-                BINT epos = 0;
+                int32_t epos = 0;
                 while((epos < endnum - startnum) && ((startnum[epos] != 'E')
                             && (startnum[epos] != 'e')))
                     ++epos;
@@ -3989,7 +3989,7 @@ void eexKeyHandler(WORD keymsg)
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
         BYTEPTR startnum, endnum;
-        BINT flags;
+        int32_t flags;
         NUMFORMAT config;
 
         rplGetSystemNumberFormat(&config);
@@ -4024,7 +4024,7 @@ void eexKeyHandler(WORD keymsg)
                 // THE CURSOR IS WITHIN THE NUMBER
                 if((flags >> 16) & 4) {
                     // THE NUMBER ALREADY HAS AN EXPONENT, LOOK FOR THE 'e' OR 'E'
-                    BINT epos = 0;
+                    int32_t epos = 0;
                     while((epos < endnum - startnum) && ((startnum[epos] != 'E')
                                 && (startnum[epos] != 'e')))
                         ++epos;
@@ -4038,7 +4038,7 @@ void eexKeyHandler(WORD keymsg)
                 }
 
                 // NEED TO INSERT A CHARACTER HERE
-                BINT oldposition = halScreen.CursorPosition;
+                int32_t oldposition = halScreen.CursorPosition;
                 if((*endnum == 'e') || (*endnum == 'E'))
                     uiMoveCursor(endnum - line + 1);
                 else {
@@ -4208,7 +4208,7 @@ void onPlusKeyHandler(WORD keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(lcd_contrast, DECBINT);
+    WORDPTR contrast = rplNewSINT(lcd_contrast, DECint32_t);
     if(contrast)
         rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -4260,7 +4260,7 @@ void onMinusKeyHandler(WORD keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(lcd_contrast, DECBINT);
+    WORDPTR contrast = rplNewSINT(lcd_contrast, DECint32_t);
     if(contrast)
         rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -4279,7 +4279,7 @@ void onDotKeyHandler(WORD keymsg)
     };
 
     NUMFORMAT fmt;
-    BINT option = 0;
+    int32_t option = 0;
     rplGetSystemNumberFormat(&fmt);
     if(DECIMAL_DOT(fmt.Locale) == ',')
         option += 6;
@@ -4447,7 +4447,7 @@ void onSpcKeyHandler(WORD keymsg)
     };
 
     NUMFORMAT fmt;
-    BINT option = 0;
+    int32_t option = 0;
     rplGetSystemNumberFormat(&fmt);
 
     if(fmt.MiddleFmt & FMT_TRAILINGZEROS)
@@ -4557,7 +4557,7 @@ void onMulDivKeyHandler(WORD keymsg)
     // CYCLE BETWEEN VARIOUS OPTIONS
 
     NUMFORMAT fmt;
-    BINT option = 0;
+    int32_t option = 0;
     rplGetSystemNumberFormat(&fmt);
 
     option = PREFERRED_EXPRAW(fmt.MiddleFmt);
@@ -4626,7 +4626,7 @@ void onMulDivKeyHandler(WORD keymsg)
 void onDigitKeyHandler(WORD keymsg)
 {
     NUMFORMAT fmt;
-    BINT digits = 0;
+    int32_t digits = 0;
     rplGetSystemNumberFormat(&fmt);
 
     switch (KM_KEY(keymsg)) {
@@ -4674,7 +4674,7 @@ void onDigitKeyHandler(WORD keymsg)
 
 
     fmt.SmallLimit.data=fmt.SmallLimitData;
-    newRealFromBINT(&fmt.SmallLimit,1,(digits==0xfff)? -12:-digits);
+    newRealFromint32_t(&fmt.SmallLimit,1,(digits==0xfff)? -12:-digits);
 
 
 
@@ -4706,7 +4706,7 @@ void onDigitKeyHandler(WORD keymsg)
 
 void onUpDownKeyHandler(WORD keymsg)
 {
-    BINT precision = Context.precdigits;
+    int32_t precision = Context.precdigits;
 
     if(KM_KEY(keymsg) == KB_UP)
         precision += 8;
@@ -4853,11 +4853,11 @@ void changemenuKeyHandler(WORD keymsg, int64_t menucode)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    WORDPTR numobject = rplNewBINT(menucode, HEXBINT);
+    WORDPTR numobject = rplNewint32_t(menucode, HEXint32_t);
 
     if(!numobject || Exceptions)
         return;
-    BINT menu = rplGetActiveMenu();
+    int32_t menu = rplGetActiveMenu();
 
     rplPushDataNoGrow(numobject);
     rplSaveMenuHistory(menu);
@@ -4904,7 +4904,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 {
     if(!action)
         return;
-    BINT inlist = 0;
+    int32_t inlist = 0;
     // COMMANDS CAN BE PUT INSIDE LISTS
     if(ISLIST(*action)) {
         action = rplGetListElement(action, 1);
@@ -4919,7 +4919,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         // ACTION WHEN IN THE STACK OR SUBCONTEXTS OTHER THAN THE EDITOR
         WORD Opcode = 0;
-        BINT hideargument = 1;
+        int32_t hideargument = 1;
 
         // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
@@ -4928,7 +4928,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             rplPushData(action);        // PUSH THE NAME ON THE STACK
             Opcode = (CMD_OVR_EVAL1);
         }
-        else if((!ISPROLOG(*action)) && (!ISBINT(*action))) {
+        else if((!ISPROLOG(*action)) && (!ISint32_t(*action))) {
             // THIS IS AN OPCODE, EXECUTE DIRECTLY
             Opcode = *action;
             hideargument = 0;
@@ -4943,7 +4943,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             else
                 uiOpenCmdLine('D');
 
-            BINT nlines =
+            int32_t nlines =
                     uiInsertCharactersN((BYTEPTR) (action + 1),
                     (BYTEPTR) (action + 1) + rplStrSize(action));
             if(nlines)
@@ -4973,7 +4973,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
     else {
         // ACTION INSIDE THE EDITOR
         WORD Opcode = 0;
-        BINT hideargument = 1;
+        int32_t hideargument = 1;
 
         if(!action)
             return;
@@ -4995,7 +4995,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                     }
                 }
                 rplPushRet(action);
-                BINT result = endCmdLineAndCompile();
+                int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
                     // USER IS TRYING TO EVAL THE VARIABLE
@@ -5057,7 +5057,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             case 'D':
             {
                 rplPushRet(action);
-                BINT result = endCmdLineAndCompile();
+                int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
                     // USER IS TRYING TO APPLY THE UNIT
@@ -5069,7 +5069,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             case 'A':
             {
                 BYTEPTR string, endstring;
-                BINT totaln = rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring);
+                int32_t totaln = rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring);
                 if (!totaln)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5107,7 +5107,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             case 'D':
             {
                 rplPushRet(action);
-                BINT result = endCmdLineAndCompile();
+                int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
                     Opcode = *action;
@@ -5154,7 +5154,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
-                BINT nlines = uiInsertCharactersN(string, endstring);
+                int32_t nlines = uiInsertCharactersN(string, endstring);
                 if(nlines)
                     uiStretchCmdLine(nlines);
 
@@ -5175,7 +5175,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             }
             else {
                 rplPushRet(action);
-                BINT result = endCmdLineAndCompile();
+                int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
                     rplPushData(action);        // PUSH THE NAME ON THE STACK
@@ -5209,7 +5209,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             case 'D':
             {
                 rplPushRet(action);
-                BINT result = endCmdLineAndCompile();
+                int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
                     if(!ISPROLOG(*action)) {
@@ -5262,7 +5262,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
-                BINT nlines = uiInsertCharactersN(string, endstring);
+                int32_t nlines = uiInsertCharactersN(string, endstring);
                 if(nlines)
                     uiStretchCmdLine(nlines);
 
@@ -5349,7 +5349,7 @@ void basecycleKeyHandler(WORD keymsg)
 
         BYTEPTR startnum, endnum;
         BYTEPTR line;
-        BINT numflags;
+        int32_t numflags;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE BASE OF THE NUMBER IN THE TEXT
         startnum = uiFindNumberStart(&endnum, &numflags);
@@ -5361,10 +5361,10 @@ void basecycleKeyHandler(WORD keymsg)
         }
         else {
             // WE FOUND A NUMBER
-            BINT oldposition = halScreen.CursorPosition;
+            int32_t oldposition = halScreen.CursorPosition;
             uiMoveCursor(startnum - line);
             BYTE str[2];
-            BINT endchar, minbase = numflags & 0xffff;
+            int32_t endchar, minbase = numflags & 0xffff;
 
             numflags >>= 16;
             str[1] = 0;
@@ -5469,7 +5469,7 @@ void basecycleKeyHandler(WORD keymsg)
 
 #define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(WORD keymsg) \
 { \
-    varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
+    varsKeyHandler(keymsg,(menu),(int32_t)(idx)); \
     }
 
 #define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(WORD keymsg) \
@@ -5661,7 +5661,7 @@ void tolistKeyHandler(WORD keymsg)
     case 1:
     {
         // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
 
         if(halScreen.StkPointer > halScreen.StkSelStart) {
             stlvl = halScreen.StkSelStart;
@@ -5694,7 +5694,7 @@ void tolistKeyHandler(WORD keymsg)
         // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
     {
         // MAKE A LIST BETWEEN SELSTART AND SELEND
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
         endlvl = halScreen.StkSelEnd;
         stlvl = halScreen.StkSelStart;
 
@@ -5706,7 +5706,7 @@ void tolistKeyHandler(WORD keymsg)
         }
 
         if(halScreen.StkPointer > endlvl) {
-            BINT lstlvl =
+            int32_t lstlvl =
                     (halScreen.StkPointer >
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
@@ -5721,7 +5721,7 @@ void tolistKeyHandler(WORD keymsg)
             halScreen.StkPointer -= (endlvl - stlvl);
         }
         else if(halScreen.StkPointer < stlvl) {
-            BINT lstlvl;
+            int32_t lstlvl;
             if(halScreen.StkPointer > 0) {
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
@@ -5786,7 +5786,7 @@ void tomatKeyHandler(WORD keymsg)
     case 1:
     {
         // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
 
         if(halScreen.StkPointer > halScreen.StkSelStart) {
             stlvl = halScreen.StkSelStart;
@@ -5819,7 +5819,7 @@ void tomatKeyHandler(WORD keymsg)
         // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
     {
         // MAKE A LIST BETWEEN SELSTART AND SELEND
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
         endlvl = halScreen.StkSelEnd;
         stlvl = halScreen.StkSelStart;
 
@@ -5831,7 +5831,7 @@ void tomatKeyHandler(WORD keymsg)
         }
 
         if(halScreen.StkPointer > endlvl) {
-            BINT lstlvl =
+            int32_t lstlvl =
                     (halScreen.StkPointer >
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
@@ -5846,7 +5846,7 @@ void tomatKeyHandler(WORD keymsg)
             halScreen.StkPointer -= (endlvl - stlvl);
         }
         else if(halScreen.StkPointer < stlvl) {
-            BINT lstlvl;
+            int32_t lstlvl;
             if(halScreen.StkPointer > 0) {
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
@@ -5901,7 +5901,7 @@ void tocplxKeyHandler(WORD keymsg)
     case 1:
     {
         // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
 
         if(halScreen.StkPointer > halScreen.StkSelStart) {
             stlvl = halScreen.StkSelStart;
@@ -5917,7 +5917,7 @@ void tocplxKeyHandler(WORD keymsg)
             break;      // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
 
         WORDPTR real, imag;
-        BINT angmode;
+        int32_t angmode;
         real = rplPeekData(endlvl);
         imag = rplPeekData(stlvl);
         if(!ISNUMBER(*real)) {
@@ -5960,7 +5960,7 @@ void tocplxKeyHandler(WORD keymsg)
         // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
     {
         // MAKE A LIST BETWEEN SELSTART AND SELEND
-        BINT endlvl, stlvl;
+        int32_t endlvl, stlvl;
         endlvl = halScreen.StkSelEnd;
         stlvl = halScreen.StkSelStart;
 
@@ -5968,7 +5968,7 @@ void tocplxKeyHandler(WORD keymsg)
             break;      // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
 
         WORDPTR real, imag;
-        BINT angmode;
+        int32_t angmode;
         real = rplPeekData(endlvl);
         imag = rplPeekData(stlvl);
         if(!ISNUMBER(*real)) {
@@ -5997,7 +5997,7 @@ void tocplxKeyHandler(WORD keymsg)
         }
 
         if(halScreen.StkPointer > endlvl) {
-            BINT lstlvl =
+            int32_t lstlvl =
                     (halScreen.StkPointer >
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
@@ -6012,7 +6012,7 @@ void tocplxKeyHandler(WORD keymsg)
             halScreen.StkPointer -= (endlvl - stlvl);
         }
         else if(halScreen.StkPointer < stlvl) {
-            BINT lstlvl;
+            int32_t lstlvl;
             if(halScreen.StkPointer > 0) {
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
@@ -6058,7 +6058,7 @@ void explodeKeyHandler(WORD keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BINT endlvl, stlvl;
+    int32_t endlvl, stlvl;
 
     endlvl = stlvl = -1;
 
@@ -6095,13 +6095,13 @@ void explodeKeyHandler(WORD keymsg)
     if(endlvl < 0)
         return; // NOTHING TO DO
 
-    BINT c, totalelem = 0;
+    int32_t c, totalelem = 0;
 
     for(c = endlvl; c >= stlvl; --c) {
 
         // EXPLODE ALL SELECTED ITEMS
         WORDPTR obj = rplPeekData(c);
-        BINT nelem;
+        int32_t nelem;
 
         if(ISMATRIX(*obj)) {
             nelem = rplMatrixRows(obj);
@@ -6137,10 +6137,10 @@ void explodeKeyHandler(WORD keymsg)
         obj = *ptr;     // READ AGAIN AS THERE MIGHT'VE BEEN A GC DURING EXPANDSTACK
 
         if(ISMATRIX(*obj)) {
-            BINT rows = rplMatrixRows(obj);
+            int32_t rows = rplMatrixRows(obj);
             if(!rows) {
                 // EXPAND BY ELEMENTS
-                BINT k;
+                int32_t k;
                 for(k = 1; k <= nelem; ++k)
                     *ptr++ = rplMatrixFastGet(obj, 1, k);
             }
@@ -6148,10 +6148,10 @@ void explodeKeyHandler(WORD keymsg)
                 // TODO: EXPAND BY ROWS - MUCH MORE DIFFICULT THAN LISTS AS IT REQUIRES CREATING NEW MATRIX OBJECTS FOR THE ROWS
 
                 // COMPUTE SIZE OF INDIVIDUAL ROWS
-                BINT cols = rplMatrixCols(obj);
-                BINT totalsize = (2 + cols) * rows;     // ACCOUNT FOR PROLOG+SIZE+OFFSET TABLE OF ALL ROWS
+                int32_t cols = rplMatrixCols(obj);
+                int32_t totalsize = (2 + cols) * rows;     // ACCOUNT FOR PROLOG+SIZE+OFFSET TABLE OF ALL ROWS
 
-                BINT i, j, k;
+                int32_t i, j, k;
 
                 for(i = 1; i <= rows; ++i) {
                     for(j = 1; j <= cols; ++j) {
@@ -6213,7 +6213,7 @@ void explodeKeyHandler(WORD keymsg)
 
         }
         else if(ISLIST(*obj)) {
-            BINT k;
+            int32_t k;
             WORDPTR item = obj + 1;
             for(k = 0; k < nelem; ++k) {
                 *ptr++ = item;
@@ -6245,7 +6245,7 @@ void explodeKeyHandler(WORD keymsg)
                         rplDepthData())? rplDepthData() : halScreen.StkPointer);
 
             // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
-            BINT count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
+            int32_t count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
 
             while(count--) {
                 cptr = stptr;
@@ -6274,7 +6274,7 @@ void explodeKeyHandler(WORD keymsg)
             endptr = DSTop - halScreen.StkPointer - 1;
 
             // DO ROT UNTIL THE ENTIRE BLOCK MOVED
-            BINT count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
+            int32_t count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
             while(count--) {
                 cptr = stptr;
 
@@ -6443,7 +6443,7 @@ typedef void (*handlerfunc_t)(WORD keymsg);
 struct keyhandler_t
 {
     WORD message;
-    BINT context;
+    int32_t context;
     handlerfunc_t action;
 };
 
@@ -7624,7 +7624,7 @@ int halDoCustomKey(WORD keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
-    BINT ctx, keepgoing, hanoffset;
+    int32_t ctx, keepgoing, hanoffset;
     WORD msg;
 
     // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
@@ -7633,7 +7633,7 @@ int halDoCustomKey(WORD keymsg)
     do {
         keepgoing = 0;
         while(ptr < endoftable) {
-            msg = rplReadNumberAsBINT(ptr);
+            msg = rplReadNumberAsInt64(ptr);
             if(Exceptions) {
                 // CLEAR ALL ERRORS AND KEEP GOING
                 rplClearErrors();
@@ -7642,7 +7642,7 @@ int halDoCustomKey(WORD keymsg)
             ptr = rplSkipOb(ptr);
             if(ptr >= endoftable)
                 return 0;
-            ctx = rplReadNumberAsBINT(ptr);
+            ctx = rplReadNumberAsInt64(ptr);
             if(Exceptions) {
                 // CLEAR ALL ERRORS AND KEEP GOING
                 rplClearErrors();
@@ -7745,11 +7745,11 @@ int halCustomKeyExists(WORD keymsg)
         return 0;       // INVALID KEY DEFINITION
 
     WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable);
-    BINT ctx;
+    int32_t ctx;
     WORD msg;
 
     while(ptr < endoftable) {
-        msg = rplReadNumberAsBINT(ptr);
+        msg = rplReadNumberAsInt64(ptr);
         if(Exceptions) {
             // CLEAR ALL ERRORS AND KEEP GOING
             rplClearErrors();
@@ -7758,7 +7758,7 @@ int halCustomKeyExists(WORD keymsg)
         ptr = rplSkipOb(ptr);
         if(ptr >= endoftable)
             return 0;
-        ctx = rplReadNumberAsBINT(ptr);
+        ctx = rplReadNumberAsInt64(ptr);
         if(Exceptions) {
             // CLEAR ALL ERRORS AND KEEP GOING
             rplClearErrors();
@@ -7837,7 +7837,7 @@ int halDefaultKeyExists(WORD keymsg)
 
 // RETURNS 0 IF THE LOOP HAS TO CONTINUE, 1 TO TERMINATE OUTER LOOP
 
-int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
+int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
 {
     int wasProcessed;
 
@@ -7948,7 +7948,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
         else {
             // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
 
-            BINT tmp = halLongKeyPending;
+            int32_t tmp = halLongKeyPending;
             halLongKeyPending = 0;      // THIS CLEANUP IS ONLY NEEDED IN CASE THE KEY HANDLER CALLS A KEYBOARD LOOP
 
             if(dokey)
@@ -7980,7 +7980,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), BINT flags)
         }
         else {
             // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE EXECUTE IMMEDIATELY
-            BINT longmsg = KM_LPRESS | KM_SHIFTEDKEY(keymsg);
+            int32_t longmsg = KM_LPRESS | KM_SHIFTEDKEY(keymsg);
 
             if(halCustomKeyExists(longmsg)) {
                 halLongKeyPending = keymsg;
@@ -8103,11 +8103,11 @@ void halDoDeferredProcess()
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
 #ifndef TARGET_PRIME1
-void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
+void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
 #else /* TARGET_PRIME1 */
-void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
+void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
 #endif /* TARGET_PRIME1 */
-        BINT flags)
+        int32_t flags)
 {
 #ifndef TARGET_PRIME1
     int keymsg = 0, isidle, jobdone;

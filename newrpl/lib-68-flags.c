@@ -294,7 +294,7 @@ const systemflag const flags_names[] = {
     {NULL, {0, 0, 0, 0, 0, 0, 0, 0}}
 };
 
-BINT rplSetUserFlag(BINT flag)
+int32_t rplSetUserFlag(int32_t flag)
 {
     if(flag < 1 || flag > 128)
         return -1;
@@ -330,7 +330,7 @@ BINT rplSetUserFlag(BINT flag)
     return 0;
 }
 
-BINT rplClrUserFlag(BINT flag)
+int32_t rplClrUserFlag(int32_t flag)
 {
     if(flag < 1 || flag > 128)
         return -1;
@@ -369,7 +369,7 @@ BINT rplClrUserFlag(BINT flag)
 // RETURN -1 IF THE NUMBER IS NOT VALID
 // RETURN  0 IF SYSTEM FLAGS ARE CORRUPTED, INVALID OR NONEXISTENT
 
-BINT rplTestUserFlag(BINT flag)
+int32_t rplTestUserFlag(int32_t flag)
 {
     if(flag < 1 || flag > 128)
         return -1;
@@ -400,7 +400,7 @@ uint64_t *rplGetUserFlagsLow()
     return (uint64_t *) (UserFlags + 1);
 }
 
-BINT rplSetSystemFlag(BINT flag)
+int32_t rplSetSystemFlag(int32_t flag)
 {
     if(flag > -1 || flag < -128)
         return -1;
@@ -414,7 +414,7 @@ BINT rplSetSystemFlag(BINT flag)
     return 0;
 }
 
-BINT rplClrSystemFlag(BINT flag)
+int32_t rplClrSystemFlag(int32_t flag)
 {
     if(flag > -1 || flag < -128)
         return -1;
@@ -429,25 +429,25 @@ BINT rplClrSystemFlag(BINT flag)
     return 0;
 }
 
-BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
 
-    BINT idx = 0;
-    BINT len = utf8nlen((char *)name, (char *)nameend);
-    BINT flaglen;
+    int32_t idx = 0;
+    int32_t len = utf8nlen((char *)name, (char *)nameend);
+    int32_t flaglen;
 
     while(flags_names[idx].flagname) {
         flaglen = utf8len((char *)flags_names[idx].flagname);
         if((flaglen == len)
                 && !utf8ncmp2((char *)name, (char *)nameend,
                     flags_names[idx].flagname, len)) {
-            BINT count;
+            int32_t count;
             for(count = 0; count < 8; ++count) {
                 if(flags_names[idx].flags[count]) {
-                    BINT flag = flags_names[idx].flags[count] & 0x7f;
-                    BINT value = flags_names[idx].flags[count] >> 7;
+                    int32_t flag = flags_names[idx].flags[count] & 0x7f;
+                    int32_t value = flags_names[idx].flags[count] >> 7;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
                     WORDPTR low64 = SystemFlags + 1;
                     flag = flag - 1;
@@ -469,24 +469,24 @@ BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
     return -1;
 }
 
-BINT rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
 
-    BINT idx = 0;
-    BINT len = utf8nlen((char *)name, (char *)nameend);
-    BINT flaglen;
+    int32_t idx = 0;
+    int32_t len = utf8nlen((char *)name, (char *)nameend);
+    int32_t flaglen;
 
     while(flags_names[idx].flagname) {
         flaglen = utf8len((char *)flags_names[idx].flagname);
         if((flaglen == len)
                 && !utf8ncmp2((char *)name, (char *)nameend,
                     flags_names[idx].flagname, len)) {
-            BINT count;
+            int32_t count;
             for(count = 0; count < 8; ++count) {
                 if(flags_names[idx].flags[count]) {
-                    BINT flag = flags_names[idx].flags[count] & 0x7f;
+                    int32_t flag = flags_names[idx].flags[count] & 0x7f;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
                     WORDPTR low64 = SystemFlags + 1;
                     flag = flag - 1;
@@ -509,7 +509,7 @@ BINT rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 // RETURN -1 IF THE NUMBER IS NOT VALID
 // RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
 
-BINT rplTestSystemFlag(BINT flag)
+int32_t rplTestSystemFlag(int32_t flag)
 {
     if(flag > -1 || flag < -128)
         return -1;
@@ -518,7 +518,7 @@ BINT rplTestSystemFlag(BINT flag)
 
     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
     WORDPTR low64 = SystemFlags + 1;
-    BINT result;
+    int32_t result;
     flag = -flag - 1;
     result = low64[flag >> 5] & (1 << (flag & 31));
     if(result)
@@ -531,27 +531,27 @@ BINT rplTestSystemFlag(BINT flag)
 // RETURN -1 IF THE NAME IS NOT VALID
 // RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
 
-BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
-    BINT idx = 0;
-    BINT len = utf8nlen((char *)name, (char *)nameend);
-    BINT flaglen;
+    int32_t idx = 0;
+    int32_t len = utf8nlen((char *)name, (char *)nameend);
+    int32_t flaglen;
     while(flags_names[idx].flagname) {
         flaglen = utf8len((char *)flags_names[idx].flagname);
         if((flaglen == len)
                 && !utf8ncmp2((char *)name, (char *)nameend,
                     flags_names[idx].flagname, len)) {
-            BINT count;
-            BINT match = 0;
+            int32_t count;
+            int32_t match = 0;
             for(count = 0; count < 8; ++count) {
                 if(flags_names[idx].flags[count]) {
-                    BINT flag = flags_names[idx].flags[count] & 0x7f;
-                    BINT value = flags_names[idx].flags[count] >> 7;
+                    int32_t flag = flags_names[idx].flags[count] & 0x7f;
+                    int32_t value = flags_names[idx].flags[count] >> 7;
 
                     WORDPTR low64 = SystemFlags + 1;
-                    BINT res;
+                    int32_t res;
                     flag--;
 
                     res = (low64[flag >> 5] >> (flag & 31)) & 1;
@@ -570,19 +570,19 @@ BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 
 }
 
-BINT rplSetSystemFlagByIdent(WORDPTR ident)
+int32_t rplSetSystemFlagByIdent(WORDPTR ident)
 {
     BYTEPTR text = (BYTEPTR) (ident + 1);
     return rplSetSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
-BINT rplClrSystemFlagByIdent(WORDPTR ident)
+int32_t rplClrSystemFlagByIdent(WORDPTR ident)
 {
     BYTEPTR text = (BYTEPTR) (ident + 1);
     return rplClrSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
-BINT rplTestSystemFlagByIdent(WORDPTR ident)
+int32_t rplTestSystemFlagByIdent(WORDPTR ident)
 {
     BYTEPTR text = (BYTEPTR) (ident + 1);
     return rplTestSystemFlagByName(text, text + rplGetIdentLength(ident));
@@ -659,18 +659,18 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
             else
                 fmt->Locale = SYSTEM_DEFAULT_LOCALE;
             WORDPTR nfmt = rplGetListElement(systemlist, 2);
-            if(nfmt && (ISBINT(*nfmt)))
-                fmt->SmallFmt = (BINT) rplReadBINT(nfmt);
+            if(nfmt && (ISint32_t(*nfmt)))
+                fmt->SmallFmt = (int32_t) rplReadint32_t(nfmt);
             else
                 fmt->SmallFmt = 12 | FMT_SCI | FMT_SUPRESSEXP | FMT_USECAPITALS;
             nfmt = rplGetListElement(systemlist, 3);
-            if(nfmt && (ISBINT(*nfmt)))
-                fmt->MiddleFmt = (BINT) rplReadBINT(nfmt);
+            if(nfmt && (ISint32_t(*nfmt)))
+                fmt->MiddleFmt = (int32_t) rplReadint32_t(nfmt);
             else
                 fmt->MiddleFmt = 12 | FMT_USECAPITALS;
             nfmt = rplGetListElement(systemlist, 4);
-            if(nfmt && (ISBINT(*nfmt)))
-                fmt->BigFmt = (BINT) rplReadBINT(nfmt);
+            if(nfmt && (ISint32_t(*nfmt)))
+                fmt->BigFmt = (int32_t) rplReadint32_t(nfmt);
             else
                 fmt->BigFmt = 12 | FMT_SCI | FMT_SUPRESSEXP | FMT_USECAPITALS;
             nfmt = rplGetListElement(systemlist, 5);
@@ -723,10 +723,10 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
     fmt->BigFmt = 12 | FMT_SCI | FMT_SUPRESSEXP | FMT_USECAPITALS;
 
     fmt->SmallLimit.data = fmt->SmallLimitData;
-    newRealFromBINT(&fmt->SmallLimit,1,-12);
+    newRealFromint32_t(&fmt->SmallLimit,1,-12);
 
     fmt->BigLimit.data=fmt->BigLimitData;
-    newRealFromBINT(&fmt->BigLimit,1,12);
+    newRealFromint32_t(&fmt->BigLimit,1,12);
 }
 
 // SETS THE SYSTEM SETTING NUMFORMAT TO THE GIVEN STRUCTURE
@@ -772,17 +772,17 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         return;
 
     rplPushData(item);
-    rplNewBINTPush(fmt->SmallFmt, DECBINT);
+    rplNewint32_tPush(fmt->SmallFmt, DECint32_t);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewBINTPush(fmt->MiddleFmt, DECBINT);
+    rplNewint32_tPush(fmt->MiddleFmt, DECint32_t);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewBINTPush(fmt->BigFmt, DECBINT);
+    rplNewint32_tPush(fmt->BigFmt, DECint32_t);
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -814,7 +814,7 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
 
 // CREATE A STRING OBJECT REPRESENTING ALL POSSIBLE OPTIONS IN fmtbits
 // RETURNS NULL ON NOT ENOUGH MEMORY ONLY
-WORDPTR rplNumFormat2String(BINT fmtbits)
+WORDPTR rplNumFormat2String(int32_t fmtbits)
 {
     // STRING FORMAT:
 
@@ -838,15 +838,15 @@ WORDPTR rplNumFormat2String(BINT fmtbits)
     // "#.###E*#" = ENGINEERING MODE, 4 TOTAL DIGITS, NO PREFERRED EXPONENT, SUPRESS EXPONENT ONLY WHEN 0
 
     BYTE str[MAXFMTLEN];
-    BINT ndigits = FMT_DIGITS(fmtbits);
-    BINT offset = 0;
+    int32_t ndigits = FMT_DIGITS(fmtbits);
+    int32_t offset = 0;
 
     // FORCE SIGN BIT
     if(fmtbits & FMT_FORCESIGN)
         str[offset++] = '+';
     // SEPARATOR ON INTEGER PART
     if(fmtbits & FMT_NUMSEPARATOR) {
-        BINT sepspacing = SEP_SPACING(fmtbits);
+        int32_t sepspacing = SEP_SPACING(fmtbits);
         str[offset++] = 'S';
         if((sepspacing != 0) && (sepspacing != 3)) {
             if(sepspacing >= 10) {
@@ -863,7 +863,7 @@ WORDPTR rplNumFormat2String(BINT fmtbits)
     if(ndigits != 0) {
         str[offset++] = '.';
         if(ndigits <= 6) {
-            BINT k;
+            int32_t k;
             for(k = 1; k < ndigits; ++k)
                 str[offset++] = '#';
             str[offset++] = (fmtbits & FMT_TRAILINGZEROS) ? '0' : '#';
@@ -899,7 +899,7 @@ WORDPTR rplNumFormat2String(BINT fmtbits)
         // FRACTIONAL SEPARATOR
         if(fmtbits & FMT_FRACSEPARATOR) {
             str[offset++] = 'S';
-            BINT sepspacing = SEP_SPACING(fmtbits);
+            int32_t sepspacing = SEP_SPACING(fmtbits);
             if(!(fmtbits & FMT_NUMSEPARATOR) && (sepspacing != 0)
                     && (sepspacing != 3)) {
                 // NEED TO INCLUDE THE SEPARATOR SPACING HERE
@@ -927,7 +927,7 @@ WORDPTR rplNumFormat2String(BINT fmtbits)
         if(fmtbits & FMT_EXPSIGN)
             str[offset++] = '+';
         if(fmtbits & FMT_ENG) {
-            BINT pref = PREFERRED_EXP(fmtbits);
+            int32_t pref = PREFERRED_EXP(fmtbits);
             if(pref == -24)
                 str[offset++] = '#';    // NO PREFERRED EXPONENT
             else {
@@ -958,12 +958,12 @@ WORDPTR rplNumFormat2String(BINT fmtbits)
 // CONVERT A STRING BACK INTO NUMBER FORMAT
 // RETURN -1 IF INVALID STRING, DOESN'T THROW ANY ERRORS
 
-BINT rplNumFormatFromString(WORDPTR string)
+int32_t rplNumFormatFromString(WORDPTR string)
 {
     BYTEPTR str = (BYTEPTR) (string + 1);
     BYTEPTR end = str + rplStrSize(string);
 
-    BINT fmt = FMT_NOTRAILDOT | FMT_USECAPITALS;
+    int32_t fmt = FMT_NOTRAILDOT | FMT_USECAPITALS;
 
     // FORCE SIGN?
     if(*str == '+') {
@@ -975,7 +975,7 @@ BINT rplNumFormatFromString(WORDPTR string)
         return -1;      // INCOMPLETE DEFINITION
 
     if(*str == 'S') {
-        BINT sepspacing = 0;
+        int32_t sepspacing = 0;
         ++str;
         if(str >= end)
             return -1;  // INCOMPLETE DEFINITION
@@ -1018,7 +1018,7 @@ BINT rplNumFormatFromString(WORDPTR string)
 
     // NUMBER OF FIGURES
 
-    BINT ndig = 0, isnumeric = 0;
+    int32_t ndig = 0, isnumeric = 0;
     while(str < end) {
         if(isnumeric) {
             if((*str >= '0') && (*str <= '9')) {
@@ -1103,7 +1103,7 @@ BINT rplNumFormatFromString(WORDPTR string)
 
     // FRACTIONAL SEPARATOR?
     if(*str == 'S') {
-        BINT sepspacing = 0;
+        int32_t sepspacing = 0;
         ++str;
         if(str >= end)
             return fmt;
@@ -1184,7 +1184,7 @@ BINT rplNumFormatFromString(WORDPTR string)
     }
     else {
         // GET A PREFERRED EXPONENT
-        BINT isneg, prefexp;
+        int32_t isneg, prefexp;
         if(*str == '-') {
             isneg = 1;
             ++str;
@@ -1229,7 +1229,7 @@ BINT rplNumFormatFromString(WORDPTR string)
 // ONLY VALID menunumbers ARE 1 AND 2
 // THIS MAY CHANGE IN OTHER IMPLEMENTATIONS
 
-void rplSetMenuCode(BINT menunumber, int64_t menucode)
+void rplSetMenuCode(int32_t menunumber, int64_t menucode)
 {
     if(!ISBINDATA(*SystemFlags))
         return;
@@ -1243,7 +1243,7 @@ void rplSetMenuCode(BINT menunumber, int64_t menucode)
     return;
 }
 
-int64_t rplGetMenuCode(BINT menunumber)
+int64_t rplGetMenuCode(int32_t menunumber)
 {
     if(!ISBINDATA(*SystemFlags))
         return 0;
@@ -1256,7 +1256,7 @@ int64_t rplGetMenuCode(BINT menunumber)
 
 }
 
-void rplSetLastMenu(BINT menunumber)
+void rplSetLastMenu(int32_t menunumber)
 {
     if((menunumber < 1) || (menunumber > 2))
         return;
@@ -1269,7 +1269,7 @@ void rplSetLastMenu(BINT menunumber)
 
 }
 
-void rplSetActiveMenu(BINT menunumber)
+void rplSetActiveMenu(int32_t menunumber)
 {
     if((menunumber < 1) || (menunumber > 2))
         return;
@@ -1282,18 +1282,18 @@ void rplSetActiveMenu(BINT menunumber)
 
 }
 
-BINT rplGetLastMenu()
+int32_t rplGetLastMenu()
 {
-    BINT a = rplTestSystemFlag(FL_LASTMENU);
+    int32_t a = rplTestSystemFlag(FL_LASTMENU);
 
     if(a == 1)
         return 2;
     return 1;
 }
 
-BINT rplGetActiveMenu()
+int32_t rplGetActiveMenu()
 {
-    BINT a = rplTestSystemFlag(FL_ACTIVEMENU);
+    int32_t a = rplTestSystemFlag(FL_ACTIVEMENU);
 
     if(a == 1)
         return 2;
@@ -1302,7 +1302,7 @@ BINT rplGetActiveMenu()
 
 // PUSH THE CURRENT MENU INTO THE MENU HISTORY
 // CAN TRIGGER GC AND USES ScratchPointers 1 thru 3
-void rplSaveMenuHistory(BINT menu)
+void rplSaveMenuHistory(int32_t menu)
 {
     int64_t oldmcode = rplGetMenuCode(menu);
 
@@ -1324,7 +1324,7 @@ void rplSaveMenuHistory(BINT menu)
     else {
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
         // THIS CAN TRIGGER A GC!
-        msetting = rplNewBINT(oldmcode, HEXBINT);
+        msetting = rplNewint32_t(oldmcode, HEXint32_t);
     }
 
     if(!msetting)
@@ -1341,7 +1341,7 @@ void rplSaveMenuHistory(BINT menu)
     if(!levels)
         levels = (WORDPTR) ten_bint;
 
-    int64_t nlevels = rplReadNumberAsBINT(levels);
+    int64_t nlevels = rplReadNumberAsInt64(levels);
 
     // THIS CAN TRIGGER A GC!
     WORDPTR newlist = rplListAddRot(oldlist, msetting, nlevels);
@@ -1358,7 +1358,7 @@ void rplSaveMenuHistory(BINT menu)
 
 // RCL AND REMOVE FROM HISTORY THE LAST ITEM IN THE LIST
 
-WORDPTR rplPopMenuHistory(BINT menu)
+WORDPTR rplPopMenuHistory(int32_t menu)
 {
     WORDPTR list =
             rplGetSettings((menu ==
@@ -1366,7 +1366,7 @@ WORDPTR rplPopMenuHistory(BINT menu)
     if(!list)
         return 0;
 
-    BINT nelem = rplExplodeList2(list);
+    int32_t nelem = rplExplodeList2(list);
     if(nelem < 1)
         return 0;
 
@@ -1388,7 +1388,7 @@ WORDPTR rplPopMenuHistory(BINT menu)
 // THIS DOES THE SAME JOB AS TMENU, BUT CAN BE CALLED
 // FROM OTHER LIBRARIES. MAY TRIGGER GC WHEN STORING
 // IN SETTINGS DIRECTORY
-void rplChangeMenu(BINT menu, WORDPTR newmenu)
+void rplChangeMenu(int32_t menu, WORDPTR newmenu)
 {
 
     if(ISLIST(*newmenu) || ISIDENT(*newmenu)) {
@@ -1407,9 +1407,9 @@ void rplChangeMenu(BINT menu, WORDPTR newmenu)
         return;
     }
 
-    if(ISBINT(*newmenu)) {
+    if(ISint32_t(*newmenu)) {
         // IT'S A PREDEFINED MENU CODE
-        int64_t num = rplReadBINT(newmenu);
+        int64_t num = rplReadint32_t(newmenu);
 
         if(num < 0) {
             // JUST SET IT TO ZERO
@@ -1547,7 +1547,7 @@ const BYTE const modiftable[] = {
 WORD rplKeyName2Msg(WORDPTR keyname)
 {
     BYTEPTR ptr, tblptr;
-    BINT key, shifts, msg, len;
+    int32_t key, shifts, msg, len;
 
     if(!ISSTRING(*keyname))
         return 0;
@@ -1895,7 +1895,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT slen = rplStrLenCp(rplPeekData(1));
+        int32_t slen = rplStrLenCp(rplPeekData(1));
 
         if(slen != 4) {
             rplError(ERR_INVALIDLOCALESTRING);
@@ -1910,7 +1910,7 @@ void LIB_HANDLER()
         locstring = (BYTEPTR) (rplPeekData(1) + 1);
         uint64_t newlocale;
 
-        BINT cp = utf82cp((char *)locstring, (char *)strend);
+        int32_t cp = utf82cp((char *)locstring, (char *)strend);
 
         if(cp < 0) {
             rplError(ERR_INVALIDLOCALESTRING);
@@ -1983,10 +1983,10 @@ void LIB_HANDLER()
         rplGetSystemNumberFormat(&f);   // GET CURRENT NUMBER FORMAT, TO OVERWRITE
 
         WORDPTR item;
-        BINT nitems;
-        BINT format;
+        int32_t nitems;
+        int32_t format;
         REAL num;
-        BINT hasnumber;
+        int32_t hasnumber;
 
         item = rplPeekData(1);
         if(ISLIST(*item)) {
@@ -2070,7 +2070,7 @@ void LIB_HANDLER()
 
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (rplClrSystemFlag(flag)) {
                 case -1:
@@ -2127,7 +2127,7 @@ void LIB_HANDLER()
 
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (rplSetSystemFlag(flag)) {
                 case -1:
@@ -2182,10 +2182,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT test;
+        int32_t test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2247,10 +2247,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT test;
+        int32_t test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2314,10 +2314,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT test;
+        int32_t test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2385,10 +2385,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT test;
+        int32_t test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsInt64(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2456,7 +2456,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT menu = rplGetActiveMenu();
+        int32_t menu = rplGetActiveMenu();
 
         rplSaveMenuHistory(menu);
         rplChangeMenu(menu, rplPeekData(1));
@@ -2481,7 +2481,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT menu = rplGetLastMenu();
+        int32_t menu = rplGetLastMenu();
         if(CurOpcode == CMD_TMENUOTHR) {
             // USE THE OTHER MENU
             if(menu == 1)
@@ -2510,7 +2510,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall the menu the user did not use last
         //@NEW
-        BINT menu;
+        int32_t menu;
 
         if(CurOpcode != CMD_RCLMENU) {
             menu = rplGetLastMenu();
@@ -2546,7 +2546,7 @@ void LIB_HANDLER()
 
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
 
-        rplNewBINTPush((int64_t) mcode, HEXBINT);
+        rplNewint32_tPush((int64_t) mcode, HEXint32_t);
         return;
 
     }
@@ -2598,7 +2598,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Display the previous menu on the area the user did not use last
         //@NEW
-        BINT menu;
+        int32_t menu;
 
         if(CurOpcode != CMD_MENUBK) {
             menu = rplGetLastMenu();
@@ -2662,22 +2662,22 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT keycode = rplKeyName2Msg(rplPeekData(2));
+        int32_t keycode = rplKeyName2Msg(rplPeekData(2));
 
         if(!keycode) {
             rplError(ERR_INVALIDKEYNAME);
             return;
         }
 
-        BINT context = rplReadNumberAsBINT(rplPeekData(1));
+        int32_t context = rplReadNumberAsInt64(rplPeekData(1));
         if(context < 0) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
 
         rplDropData(2);
-        rplNewBINTPush(keycode, HEXBINT);
-        rplNewBINTPush(context, HEXBINT);
+        rplNewint32_tPush(keycode, HEXint32_t);
+        rplNewint32_tPush(context, HEXint32_t);
         if(Exceptions)
             return;
 
@@ -2693,7 +2693,7 @@ void LIB_HANDLER()
         }
         else {
             // ADD 3 MORE ITEMS TO THE EXISTING LIST
-            BINT n = rplExplodeList2(keylist);
+            int32_t n = rplExplodeList2(keylist);
             keylist = rplCreateListN(n + 3, 1, 1);
             if(Exceptions)
                 return;
@@ -2722,7 +2722,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT keycode = rplKeyName2Msg(rplPeekData(1));
+        int32_t keycode = rplKeyName2Msg(rplPeekData(1));
 
         if(!keycode) {
             rplError(ERR_INVALIDKEYNAME);
@@ -2743,7 +2743,7 @@ void LIB_HANDLER()
 
         while(ptr < endlist) {
             if(ISNUMBER(*ptr)) {
-                BINT code = rplReadNumberAsBINT(ptr);
+                int32_t code = rplReadNumberAsInt64(ptr);
                 if(keycode == code)
                     break;
             }
@@ -2767,7 +2767,7 @@ void LIB_HANDLER()
 
             // NOW MOVE THE MEMORY BETWEEN ptr AND endptr
 
-            BINT offstart = ptr - keylist, offend = endptr - keylist;
+            int32_t offstart = ptr - keylist, offend = endptr - keylist;
 
             rplPushData(keylist);       // PROTECT FROM GC
             WORDPTR newlist =
@@ -2866,7 +2866,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT istag = rplStripTagStack(1);
+        int32_t istag = rplStripTagStack(1);
 
         LIBHANDLER han = rplGetLibHandler(LIBNUM(*rplPeekData(1)));
 
@@ -2881,7 +2881,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewBINTPush((TypeInfo / 100) + (istag ? 10000 : 0), DECBINT);
+                rplNewint32_tPush((TypeInfo / 100) + (istag ? 10000 : 0), DECint32_t);
                 return;
             }
         }
@@ -2898,7 +2898,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT istag = rplStripTagStack(1);
+        int32_t istag = rplStripTagStack(1);
 
         LIBHANDLER han = rplGetLibHandler(LIBNUM(*rplPeekData(1)));
 
@@ -2920,8 +2920,8 @@ void LIB_HANDLER()
                     rplNewRealFromRRegPush(0);
                 }
                 else
-                    rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0),
-                            DECBINT);
+                    rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
+                            DECint32_t);
                 return;
             }
         }
@@ -3077,16 +3077,16 @@ void LIB_HANDLER()
                 rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
             }
 
-            BINT nitems = rplListLength(rplPeekData(1));
+            int32_t nitems = rplListLength(rplPeekData(1));
             if(nitems < 4) {
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
             }
 
-            // ALL BINTS
-            BINT k;
+            // ALL int32_tS
+            int32_t k;
             for(k = 1; k <= 4; ++k) {
-                if(!ISBINT(*rplGetListElement(rplPeekData(1), k))) {
+                if(!ISint32_t(*rplGetListElement(rplPeekData(1), k))) {
                     rplError(ERR_SYSTEMFLAGSINVALID);
                     return;
                 }
@@ -3098,7 +3098,7 @@ void LIB_HANDLER()
             WORDPTR nptr = SystemFlags + 1;     // DATA OF THE FIRST 64-BIT INTEGER
             uint64_t *uptr;
             for(k = 1; k <= 4; ++k) {
-                value = rplReadBINT(rplGetListElement(rplPeekData(1), k));
+                value = rplReadint32_t(rplGetListElement(rplPeekData(1), k));
                 uptr = (uint64_t *) nptr;
                 *uptr = value;
                 nptr += 2;
@@ -3167,7 +3167,7 @@ void LIB_HANDLER()
         // GET THE SYMBOLIC TOKEN INFORMATION
         if(han) {
             WORD savecurOpcode = CurOpcode;
-            BINT istag = ISTAG(*var[1]);
+            int32_t istag = ISTAG(*var[1]);
             ObjectPTR = obj;
             CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
@@ -3176,7 +3176,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0), DECBINT);
+                rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0), DECint32_t);
                 return;
             }
         }
@@ -3222,7 +3222,7 @@ void LIB_HANDLER()
         // GET THE SYMBOLIC TOKEN INFORMATION
         if(han) {
             WORD savecurOpcode = CurOpcode;
-            BINT istag = ISTAG(*var[1]);
+            int32_t istag = ISTAG(*var[1]);
             ObjectPTR = obj;
             CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
@@ -3238,8 +3238,8 @@ void LIB_HANDLER()
                     rplNewRealFromRRegPush(0);
                 }
                 else
-                    rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0),
-                            DECBINT);
+                    rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
+                            DECint32_t);
                 return;
             }
         }
@@ -3324,7 +3324,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -3340,7 +3340,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -3350,7 +3350,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -135,7 +135,7 @@ void LIB_HANDLER()
         }
 
         // THIS IS A FLAG NUMBER
-        int64_t wsize = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t wsize = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -169,9 +169,9 @@ void LIB_HANDLER()
         WORDPTR low64 = SystemFlags + 1;
         //WORDPTR hi64=SystemFlags+5;
 
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
-        rplNewBINTPush(wsize, DECBINT);
+        rplNewint32_tPush(wsize, DECint32_t);
 
         return;
     }
@@ -193,9 +193,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -204,7 +204,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -222,7 +222,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 |= num2;
 
@@ -234,7 +234,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -255,9 +255,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -267,7 +267,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -285,7 +285,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 &= num2;
 
@@ -297,7 +297,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -318,9 +318,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -330,7 +330,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -348,7 +348,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 ^= num2;
 
@@ -360,7 +360,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -381,9 +381,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -393,7 +393,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -411,7 +411,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if((num2 > wsize) || (num2 < -wsize))
             num1 = 0;
@@ -428,7 +428,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -449,9 +449,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -461,7 +461,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -478,7 +478,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
         uint64_t wmask = (1ULL << wsize) - 1;
 
         num1 &= wmask | (1ULL << wsize);
@@ -498,7 +498,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -519,9 +519,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -531,7 +531,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -549,7 +549,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if(num2 > 0)
             num1 >>= num2;
@@ -564,7 +564,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -585,9 +585,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -597,7 +597,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -615,7 +615,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 += num2;
 
@@ -627,7 +627,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -648,9 +648,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -660,7 +660,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -678,7 +678,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 -= num2;
 
@@ -690,7 +690,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -711,9 +711,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -723,7 +723,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -741,7 +741,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 *= num2;
 
@@ -753,7 +753,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -774,9 +774,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -786,7 +786,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -804,7 +804,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if(num2 == 0) {
             if(num1 != 0) {
@@ -834,7 +834,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -855,9 +855,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -867,7 +867,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -885,7 +885,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num2 %= wsize + 1;
         if(num2 < 0)
@@ -906,7 +906,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -927,9 +927,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1, num2;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num2 = rplReadNumberAsBINT(rplPeekData(1));
+            num2 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
         }
@@ -939,7 +939,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(2));
+            num1 = rplReadNumberAsInt64(rplPeekData(2));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(2));
@@ -957,7 +957,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num2 = -num2;
         num2 %= wsize + 1;
@@ -979,7 +979,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -1000,9 +1000,9 @@ void LIB_HANDLER()
         }
 
         int64_t num1;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(1));
+            num1 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(1));
@@ -1020,7 +1020,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 = ~num1;
 
@@ -1032,7 +1032,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -1048,9 +1048,9 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int64_t num1;
-        BINT base;
+        int32_t base;
         if(ISNUMBER(*rplPeekData(1))) {
-            num1 = rplReadNumberAsBINT(rplPeekData(1));
+            num1 = rplReadNumberAsInt64(rplPeekData(1));
             if(Exceptions)
                 return;
             base = LIBNUM(*rplPeekData(1));
@@ -1068,7 +1068,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
-        BINT wsize = (low64[0] >> 4) & 0x3f;
+        int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 = -num1;
 
@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewBINTPush(num1, base);
+        rplNewint32_tPush(num1, base);
         return;
     }
 
@@ -1151,7 +1151,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1167,7 +1167,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -1177,7 +1177,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -96,10 +96,10 @@ WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
 
 // ALLOCATE NEW BITMAP OBJECT, THIS IS HARDWARE DEPENDENT AS IT USES THE DEFAULT SCREEN COLOR MODE
 
-WORDPTR uiAllocNewBitmap(BINT width, BINT height)
+WORDPTR uiAllocNewBitmap(int32_t width, int32_t height)
 {
 
-    BINT bits = BITS_PER_PIXEL * width * height;
+    int32_t bits = BITS_PER_PIXEL * width * height;
 
     bits += 31;
     bits >>= 5;
@@ -144,7 +144,7 @@ void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
     WORDPTR string = (WORDPTR) invalid_string;
 
     // NOW PRINT THE STRING OBJECT
-    BINT nchars = rplStrSize(string);
+    int32_t nchars = rplStrSize(string);
     BYTEPTR charptr = (BYTEPTR) (string + 1);
 
     DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
@@ -175,9 +175,9 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 
     // NOW PRINT THE STRING OBJECT
 
-    BINT nchars = rplStrSize(string);
+    int32_t nchars = rplStrSize(string);
     BYTEPTR charptr = (BYTEPTR) (string + 1);
-    BINT numwidth =
+    int32_t numwidth =
             StringWidthN((char *)charptr, (char *)charptr + nchars, font);
 
     if(numwidth > MAX_BMP_WIDTH)
@@ -251,7 +251,7 @@ void uiDrawBitmap(WORDPTR bmp, gglsurface * scr)
         WORDPTR string = (WORDPTR) invalid_string;
 
         // NOW PRINT THE STRING OBJECT
-        BINT nchars = rplStrSize(string);
+        int32_t nchars = rplStrSize(string);
         BYTEPTR charptr = (BYTEPTR) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,

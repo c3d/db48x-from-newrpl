@@ -38,7 +38,7 @@ static void binatan_table(int exponent, int sysexp, REAL * real)
     //uint8_t *byte=(uint8_t *)&(atan_1_8_stream[atan_1_8_offsets[exponent]]);
     // TODO: ADD TABLE COMPRESSION
 
-    BINT *tabledata = (BINT *) atan_binary + exponent * CORDIC_TABLEWORDS;
+    int32_t *tabledata = (int32_t *) atan_binary + exponent * CORDIC_TABLEWORDS;
 
     int pos = CORDIC_MAXSYSEXP - sysexp;
     int words = (pos) >> 5;
@@ -61,8 +61,8 @@ static void binconst_K_table(int exponent, int sysexp, REAL * real)
     //uint8_t *byte=(uint8_t *)&(atan_1_8_stream[atan_1_8_offsets[exponent]]);
     // TODO: ADD TABLE COMPRESSION
 
-    BINT *tabledata =
-            (BINT *) K_binary + (CORDIC_MAXSYSEXP / 2 - 1 -
+    int32_t *tabledata =
+            (int32_t *) K_binary + (CORDIC_MAXSYSEXP / 2 - 1 -
             exponent) * CORDIC_TABLEWORDS + ((CORDIC_MAXSYSEXP - sysexp) >> 5);
 
     copy_words(real->data, tabledata, sysexp >> 5);
@@ -78,7 +78,7 @@ static void binconst_K_table(int exponent, int sysexp, REAL * real)
 void decconst_2Sysexp(REAL * real, int sysexp)
 {
     real->len = two_exp_offset[(sysexp >> 5) - 1];
-    real->data = (BINT *) two_exp_binary + (real->len & 0xffff);
+    real->data = (int32_t *) two_exp_binary + (real->len & 0xffff);
     real->len >>= 16;
     real->exp = 0;
     real->flags = 0;
@@ -170,11 +170,11 @@ static void binCORDIC_Rotational(int digits, int startindex, int sysexp)
 // DROP-IN REPLACEMENT FOR trig_sincos() BUT USING BINARY INTEGER MATH FOR THE CORDIC LOOP
 // CALCULATE RReg[6]=cos(angle) and RReg[7]=sin(angle) BOTH WITH 8 DIGITS MORE THAN CURRENT SYSTEM PRECISION (ABOUT 6 OF THEM ARE GOOD DIGITS, ROUNDING IS NEEDED)
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
-void bintrig_sincos(REAL * angle, BINT angmode)
+void bintrig_sincos(REAL * angle, int32_t angmode)
 {
     int negsin, negcos, swap, startexp;
     REAL pi, pi2, pi4, two_sysexp;
-    BINT savedprec;
+    int32_t savedprec;
 
     negcos = negsin = swap = 0;
 
@@ -185,7 +185,7 @@ void bintrig_sincos(REAL * angle, BINT angmode)
     if(angle->exp > savedprec) {
         // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
         // TO GET AN ACCURATE RESULT ON THE MODULO
-        BINT minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
+        int32_t minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
         if(minprec > REAL_PRECISION_MAX) {
             // TODO: ISSUE AN ERROR
             // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
@@ -206,7 +206,7 @@ void bintrig_sincos(REAL * angle, BINT angmode)
     }
     else {
         REAL convfactor;
-        BINT modulo;
+        int32_t modulo;
         if(angmode == ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
             trig_convertangle(angle, ANGLEDMS, ANGLEDEG);
@@ -227,7 +227,7 @@ void bintrig_sincos(REAL * angle, BINT angmode)
             modulo = 200;
         }
 
-        newRealFromBINT(&RReg[2], modulo, 0);
+        newRealFromint32_t(&RReg[2], modulo, 0);
 
         // GET ANGLE MODULO HALF-TURN
         divmodReal(&RReg[1], &RReg[0], angle, &RReg[2]);

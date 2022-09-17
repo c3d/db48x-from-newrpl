@@ -22,7 +22,7 @@ WORD bbintadd(WORD * res, WORD * a, WORD * b, int nwords)
 void bIntegerAdd(REAL * res, REAL * a, REAL * b)
 {
 
-    BINT resflags = a->flags & F_NEGATIVE;
+    int32_t resflags = a->flags & F_NEGATIVE;
 
     if((a->flags & F_NEGATIVE) != (b->flags & F_NEGATIVE)) {
         // MAKE SURE WE SUBTRACT ALWAYS FROM LARGER NUMBER TO SMALLER NUMBER
@@ -53,7 +53,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
         }
 
         // HERE IS GUARANTEED THAT a IS LARGER THAN b
-        BINT xwords = a->len - b->len, bwords = b->len;
+        int32_t xwords = a->len - b->len, bwords = b->len;
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
                 (WORDPTR) res->data;
 
@@ -77,7 +77,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
         }
         if(rr)
             *resptr++ = (WORD) rr;
-        res->len = (BINT *) resptr - res->data;
+        res->len = (int32_t *) resptr - res->data;
 
         while(res->len && (!res->data[res->len - 1]))
             --res->len;
@@ -94,7 +94,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
     }
 
     // HERE IS GUARANTEED THAT a IS LARGER THAN b
-    BINT xwords = a->len - b->len, bwords = b->len;
+    int32_t xwords = a->len - b->len, bwords = b->len;
     WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
             (WORDPTR) res->data;
 
@@ -118,7 +118,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
     }
     if(rr)
         *resptr++ = (WORD) rr;
-    res->len = (BINT *) resptr - res->data;
+    res->len = (int32_t *) resptr - res->data;
     res->flags = resflags;
 
 }
@@ -128,7 +128,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
 void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
 {
     REAL bs;
-    BINT resflag;
+    int32_t resflag;
     bs.data = b->data + (bshift >> 5);
     bs.len = b->len - (bshift >> 5);
     bs.flags = b->flags;
@@ -152,7 +152,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
     if((a->flags & F_NEGATIVE) != (b->flags & F_NEGATIVE)) {
         // MAKE SURE WE SUBTRACT ALWAYS FROM LARGER NUMBER TO SMALLER NUMBER
         REAL *largest;
-        BINT bslen = bs.len - ((bs.data[bs.len - 1] >> bshift) ? 0 : 1);
+        int32_t bslen = bs.len - ((bs.data[bs.len - 1] >> bshift) ? 0 : 1);
 
         if(a->len > bslen)
             largest = a;
@@ -190,7 +190,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
             // res=-((bs>>bshift)-a)
 
             // HERE IS GUARANTEED THAT bs IS LARGER THAN a
-            BINT xwords = bs.len - a->len, bwords = a->len;
+            int32_t xwords = bs.len - a->len, bwords = a->len;
             WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                     (WORDPTR) res->data;
 
@@ -228,7 +228,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
             if(rr)
                 *resptr++ = (WORD) rr;
 
-            res->len = (BINT *) resptr - res->data;
+            res->len = (int32_t *) resptr - res->data;
 
             while(res->len && (!res->data[res->len - 1]))
                 --res->len;
@@ -238,7 +238,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         }
 
         // HERE IS GUARANTEED THAT a IS LARGER THAN bs
-        BINT xwords = a->len - bs.len, bwords = bs.len - 1;
+        int32_t xwords = a->len - bs.len, bwords = bs.len - 1;
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                 (WORDPTR) res->data;
 
@@ -275,7 +275,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         }
         if(rr)
             *resptr++ = (WORD) rr;
-        res->len = (BINT *) resptr - res->data;
+        res->len = (int32_t *) resptr - res->data;
 
         while(res->len && (!res->data[res->len - 1]))
             --res->len;
@@ -289,7 +289,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
     if(a->len < bs.len) {
 
         // HERE IS GUARANTEED THAT bs IS LARGER THAN a
-        BINT xwords = bs.len - a->len, bwords = a->len;
+        int32_t xwords = bs.len - a->len, bwords = a->len;
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                 (WORDPTR) res->data;
 
@@ -328,13 +328,13 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         if(rr)
             *resptr++ = (WORD) rr;
 
-        res->len = (BINT *) resptr - res->data;
+        res->len = (int32_t *) resptr - res->data;
         res->flags = resflag;
         return;
     }
 
     // HERE IS GUARANTEED THAT a IS LARGER THAN bs
-    BINT xwords = a->len - bs.len, bwords = bs.len - 1;
+    int32_t xwords = a->len - bs.len, bwords = bs.len - 1;
     WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
             (WORDPTR) res->data;
 
@@ -367,7 +367,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
     }
     if(rr)
         *resptr++ = (WORD) rr;
-    res->len = (BINT *) resptr - res->data;
+    res->len = (int32_t *) resptr - res->data;
     res->flags = resflag;
     return;
 }
@@ -608,7 +608,7 @@ void RealfrombInteger(REAL * res, REAL * integer)
     res->exp = 0;
     res->flags = 0;
     REAL tmp, two32;
-    BINT tmpstorage[4], two32storage[2] = { 94967296, 42 };
+    int32_t tmpstorage[4], two32storage[2] = { 94967296, 42 };
 
     two32.flags = 0;
     two32.data = &two32storage;
@@ -657,7 +657,7 @@ void bIntegerMul(REAL * res, REAL * a, REAL * b, int FPShift)
     i = 0;
 
     uint64_t rr = 0;
-    BINT carry = 0;
+    int32_t carry = 0;
     while(i < b->len) {
         j = 0;
         while(j < a->len) {

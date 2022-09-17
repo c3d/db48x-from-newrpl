@@ -16,7 +16,7 @@ void growDStk(WORD newtotalsize)
 {
     WORDPTR *newdstk;
 
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
 
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;
@@ -82,7 +82,7 @@ void rplPushData(WORDPTR p)
     *DSTop++ = p;
 
     if(DStkSize <=
-            (BINT) ((DSTop - DStk +
+            (int32_t) ((DSTop - DStk +
                     DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD)))
         growDStk((DSTop - DStk + DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD));
     if(Exceptions)
@@ -90,11 +90,11 @@ void rplPushData(WORDPTR p)
 }
 
 // EXPAND THE STACK TO GUARANTEE THAT THERE'S SPACE TO PUSH numobjects MORE WITHOUT NEEDING ANY MEMORY
-void rplExpandStack(BINT numobjects)
+void rplExpandStack(int32_t numobjects)
 {
 
     if(DStkSize <=
-            (BINT) ((DSTop - DStk + numobjects +
+            (int32_t) ((DSTop - DStk + numobjects +
                     DSTKSLACK) * sizeof(WORDPTR) / sizeof(WORD)))
         growDStk((DSTop - DStk + numobjects + DSTKSLACK) * sizeof(WORDPTR) +
                 sizeof(WORD));
@@ -123,7 +123,7 @@ void rplDropData(int n)
 }
 
 // REMOVE num LEVELS FROM level TO level+num-1 FROM THE STACK
-void rplRemoveAtData(BINT level, BINT num)
+void rplRemoveAtData(int32_t level, int32_t num)
 {
     if(DSTop - DStkProtect < level + num - 1) {
         rplError(ERR_INTERNALEMPTYSTACK);
@@ -138,9 +138,9 @@ void rplRemoveAtData(BINT level, BINT num)
 // LEVELS = 1 ... DEPTH. DON'T CHECK FOR NEGATIVE NUMBERS!
 
 // GET STACK DEPTH
-inline BINT rplDepthData()
+inline int32_t rplDepthData()
 {
-    return (BINT) (DSTop - DStkProtect);
+    return (int32_t) (DSTop - DStkProtect);
 }
 
 // READ LEVEL 'N' WITHOUT REMOVING THE POINTER
@@ -170,7 +170,7 @@ WORDPTR *rplProtectData()
     WORDPTR *ret = DStkProtect;
     DStkProtect = DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet((WORDPTR) (DStk + (BINT) (ret - DStkBottom)));
+    rplPushRet((WORDPTR) (DStk + (int32_t) (ret - DStkBottom)));
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -182,7 +182,7 @@ WORDPTR *rplUnprotectData()
     if(rplPeekRet(1) == unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        BINT protlevel = (BINT) ((WORDPTR *) rplPopRet() - DStk);
+        int32_t protlevel = (int32_t) ((WORDPTR *) rplPopRet() - DStk);
         if((DStkBottom + protlevel >= DStkBottom)
                 && (DStkBottom + protlevel < DSTop))
             DStkProtect = DStkBottom + protlevel;
@@ -203,9 +203,9 @@ WORDPTR *rplUnprotectData()
 // TAKING A SNAPSHOT PUSHES THE CURRENT STACK TO SNAPSHOT LEVEL 1
 
 // GET A COUNT OF HOW MANY SNAPSHOTS ARE CURRENTLY STORED IN THE STACK
-BINT rplCountSnapshots()
+int32_t rplCountSnapshots()
 {
-    BINT count = 0;
+    int32_t count = 0;
     WORDPTR *snapptr = DStkBottom;
 
     while(snapptr > DStk) {
@@ -219,7 +219,7 @@ BINT rplCountSnapshots()
 // MOVES THE ENTIRE DATA STACK, ALL POINTERS INTO THE STACK BECOME INVALID!
 // MUST BE USED BY THE UI, NEVER WHILE AN RPL PROGRAM IS RUNNING.
 
-void rplRemoveSnapshot(BINT numsnap)
+void rplRemoveSnapshot(int32_t numsnap)
 {
     WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
@@ -252,7 +252,7 @@ void rplRemoveSnapshot(BINT numsnap)
 void rplTakeSnapshot()
 {
     WORDPTR *top = DSTop, *bottom = DStkBottom;
-    BINT levels = top - bottom;
+    int32_t levels = top - bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
     *DSTop++ = NUMBER2PTR(levels);
@@ -274,10 +274,10 @@ void rplTakeSnapshot()
 
 // PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
 // COPY ONLY nargs INTO THE CURRENT STACK
-void rplTakeSnapshotN(BINT nargs)
+void rplTakeSnapshotN(int32_t nargs)
 {
     WORDPTR *top = DSTop, *bottom = DStkBottom;
-    BINT levels = top - bottom;
+    int32_t levels = top - bottom;
     if(levels < nargs)
         nargs = levels;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
@@ -304,10 +304,10 @@ void rplTakeSnapshotN(BINT nargs)
 // AND COPY ALL ITEMS TO CURRENT STACK
 // THE SNAPSHOT WILL NOT CONTAIN THE FIRST nargs LEVEL OF THE STACK
 // USED TO HIDE TEMPORARY ARGUMENTS DURING UNDO OPERATIONS
-void rplTakeSnapshotHide(BINT nargs)
+void rplTakeSnapshotHide(int32_t nargs)
 {
     WORDPTR *top = DSTop, *bottom = DStkBottom, hidefirst;
-    BINT levels = top - bottom;
+    int32_t levels = top - bottom;
     if(levels < nargs)
         nargs = levels;
     if(nargs < 0)
@@ -343,7 +343,7 @@ void rplTakeSnapshotHide(BINT nargs)
 void rplTakeSnapshotAndClear()
 {
     WORDPTR *top = DSTop, *bottom = DStkBottom;
-    BINT levels = top - bottom;
+    int32_t levels = top - bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
     *DSTop++ = NUMBER2PTR(levels);
@@ -355,7 +355,7 @@ void rplTakeSnapshotAndClear()
 
 // RESET THE STACK TO A PREVIOUSLY SAVED SNAPSHOT
 // THE CURRENT STACK WILL BE COMPELTELY OVERWRITTEN.
-void rplRestoreSnapshot(BINT numsnap)
+void rplRestoreSnapshot(int32_t numsnap)
 {
 
     // RESTORE IS FORBIDDEN IN A PROTECTED STACK
@@ -379,7 +379,7 @@ void rplRestoreSnapshot(BINT numsnap)
         return;
     }
 
-    BINT levels = (intptr_t) * (prevptr - 1);
+    int32_t levels = (intptr_t) * (prevptr - 1);
 
     rplExpandStack(levels - rplDepthData());
     if(Exceptions) {
@@ -397,7 +397,7 @@ void rplRestoreSnapshot(BINT numsnap)
 }
 
 // ROLL A SNAPSHOT TO THE CURRENT STACK (REMOVING IT)
-void rplRevertToSnapshot(BINT numsnap)
+void rplRevertToSnapshot(int32_t numsnap)
 {
     // REVERT IS FORBIDDEN IN A PROTECTED STACK
     if(DStkProtect != DStkBottom)
@@ -407,7 +407,7 @@ void rplRevertToSnapshot(BINT numsnap)
 }
 
 // RETURN THE STACK DEPTH IN THE GIVEN SNAPSHOT
-BINT rplDepthSnapshot(BINT numsnap)
+int32_t rplDepthSnapshot(int32_t numsnap)
 {
     WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
@@ -431,7 +431,7 @@ BINT rplDepthSnapshot(BINT numsnap)
 
 // SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
 
-WORDPTR rplPeekSnapshot(BINT numsnap, BINT level)
+WORDPTR rplPeekSnapshot(int32_t numsnap, int32_t level)
 {
     WORDPTR *snapptr = DStkBottom;
     WORDPTR *prevptr;
@@ -450,7 +450,7 @@ WORDPTR rplPeekSnapshot(BINT numsnap, BINT level)
         return 0;
     }
 
-    BINT levels = (intptr_t) * (prevptr - 1);
+    int32_t levels = (intptr_t) * (prevptr - 1);
 
     if((level < 1) || (level > levels))
         return 0;       // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
@@ -465,7 +465,7 @@ void rplDropCurrentStack()
 {
 
     if(DStkBottom > DStk) {
-        BINT nlevels = ((intptr_t) * (DStkBottom - 1)) + 1;
+        int32_t nlevels = ((intptr_t) * (DStkBottom - 1)) + 1;
         // FIX THE POINTERS
         DSTop = DStkBottom - 1;
         DStkBottom -= nlevels;

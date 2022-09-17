@@ -207,7 +207,7 @@ void LIB_HANDLER()
         WORDPTR *indir = 0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1))) {
-            BINT elemcount = rplListLength(rplPeekData(1));
+            int32_t elemcount = rplListLength(rplPeekData(1));
             WORDPTR firstelem = rplPeekData(1) + 1;
             if((elemcount > 1) || !ISLIST(*firstelem)) {
                 rplListBinaryNoResultDoCmd();
@@ -235,7 +235,7 @@ void LIB_HANDLER()
                 // GET THE NAME OF THE IDENT IN THE LAST ARGUMENT OF THE EXPRESSION
                 rplPushDataNoGrow(IPtr);        // PUSH A MARKER FOR RETRY
 
-                BINT nargs = rplSymbExplodeOneLevel(rplPeekData(2));
+                int32_t nargs = rplSymbExplodeOneLevel(rplPeekData(2));
 
                 if(Exceptions) {
                     DSTop = stksave;
@@ -404,7 +404,7 @@ void LIB_HANDLER()
             }
             else if(LIBNUM(*obj) == DOPACKDIR) {
                 WORDPTR *recurseptr = 0;
-                BINT recurseoffset = 0;
+                int32_t recurseoffset = 0;
                 do {
                     if(recurseptr) {
                         while(recurseptr < DirsTop) {
@@ -456,7 +456,7 @@ void LIB_HANDLER()
                         }
 
                         // NOW STORE EVERY SINGLE VARIABLE
-                        BINT count;
+                        int32_t count;
                         obj = rplPeekData(2);   // READ AGAIN JUST IN CASE IT MOVED DUE TO GC
                         if(recurseptr)
                             obj += recurseoffset;
@@ -488,7 +488,7 @@ void LIB_HANDLER()
                         if(recurseptr)
                             obj += recurseoffset;
                         name = obj + 1;
-                        BINT offset;
+                        int32_t offset;
                         while(count--) {
                             offset = name - obj;
                             ScratchPointer2 = obj;
@@ -556,7 +556,7 @@ void LIB_HANDLER()
         WORDPTR *indir = 0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1))) {
-            BINT nelem = rplListLength(rplPeekData(1));
+            int32_t nelem = rplListLength(rplPeekData(1));
             WORDPTR firstelem = rplPeekData(1) + 1;
             if((nelem > 1) || !ISLIST(*firstelem)) {
                 rplListUnaryNonRecursiveDoCmd();
@@ -631,7 +631,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY
@@ -726,7 +726,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY
@@ -822,7 +822,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY
@@ -918,7 +918,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY
@@ -1014,7 +1014,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 3) {
             // CHECK IF THIS IS A RETRY
@@ -1099,7 +1099,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 3) {
             // CHECK IF THIS IS A RETRY
@@ -1184,7 +1184,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 3) {
             // CHECK IF THIS IS A RETRY
@@ -1270,7 +1270,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 4) {
             // CHECK IF THIS IS A RETRY
@@ -1366,7 +1366,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 4) {
             // CHECK IF THIS IS A RETRY
@@ -1575,7 +1575,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get a path to the current directory
         WORDPTR *scandir = CurrentDir;
-        BINT nitems = 0;
+        int32_t nitems = 0;
         WORDPTR *stksave = DSTop;
 
         while(scandir != Directories) {
@@ -1605,14 +1605,14 @@ void LIB_HANDLER()
         else {
             // REVERSE THE ORDER IN THE STACK, AS HOME IS THE LAST ONE
 
-            BINT f;
+            int32_t f;
             WORDPTR obj;
             for(f = 1; f <= nitems / 2; ++f) {
                 obj = rplPeekData(f);
                 rplOverwriteData(f, rplPeekData(nitems + 1 - f));
                 rplOverwriteData(nitems + 1 - f, obj);
             }
-            rplNewBINTPush(nitems, DECBINT);
+            rplNewint32_tPush(nitems, DECint32_t);
             rplCreateList();
         }
         if(Exceptions)
@@ -1625,7 +1625,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=List all visible variables in a directory
         WORDPTR *varptr = rplFindFirstInDir(CurrentDir);
         WORDPTR *stksave = DSTop;
-        BINT nitems = 0;
+        int32_t nitems = 0;
 
         while(varptr) {
             if(ISIDENT(*varptr[0]) && !ISHIDDENIDENT(*varptr[0])) {
@@ -1638,7 +1638,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((WORDPTR) empty_list);
         else {
-            rplNewBINTPush(nitems, DECBINT);
+            rplNewint32_tPush(nitems, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1659,7 +1659,7 @@ void LIB_HANDLER()
         //@NEW
         WORDPTR *varptr = rplFindFirstInDir(CurrentDir);
         WORDPTR *stksave = DSTop;
-        BINT nitems = 0;
+        int32_t nitems = 0;
 
         while(varptr) {
             rplPushData(varptr[0]);
@@ -1670,7 +1670,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((WORDPTR) empty_list);
         else {
-            rplNewBINTPush(nitems, DECBINT);
+            rplNewint32_tPush(nitems, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1875,7 +1875,7 @@ void LIB_HANDLER()
 
         WORDPTR *var;
 
-        BINT idx = 0;
+        int32_t idx = 0;
 
         while((var = rplFindGlobalByIndexInDir(idx, CurrentDir))) {
             // PURGE THE VARIABLE UNLESS IT'S EITHER LOCKED OR
@@ -2038,7 +2038,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT nitems;
+        int32_t nitems;
         WORDPTR first, itemptr;
         if(!ISLIST(*rplPeekData(1))) {
             nitems = 1;
@@ -2050,9 +2050,9 @@ void LIB_HANDLER()
         }
         // SCAN CURRENT DIRECTORY FOR VARIABLES
 
-        BINT nvars = rplGetVisibleVarCount();
+        int32_t nvars = rplGetVisibleVarCount();
         WORDPTR *savestk = DSTop;
-        BINT k, j, totalcount = 0;
+        int32_t k, j, totalcount = 0;
         WORDPTR *var;
 
         for(k = 0; k < nvars; ++k) {
@@ -2071,13 +2071,13 @@ void LIB_HANDLER()
 
                 if(RetNum > OK_TOKENINFO) {
 
-                    BINT type = TypeInfo / 100;
+                    int32_t type = TypeInfo / 100;
 
                     // SCAN ENTIRE LIST
 
                     itemptr = first;
                     for(j = 0; j < nitems; ++j, itemptr = rplSkipOb(itemptr)) {
-                        int64_t ltype = rplReadNumberAsBINT(itemptr);
+                        int64_t ltype = rplReadNumberAsInt64(itemptr);
                         if(Exceptions) {
                             DSTop = savestk;
                             return;
@@ -2121,7 +2121,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT nitems;
+        int32_t nitems;
         WORDPTR first, itemptr;
         if(!ISLIST(*rplPeekData(1))) {
             nitems = 1;
@@ -2133,9 +2133,9 @@ void LIB_HANDLER()
         }
         // SCAN CURRENT DIRECTORY FOR VARIABLES
 
-        BINT nvars = rplGetVisibleVarCount();
+        int32_t nvars = rplGetVisibleVarCount();
         WORDPTR *savestk = DSTop;
-        BINT k, j, totalcount = 0;
+        int32_t k, j, totalcount = 0;
         WORDPTR *var;
 
         for(k = 0; k < nvars; ++k) {
@@ -2154,7 +2154,7 @@ void LIB_HANDLER()
 
                 if(RetNum > OK_TOKENINFO) {
 
-                    BINT type = TypeInfo;
+                    int32_t type = TypeInfo;
 
                     // SCAN ENTIRE LIST
 
@@ -2167,7 +2167,7 @@ void LIB_HANDLER()
                             return;
                         }
                         rtype.exp += 2;
-                        BINT ltype = getBINTReal(&rtype);
+                        int32_t ltype = getint32_tReal(&rtype);
 
                         if(type == ltype) {
                             // SAVE REGISTERS
@@ -2207,7 +2207,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT varidx = 0, done_add = 0;
+        int32_t varidx = 0, done_add = 0;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY
@@ -2527,7 +2527,7 @@ void LIB_HANDLER()
         }
 
         // COMPUTE THE SIZE
-        BINT size = rplGetDirSize(indir);
+        int32_t size = rplGetDirSize(indir);
 
         WORDPTR newobj = rplAllocTempOb(size);
         if(!newobj)
@@ -2669,7 +2669,7 @@ void LIB_HANDLER()
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object, prevobject;
-            BINT notrack = 0;
+            int32_t notrack = 0;
             if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object = TempObEnd;     // START OF COMPILATION
@@ -2791,7 +2791,7 @@ void LIB_HANDLER()
                     }
 
                     // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
-                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+                    int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
                     // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
                     if(Offset <= 32767 && Offset >= -32768) {
@@ -2906,7 +2906,7 @@ void LIB_HANDLER()
                     }
 
                     // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
-                    BINT Offset = ((BINT) (LAMptr - nLAMBase)) >> 1;
+                    int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
                     if(Offset <= 32767 && Offset >= -32768) {
                         CompileEnd = prevobject;
@@ -2954,7 +2954,7 @@ void LIB_HANDLER()
                 WORDPTR *dir = rplFindDirbyHandle(DecompileObject);
                 if(dir) {
                     WORDPTR path[16];
-                    BINT lvlcount = rplGetFullPath(dir, path, 16);
+                    int32_t lvlcount = rplGetFullPath(dir, path, 16);
 
                     if(lvlcount == 16)
                         rplDecompAppendString((BYTEPTR) "...");
@@ -2976,16 +2976,16 @@ void LIB_HANDLER()
             // OTHERWISE IT'S A PACKED DIRECTORY OBJECT
 
             rplDecompAppendString((BYTEPTR) "DIRECTORY");
-            BINT depth = 0, needseparator;
+            int32_t depth = 0, needseparator;
 
             needseparator =
                     !rplDecompDoHintsWidth(HINT_NLAFTER | HINT_ADDINDENTAFTER);
             if(needseparator)
                 rplDecompAppendChar(' ');
 
-            BINT offset = 1, endoffset =
+            int32_t offset = 1, endoffset =
                     rplObjSize(DecompileObject), innerendoffset = endoffset;
-            BINT isodd = 1;
+            int32_t isodd = 1;
 
             while(offset <= endoffset) {
                 if(offset == innerendoffset) {
@@ -3011,7 +3011,7 @@ void LIB_HANDLER()
                     // FIND THE INNER_END_OFFSET OF THE PARENT
                     innerendoffset = endoffset;
 
-                    BINT tmpoff = 1, endtmpoff;
+                    int32_t tmpoff = 1, endtmpoff;
                     while(tmpoff < offset) {
                         endtmpoff =
                                 tmpoff + rplObjSize(DecompileObject + tmpoff);
@@ -3109,7 +3109,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -3125,7 +3125,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -3134,7 +3134,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -85,7 +85,7 @@ int exitOnUBSData(WORD useless)
 
 typedef struct
 {
-    BINT fileid;
+    int32_t fileid;
     WORD progress;
 } BACKUP_INFO;
 
@@ -197,10 +197,10 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get status of the USB driver
         //@NEW
-        BINT status =
+        int32_t status =
                 usb_isconnected() + 2 * usb_isconfigured() + 4 * usb_hasdata();
 
-        rplNewBINTPush(status, HEXBINT);
+        rplNewint32_tPush(status, HEXint32_t);
         return;
     }
 
@@ -251,7 +251,7 @@ void LIB_HANDLER()
         // READ THE DATA AND PUT IT ON THE STACK
         WORDPTR newobj = 0, newobjptr = 0;
         WORD fileid;
-        BINT bytesread, allocated, offset = 0;
+        int32_t bytesread, allocated, offset = 0;
 
         fileid = usb_rxfileopen();
 
@@ -291,7 +291,7 @@ void LIB_HANDLER()
                     usb_fileread(fileid, (BYTEPTR) newobjptr,
                     (allocated - offset) * sizeof(WORD));
             newobjptr += (bytesread + 3) >> 2;
-            if(bytesread < (allocated - offset) * (BINT) sizeof(WORD)) {
+            if(bytesread < (allocated - offset) * (int32_t) sizeof(WORD)) {
 
                 if(bytesread == 0) {
                     if(!usb_eof(fileid))
@@ -318,7 +318,7 @@ void LIB_HANDLER()
         // THERE WERE NO ERRORS, WE RECEIVED SOMETHING
         switch (usb_filetype(fileid)) {
         case 'O':      // THIS IS AN RPL OBJECT
-            if(offset < (BINT) rplObjSize(newobj))      // CHECK IF WE RECEIVED A COMPLETE OBJECT
+            if(offset < (int32_t) rplObjSize(newobj))      // CHECK IF WE RECEIVED A COMPLETE OBJECT
             {
                 rplError(ERR_USBINVALIDDATA);
                 return;
@@ -359,7 +359,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT result, fileid = usb_txfileopen('O');      // OPEN AN RPL OBJECT TYPE TRANSMISSION
+        int32_t result, fileid = usb_txfileopen('O');      // OPEN AN RPL OBJECT TYPE TRANSMISSION
         result = fileid ? 1 : 0;
         if(result)
             result = usb_filewrite(fileid, (BYTEPTR) rplPeekData(1),
@@ -408,7 +408,7 @@ void LIB_HANDLER()
         // READ THE DATA AND PUT IT ON THE STACK
         WORDPTR newobj = 0, newobjptr = 0;
         WORD fileid;
-        BINT bytesread, allocated, offset = 0;
+        int32_t bytesread, allocated, offset = 0;
 
         fileid = usb_rxfileopen();
 
@@ -448,7 +448,7 @@ void LIB_HANDLER()
                     usb_fileread(fileid, (BYTEPTR) newobjptr,
                     (allocated - offset) * sizeof(WORD));
             newobjptr += (bytesread + 3) >> 2;
-            if(bytesread < (allocated - offset) * (BINT) sizeof(WORD)) {
+            if(bytesread < (allocated - offset) * (int32_t) sizeof(WORD)) {
 
                 if(bytesread == 0) {
                     if(!usb_eof(fileid))
@@ -475,7 +475,7 @@ void LIB_HANDLER()
         // THERE WERE NO ERRORS, WE RECEIVED SOMETHING
         switch (usb_filetype(fileid)) {
         case 'O':      // THIS IS AN RPL OBJECT
-            if(offset < (BINT) rplObjSize(newobj))      // CHECK IF WE RECEIVED A COMPLETE OBJECT
+            if(offset < (int32_t) rplObjSize(newobj))      // CHECK IF WE RECEIVED A COMPLETE OBJECT
             {
                 rplError(ERR_USBINVALIDDATA);
                 return;
@@ -538,7 +538,7 @@ void LIB_HANDLER()
         else
             rplPurgeSettings((WORDPTR) stksave_ident);
 
-        BINT err = rplBackup(&rplUSBArchiveWriteWord, (void *)&info);
+        int32_t err = rplBackup(&rplUSBArchiveWriteWord, (void *)&info);
 
         usb_txfileclose(info.fileid);
 
@@ -610,7 +610,7 @@ void LIB_HANDLER()
 
         GCFlags = GC_IN_PROGRESS;       // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
 
-        BINT err = rplRestoreBackup(0, &rplUSBArchiveReadWord, (void *)&info);
+        int32_t err = rplRestoreBackup(0, &rplUSBArchiveReadWord, (void *)&info);
 
         // FINISH THE DATA TRANSMISSION SO THE REMOTE CAN CONFIRM IT WAS SUCCESSFUL
         if((err == 1) || (err == 2)) {
@@ -719,7 +719,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -735,7 +735,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -745,7 +745,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

@@ -11,7 +11,7 @@
 #include <ui.h>
 
 /*
-void halInitAlarm(UBINT hot_start, BINT reset)
+void halInitAlarm(uint32_t hot_start, int32_t reset)
 {
     if (hot_start) {
         // BOOT FROM POWEROFF

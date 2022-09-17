@@ -113,9 +113,9 @@ const WORDPTR const ROMPTR_TABLE[] = {
 };
 
 // RETURN THE NUMBER OF BYTES OF AVAILABLE RAM.
-BINT rplGetFreeMemory()
+int32_t rplGetFreeMemory()
 {
-    BINT mem = 0;
+    int32_t mem = 0;
 
     mem += (DSTop - DStk) & 0x3ff;
     mem += (RSTop - RStk) & 0x3ff;
@@ -136,7 +136,7 @@ static const unsigned char const month_days[] = {
     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-BINT rplGetMonthDays(BINT month, BINT year)
+int32_t rplGetMonthDays(int32_t month, int32_t year)
 {
     return month_days[month - 1] + ((month == 2) && ISLEAPYEAR(year));
 }
@@ -147,7 +147,7 @@ BINT rplGetMonthDays(BINT month, BINT year)
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID DATE IS GIVEN
-BINT rplReadRealAsDate(REAL * date, struct date *dt)
+int32_t rplReadRealAsDate(REAL * date, struct date *dt)
 {
     if(!rplReadRealAsDateNoCk(date, dt))
         return 0;
@@ -162,26 +162,26 @@ BINT rplReadRealAsDate(REAL * date, struct date *dt)
 // DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF REAL IS OUT OF RANGE.
-BINT rplReadRealAsDateNoCk(REAL * date, struct date *dt)
+int32_t rplReadRealAsDateNoCk(REAL * date, struct date *dt)
 {
     REAL r_date;
-    BINT year, month, day;
+    int32_t year, month, day;
 
     cloneReal(&r_date, date);
     r_date.exp += 6;
 
-    if(!inBINTRange(&r_date) || isNANorinfiniteReal(&r_date)
+    if(!inint32_tRange(&r_date) || isNANorinfiniteReal(&r_date)
             || (r_date.flags & F_NEGATIVE))
         return 0;
 
-    year = getBINTReal(&r_date);
+    year = getint32_tReal(&r_date);
     month = year / 1000000;
     year -= month * 1000000;
     day = year / 10000;
     year -= day * 10000;
 
     if(rplTestSystemFlag(FL_DATEFORMAT)) {
-        BINT swap = month;
+        int32_t swap = month;
         month = day;
         day = swap;
     }
@@ -207,9 +207,9 @@ BINT rplReadRealAsDateNoCk(REAL * date, struct date *dt)
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID DATE IS GIVEN.
-BINT rplReadDateAsReal(struct date dt, REAL * date)
+int32_t rplReadDateAsReal(struct date dt, REAL * date)
 {
-    BINT b_date;
+    int32_t b_date;
 
     if(!rplIsValidDate(dt))
         return 0;
@@ -224,7 +224,7 @@ BINT rplReadDateAsReal(struct date dt, REAL * date)
         b_date += dt.mon * 1000000;
     }
 
-    newRealFromBINT(date, b_date, -6);
+    newRealFromint32_t(date, b_date, -6);
 
     return 1;
 }
@@ -232,7 +232,7 @@ BINT rplReadDateAsReal(struct date dt, REAL * date)
 // CHECK DATE IS CONFORM TO THE GREGORIAN CALENDAR.
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
 // RETURN 1 IF A VALID DATE IS GIVEN, 0 OTHERWISE.
-BINT rplIsValidDate(struct date dt)
+int32_t rplIsValidDate(struct date dt)
 {
     if(dt.year < 1582 || dt.year > 9999)
         return 0;
@@ -255,19 +255,19 @@ BINT rplIsValidDate(struct date dt)
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID TIME IS GIVEN.
-BINT rplReadRealAsTime(REAL * time, struct time *tm)
+int32_t rplReadRealAsTime(REAL * time, struct time *tm)
 {
     REAL r_time;
-    BINT hour, min, sec;
+    int32_t hour, min, sec;
 
     cloneReal(&r_time, time);
     r_time.exp += 4;
 
-    if(!inBINTRange(&r_time) || isNANorinfiniteReal(&r_time)
+    if(!inint32_tRange(&r_time) || isNANorinfiniteReal(&r_time)
             || (r_time.flags & F_NEGATIVE))
         return 0;
 
-    sec = getBINTReal(&r_time);
+    sec = getint32_tReal(&r_time);
     hour = sec / 10000;
     sec -= hour * 10000;
     min = sec / 100;
@@ -292,9 +292,9 @@ BINT rplReadRealAsTime(REAL * time, struct time *tm)
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
 // RETURN 1 ON SUCCESS OR
 // RETURN 0 IF AN INVALID TIME IS GIVEN.
-BINT rplReadTimeAsReal(struct time tm, REAL * time)
+int32_t rplReadTimeAsReal(struct time tm, REAL * time)
 {
-    BINT b_time;
+    int32_t b_time;
 
     // VERIFY A VALID TIME IS GIVEN
     if(tm.min > 59)
@@ -308,7 +308,7 @@ BINT rplReadTimeAsReal(struct time tm, REAL * time)
     b_time += tm.min * 100;
     b_time += tm.hour * 10000;
 
-    newRealFromBINT(time, b_time, -4);
+    newRealFromint32_t(time, b_time, -4);
 
     return 1;
 }
@@ -316,9 +316,9 @@ BINT rplReadTimeAsReal(struct time tm, REAL * time)
 // CONVERT DATE TO DAY NUMBER.
 // OCTOBER 15, 1582 HAS NUMBER 1.
 // RETURN DAY NUMBER.
-BINT rplDateToDays(struct date dt)
+int32_t rplDateToDays(struct date dt)
 {
-    BINT days;
+    int32_t days;
 
     if(dt.mon < 3) {
         dt.year--;
@@ -335,15 +335,15 @@ BINT rplDateToDays(struct date dt)
 // CONVERT DAY NUMBER TO DATE.
 // OCTOBER 15, 1582 HAS NUMBER 1.
 // RETURN DATE.
-struct date rplDaysToDate(BINT days)
+struct date rplDaysToDate(int32_t days)
 {
     struct date dt;
-    BINT mon, year, ddays;
+    int32_t mon, year, ddays;
 
     // ADD DAY NUMBER OF OCTOBER 15, 1582, SINCE JANUARY 0, 0
     days += 578040;
 
-    year = (BINT) ((10000 * (int64_t) days + 14780) / 3652425);
+    year = (int32_t) ((10000 * (int64_t) days + 14780) / 3652425);
 
     // REMAINING DAYS
     ddays = days - (year * 365 + year / 4 - year / 100 + year / 400);
@@ -376,7 +376,7 @@ int64_t rplDateToSeconds(struct date dt, struct time tm)
 
 void rplSecondsToDate(int64_t sec, struct date *dt, struct time *tm)
 {
-    BINT days;
+    int32_t days;
 
     days = sec / (24 * 3600);
     *dt = rplDaysToDate(days);
@@ -414,7 +414,7 @@ void rplDecimalToHMS(REAL * dec, REAL * hms)
 
     /*
        if (RReg[5].flags&F_APPROX) {
-       //rplNewBINTPush(0,DECBINT);
+       //rplNewint32_tPush(0,DECint32_t);
        roundReal(&RReg[5], &RReg[5], RReg[5].len);
        RReg[5].flags &= ~F_APPROX;
        } */
@@ -554,7 +554,7 @@ static WORDPTR GetAlarms()
 
 // RETURN 1 ON SUCCESS
 // RETURN 0 IF list ISN'T AN ALARM
-static BINT ReadSysAlarm(WORDPTR list, struct alarm *alrm)
+static int32_t ReadSysAlarm(WORDPTR list, struct alarm *alrm)
 {
     WORDPTR obj;
 
@@ -564,19 +564,19 @@ static BINT ReadSysAlarm(WORDPTR list, struct alarm *alrm)
         return 0;
 
     obj = rplGetListElement(list, 1);
-    if(!ISBINT(*obj))
+    if(!ISint32_t(*obj))
         return 0;
-    alrm->time = rplReadBINT(obj);
+    alrm->time = rplReadint32_t(obj);
 
     obj = rplGetListElement(list, 2);
-    if(!ISBINT(*obj))
+    if(!ISint32_t(*obj))
         return 0;
-    alrm->rpt = (UBINT) rplReadBINT(obj);
+    alrm->rpt = (uint32_t) rplReadint32_t(obj);
 
     obj = rplGetListElement(list, 3);
-    if(!ISBINT(*obj))
+    if(!ISint32_t(*obj))
         return 0;
-    alrm->flags = (BYTE) rplReadBINT(obj);
+    alrm->flags = (BYTE) rplReadint32_t(obj);
 
     alrm->obj = rplGetListElement(list, 4);
 
@@ -588,12 +588,12 @@ static void PushSysAlarm(struct alarm *alrm)
     WORDPTR *Stacksave = DSTop;
 
     alrm_obj = alrm->obj;
-    rplNewBINTPush(alrm->time, DECBINT);
-    rplNewBINTPush((int64_t) alrm->rpt, DECBINT);
-    rplNewBINTPush((int64_t) alrm->flags, DECBINT);
+    rplNewint32_tPush(alrm->time, DECint32_t);
+    rplNewint32_tPush((int64_t) alrm->rpt, DECint32_t);
+    rplNewint32_tPush((int64_t) alrm->flags, DECint32_t);
     rplPushData(alrm_obj);
 
-    rplNewBINTPush(4, DECBINT);
+    rplNewint32_tPush(4, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
 
@@ -613,9 +613,9 @@ static void PushSysAlarm(struct alarm *alrm)
 // RETURN ALARM INDEX
 // RETURN 0 ON ERROR
 // CALLER MUST CALL ScanAlarms
-static BINT AddSysAlarm(struct alarm *new_alrm)
+static int32_t AddSysAlarm(struct alarm *new_alrm)
 {
-    BINT id, nalarms, first_due_id, past_due_id;
+    int32_t id, nalarms, first_due_id, past_due_id;
     WORDPTR *Stacksave = DSTop;
     struct alarm cur_alrm;
 
@@ -639,22 +639,22 @@ static BINT AddSysAlarm(struct alarm *new_alrm)
             break;
     }
 
-    rplNewBINTPush((nalarms - id) + 1, DECBINT);
+    rplNewint32_tPush((nalarms - id) + 1, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
     rplCallOperator(CMD_ROLLD);
 
     // MAINTAIN IDS CONSISTENCY
-    first_due_id = rplReadBINT(rplPeekData(nalarms + 2));
-    past_due_id = rplReadBINT(rplPeekData(nalarms + 1));
+    first_due_id = rplReadint32_t(rplPeekData(nalarms + 2));
+    past_due_id = rplReadint32_t(rplPeekData(nalarms + 1));
     if(id <= first_due_id)
         first_due_id++;
     if(id <= past_due_id)
         past_due_id++;
-    rplOverwriteData(nalarms + 2, rplNewBINT(first_due_id, DECBINT));
-    rplOverwriteData(nalarms + 1, rplNewBINT(past_due_id, DECBINT));
+    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECint32_t));
+    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECint32_t));
 
-    rplNewBINTPush(nalarms + 2, DECBINT);
+    rplNewint32_tPush(nalarms + 2, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
     rplCreateList();
@@ -676,9 +676,9 @@ static BINT AddSysAlarm(struct alarm *new_alrm)
 }
 
 // RETURN 0 IF NONEXISTENT ALARM
-static BINT GetSysAlarm(BINT id, struct alarm *alrm)
+static int32_t GetSysAlarm(int32_t id, struct alarm *alrm)
 {
-    BINT nalarms;
+    int32_t nalarms;
 
     if(id < 1)
         return 0;
@@ -701,10 +701,10 @@ static BINT GetSysAlarm(BINT id, struct alarm *alrm)
 
 // RETURN 0 IF NONEXISTENT ALARM
 // CALLER MUST CALL ScanAlarms
-static BINT DelSysAlarm(BINT id)
+static int32_t DelSysAlarm(int32_t id)
 {
     WORDPTR *Stacksave = DSTop;
-    BINT nalarms, first_due_id, past_due_id;
+    int32_t nalarms, first_due_id, past_due_id;
 
     if(id < 1)
         return 0;
@@ -717,7 +717,7 @@ static BINT DelSysAlarm(BINT id)
     if((id > nalarms) || Exceptions)
         goto rtn_cleanup;
 
-    rplNewBINTPush((nalarms - id) + 1, DECBINT);
+    rplNewint32_tPush((nalarms - id) + 1, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
     rplCallOperator(CMD_ROLL);
@@ -725,8 +725,8 @@ static BINT DelSysAlarm(BINT id)
     nalarms--;
 
     // MAINTAIN IDS CONSISTENCY
-    first_due_id = rplReadBINT(rplPeekData(nalarms + 2));
-    past_due_id = rplReadBINT(rplPeekData(nalarms + 1));
+    first_due_id = rplReadint32_t(rplPeekData(nalarms + 2));
+    past_due_id = rplReadint32_t(rplPeekData(nalarms + 1));
     if(id < first_due_id)
         first_due_id--;
     else if(id == first_due_id)
@@ -735,10 +735,10 @@ static BINT DelSysAlarm(BINT id)
         past_due_id--;
     else if(id == past_due_id)
         past_due_id = (id > nalarms) ? nalarms : id;
-    rplOverwriteData(nalarms + 2, rplNewBINT(first_due_id, DECBINT));
-    rplOverwriteData(nalarms + 1, rplNewBINT(past_due_id, DECBINT));
+    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECint32_t));
+    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECint32_t));
 
-    rplNewBINTPush(nalarms + 2, DECBINT);
+    rplNewint32_tPush(nalarms + 2, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
     rplCreateList();
@@ -757,9 +757,9 @@ static BINT DelSysAlarm(BINT id)
 // RETURN THE ALARM INDEX OF THE FIRST ALARM DUE AFTER THE
 // SPECIFIED TIME
 // RETURN 0 IF NOT FOUND
-static BINT FindNextAlarm(int64_t time, struct alarm *alrm)
+static int32_t FindNextAlarm(int64_t time, struct alarm *alrm)
 {
-    BINT id = 0;
+    int32_t id = 0;
 
     while(GetSysAlarm(++id, alrm)) {
         if(alrm->time >= time)
@@ -772,7 +772,7 @@ static BINT FindNextAlarm(int64_t time, struct alarm *alrm)
 // RETURN NEW ALARM ID
 // RETURN 0 ON ERROR
 // CALLER MUST CALL ScanAlarms
-static BINT UpdateSysAlarm(BINT id, struct alarm *alrm)
+static int32_t UpdateSysAlarm(int32_t id, struct alarm *alrm)
 {
     alrm_obj = alrm->obj;
     if(!DelSysAlarm(id)) {
@@ -788,10 +788,10 @@ static BINT UpdateSysAlarm(BINT id, struct alarm *alrm)
 // DO NOT SORT ALARMS !!!
 // CALLER MUST CALL ScanAlarms
 // RETURN 0 IF NONEXISTENT ALARM OR ON ERROR
-static BINT ReplaceSysAlarm(BINT id, struct alarm *alrm)
+static int32_t ReplaceSysAlarm(int32_t id, struct alarm *alrm)
 {
     WORDPTR *Stacksave = DSTop;;
-    BINT nalarms;
+    int32_t nalarms;
 
     if(id < 1)
         return 0;
@@ -828,7 +828,7 @@ static BINT ReplaceSysAlarm(BINT id, struct alarm *alrm)
     return 0;
 }
 
-static BINT GetFirstAlarmId(BINT type)
+static int32_t GetFirstAlarmId(int32_t type)
 {
     WORDPTR bint;
 
@@ -840,18 +840,18 @@ static BINT GetFirstAlarmId(BINT type)
         return 0;
 
     bint = rplGetListElement(alarms, 1 + type);
-    if(!ISBINT(*bint)) {
+    if(!ISint32_t(*bint)) {
         ResetAlarms();
         return 0;
     }
 
-    return (BINT) rplReadBINT(bint);
+    return (int32_t) rplReadint32_t(bint);
 }
 
-static void SetFirstAlarmId(BINT type, BINT id)
+static void SetFirstAlarmId(int32_t type, int32_t id)
 {
     WORDPTR *Stacksave = DSTop;;
-    BINT nitems;
+    int32_t nitems;
 
     if(type < DUE_ALM || type > PASTDUE_ALM)
         return;
@@ -864,7 +864,7 @@ static void SetFirstAlarmId(BINT type, BINT id)
     if(Exceptions)
         goto rtn_cleanup;
 
-    rplOverwriteData((nitems + 1) - type, rplNewBINT(id, DECBINT));
+    rplOverwriteData((nitems + 1) - type, rplNewint32_t(id, DECint32_t));
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
@@ -878,9 +878,9 @@ static void SetFirstAlarmId(BINT type, BINT id)
     return;
 }
 
-static BINT GetFirstAlarm(BINT type, struct alarm *alrm)
+static int32_t GetFirstAlarm(int32_t type, struct alarm *alrm)
 {
-    BINT id = GetFirstAlarmId(type);
+    int32_t id = GetFirstAlarmId(type);
 
     if(!id)
         id++;
@@ -904,7 +904,7 @@ static BINT GetFirstAlarm(BINT type, struct alarm *alrm)
 // RETURN NEW ALARM ID IF IT WAS RESCHEDULED
 // RETURN 0 IF THE ALARM WAS NOT RESCHEDULED
 // CALLER MUST CALL ScanAlarms
-static BINT RescheduleAlarm(BINT id, struct alarm *alrm)
+static int32_t RescheduleAlarm(int32_t id, struct alarm *alrm)
 {
     struct alarm stored;
 
@@ -991,9 +991,9 @@ static void WarnAlarm()
 
 // APPOINTMENT ALARM ANNOUNCEMENT
 // RETURN 1 IF ANY KEY WAS PRESSED
-static BINT AckSequence(struct alarm *alrm)
+static int32_t AckSequence(struct alarm *alrm)
 {
-    BINT i, ack;
+    int32_t i, ack;
     char *msg_start, *msg_end;
 
     msg_start = (char *)(alrm->obj + 1);
@@ -1017,10 +1017,10 @@ static BINT AckSequence(struct alarm *alrm)
 }
 
 // RETURN 1 IF THERE IS A PAST DUE ALARM
-BINT rplTriggerAlarm()
+int32_t rplTriggerAlarm()
 {
     struct alarm alrm;
-    BINT id, new_id;
+    int32_t id, new_id;
     WORDPTR *Stacksave = DSTop;
 
     id = GetFirstAlarm(DUE_ALM, &alrm);
@@ -1062,7 +1062,7 @@ BINT rplTriggerAlarm()
         if(!new_id)
             new_id = ReplaceSysAlarm(id, &alrm);
 
-        rplNewBINTPush(new_id, DECBINT);
+        rplNewint32_tPush(new_id, DECint32_t);
         rplPushData(alrm_obj);
         if(Exceptions)
             DSTop = Stacksave;
@@ -1077,7 +1077,7 @@ BINT rplTriggerAlarm()
 }
 
 // RETURN 1 IF THERE IS A PAST DUE ALARM
-BINT rplCheckAlarms()
+int32_t rplCheckAlarms()
 {
     int64_t start_tm;
     struct alarm first_due;
@@ -1098,7 +1098,7 @@ BINT rplCheckAlarms()
 void rplUpdateAlarms()
 {
     struct alarm alrm;
-    BINT id = 0;
+    int32_t id = 0;
     int64_t now;
 
     now = GetSysTime();
@@ -1131,7 +1131,7 @@ void rplUpdateAlarms()
 void rplSkipNextAlarm()
 {
     struct alarm first_due;
-    BINT id;
+    int32_t id;
     WORDPTR msg;
     char *msg_start, *msg_end;
 
@@ -1154,9 +1154,9 @@ void rplSkipNextAlarm()
 // HIGHER-LEVEL ALARMS INTERFACE
 
 // RETURN ALARM INDEX
-BINT rplAddAlarm(struct alarm *alrm)
+int32_t rplAddAlarm(struct alarm *alrm)
 {
-    BINT id;
+    int32_t id;
 
     if(alrm->time > GetSysTime())
         alrm->flags = DUE_ALM;
@@ -1174,14 +1174,14 @@ BINT rplAddAlarm(struct alarm *alrm)
 }
 
 // RETURN 0 IF NONEXISTENT ALARM
-BINT rplGetAlarm(BINT id, struct alarm *alrm)
+int32_t rplGetAlarm(int32_t id, struct alarm *alrm)
 {
     return GetSysAlarm(id, alrm);
 }
 
 // IF id=0, PURGE ALL ALARMS
 // RETURN 0 IF NONEXISTENT ALARM
-BINT rplDelAlarm(BINT id)
+int32_t rplDelAlarm(int32_t id)
 {
     if(!id) {
         InitAlarms();
@@ -1199,13 +1199,13 @@ BINT rplDelAlarm(BINT id)
 // READ OBJECT AS ALARM
 // RETURN 1 ON SUCCESS
 // RETURN 0 ON ERROR AND SET ERROR NUMBER
-BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
+int32_t rplReadAlarm(WORDPTR obj, struct alarm *alrm)
 {
     struct date dt, sys_dt;
     struct time tm;
     WORDPTR alarm_dt = NULL,
             alarm_tm = NULL, alarm_obj = NULL, alarm_rpt = NULL;
-    BINT lst_sz;
+    int32_t lst_sz;
     int64_t b_alarm_rpt;
     REAL r_dt, r_tm;
 
@@ -1305,12 +1305,12 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
             return 0;
         }
 
-        b_alarm_rpt = rplReadNumberAsBINT(alarm_rpt);
+        b_alarm_rpt = rplReadNumberAsInt64(alarm_rpt);
         if((b_alarm_rpt < 0) || (b_alarm_rpt >= (1LL << 32))) {
             rplError(ERR_INVALIDRPT);
             return 0;
         }
-        alrm->rpt = (UBINT) b_alarm_rpt;
+        alrm->rpt = (uint32_t) b_alarm_rpt;
     }
 
     return 1;
@@ -1334,9 +1334,9 @@ void rplPushAlarm(struct alarm *alrm)
 
     rplPushData(alrm_obj);
 
-    rplNewBINTPush(alrm->rpt, DECBINT);
+    rplNewint32_tPush(alrm->rpt, DECint32_t);
 
-    rplNewBINTPush(4, DECBINT);
+    rplNewint32_tPush(4, DECint32_t);
     if(Exceptions)
         goto rtn_cleanup;
 
@@ -1360,7 +1360,7 @@ int64_t rplObjChecksum(WORDPTR object)
     BYTEPTR end = (BYTEPTR) rplSkipOb(object);
     int k;
 
-    UBINT crc = 0xffffffff, tmpcrc;
+    uint32_t crc = 0xffffffff, tmpcrc;
 
     while(ptr != end) {
         // SLOW METHOD BUT DOESN'T REQUIRE A TABLE
@@ -1435,7 +1435,7 @@ void LIB_HANDLER()
         //@INCOMPAT
     {
         int64_t ticks = halTicks();
-        rplNewBINTPush(ticks, DECBINT);
+        rplNewint32_tPush(ticks, DECint32_t);
         return;
     }
     case DATE:
@@ -1507,7 +1507,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Add days to a date in MM.DDYYYY
         WORDPTR arg_date, arg_days;
         struct date dt;
-        BINT days, day_num;
+        int32_t days, day_num;
         REAL r_date, r_days;
 
         if(rplDepthData() < 2) {
@@ -1541,7 +1541,7 @@ void LIB_HANDLER()
 
         rplReadNumberAsReal(arg_days, &r_days);
         roundReal(&RReg[0], &r_days, 0);
-        days = getBINTReal(&RReg[0]);
+        days = getint32_tReal(&RReg[0]);
 
         day_num += days;
         if((day_num < 1) || (day_num > 3074324)) {
@@ -1561,7 +1561,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Number of days between dates in MM.DDYYYY
         struct date dt;
         WORDPTR arg_date1, arg_date2;
-        BINT ddays;
+        int32_t ddays;
         REAL r_date;
 
         if(rplDepthData() < 2) {
@@ -1601,7 +1601,7 @@ void LIB_HANDLER()
         ddays -= rplDateToDays(dt);
 
         rplDropData(2);
-        rplNewBINTPush((int64_t) ddays, DECBINT);
+        rplNewint32_tPush((int64_t) ddays, DECint32_t);
 
         return;
     }
@@ -1668,7 +1668,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg_dec))
+        if(ISint32_t(*arg_dec))
             return;
 
         if(!ISREAL(*arg_dec)) {
@@ -1714,7 +1714,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg_hms))
+        if(ISint32_t(*arg_hms))
             return;
 
         if(!ISREAL(*arg_hms)) {
@@ -1837,7 +1837,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Acknowledge oldest alarm (dismiss)
         struct alarm past_due;
-        BINT past_due_id;
+        int32_t past_due_id;
 
         past_due_id = GetFirstAlarm(PASTDUE_ALM, &past_due);
         if(!past_due_id)
@@ -1873,7 +1873,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall specified alarm
         struct alarm alrm;
         WORDPTR arg_id;
-        BINT id;
+        int32_t id;
 
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
@@ -1887,7 +1887,7 @@ void LIB_HANDLER()
             return;
         }
 
-        id = rplReadNumberAsBINT(arg_id);
+        id = rplReadNumberAsInt64(arg_id);
 
         if(!rplGetAlarm(id, &alrm)) {
             rplError(ERR_BADALARMNUM);
@@ -1903,7 +1903,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Create a new alarm
         WORDPTR arg_alarm;
-        BINT alarm_id;
+        int32_t alarm_id;
         struct alarm alrm;
 
         if(rplDepthData() < 1) {
@@ -1919,7 +1919,7 @@ void LIB_HANDLER()
         alarm_id = rplAddAlarm(&alrm);
 
         rplDropData(1);
-        rplNewBINTPush(alarm_id, DECBINT);
+        rplNewint32_tPush(alarm_id, DECint32_t);
 
         return;
     }
@@ -1927,7 +1927,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Delete an existing alarm
         WORDPTR arg_id;
-        BINT id;
+        int32_t id;
 
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
@@ -1941,7 +1941,7 @@ void LIB_HANDLER()
             return;
         }
 
-        id = rplReadNumberAsBINT(arg_id);
+        id = rplReadNumberAsInt64(arg_id);
 
         if(!rplDelAlarm(id)) {
             rplError(ERR_BADALARMNUM);
@@ -1981,7 +1981,7 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(arg_dt, &r_dt);
                 if(iszeroReal(&r_dt)) {
                     rplDropData(1);
-                    rplNewBINTPush(GetFirstAlarmId(PASTDUE_ALM), DECBINT);
+                    rplNewint32_tPush(GetFirstAlarmId(PASTDUE_ALM), DECint32_t);
                     return;
                 }
             }
@@ -2036,14 +2036,14 @@ void LIB_HANDLER()
 
         rplDropData(1);
         sec = rplDateToSeconds(dt, tm);
-        rplNewBINTPush(FindNextAlarm(sec, &alrm), DECBINT);
+        rplNewint32_tPush(FindNextAlarm(sec, &alrm), DECint32_t);
 
         return;
     }
     case DOALARM:
     {
         //@SHORT_DESC=@HIDE
-        BINT id;
+        int32_t id;
         char *msg_start, *msg_end;
         struct alarm alrm;
 
@@ -2055,7 +2055,7 @@ void LIB_HANDLER()
             return;
 
         alrm_obj = alrm.obj;
-        rplNewBINTPush(id, DECBINT);
+        rplNewint32_tPush(id, DECint32_t);
 
         msg_start = (char *)(alrm_obj + 1);
         msg_end = msg_start + rplStrSize(alrm_obj);
@@ -2073,7 +2073,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get available memory in bytes
         rplGCollect();
-        rplNewBINTPush((int64_t) rplGetFreeMemory(), DECBINT);
+        rplNewint32_tPush((int64_t) rplGetFreeMemory(), DECint32_t);
 
         return;
     }
@@ -2086,11 +2086,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT size = rplObjSize(rplPeekData(1));
+        int32_t size = rplObjSize(rplPeekData(1));
         int64_t cksum = rplObjChecksum(rplPeekData(1));
         rplDropData(1);
-        rplNewBINTPush(cksum, HEXBINT);
-        rplNewBINTPush(size * sizeof(WORD), DECBINT);
+        rplNewint32_tPush(cksum, HEXint32_t);
+        rplNewint32_tPush(size * sizeof(WORD), DECint32_t);
         return;
     }
     case PEEK:
@@ -2103,12 +2103,12 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
 
-        int64_t addr = rplReadBINT(rplPeekData(1));
+        int64_t addr = rplReadint32_t(rplPeekData(1));
 
         if((addr < 0) || (addr > 0xffffffffLL)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);
@@ -2125,7 +2125,7 @@ void LIB_HANDLER()
             WORDPTR data = NUMBER2PTR(addr & 0xffffffff);
             addr = data[0];
         }
-        rplNewBINTPush(addr, HEXBINT);
+        rplNewint32_tPush(addr, HEXint32_t);
 
         return;
     }
@@ -2139,17 +2139,17 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        if(!ISBINT(*rplPeekData(1))) {
+        if(!ISint32_t(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
-        if(!ISBINT(*rplPeekData(2))) {
+        if(!ISint32_t(*rplPeekData(2))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
 
-        int64_t addr = rplReadBINT(rplPeekData(2));
-        int64_t value = rplReadBINT(rplPeekData(1));
+        int64_t addr = rplReadint32_t(rplPeekData(2));
+        int64_t value = rplReadint32_t(rplPeekData(1));
 
         if((addr < 0) || (addr > 0xffffffffLL)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);
@@ -2285,7 +2285,7 @@ void LIB_HANDLER()
         /*
            case DONUM:
            {
-           BINT f;
+           int32_t f;
            REAL r;
 
            if(rplDepthData()<1) {
@@ -2374,7 +2374,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -2390,7 +2390,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -2399,7 +2399,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

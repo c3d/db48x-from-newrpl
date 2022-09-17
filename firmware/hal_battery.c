@@ -286,7 +286,7 @@ void halPreparePowerOff()
 
     // TODO: ADD OTHER POWEROF PROCEDURES
 
-    saved = rplNewBINT(halFlags, DECBINT);
+    saved = rplNewint32_t(halFlags, DECint32_t);
     if(!saved)
         saved = (WORDPTR) zero_bint;
     rplStoreSettings((WORDPTR) savedflags_ident, saved);
@@ -321,7 +321,7 @@ void halWakeUp()
         if(!error) {
             for(k=0;k<PALETTE_SIZE;++k)
             {
-                color=rplReadNumberAsBINT(obj);
+                color=rplReadNumberAsInt64(obj);
                 if(Exceptions) { rplClearErrors(); error=1; break; }
                 palette[k]=(WORD)color;
                 obj=rplSkipOb(obj);
@@ -339,8 +339,8 @@ void halWakeUp()
 
     saved = rplGetSettings((WORDPTR) savedflags_ident);
     if(saved) {
-        BINT tmpflags = rplReadBINT(saved);
-        BINT flagmask = (HAL_FASTMODE | HAL_HOURGLASS | HAL_SLOWLOCK | HAL_SKIPNEXTALARM);      // SOME FLAGS SHOULD NOT BE PRESERVED
+        int32_t tmpflags = rplReadint32_t(saved);
+        int32_t flagmask = (HAL_FASTMODE | HAL_HOURGLASS | HAL_SLOWLOCK | HAL_SKIPNEXTALARM);      // SOME FLAGS SHOULD NOT BE PRESERVED
         halFlags = (tmpflags & (~flagmask)) | (halFlags & flagmask);
     }
     rplPurgeSettings((WORDPTR) savedflags_ident);
@@ -364,7 +364,7 @@ void halWakeUp()
 
     if(saved) {
         if(ISAUTOEXPLIST(*saved)) {
-            BINT nitems = rplListLength(saved);
+            int32_t nitems = rplListLength(saved);
             rplExpandStack(nitems);
             if(!Exceptions) {
                 WORDPTR ptr = saved + 1;

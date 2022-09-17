@@ -13,7 +13,7 @@
 typedef struct
 {
     FPINT x, y;
-    BINT type;
+    int32_t type;
 } CURVEPT;
 
 #define TYPE_STARTPOINT 0

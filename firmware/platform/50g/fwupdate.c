@@ -83,11 +83,11 @@ extern const struct descriptor_list_struct
 
 // NEW SIMPLIFIED GLOBALS
 
-extern volatile BINT usb_drvstatus;   // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
+extern volatile int32_t usb_drvstatus;   // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 
-extern BINT usb_fileid;       // CURRENT FILEID
-extern BINT usb_fileid_seq;   // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
-extern BINT usb_offset;       // CURRENT OFFSET WITHIN THE FILE
+extern int32_t usb_fileid;       // CURRENT FILEID
+extern int32_t usb_fileid_seq;   // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
+extern int32_t usb_offset;       // CURRENT OFFSET WITHIN THE FILE
 extern WORD usb_crc32;        // CURRENT CRC32 OF DATA RECEIVED
 extern BYTE usb_ctlbuffer[RAWHID_RX_SIZE + 1];        // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
 extern BYTE usb_tmprxbuffer[RAWHID_RX_SIZE + 1];      // TEMPORARY BUFFER TO RECEIVE DATA
@@ -95,17 +95,17 @@ extern BYTE usb_ctlrxbuffer[RAWHID_RX_SIZE + 1];      // TEMPORARY BUFFER TO REC
 extern BYTE usb_ctltxbuffer[RAWHID_TX_SIZE + 1];      // TEMPORARY BUFFER TO TRANSMIT DATA
 
 extern BYTE usb_rxbuffer[LONG_BUFFER_SIZE];   // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
-extern BINT usb_rxoffset;     // STARTING OFFSET OF THE DATA IN THE RX BUFFER
-extern volatile BINT usb_rxtxtop;     // NUMBER OF BYTES USED IN THE RX BUFFER
-extern volatile BINT usb_rxtxbottom;  // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-extern volatile BINT usb_rxtotalbytes;        // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern int32_t usb_rxoffset;     // STARTING OFFSET OF THE DATA IN THE RX BUFFER
+extern volatile int32_t usb_rxtxtop;     // NUMBER OF BYTES USED IN THE RX BUFFER
+extern volatile int32_t usb_rxtxbottom;  // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+extern volatile int32_t usb_rxtotalbytes;        // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
-extern BINT usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
-extern BINT usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
+extern int32_t usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern int32_t usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
 extern BYTEPTR usb_ctlbufptr; // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
-extern BINT usb_ctlcount;     // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
-extern BINT usb_ctlpadding;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+extern int32_t usb_ctlcount;     // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+extern int32_t usb_ctlpadding;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
 //  END OF NEW GLOBALS
 // ********************************
@@ -118,7 +118,7 @@ extern const WORD const crctable[256];
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 #define RAM_CRCTABLE RReg[9].data
 
-ARM_MODE WORD ramusb_crc32roll(WORD oldcrc, BYTEPTR data, BINT len)
+ARM_MODE WORD ramusb_crc32roll(WORD oldcrc, BYTEPTR data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -358,11 +358,11 @@ ARM_MODE void ramep0_irqservice()
         }
 
         // WE HAVE A PACKET
-        BINT reqtype;
-        BINT request;
-        BINT value;
-        BINT index;
-        BINT length;
+        int32_t reqtype;
+        int32_t request;
+        int32_t value;
+        int32_t index;
+        int32_t length;
 
         // READ ALL 8 BYTES FROM THE FIFO
 
@@ -472,7 +472,7 @@ ARM_MODE void ramep0_irqservice()
             }
             case GET_CONFIGURATION:
             {
-                BINT configvalue =
+                int32_t configvalue =
                         (usb_drvstatus & USB_STATUS_CONFIGURED) ? 1 : 0;
                 *EP0_CSR |= EP0_SERVICED_OUT_PKT_RDY;
                 usb_ctlcount = 1;
@@ -1784,7 +1784,7 @@ ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
 // UNTIL A BLOCK WITH OFFSET 0xFFFFFFFF IS SENT, THEN IT WILL RESET
 
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
-ARM_MODE void ram_receiveandflashfw(BINT flashsize)
+ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 {
     int pass = 1, result, fileid;
     WORDPTR flash_address;

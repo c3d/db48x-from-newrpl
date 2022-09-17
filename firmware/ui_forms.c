@@ -19,10 +19,10 @@ void uiRepaintForm(gglsurface * scr)
 // COMPUTE THE TOTAL DIMENSIONS OF A FORM
 // USED TO ALLOCATE THE FORM BITMAP
 
-void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
+void uiFormGetDimensions(WORDPTR form, int32_t * width, int32_t * height)
 {
-    BINT w = 0, h = 0;
-    BINT roww, rowh;
+    int32_t w = 0, h = 0;
+    int32_t roww, rowh;
     WORDPTR item, end;
 
     if(!ISLIST(*form)) {
@@ -37,8 +37,8 @@ void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
     while(item < end) {
         roww = LCD_W;
 
-        if(ISBINT(*item)) {
-            rowh = rplReadBINT(item);
+        if(ISint32_t(*item)) {
+            rowh = rplReadint32_t(item);
             item = rplSkipOb(item);
         }
         else {
@@ -58,8 +58,8 @@ void uiFormGetDimensions(WORDPTR form, BINT * width, BINT * height)
             while(col < endcol) {
                 // SCAN THE COLUMN
 
-                if(ISBINT(*col)) {
-                    roww += rplReadBINT(col);
+                if(ISint32_t(*col)) {
+                    roww += rplReadint32_t(col);
                     col = rplSkipOb(col);
                     ++forced;
                 }
@@ -106,7 +106,7 @@ void uiUpdateForm(WORDPTR form)
     if(!ISLIST(*form))
         return;
 
-    BINT formw, formh;
+    int32_t formw, formh;
     uiFormGetDimensions(form, &formw, &formh);
 
     // ALLOCATE NEW BITMAP
@@ -126,17 +126,17 @@ void uiUpdateForm(WORDPTR form)
     backgnd.x = 0;
     backgnd.y = 0;
 
-    BINT ycoord = 0;
+    int32_t ycoord = 0;
 
-    BINT roww, rowh, rowid = 0;
+    int32_t roww, rowh, rowid = 0;
     WORDPTR item, end;
     end = rplSkipOb(form);
     item = form + 1;
     while(item < end) {
         roww = LCD_W;
 
-        if(ISBINT(*item)) {
-            rowh = rplReadBINT(item);
+        if(ISint32_t(*item)) {
+            rowh = rplReadint32_t(item);
             item = rplSkipOb(item);
         }
         else
@@ -147,13 +147,13 @@ void uiUpdateForm(WORDPTR form)
             int ncols = 0, forced = 0;
             roww = 0;
             WORDPTR col = item + 1, endcol = rplSkipOb(item);
-            BINT def_itemw, itemw;
+            int32_t def_itemw, itemw;
 
             while(col < endcol) {
                 // SCAN THE COLUMN
 
-                if(ISBINT(*col)) {
-                    roww += rplReadBINT(col);
+                if(ISint32_t(*col)) {
+                    roww += rplReadint32_t(col);
                     col = rplSkipOb(col);
                     ++forced;
                 }
@@ -173,8 +173,8 @@ void uiUpdateForm(WORDPTR form)
             backgnd.top = ycoord;
             backgnd.bottom = ycoord + rowh - 1;
             while(col < endcol) {
-                if(ISBINT(*col)) {
-                    itemw = rplReadBINT(col);
+                if(ISint32_t(*col)) {
+                    itemw = rplReadint32_t(col);
                     col = rplSkipOb(col);
                 }
                 else

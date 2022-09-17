@@ -25,7 +25,7 @@ void ram_doreset()
 // UNTIL A BLOCK WITH OFFSET 0xFFFFFFFF IS SENT, THEN IT WILL RESET
 
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
-void ram_receiveandflashfw(BINT flashsize)
+void ram_receiveandflashfw(int32_t flashsize)
 {
     int pass = 1, fileid;
     WORDPTR flash_address;

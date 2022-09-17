@@ -23,7 +23,7 @@ WORDPTR rplAllocTempOb(WORD size)
 
     if(TempObEnd + adjustedsize + 1 + TEMPOBLARGESLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBLARGESLACK);
+        growTempOb((int32_t) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBLARGESLACK);
         if(Exceptions)
             return 0;
     }
@@ -50,7 +50,7 @@ WORDPTR rplAllocTempObLowMem(WORD size)
 
     if(TempObEnd + adjustedsize + 1 + TEMPOBSLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBSLACK);
+        growTempOb((int32_t) (TempObEnd - TempOb) + adjustedsize + 1 + TEMPOBSLACK);
         if(Exceptions)
             return 0;
     }
@@ -111,7 +111,7 @@ void rplResizeLastObject(WORD additionalsize)
 
     if(TempObEnd + (adjustedsize-orgsize) + TEMPOBSLACK > TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((BINT) (TempObEnd - TempOb) + (adjustedsize-orgsize) + TEMPOBSLACK);
+        growTempOb((int32_t) (TempObEnd - TempOb) + (adjustedsize-orgsize) + TEMPOBSLACK);
         if(Exceptions)
             return;
     }
@@ -124,7 +124,7 @@ void rplResizeLastObject(WORD additionalsize)
 
 // BORROW THE PATCH FUNCTION FROM THE GARBAGE COLLECTOR
 void Patch(WORDPTR * start, WORDPTR * end, WORDPTR startfrom, WORDPTR endfrom,
-        BINT offset);
+        int32_t offset);
 
 // GROW THE TEMPORARY OBJECT MEMORY
 
@@ -132,7 +132,7 @@ void growTempOb(WORD newtotalsize)
 {
     WORDPTR *newtempob;
     WORD slack = newtotalsize - (WORD) (TempObEnd - TempOb);
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
 
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;
@@ -220,7 +220,7 @@ void growTempBlocks(WORD newtotalsize)
 {
     WORDPTR *newtempblocks;
     WORD slack = newtotalsize - (WORD) (TempBlocksEnd - TempBlocks);
-    BINT gc_done = 0;
+    int32_t gc_done = 0;
 
     do {
         newtotalsize = (newtotalsize + 1023) & ~1023;

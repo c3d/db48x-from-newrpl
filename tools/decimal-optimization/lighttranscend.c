@@ -35,12 +35,12 @@
 #define EXP_CONDITIONING    16
 
 // TRANSCENDENTAL FUNCTIONS TABLES
-extern const BINT const atan_ltable[9 * ATAN_TABLES_PASSES * ATAN_TABLES_LEN];
-extern const BINT const ln_ltable[LNTABLE_ENTRIES * LNTABLE_LEN];
+extern const int32_t const atan_ltable[9 * ATAN_TABLES_PASSES * ATAN_TABLES_LEN];
+extern const int32_t const ln_ltable[LNTABLE_ENTRIES * LNTABLE_LEN];
 
 // TRANSCENDENTAL CONSTANTS
 
-static const BINT const Constant_2PI[] = {
+static const int32_t const Constant_2PI[] = {
     89367967, 15790253, 98931528, 60551801, 62678095, 65291991, 77817316,
             14792482, 35529315, 38345749, 91272874, 27573921, 942474, 7838989,
             88557244, 23726134, 4442132, 83930570, 38912084, 25697725, 69792168,
@@ -82,7 +82,7 @@ static const BINT const Constant_2PI[] = {
             5768394, 67665590, 47692528, 7179586, 62831853
 };
 
-static const BINT const Constant_PI[] = {
+static const int32_t const Constant_PI[] = {
     94683984, 7895126, 99465764, 80275900, 81339047, 32645995, 38908658,
             57396241, 67764657, 19172874, 95636437, 13786960, 50471237, 3919494,
             44278622, 11863067, 2221066, 41965285, 69456042, 12848862, 84896084,
@@ -124,7 +124,7 @@ static const BINT const Constant_PI[] = {
             33832795, 23846264, 53589793, 31415926
 };
 
-static const BINT const Constant_PI_2[] = {
+static const int32_t const Constant_PI_2[] = {
     47341992, 3947563, 49732882, 90137950, 90669523, 16322997, 69454329,
             78698120, 33882328, 59586437, 47818218, 56893480, 25235618, 1959747,
             72139311, 5931533, 51110533, 20982642, 34728021, 6424431, 92448042,
@@ -166,7 +166,7 @@ static const BINT const Constant_PI_2[] = {
             16916397, 61923132, 26794896, 15707963
 };
 
-static const BINT const Constant_PI_4[] = {
+static const int32_t const Constant_PI_4[] = {
     36709959, 19737817, 48664410, 50689752, 53347619, 81614989, 47271645,
             93490603, 69411643, 97932186, 39091092, 84467402, 26178092, 9798736,
             60696555, 29657668, 55552665, 4913212, 73640106, 32122156, 62240210,
@@ -208,7 +208,7 @@ static const BINT const Constant_PI_4[] = {
             78539816
 };
 
-static const BINT const Constant_ln10[] = {
+static const int32_t const Constant_ln10[] = {
     59125110, 58860791, 42973332, 29878117, 21641529, 12043698, 48364452,
             75657989, 79618598, 88504089, 68780300, 96941979, 93237149,
             41869654, 36813588, 71691111, 82334309, 73220244, 4969822, 68087497,
@@ -251,7 +251,7 @@ static const BINT const Constant_ln10[] = {
             92994045, 23025850
 };
 
-static const BINT const Constant_ln10_2[] = {
+static const int32_t const Constant_ln10_2[] = {
     79562555, 29430395, 71486666, 64939058, 10820764, 6021849, 74182226,
             37828994, 89809299, 44252044, 84390150, 98470989, 46618574,
             20934827, 68406794, 85845555, 41167154, 36610122, 52484911,
@@ -294,7 +294,7 @@ static const BINT const Constant_ln10_2[] = {
             55074431, 82103800, 57273421, 84200899, 46497022, 11512925
 };
 
-static const BINT const Constant_180_PI[] = {
+static const int32_t const Constant_180_PI[] = {
     51044420, 01217325, 64464419, 7492781, 53596425, 37149840, 50058601,
             68390737, 38160517, 84574010, 77236524, 91498374, 40986043,
             58588886, 32322049, 46196814, 3742202, 51634510, 662768, 99360778,
@@ -337,7 +337,7 @@ static const BINT const Constant_180_PI[] = {
             51308232, 57295779
 };
 
-static const BINT Constant_PI_180[] = {
+static const int32_t Constant_PI_180[] = {
     52602213, 93275070, 66369868, 33486611, 89632804, 73692219, 66060365,
             20775689, 59869254, 66207152, 19798020, 52103867, 61372909,
             68844163, 46821456, 51035037, 90122814, 89980713, 5253356, 7138257,
@@ -379,7 +379,7 @@ static const BINT Constant_PI_180[] = {
             57692369, 51994329, 17453292
 };
 
-static const BINT const Constant_200_PI[] = {
+static const int32_t const Constant_200_PI[] = {
     23382689, 34685917, 82738243, 97214201, 15107138, 96833156, 33398445,
             75989708, 97956130, 27304455, 19151694, 34998194, 1095604, 98432096,
             91468943, 73552015, 4158002, 79593900, 34069742, 99289753, 67592389,
@@ -421,14 +421,14 @@ static const BINT const Constant_200_PI[] = {
             23675813, 63661977
 };
 
-static const BINT const Constant_One[] = { 1 };
-static const BINT const Constant_45[] = { 45 };
-static const BINT const Constant_50[] = { 50 };
-static const BINT const Constant_90[] = { 90 };
-static const BINT const Constant_100[] = { 100 };
+static const int32_t const Constant_One[] = { 1 };
+static const int32_t const Constant_45[] = { 45 };
+static const int32_t const Constant_50[] = { 50 };
+static const int32_t const Constant_90[] = { 90 };
+static const int32_t const Constant_100[] = { 100 };
 
-static const BINT const Constant_180[] = { 180 };
-static const BINT const Constant_200[] = { 200 };
+static const int32_t const Constant_180[] = { 180 };
+static const int32_t const Constant_200[] = { 200 };
 
 // CONSTANTS IN ROM
 // LEFT JUSTIFIED
@@ -437,7 +437,7 @@ void XXdecconst_2PI(REAL * real)
     int nwords = 253 - ((Context.precdigits + 7) >> 2);
     if(nwords < 0)
         nwords = 0;
-    real->data = (BINT *) Constant_2PI + nwords;
+    real->data = (int32_t *) Constant_2PI + nwords;
     real->exp = -2023 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -448,7 +448,7 @@ void XXdecconst_PI(REAL * real)
     int nwords = 253 - ((Context.precdigits + 7) >> 2);
     if(nwords < 0)
         nwords = 0;
-    real->data = (BINT *) Constant_PI + nwords;
+    real->data = (int32_t *) Constant_PI + nwords;
     real->exp = -2023 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -461,7 +461,7 @@ void XXdecconst_PI_2(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_PI_2 + nwords;
+    real->data = (int32_t *) Constant_PI_2 + nwords;
     real->exp = -2023 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -473,7 +473,7 @@ void XXdecconst_PI_200(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_PI_2 + nwords;
+    real->data = (int32_t *) Constant_PI_2 + nwords;
     real->exp = -2025 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -484,7 +484,7 @@ void XXdecconst_PI_4(REAL * real)
     int nwords = 253 - ((Context.precdigits + 7) >> 2);
     if(nwords < 0)
         nwords = 0;
-    real->data = (BINT *) Constant_PI_4 + nwords;
+    real->data = (int32_t *) Constant_PI_4 + nwords;
     real->exp = -2024 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -496,7 +496,7 @@ void XXdecconst_PI_180(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_PI_180 + nwords;
+    real->data = (int32_t *) Constant_PI_180 + nwords;
     real->exp = -2025 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -508,7 +508,7 @@ void XXdecconst_180_PI(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_180_PI + nwords;
+    real->data = (int32_t *) Constant_180_PI + nwords;
     real->exp = -2022 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -520,7 +520,7 @@ void XXdecconst_200_PI(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_200_PI + nwords;
+    real->data = (int32_t *) Constant_200_PI + nwords;
     real->exp = -2022 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -532,7 +532,7 @@ void XXdecconst_ln10(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_ln10 + nwords;
+    real->data = (int32_t *) Constant_ln10 + nwords;
     real->exp = -2023 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -544,7 +544,7 @@ void XXdecconst_ln10_2(REAL * real)
     if(nwords < 0)
         nwords = 0;
 
-    real->data = (BINT *) Constant_ln10_2 + nwords;
+    real->data = (int32_t *) Constant_ln10_2 + nwords;
     real->exp = -2023 + (nwords << 3);
     real->flags = F_APPROX;
     real->len = 253 - nwords;
@@ -552,7 +552,7 @@ void XXdecconst_ln10_2(REAL * real)
 
 void XXdecconst_One(REAL * real)
 {
-    real->data = (BINT *) Constant_One;
+    real->data = (int32_t *) Constant_One;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -560,7 +560,7 @@ void XXdecconst_One(REAL * real)
 
 void XXdecconst_90(REAL * real)
 {
-    real->data = (BINT *) Constant_90;
+    real->data = (int32_t *) Constant_90;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -568,7 +568,7 @@ void XXdecconst_90(REAL * real)
 
 void XXdecconst_45(REAL * real)
 {
-    real->data = (BINT *) Constant_45;
+    real->data = (int32_t *) Constant_45;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -576,7 +576,7 @@ void XXdecconst_45(REAL * real)
 
 void XXdecconst_100(REAL * real)
 {
-    real->data = (BINT *) Constant_100;
+    real->data = (int32_t *) Constant_100;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -584,7 +584,7 @@ void XXdecconst_100(REAL * real)
 
 void XXdecconst_50(REAL * real)
 {
-    real->data = (BINT *) Constant_50;
+    real->data = (int32_t *) Constant_50;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -592,7 +592,7 @@ void XXdecconst_50(REAL * real)
 
 void XXdecconst_180(REAL * real)
 {
-    real->data = (BINT *) Constant_180;
+    real->data = (int32_t *) Constant_180;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -600,7 +600,7 @@ void XXdecconst_180(REAL * real)
 
 void XXdecconst_200(REAL * real)
 {
-    real->data = (BINT *) Constant_200;
+    real->data = (int32_t *) Constant_200;
     real->exp = 0;
     real->flags = 0;
     real->len = 1;
@@ -609,7 +609,7 @@ void XXdecconst_200(REAL * real)
 // RETURN THE CONVERTED ANGLE IN RReg[0], NORMALIZED
 // USES RREG 0 TO 3
 
-void XXtrig_convertangle(REAL * oldang, BINT oldmode, BINT newmode)
+void XXtrig_convertangle(REAL * oldang, int32_t oldmode, int32_t newmode)
 {
 
     REAL convfactor;
@@ -828,7 +828,7 @@ void XXtrig_convertangle(REAL * oldang, BINT oldmode, BINT newmode)
 
 // ENSURE AN ANGLE IS WITHIN -PI/+PI, USED FOR COMPLEX ARGUMENTS
 // USES RReg 0 TO 3 ONLY, ARGUMENT CAN BE RReg[2] BUT NOT RReg[0 TO 3]
-void XXtrig_reduceangle(REAL * angle, BINT angmode)
+void XXtrig_reduceangle(REAL * angle, int32_t angmode)
 {
     REAL halfturn, *modangle;
 
@@ -1033,7 +1033,7 @@ static void sinpower()
             Context.precdigits = needdigits + 8;
 
         // MULTIPLY BY 2^correction
-        newRealFromBINT(&RReg[1], 1 << correction, 0);
+        newRealFromint32_t(&RReg[1], 1 << correction, 0);
         mulReal(&RReg[0], &RReg[0], &RReg[1]);
 
     }
@@ -1108,11 +1108,11 @@ static void sinpower()
 
 }
 
-void XXtrig_sin(REAL * angle, BINT angmode)
+void XXtrig_sin(REAL * angle, int32_t angmode)
 {
     int negsin, swap;
     REAL pi, pi2, pi4;
-    BINT savedprec;
+    int32_t savedprec;
 
     negsin = swap = 0;
 
@@ -1123,7 +1123,7 @@ void XXtrig_sin(REAL * angle, BINT angmode)
     if(angle->exp > savedprec) {
         // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
         // TO GET AN ACCURATE RESULT ON THE MODULO
-        BINT minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
+        int32_t minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
         if(minprec > REAL_PRECISION_MAX) {
             // TODO: ISSUE AN ERROR
             // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
@@ -1144,7 +1144,7 @@ void XXtrig_sin(REAL * angle, BINT angmode)
     }
     else {
         REAL convfactor;
-        BINT modulo;
+        int32_t modulo;
         if(angmode == ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
             XXtrig_convertangle(angle, ANGLEDMS, ANGLEDEG);
@@ -1165,7 +1165,7 @@ void XXtrig_sin(REAL * angle, BINT angmode)
             modulo = 200;
         }
 
-        newRealFromBINT(&RReg[2], modulo, 0);
+        newRealFromint32_t(&RReg[2], modulo, 0);
 
         // GET ANGLE MODULO HALF-TURN
         divmodReal(&RReg[1], &RReg[0], angle, &RReg[2]);
@@ -1248,11 +1248,11 @@ void XXtrig_sin(REAL * angle, BINT angmode)
 
 }
 
-void XXtrig_cos(REAL * angle, BINT angmode)
+void XXtrig_cos(REAL * angle, int32_t angmode)
 {
     int negsin, negcos, swap;
     REAL pi, pi2, pi4;
-    BINT savedprec;
+    int32_t savedprec;
 
     swap = negcos = negsin = 0;
 
@@ -1263,7 +1263,7 @@ void XXtrig_cos(REAL * angle, BINT angmode)
     if(angle->exp > savedprec) {
         // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
         // TO GET AN ACCURATE RESULT ON THE MODULO
-        BINT minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
+        int32_t minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
         if(minprec > REAL_PRECISION_MAX) {
             // TODO: ISSUE AN ERROR
             // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
@@ -1284,7 +1284,7 @@ void XXtrig_cos(REAL * angle, BINT angmode)
     }
     else {
         REAL convfactor;
-        BINT modulo;
+        int32_t modulo;
         if(angmode == ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
             XXtrig_convertangle(angle, ANGLEDMS, ANGLEDEG);
@@ -1305,7 +1305,7 @@ void XXtrig_cos(REAL * angle, BINT angmode)
             modulo = 200;
         }
 
-        newRealFromBINT(&RReg[2], modulo, 0);
+        newRealFromint32_t(&RReg[2], modulo, 0);
 
         // GET ANGLE MODULO HALF-TURN
         divmodReal(&RReg[1], &RReg[0], angle, &RReg[2]);
@@ -1500,11 +1500,11 @@ void psqrt()
     Context.precdigits = savedprec;
 }
 
-void XXtrig_tan(REAL * angle, BINT angmode)
+void XXtrig_tan(REAL * angle, int32_t angmode)
 {
     int negsin, negcos, invert;
     REAL pi, pi2, pi4;
-    BINT savedprec;
+    int32_t savedprec;
 
     // COMPUTE TANGENT BY COMPUTING FIRST COS(2*X)
 
@@ -1517,7 +1517,7 @@ void XXtrig_tan(REAL * angle, BINT angmode)
     if(angle->exp > savedprec) {
         // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
         // TO GET AN ACCURATE RESULT ON THE MODULO
-        BINT minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
+        int32_t minprec = ((savedprec + intdigitsReal(angle)) + 7) & (~7);
         if(minprec > REAL_PRECISION_MAX) {
             // TODO: ISSUE AN ERROR
             // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
@@ -1539,7 +1539,7 @@ void XXtrig_tan(REAL * angle, BINT angmode)
     }
     else {
         REAL convfactor;
-        BINT modulo;
+        int32_t modulo;
         if(angmode == ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
             XXtrig_convertangle(&RReg[1], ANGLEDMS, ANGLEDEG);
@@ -1560,7 +1560,7 @@ void XXtrig_tan(REAL * angle, BINT angmode)
             modulo = 200;
         }
 
-        newRealFromBINT(&RReg[2], modulo, 0);
+        newRealFromint32_t(&RReg[2], modulo, 0);
 
         // GET ANGLE MODULO HALF-TURN
         divmodReal(&RReg[1], &RReg[0], angle, &RReg[2]);
@@ -1731,8 +1731,8 @@ static void atanpower()
     // FIRST PASS - USE IDENTITY ATAN(X)=ATAN(X')+ATAN(DELTA)
     // WITH X' = ANY APPROXIMATION TO X
     // AND DELTA = (X-X')/(1+X*X')
-    BINT digit;
-    BINT *atan_xtable[ATAN_TABLES_LEN >> 5];
+    int32_t digit;
+    int32_t *atan_xtable[ATAN_TABLES_LEN >> 5];
     int npasses = Context.precdigits >> 8;
     if(npasses < 2)
         npasses = 2;
@@ -1743,7 +1743,7 @@ static void atanpower()
         atan_xtable[pass - 1] = 0;
 
         RReg[0].exp += pass;
-        digit = getBINTReal(&RReg[0]);
+        digit = getint32_tReal(&RReg[0]);
 
         RReg[0].exp -= pass;
 
@@ -1751,7 +1751,7 @@ static void atanpower()
         if(digit) {
             RReg[1].exp = -pass;
             atan_xtable[pass - 1] =
-                    (BINT *) atan_ltable + (9 * ATAN_TABLES_LEN) * (pass - 1) +
+                    (int32_t *) atan_ltable + (9 * ATAN_TABLES_LEN) * (pass - 1) +
                     ATAN_TABLES_LEN * (digit - 1);
             // COMPUTE DELTA
 
@@ -1800,7 +1800,7 @@ static void atanpower()
 
 //  ADD THE KNOWN VALUES AS NEEDED
 
-    BINT needwords = (Context.precdigits + 7) / 8;
+    int32_t needwords = (Context.precdigits + 7) / 8;
     REAL atan_val;
     atan_val.flags = 0;
     for(pass = 1; pass <= npasses; ++pass) {
@@ -1828,7 +1828,7 @@ static void atanpower()
 
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_atan2(REAL * _y0, REAL * _x0, BINT angmode)
+void XXtrig_atan2(REAL * _y0, REAL * _x0, int32_t angmode)
 {
     REAL x0, y0;
 
@@ -1954,7 +1954,7 @@ void XXtrig_atan2(REAL * _y0, REAL * _x0, BINT angmode)
         }
         else {
             REAL pi;
-            BINT pidata;
+            int32_t pidata;
             REAL convfactor;
 
             pi.data = &pidata;
@@ -2018,7 +2018,7 @@ void XXtrig_atan2(REAL * _y0, REAL * _x0, BINT angmode)
 // COMPUTE ASIN(Y) = ATAN2(Y,SQRT(1-Y^2))
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_asin(REAL * x, BINT angmode)
+void XXtrig_asin(REAL * x, int32_t angmode)
 {
     REAL one;
     XXdecconst_One(&one);
@@ -2079,7 +2079,7 @@ void XXtrig_asin(REAL * x, BINT angmode)
 // COMPUTE ACOS(X) = ATAN2(SQRT(1-X^2),X)
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_acos(REAL * x, BINT angmode)
+void XXtrig_acos(REAL * x, int32_t angmode)
 {
     REAL one;
     XXdecconst_One(&one);
@@ -2207,7 +2207,7 @@ void pexp()
 
     // THE QUOTIENT NEEDS TO BE ADDED TO THE EXPONENT, SO IT SHOULD BE +/-30000
     // MAKE SURE THE INTEGER IS ALIGNED AND RIGHT-JUSTIFIED
-    if(!inBINTRange(&RReg[1])) {
+    if(!inint32_tRange(&RReg[1])) {
         // TODO: RAISE OVERFLOW ERROR!
         RReg[0].len = 1;
         RReg[0].data[0] = 0;
@@ -2218,7 +2218,7 @@ void pexp()
             RReg[0].flags = F_INFINITY; // exp(INF) = INF
         return;
     }
-    BINT quotient = getBINTReal(&RReg[1]);
+    int32_t quotient = getint32_tReal(&RReg[1]);
     if((quotient > 30000) || (quotient < -30000)) {
         // TODO: RAISE OVERFLOW ERROR!
         RReg[0].len = 1;
@@ -2459,14 +2459,14 @@ void pln()
     else
         swapReal(&RReg[0], &RReg[4]);
 
-    BINT needwords = (Context.precdigits + 7) / 8;
+    int32_t needwords = (Context.precdigits + 7) / 8;
     // ALL OTHER CONSTANTS FROM TABLE
     REAL lnconstant;
 
     for(k = 0; k < LNTABLE_ENTRIES; ++k) {
         if(adjustment_const[k] != 0) {
             lnconstant.data =
-                    (BINT *) ln_ltable + k * LNTABLE_LEN + LNTABLE_LEN -
+                    (int32_t *) ln_ltable + k * LNTABLE_LEN + LNTABLE_LEN -
                     needwords;
             lnconstant.exp = -needwords * 8 - k;
             lnconstant.flags = F_NEGATIVE;      // THE CONSTANT IS POSITIVE, ADD THE SIGN HERE SO IT SUBTRACTS THE LN()
@@ -2718,7 +2718,7 @@ void XXhyp_pow(REAL * x, REAL * a)
     if(isintegerReal(a) && inint64_tRange(a)) {
         // INTEGER EXPONENTIATION
         int64_t exponent = getint64_tReal(a);
-        BINT invert;
+        int32_t invert;
         REAL One;
         if(exponent < 0) {
             invert = 1;
@@ -2879,7 +2879,7 @@ void powReal(REAL * result, REAL * x, REAL * a)
         }
     }
 
-    BINT approx = (x->flags | a->flags) & F_APPROX;
+    int32_t approx = (x->flags | a->flags) & F_APPROX;
     // COMPUTE THE ACTUAL POWER
 
     XXhyp_pow(x, a);
@@ -2981,8 +2981,8 @@ void xrootReal(REAL * result, REAL * x, REAL * a)
         }
     }
 
-    BINT approx = (x->flags | a->flags) & F_APPROX;
-    BINT isneg = x->flags & F_NEGATIVE;
+    int32_t approx = (x->flags | a->flags) & F_APPROX;
+    int32_t isneg = x->flags & F_NEGATIVE;
 
     if(isneg) {
         if(!isintegerReal(a)) {

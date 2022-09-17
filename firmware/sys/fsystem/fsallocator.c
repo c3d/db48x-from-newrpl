@@ -57,7 +57,7 @@ void release_chunk(int f)
 {
     // TODO: CONNECT THIS WITH ANOTHER ALLOCATOR TO RELEASE PAGES
     // FOR NOW JUST CLEANUP THE STATIC CHUNKS
-    freeRegister((BINT *) SimpAllocData.chunks[f]);
+    freeRegister((int32_t *) SimpAllocData.chunks[f]);
     SimpAllocData.chunks[f] = 0;
     SimpAllocData.chunk_bmp[f] = ~0;
     if(SimpAllocData.last_chunk == f)

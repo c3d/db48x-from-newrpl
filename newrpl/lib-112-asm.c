@@ -227,7 +227,7 @@ BYTEPTR rplAsmEndOfToken(BYTEPTR start, BYTEPTR end)
 
 struct optables
 {
-    BINT opcode;
+    int32_t opcode;
     WORD opname;
 };
 
@@ -395,7 +395,7 @@ const struct optables const longopcodes[] = {
     {0, 0}
 };
 
-BINT rplAsmDecodeToken(BYTEPTR start, BYTEPTR end, BINT * opcode_arg)
+int32_t rplAsmDecodeToken(BYTEPTR start, BYTEPTR end, int32_t * opcode_arg)
 {
 
     if(*start == '.')
@@ -515,7 +515,7 @@ void LIB_HANDLER()
 
     }
 
-    BINT opcode = OPCODE(CurOpcode) >> 14, oper;
+    int32_t opcode = OPCODE(CurOpcode) >> 14, oper;
 
     switch (opcode) {
 
@@ -527,12 +527,12 @@ void LIB_HANDLER()
         // IMPLEMENTS :R ?= Y
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
+        int32_t skipnext = 0;
         WORDPTR argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
@@ -553,7 +553,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -573,7 +573,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -639,12 +639,12 @@ void LIB_HANDLER()
             // IMPLEMENTS :R ?= Y+Z
 
             // GET THE ARGUMENT Y
-            BINT skipnext = 0;
+            int32_t skipnext = 0;
             WORDPTR argY;
             if(ISLITERALY(CurOpcode))
                 argY = numbers_table[GETY(CurOpcode)];
             else {
-                BINT y = GETY(CurOpcode);
+                int32_t y = GETY(CurOpcode);
                 if(y & 0x8) {
                     y &= 7;
                     if(y == 0) {
@@ -669,7 +669,7 @@ void LIB_HANDLER()
             if(ISLITERALZ(CurOpcode))
                 argZ = numbers_table[GETZ(CurOpcode)];
             else {
-                BINT z = GETZ(CurOpcode);
+                int32_t z = GETZ(CurOpcode);
                 if(z & 0x8) {
                     z &= 7;
                     if(z == 0) {
@@ -690,7 +690,7 @@ void LIB_HANDLER()
             }
 
             // GET ARGUMENT D
-            BINT d = GETD(CurOpcode);
+            int32_t d = GETD(CurOpcode);
             WORDPTR *destD;
             if(d & 0x8) {
                 d &= 7;
@@ -710,7 +710,7 @@ void LIB_HANDLER()
             else
                 destD = GC_UserRegisters + d;
 
-            BINT opcode;
+            int32_t opcode;
             switch (ASMSTO(CurOpcode)) {
             default:
             case ASMSTO_NOOP:
@@ -800,17 +800,17 @@ void LIB_HANDLER()
         // EXAMPLE: :A=POP.#1.#3 --> A=Lvl1, B=Lvl2, C=Lvl3, and data from levels 1 to 3 are removed from the stack
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ylevel, nitems, nitemsdrop;
+        int32_t skipnext = 0;
+        int32_t ylevel, nitems, nitemsdrop;
 
         if(ISLITERALY(CurOpcode))
             ylevel = GETY(CurOpcode);
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
-                    ylevel = rplReadNumberAsBINT(IPtr + 1);
+                    ylevel = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -825,7 +825,7 @@ void LIB_HANDLER()
                 }
             }
             else {
-                ylevel = rplReadNumberAsBINT(GC_UserRegisters[y]);
+                ylevel = rplReadNumberAsInt64(GC_UserRegisters[y]);
                 if(Exceptions)
                     return;
             }
@@ -838,11 +838,11 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             nitems = GETZ(CurOpcode);
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
-                    nitems = rplReadNumberAsBINT(IPtr + 1);
+                    nitems = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -852,7 +852,7 @@ void LIB_HANDLER()
                 }
             }
             else {
-                nitems = rplReadNumberAsBINT(GC_UserRegisters[z]);
+                nitems = rplReadNumberAsInt64(GC_UserRegisters[z]);
                 if(Exceptions)
                     return;
             }
@@ -865,7 +865,7 @@ void LIB_HANDLER()
 
         nitemsdrop = nitems;
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             rplError(ERR_INVALIDASMCODE);
@@ -887,7 +887,7 @@ void LIB_HANDLER()
         // POP THE VALUES FROM THE STACK
 
         if(ASMSTO(CurOpcode) != ASMSTO_NOOP) {
-            BINT k;
+            int32_t k;
             for(k = 0; k < nitems; ++k) {
                 *destD = DSTop[-ylevel - k];
                 ++destD;
@@ -910,17 +910,17 @@ void LIB_HANDLER()
         // EXAMPLE: :A=RPOP.#1.#3 --> A=Lvl3, B=Lvl2, C=Lvl1, and data from levels 1 to 3 are removed from the stack
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ylevel, nitems, nitemsdrop;
+        int32_t skipnext = 0;
+        int32_t ylevel, nitems, nitemsdrop;
 
         if(ISLITERALY(CurOpcode))
             ylevel = GETY(CurOpcode);
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
-                    ylevel = rplReadNumberAsBINT(IPtr + 1);
+                    ylevel = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -935,7 +935,7 @@ void LIB_HANDLER()
                 }
             }
             else {
-                ylevel = rplReadNumberAsBINT(GC_UserRegisters[y]);
+                ylevel = rplReadNumberAsInt64(GC_UserRegisters[y]);
                 if(Exceptions)
                     return;
             }
@@ -948,11 +948,11 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             nitems = GETZ(CurOpcode);
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
-                    nitems = rplReadNumberAsBINT(IPtr + 1);
+                    nitems = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -962,7 +962,7 @@ void LIB_HANDLER()
                 }
             }
             else {
-                nitems = rplReadNumberAsBINT(GC_UserRegisters[z]);
+                nitems = rplReadNumberAsInt64(GC_UserRegisters[z]);
                 if(Exceptions)
                     return;
             }
@@ -975,7 +975,7 @@ void LIB_HANDLER()
 
         nitemsdrop = nitems;
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             rplError(ERR_INVALIDASMCODE);
@@ -996,7 +996,7 @@ void LIB_HANDLER()
 
         // POP THE VALUES FROM THE STACK
         if(ASMSTO(CurOpcode) != ASMSTO_NOOP) {
-            BINT k;
+            int32_t k;
             for(k = nitems - 1; k >= 0; --k) {
                 *destD = DSTop[-ylevel - k];
                 ++destD;
@@ -1018,15 +1018,15 @@ void LIB_HANDLER()
         // EXAMPLE: :PUSH.A.#3 --> Lvl1=A, Lvl2=B, Lvl1=3
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT nitems;
+        int32_t skipnext = 0;
+        int32_t nitems;
         WORDPTR *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 rplError(ERR_INVALIDASMCODE);
                 return;
@@ -1039,23 +1039,23 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             nitems = GETZ(CurOpcode);
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
-                    nitems = rplReadNumberAsBINT(IPtr + 1);
+                    nitems = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
                 }
                 else {
-                    nitems = rplReadNumberAsBINT(DSTop[-z]);
+                    nitems = rplReadNumberAsInt64(DSTop[-z]);
                     if(Exceptions)
                         return;
                 }
             }
             else {
-                nitems = rplReadNumberAsBINT(GC_UserRegisters[z]);
+                nitems = rplReadNumberAsInt64(GC_UserRegisters[z]);
                 if(Exceptions)
                     return;
             }
@@ -1067,7 +1067,7 @@ void LIB_HANDLER()
         }
 
         // PUSH THE VALUES TO THE STACK
-        BINT k;
+        int32_t k;
         for(k = nitems - 1; k >= 0; --k) {
             rplPushData(reg[k]);
             if(Exceptions)
@@ -1088,15 +1088,15 @@ void LIB_HANDLER()
         // EXAMPLE: :PUSH.A.#3 --> Lvl1=A, Lvl2=B, Lvl1=3
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT nitems;
+        int32_t skipnext = 0;
+        int32_t nitems;
         WORDPTR *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 rplError(ERR_INVALIDASMCODE);
                 return;
@@ -1109,23 +1109,23 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             nitems = GETZ(CurOpcode);
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
-                    nitems = rplReadNumberAsBINT(IPtr + 1);
+                    nitems = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
                 }
                 else {
-                    nitems = rplReadNumberAsBINT(DSTop[-z]);
+                    nitems = rplReadNumberAsInt64(DSTop[-z]);
                     if(Exceptions)
                         return;
                 }
             }
             else {
-                nitems = rplReadNumberAsBINT(GC_UserRegisters[z]);
+                nitems = rplReadNumberAsInt64(GC_UserRegisters[z]);
                 if(Exceptions)
                     return;
             }
@@ -1137,7 +1137,7 @@ void LIB_HANDLER()
         }
 
         // PUSH THE VALUES TO THE STACK
-        BINT k;
+        int32_t k;
         for(k = 0; k < nitems; ++k) {
             rplPushData(reg[k]);
             if(Exceptions)
@@ -1159,12 +1159,12 @@ void LIB_HANDLER()
         // EXAMPLE: :A=GET.S1.#3 --> Gets the third element of list on stack level 1 (S1)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
+        int32_t skipnext = 0;
         WORDPTR argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
@@ -1189,7 +1189,7 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
@@ -1210,7 +1210,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -1230,7 +1230,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -1304,12 +1304,12 @@ void LIB_HANDLER()
         // EXAMPLE: :A=PUT.#3.S1 --> A(3)=S1 --->Replace the third element of list on A with stack level 1 (S1)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
+        int32_t skipnext = 0;
         WORDPTR argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
@@ -1334,7 +1334,7 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
@@ -1355,7 +1355,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -1403,8 +1403,8 @@ void LIB_HANDLER()
         // CMD=Y= LITERAL REPRESENTING A MATH FUNCTION (SEE ASM_MATH_XXX CONSTANTS)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ycmd;
+        int32_t skipnext = 0;
+        int32_t ycmd;
         if(ISLITERALY(CurOpcode))
             ycmd = GETY(CurOpcode);
         else {
@@ -1417,7 +1417,7 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
@@ -1438,7 +1438,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -1458,7 +1458,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -1530,8 +1530,8 @@ void LIB_HANDLER()
         // CMD=Y= LITERAL REPRESENTING A MATH FUNCTION (SEE ASM_MATH_XXX CONSTANTS)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ycmd;
+        int32_t skipnext = 0;
+        int32_t ycmd;
         if(ISLITERALY(CurOpcode))
             ycmd = GETY(CurOpcode);
         else {
@@ -1544,7 +1544,7 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
@@ -1565,7 +1565,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -1585,7 +1585,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -1653,16 +1653,16 @@ void LIB_HANDLER()
 
     case ASM_LOOP:
     {
-        BINT doloop = 0;
-        BINT yflags;
+        int32_t doloop = 0;
+        int32_t yflags;
         if(ISLITERALY(CurOpcode))
             yflags = GETY(CurOpcode);
         else {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
-        BINT isneg = rplTestSystemFlag(FL_ASMNEG);
-        BINT iszero = rplTestSystemFlag(FL_ASMZERO);
+        int32_t isneg = rplTestSystemFlag(FL_ASMNEG);
+        int32_t iszero = rplTestSystemFlag(FL_ASMZERO);
 
         switch (yflags) {
         default:
@@ -1714,16 +1714,16 @@ void LIB_HANDLER()
         return;
     case ASM_SKIP:
     {
-        BINT skipnext = 0;
-        BINT yflags;
+        int32_t skipnext = 0;
+        int32_t yflags;
         if(ISLITERALY(CurOpcode))
             yflags = GETY(CurOpcode);
         else {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
-        BINT isneg = rplTestSystemFlag(FL_ASMNEG);
-        BINT iszero = rplTestSystemFlag(FL_ASMZERO);
+        int32_t isneg = rplTestSystemFlag(FL_ASMNEG);
+        int32_t iszero = rplTestSystemFlag(FL_ASMZERO);
 
         switch (yflags) {
         default:
@@ -1767,15 +1767,15 @@ void LIB_HANDLER()
     }
     case ASM_CHK:
     {
-        BINT yflags;
+        int32_t yflags;
         if(ISLITERALY(CurOpcode))
             yflags = GETY(CurOpcode);
         else {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
-        BINT isneg = rplTestSystemFlag(FL_ASMNEG);
-        BINT iszero = rplTestSystemFlag(FL_ASMZERO);
+        int32_t isneg = rplTestSystemFlag(FL_ASMNEG);
+        int32_t iszero = rplTestSystemFlag(FL_ASMZERO);
         WORDPTR result;
         switch (yflags) {
         default:
@@ -1824,7 +1824,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -1844,7 +1844,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -1924,15 +1924,15 @@ void LIB_HANDLER()
         // EXAMPLE: :CLR.A.#3 --> A=0, B=0, C=0. also :CLR.S1.#3 --> S1=0, S2=0, S3=0 (error if S1..S3 levels are empty)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT nitems, instack = 0;
+        int32_t skipnext = 0;
+        int32_t nitems, instack = 0;
         WORDPTR *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 reg = DSTop - (y & 7);
                 instack = 1;
@@ -1945,23 +1945,23 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             nitems = GETZ(CurOpcode);
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
-                    nitems = rplReadNumberAsBINT(IPtr + 1);
+                    nitems = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
                 }
                 else {
-                    nitems = rplReadNumberAsBINT(DSTop[-z]);
+                    nitems = rplReadNumberAsInt64(DSTop[-z]);
                     if(Exceptions)
                         return;
                 }
             }
             else {
-                nitems = rplReadNumberAsBINT(GC_UserRegisters[z]);
+                nitems = rplReadNumberAsInt64(GC_UserRegisters[z]);
                 if(Exceptions)
                     return;
             }
@@ -1973,7 +1973,7 @@ void LIB_HANDLER()
                 return;
             }
             // CLEAR THE REGISTERS
-            BINT k;
+            int32_t k;
             for(k = 0; k < nitems; ++k)
                 reg[k] = (WORDPTR) zero_bint;
         }
@@ -1983,7 +1983,7 @@ void LIB_HANDLER()
                 return;
             }
             // CLEAR THE STACK
-            BINT k;
+            int32_t k;
             for(k = 0; k < nitems; ++k)
                 reg[-k] = (WORDPTR) zero_bint;
         }
@@ -2004,17 +2004,17 @@ void LIB_HANDLER()
         // EXAMPLE: :A+=SGET.B --> A+=Lvl(B)
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ylevel;
+        int32_t skipnext = 0;
+        int32_t ylevel;
 
         if(ISLITERALY(CurOpcode))
             ylevel = GETY(CurOpcode);
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
-                    ylevel = rplReadNumberAsBINT(IPtr + 1);
+                    ylevel = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -2025,14 +2025,14 @@ void LIB_HANDLER()
                         return;
                     }
                     else {
-                        ylevel = rplReadNumberAsBINT(DSTop[-y]);
+                        ylevel = rplReadNumberAsInt64(DSTop[-y]);
                         if(Exceptions)
                             return;
                     }
                 }
             }
             else {
-                ylevel = rplReadNumberAsBINT(GC_UserRegisters[y]);
+                ylevel = rplReadNumberAsInt64(GC_UserRegisters[y]);
                 if(Exceptions)
                     return;
             }
@@ -2045,7 +2045,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -2066,7 +2066,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -2136,17 +2136,17 @@ void LIB_HANDLER()
         // EXAMPLE: :A=SPUT.B.C --> A=Lvl(B), Lvl(B)=C
 
         // GET THE ARGUMENT Y
-        BINT skipnext = 0;
-        BINT ylevel;
+        int32_t skipnext = 0;
+        int32_t ylevel;
 
         if(ISLITERALY(CurOpcode))
             ylevel = GETY(CurOpcode);
         else {
-            BINT y = GETY(CurOpcode);
+            int32_t y = GETY(CurOpcode);
             if(y & 0x8) {
                 y &= 7;
                 if(y == 0) {
-                    ylevel = rplReadNumberAsBINT(IPtr + 1);
+                    ylevel = rplReadNumberAsInt64(IPtr + 1);
                     if(Exceptions)
                         return;
                     skipnext = 1;
@@ -2157,14 +2157,14 @@ void LIB_HANDLER()
                         return;
                     }
                     else {
-                        ylevel = rplReadNumberAsBINT(DSTop[-y]);
+                        ylevel = rplReadNumberAsInt64(DSTop[-y]);
                         if(Exceptions)
                             return;
                     }
                 }
             }
             else {
-                ylevel = rplReadNumberAsBINT(GC_UserRegisters[y]);
+                ylevel = rplReadNumberAsInt64(GC_UserRegisters[y]);
                 if(Exceptions)
                     return;
             }
@@ -2181,7 +2181,7 @@ void LIB_HANDLER()
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
-            BINT z = GETZ(CurOpcode);
+            int32_t z = GETZ(CurOpcode);
             if(z & 0x8) {
                 z &= 7;
                 if(z == 0) {
@@ -2202,7 +2202,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT D
-        BINT d = GETD(CurOpcode);
+        int32_t d = GETD(CurOpcode);
         WORDPTR *destD;
         if(d & 0x8) {
             d &= 7;
@@ -2223,7 +2223,7 @@ void LIB_HANDLER()
         else
             destD = GC_UserRegisters + d;
 
-        BINT opcode;
+        int32_t opcode;
         switch (ASMSTO(CurOpcode)) {
         default:
         case ASMSTO_NOOP:
@@ -2327,9 +2327,9 @@ void LIB_HANDLER()
 
             ++str;
 
-            BINT storemode = 0, d = 0x20, y = 0x20, z = 0x20, operator= 0;
+            int32_t storemode = 0, d = 0x20, y = 0x20, z = 0x20, operator= 0;
             // FIND END OF FIRST TOKEN
-            BINT opcode_arg;
+            int32_t opcode_arg;
             endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
             if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
                 RetNum = ERR_SYNTAX;
@@ -2626,9 +2626,9 @@ void LIB_HANDLER()
 
             WORD op = *DecompileObject;
 
-            BINT storemode = LIBNUM(op) - LIBRARY_NUMBER;
-            BINT operator=(op >> 14) & 0x1f;
-            BINT noy = 0, noz = 0, yflags = 0;
+            int32_t storemode = LIBNUM(op) - LIBRARY_NUMBER;
+            int32_t operator=(op >> 14) & 0x1f;
+            int32_t noy = 0, noz = 0, yflags = 0;
 
             if(operator== ASM_NOOP) {
                 RetNum = OK_CONTINUE;   // NOOP IS A SILENT OPCODE USED FOR LOOP INTERNALLY
@@ -2638,7 +2638,7 @@ void LIB_HANDLER()
             rplDecompAppendChar(':');
 
             if(storemode) {
-                BINT d = (op >> 8) & 0xf;
+                int32_t d = (op >> 8) & 0xf;
                 if(d == 8)
                     rplDecompAppendChar('P');
                 else if(d > 8) {
@@ -2705,7 +2705,7 @@ void LIB_HANDLER()
                 {
                     noy = 1;
 
-                    BINT y = (op >> 4) & 0xf;
+                    int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH_IP:
                         rplDecompAppendString((BYTEPTR) "IP");
@@ -2777,7 +2777,7 @@ void LIB_HANDLER()
                 {
                     noy = 1;
 
-                    BINT y = (op >> 4) & 0xf;
+                    int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH2_FP:
                         rplDecompAppendString((BYTEPTR) "FP");
@@ -2849,7 +2849,7 @@ void LIB_HANDLER()
             }
 
             if(!noy) {
-                BINT y = (op >> 4) & 0xf;
+                int32_t y = (op >> 4) & 0xf;
                 if(op & 0x2000) {
                     // Y IS A LITERAL VALUE
                     if(yflags) {
@@ -2932,7 +2932,7 @@ void LIB_HANDLER()
                 rplDecompAppendChar('.');
 
             if(!noz) {
-                BINT z = (op) & 0xf;
+                int32_t z = (op) & 0xf;
                 if(op & 0x1000) {
                     // Z IS A LITERAL VALUE
 
@@ -3009,7 +3009,7 @@ void LIB_HANDLER()
             //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
             //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
             // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;

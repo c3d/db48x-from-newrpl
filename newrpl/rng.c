@@ -107,9 +107,9 @@ void rplRandomSeed(uint64_t seed)
 // GET 8 RANDOM DECIMAL DIGITS
 // USES ONLY 27 BITS TAKEN FROM THE RNG, BUT NOT THE LAST 27
 
-BINT rplRandom8Digits()
+int32_t rplRandom8Digits()
 {
     uint64_t dig = rplRandomNext() >> 2;
     dig %= 100000000;
-    return (BINT) dig;
+    return (int32_t) dig;
 }

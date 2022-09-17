@@ -118,7 +118,7 @@ void LIB_HANDLER()
     case OVR_SAME:
         // COMPARE PROGRAMS AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
     {
-        BINT same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
+        int32_t same = rplCompareObjects(rplPeekData(1), rplPeekData(2));
         rplDropData(2);
         if(same)
             rplPushTrue();
@@ -176,7 +176,7 @@ void LIB_HANDLER()
     case THEN:
     {
         //@SHORT_DESC=Conditional IF ... THEN ... ELSE ... END statement
-        // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        // BY DEFINITION, int32_t 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -256,7 +256,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Conditional CASE ... THEN ... END THEN ... END END statement
         //@NEW
 
-        // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        // BY DEFINITION, int32_t 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -364,7 +364,7 @@ void LIB_HANDLER()
         }
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        int32_t depth = 1; // TRACK NESTED FOR LOOPS
         while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
                     && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
@@ -440,7 +440,7 @@ void LIB_HANDLER()
         }
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        int32_t depth = 1; // TRACK NESTED FOR LOOPS
         while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
                     && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
@@ -621,7 +621,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Loop DO ... UNTIL ... END statement
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED LOOPS
+        int32_t depth = 1; // TRACK NESTED LOOPS
         while(depth || (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, ENDDO))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
             if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, DO))
@@ -684,7 +684,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        // BY DEFINITION, int32_t 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
 
         WORDPTR result = rplPopData();
 
@@ -708,7 +708,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Loop WHILE ... REPEAT ... END statement
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED LOOPS
+        int32_t depth = 1; // TRACK NESTED LOOPS
         while(depth || (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, ENDWHILE))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
             if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, WHILE))
@@ -744,7 +744,7 @@ void LIB_HANDLER()
             return;
         }
 
-        // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        // BY DEFINITION, int32_t 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(nLAMBase == LAMTop)
             return;     // NO ENVIRONMENT
         if(**rplGetLAMn(0) != CMD_ENDWHILE) {
@@ -944,11 +944,11 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT upordn = (BINT)rplReadNumberAsBINT(rplPeekData(1));
+        int32_t upordn = (int32_t)rplReadNumberAsInt64(rplPeekData(1));
 
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        int32_t depth = 1; // TRACK NESTED FOR LOOPS
         while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
                     && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
@@ -1041,11 +1041,11 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT upordn = (BINT)rplReadNumberAsBINT(rplPeekData(1));
+        int32_t upordn = (int32_t)rplReadNumberAsInt64(rplPeekData(1));
 
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
-        BINT depth = 1; // TRACK NESTED FOR LOOPS
+        int32_t depth = 1; // TRACK NESTED FOR LOOPS
         while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
                     && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
@@ -1864,7 +1864,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -1880,7 +1880,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -1936,7 +1936,7 @@ void LIB_HANDLER()
                 DecompHints = 0;
 
             }
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;
@@ -1993,7 +1993,7 @@ void LIB_HANDLER()
 
     case OPCODE_AUTOCOMPNEXT:
     {
-        BINT repeat;
+        int32_t repeat;
         do {
             repeat = 0;
             libAutoCompleteNext(LIBRARY_NUMBER, (char **)LIB_NAMES,

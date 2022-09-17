@@ -105,15 +105,15 @@ extern WORDPTR *ErrorLAMTop;   // SAVED VALUE OF LAMTOP AT ERROR HANDLER
 extern WORDPTR *ErrorRSTop;    // SAVED TOP OF RETURN STACK AT ERROR HANDLER
 extern WORDPTR *CurrentDir;    // POINTER TO CURRENT DIRECTORY
 extern WORDPTR *DirsTop;       // POINTER TO END OF USED DIRECTORIES
-extern BINT DStkSize;  // TOTAL SIZE OF DATA STACK
-extern BINT RStkSize;  // TOTAL SIZE OF RETURN STACK
-extern BINT TempBlocksSize;    // TOTAL SIZE OF TEMPBLOCKS
-extern BINT LAMSize;   // TOTAL SIZE OF LAM ENVIRONMENTS
-extern BINT DirSize;
+extern int32_t DStkSize;  // TOTAL SIZE OF DATA STACK
+extern int32_t RStkSize;  // TOTAL SIZE OF RETURN STACK
+extern int32_t TempBlocksSize;    // TOTAL SIZE OF TEMPBLOCKS
+extern int32_t LAMSize;   // TOTAL SIZE OF LAM ENVIRONMENTS
+extern int32_t DirSize;
 
 // ARGUMENTS TO PASS TO LIBRARY HANDLERS
 // DURING COMPILATION
-extern UBINT ArgNum1, ArgNum2, ArgNum3, RetNum;
+extern uint32_t ArgNum1, ArgNum2, ArgNum3, RetNum;
 
 // SOME CONVENIENCE NAMES FOR USE IN LIBRARIES
 #define TokenLen ArgNum1
@@ -134,8 +134,8 @@ extern UBINT ArgNum1, ArgNum2, ArgNum3, RetNum;
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];
 extern LIBHANDLER HiLibRegistry[MAXHILIBS];
-extern BINT HiLibNumbers[MAXHILIBS];
-extern BINT NumHiLibs;
+extern int32_t HiLibNumbers[MAXHILIBS];
+extern int32_t NumHiLibs;
 
 // MATH LIBRARY CONTEXT
 extern DECIMAL_CONTEXT Context;
@@ -143,9 +143,9 @@ extern DECIMAL_CONTEXT Context;
 // PREALLOCATED STATIC REAL NUMBER REGISTERS FOR TEMPORARY STORAGE
 extern REAL RReg[REAL_REGISTERS];
 // TEMPORARY SCRATCH MEMORY FOR DIGITS
-extern BINT RDigits[EXTRA_STORAGE];
+extern int32_t RDigits[EXTRA_STORAGE];
 
-extern BINT BINT2RealIdx;
+extern int32_t int32_t2RealIdx;
 
 #ifdef __cplusplus
 }

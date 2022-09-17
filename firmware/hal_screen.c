@@ -257,7 +257,7 @@ void halSetCmdLineHeight(int h)
 
 // COMPUTE HEIGHT AND WIDTH OF OBJECT TO DISPLAY ON STACK
 
-BINT halGetDispObjectHeight(WORDPTR object, UNIFONT *font)
+int32_t halGetDispObjectHeight(WORDPTR object, UNIFONT *font)
 {
     UNUSED_ARGUMENT(object);
     // TODO: ADD MULTILINE OBJECTS, ETC.
@@ -405,7 +405,7 @@ void halRedrawStack(gglsurface *scr)
     int            ystart = halScreen.Form, yend = ystart + halScreen.Stack;
     int            depth = rplDepthData(), level = 1;
     int            objheight, ytop, y, numwidth, xright, stknum_w;
-    BINT           width, height;
+    int32_t           width, height;
     char           num[16];
     const UNIFONT *levelfnt;
     WORDPTR        object;
@@ -511,7 +511,7 @@ void halRedrawStack(gglsurface *scr)
                 WORDPTR string  = (WORDPTR) invalid_string;
 
                 // NOW SIZE THE STRING OBJECT
-                BINT    nchars  = rplStrSize(string);
+                int32_t    nchars  = rplStrSize(string);
                 BYTEPTR charptr = (BYTEPTR) (string + 1);
 
                 width           = StringWidthN((char *) charptr, (char *) charptr + nchars, levelfnt);
@@ -519,8 +519,8 @@ void halRedrawStack(gglsurface *scr)
             }
             else
             {
-                width  = (BINT) object[1];
-                height = (BINT) object[2];
+                width  = (int32_t) object[1];
+                height = (int32_t) object[2];
             }
 
             objheight = height;
@@ -605,7 +605,7 @@ void halRedrawStack(gglsurface *scr)
         {
             // DO PROPER LAYOUT
 
-            BINT x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
+            int32_t x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
             if (x < xright + 1)
                 x = xright + 1; // UNLESS IT DOESN'T FIT, THEN LEFT JUSTIFY
 
@@ -804,8 +804,8 @@ void halInitScreen()
     if (saved)
     {
         // JUST THE CONTRAST SETTINGS FOR NOW
-        if (ISBINT(*saved))
-            lcd_setcontrast(rplReadBINT(saved));
+        if (ISint32_t(*saved))
+            lcd_setcontrast(rplReadint32_t(saved));
     }
 
     halSetupTheme(NULL); // SETUP DEFAULT THEME
@@ -858,8 +858,8 @@ void halRedrawHelp(gglsurface *scr)
     WORDPTR helptext;
     int64_t  m1code  = rplGetMenuCode(halScreen.HelpMode >> 16);
     WORDPTR MenuObj = uiGetLibMenu(m1code);
-    BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
-    BINT    k;
+    int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
+    int32_t    k;
     WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
@@ -902,8 +902,8 @@ void halRedrawHelp(gglsurface *scr)
             return;
         }
 
-        BINT SavedException = Exceptions;
-        BINT SavedErrorCode = ErrorCode;
+        int32_t SavedException = Exceptions;
+        int32_t SavedErrorCode = ErrorCode;
 
         Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
         // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -916,8 +916,8 @@ void halRedrawHelp(gglsurface *scr)
         else
             helptext = objdecomp;
 
-        BINT ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+        int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
         ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
@@ -926,7 +926,7 @@ void halRedrawHelp(gglsurface *scr)
 
         // SHOW 3 LINES ONLY
 
-        BINT namew =
+        int32_t namew =
             StringWidthN((char *) (var[0] + 1), ((char *) (var[0] + 1)) + rplGetIdentLength(var[0]), FONT_HLPTITLE);
 
         // SHOW THE NAME OF THE VARIABLE
@@ -981,8 +981,8 @@ void halRedrawHelp(gglsurface *scr)
 
     if (ISSTRING(*helptext))
     {
-        BINT ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+        int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
         // CLEAR MENU2 AND STATUS AREA
         ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
@@ -990,7 +990,7 @@ void halRedrawHelp(gglsurface *scr)
         ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_HLP_LINES));
 
         // SHOW MESSAGE'S FIRST 3 LINES ONLY
-        BINT    currentline = 0, nextline;
+        int32_t    currentline = 0, nextline;
         BYTEPTR basetext    = (BYTEPTR) (helptext + 1);
         for (k = 0; k < 3; ++k)
         {
@@ -1009,7 +1009,7 @@ void halRedrawHelp(gglsurface *scr)
         }
 
         // FINALLY, SHOW THE NAME OF THE ITEM
-        BINT oldtop = scr->top, oldbottom = scr->bottom;
+        int32_t oldtop = scr->top, oldbottom = scr->bottom;
 
         scr->top  = ytop + 1;
         scr->bottom = ytop + 1 + FONT_HLPTITLE->BitmapHeight;
@@ -1081,8 +1081,8 @@ void halRedrawMenu1(gglsurface *scr)
 #ifndef TARGET_PRIME1
     int64_t  m1code  = rplGetMenuCode(1);
     WORDPTR MenuObj = uiGetLibMenu(m1code);
-    BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
-    BINT    k;
+    int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
+    int32_t    k;
     WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
@@ -1129,8 +1129,8 @@ void halRedrawMenu1(gglsurface *scr)
 
         int64_t  m1code  = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
-        BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
-        BINT    k;
+        int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
+        int32_t    k;
         WORDPTR item;
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
@@ -1186,8 +1186,8 @@ void halRedrawMenu1(gglsurface *scr)
 
         int64_t  m1code  = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
-        BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
-        BINT    k;
+        int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
+        int32_t    k;
         WORDPTR item;
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
@@ -1344,8 +1344,8 @@ void halRedrawMenu2(gglsurface *scr)
 
     int64_t  m2code  = rplGetMenuCode(2);
     WORDPTR MenuObj = uiGetLibMenu(m2code);
-    BINT    nitems  = uiCountMenuItems(m2code, MenuObj);
-    BINT    k;
+    int32_t    nitems  = uiCountMenuItems(m2code, MenuObj);
+    int32_t    k;
     WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
@@ -1460,7 +1460,7 @@ void halRedrawStatus(gglsurface *scr)
                      ytop + halScreen.Menu1 + halScreen.Menu2 - 1,
                      ggl_mkcolor(PAL_STA_BG));
 #endif /* TARGET_PRIME1 */
-        BINT xc, yc;
+        int32_t xc, yc;
         xc         = scr->left;
         yc         = scr->top;
         scr->left = STATUS_AREA_X;
@@ -1482,7 +1482,7 @@ void halRedrawStatus(gglsurface *scr)
                 if (!Exceptions)
                 {
                     // BUT ONLY IF THERE WERE NO ERRORS
-                    BINT    y       = ytop + 1 + FONT_STATUS->BitmapHeight;
+                    int32_t    y       = ytop + 1 + FONT_STATUS->BitmapHeight;
 
                     // FOR NOW JUST DISPLAY THE SELECTED TOKEN
                     WORDPTR cmdname = rplDecompile(((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
@@ -1513,10 +1513,10 @@ void halRedrawStatus(gglsurface *scr)
         else
         {
             // SHOW CURRENT PATH ON SECOND LINE
-            BINT    nnames, j, width, xst;
+            int32_t    nnames, j, width, xst;
             WORDPTR pathnames[8], lastword;
             BYTEPTR start, end;
-            BINT    y = ytop + 1 + FONT_HEIGHT(FONT_STATUS);
+            int32_t    y = ytop + 1 + FONT_HEIGHT(FONT_STATUS);
 
             nnames    = rplGetFullPath(CurrentDir, pathnames, 8);
 
@@ -1634,7 +1634,7 @@ void halRedrawStatus(gglsurface *scr)
 
         // ANGLE MODE INDICATOR
         {
-            BINT              anglemode = rplTestSystemFlag(FL_ANGLEMODE1) | (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
+            int32_t              anglemode = rplTestSystemFlag(FL_ANGLEMODE1) | (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             const char *const name[4]   = { "∡°", "∡r", "∡g", "∡d" };
 
             DrawTextBk(STATUS_AREA_X + 1,
@@ -1971,16 +1971,16 @@ void halRedrawCmdLine(gglsurface *scr)
             ggl_cliphline(scr, ytop + 1, 0, LCD_W - 1, ggl_mkcolor(PAL_CMD_BG));
         }
 
-        BINT    y       = (halScreen.LineCurrent - halScreen.LineVisible) * FONT_HEIGHT(FONT_CMDLINE);
+        int32_t    y       = (halScreen.LineCurrent - halScreen.LineVisible) * FONT_HEIGHT(FONT_CMDLINE);
         BYTEPTR cmdline = (BYTEPTR) (CmdLineCurrentLine + 1);
-        BINT    nchars  = rplStrSize(CmdLineCurrentLine);
+        int32_t    nchars  = rplStrSize(CmdLineCurrentLine);
 
         if (halScreen.DirtyFlag & CMDLINE_DIRTY)
         {
             // SHOW OTHER LINES HERE EXCEPT THE CURRENT EDITED LINE
-            BINT k;
-            BINT startoff = -1;
-            BINT endoff;
+            int32_t k;
+            int32_t startoff = -1;
+            int32_t endoff;
 
             for (k = 0; k < halScreen.NumLinesVisible; ++k)
             {
@@ -2010,7 +2010,7 @@ void halRedrawCmdLine(gglsurface *scr)
                 else
                     endoff = rplStringGetNextLine(CmdLineText, startoff);
 
-                BINT xcoord, tail;
+                int32_t xcoord, tail;
                 xcoord = -halScreen.XVisible;
 
                 if ((startoff >= 0) || (endoff >= 0))
@@ -2119,7 +2119,7 @@ void halRedrawCmdLine(gglsurface *scr)
             BYTEPTR string = cmdline;
             BYTEPTR selst, selend;
             BYTEPTR strend = cmdline + nchars;
-            BINT    xcoord, tail;
+            int32_t    xcoord, tail;
 
             selst = selend = strend;
             tail           = 0;
@@ -2236,7 +2236,7 @@ void halRedrawCmdLine(gglsurface *scr)
                     BYTEPTR string = cmdline;
                     BYTEPTR selst, selend;
                     BYTEPTR strend = cmdline + nchars;
-                    BINT    xcoord, tail;
+                    int32_t    xcoord, tail;
 
                     selst = selend = strend;
                     tail           = 0;
@@ -2586,8 +2586,8 @@ WORDPTR          halGetCommandName(WORDPTR NameObject)
             return 0;
     }
 
-    BINT SavedException = Exceptions;
-    BINT SavedErrorCode = ErrorCode;
+    int32_t SavedException = Exceptions;
+    int32_t SavedErrorCode = ErrorCode;
 
     Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -2618,8 +2618,8 @@ void halShowErrorMsg()
         halRedrawAll(&scr);
     }
 
-    BINT ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
-    BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+    int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
+    int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
     ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));
@@ -2636,7 +2636,7 @@ void halShowErrorMsg()
 
     if (Exceptions != EX_ERRORCODE)
     {
-        BINT xstart = scr.left + 6;
+        int32_t xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
             WORDPTR cmdname = halGetCommandName(ExceptionPointer);
@@ -2658,7 +2658,7 @@ void halShowErrorMsg()
         }
         DrawText(xstart, scr.top + 1, "Exception:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
 
-        BINT ecode;
+        int32_t ecode;
         for (errbit = 0; errbit < 8; ++errbit) // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
         {
             if (Exceptions & (1 << errbit))
@@ -2687,7 +2687,7 @@ void halShowErrorMsg()
     else
     {
         // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-        BINT xstart = scr.left + 6;
+        int32_t xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
             WORDPTR cmdname = halGetCommandName(ExceptionPointer);
@@ -2743,8 +2743,8 @@ void halShowMsgN(char *Text, char *End)
         halRedrawAll(&scr);
     }
 
-    BINT ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
-    BINT ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+    int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
+    int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
 
     // CLEAR MENU2 AND STATUS AREA
     ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, ggl_mkcolor(PAL_HLP_BG));

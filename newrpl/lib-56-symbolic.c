@@ -162,11 +162,11 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // THAT A PARENT EVALUATION ALREADY USED THIS OBJECT
 // SO IT'S A CIRCULAR REFERENCE
 
-BINT rplCheckCircularReference(WORDPTR env_owner, WORDPTR object, BINT lamnum)
+int32_t rplCheckCircularReference(WORDPTR env_owner, WORDPTR object, int32_t lamnum)
 {
     WORDPTR *lamenv = rplGetNextLAMEnv(LAMTop);
     WORDPTR *lamobj;
-    BINT nlams;
+    int32_t nlams;
     while(lamenv) {
         if(*rplGetLAMnEnv(lamenv, 0) == env_owner) {
             nlams = rplLAMCount(lamenv);
@@ -182,9 +182,9 @@ BINT rplCheckCircularReference(WORDPTR env_owner, WORDPTR object, BINT lamnum)
 }
 
 // EXPAND A LIST OF RULES IN THE STACK
-BINT rplExpandRuleList()
+int32_t rplExpandRuleList()
 {
-    BINT nrules = 1;
+    int32_t nrules = 1;
     WORDPTR *savestk = DSTop;
     if(ISLIST(*rplPeekData(1))) {
         // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
@@ -267,14 +267,14 @@ void rplSymbRuleApply()
     rplStripTagStack(2);
 
     // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-    BINT nrules;
+    int32_t nrules;
     WORDPTR *savestk = DSTop;
 
     nrules = rplExpandRuleList();
 
     WORDPTR *firstrule = savestk - 1;
-    BINT k;
-    BINT nsolutions, totalreplacements = 0, prevreplacements = -1;
+    int32_t k;
+    int32_t nsolutions, totalreplacements = 0, prevreplacements = -1;
     WORD objhash, prevhash;
     rplPushDataNoGrow(*(savestk - 2));  // COPY THE EXPRESSION
     prevhash = objhash = 0;
@@ -310,7 +310,7 @@ void rplSymbRuleApply()
     }
 
     firstrule[-1] = rplPeekData(1);     // REPLACE ORIGINAL EXPRESSION WITH RESULT
-    firstrule[0] = rplNewBINT(totalreplacements, DECBINT);
+    firstrule[0] = rplNewint32_t(totalreplacements, DECint32_t);
     DSTop = savestk;
     return;
 
@@ -328,14 +328,14 @@ void rplSymbRuleApply1()
     rplStripTagStack(2);
 
     // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-    BINT nrules;
+    int32_t nrules;
     WORDPTR *savestk = DSTop;
 
     nrules = rplExpandRuleList();
 
     WORDPTR *firstrule = savestk - 1;
-    BINT k;
-    BINT nsolutions, totalreplacements = 0;
+    int32_t k;
+    int32_t nsolutions, totalreplacements = 0;
     rplPushDataNoGrow(*(savestk - 2));  // COPY THE EXPRESSION
 
     for(k = 0; k < nrules; ++k) {
@@ -361,7 +361,7 @@ void rplSymbRuleApply1()
     // WE APPLIED ALL RULES
 
     firstrule[-1] = rplPeekData(1);     // REPLACE ORIGINAL EXPRESSION WITH RESULT
-    firstrule[0] = rplNewBINT(totalreplacements, DECBINT);
+    firstrule[0] = rplNewint32_t(totalreplacements, DECint32_t);
     DSTop = savestk;
 
 }
@@ -427,11 +427,11 @@ void LIB_HANDLER()
                 return;
             }
             if(ISSYMBOLIC(*object)) {
-                if(ISPROLOG(object[1]) || ISBINT(object[1]))
+                if(ISPROLOG(object[1]) || ISint32_t(object[1]))
                     ++object;   // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
             }
 
-            BINT size = rplObjSize(object);
+            int32_t size = rplObjSize(object);
             // NEED TO WRAP AND ADD THE OPERATOR
             size += 2;
 
@@ -501,7 +501,7 @@ void LIB_HANDLER()
                     endobject = lastobj;
                 }
                 else {
-                    BINT tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
+                    int32_t tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
 
                     if((TI_TYPE(tokeninfo) == TITYPE_CASFUNCTION)
                             || (TI_TYPE(tokeninfo) == TITYPE_CASBINARYOP_LEFT)
@@ -682,7 +682,7 @@ void LIB_HANDLER()
                     endobject = lastobj;
                 }
                 else {
-                    BINT tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
+                    int32_t tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
 
                     if((TI_TYPE(tokeninfo) == TITYPE_CASFUNCTION)
                             || (TI_TYPE(tokeninfo) == TITYPE_CASBINARYOP_LEFT)
@@ -820,7 +820,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            BINT size = rplObjSize(object);
+            int32_t size = rplObjSize(object);
             // NEED TO WRAP AND ADD THE OPERATOR
             size += 2;
 
@@ -891,7 +891,7 @@ void LIB_HANDLER()
                     endobject = lastobj;
                 }
                 else {
-                    BINT tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
+                    int32_t tokeninfo = rplSymbGetTokenInfo(Opcodeptr);
 
                     if((TI_TYPE(tokeninfo) == TITYPE_CASFUNCTION)
                             || (TI_TYPE(tokeninfo) == TITYPE_CASBINARYOP_LEFT)
@@ -1049,7 +1049,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            BINT size = rplObjSize(object);
+            int32_t size = rplObjSize(object);
             // NEED TO WRAP AND ADD THE OPERATOR
             size += 2;
 
@@ -1096,8 +1096,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT initdepth = rplDepthData();
-            BINT argtype = 0;
+            int32_t initdepth = rplDepthData();
+            int32_t argtype = 0;
 
             if(ISCOMPLEX(*rplPeekData(2))) {
                 WORDPTR newsymb = rplComplexToSymb(rplPeekData(2));
@@ -1283,7 +1283,7 @@ void LIB_HANDLER()
             ScratchPointer4 = rplSkipOb(arg2);
 
             WORDPTR *stksave = DSTop;
-            BINT same = 1;
+            int32_t same = 1;
             while(same && (ScratchPointer1 < ScratchPointer3)
                     && (ScratchPointer2 < ScratchPointer4)) {
                 while(ISSYMBOLIC(*ScratchPointer1))
@@ -1291,7 +1291,7 @@ void LIB_HANDLER()
                 while(ISSYMBOLIC(*ScratchPointer2))
                     ++ScratchPointer2;
 
-                if(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)
+                if(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                         || ISCONSTANT(*ScratchPointer1)) {
                     // COMPARE OBJECTS BY USING THE SAME OPERATOR
                     rplPushDataNoGrow(ScratchPointer1);
@@ -1415,7 +1415,7 @@ void LIB_HANDLER()
                 prevDStk = rplUnprotectData();
             else
                 prevDStk = DStkProtect;
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
             if(Opcode) {
                 if(Opcode == CMD_OVR_FUNCEVAL) {
@@ -1452,7 +1452,7 @@ void LIB_HANDLER()
                 if(anyargschanged != zero_bint) {
                     // SOME ARGUMENTS CHANGED IN THIS STEP, DON'T EVALUATE THE FUNCTION
                     rplSymbApplyOperator(Opcode, newdepth);
-                    newdepth = (BINT) (DSTop - prevDStk);
+                    newdepth = (int32_t) (DSTop - prevDStk);
                 }
 
                 else {
@@ -1465,7 +1465,7 @@ void LIB_HANDLER()
                             || (Opcode == CMD_LISTOPENBRACKET)
                             || (Opcode == CMD_CLISTOPENBRACKET)) {
                         // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                        rplNewBINTPush(newdepth, DECBINT);
+                        rplNewint32_tPush(newdepth, DECint32_t);
 
                     }
 
@@ -1561,7 +1561,7 @@ void LIB_HANDLER()
         WORDPTR endoflist = *rplGetLAMn(2);
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
-        BINT forced_rad;
+        int32_t forced_rad;
         if(nextobj > endoflist) {
             // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
             forced_rad = 0;
@@ -1829,7 +1829,7 @@ void LIB_HANDLER()
                 prevDStk = rplUnprotectData();
             else
                 prevDStk = DStkProtect;
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
             if(Opcode) {
                 if(Opcode == CMD_OVR_FUNCEVAL) {
@@ -1872,7 +1872,7 @@ void LIB_HANDLER()
                         || (Opcode == CMD_LISTOPENBRACKET)
                         || (Opcode == CMD_CLISTOPENBRACKET)) {
                     // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                    rplNewBINTPush(newdepth, DECBINT);
+                    rplNewint32_tPush(newdepth, DECint32_t);
                 }
 
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
@@ -1881,7 +1881,7 @@ void LIB_HANDLER()
                         rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
                 else {
-                    BINT tinfo = rplSymbGetTokenInfo(Opcodeptr);
+                    int32_t tinfo = rplSymbGetTokenInfo(Opcodeptr);
                     if((TI_TYPE(tinfo) == TITYPE_CASFUNCTION)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_LEFT)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_RIGHT)) {
@@ -1947,7 +1947,7 @@ void LIB_HANDLER()
         WORDPTR endoflist = *rplGetLAMn(2);
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
-        BINT forced_rad;
+        int32_t forced_rad;
         if(nextobj > endoflist) {
             // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
             forced_rad = 0;
@@ -2022,7 +2022,7 @@ void LIB_HANDLER()
                 prevDStk = rplUnprotectData();
             else
                 prevDStk = DStkProtect;
-            BINT newdepth = (BINT) (DSTop - prevDStk);
+            int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
             if(Opcode) {
                 if(Opcode == CMD_OVR_FUNCEVAL) {
@@ -2066,7 +2066,7 @@ void LIB_HANDLER()
                         || (Opcode == CMD_LISTOPENBRACKET)
                         || (Opcode == CMD_CLISTOPENBRACKET)) {
                     // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                    rplNewBINTPush(newdepth, DECBINT);
+                    rplNewint32_tPush(newdepth, DECint32_t);
                 }
 
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
@@ -2075,7 +2075,7 @@ void LIB_HANDLER()
                         rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
                 else {
-                    BINT tinfo = rplSymbGetTokenInfo(Opcodeptr);
+                    int32_t tinfo = rplSymbGetTokenInfo(Opcodeptr);
                     if((TI_TYPE(tinfo) == TITYPE_CASFUNCTION)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_LEFT)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_RIGHT)) {
@@ -2142,7 +2142,7 @@ void LIB_HANDLER()
         WORDPTR nextobj = rplSkipOb(*rplGetLAMn(3));
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
-        BINT forced_rad;
+        int32_t forced_rad;
         if(nextobj > endoflist) {
             // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
             forced_rad = 0;
@@ -2218,7 +2218,7 @@ void LIB_HANDLER()
 
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
-        BINT nsolutions = rplSymbRuleMatch(), nsol2 = nsolutions;
+        int32_t nsolutions = rplSymbRuleMatch(), nsol2 = nsolutions;
         if(Exceptions)
             return;
 
@@ -2226,8 +2226,8 @@ void LIB_HANDLER()
             // HERE WE HAVE A NEW LOCAL ENVIRONMENT
             // PUSH THE RESULT OF THE MATCH IN THE STACK AS A LIST OF RULES
 
-            BINT numlams = rplLAMCount(0);
-            BINT f;
+            int32_t numlams = rplLAMCount(0);
+            int32_t f;
 
             if(numlams >= 1) {
 
@@ -2247,7 +2247,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                rplNewBINTPush(numlams, DECBINT);
+                rplNewint32_tPush(numlams, DECint32_t);
                 rplCreateList();
                 if(Exceptions) {
                     rplCleanupLAMs(0);
@@ -2262,7 +2262,7 @@ void LIB_HANDLER()
             rplCleanupLAMs(0);
             --nsolutions;
         }
-        rplNewBINTPush(nsol2, DECBINT);
+        rplNewint32_tPush(nsol2, DECint32_t);
         return;
 
     }
@@ -2339,7 +2339,7 @@ void LIB_HANDLER()
 #define ZERO_REG(reg) { reg.len=1; reg.data[0]=0; reg.exp=0; reg.flags=0; }
 #define ONE_REG(reg) { reg.len=1; reg.data[0]=1; reg.exp=0; reg.flags=0; }
 
-        BINT s, d0exp;
+        int32_t s, d0exp;
         rplReadNumberAsReal(rplPeekData(1), &num);
         if(Exceptions)
             return;
@@ -2361,9 +2361,9 @@ void LIB_HANDLER()
          j:=d2f(j);
          */
 
-        BINT savesign = num.flags & F_NEGATIVE;
+        int32_t savesign = num.flags & F_NEGATIVE;
         num.flags &= ~(F_APPROX | F_NEGATIVE);  // FROM NOW ON ALL NUMBERS ARE EXACT AND POSITIVE
-        BINT saveprec = Context.precdigits;
+        int32_t saveprec = Context.precdigits;
         Context.precdigits = MAX_USERPRECISION; // ALLOW INTEGERS TO GROW UP TO MAXIMUM SYSTEM PRECISION
 
         copyReal(&n, &num);     //  n:=numer(j);
@@ -2434,8 +2434,8 @@ void LIB_HANDLER()
 
         // ELIMINATE SOME ZEROS (UNNECESSARY)
 
-        BINT t1zn = trailzerosReal(&t1);
-        BINT t3zn = trailzerosReal(&t3);
+        int32_t t1zn = trailzerosReal(&t1);
+        int32_t t3zn = trailzerosReal(&t3);
         if(t1.exp + t1zn > t3.exp + t3zn) {
             t1.exp -= t3.exp + t3zn;
             t3.exp = -t3zn;
@@ -2482,7 +2482,7 @@ void LIB_HANDLER()
 
            int64_t Ai1,Ai2,Bi1,Bi2,A,B,k,oflowA,oflowB;
            REAL num;
-           BINT isneg;
+           int32_t isneg;
            rplReadNumberAsReal(rplPeekData(1),&num);
 
            isneg=num.flags&F_NEGATIVE;
@@ -2540,7 +2540,7 @@ void LIB_HANDLER()
            if(Exceptions) return;
 
            if(B!=1) {
-           rplNewBINTPush(B,DECBINT);
+           rplNewint32_tPush(B,DECint32_t);
            if(Exceptions) { rplDropData(1); return; }
            rplSymbApplyOperator(CMD_OVR_DIV,2);
            if(Exceptions) return;
@@ -2807,13 +2807,13 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*argstart) && ISBINT(*argend) && (ISBINT(*argstep))) {
+        if(ISint32_t(*argstart) && ISint32_t(*argend) && (ISint32_t(*argstep))) {
             // ALL INTEGERS!, DO THIS FASTER
             int64_t start, end, step, k;
-            BINT size = 1;
-            start = rplReadBINT(argstart);
-            end = rplReadBINT(argend);
-            step = rplReadBINT(argstep);
+            int32_t size = 1;
+            start = rplReadint32_t(argstart);
+            end = rplReadint32_t(argend);
+            step = rplReadint32_t(argstep);
             if(end < start) {
                 if(step >= 0)
                     step = (end - start) * 2;
@@ -2847,12 +2847,12 @@ void LIB_HANDLER()
             ptr = newlist + 1;
             if(step > 0) {
                 for(k = start; k <= end; k += step) {
-                    ptr = rplWriteBINT(k, DECBINT, ptr);
+                    ptr = rplWriteint32_t(k, DECint32_t, ptr);
                 }
             }
             else {
                 for(k = start; k >= end; k += step) {
-                    ptr = rplWriteBINT(k, DECBINT, ptr);
+                    ptr = rplWriteint32_t(k, DECint32_t, ptr);
                 }
             }
 
@@ -2863,7 +2863,7 @@ void LIB_HANDLER()
 
         // USE REAL NUMBERS, WE ARE DEALING WITH LARGE INTEGERS
         REAL start, end, step;
-        BINT direction;
+        int32_t direction;
         WORDPTR newlist = rplAllocTempOb(2), ptr;
         if(!newlist)
             return;
@@ -3196,7 +3196,7 @@ void LIB_HANDLER()
            }
          */
 
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -3213,7 +3213,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
@@ -3223,7 +3223,7 @@ void LIB_HANDLER()
         }
         TypeInfo = 0;   // ALL COMMANDS ARE TYPE 0
         DecompHints = 0;
-        libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
         return;
 

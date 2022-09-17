@@ -103,7 +103,7 @@ const WORD const LIB_OPCODES[] = {
 
 #undef OP
 #define OP(a,b) b
-const BINT const LIB_TOKENINFO[] = {
+const int32_t const LIB_TOKENINFO[] = {
     OP_LIST
 };
 
@@ -119,7 +119,7 @@ void rplCallOperator(WORD op)
         LIBHANDLER han = rplGetLibHandler(libnum);
         if(han) {
             // EXECUTE THE OTHER LIBRARY DIRECTLY
-            BINT SavedOpcode = CurOpcode;
+            int32_t SavedOpcode = CurOpcode;
             CurOpcode = op;
             (*han) ();
             if(CurOpcode == op)
@@ -186,7 +186,7 @@ void rplCallOvrOperator(WORD op)
     LIBHANDLER han = rplGetLibHandler(libnum);
     if(han) {
         // EXECUTE THE OTHER LIBRARY DIRECTLY
-        BINT SavedOpcode = CurOpcode;
+        int32_t SavedOpcode = CurOpcode;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, op);
         (*han) ();
         if(CurOpcode == MKOPCODE(LIBRARY_NUMBER, op))
@@ -285,7 +285,7 @@ void LIB_HANDLER()
             RetNum = OK_CONTINUE;
             return;
         case OPCODE_PROBETOKEN:
-            libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
             return;
         case OPCODE_GETINFO:
@@ -298,7 +298,7 @@ void LIB_HANDLER()
             //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
             //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
             // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+            // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
@@ -314,7 +314,7 @@ void LIB_HANDLER()
             }
 
             libGetInfo(*DecompileObject, (char **)LIB_NAMES,
-                    (WORDPTR) LIB_OPCODES, (BINT *) LIB_TOKENINFO,
+                    (WORDPTR) LIB_OPCODES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
             return;
 
@@ -352,11 +352,11 @@ void LIB_HANDLER()
 
         case OPCODE_AUTOCOMPNEXT:
         {
-            BINT idx;
+            int32_t idx;
             do {
                 if(LIBNUM(SuggestedOpcode) == LIBRARY_NUMBER) {
                     // CONVERT OPCODE INTO INDEX
-                    BINT k;
+                    int32_t k;
 
                     for(k = 0; k < LIB_NUMBEROFCMDS; ++k) {
                         if(LIB_OPCODES[k] == OPCODE(SuggestedOpcode))

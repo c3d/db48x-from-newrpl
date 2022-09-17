@@ -45,7 +45,7 @@ const int lowestzerobit[16] = {
     -1  // 1111
 };
 
-BINT *allocRegister()
+int32_t *allocRegister()
 {
     WORD bmp = Context.alloc_bmp;
     int k;
@@ -53,7 +53,7 @@ BINT *allocRegister()
     for(k = 0; k < 8; ++k) {
         if(lowestzerobit[bmp & 0xf] >= 0) {
             Context.alloc_bmp |= 1 << ((k << 2) + lowestzerobit[bmp & 0xf]);
-            return (BINT *) Context.regdata + ((k << 2) +
+            return (int32_t *) Context.regdata + ((k << 2) +
                     lowestzerobit[bmp & 0xf]) * REAL_REGISTER_STORAGE;
         }
         bmp >>= 4;
@@ -70,7 +70,7 @@ BINT *allocRegister()
     return 0;
 }
 
-void freeRegister(BINT * data)
+void freeRegister(int32_t * data)
 {
     int regnum = (data - Context.regdata) / REAL_REGISTER_STORAGE;
 
@@ -91,7 +91,7 @@ const unsigned char const carry_table[64] = {
     40, 41, 42
 };
 
-const UBINT const carry_table_mult[64] = {
+const uint32_t const carry_table_mult[64] = {
     0U, 0U, 100000000U, 200000000U, 200000000U, 300000000U, 400000000U,
             400000000U, 500000000U, 600000000U, 600000000U,
     700000000U, 800000000U, 800000000U, 900000000U, 1000000000U, 1000000000U,
@@ -114,9 +114,9 @@ const UBINT const carry_table_mult[64] = {
 // CARRY WILL BE DEFERRED AS MUCH AS POSSIBLE
 
 // CORRECT CARRY FROM START TO end (END EXCLUDED, POSSIBLE END CARRY NEEDS TO BE HANDLED BY OTHER ROUTINES)
-void carry_correct(BINT * start, BINT nwords)
+void carry_correct(int32_t * start, int32_t nwords)
 {
-    BINT *end = start + nwords - 1;
+    int32_t *end = start + nwords - 1;
     /*
        while(start<end-1) {
        while(*start>=100000000) { ++*(start+1); *start-=100000000; }
@@ -124,7 +124,7 @@ void carry_correct(BINT * start, BINT nwords)
        ++start;
        }
      */
-    BINT carry = 0, word;
+    int32_t carry = 0, word;
     while(start < end) {
         word = *start + carry;
 
@@ -168,15 +168,15 @@ void carry_correct(BINT * start, BINT nwords)
 }
 
 // SAME AS carry_correct() BUT ASSUMES ALL WORDS ARE POSITIVE, THIS IS TRUE DURING MULTIPLICATION
-void carry_correct_pos(BINT * start, BINT nwords)
+void carry_correct_pos(int32_t * start, int32_t nwords)
 {
-    BINT *end = start + nwords - 1;
-    BINT carry = 0, word;
+    int32_t *end = start + nwords - 1;
+    int32_t carry = 0, word;
     while(start < end) {
         word = *start + carry;
 
         carry = carry_table[word >> 26];
-        word -= carry * 100000000;      //(BINT)carry_table_mult[word>>26];
+        word -= carry * 100000000;      //(int32_t)carry_table_mult[word>>26];
         // HERE word IS WITHIN +/-1E8
         if(word >= 100000000) {
             word -= 100000000;
@@ -221,8 +221,8 @@ void checkrange(REAL * number)
 // FULLY NORMALIZE A NUMBER
 void normalize(REAL * number)
 {
-    BINT *start, *end, *dest;
-    BINT word, carry;
+    int32_t *start, *end, *dest;
+    int32_t word, carry;
     dest = start = number->data;
     end = number->data + number->len;
 
@@ -350,9 +350,9 @@ void round_real(REAL *r,int digits,int truncate)
 
     // DO COPY AND CARRY CORRECTION AT THE SAME TIME
 
-    BINT *end=r->data+r->len;
-    BINT *start=r->data+trim;
-    BINT *dest=r->data;
+    int32_t *end=r->data+r->len;
+    int32_t *start=r->data+trim;
+    int32_t *dest=r->data;
 
     *end=0; // ADD A ZERO WORD FOR POSSIBLE FINAL CARRY
 
@@ -406,10 +406,10 @@ void round_real(REAL * r, int digits, int truncate)
 
     // DO COPY AND CARRY CORRECTION AT THE SAME TIME
 
-    BINT *end = r->data + r->len;
-    BINT *start = r->data + trim;
-    BINT *dest = r->data;
-    BINT lodigits = 0;
+    int32_t *end = r->data + r->len;
+    int32_t *start = r->data + trim;
+    int32_t *dest = r->data;
+    int32_t lodigits = 0;
 
     *end = 0;   // ADD A ZERO WORD FOR POSSIBLE FINAL CARRY
 
@@ -444,7 +444,7 @@ void round_real(REAL * r, int digits, int truncate)
     }
     // CHECK IF ALL TRIMMED WORDS ARE ZEROS
     if(trim > 0) {
-        BINT *ptr = r->data + trim - 1;
+        int32_t *ptr = r->data + trim - 1;
         while(ptr >= r->data) {
             if(*ptr)
                 break;
@@ -508,10 +508,10 @@ void finalize(REAL * number)
 
 // ADD A 64-BIT INTEGER TO A LONG NUMBER AT start
 
-void add_single64(BINT * start, int64_t number)
+void add_single64(int32_t * start, int64_t number)
 {
     UWORD tmp;
-    BINT lo, hi;
+    int32_t lo, hi;
 
     if(number < 0) {
 
@@ -579,11 +579,11 @@ void add_single64(BINT * start, int64_t number)
 
 // MULTIPLIES 2 WORDS X 2 WORDS IN 3 MULTIPLICATIONS USING KARATSUBA TRICK
 // AND ACCUMULATE RESULT
-void add_karatsuba(BINT * start, BINT * a, BINT * b)
+void add_karatsuba(int32_t * start, int32_t * a, int32_t * b)
 {
     int64_t hi, lo, mid;
     UWORD tmp1, tmp2, tmp3;
-    BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
+    int32_t lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
     lo = a[0] * (int64_t) b[0];
     hi = a[1] * (int64_t) b[1];
@@ -609,7 +609,7 @@ void add_karatsuba(BINT * start, BINT * a, BINT * b)
 
 // ADD nwords FROM n1 TO result, NO CARRY CHECK
 // RESULT MUST BE INITIALIZED SOMEWHERE ELSE
-void add_long(BINT * result, BINT * n1start, BINT nwords)
+void add_long(int32_t * result, int32_t * n1start, int32_t nwords)
 {
     PROTECT_WRITE_AREA(result, nwords);
 
@@ -628,7 +628,7 @@ void add_long(BINT * result, BINT * n1start, BINT nwords)
 
 // NEW FASTER VERSION OF SHIFT, INCLUDES A SMALL MULTIPLICATIVE CONSTANT 0-31
 
-const BINT const shiftmul_K1[] = {
+const int32_t const shiftmul_K1[] = {
     // CONSTANTS ARE 2^24/10^(8-N)*M
     0,
     1,
@@ -880,7 +880,7 @@ const BINT const shiftmul_K1[] = {
     52009369,
 };
 
-const BINT const shiftmul_K2[] = {
+const int32_t const shiftmul_K2[] = {
     // CONSTANTS ARE 10^N*M
     1,
     10,
@@ -1132,7 +1132,7 @@ const BINT const shiftmul_K2[] = {
     310000000
 };
 
-const BINT const shift_constants[16] = {
+const int32_t const shift_constants[16] = {
     0, 1,
     429, 10,
     4294, 100,
@@ -1147,16 +1147,16 @@ const BINT const shift_constants[16] = {
 // word MUST BE POSITIVE
 // n = 0-7
 
-BINT shift_right(BINT word, BINT digits)
+int32_t shift_right(int32_t word, int32_t digits)
 {
     if(!digits)
         return 0;
 
-    BINT shift = (8 - digits) & 7;
+    int32_t shift = (8 - digits) & 7;
 
     if(!shift)
         return word;
-    BINT *consts = (BINT *) shift_constants + (shift << 1);
+    int32_t *consts = (int32_t *) shift_constants + (shift << 1);
 
     UWORD tmp;
 
@@ -1177,16 +1177,16 @@ BINT shift_right(BINT word, BINT digits)
 // SHIFT AND SPLIT DIGITS
 // RETURN A 64-BIT NUMBER WITH THE LOW N DIGITS IN THE LOW WORD
 // AND THE HIGH (8-N) DIGITS IN THE HIGH WORD
-int64_t shift_split(BINT word, BINT digits)
+int64_t shift_split(int32_t word, int32_t digits)
 {
     if(!digits)
         return ((int64_t) word) << 32;
 
-    BINT shift = (8 - digits) & 7;
+    int32_t shift = (8 - digits) & 7;
 
     if(!shift)
         return word;
-    BINT *consts = (BINT *) shift_constants + (shift << 1);
+    int32_t *consts = (int32_t *) shift_constants + (shift << 1);
 
     UWORD tmp;
 
@@ -1208,16 +1208,16 @@ int64_t shift_split(BINT word, BINT digits)
 
 // ISOLATE LOW n DIGITS IN A WORD, DISCARD HI DIGITS
 
-BINT lo_digits(BINT word, BINT digits)
+int32_t lo_digits(int32_t word, int32_t digits)
 {
     if(!digits)
         return 0;
 
-    BINT shift = (8 - digits) & 7;
+    int32_t shift = (8 - digits) & 7;
 
     if(!shift)
         return word;
-    BINT *consts = (BINT *) shift_constants + (shift << 1);
+    int32_t *consts = (int32_t *) shift_constants + (shift << 1);
 
     UWORD tmp;
 
@@ -1238,16 +1238,16 @@ BINT lo_digits(BINT word, BINT digits)
 
 // ISOLATE HIGH (8-n) DIGITS IN A WORD, DISCARD LOW DIGITS
 // CLEAR THE LOWER n DIGITS IN WORD
-BINT hi_digits(BINT word, BINT digits)
+int32_t hi_digits(int32_t word, int32_t digits)
 {
     if(!digits)
         return 0;
 
-    BINT shift = (8 - digits) & 7;
+    int32_t shift = (8 - digits) & 7;
 
     if(!shift)
         return word;
-    BINT *consts = (BINT *) shift_constants + (shift << 1);
+    int32_t *consts = (int32_t *) shift_constants + (shift << 1);
 
     UWORD tmp;
 
@@ -1268,7 +1268,7 @@ BINT hi_digits(BINT word, BINT digits)
 
 // ISOLATE HIGH (8-n) DIGITS IN A WORD, ROUND LOW DIGITS
 // CLEAR THE LOWER n DIGITS IN WORD AFTER ROUNDING
-BINT hi_digits_rounded(BINT word, BINT digits)
+int32_t hi_digits_rounded(int32_t word, int32_t digits)
 {
     if(digits == 8) {
         if(word >= 50000000)
@@ -1276,11 +1276,11 @@ BINT hi_digits_rounded(BINT word, BINT digits)
         return 0;
     }
 
-    BINT shift = (8 - digits) & 7;
+    int32_t shift = (8 - digits) & 7;
 
     if(!shift)
         return word;    // WARNING: THIS IS NOT ROUNDED! digits==0 IS AN INVALID ARGUMENT
-    BINT *consts = (BINT *) shift_constants + (shift << 1);
+    int32_t *consts = (int32_t *) shift_constants + (shift << 1);
 
     UWORD tmp;
     word += 5 * shift_constants[((digits & 7) << 1) - 1];
@@ -1306,14 +1306,14 @@ BINT hi_digits_rounded(BINT word, BINT digits)
 
 // NEEDS CARRY CORRECTION AFTERWARDS
 
-void add_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
-        BINT mul)
+void add_long_mul_shift(int32_t * result, int32_t * n1start, int32_t nwords, int32_t shift,
+        int32_t mul)
 {
 
     PROTECT_WRITE_AREA(result, nwords);
 
-    BINT K1, K2;
-    BINT hi, lo, hi2, lo2, hi3, lo3;
+    int32_t K1, K2;
+    int32_t hi, lo, hi2, lo2, hi3, lo3;
 
     K1 = shiftmul_K1[((mul - 1) << 3) + shift];
     K2 = shiftmul_K2[((mul - 1) << 3) + shift];
@@ -1366,12 +1366,12 @@ void add_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
 // SINGLE-STEP SHIFT-AND-ACCUMULATE
 // MULTIPLIES BY 10^N AND ADDS INTO result
-void add_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
+void add_long_shift(int32_t * result, int32_t * n1start, int32_t nwords, int32_t shift)
 {
 
     PROTECT_WRITE_AREA(result, nwords);
 
-    BINT *consts = (BINT *) shift_constants + ((shift & 7) << 1);
+    int32_t *consts = (int32_t *) shift_constants + ((shift & 7) << 1);
 
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
@@ -1393,19 +1393,19 @@ void add_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
 // IN-PLACE SHIFT
 // MULTIPLIES BY 10^N AND STORES INTO result
 // shift HAS TO BE 0 TO 7
-void long_shift(BINT * n1start, BINT nwords, BINT shift)
+void long_shift(int32_t * n1start, int32_t nwords, int32_t shift)
 {
 
     PROTECT_WRITE_AREA(n1start, nwords);
 
-    BINT *consts = (BINT *) shift_constants + ((shift & 7) << 1);
+    int32_t *consts = (int32_t *) shift_constants + ((shift & 7) << 1);
 
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
 
     UWORD tmp;
     uint64_t a;
-    BINT *nptr;
+    int32_t *nptr;
     nptr = n1start + nwords;
 
     *nptr = 0;
@@ -1442,7 +1442,7 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
 // COUNT NUMBER OF SIGNIFICANT USED DIGITS IN A WORD
 // WORD MUST BE NORMALIZED AND >0
 
-int sig_digits(BINT word)
+int sig_digits(int32_t word)
 {
 
     if(word >= 10000) {
@@ -1528,7 +1528,7 @@ void int_justify(REAL * number)
 
 // SAME BUT SUBTRACTING, NO CARRY CHECKS
 
-void sub_long(BINT * result, BINT * n1start, BINT nwords)
+void sub_long(int32_t * result, int32_t * n1start, int32_t nwords)
 {
     while(nwords >= 3) {
         result[nwords - 1] -= n1start[nwords - 1];
@@ -1544,14 +1544,14 @@ void sub_long(BINT * result, BINT * n1start, BINT nwords)
 
 }
 
-void sub_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
-        BINT mul)
+void sub_long_mul_shift(int32_t * result, int32_t * n1start, int32_t nwords, int32_t shift,
+        int32_t mul)
 {
 
     PROTECT_WRITE_AREA(result, nwords);
 
-    BINT K1, K2;
-    BINT hi, lo, hi2, lo2, hi3, lo3;
+    int32_t K1, K2;
+    int32_t hi, lo, hi2, lo2, hi3, lo3;
 
     K1 = shiftmul_K1[((mul - 1) << 3) + shift];
     K2 = shiftmul_K2[((mul - 1) << 3) + shift];
@@ -1604,12 +1604,12 @@ void sub_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
 // SINGLE-STEP SHIFT-AND-ACCUMULATE
 // MULTIPLIES BY 10^N AND ADDS INTO result
-void sub_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
+void sub_long_shift(int32_t * result, int32_t * n1start, int32_t nwords, int32_t shift)
 {
 
     PROTECT_WRITE_AREA(result, nwords);
 
-    BINT *consts = (BINT *) shift_constants + ((shift & 7) << 1);
+    int32_t *consts = (int32_t *) shift_constants + ((shift & 7) << 1);
 
     // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
     // X=(2^32-10^8)/10^(8-N)+10^N
@@ -1628,7 +1628,7 @@ void sub_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
 
 }
 
-void zero_words(BINT * ptr, BINT nwords)
+void zero_words(int32_t * ptr, int32_t nwords)
 {
 
     PROTECT_WRITE_AREA(ptr, nwords);
@@ -1647,7 +1647,7 @@ void zero_words(BINT * ptr, BINT nwords)
 
 }
 
-void copy_words(BINT * ptr, BINT * source, BINT nwords)
+void copy_words(int32_t * ptr, int32_t * source, int32_t nwords)
 {
 
     PROTECT_WRITE_AREA(ptr, nwords);
@@ -1857,7 +1857,7 @@ void add_real(REAL * r, REAL * a, REAL * b)
 // r=a+b*mult
 // NUMBERS SHOULD BE NORMALIZED
 
-void add_real_mul(REAL * r, REAL * a, REAL * b, BINT mult)
+void add_real_mul(REAL * r, REAL * a, REAL * b, int32_t mult)
 {
     REAL c, *result = r;
 
@@ -1999,7 +1999,7 @@ void sub_real(REAL * result, REAL * a, REAL * b)
     add_real(result, a, &c);
 }
 
-void sub_real_mul(REAL * r, REAL * a, REAL * b, BINT mult)
+void sub_real_mul(REAL * r, REAL * a, REAL * b, int32_t mult)
 {
     REAL c;
     // MAKE A NEGATIVE b WITH THE SAME DATA
@@ -2015,9 +2015,9 @@ void sub_real_mul(REAL * r, REAL * a, REAL * b, BINT mult)
 // result+=number*10^exponent;
 // 0<number<10
 // USED BY CORDIC ALGORITHM
-void acc_real_int(REAL * result, BINT number, BINT exponent)
+void acc_real_int(REAL * result, int32_t number, int32_t exponent)
 {
-    BINT wordshift = exponent - result->exp, smallshift;
+    int32_t wordshift = exponent - result->exp, smallshift;
     if(wordshift < 0) {
         // NEED TO MOVE THE WHOLE NUMBER TO ADD THIS
         if((-wordshift) & 7) {
@@ -2082,7 +2082,7 @@ void mul_real(REAL * r, REAL * a, REAL * b)
     REAL c, *result = r;
     int64_t hi, lo, mid;
     UWORD tmp1, tmp2, tmp3;
-    BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
+    int32_t lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
     if((result->data == a->data) || (result->data == b->data)) {
         // STORE RESULT INTO ALTERNATIVE LOCATION TO PREVENT OVERWRITE
@@ -2207,7 +2207,7 @@ void mul_real(REAL * r, REAL * a, REAL * b)
 // IF m IS ODD, THE SUBDIVISION LEAVES ONE WORD OUT
 // SO LAST WORD IS A SINGLE X m MULTIPLICATION
 
-void mul_long_karatsuba(BINT * result, BINT * a, BINT * b, BINT m)
+void mul_long_karatsuba(int32_t * result, int32_t * a, int32_t * b, int32_t m)
 {
 
     if(m <= 2) {
@@ -2397,7 +2397,7 @@ void newRealFromText(REAL * result, char *text, char *end, uint64_t chars)
     int exp = 0;
     int expdone = 0;
     int dotdone = 0;
-    BINT word = 0;
+    int32_t word = 0;
 
     result->flags = 0;
     result->exp = 0;
@@ -2749,7 +2749,7 @@ void newRealFromText(REAL * result, char *text, char *end, uint64_t chars)
 
 // ALL FOUR CHARACTERS ARE PACKED IN A 32-BIT WORD
 
-void word2digits(BINT word, char *digits)
+void word2digits(int32_t word, char *digits)
 {
     int f;
 
@@ -3004,7 +3004,7 @@ int round_in_string(char *start, char *end, int format, uint64_t chars,
 
 // RETURN A POINTER TO THE END OF THE STRING (NOT 0 TERMINATED)
 
-char *formatReal(REAL * number, char *buffer, BINT format, uint64_t chars)
+char *formatReal(REAL * number, char *buffer, int32_t format, uint64_t chars)
 {
     int totaldigits, integer, frac, realexp, leftzeros, sep_spacing;
     int nbnumsep, nbfracsep, nbdot;
@@ -3374,7 +3374,7 @@ char *formatReal(REAL * number, char *buffer, BINT format, uint64_t chars)
     return buffer + idx;
 }
 
-BINT formatlengthReal(REAL * number, BINT format, uint64_t locale)
+int32_t formatlengthReal(REAL * number, int32_t format, uint64_t locale)
 {
     int totaldigits, integer, realexp, leftzeros, sep_spacing;
     int wantdigits = format & 0xfff;
@@ -3602,7 +3602,7 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
     remainder.data[remainder.len] = 0;  // EXTRA ZERO PADDING FOR THE ALGORITHM
 
     remword = remainder.len - 1;        // TAKE THE FIRST WORD TO START
-    BINT tempres;
+    int32_t tempres;
     int64_t tmp64;
     while(resword >= 0) {
         // COMPUTE A NEW WORD OF THE QUOTIENT
@@ -3660,9 +3660,9 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
         --remword;
     }
 
-    BINT *ptr = remainder.data + remword + 2 - div->len;
-    BINT *divptr = div->data;
-    BINT eq = 1, zero = 1;
+    int32_t *ptr = remainder.data + remword + 2 - div->len;
+    int32_t *divptr = div->data;
+    int32_t eq = 1, zero = 1;
     while((ptr < remainder.data + remword + 2)) {
         if(*ptr != *divptr)
             eq = 0;
@@ -3777,7 +3777,7 @@ void destroyReal(REAL * a)
 
 // SELECT WORKING PRECISION
 
-void setPrecision(BINT prec)
+void setPrecision(int32_t prec)
 {
     if(prec < 0)
         prec = 32;
@@ -3788,13 +3788,13 @@ void setPrecision(BINT prec)
 
 // GET THE CURRENT PRECISION
 
-BINT getPrecision()
+int32_t getPrecision()
 {
     return Context.precdigits;
 }
 
 // MAKE A REAL OUT OF AN INTEGER
-void newRealFromBINT(REAL * result, BINT number, BINT exp10)
+void newRealFromint32_t(REAL * result, int32_t number, int32_t exp10)
 {
     if(number < 0) {
         result->flags = F_NEGATIVE;
@@ -3818,7 +3818,7 @@ void newRealFromBINT(REAL * result, BINT number, BINT exp10)
 }
 
 // MAKE A REAL OUT OF A 64-BIT INTEGER
-void newRealFromint64_t(REAL * result, int64_t number, BINT exp10)
+void newRealFromint64_t(REAL * result, int64_t number, int32_t exp10)
 {
     if(number < 0) {
         result->flags = F_NEGATIVE;
@@ -3850,11 +3850,11 @@ void newRealFromint64_t(REAL * result, int64_t number, BINT exp10)
     result->data[1] = 0;
     result->data[2] = 0;
     // THIS IS 2^48 IN 8-DIGIT BASE
-    const BINT two_48[2] = { 76710656, 2814749 };
+    const int32_t two_48[2] = { 76710656, 2814749 };
     int64_t hibits = number >> 48;
     number &= (1LL << 48) - 1;
     add_single64(result->data, number);
-    add_karatsuba(result->data, (BINT *) & hibits, (BINT *) two_48);
+    add_karatsuba(result->data, (int32_t *) & hibits, (int32_t *) two_48);
     carry_correct(result->data, 3);
     result->len = 3;
     return;
@@ -4287,7 +4287,7 @@ void divmodReal(REAL * quotient, REAL * remainder, REAL * a, REAL * b)
 
 // COMPUTE THE MINIMUM NUMBER OF WORDS TO OBTAIN INTEGER PART
 
-    BINT ndigits =
+    int32_t ndigits =
             ((a->len - 1) << 3) + sig_digits(a->data[a->len - 1]) + a->exp -
             ((b->len - 1) << 3) - sig_digits(b->data[b->len - 1]) - b->exp;
 
@@ -4306,7 +4306,7 @@ void divmodReal(REAL * quotient, REAL * remainder, REAL * a, REAL * b)
         normalize(quot);
     }
     if(quot->exp < 0) {
-        BINT ndigits =
+        int32_t ndigits =
                 sig_digits(quot->data[quot->len - 1]) + ((quot->len - 1) << 3);
         if(ndigits + quot->exp < 0) {
             // RESULT OF DIVISION IS ZERO, RETURN a
@@ -4368,7 +4368,7 @@ void divmodReal(REAL * quotient, REAL * remainder, REAL * a, REAL * b)
 // IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
 // HANDLE SPECIALS
 
-void roundReal(REAL * result, REAL * num, BINT nfigures)
+void roundReal(REAL * result, REAL * num, int32_t nfigures)
 {
     if(result != num)
         copyReal(result, num);
@@ -4379,7 +4379,7 @@ void roundReal(REAL * result, REAL * num, BINT nfigures)
     if(nfigures < 0)
         round_real(result, -nfigures, 0);
     else {
-        BINT ndigits =
+        int32_t ndigits =
                 sig_digits(result->data[result->len - 1]) + ((result->len -
                     1) << 3);
         nfigures += result->exp;
@@ -4402,7 +4402,7 @@ void roundReal(REAL * result, REAL * num, BINT nfigures)
 // IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
 // HANDLE SPECIALS
 
-void truncReal(REAL * result, REAL * num, BINT nfigures)
+void truncReal(REAL * result, REAL * num, int32_t nfigures)
 {
     if(result != num)
         copyReal(result, num);
@@ -4413,7 +4413,7 @@ void truncReal(REAL * result, REAL * num, BINT nfigures)
     if(nfigures < 0)
         round_real(result, -nfigures, 1);
     else {
-        BINT ndigits =
+        int32_t ndigits =
                 sig_digits(result->data[result->len - 1]) + ((result->len -
                     1) << 3);
         nfigures += result->exp;
@@ -4434,7 +4434,7 @@ void truncReal(REAL * result, REAL * num, BINT nfigures)
 
 // RETURN THE INTEGER PART (TRUNCATED)
 // RETURN THE NUMBER ALIGNED AND RIGHT-JUSTIFIED IF align IS TRUE
-void ipReal(REAL * result, REAL * num, BINT align)
+void ipReal(REAL * result, REAL * num, int32_t align)
 {
     truncReal(result, num, 0);
 
@@ -4462,7 +4462,7 @@ void fracReal(REAL * result, REAL * num)
         result->flags &= ~F_NEGATIVE;
         return;
     }
-    BINT digits =
+    int32_t digits =
             sig_digits(result->data[result->len - 1]) + ((result->len -
                 1) << 3);
 
@@ -4484,7 +4484,7 @@ void fracReal(REAL * result, REAL * num)
 
 // COMPARE 2 REALS, RETURN 1 WHEN a<b
 
-BINT ltReal(REAL * a, REAL * b)
+int32_t ltReal(REAL * a, REAL * b)
 {
     // TEST 1, SIGN
     if((a->flags ^ b->flags) & F_NEGATIVE) {
@@ -4565,7 +4565,7 @@ BINT ltReal(REAL * a, REAL * b)
     return 0;
 }
 
-BINT gtReal(REAL * a, REAL * b)
+int32_t gtReal(REAL * a, REAL * b)
 {
     // TEST 1, SIGN
     if((a->flags ^ b->flags) & F_NEGATIVE) {
@@ -4646,17 +4646,17 @@ BINT gtReal(REAL * a, REAL * b)
     return 1;
 }
 
-BINT lteReal(REAL * a, REAL * b)
+int32_t lteReal(REAL * a, REAL * b)
 {
     return !gtReal(a, b);
 }
 
-BINT gteReal(REAL * a, REAL * b)
+int32_t gteReal(REAL * a, REAL * b)
 {
     return !ltReal(a, b);
 }
 
-BINT eqReal(REAL * a, REAL * b)
+int32_t eqReal(REAL * a, REAL * b)
 {
     // TEST 1, SIGN
     if((a->flags ^ b->flags) & F_NEGATIVE) {
@@ -4718,7 +4718,7 @@ BINT eqReal(REAL * a, REAL * b)
 // NAN HANDLING IS NOT CONSISTENT WITH OTHER TESTS
 // ALL OTHER TESTS FAIL ON NAN, THERE'S NO FAIL CODE IN cmpReal
 
-BINT cmpReal(REAL * a, REAL * b)
+int32_t cmpReal(REAL * a, REAL * b)
 {
     // TEST 1, SIGN
     if((a->flags ^ b->flags) & F_NEGATIVE) {
@@ -4803,7 +4803,7 @@ BINT cmpReal(REAL * a, REAL * b)
 
 // TRUE IF REAL IS ZERO
 
-BINT iszeroReal(REAL * n)
+int32_t iszeroReal(REAL * n)
 {
     if(n->flags & (F_INFINITY | F_NOTANUMBER))
         return 0;
@@ -4816,35 +4816,35 @@ BINT iszeroReal(REAL * n)
 
 // TRUE IF THE REAL IS INIFINTY (+ OR -)
 
-BINT isinfiniteReal(REAL * n)
+int32_t isinfiniteReal(REAL * n)
 {
     if(n->flags & F_INFINITY)
         return 1;
     return 0;
 }
 
-BINT isundinfiniteReal(REAL * n)
+int32_t isundinfiniteReal(REAL * n)
 {
     if((n->flags & F_UNDINFINITY) == F_UNDINFINITY)
         return 1;
     return 0;
 }
 
-BINT isNANReal(REAL * n)
+int32_t isNANReal(REAL * n)
 {
     if(n->flags & F_NOTANUMBER)
         return 1;
     return 0;
 }
 
-BINT isNANorinfiniteReal(REAL * n)
+int32_t isNANorinfiniteReal(REAL * n)
 {
     if(n->flags & F_UNDINFINITY)
         return 1;
     return 0;
 }
 
-BINT signofReal(REAL * n)
+int32_t signofReal(REAL * n)
 {
     if(n->flags & F_NEGATIVE)
         return -1;
@@ -4852,13 +4852,13 @@ BINT signofReal(REAL * n)
         return 1;
 }
 
-BINT inBINTRange(REAL * n)
+int32_t inint32_tRange(REAL * n)
 {
 
     if(n->flags & (F_NOTANUMBER | F_INFINITY))
         return 0;
 
-    const BINT const max_bint[] = {
+    const int32_t const max_bint[] = {
         2147483647,
         214748364,
         21474836,
@@ -4986,7 +4986,7 @@ BINT inBINTRange(REAL * n)
 
 }
 
-BINT inint64_tRange(REAL * n)
+int32_t inint64_tRange(REAL * n)
 {
 
     if(n->flags & (F_NOTANUMBER | F_INFINITY))
@@ -5187,7 +5187,7 @@ BINT inint64_tRange(REAL * n)
 // TRUE IF A REAL IS INTEGER
 // DOES NOT NEED TO BE ALIGNED
 
-BINT isintegerReal(REAL * n)
+int32_t isintegerReal(REAL * n)
 {
     if(n->flags & (F_NOTANUMBER | F_INFINITY))
         return 0;
@@ -5207,13 +5207,13 @@ BINT isintegerReal(REAL * n)
 }
 
 // EXTRACT A 32-BIT INTEGER FROM A REAL
-BINT getBINTReal(REAL * n)
+int32_t getint32_tReal(REAL * n)
 {
-    BINT result;
+    int32_t result;
 
     int digits = ((n->len - 1) << 3) + sig_digits(n->data[n->len - 1]) + n->exp;
 
-    // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
+    // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A int32_t BEFORE CALLING
     if(digits > 10)
         return 0;
     if(digits <= 0)
@@ -5240,7 +5240,7 @@ BINT getBINTReal(REAL * n)
     int nwords = n->len - idx;
     int rshift = ((-n->exp) & 7);
     int lshift = (8 - rshift) & 7;
-    BINT carry = 0;
+    int32_t carry = 0;
     int64_t tmp;
     result = 0;
     while(nwords--) {
@@ -5264,7 +5264,7 @@ int64_t getint64_tReal(REAL * n)
 
     int digits = ((n->len - 1) << 3) + sig_digits(n->data[n->len - 1]) + n->exp;
 
-    // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
+    // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A int32_t BEFORE CALLING
     if(digits > 19)
         return 0;
     if(digits <= 0)
@@ -5295,7 +5295,7 @@ int64_t getint64_tReal(REAL * n)
     int nwords = n->len - idx;
     int rshift = ((-n->exp) & 7);
     int lshift = (8 - rshift) & 7;
-    BINT carry = 0;
+    int32_t carry = 0;
     int64_t tmp;
     result = 0;
     while(nwords--) {
@@ -5311,15 +5311,15 @@ int64_t getint64_tReal(REAL * n)
     return result;
 }
 
-BINT isoddReal(REAL * r)
+int32_t isoddReal(REAL * r)
 {
-    BINT position = 0;
-    BINT digits;
+    int32_t position = 0;
+    int32_t digits;
 
     int dig = sig_digits(r->data[r->len - 1]);
 
-    BINT max_pos = ((r->len - 1) << 3) + dig + r->exp;
-    BINT min_pos = r->exp;
+    int32_t max_pos = ((r->len - 1) << 3) + dig + r->exp;
+    int32_t min_pos = r->exp;
 
     if(position < min_pos)
         return 0;
@@ -5345,7 +5345,7 @@ BINT isoddReal(REAL * r)
 }
 
 // RETURN THE NUMBER OF DIGITS OF THE INTEGER PART OF THE REAL
-BINT intdigitsReal(REAL * r)
+int32_t intdigitsReal(REAL * r)
 {
     return ((r->len - 1) << 3) + sig_digits(r->data[r->len - 1]) + r->exp;
 }

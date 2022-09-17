@@ -151,8 +151,8 @@ const char const modulo_name[] = "MOD";
 
 #define MIN_SINT    -131072
 #define MAX_SINT    +131071
-#define MAX_BINT    +9223372036854775807LL
-#define MIN_BINT    (-9223372036854775807LL-1LL)
+#define MAX_int32_t    +9223372036854775807LL
+#define MIN_int32_t    (-9223372036854775807LL-1LL)
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
 int rpl_log2(int64_t number, int bits)
@@ -168,18 +168,18 @@ int rpl_log2(int64_t number, int bits)
 }
 
 inline __attribute__((always_inline))
-     BINT Add_BINT_is_Safe(int64_t op1, int64_t op2)
+     int32_t Add_int32_t_is_Safe(int64_t op1, int64_t op2)
 {
     int64_t maxop2;
     int64_t minop2;
 
     if(op1 > 0) {
-        maxop2 = MAX_BINT - op1;
-        minop2 = MIN_BINT;
+        maxop2 = MAX_int32_t - op1;
+        minop2 = MIN_int32_t;
     }
     else {
-        maxop2 = MAX_BINT;
-        minop2 = MIN_BINT - op1;
+        maxop2 = MAX_int32_t;
+        minop2 = MIN_int32_t - op1;
     }
 
     if((op2 > maxop2) || (op2 < minop2)) {
@@ -192,18 +192,18 @@ inline __attribute__((always_inline))
 }
 
 inline __attribute__((always_inline))
-     BINT Sub_BINT_is_Safe(int64_t op1, int64_t op2)
+     int32_t Sub_int32_t_is_Safe(int64_t op1, int64_t op2)
 {
     int64_t maxop2;
     int64_t minop2;
 
     if(op1 > 0) {
-        maxop2 = MAX_BINT - op1;
-        minop2 = MIN_BINT;
+        maxop2 = MAX_int32_t - op1;
+        minop2 = MIN_int32_t;
     }
     else {
-        maxop2 = MAX_BINT;
-        minop2 = MIN_BINT - op1;
+        maxop2 = MAX_int32_t;
+        minop2 = MIN_int32_t - op1;
     }
 
     if((-op2 > maxop2) || (-op2 < minop2)) {
@@ -216,7 +216,7 @@ inline __attribute__((always_inline))
 }
 
 inline __attribute__((always_inline))
-     BINT Mul_BINT_is_Safe(int64_t op1, int64_t op2)
+     int32_t Mul_int32_t_is_Safe(int64_t op1, int64_t op2)
 {
     if(op1 < 0)
         op1 = -op1;
@@ -297,7 +297,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        int64_t number = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t number = rplReadNumberAsInt64(rplPeekData(1));
         if(Exceptions)
             return;
         if(number < 4)
@@ -313,7 +313,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get the current system precision
         //@NEW
-        rplNewBINTPush(getPrecision(), DECBINT);
+        rplNewint32_tPush(getPrecision(), DECint32_t);
         return;
     }
 
@@ -342,7 +342,7 @@ void LIB_HANDLER()
         }
 
         REAL rnum;
-        if(ISBINT(*arg)) {
+        if(ISint32_t(*arg)) {
             return;
         }
         rplReadNumberAsReal(arg, &rnum);
@@ -390,7 +390,7 @@ void LIB_HANDLER()
         }
 
         REAL rnum;
-        if(ISBINT(*arg)) {
+        if(ISint32_t(*arg)) {
             return;
         }
         rplReadNumberAsReal(arg, &rnum);
@@ -429,7 +429,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg))
+        if(ISint32_t(*arg))
             return;
 
         if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
@@ -478,7 +478,7 @@ void LIB_HANDLER()
         ipReal(&RReg[0], &num, 1);
         WORDPTR newnum;
         if(inint64_tRange(&RReg[0]))
-            newnum = rplNewBINT(getint64_tReal(&RReg[0]), DECBINT);
+            newnum = rplNewint32_t(getint64_tReal(&RReg[0]), DECint32_t);
         else
             newnum = rplNewRealFromRReg(0);
 
@@ -523,7 +523,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg)) {
+        if(ISint32_t(*arg)) {
             rplDropData(1);
             rplPushData((WORDPTR) zero_bint);
             return;
@@ -582,14 +582,14 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!inBINTRange(&rnum)) {
+        if(!inint32_tRange(&rnum)) {
             rplError(ERR_NUMBERTOOBIG);
             return;
         }
 
-        BINT n = (BINT) rplReadNumberAsBINT(arg);
+        int32_t n = (int32_t) rplReadNumberAsInt64(arg);
 
-        int64_t result = factorialBINT(n);
+        int64_t result = factorialint32_t(n);
         if(Exceptions)
             return;
 
@@ -597,7 +597,7 @@ void LIB_HANDLER()
         if(result < 0)
             rplNewRealFromRRegPush(0);
         else
-            rplNewBINTPush(result, DECBINT);
+            rplNewint32_tPush(result, DECint32_t);
         return;
 
     }
@@ -631,10 +631,10 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg)) {
-            int64_t n = rplReadBINT(arg);
+        if(ISint32_t(*arg)) {
+            int64_t n = rplReadint32_t(arg);
 
-            if(isprimeBINT(n))
+            if(isprimeint32_t(n))
                 rplOverwriteData(1, (WORDPTR) one_bint);
             else
                 rplOverwriteData(1, (WORDPTR) zero_bint);
@@ -688,12 +688,12 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg)) {
-            int64_t n = rplReadBINT(arg);
+        if(ISint32_t(*arg)) {
+            int64_t n = rplReadint32_t(arg);
 
-            int64_t next = nextprimeBINT(n);
+            int64_t next = nextprimeint32_t(n);
             if(next > 0) {
-                rplNewBINTPush(next, DECBINT);
+                rplNewint32_tPush(next, DECint32_t);
                 if(Exceptions)
                     return;
                 WORDPTR ptr = rplPopData();
@@ -748,18 +748,18 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg)) {
-            int64_t n = rplReadBINT(arg);
+        if(ISint32_t(*arg)) {
+            int64_t n = rplReadint32_t(arg);
             int64_t next, prev;
-            BINT previsprime;
+            int32_t previsprime;
             prev = n - 30;      // ARBITRARILY SCAN 1000 NUMBERS TO THE LEFT
             if(prev < 0)
                 prev = 0;
             previsprime = 0;
             do {
-                next = nextprimeBINT(prev);
+                next = nextprimeint32_t(prev);
                 if((next > n) && previsprime) {
-                    rplNewBINTPush(prev, DECBINT);
+                    rplNewint32_tPush(prev, DECint32_t);
                     if(Exceptions)
                         return;
                     WORDPTR ptr = rplPopData();
@@ -793,16 +793,16 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT previsprime = 0;
+        int32_t previsprime = 0;
         // USE RReg[5]=next
         // RReg[6]=prev
-        rplBINTToRReg(7, -30);
+        rplint32_tToRReg(7, -30);
         addReal(&RReg[6], &num, &RReg[7]);
         if(RReg[6].flags & F_NEGATIVE)
             rplZeroToRReg(6);
         do {
             nextprimeReal(5, &RReg[6]);
-            BINT islarger = gtReal(&RReg[5], &num);
+            int32_t islarger = gtReal(&RReg[5], &num);
             if(islarger) {
                 if(previsprime) {
                     rplDropData(1);
@@ -842,14 +842,14 @@ void LIB_HANDLER()
             return;
         }
         else {
-            if(ISBINT(*arg)) {
-                int64_t m = rplReadBINT(arg);
+            if(ISint32_t(*arg)) {
+                int64_t m = rplReadint32_t(arg);
                 if(m < 0)
                     m = -m;
                 if(m < 2)
                     m = 2;
                 rplStoreSettingsbyName((BYTEPTR) modulo_name,
-                        (BYTEPTR) (modulo_name + 3), rplNewBINT(m, DECBINT));
+                        (BYTEPTR) (modulo_name + 3), rplNewint32_t(m, DECint32_t));
                 rplDropData(1);
 
                 return;
@@ -865,9 +865,9 @@ void LIB_HANDLER()
                 }
                 if(num.flags & F_NEGATIVE)
                     num.flags ^= F_NEGATIVE;
-                newRealFromBINT(&RReg[0], 2, 0);
+                newRealFromint32_t(&RReg[0], 2, 0);
                 if(ltReal(&num, &RReg[0])) {
-                    newRealFromBINT(&num, 2, 0);
+                    newRealFromint32_t(&num, 2, 0);
                 }
                 rplStoreSettingsbyName((BYTEPTR) modulo_name,
                         (BYTEPTR) (modulo_name + 3), rplNewReal(&num));
@@ -892,9 +892,9 @@ void LIB_HANDLER()
             rplError(ERR_BADARGTYPE);
             return;
         }
-        if(ISBINT(*mod)) {
-            int64_t m = rplReadBINT(mod);
-            rplNewBINTPush(m, DECBINT);
+        if(ISint32_t(*mod)) {
+            int64_t m = rplReadint32_t(mod);
+            rplNewint32_tPush(m, DECint32_t);
             return;
         }
         REAL m;
@@ -941,28 +941,28 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
+        if(ISint32_t(*arg1) && ISint32_t(*arg2) && ISint32_t(*mod)) {
 
-            int64_t a1 = rplReadBINT(arg1);
-            int64_t a2 = rplReadBINT(arg2);
-            int64_t m = rplReadBINT(mod);
+            int64_t a1 = rplReadint32_t(arg1);
+            int64_t a2 = rplReadint32_t(arg2);
+            int64_t m = rplReadint32_t(mod);
             int64_t r;
 
             if(m < 2147483648LL) {
-                BINT isOK = 1;
+                int32_t isOK = 1;
                 if(OPCODE(CurOpcode) == POWMOD) {
-                    r = powmodBINT(a1, a2, m);
+                    r = powmodint32_t(a1, a2, m);
                 }
                 else if((OPCODE(CurOpcode) == ADDTMOD)
-                        && Add_BINT_is_Safe(a1, a2)) {
+                        && Add_int32_t_is_Safe(a1, a2)) {
                     r = (a1 + a2) % m;
                 }
                 else if((OPCODE(CurOpcode) == SUBTMOD)
-                        && Sub_BINT_is_Safe(a1, a2)) {
+                        && Sub_int32_t_is_Safe(a1, a2)) {
                     r = (a1 - a2) % m;
                 }
                 else if((OPCODE(CurOpcode) == MULTMOD)
-                        && Mul_BINT_is_Safe(a1, a2)) {
+                        && Mul_int32_t_is_Safe(a1, a2)) {
                     r = (a1 * a2) % m;
                 }
                 else {
@@ -976,7 +976,7 @@ void LIB_HANDLER()
 
                     rplDropData(2);
 
-                    rplNewBINTPush(r, DECBINT);
+                    rplNewint32_tPush(r, DECint32_t);
                     return;
                 }
             }
@@ -1005,10 +1005,10 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT saveprec = Context.precdigits;
-        BINT moddigits = (intdigitsReal(&m) + 7) & ~7;
-        BINT numdigits = (intdigitsReal(&a1) + 7) & ~7;
-        BINT expdigits = (intdigitsReal(&a2) + 7) & ~7;
+        int32_t saveprec = Context.precdigits;
+        int32_t moddigits = (intdigitsReal(&m) + 7) & ~7;
+        int32_t numdigits = (intdigitsReal(&a1) + 7) & ~7;
+        int32_t expdigits = (intdigitsReal(&a2) + 7) & ~7;
 
         moddigits *= 2;
         moddigits = (moddigits > numdigits) ? moddigits : numdigits;
@@ -1076,7 +1076,7 @@ void LIB_HANDLER()
 
         WORDPTR arg = rplPeekData(2);
         WORDPTR mod = rplPeekData(1);
-        BINT isunit = 0;
+        int32_t isunit = 0;
 
         if(ISLIST(*arg) || ISLIST(*mod)) {
             rplListBinaryDoCmd();
@@ -1102,10 +1102,10 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*arg) && ISBINT(*mod)) {
+        if(ISint32_t(*arg) && ISint32_t(*mod)) {
 
-            int64_t a = rplReadBINT(arg);
-            int64_t m = rplReadBINT(mod);
+            int64_t a = rplReadint32_t(arg);
+            int64_t m = rplReadint32_t(mod);
             int64_t r, q;
 
             if(m == (int64_t) 0) {
@@ -1118,10 +1118,10 @@ void LIB_HANDLER()
                 if(!isunit) {
                     rplDropData(2);
                     if(OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
-                        rplNewBINTPush(q, DECBINT);
+                        rplNewint32_tPush(q, DECint32_t);
                     }
                     if(OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == MOD) {
-                        rplNewBINTPush(r, DECBINT);
+                        rplNewint32_tPush(r, DECint32_t);
                     }
                     return;
                 }
@@ -1132,7 +1132,7 @@ void LIB_HANDLER()
                     switch (OPCODE(CurOpcode)) {
                     default:
                     case IDIV2:
-                        newvalue = rplNewBINT(q, DECBINT);
+                        newvalue = rplNewint32_t(q, DECint32_t);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1152,7 +1152,7 @@ void LIB_HANDLER()
                         }
                         // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
 
-                        newvalue = rplNewBINT(r, DECBINT);
+                        newvalue = rplNewint32_t(r, DECint32_t);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(3));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1163,7 +1163,7 @@ void LIB_HANDLER()
                         rplOverwriteData(2, rplPopData());
                         return;
                     case IQUOT:
-                        newvalue = rplNewBINT(q, DECBINT);
+                        newvalue = rplNewint32_t(q, DECint32_t);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1186,7 +1186,7 @@ void LIB_HANDLER()
                         rplDropData(2);
                         return;
                     case MOD:
-                        newvalue = rplNewBINT(r, DECBINT);
+                        newvalue = rplNewint32_t(r, DECint32_t);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1212,9 +1212,9 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT saveprec = Context.precdigits;
-        BINT moddigits = (intdigitsReal(&m) + 7) & ~7;
-        BINT argdigits = (intdigitsReal(&a) + 7) & ~7;
+        int32_t saveprec = Context.precdigits;
+        int32_t moddigits = (intdigitsReal(&m) + 7) & ~7;
+        int32_t argdigits = (intdigitsReal(&a) + 7) & ~7;
 
         moddigits *= 2;
         moddigits = (moddigits > argdigits) ? moddigits : argdigits;
@@ -1411,7 +1411,7 @@ void LIB_HANDLER()
         }
 
         REAL rnum;
-        BINT digits;
+        int32_t digits;
         rplReadNumberAsReal(arg, &rnum);
 
         digits = sig_digits(rnum.data[rnum.len - 1]) + ((rnum.len - 1) << 3);
@@ -1457,7 +1457,7 @@ void LIB_HANDLER()
             return;
         }
         REAL rnum;
-        BINT digits;
+        int32_t digits;
         rplReadNumberAsReal(arg, &rnum);
 
         digits = sig_digits(rnum.data[rnum.len - 1]) + ((rnum.len - 1) << 3);
@@ -1465,7 +1465,7 @@ void LIB_HANDLER()
         digits += rnum.exp - 1;
 
         rplDropData(1);
-        rplNewBINTPush(digits, DECBINT);
+        rplNewint32_tPush(digits, DECint32_t);
         return;
 
     }
@@ -1501,8 +1501,8 @@ void LIB_HANDLER()
             // FALL THROUGH TO INTEGERS AND REALS, THIS IS DELIBERATE
         }
 
-        if(ISBINT(*arg)) {
-            int64_t r = rplReadBINT(arg);
+        if(ISint32_t(*arg)) {
+            int64_t r = rplReadint32_t(arg);
             if(r > 0)
                 rplOverwriteData(1, (WORDPTR) one_bint);
             else {
@@ -1542,7 +1542,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*arg)) {
 
             // ADD COMPLEX POLAR SUPPORT
-            BINT cclass1 = rplComplexClass(arg);
+            int32_t cclass1 = rplComplexClass(arg);
 
             switch (cclass1) {
             case CPLX_ZERO:
@@ -1553,7 +1553,7 @@ void LIB_HANDLER()
             }
             case CPLX_NORMAL:
             {
-                BINT angmode;
+                int32_t angmode;
                 REAL Rarg, Iarg;
 
                 rplReadCNumber(arg, &Rarg, &Iarg, &angmode);
@@ -1584,7 +1584,7 @@ void LIB_HANDLER()
             case CPLX_NORMAL | CPLX_POLAR:
             {
                 // IT'S A NORMAL POLAR COMPLEX, NEED TO COMPUTE THE ARGUMENT BUT IN A PROPERLY REDUCED WAY
-                BINT angmode;
+                int32_t angmode;
                 REAL real, imag;
 
                 rplReadCNumber(arg, &real, &imag, &angmode);
@@ -1609,7 +1609,7 @@ void LIB_HANDLER()
             case CPLX_INF:
             case CPLX_INF | CPLX_MALFORMED:
             {
-                BINT angmode;
+                int32_t angmode;
                 WORDPTR result;
                 REAL real, imag;
 
@@ -1771,7 +1771,7 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
-            rplNewBINTPush(100, DECBINT);
+            rplNewint32_tPush(100, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1847,7 +1847,7 @@ void LIB_HANDLER()
             WORDPTR *stksave = DSTop;
 
             rplPushDataNoGrow(new_val);
-            rplNewBINTPush(100, DECBINT);
+            rplNewint32_tPush(100, DECint32_t);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1904,7 +1904,7 @@ void LIB_HANDLER()
         }
 
         if(!ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
-            BINT nond1, nond2;
+            int32_t nond1, nond2;
             nond1 = rplUnitIsNonDimensional(arg1);
             if(Exceptions)
                 return;
@@ -1929,14 +1929,14 @@ void LIB_HANDLER()
             }
         }
 
-        BINT isIEGCD = (OPCODE(CurOpcode) == IEGCD);
-        BINT chs1 = 0;
-        BINT chs2 = 0;
-        BINT swapped = 0;
-        if(ISBINT(*arg1) && ISBINT(*arg2)) {
+        int32_t isIEGCD = (OPCODE(CurOpcode) == IEGCD);
+        int32_t chs1 = 0;
+        int32_t chs2 = 0;
+        int32_t swapped = 0;
+        if(ISint32_t(*arg1) && ISint32_t(*arg2)) {
 
-            int64_t a1 = rplReadBINT(arg1);
-            int64_t a2 = rplReadBINT(arg2);
+            int64_t a1 = rplReadint32_t(arg1);
+            int64_t a2 = rplReadint32_t(arg2);
             int64_t r1, r2, r3, gcd;
             int64_t q, s1, s2, s3, t1, t2, t3, s, t;
             if(a1 < 0) {
@@ -1963,7 +1963,7 @@ void LIB_HANDLER()
                 return;
             }
             // avoid swapping elements by loop unrolling
-            BINT notfinished = 1;
+            int32_t notfinished = 1;
             if(isIEGCD) {
                 s1 = 1;
                 s2 = 0;
@@ -2030,48 +2030,48 @@ void LIB_HANDLER()
                 if(cleanup)
                     DSTop = cleanup;
                 rplDropData(2);
-                rplNewBINTPush(gcd, DECBINT);
+                rplNewint32_tPush(gcd, DECint32_t);
             }
             else if(isIEGCD) {
                 if(cleanup)
                     DSTop = cleanup;
                 rplDropData(2);
-                rplNewBINTPush(gcd, DECBINT);
+                rplNewint32_tPush(gcd, DECint32_t);
                 if(!swapped) {
                     if(chs1) {
-                        rplNewBINTPush(-s, DECBINT);
+                        rplNewint32_tPush(-s, DECint32_t);
                     }
                     else {
-                        rplNewBINTPush(s, DECBINT);
+                        rplNewint32_tPush(s, DECint32_t);
                     }
                     if(chs2) {
-                        rplNewBINTPush(-t, DECBINT);
+                        rplNewint32_tPush(-t, DECint32_t);
                     }
                     else {
-                        rplNewBINTPush(t, DECBINT);
+                        rplNewint32_tPush(t, DECint32_t);
                     }
                 }
                 else {
                     if(chs1) {
-                        rplNewBINTPush(-t, DECBINT);
+                        rplNewint32_tPush(-t, DECint32_t);
                     }
                     else {
-                        rplNewBINTPush(t, DECBINT);
+                        rplNewint32_tPush(t, DECint32_t);
                     }
                     if(chs2) {
-                        rplNewBINTPush(-s, DECBINT);
+                        rplNewint32_tPush(-s, DECint32_t);
                     }
                     else {
-                        rplNewBINTPush(s, DECBINT);
+                        rplNewint32_tPush(s, DECint32_t);
                     }
                 }
             }
             else        // LCM(a1,a2) = a1*a2/gcd(a1,a2)
             {
                 REAL x, y, rgcd;
-                rplLoadBINTAsReal(a1, &x);
-                rplLoadBINTAsReal(a2, &y);
-                rplLoadBINTAsReal(gcd, &rgcd);
+                rplLoadInt64AsReal(a1, &x);
+                rplLoadInt64AsReal(a2, &y);
+                rplLoadInt64AsReal(gcd, &rgcd);
                 mulReal(&RReg[0], &x, &y);
                 divReal(&RReg[4], &RReg[0], &rgcd);
                 if((x.flags & F_APPROX) || (y.flags & F_APPROX))
@@ -2122,10 +2122,10 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT saveprec = Context.precdigits;
+        int32_t saveprec = Context.precdigits;
 
-        BINT arg1digits = (intdigitsReal(&RReg[1]) + 7) & ~7;
-        BINT arg2digits = (intdigitsReal(&RReg[2]) + 7) & ~7;
+        int32_t arg1digits = (intdigitsReal(&RReg[1]) + 7) & ~7;
+        int32_t arg2digits = (intdigitsReal(&RReg[2]) + 7) & ~7;
 
         arg1digits *= 2;
         arg1digits = (arg1digits > arg2digits) ? arg1digits : arg2digits;
@@ -2145,16 +2145,16 @@ void LIB_HANDLER()
         Context.precdigits = arg1digits;
 
         // avoid swapping elements by loop unrolling
-        BINT notfinished = 1;
-        const BINT q = 0, r1 = 1, r2 = 2, r3 = 3, s1 = 4, s2 = 5, s3 = 6, t1 =
+        int32_t notfinished = 1;
+        const int32_t q = 0, r1 = 1, r2 = 2, r3 = 3, s1 = 4, s2 = 5, s3 = 6, t1 =
                 7, t2 = 8, t3 = 9;
-        BINT igcd, s = 0, t = 0;
+        int32_t igcd, s = 0, t = 0;
         REAL tmp;
         if(isIEGCD) {
-            newRealFromBINT(&RReg[s1], 1, 0);
-            newRealFromBINT(&RReg[s2], 0, 0);
-            newRealFromBINT(&RReg[t1], 0, 0);
-            newRealFromBINT(&RReg[t2], 1, 0);
+            newRealFromint32_t(&RReg[s1], 1, 0);
+            newRealFromint32_t(&RReg[s2], 0, 0);
+            newRealFromint32_t(&RReg[t1], 0, 0);
+            newRealFromint32_t(&RReg[t2], 1, 0);
             tmp.data = allocRegister();
         }
         do {
@@ -2327,7 +2327,7 @@ void LIB_HANDLER()
         }
         else if(ISMATRIX(*vect_val)) {
 
-            BINT rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
+            int32_t rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
@@ -2388,13 +2388,13 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*vect_val)) {
 
-            BINT rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
+            int32_t rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
-            BINT f, icoef, j;
+            int32_t f, icoef, j;
 
             for(f = 1; f <= cols; ++f) {
                 WORDPTR entry = rplMatrixFastGet(vect_val, 1, f);
@@ -2405,9 +2405,9 @@ void LIB_HANDLER()
             }
             // DO IT ALL WITH REALS
 
-            BINT saveprec = Context.precdigits;
+            int32_t saveprec = Context.precdigits;
 
-            BINT argdigits = (cols + 7) & ~7;
+            int32_t argdigits = (cols + 7) & ~7;
 
             if(argdigits > MAX_USERPRECISION) {
                 argdigits = MAX_USERPRECISION;
@@ -2530,21 +2530,21 @@ void LIB_HANDLER()
         WORDPTR wp_gcd_ab = rplPeekData(3);
         WORDPTR wp_s = rplPeekData(2);
         WORDPTR wp_t = rplPeekData(1);
-        if(ISBINT(*wp_s) && ISBINT(*wp_t) && ISBINT(*wp_c)
-                && ISBINT(*wp_gcd_ab)) {
+        if(ISint32_t(*wp_s) && ISint32_t(*wp_t) && ISint32_t(*wp_c)
+                && ISint32_t(*wp_gcd_ab)) {
 
-            int64_t c = rplReadBINT(wp_c);
-            int64_t gcd = rplReadBINT(wp_gcd_ab);
+            int64_t c = rplReadint32_t(wp_c);
+            int64_t gcd = rplReadint32_t(wp_gcd_ab);
             int64_t r = (c % gcd + gcd) % gcd;
             if(r == 0) {
                 int64_t q = (c - r) / gcd;
-                int64_t s = rplReadBINT(wp_s);
-                int64_t t = rplReadBINT(wp_t);
+                int64_t s = rplReadint32_t(wp_s);
+                int64_t t = rplReadint32_t(wp_t);
                 s *= q;
                 t *= q;
                 rplDropData(6);
-                rplNewBINTPush(s, DECBINT);
-                rplNewBINTPush(t, DECBINT);
+                rplNewint32_tPush(s, DECint32_t);
+                rplNewint32_tPush(t, DECint32_t);
             }
             else {
                 // ERROR: no soluton
@@ -2642,12 +2642,12 @@ void LIB_HANDLER()
             //rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
-        if(!inBINTRange(&rnum)) {
+        if(!inint32_tRange(&rnum)) {
             rplError(ERR_NUMBERTOOBIG);
             return;
         }
 
-        BINT n = (BINT) rplReadNumberAsBINT(arg);
+        int32_t n = (int32_t) rplReadNumberAsInt64(arg);
         /*
            if (n < 0) {
            rplError(ERR_POSITIVEINTEGEREXPECTED);
@@ -2713,9 +2713,9 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT saveprec = Context.precdigits;
+            int32_t saveprec = Context.precdigits;
 
-            BINT argdigits = (n + 7) & ~7;
+            int32_t argdigits = (n + 7) & ~7;
 
             if(argdigits > MAX_USERPRECISION) {
                 argdigits = MAX_USERPRECISION;
@@ -2728,7 +2728,7 @@ void LIB_HANDLER()
 
             Context.precdigits = argdigits;
 
-            BINT i = 0, j = 0;
+            int32_t i = 0, j = 0;
             for(i = 0; i < 2; ++i) {
                 // polynomial has n+1 elements
                 for(j = 0; j <= n; ++j) {
@@ -2761,9 +2761,9 @@ void LIB_HANDLER()
             rplNumberToRReg(2, (WORDPTR) (two_bint));
             for(i = 2; i < n + 1; ++i)  // i=n+1
             {
-                rplLoadBINTAsReal(i - 1, &RReg[5]);     // n
-                rplLoadBINTAsReal(2 * i - 1, &RReg[6]); // 2n+1
-                rplLoadBINTAsReal(i, &RReg[7]); // n+1
+                rplLoadInt64AsReal(i - 1, &RReg[5]);     // n
+                rplLoadInt64AsReal(2 * i - 1, &RReg[6]); // 2n+1
+                rplLoadInt64AsReal(i, &RReg[7]); // n+1
 
                 // switch via i mod 2
                 int cur = i % 2;
@@ -2853,8 +2853,8 @@ void LIB_HANDLER()
 
         // POLYNOMIAL DIVISION arg1/arg2 = quot , remainder
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
-            BINT rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
-            BINT rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
+            int32_t rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
+            int32_t rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
             // Check for vector only
             if(rows1 || rows2) {
                 if(DSTop > savestk)
@@ -2864,7 +2864,7 @@ void LIB_HANDLER()
             }
 
             // only numbers allowed
-            BINT f;
+            int32_t f;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
@@ -2885,7 +2885,7 @@ void LIB_HANDLER()
             }
 
             // Eliminate leading zeros to get the real order
-            BINT leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
+            int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
@@ -2916,7 +2916,7 @@ void LIB_HANDLER()
             // now we know all leading zeroes
             if((cols1 - leading_zeroes_arg1) < (cols2 - leading_zeroes_arg2)) {
                 rplPushData((WORDPTR) (zero_bint));
-                BINT elements = 1;
+                int32_t elements = 1;
                 WORDPTR newmat = rplMatrixCompose(0, elements);
                 if(newmat) {
                     rplDropData(elements);
@@ -2925,8 +2925,8 @@ void LIB_HANDLER()
                 }
             }
             else {
-                BINT saveprec = Context.precdigits;
-                BINT argdigits = (saveprec + 2 * cols2 + 7) & ~7;
+                int32_t saveprec = Context.precdigits;
+                int32_t argdigits = (saveprec + 2 * cols2 + 7) & ~7;
                 if(argdigits > MAX_USERPRECISION) {
                     argdigits = MAX_USERPRECISION;
                 }
@@ -2959,7 +2959,7 @@ void LIB_HANDLER()
                     rplOverwriteData((cols1 - leading_zeroes_arg1) - f, newnumber);     //out[i] /= normalizer
                     if(!iszeroReal(&RReg[2]))   // coef = RReg[2]
                     {
-                        BINT j;
+                        int32_t j;
                         for(j = leading_zeroes_arg2 + 1; j < cols2; ++j) {
                             WORDPTR divj = rplMatrixFastGet(arg2, 1, j + 1);    // divisor[j]
                             rplNumberToRReg(1, divj);
@@ -2978,8 +2978,8 @@ void LIB_HANDLER()
                         }
                     }
                 }
-                BINT elements_remainder = (cols2 - leading_zeroes_arg2) - 1;
-                BINT leading_zeroes_remainder = 0;
+                int32_t elements_remainder = (cols2 - leading_zeroes_arg2) - 1;
+                int32_t leading_zeroes_remainder = 0;
                 for(f = 0; f < elements_remainder; ++f) {
                     WORDPTR entry = rplPeekData(elements_remainder - f);
                     rplNumberToRReg(0, entry);
@@ -2990,14 +2990,14 @@ void LIB_HANDLER()
                         break;
                     }
                 }
-                BINT nrem = elements_remainder - leading_zeroes_remainder;
+                int32_t nrem = elements_remainder - leading_zeroes_remainder;
                 if(nrem < 1) {
                     nrem = 1;
                 }
                 WORDPTR remainder = rplMatrixCompose(0, nrem);
                 if(remainder) {
                     rplDropData(elements_remainder);
-                    BINT elements_quotient =
+                    int32_t elements_quotient =
                             (cols1 - leading_zeroes_arg1) - (cols2 -
                             leading_zeroes_arg2) + 1;
                     WORDPTR quotient = rplMatrixCompose(0, elements_quotient);
@@ -3047,13 +3047,13 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*poly)) {
 
-            BINT rows = MATROWS(poly[1]), cols = MATCOLS(poly[1]);
+            int32_t rows = MATROWS(poly[1]), cols = MATCOLS(poly[1]);
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
-            BINT f;
+            int32_t f;
 
             for(f = 1; f <= cols; ++f) {
                 WORDPTR entry = rplMatrixFastGet(poly, 1, f);
@@ -3065,7 +3065,7 @@ void LIB_HANDLER()
             // DO IT ALL WITH REALS
             WORDPTR *savestk = DSTop;   // Drop arguments in case of error
 
-            BINT leading_zeroes_arg = 0;
+            int32_t leading_zeroes_arg = 0;
             for(f = 0; f < cols; ++f) {
                 WORDPTR entry = rplMatrixFastGet(poly, 1, f + 1);
                 rplNumberToRReg(0, entry);
@@ -3078,8 +3078,8 @@ void LIB_HANDLER()
             }
 
             // copy trimmed polynomial and do operation
-            const BINT degree = cols - leading_zeroes_arg - 1;
-            BINT idegree, endcol, nout;
+            const int32_t degree = cols - leading_zeroes_arg - 1;
+            int32_t idegree, endcol, nout;
             if(OPCODE(CurOpcode) == PDER) {
                 idegree = degree;
                 endcol = cols - 1;
@@ -3093,7 +3093,7 @@ void LIB_HANDLER()
             for(f = leading_zeroes_arg; f < endcol; ++f, --idegree) {
                 WORDPTR entry = rplMatrixFastGet(poly, 1, f + 1);
                 rplNumberToRReg(1, entry);
-                rplBINTToRReg(0, idegree);
+                rplint32_tToRReg(0, idegree);
                 if(OPCODE(CurOpcode) == PDER) {
                     mulReal(&RReg[2], &RReg[1], &RReg[0]);
                 }
@@ -3144,8 +3144,8 @@ void LIB_HANDLER()
 
         // POLYNOMIAL DIVISION
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
-            BINT rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
-            BINT rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
+            int32_t rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
+            int32_t rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
             // Check for vector only
             if(rows1 || rows2) {
                 rplError(ERR_VECTOREXPECTED);
@@ -3153,7 +3153,7 @@ void LIB_HANDLER()
             }
 
             // only numbers allowed
-            BINT f;
+            int32_t f;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
@@ -3170,7 +3170,7 @@ void LIB_HANDLER()
             }
 
             // Eliminate leading zeros to get the real degree
-            BINT leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
+            int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
@@ -3196,25 +3196,25 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nelem1 = cols1 - leading_zeroes_arg1;  // degree1 = nelem1 -1;
-            BINT nelem2 = cols2 - leading_zeroes_arg2;  // degree2 = nelem2 -1;
+            int32_t nelem1 = cols1 - leading_zeroes_arg1;  // degree1 = nelem1 -1;
+            int32_t nelem2 = cols2 - leading_zeroes_arg2;  // degree2 = nelem2 -1;
 
-            BINT nelem3 = nelem1 > nelem2 ? nelem1 : nelem2;    // degree = max(degree1, degree2)
+            int32_t nelem3 = nelem1 > nelem2 ? nelem1 : nelem2;    // degree = max(degree1, degree2)
 
             WORDPTR *savestk = DSTop;   // Drop arguments in case of error
 
             for(f = 0; f < nelem3; ++f) {
-                BINT i1 = cols1 - nelem3 + f;
-                BINT i2 = cols2 - nelem3 + f;
+                int32_t i1 = cols1 - nelem3 + f;
+                int32_t i2 = cols2 - nelem3 + f;
                 if(i1 < leading_zeroes_arg1) {
-                    rplBINTToRReg(1, 0);
+                    rplint32_tToRReg(1, 0);
                 }
                 else {
                     WORDPTR entry = rplMatrixFastGet(arg1, 1, i1 + 1);
                     rplNumberToRReg(1, entry);
                 }
                 if(i2 < leading_zeroes_arg2) {
-                    rplBINTToRReg(2, 0);
+                    rplint32_tToRReg(2, 0);
                 }
                 else {
                     WORDPTR entry = rplMatrixFastGet(arg2, 1, i2 + 1);
@@ -3234,7 +3234,7 @@ void LIB_HANDLER()
                 }
                 rplPushData(newnumber);
             }
-            BINT leading_zeroes_pout = 0;
+            int32_t leading_zeroes_pout = 0;
             for(f = 0; f < nelem3; ++f) {
                 WORDPTR entry = rplPeekData(nelem3 - f);
                 rplNumberToRReg(0, entry);
@@ -3245,7 +3245,7 @@ void LIB_HANDLER()
                     break;
                 }
             }
-            BINT nout = nelem3 - leading_zeroes_pout;
+            int32_t nout = nelem3 - leading_zeroes_pout;
             if(nout < 1) {
                 nout = 1;
             }
@@ -3280,8 +3280,8 @@ void LIB_HANDLER()
 
         // POLYNOMIAL DIVISION
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
-            BINT rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
-            BINT rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
+            int32_t rows1 = MATROWS(arg1[1]), cols1 = MATCOLS(arg1[1]);
+            int32_t rows2 = MATROWS(arg2[1]), cols2 = MATCOLS(arg2[1]);
             // Check for vector only
             if(rows1 || rows2) {
                 rplError(ERR_VECTOREXPECTED);
@@ -3289,7 +3289,7 @@ void LIB_HANDLER()
             }
 
             // only numbers allowed
-            BINT f;
+            int32_t f;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
@@ -3306,7 +3306,7 @@ void LIB_HANDLER()
             }
 
             // Eliminate leading zeros to get the real degree
-            BINT leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
+            int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
                 WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
@@ -3332,14 +3332,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nelem1 = cols1 - leading_zeroes_arg1;  // degree1 = nelem1 -1;
-            BINT nelem2 = cols2 - leading_zeroes_arg2;  // degree2 = nelem2 -1;
+            int32_t nelem1 = cols1 - leading_zeroes_arg1;  // degree1 = nelem1 -1;
+            int32_t nelem2 = cols2 - leading_zeroes_arg2;  // degree2 = nelem2 -1;
 
-            BINT nout = nelem1 + nelem2 - 1;    // nout = degree+1 = degree1+degree2+1
+            int32_t nout = nelem1 + nelem2 - 1;    // nout = degree+1 = degree1+degree2+1
 
             WORDPTR *savestk = DSTop;   // Drop arguments in case of error
 
-            BINT i1, i2, iout, g;
+            int32_t i1, i2, iout, g;
 
             for(f = 0; f < nout; ++f) {
                 rplPushData((WORDPTR) (zero_bint));
@@ -3508,7 +3508,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR *savestk = DSTop;
-        int64_t nd = rplReadNumberAsBINT(ndig), isunit = 0, unitlevels = 0;
+        int64_t nd = rplReadNumberAsInt64(ndig), isunit = 0, unitlevels = 0;
         if(Exceptions)
             return;
 
@@ -3540,7 +3540,7 @@ void LIB_HANDLER()
             if(isintegerReal(&RReg[0])) {
                 if(inint64_tRange(&RReg[0])) {
                     int64_t res = getint64_tReal(&RReg[0]);
-                    newresult = rplNewBINT(res, DECBINT);
+                    newresult = rplNewint32_t(res, DECint32_t);
                 }
                 else
                     newresult = rplNewRealFromRReg(0);
@@ -3556,7 +3556,7 @@ void LIB_HANDLER()
         }
         else if(ISCOMPLEX(*arg)) {
             REAL Rarg, Iarg;
-            BINT cclass = rplComplexClass(arg);
+            int32_t cclass = rplComplexClass(arg);
             rplReadCNumberAsReal(arg, &Rarg);
             rplReadCNumberAsImag(arg, &Iarg);
 
@@ -3624,11 +3624,11 @@ void LIB_HANDLER()
 
             // CHECK DIMENSIONS
 
-            BINT rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
+            int32_t rowsa = MATROWS(*(*a + 1)), colsa = MATCOLS(*(*a + 1));
 
-            BINT totalelements = (rowsa) ? rowsa * colsa : colsa;
+            int32_t totalelements = (rowsa) ? rowsa * colsa : colsa;
 
-            BINT j;
+            int32_t j;
 
             // DO THE ELEMENT-BY-ELEMENT OPERATION
 
@@ -3665,7 +3665,7 @@ void LIB_HANDLER()
                     if(isintegerReal(&RReg[0])) {
                         if(inint64_tRange(&RReg[0])) {
                             int64_t res = getint64_tReal(&RReg[0]);
-                            newresult = rplNewBINT(res, DECBINT);
+                            newresult = rplNewint32_t(res, DECint32_t);
                         }
                         else
                             newresult = rplNewRealFromRReg(0);
@@ -3683,7 +3683,7 @@ void LIB_HANDLER()
 
                 if(ISCOMPLEX(*arg)) {
                     REAL Rarg, Iarg;
-                    BINT cclass = rplComplexClass(arg);
+                    int32_t cclass = rplComplexClass(arg);
                     rplReadCNumberAsReal(arg, &Rarg);
                     rplReadCNumberAsImag(arg, &Iarg);
 
@@ -3807,8 +3807,8 @@ void LIB_HANDLER()
         int64_t start, end;
 
         rplReadNumberAsReal(rplPeekData(3), &re);
-        start = rplReadNumberAsBINT(rplPeekData(2));
-        end = rplReadNumberAsBINT(rplPeekData(1));
+        start = rplReadNumberAsInt64(rplPeekData(2));
+        end = rplReadNumberAsInt64(rplPeekData(1));
 
         if(Exceptions)
             return;
@@ -3828,7 +3828,7 @@ void LIB_HANDLER()
         rplDropData(3);
         if(inint64_tRange(&RReg[1])) {
             start = getint64_tReal(&RReg[1]);
-            rplNewBINTPush(start, DECBINT);
+            rplNewint32_tPush(start, DECint32_t);
         }
         else
             rplNewRealFromRRegPush(1);
@@ -3853,10 +3853,10 @@ void LIB_HANDLER()
         }
         else if(ISMATRIX(*vect_val)) {
 
-            BINT cplxmode = rplTestSystemFlag(FL_COMPLEXMODE);
+            int32_t cplxmode = rplTestSystemFlag(FL_COMPLEXMODE);
             rplSetSystemFlag(FL_COMPLEXMODE);
 
-            BINT rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
+            int32_t rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
 
             if(rows) {
                 if(!cplxmode)
@@ -3864,7 +3864,7 @@ void LIB_HANDLER()
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
-            BINT f;
+            int32_t f;
             WORDPTR *savestk = DSTop;
 
             for(f = 0; f < cols; ++f) {
@@ -3986,7 +3986,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT doerror = 0;
+            int32_t doerror = 0;
             if(!cplxmode) {
                 // ISSUE AN ERROR IF ANY OF THE ROOTS ARE COMPLEX
                 for(f = 1; f < cols; ++f) {
@@ -4038,10 +4038,10 @@ void LIB_HANDLER()
         }
         else if(ISMATRIX(*vect_val)) {
 
-            BINT cplxmode = rplTestSystemFlag(FL_COMPLEXMODE);
+            int32_t cplxmode = rplTestSystemFlag(FL_COMPLEXMODE);
             rplSetSystemFlag(FL_COMPLEXMODE);
 
-            BINT rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
+            int32_t rows = MATROWS(vect_val[1]), cols = MATCOLS(vect_val[1]);
 
             if(rows) {
                 if(!cplxmode)
@@ -4049,7 +4049,7 @@ void LIB_HANDLER()
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
-            BINT f, nroots;
+            int32_t f, nroots;
             WORDPTR *savestk = DSTop;
 
             for(f = 0; f < cols; ++f) {
@@ -4220,7 +4220,7 @@ void LIB_HANDLER()
                 ++nroots;
             }
 
-            BINT doerror = 0;
+            int32_t doerror = 0;
 
             // ISSUE AN ERROR IF ANY OF THE ROOTS ARE COMPLEX
             for(f = 1; f <= nroots; ++f) {
@@ -4296,7 +4296,7 @@ void LIB_HANDLER()
             // FACTORIZE INTEGER NUMBERS AS WELL
 
             REAL num, mult;
-            BINT prec = Context.precdigits, isneg, exponent;
+            int32_t prec = Context.precdigits, isneg, exponent;
             int64_t onefactor, inum;
             WORDPTR *savestk = DSTop;
 
@@ -4332,7 +4332,7 @@ void LIB_HANDLER()
 
             if(inum < 0) {
                 // FIRST, REMOVE FIRST FEW TRIVIAL FACTORS
-                BINT k = 2, count;
+                int32_t k = 2, count;
                 RReg[0].exp = 0;
                 RReg[0].flags = 0;
                 RReg[0].len = 1;
@@ -4350,15 +4350,15 @@ void LIB_HANDLER()
 
                     swapReal(&RReg[6], &RReg[1]);
                     if(count > 0) {
-                        rplNewBINTPush(k, DECBINT);
-                        rplNewBINTPush(count, DECBINT);
+                        rplNewint32_tPush(k, DECint32_t);
+                        rplNewint32_tPush(count, DECint32_t);
                     }
-                    k = nextprimeBINT(k);
+                    k = nextprimeint32_t(k);
                 }
 
             }
             else {
-                BINT k = 2, count;
+                int32_t k = 2, count;
                 int64_t prev;
                 while((k < FACTORS_TRIVIALLIMIT) && (k <= inum)) {
                     count = -1;
@@ -4371,8 +4371,8 @@ void LIB_HANDLER()
 
                     inum = prev;
                     if(count > 0) {
-                        rplNewBINTPush(k, DECBINT);
-                        rplNewBINTPush(count, DECBINT);
+                        rplNewint32_tPush(k, DECint32_t);
+                        rplNewint32_tPush(count, DECint32_t);
                         if(Exceptions) {
                             DSTop = savestk;
                             Context.precdigits = prec;
@@ -4382,7 +4382,7 @@ void LIB_HANDLER()
                         newRealFromint64_t(&RReg[6], inum, 0);
 
                     }
-                    k = nextprimeBINT(k);
+                    k = nextprimeint32_t(k);
                 }
 
             }
@@ -4427,7 +4427,7 @@ void LIB_HANDLER()
                         rplPushData((WORDPTR) zero_bint);
                         break;  // TERMINATE, WE GAVE UP
                     }
-                    rplNewBINTPush(onefactor, DECBINT);
+                    rplNewint32_tPush(onefactor, DECint32_t);
                     if(onefactor == inum) {
                         rplPushData((WORDPTR) one_bint);
                         break;
@@ -4444,7 +4444,7 @@ void LIB_HANDLER()
                 if(inum < 0) {
                     if(onefactor >= 0)
                         newRealFromint64_t(&RReg[7], onefactor, 0);
-                    BINT count = -1;
+                    int32_t count = -1;
                     do {
                         divmodReal(&RReg[1], &RReg[0], &RReg[6], &RReg[7]);
                         swapReal(&RReg[1], &RReg[6]);
@@ -4454,14 +4454,14 @@ void LIB_HANDLER()
 
                     swapReal(&RReg[1], &RReg[6]);
 
-                    rplNewBINTPush(count, DECBINT);
+                    rplNewint32_tPush(count, DECint32_t);
 
                     if(inint64_tRange(&RReg[6]))
                         inum = getint64_tReal(&RReg[6]);
                 }
                 else {
                     int64_t prev;
-                    BINT count = -1;
+                    int32_t count = -1;
                     do {
                         prev = inum;
                         inum /= onefactor;
@@ -4470,7 +4470,7 @@ void LIB_HANDLER()
                     while(inum * onefactor == prev);
 
                     inum = prev;
-                    rplNewBINTPush(count, DECBINT);
+                    rplNewint32_tPush(count, DECint32_t);
 
                     newRealFromint64_t(&RReg[6], inum, 0);
                 }
@@ -4489,7 +4489,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nfactors = (DSTop - savestk) / 2, f;
+            int32_t nfactors = (DSTop - savestk) / 2, f;
 
             if(nfactors == 0) {
                 // SPECIAL CASES 0, 1 ,-1
@@ -4513,11 +4513,11 @@ void LIB_HANDLER()
             }
             // GET THE MULTIPLICITY
             if(exponent) {
-                BINT factor2done = 0, factor5done = 0;
+                int32_t factor2done = 0, factor5done = 0;
 
-                rplBINTToRReg(0, exponent);
-                rplBINTToRReg(1, 2);
-                rplBINTToRReg(2, 5);
+                rplint32_tToRReg(0, exponent);
+                rplint32_tToRReg(1, 2);
+                rplint32_tToRReg(2, 5);
                 for(f = 0; f < nfactors; ++f) {
                     rplReadNumberAsReal(savestk[1 + 2 * f], &mult);     // READ MULTIPLICITY
                     rplReadNumberAsReal(savestk[2 * f], &num);  // READ FACTOR
@@ -4571,7 +4571,7 @@ void LIB_HANDLER()
                             nfactors * sizeof(WORDPTR) / sizeof(WORD));
                     ++DSTop;
                     rplOverwriteData(nfactors + 1, (WORDPTR) two_bint); // ADD FACTOR 2
-                    rplNewBINTPush(exponent, DECBINT);
+                    rplNewint32_tPush(exponent, DECint32_t);
                     ++nfactors;
                 }
                 if(!factor5done) {
@@ -4586,7 +4586,7 @@ void LIB_HANDLER()
                             nfactors * sizeof(WORDPTR) / sizeof(WORD));
                     ++DSTop;
                     rplOverwriteData(nfactors + 1, (WORDPTR) five_bint);        // ADD FACTOR 5
-                    rplNewBINTPush(exponent, DECBINT);
+                    rplNewint32_tPush(exponent, DECint32_t);
                     ++nfactors;
                 }
             }
@@ -4729,7 +4729,7 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
-        libProbeCmds((char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+        libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                 LIB_NUMBEROFCMDS);
 
         return;
@@ -4745,7 +4745,7 @@ void LIB_HANDLER()
         //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
-        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         if(ISPROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
@@ -4754,7 +4754,7 @@ void LIB_HANDLER()
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (BINT *) LIB_TOKENINFO,
+            libGetInfo2(*ObjectPTR, (char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
         }
         return;

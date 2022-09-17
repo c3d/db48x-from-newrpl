@@ -90,12 +90,12 @@ typedef struct
     BYTE p_dataused;
     BYTE p_fileidLSB;
     BYTE p_fileidMSB;
-    BINT p_offset;
+    int32_t p_offset;
     BYTE p_data[56];
 } USB_PACKET;
 
 // MAKE A 16 BIT FILEID FROM ITS PARTS
-#define P_FILEID(pptr) (((BINT) ((pptr)->p_fileidLSB)) | (((BINT) ((pptr)->p_fileidMSB)) << 8))
+#define P_FILEID(pptr) (((int32_t) ((pptr)->p_fileidLSB)) | (((int32_t) ((pptr)->p_fileidMSB)) << 8))
 
 // MAKE A CRC32 FOR STATUS REPORT AND CHECKPOINT PACKETS
 #define P_CRC32(pptr)  (( (WORD)((pptr)->p_data[0]))|(((WORD)((pptr)->p_data[1]))<<8))|(((WORD)((pptr)->p_data[2]))<<16))|(((WORD)((pptr)->p_data[3]))<<24)))
@@ -119,13 +119,13 @@ typedef struct
 
 // NEW SIMPLIFIED GLOBALS
 
-extern volatile BINT usb_drvstatus; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
+extern volatile int32_t usb_drvstatus; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 
-extern BINT          usb_fileid;                          // CURRENT FILEID
-extern BINT          usb_fileid_seq;                      // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
-extern BINT          usb_offset;                          // CURRENT OFFSET WITHIN THE FILE
+extern int32_t          usb_fileid;                          // CURRENT FILEID
+extern int32_t          usb_fileid_seq;                      // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
+extern int32_t          usb_offset;                          // CURRENT OFFSET WITHIN THE FILE
 extern WORD          usb_crc32;                           // CURRENT CRC32 OF DATA RECEIVED
-extern BINT          usb_lastgood_offset;                 // LAST KNOWN GOOD OFFSET WITHIN THE FILE
+extern int32_t          usb_lastgood_offset;                 // LAST KNOWN GOOD OFFSET WITHIN THE FILE
 extern WORD          usb_lastgood_crc;                    // LAST KNOWN MATCHING CRC32 OF DATA RECEIVED
 extern BYTE          usb_ctlbuffer[RAWHID_RX_SIZE + 1];   // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
 extern BYTE          usb_tmprxbuffer[RAWHID_RX_SIZE + 1]; // TEMPORARY BUFFER TO RECEIVE DATA
@@ -133,17 +133,17 @@ extern BYTE          usb_ctlrxbuffer[RAWHID_RX_SIZE + 1]; // TEMPORARY BUFFER TO
 extern BYTE          usb_ctltxbuffer[RAWHID_TX_SIZE + 1]; // TEMPORARY BUFFER TO TRANSMIT DATA
 
 extern BYTE          usb_rxtxbuffer[]; // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
-extern BINT          usb_rxoffset;     // STARTING OFFSET OF THE DATA IN THE RX BUFFER
-extern volatile BINT usb_rxtxtop;      // NUMBER OF BYTES USED IN THE RX BUFFER
-extern volatile BINT usb_rxtxbottom;   // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-extern volatile BINT usb_rxtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern int32_t          usb_rxoffset;     // STARTING OFFSET OF THE DATA IN THE RX BUFFER
+extern volatile int32_t usb_rxtxtop;      // NUMBER OF BYTES USED IN THE RX BUFFER
+extern volatile int32_t usb_rxtxbottom;   // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+extern volatile int32_t usb_rxtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
-extern BINT          usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
-extern BINT          usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
+extern int32_t          usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern int32_t          usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
 extern BYTEPTR       usb_ctlbufptr;  // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
-extern BINT          usb_ctlcount;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
-extern BINT          usb_ctlpadding; // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+extern int32_t          usb_ctlcount;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
+extern int32_t          usb_ctlpadding; // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
 // USED TO INITIATE DATA TRANSFER
 void                 usb_init_data_transfer(void);
