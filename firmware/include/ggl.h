@@ -49,6 +49,11 @@
 #define BYTES_PER_PATTERN_ROW  (BITS_PER_PATTERN_ROW / 8)
 #define COLORS_PER_PATTERN_ROW (BYTES_PER_PATTERN_ROW / sizeof(color_t))
 
+typedef int      coord;
+typedef unsigned size;
+typedef unsigned pixword;
+typedef unsigned palette_index;
+
 // Generic definitions for both color and gray modes
 typedef union color1
 {
@@ -241,11 +246,12 @@ extern int ggl_palette[PALETTE_SIZE];
 
 typedef struct
 {
-    int     *pixels; //! Word-aligned address of the surface buffer
-    unsigned width;  //! Width (in pixels) of the buffer
-    unsigned height; //! Height (in pixels) of the buffer
-    int      x, y;   //! Offset coordinates within the buffer
-    int      left, right, top, bottom;
+    pixword *pixels;        //! Word-aligned address of the surface buffer
+    size     width;         //! Width (in pixels) of the buffer
+    size     height;        //! Height (in pixels) of the buffer
+    coord    x, y;          //! Offset coordinates within the buffer
+    coord    left, right;   //! Horizontal clip area
+    coord    top, bottom;   //! Vertical clip area
     int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 

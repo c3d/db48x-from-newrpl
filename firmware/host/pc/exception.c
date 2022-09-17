@@ -16,7 +16,7 @@ extern unsigned int RPLLastOpcode;
 void ex_print(int x, int y, char *str)
 {
     gglsurface dr;
-    dr.pixels = (int *)MEM_PHYS_EXSCREEN;
+    dr.pixels = (pixword *)MEM_PHYS_EXSCREEN;
     dr.width = LCD_SCANLINE;
     dr.x = dr.y = 0;
     dr.left = dr.top = 0;
