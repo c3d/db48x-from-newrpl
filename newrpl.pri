@@ -172,7 +172,6 @@ SOURCES += \
         firmware/ggl/ggl_opmask.c \
         firmware/ggl/ggl_optransp.c \
         firmware/ggl/ggl_ovlblt.c \
-        firmware/ggl/ggl_pltnib.c \
         firmware/ggl/ggl_rect.c \
         firmware/ggl/ggl_revblt.c \
         firmware/ggl/ggl_scrolldn.c \

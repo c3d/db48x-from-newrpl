@@ -500,11 +500,6 @@ void ggl_initscr(gglsurface *surface);
 // drawing primitives
 // general pixel set/read routines
 
-#ifndef TARGET_PRIME1
-void     ggl_pltnib(pixword *buff, size off, color4_t color); // poke a pixel (off in nibbles)
-color4_t ggl_getnib(pixword *buff, size off);                 // peek a pixel (off in nibbles)
-#endif // TARGET_PRIME1
-
 int  ggl_getmonopix(char *buf, int off);                      // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
