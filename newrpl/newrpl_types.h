@@ -23,6 +23,7 @@ typedef uint32_t UBINT;
 typedef int64_t BINT64;
 typedef uint64_t UBINT64;
 typedef intptr_t PTR2NUMBER;
+typedef const char *cstring;
 #define NUMBER2PTR(a)   ((WORDPTR)(PTR2NUMBER)(WORD)(a))
 
 // CONSTANTS THAT CONTROL THE MAIN RPL ENGINE
