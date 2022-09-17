@@ -23,11 +23,11 @@ WORDPTR *GetTempBlock(WORDPTR block)
     WORDPTR *right = TempBlocksEnd;
     WORDPTR *guess;
     do {
-        guess = left + ((PTR2NUMBER) (right - left) / 2);       // BINARY SEARCH: DON'T USE left+right/2 BECAUSE OF OVERFLOW
+        guess = left + ((intptr_t) (right - left) / 2);       // BINARY SEARCH: DON'T USE left+right/2 BECAUSE OF OVERFLOW
 
-        if(block == (WORDPTR) (((PTR2NUMBER) * guess) & ~((PTR2NUMBER) 3)))
+        if(block == (WORDPTR) (((intptr_t) * guess) & ~((intptr_t) 3)))
             return guess;
-        if(block > (WORDPTR) (((PTR2NUMBER) * guess) & ~((PTR2NUMBER) 3)))
+        if(block > (WORDPTR) (((intptr_t) * guess) & ~((intptr_t) 3)))
             left = guess;
         else
             right = guess;
@@ -49,11 +49,11 @@ void Mark(WORDPTR * start, WORDPTR * end)
         if((*start >= TempOb) && (*start < TempObEnd)) {
             // ONLY SEARCH POINTERS THAT POINT TO TEMPOB
             blockptr = GetTempBlock(*start);
-            if(((WORDPTR) ((PTR2NUMBER) * blockptr & ~((PTR2NUMBER) 3))) ==
+            if(((WORDPTR) ((intptr_t) * blockptr & ~((intptr_t) 3))) ==
                     *start)
-                *blockptr = (WORDPTR) ((PTR2NUMBER) * blockptr | 1);
+                *blockptr = (WORDPTR) ((intptr_t) * blockptr | 1);
             else
-                *blockptr = (WORDPTR) ((PTR2NUMBER) * blockptr | 2);
+                *blockptr = (WORDPTR) ((intptr_t) * blockptr | 2);
         }
 
         ++start;
@@ -139,15 +139,15 @@ void rplGCollect()
     }
     if((DecompStringEnd > EndOfUsedMem) && (DecompStringEnd <= TempObSize)) {
         EndOfUsedMem =
-                (WORDPTR) ((((PTR2NUMBER) DecompStringEnd) +
-                    3) & ~((PTR2NUMBER) 3));
+                (WORDPTR) ((((intptr_t) DecompStringEnd) +
+                    3) & ~((intptr_t) 3));
         CompileBlock |= 2;
     }
 
     if(CompileBlock) {
         // ADD THE BLOCK TO THE LIST USING THE SLACK SPACE TO AVOID TRIGGERING ANY ALLOCATION
         // MARK THE BLOCK AS USED AT THE SAME TIME
-        *TempBlocksEnd++ = (WORDPTR) ((PTR2NUMBER) TempObEnd | 1);
+        *TempBlocksEnd++ = (WORDPTR) ((intptr_t) TempObEnd | 1);
         TempObEnd = EndOfUsedMem;
         if((ValidateTop > RSTop) && (ValidateTop < (RSTop + RStkSize)))
             EndOfRStk = ValidateTop;
@@ -178,8 +178,8 @@ void rplGCollect()
     CheckIdx = TempBlocks;
 
     // FIND THE FIRST HOLE
-    while(((PTR2NUMBER) (*CheckIdx)) & 3) {
-        *CheckIdx = (WORDPTR) (((PTR2NUMBER) * CheckIdx) & ~((PTR2NUMBER) 3));  // CLEAN THE POINTER
+    while(((intptr_t) (*CheckIdx)) & 3) {
+        *CheckIdx = (WORDPTR) (((intptr_t) * CheckIdx) & ~((intptr_t) 3));  // CLEAN THE POINTER
         ++CheckIdx;     // NO NEED TO CHECK FOR END OF LIST, SINCE THE LAST BLOCK WAS MARKED UNUSED
     }
 
@@ -188,7 +188,7 @@ void rplGCollect()
     do {
 
         // FIND THE END OF THE HOLE
-        while(!(((PTR2NUMBER) (*CheckIdx)) & 3)) {
+        while(!(((intptr_t) (*CheckIdx)) & 3)) {
 
             if(CheckIdx == TempBlocksEnd) {
 
@@ -239,13 +239,13 @@ void rplGCollect()
         }
 
         StartBlock =
-                (WORDPTR) (((PTR2NUMBER) * (CheckIdx)) & ~((PTR2NUMBER) 3));
+                (WORDPTR) (((intptr_t) * (CheckIdx)) & ~((intptr_t) 3));
         Offset = (BINT) (EndBlock - StartBlock);
 
         // FIND END OF THE BLOCK TO MOVE
 
-        while(((PTR2NUMBER) (*CheckIdx)) & 3) {
-            *CleanIdx = (WORDPTR) ((PTR2NUMBER) (*CheckIdx + Offset) & ~((PTR2NUMBER) 3));      // STORE THE POINTER ALREADY PATCHED AT FINAL LOCATION
+        while(((intptr_t) (*CheckIdx)) & 3) {
+            *CleanIdx = (WORDPTR) ((intptr_t) (*CheckIdx + Offset) & ~((intptr_t) 3));      // STORE THE POINTER ALREADY PATCHED AT FINAL LOCATION
             ++CheckIdx; // NO NEED TO CHECK FOR END OF LIST, SINCE THE LAST BLOCK WAS MARKED UNUSED
             ++CleanIdx;
         }

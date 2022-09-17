@@ -246,7 +246,7 @@ WORDPTR rplCreateString(BYTEPTR text, BYTEPTR textend)
         BYTEPTR ptr = (BYTEPTR) (newstring + 1);
         while(text != textend)
             *ptr++ = *text++;
-        while(((PTR2NUMBER) ptr) & 3)
+        while(((intptr_t) ptr) & 3)
             *ptr++ = 0;
 
         rplSetStringLength(newstring, lenbytes);

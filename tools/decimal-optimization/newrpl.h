@@ -26,8 +26,8 @@ typedef int32_t BINT;
 typedef uint32_t UBINT;
 typedef int64_t BINT64;
 typedef uint64_t UBINT64;
-typedef intptr_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)(PTR2NUMBER)(WORD)(a))
+typedef intptr_t intptr_t;
+#define NUMBER2PTR(a) ((WORDPTR)(intptr_t)(WORD)(a))
 
 #ifdef __cplusplus
 "C" {

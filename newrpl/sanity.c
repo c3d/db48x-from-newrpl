@@ -130,7 +130,7 @@ BINT rplVerifyDStack(BINT fix)
 // FINISHED CURRENT STACK, DO THE NEXT SNAPSHOT
         if(bottom > DStk) {
             --bottom;
-            BINT levels = (PTR2NUMBER) * bottom;
+            BINT levels = (intptr_t) * bottom;
             if((levels <= 0) || ((bottom - levels) < DStk)
                     || ((bottom - levels) >= DSTop)) {
                 // INVALID SNAPSHOT!!

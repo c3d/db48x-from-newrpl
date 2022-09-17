@@ -210,7 +210,7 @@ BINT rplCountSnapshots()
 
     while(snapptr > DStk) {
         ++count;
-        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
+        snapptr -= ((intptr_t) * (snapptr - 1)) + 1;
     }
     return count;
 }
@@ -229,7 +229,7 @@ void rplRemoveSnapshot(BINT numsnap)
 
     while((snapptr > DStk) && (numsnap > 0)) {
         prevptr = snapptr;
-        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
+        snapptr -= ((intptr_t) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
@@ -370,7 +370,7 @@ void rplRestoreSnapshot(BINT numsnap)
 
     while((snapptr > DStk) && (numsnap > 0)) {
         prevptr = snapptr;
-        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
+        snapptr -= ((intptr_t) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
@@ -379,7 +379,7 @@ void rplRestoreSnapshot(BINT numsnap)
         return;
     }
 
-    BINT levels = (PTR2NUMBER) * (prevptr - 1);
+    BINT levels = (intptr_t) * (prevptr - 1);
 
     rplExpandStack(levels - rplDepthData());
     if(Exceptions) {
@@ -417,7 +417,7 @@ BINT rplDepthSnapshot(BINT numsnap)
 
     while((snapptr > DStk) && (numsnap > 0)) {
         prevptr = snapptr;
-        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
+        snapptr -= ((intptr_t) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
@@ -426,7 +426,7 @@ BINT rplDepthSnapshot(BINT numsnap)
         return 0;
     }
 
-    return (PTR2NUMBER) * (prevptr - 1);
+    return (intptr_t) * (prevptr - 1);
 }
 
 // SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
@@ -441,7 +441,7 @@ WORDPTR rplPeekSnapshot(BINT numsnap, BINT level)
 
     while((snapptr > DStk) && (numsnap > 0)) {
         prevptr = snapptr;
-        snapptr -= ((PTR2NUMBER) * (snapptr - 1)) + 1;
+        snapptr -= ((intptr_t) * (snapptr - 1)) + 1;
         --numsnap;
     }
 
@@ -450,7 +450,7 @@ WORDPTR rplPeekSnapshot(BINT numsnap, BINT level)
         return 0;
     }
 
-    BINT levels = (PTR2NUMBER) * (prevptr - 1);
+    BINT levels = (intptr_t) * (prevptr - 1);
 
     if((level < 1) || (level > levels))
         return 0;       // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
@@ -465,7 +465,7 @@ void rplDropCurrentStack()
 {
 
     if(DStkBottom > DStk) {
-        BINT nlevels = ((PTR2NUMBER) * (DStkBottom - 1)) + 1;
+        BINT nlevels = ((intptr_t) * (DStkBottom - 1)) + 1;
         // FIX THE POINTERS
         DSTop = DStkBottom - 1;
         DStkBottom -= nlevels;

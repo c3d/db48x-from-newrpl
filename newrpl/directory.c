@@ -181,7 +181,7 @@ WORDPTR rplMakeIdentWriteable(WORDPTR ident)
 // 32-BIT PROLOG
 // 32-BIT WORD WITH THE NUMBER OF ITEMS IN THE DIR
 
-#define MakeNewHole(start,end,nwords)    memmovew(start+nwords,start,(PTR2NUMBER)(end-start)*(sizeof(void*)>>2))
+#define MakeNewHole(start,end,nwords)    memmovew(start+nwords,start,(intptr_t)(end-start)*(sizeof(void*)>>2))
 
 // DIRS STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
 

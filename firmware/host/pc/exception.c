@@ -79,7 +79,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 12, "IP: ");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) IPtr) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) IPtr) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -88,7 +88,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 18, "OPC:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) RPLLastOpcode) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) RPLLastOpcode) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -97,7 +97,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 24, "TOe:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) TempObEnd) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) TempObEnd) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -106,7 +106,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 30, "TOs:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) TempObSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) TempObSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -115,7 +115,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 36, "TBe:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) TempBlocksEnd) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) TempBlocksEnd) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -124,7 +124,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 42, "TBs:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) TempBlocksSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) TempBlocksSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -133,7 +133,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(0, 48, "RSe:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) RSTop) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) RSTop) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -143,7 +143,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
 
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) RStkSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) RStkSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -153,7 +153,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
 
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) DSTop) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) DSTop) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -164,7 +164,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 12, "DSs: ");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) DStkSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) DStkSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -173,7 +173,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 18, "DIe:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) DirsTop) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) DirsTop) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -182,7 +182,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 24, "DIs:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) DirSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) DirSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -191,7 +191,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 30, "LAe:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) LAMTop) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) LAMTop) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -200,7 +200,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 36, "LAs:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) LAMSize) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) LAMSize) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -209,7 +209,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 42, "Exc:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) Exceptions) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) Exceptions) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
@@ -218,7 +218,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
         ex_print(64, 48, "Err:");
         a[8] = 0;
         for(j = 7; j >= 0; j--) {
-            a[7 - j] = ((((PTR2NUMBER) ErrorCode) >> (j << 2)) & 0xf) + 48;
+            a[7 - j] = ((((intptr_t) ErrorCode) >> (j << 2)) & 0xf) + 48;
             if(a[7 - j] > '9')
                 a[7 - j] += 7;
         }
