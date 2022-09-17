@@ -259,7 +259,7 @@ void halSetCmdLineHeight(int h)
 
 int32_t halGetDispObjectHeight(word_p object, UNIFONT *font)
 {
-    UNUSED_ARGUMENT(object);
+    UNUSED(object);
     // TODO: ADD MULTILINE OBJECTS, ETC.
 
     return font->BitmapHeight;
@@ -2390,7 +2390,7 @@ void halUpdateFonts()
 void halPrepareBuffer(gglsurface *scr)
 {
 #ifndef TARGET_PRIME1
-    UNUSED_ARGUMENT(scr);
+    UNUSED(scr);
 #else  // TARGET_PRIME1
     gglsurface altbuffer;
     if (scr->active_buffer)
@@ -2425,7 +2425,7 @@ void halPrepareBuffer(gglsurface *scr)
 void halSwapBuffer(gglsurface *scr)
 {
 #ifndef TARGET_PRIME1
-    UNUSED_ARGUMENT(scr);
+    UNUSED(scr);
 #else  // TARGET_PRIME1
     // Show new buffer on the screen
     // Avoid background processes from writing to the buffer while we copy it

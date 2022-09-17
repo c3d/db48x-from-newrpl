@@ -77,7 +77,7 @@ const word_p const ROMPTR_TABLE[] = {
 
 int exitOnUBSData(WORD useless)
 {
-    UNUSED_ARGUMENT(useless);
+    UNUSED(useless);
     if(usb_hasdata())
         return 1;       // END THE LOOP IF THEREŚ DATA IN THE USB
     return 0;

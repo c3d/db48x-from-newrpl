@@ -260,7 +260,7 @@ void halForceAlphaModeOff()
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
 void dummyKeyhandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
     return;
 }
 
@@ -2305,7 +2305,7 @@ void alphasymbolKeyHandler(WORD keymsg, byte_p Lsymbol, byte_p Csymbol)
 
 void VarMenuKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     // SIMPLY TOGGLE THE MENU UPON PRESS
     if(halScreen.Menu2)
@@ -2349,7 +2349,7 @@ void newlineKeyHandler(WORD keymsg)
 
 void decimaldotKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -2379,7 +2379,7 @@ void decimaldotKeyHandler(WORD keymsg)
 
 void enterKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         // PERFORM DUP
@@ -2429,7 +2429,7 @@ void enterKeyHandler(WORD keymsg)
 
 void cutclipKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2583,7 +2583,7 @@ void cutclipKeyHandler(WORD keymsg)
 
 void copyclipKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2694,7 +2694,7 @@ void copyclipKeyHandler(WORD keymsg)
 
 void pasteclipKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2786,7 +2786,7 @@ void pasteclipKeyHandler(WORD keymsg)
 
 void backspKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         // DO DROP
@@ -2954,7 +2954,7 @@ void backspKeyHandler(WORD keymsg)
 
 void deleteKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if((halGetContext() & CONTEXT_INEDITOR)) {
         // REMOVE CHARACTERS FROM THE COMMAND LINE
@@ -2964,7 +2964,7 @@ void deleteKeyHandler(WORD keymsg)
 
 void leftKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3130,7 +3130,7 @@ void leftKeyHandler(WORD keymsg)
 
 void rsleftKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3149,7 +3149,7 @@ void rsleftKeyHandler(WORD keymsg)
 
 void rsholdleftKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3169,7 +3169,7 @@ void rsholdleftKeyHandler(WORD keymsg)
 
 void lsleftKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3186,7 +3186,7 @@ void lsleftKeyHandler(WORD keymsg)
 
 void rightKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3346,7 +3346,7 @@ void rightKeyHandler(WORD keymsg)
 
 void rsrightKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3364,7 +3364,7 @@ void rsrightKeyHandler(WORD keymsg)
 
 void lsrightKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3381,7 +3381,7 @@ void lsrightKeyHandler(WORD keymsg)
 
 void rsholdrightKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3399,7 +3399,7 @@ void rsholdrightKeyHandler(WORD keymsg)
 
 void alphaholdrightKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3417,7 +3417,7 @@ void alphaholdrightKeyHandler(WORD keymsg)
 
 void downKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3494,7 +3494,7 @@ void downKeyHandler(WORD keymsg)
 
 void rsholddownKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3525,7 +3525,7 @@ void rsholddownKeyHandler(WORD keymsg)
 
 void rsdownKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3555,7 +3555,7 @@ void rsdownKeyHandler(WORD keymsg)
 
 void alphaholddownKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3572,7 +3572,7 @@ void alphaholddownKeyHandler(WORD keymsg)
 
 void upKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3621,7 +3621,7 @@ void upKeyHandler(WORD keymsg)
 
 void rsholdupKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3652,7 +3652,7 @@ void rsholdupKeyHandler(WORD keymsg)
 
 void rsupKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3681,7 +3681,7 @@ void rsupKeyHandler(WORD keymsg)
 
 void alphaholdupKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -3698,7 +3698,7 @@ void alphaholdupKeyHandler(WORD keymsg)
 
 void chsKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -4163,7 +4163,7 @@ void tagKeyHandler(WORD keymsg)
 
 void onPlusKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     halStatusAreaPopup();
 
@@ -4200,7 +4200,7 @@ void onPlusKeyHandler(WORD keymsg)
 
 void onMinusKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     halStatusAreaPopup();
 
@@ -4236,7 +4236,7 @@ void onMinusKeyHandler(WORD keymsg)
 
 void onDotKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     // CYCLE BETWEEN VARIOUS OPTIONS
     const char *const options[] = {
@@ -4389,7 +4389,7 @@ void onDotKeyHandler(WORD keymsg)
 
 void onSpcKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     // CYCLE BETWEEN VARIOUS OPTIONS
     const char *const options[] = {
@@ -4707,7 +4707,7 @@ void onUpDownKeyHandler(WORD keymsg)
 // SHOW/HIDE THE SECOND MENU WHEN PRESSED
 void onVarKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
     if(halScreen.Menu2) {
         halSetMenu2Height(0);   // HIDE THE MENU
         rplSetSystemFlag(FL_HIDEMENU2);
@@ -4721,7 +4721,7 @@ void onVarKeyHandler(WORD keymsg)
 
 void onBKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     halFlags |= HAL_SKIPNEXTALARM;
 
@@ -4729,7 +4729,7 @@ void onBKeyHandler(WORD keymsg)
 
 void alphaKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if((halScreen.CursorState & 0xff) == 'L') {
         halSetCmdLineMode('C');
@@ -4749,7 +4749,7 @@ void alphaKeyHandler(WORD keymsg)
 void shiftedalphaKeyHandler(WORD keymsg)
 {
     // CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     switch (halScreen.CursorState & 0xff) {
     case 'D':
@@ -4770,7 +4770,7 @@ void shiftedalphaKeyHandler(WORD keymsg)
 
 void changemenuKeyHandler(WORD keymsg, int64_t menucode)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     word_p numobject = rplNewint32_t(menucode, HEXint32_t);
 
@@ -4791,7 +4791,7 @@ void changemenuKeyHandler(WORD keymsg, int64_t menucode)
 
 void backmenuKeyHandler(WORD keymsg, WORD menu)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(menu < 1 || menu > 2)
         return;
@@ -5211,7 +5211,7 @@ void customKeyHandler(WORD keymsg, word_p action)
 
 void formswitcherKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(halGetContext() >= CONTEXT_FORM) {
         // THE USER IS RUNNING A FORM OR OTHER CONTEXT, JUST CLOSE IT
@@ -5227,7 +5227,7 @@ void formswitcherKeyHandler(WORD keymsg)
 #ifdef TARGET_PRIME1
 void switchmenukeysKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
 
     // TODO: Just toggle a flag that the key handlers read and act on menu 1 or 2
@@ -5242,7 +5242,7 @@ void switchmenukeysKeyHandler(WORD keymsg)
 
 void basecycleKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -5376,13 +5376,13 @@ void basecycleKeyHandler(WORD keymsg)
 
 #define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(WORD keymsg) \
 { \
-    UNUSED_ARGUMENT(keymsg); \
+    UNUSED(keymsg); \
     transpcmdKeyHandler(opcode); \
     }
 
 #define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(WORD keymsg) \
 { \
-    UNUSED_ARGUMENT(keymsg); \
+    UNUSED(keymsg); \
     cmdKeyHandler(opcode,(byte_p)string,issymbfunc); \
     }
 
@@ -5559,7 +5559,7 @@ void spcKeyHandler(WORD keymsg)
 // INTERACTIVE STACK ONLY
 void tolistKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     switch (halScreen.StkSelStatus) {
     case 0:
@@ -5684,7 +5684,7 @@ void tolistKeyHandler(WORD keymsg)
 
 void tomatKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     switch (halScreen.StkSelStatus) {
     case 0:
@@ -5810,7 +5810,7 @@ void tomatKeyHandler(WORD keymsg)
 // INTERACTIVE STACK ONLY
 void tocplxKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     switch (halScreen.StkSelStatus) {
     case 0:
@@ -5975,7 +5975,7 @@ void tocplxKeyHandler(WORD keymsg)
 
 void explodeKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
     int32_t endlvl, stlvl;
 
@@ -6306,7 +6306,7 @@ DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
 #ifdef TARGET_PRIME1
 void powerOffKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
     // SHIFT-ON MEANS POWER OFF!
     halPreparePowerOff();
     halEnterPowerOff();
@@ -6316,7 +6316,7 @@ void powerOffKeyHandler(WORD keymsg)
 
 void cancelKeyHandler(WORD keymsg)
 {
-    UNUSED_ARGUMENT(keymsg);
+    UNUSED(keymsg);
 
 #ifndef TARGET_PRIME1
     if(halGetNotification(N_RIGHTSHIFT)) {

@@ -46,7 +46,7 @@ int ex_width(char *string)
 
 int exception_handler(char *exstr, unsigned int *registers, int options)
 {
-    UNUSED_ARGUMENT(registers);
+    UNUSED(registers);
 
     unsigned int lcd_buffer[17];
     char a[10];

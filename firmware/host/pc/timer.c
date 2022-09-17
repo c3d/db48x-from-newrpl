@@ -25,7 +25,7 @@ timed_event tmr_events[NUM_EVENTS] SYSTEM_GLOBAL;
 // SAVE TIMERS CONFIGURATION - 13 WORDS REQUIRED
 void tmr_save(unsigned int *tmrbuffer)
 {
-    UNUSED_ARGUMENT(tmrbuffer);
+    UNUSED(tmrbuffer);
 
 }
 
@@ -33,7 +33,7 @@ void tmr_save(unsigned int *tmrbuffer)
 
 void tmr_restore(unsigned int *tmrbuffer)
 {
-    UNUSED_ARGUMENT(tmrbuffer);
+    UNUSED(tmrbuffer);
 
 }
 

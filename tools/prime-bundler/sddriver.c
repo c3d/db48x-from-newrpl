@@ -10,9 +10,8 @@
 // COMMANDS WILL ACT AS IF THERE WAS NO CARD INSERTED
 
 #include "fsystem/fsyspriv.h"
+#include "newrpl.h"
 
-
-#define UNUSED_ARGUMENT(a) (void)(a)
 // SD MODULE
 
 // GLOBAL VARIABLES     FOR SD CARD EMULATION
@@ -41,7 +40,7 @@ int SDCardWriteProtected()
 
 int SDInit(SD_CARD * card)
 {
-    UNUSED_ARGUMENT(card);
+    UNUSED(card);
     if(sd_inserted)
         return TRUE;
     return FALSE;
@@ -49,7 +48,7 @@ int SDInit(SD_CARD * card)
 
 int SDIOSetup(SD_CARD * card, int shutdown)
 {
-    UNUSED_ARGUMENT(card);
+    UNUSED(card);
     if(!shutdown)
         return TRUE;
     return FALSE;
@@ -76,10 +75,10 @@ int SDSelect(int RCA)
 int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
         SD_CARD * card)
 {
-    UNUSED_ARGUMENT(card);
-    UNUSED_ARGUMENT(SDAddr);
-    UNUSED_ARGUMENT(NumBytes);
-    UNUSED_ARGUMENT(buffer);
+    UNUSED(card);
+    UNUSED(SDAddr);
+    UNUSED(NumBytes);
+    UNUSED(buffer);
     if(sd_inserted && sd_RCA) {
         // NO ARGUMENT CHECKS!
         memmove(buffer, (unsigned char *)sd_buffer + SDAddr, NumBytes);
@@ -90,7 +89,7 @@ int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
 
 int SDCardInit(SD_CARD * card)
 {
-    UNUSED_ARGUMENT(card);
+    UNUSED(card);
     if(sd_inserted) {
         card->SysFlags = 31;    // 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK, 16=SDHC
         card->Rca = sd_RCA = 0x10;
@@ -115,10 +114,10 @@ int SDCardInit(SD_CARD * card)
 int SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer,
         SD_CARD * card)
 {
-    UNUSED_ARGUMENT(card);
-    UNUSED_ARGUMENT(SDAddr);
-    UNUSED_ARGUMENT(NumBytes);
-    UNUSED_ARGUMENT(buffer);
+    UNUSED(card);
+    UNUSED(SDAddr);
+    UNUSED(NumBytes);
+    UNUSED(buffer);
 
     // DEBUG ONLY
     if(SDAddr > ((uint64_t) sd_nsectors << 9))

@@ -2439,7 +2439,7 @@ void rplMatrixQREx(word_p * a, int32_t rowsa, int32_t colsa)
 
 word_p rplMatrixQRGetQ(word_p * a, int32_t rowsa, int32_t colsa, word_p * diagv)
 {
-    UNUSED_ARGUMENT(diagv);
+    UNUSED(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
@@ -2583,7 +2583,7 @@ word_p rplMatrixQRGetR(word_p * a, int32_t rowsa, int32_t colsa, word_p * diagv)
 
 word_p rplMatrixQRDoRQ(word_p * a, int32_t n, word_p * diagv)
 {
-    UNUSED_ARGUMENT(diagv);
+    UNUSED(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*n+(c)]

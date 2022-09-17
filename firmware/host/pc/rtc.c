@@ -39,8 +39,8 @@ void rtc_getdatetime(struct date *dt, struct time *tm)
 
 int rtc_setdatetime(struct date dt, struct time tm)
 {
-    UNUSED_ARGUMENT(dt);
-    UNUSED_ARGUMENT(tm);
+    UNUSED(dt);
+    UNUSED(tm);
     //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
     return 0;
 
@@ -68,7 +68,7 @@ struct date rtc_getdate()
 
 int rtc_setdate(struct date dt)
 {
-    UNUSED_ARGUMENT(dt);
+    UNUSED(dt);
     //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
     return 0;
 }
@@ -95,15 +95,15 @@ struct time rtc_gettime()
 
 int rtc_settime(struct time tm)
 {
-    UNUSED_ARGUMENT(tm);
+    UNUSED(tm);
     //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
     return 0;
 }
 
 void rtc_getalarm(struct date *dt, struct time *tm, int *enabled)
 {
-    UNUSED_ARGUMENT(dt);
-    UNUSED_ARGUMENT(tm);
+    UNUSED(dt);
+    UNUSED(tm);
 
     if(enabled)
         *enabled = 0;
@@ -114,9 +114,9 @@ void rtc_getalarm(struct date *dt, struct time *tm, int *enabled)
 int rtc_setalarm(struct date dt, struct time tm, int enabled)
 {
 
-    UNUSED_ARGUMENT(dt);
-    UNUSED_ARGUMENT(tm);
-    UNUSED_ARGUMENT(enabled);
+    UNUSED(dt);
+    UNUSED(tm);
+    UNUSED(enabled);
 
     // DON'T ALLOW ALARMS IN THE SIMULATOR
     return 0;
@@ -124,7 +124,7 @@ int rtc_setalarm(struct date dt, struct time tm, int enabled)
 
 void rtc_gettick(int *freq, int *enabled)
 {
-    UNUSED_ARGUMENT(freq);
+    UNUSED(freq);
 // CAN'T GET RTC TICKS ON THE SIMULATOR
     if(enabled)
         *enabled = 0;
@@ -134,15 +134,15 @@ void rtc_gettick(int *freq, int *enabled)
 // SET PERIODIC INTERRUPT
 int rtc_settick(int freq, int enabled)
 {
-    UNUSED_ARGUMENT(freq);
-    UNUSED_ARGUMENT(enabled);
+    UNUSED(freq);
+    UNUSED(enabled);
     // CAN'T SET RTC TICKS ON THE SIMULATOR
     return 0;
 }
 
 void rtc_setaie(int enabled)
 {
-    UNUSED_ARGUMENT(enabled);
+    UNUSED(enabled);
 
     // DON'T ALLOW ALARMS IN THE SIMULATOR
     return;

@@ -1,6 +1,9 @@
 #ifndef COMMONMACROS_H
 #define COMMONMACROS_H
 
+/* The following is used to silence warnings for unused variables */
+#define UNUSED(var)		do { (void)(var); } while(0)
+
 #define FIRST(a, ...)       a
 #define SECOND(a, b, ...)   b
 

@@ -12,7 +12,7 @@
 void uiRepaintForm(gglsurface * scr)
 {
     // REPAINT VISIBLE PART OF A FORM
-    UNUSED_ARGUMENT(scr);
+    UNUSED(scr);
 
 }
 

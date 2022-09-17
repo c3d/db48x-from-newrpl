@@ -209,7 +209,7 @@ void keyb_irq_init()
 
 void keyb_irq_stop(unsigned int *keysave)
 {
-    UNUSED_ARGUMENT(keysave);
+    UNUSED(keysave);
 
     tmr_events[0].status = 0;
 

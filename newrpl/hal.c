@@ -13,7 +13,7 @@
 // NEWSIZE IS IN 32-BIT WORDS!
 word_p *halGrowMemory(int32_t zone, word_p * base, int32_t newsize)
 {
-    UNUSED_ARGUMENT(zone);
+    UNUSED(zone);
 
     if(!base)
         return malloc(MAX_RAM * (sizeof(void *) >> 2));

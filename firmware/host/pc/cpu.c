@@ -56,7 +56,7 @@ int cpu_getspeed()
 // DUMMY
 int cpu_setspeed(int mhz)
 {
-    UNUSED_ARGUMENT(mhz);
+    UNUSED(mhz);
     return 75000000;
 }
 
