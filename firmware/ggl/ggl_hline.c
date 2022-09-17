@@ -13,7 +13,7 @@
 // Color is a single color, no pattern supported
 
 #endif /* TARGET_PRIME1 */
-void ggl_hline(gglsurface *srf, int y, int xl, int xr, color_t color)
+void ggl_hline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -22,7 +22,7 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, color_t color)
     // RESTRICTIONS: xr>=xl
     //                 y MUST BE VALID
 
-    pixword       cword = color.value;
+    pixword       cword = color.bits;
 #ifndef TARGET_PRIME1
     int           loff  = (y * srf->width + xl);
     int           roff  = (y * srf->width + xr);
@@ -60,7 +60,7 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, color_t color)
 #endif /* TARGET_PRIME1 */
 }
 
-void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, color_t color)
+void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -89,7 +89,7 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, color_t color)
     register int *left  = (int *) srf->pixels + (loff >> 3);
     register int *right = (int *) srf->pixels + (roff >> 3);
     int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
-    pixword       cword = color.value;
+    pixword       cword = color.bits;
 
     if (left == right)
     {

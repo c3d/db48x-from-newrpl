@@ -4175,7 +4175,7 @@ void onPlusKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
+             ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
 
     int j;
     for(j = 0; j < 15; ++j) {
