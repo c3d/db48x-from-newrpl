@@ -7,28 +7,28 @@
 
 #include <ggl.h>
 
-unsigned int ggl_fltlighten(unsigned word, int param)
+pixword ggl_fltlighten(pixword color, pixword param)
 {
 #ifndef TARGET_PRIME1
-    register int          f;
-    register unsigned int res = 0;
-    for (f = 0; f < 8; ++f, word >>= 4)
+    pixword res = 0;
+    for (int f = 0; f < 8; ++f, color >>= 4)
     {
         // filter the pixel here
-        if ((word & 0xf) > (unsigned) param)
-            res |= (word & 0xf) - param;
+        if ((color & 0xf) > param)
+            res |= (color & 0xf) - param;
 
         res = (res >> 4) | (res << 28);
     }
     return res;
 #else  /* TARGET_PRIME1 */
     int red, green, blue;
-    red   = RGBRED(word);
+    color_t col = { .value = color };
+    red   = RGBRED(col);
     red   = red + (((31 - red) * param) >> 8);
-    green = RGBGREEN(word);
+    green = RGBGREEN(col);
     green = green + (((63 - green) * param) >> 8);
-    blue  = RGBBLUE(word);
+    blue  = RGBBLUE(col);
     blue  = blue + (((31 - blue) * param) >> 8);
-    return PACK_RGB16(red, green, blue);
+    return ggl_solid_pattern(PACK_RGB16(red, green, blue)).bits;
 #endif /* TARGET_PRIME1 */
 }

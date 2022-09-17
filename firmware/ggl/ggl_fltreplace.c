@@ -14,25 +14,24 @@
 // param = 0xMMMMNNNN where MMMMM is the RGB16 color to replace, NNNN is the
 // RGB16 color to replace with.
 #endif /* TARGET_PRIME1 */
-unsigned ggl_fltreplace(unsigned word, int param)
+pixword ggl_fltreplace(pixword color, pixword param)
 {
 #ifndef TARGET_PRIME1
-    register int          f;
-    register unsigned int res = 0;
-    for (f = 0; f < 8; ++f, word >>= 4)
+    pixword res = 0;
+    for (int f = 0; f < 8; ++f, color >>= 4)
     {
         // filter the pixel here
-        if (((word & 0xf) == ((param >> 17) & 0xf)))
+        if (((color & 0xf) == ((param >> 17) & 0xf)))
             res |= ((param >> 1) & 0xf);
         else
-            res |= (word & 0xf);
+            res |= (color & 0xf);
 
         res = (res >> 4) | (res << 28);
     }
     return res;
 #else  /* TARGET_PRIME1 */
-    if (word == ((param >> 16) & 0xffff))
-        return param & 0xffff;
-    return word;
+    if (color == ((param >> 16) & 0xffff))
+        color = param  & 0xffff;
+    return color;
 #endif /* TARGET_PRIME1 */
 }

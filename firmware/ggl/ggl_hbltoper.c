@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator foperator)
+void ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator_fn foperator)
 {
 #ifndef TARGET_PRIME1
     // SAME AS hblt BUT THIS ONE APPLIES AN ARBITRARY OPERATOR BETWEEN 2 SURFACES
@@ -178,7 +178,7 @@ void ggl_monohbltoper(pixword       *dest,
                       int            srcoff,
                       int            npixels,
                       int            param,
-                      ggloperator    foperator)
+                      ggloperator_fn foperator)
 {
 #ifndef TARGET_PRIME1
     // SAME AS hbltoper BUT SOURCE BITMAP IS MONOCHROME, AND CONVERTED TO 16-GRAYS
@@ -281,7 +281,7 @@ void ggl_monohbltoper(pixword       *dest,
     unsigned char       mask  = 1 << (srcoff & 7);
     while (npixels--)
     {
-        *pdest = (*foperator)(*pdest, ((psrc[srcoff >> 3] & mask) ? RGB_TO_RGB16(255, 255, 255) : 0), param);
+        *pdest = (*foperator)(*pdest, ((psrc[srcoff >> 3] & mask) ? RGB_TO_RGB16(255, 255, 255).value : 0), param);
         ++pdest;
         ++srcoff;
         if (mask & 0x80)

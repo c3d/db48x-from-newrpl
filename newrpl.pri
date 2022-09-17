@@ -169,8 +169,6 @@ SOURCES += \
         firmware/ggl/ggl_hbltoper.c \
         firmware/ggl/ggl_hline.c \
         firmware/ggl/ggl_initscr.c \
-        firmware/ggl/ggl_mksolid.c \
-        firmware/ggl/ggl_mksolid32.c \
         firmware/ggl/ggl_opmask.c \
         firmware/ggl/ggl_optransp.c \
         firmware/ggl/ggl_ovlblt.c \

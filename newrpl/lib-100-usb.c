@@ -99,7 +99,7 @@ int rplUSBArchiveWriteWord(unsigned int data, void *opaque)
 
     // PROVIDE VISUAL FEEDBACK
     if(!((info->progress) & 0xff)) {
-        halSetNotification(N_CONNECTION, ((info->progress) >> 8) & 0xf);
+        halSetNotification(N_CONNECTION, ggl_color((info->progress >> 8) & PAL_GRAY_MASK));
         halScreenUpdated();
     }
     ++info->progress;
@@ -118,7 +118,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
 
     // PROVIDE VISUAL FEEDBACK
     if(!((info->progress) & 0xff)) {
-        halSetNotification(N_CONNECTION, ((info->progress) >> 8) & 0xf);
+        halSetNotification(N_CONNECTION, ggl_color((info->progress >> 8) & PAL_GRAY_MASK));
         halScreenUpdated();
     }
     ++info->progress;

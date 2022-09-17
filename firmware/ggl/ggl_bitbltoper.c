@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop)
+void ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop)
 {
     // COPIES A RECTANGULAR REGION FROM src TO dest AND APPLIES THE GIVEN OPERATOR
     // gglsurface CONTAINS THE BUFFER AND OFFSETS
@@ -28,7 +28,7 @@ void ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, 
     }
 }
 
-void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop)
+void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop)
 {
     // COPIES A RECTANGULAR REGION FROM src TO dest AND APPLIES THE GIVEN OPERATOR
     // src POINTS TO A MONOCHROME BITMAP, NOT GRAYSCALE

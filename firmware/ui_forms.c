@@ -184,8 +184,8 @@ void uiUpdateForm(word_p form)
                     // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
                     backgnd.right = backgnd.left + itemw - 1;
                     DrawTextBkN(backgnd.left, backgnd.top, (char *)(col + 1),
-                            (char *)(col + 1) + rplStrSize(col),
-                            FONT_FORMS, 0xf, 0, &backgnd);
+                                (char *)(col + 1) + rplStrSize(col),
+                                FONT_FORMS, ggl_color(PAL_GRAY15), ggl_color(PAL_GRAY0), &backgnd);
                     backgnd.left = backgnd.right + 1;
                 }
 
@@ -205,8 +205,8 @@ void uiUpdateForm(word_p form)
             backgnd.bottom = ycoord + rowh - 1;
             backgnd.right = backgnd.left + roww - 1;
             DrawTextBkN(backgnd.left, backgnd.top, (char *)(item + 1),
-                    (char *)(item + 1) + rplStrSize(item),
-                    FONT_FORMS, 0xf, 0, &backgnd);
+                        (char *)(item + 1) + rplStrSize(item),
+                        FONT_FORMS, ggl_color(PAL_GRAY15), ggl_color(PAL_GRAY0), &backgnd);
             if(!rowid) {
                 // THIS IS THE FORM TITLE, HIGHLIGHT IT
                 gglsurface copy;
@@ -220,10 +220,18 @@ void uiUpdateForm(word_p form)
                 // CENTER THE TEXT
                 ggl_bitblt(&backgnd, &copy, copy.left,
                         backgnd.bottom - backgnd.top + 1);
-                ggl_cliprect(&backgnd, backgnd.x + copy.left, backgnd.top,
-                        backgnd.right, backgnd.bottom, 0x44444444);
-                ggl_cliprect(&backgnd, 0, backgnd.top, backgnd.x - 1,
-                        backgnd.bottom, 0x44444444);
+                ggl_cliprect(&backgnd,
+                             backgnd.x + copy.left,
+                             backgnd.top,
+                             backgnd.right,
+                             backgnd.bottom,
+                             ggl_color(PAL_GRAY4));
+                ggl_cliprect(&backgnd,
+                             0,
+                             backgnd.top,
+                             backgnd.x - 1,
+                             backgnd.bottom,
+                             ggl_color(PAL_GRAY4));
             }
 
         }

@@ -23,7 +23,7 @@ void ex_print(int x, int y, char *str)
     dr.right = LCD_W;
     dr.bottom = LCD_H;
 
-    DrawTextMono(x, y, str, Font_6A, 1, &dr);
+    DrawTextMono(x, y, str, Font_6A, ggl_color(PAL_GRAY1), &dr);
 }
 
 void ex_clrscreen()

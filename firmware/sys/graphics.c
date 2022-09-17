@@ -8,8 +8,7 @@
 // BASIC GRAPHICS ROUTINES
 #include <ui.h>
 
-static unsigned int gui_chgcolorfilter(unsigned int dest, unsigned int src,
-        int param)
+static pixword gui_chgcolorfilter(pixword dest, pixword src, pixword param)
 {
     return ggl_opmaskcol(dest, src, 0, param);
 }
@@ -164,7 +163,7 @@ int StringWidth(char *Text, UNIFONT const * Font)
 // DRAW TEXT WITH TRANSPARENT BACKGROUND
 // UTF8 STRING
 
-void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
+void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_t color,
         gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
@@ -281,7 +280,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
             //if((color & 0xf) == 0xf)
 //                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
 //            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color,
+                ggl_monobitbltoper(drawsurf, &srf, w, h, color.value,
                         &gui_chgcolorfilter);
             drawsurf->x += w;
         }
@@ -293,8 +292,8 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
 
 // DRAW TEXT WITH SOLID BACKGROUND
 // UTF8 STRING
-void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int color,
-        int bkcolor, gglsurface * drawsurf)
+void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, color_t color,
+        color_t bkcolor, gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
@@ -415,7 +414,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
             //if((color & 0xf) == 0xf)
 //                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
 //            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color,
+                ggl_monobitbltoper(drawsurf, &srf, w, h, color.value,
                         &gui_chgcolorfilter);
             drawsurf->x += w;
         }
@@ -425,8 +424,8 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
 
 }
 
-void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
-        int bkcolor, gglsurface * drawsurf)
+void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, color_t color,
+        color_t bkcolor, gglsurface * drawsurf)
 {
     char *End = Text;
 
@@ -436,7 +435,7 @@ void DrawTextBk(int x, int y, char *Text, UNIFONT const * Font, int color,
     DrawTextBkN(x, y, Text, End, Font, color, bkcolor, drawsurf);
 }
 
-void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
+void DrawText(int x, int y, char *Text, UNIFONT const * Font, color_t color,
         gglsurface * drawsurf)
 {
     char *End = Text;
@@ -449,7 +448,7 @@ void DrawText(int x, int y, char *Text, UNIFONT const * Font, int color,
 
 // DRAWS TEXT TO A 1-BIT MONOCHROME SURFACE
 // TRANSPARENT BACKGROUND
-void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
+void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, color_t color,
         gglsurface * drawsurf)
 {
     int cp, startcp, rangeend, offset, cpinfo;
@@ -570,7 +569,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
                 // NOW ROTATE DESTINATION
                 destword <<= offset;
                 // THIS ONLY WORKS FOR FONTS WITH UP TO 8 PIXELS WIDE CHARACTERS
-                if(color) {
+                if(color.value) {
                     // BLACK LETTERS ON TRANSPARENT BACKGROUND
                     *cptr |= destword;
                     if(destword >> 8) {

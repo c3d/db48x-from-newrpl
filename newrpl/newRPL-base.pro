@@ -18,8 +18,8 @@ SOURCES += \
     ../firmware/ggl/ggl/ggl_hbltoper.c \
     ../firmware/ggl/ggl/ggl_hline.c \
     ../firmware/ggl/ggl/ggl_initscr.c \
-    ../firmware/ggl/ggl/ggl_mkcolor.c \
-    ../firmware/ggl/ggl/ggl_mkcolor32.c \
+    ../firmware/ggl/ggl/ggl_color.c \
+    ../firmware/ggl/ggl/ggl_color32.c \
     ../firmware/ggl/ggl/ggl_opmask.c \
     ../firmware/ggl/ggl/ggl_optransp.c \
     ../firmware/ggl/ggl/ggl_ovlblt.c \

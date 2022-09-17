@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter filterfunc)
+void ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter_fn filterfunc)
 {
 #ifndef TARGET_PRIME1
     // APPLIES A UNARY OPERATOR (A FILTER) TO A SERIES OF NIBBLES

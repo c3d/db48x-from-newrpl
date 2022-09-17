@@ -1005,20 +1005,19 @@ extern WORD battery;
 // const unsigned int System7Font[];
 // const unsigned int MiniFont[];
 
-void        DrawText(int x, int y, char *Text, UNIFONT const *Font, int color, gglsurface *drawsurf);
-void        DrawTextN(int x, int y, char *Text, char *End, UNIFONT const *Font, int color, gglsurface *drawsurf);
+void        DrawText(int x, int y, char *Text, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
+void        DrawTextN(int x, int y, char *Text, char *End, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
+void DrawTextBk(int x, int y, char *Text, UNIFONT const *Font, color_t color, color_t bkcolor, gglsurface *drawsurf);
+void DrawTextBkN(int            x,
+                 int            y,
+                 char          *Text,
+                 char          *End,
+                 UNIFONT const *Font,
+                 color_t        color,
+                 color_t        bkcolor,
+                 gglsurface    *drawsurf);
 
-void        DrawTextBk(int x, int y, char *Text, UNIFONT const *Font, int color, int bkcolor, gglsurface *drawsurf);
-void        DrawTextBkN(int            x,
-                        int            y,
-                        char          *Text,
-                        char          *End,
-                        UNIFONT const *Font,
-                        int            color,
-                        int            bkcolor,
-                        gglsurface   *drawsurf);
-
-void        DrawTextMono(int x, int y, char *Text, UNIFONT const *Font, int color, gglsurface *drawsurf);
+void        DrawTextMono(int x, int y, char *Text, UNIFONT const *Font, color_t color, gglsurface *drawsurf);
 int         StringWidth(char *Text, UNIFONT const *Font);
 int         StringWidthN(char *Text, char *End, UNIFONT const *Font);
 char       *StringCoordToPointer(char *Text, char *End, UNIFONT const *Font, int *xcoord);
@@ -1171,8 +1170,8 @@ int           halCheckSystemAlarm();
 
 // SCREEN FUNCTIONS
 void          halInitScreen();
-void          halSetupTheme(word_p palette);
-void          halSetNotification(enum halNotification type, int color);
+void          halSetupTheme(color16_t *palette);
+void          halSetNotification(enum halNotification type, color_t color);
 int           halGetNotification(enum halNotification type);
 void          halShowErrorMsg();
 void          halShowMsg(char *Text);

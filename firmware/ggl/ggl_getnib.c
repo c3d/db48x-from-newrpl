@@ -7,14 +7,15 @@
 
 #include <ggl.h>
 
-int ggl_getnib(pixword *buf, int addr)
+#ifndef TARGET_PRIME1
+color4_t ggl_getnib(pixword *buf, size addr)
 {
-    register char *ptr = ((char *) buf) + (addr >> 1);
-    register int   a   = (int) (*ptr);
-    if (addr & 1)
-        a >>= 4;
-    return a & 0xf;
+    color4_t *ptr = ((color4_t *) buf) + (addr >> 1);
+    uint8_t value = (addr & 1) ? ptr->nibbles.high : ptr->nibbles.low;
+    color4_t result = { .value =  value };
+    return result;
 }
+#endif // TARGET_PRIME1
 
 int ggl_getmonopix(char *buf, int addr)
 {

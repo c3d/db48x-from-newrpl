@@ -13,6 +13,7 @@
 #include "newrpl.h"
 #include "render.h"
 #include "sysvars.h"
+#include "ui.h"
 #endif
 
 // *****************************
@@ -323,12 +324,12 @@ word_p rplBmpToDisplay(word_p bitmap)
             pixel = *srcptr & mask;
             // CONVERT TO PROPER FORMAT
             if(pixel)
-                pixel = RGB_TO_RGB16(0,0,0);            // ASSUME MONOCHROME GRAPHICS ARE BLACK ON WHITE (SAME AS 50G OR A FAX)
+                pixel = RGB_TO_RGB16(0,0,0).value;            // ASSUME MONOCHROME GRAPHICS ARE BLACK ON WHITE (SAME AS 50G OR A FAX)
             else
-                pixel = RGB_TO_RGB16(255,255,255);
+                pixel = RGB_TO_RGB16(255,255,255).value;
 
             // WRITE TO DESTINATION
-                *destptr = (uint16_t) pixel;
+            *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
             mask <<= 1;
@@ -363,7 +364,7 @@ word_p rplBmpToDisplay(word_p bitmap)
             if(pixel&0x80) pixel|=0xf;
 
             // CONVERT TO PROPER FORMAT
-                pixel = RGB_TO_RGB16(pixel,pixel,pixel);            // ASSUME GRAY16 GRAPHICS ARE BLACK ON WHITE (SAME AS 50G BITMAPS)
+            pixel = RGB_TO_RGB16(pixel,pixel,pixel).value;            // ASSUME GRAY16 GRAPHICS ARE BLACK ON WHITE (SAME AS 50G BITMAPS)
 
             // WRITE TO DESTINATION
                 *destptr = (uint16_t) pixel;
@@ -400,10 +401,10 @@ word_p rplBmpToDisplay(word_p bitmap)
             // READ A PIXEL FROM SOURCE
             pixel = *srcptr;
             // CONVERT TO PROPER FORMAT
-            pixel = RGB_TO_RGB16(pixel,pixel,pixel);
+            color16_t pixel16 = RGB_TO_RGB16(pixel,pixel,pixel);
 
             // WRITE TO DESTINATION
-            *destptr = (uint16_t)pixel;
+            *destptr = pixel16.value;
 
             //INCREASE SOURCE POINTER
             ++srcptr;
@@ -438,7 +439,7 @@ word_p rplBmpToDisplay(word_p bitmap)
             pixel=*srcptr;
 
             // CONVERT TO PROPER FORMAT
-            pixel = RGB_TO_RGB16((pixel>>16)&0xff,(pixel>>8)&0xff,(pixel)&0xff);
+            pixel = RGB_TO_RGB16((pixel>>16)&0xff,(pixel>>8)&0xff,(pixel)&0xff).value;
 
             *destptr = (uint16_t) pixel;
 
@@ -744,7 +745,7 @@ void LIB_HANDLER()
             int32_t k;
             for(k = 0; k < renderst->npoints; ++k) {
                 ggl_cliphline(&(renderst->srf), renderst->points[k].y >> 24,
-                        renderst->points[k].x, renderst->points[k].x, 0xf);
+                              renderst->points[k].x, renderst->points[k].x, ggl_color(PAL_GRAY15));
             }
 
             return;

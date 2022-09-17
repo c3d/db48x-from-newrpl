@@ -7,7 +7,7 @@
  */
 #include <ggl.h>
 
-void ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter filterfunc)
+void ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter_fn filterfunc)
 {
     // FILTERS A RECTANGULAR REGION FROM src TO dest
     // gglsurface CONTAINS THE BUFFER AND OFFSETS

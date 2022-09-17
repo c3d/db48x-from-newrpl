@@ -12,6 +12,8 @@
 
 class QEmuScreen:public QGraphicsView
 {
+    typedef unsigned pixword;
+    typedef unsigned palette_index;
   Q_OBJECT public:
     // SIZE OF THE SCREEN TO EMULATE
     int screen_width;
@@ -32,13 +34,13 @@ class QEmuScreen:public QGraphicsView
     QGraphicsPixmapItem *Annunciators[6], *mainScreen;
 
     void setTimer(QTimer * tmr);
-    void setPixel(int offset, int color);
-    void setWord(int offset, unsigned int color);
+    void setPixel(int offset, palette_index color);
+    void setPixelWord(int offset, pixword color);
     void setMode(int _mode, unsigned int *_buffer);
     void setScale(qreal _scale);
     explicit QEmuScreen(QWidget * parent = 0);
     ~QEmuScreen();
-    
+
         signals: public slots: void update();
 
 };

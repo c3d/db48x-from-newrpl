@@ -131,7 +131,7 @@ void QEmuScreen::setTimer(QTimer * tmr)
 }
 
 // SET A PIXEL IN THE SPECIFIED COLOR
-void QEmuScreen::setPixel(int offset, int color)
+void QEmuScreen::setPixel(int offset, QEmuScreen::palette_index color)
 {
     //Pixels[offset]->setBrush(GrayBrush[color & 15]);
 
@@ -141,7 +141,7 @@ void QEmuScreen::setPixel(int offset, int color)
 
 }
 
-void QEmuScreen::setWord(int offset, unsigned int color)
+void QEmuScreen::setPixelWord(int offset, QEmuScreen::pixword  color)
 {
     int f;
     QPainter pt(&mainPixmap);
@@ -178,7 +178,7 @@ void QEmuScreen::update()
     }
 
     int i, j;
-    unsigned int color;
+    pixword color;
 
     if(lcd_mode == 0) {
         // MONOCHROME SCREEN

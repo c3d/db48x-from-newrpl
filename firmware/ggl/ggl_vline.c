@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color)
+void ggl_vline(gglsurface *srf, int x, int yt, int yb, color_t color)
 {
     // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
     // color=number from 0 to 15
@@ -16,15 +16,15 @@ void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color)
     int offset = srf->width * yt + x;
 
 #ifdef TARGET_PRIME1
-    unsigned short *ptr = (unsigned short *) srf->pixels + offset;
+    color16_t *ptr = (color16_t *) srf->pixels + offset;
 #endif /* TARGET_PRIME1 */
     while (yt <= yb)
     {
 #ifndef TARGET_PRIME1
-        ggl_pltnib(srf->pixels, offset, color >> ((yt & 7) << 2));
+        ggl_pltnib(srf->pixels, offset, color);
         offset += srf->width;
 #else  /* TARGET_PRIME1 */
-        *ptr = (unsigned short int) color;
+        *ptr = color;
         ptr += srf->width;
 #endif /* TARGET_PRIME1 */
         ++yt;
@@ -32,7 +32,7 @@ void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color)
 }
 
 // SAME AS VLINE BU WITH CLIPPING
-void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color)
+void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, color_t color)
 {
     // PAINTS A VERTICAL LINE FROM yt TO yb BOTH INCLUSIVE
     // color=number from 0 to 15
@@ -55,10 +55,9 @@ void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color)
 
 #ifndef TARGET_PRIME1
     int offset = srf->width * yt + x;
-
     while (yt <= yb)
     {
-        ggl_pltnib(srf->pixels, offset, color >> ((yt & 7) << 2));
+        ggl_pltnib(srf->pixels, offset, color);
         offset += srf->width;
         ++yt;
     }

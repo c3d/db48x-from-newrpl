@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int            color;
+    int color;
     unsigned char *ptr = monobitmap;
     int            y, ystart, yend, yinc, rowlen;
 

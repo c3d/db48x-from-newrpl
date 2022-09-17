@@ -7,10 +7,10 @@
 
 #include <ggl.h>
 
-void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, int *color)
+void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, color_t *color)
 {
     // DRAWS A RECTANGLE BETWEEN x1,y1 and x2,y2 ALL INCLUSIVE
-    // color IS AN 8x8-BIT PATTERN (int color[8])
+    // color IS AN 8x8-BIT PATTERN (color_t color[8])
     // RESTRICTIONS:
     //        NO BOUNDARY CHECKS
     //        y2>=y1 && x2>=x1

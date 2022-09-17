@@ -160,45 +160,66 @@ static inline color16_t ggl_rgb32_to_rgb16(uint8_t red, uint8_t green, uint8_t b
     return ggl_rgb16(red >> 3, green >> 2, blue >> 3);
 }
 
-#define RGB_TO_RGB16(red, green, blue) (ggl_rgb32_to_rgb16((red), (green), (blue)).value)
+
+static inline color_t ggl_rgb16_to_color(color16_t c16)
+{
+#if BITS_PER_PIXEL == 1
+    uint8_t value = c16.value ? 1 : 0;
+#elif BITS_PER_PIXEL == 4
+    uint8_t value = (c16.rgb16.red + c16.rgb16.green + c16.rgb16.blue) / 8;
+#elif BITS_PER_PIXEL == 16
+    uint16_t value = c16.value;
+#else
+#  error Invalid BITS_PER_PIXEL
+#endif //
+    color_t color = { .value = value };
+    return color;
+}
+
+static inline color16_t ggl_color_to_rgb16(color_t color)
+{
+#if BITS_PER_PIXEL == 1
+    uint8_t value = color ? 0xFF : 0x00;
+    return ggl_rgb32_to_rgb16(value, value, value);
+#elif BITS_PER_PIXEL == 4
+    uint8_t value = color.value | (color.value << 4);
+    return ggl_rgb32_to_rgb16(value, value, value);
+#elif BITS_PER_PIXEL == 16
+    return color;
+#else
+#  error Invalid BITS_PER_PIXEL
+#endif //
+}
+
+static inline uint8_t ggl_red(color16_t color)
+{
+    return (color.rgb16.red << 3) | (color.rgb16.red >> 2);
+}
+
+static inline uint8_t ggl_green(color16_t color)
+{
+    return (color.rgb16.green << 2) | (color.rgb16.green >> 3);
+}
+
+static inline uint8_t ggl_blue(color16_t color)
+{
+    return (color.rgb16.blue << 3) | (color.rgb16.blue >> 2);
+}
+
+#define RGB_TO_RGB16(red, green, blue) (ggl_rgb32_to_rgb16((red), (green), (blue)))
 
 // Pack RGB16 components (red=0-31, green=0-63, blue=0-31)
-#define PACK_RGB16(red, green, blue)   (ggl_rgb16((red), (green), (blue)).value)
+#define PACK_RGB16(red, green, blue)   (ggl_rgb16((red), (green), (blue)))
 
 // Extract RGB red component from RGB16 color (bit expand to 0-255 range)
-#define RGBRED(rgb16)                  (((rgb16) &0x8000) ? (((rgb16) >> 8) | 7) : ((rgb16) >> 8) & 0xf8)
+#define RGBRED(color)                  ggl_red(ggl_color_to_rgb16(color))
 // Extract RGB green component from RGB16 color (bit expand to 0-255 range)
-#define RGBGREEN(rgb16)                (((rgb16) &0x400) ? ((((rgb16) >> 3) & 0xff) | 3) : ((rgb16) >> 3) & 0xfc)
+#define RGBGREEN(color)                ggl_green(ggl_color_to_rgb16(color))
 // Extract RGB blue component from RGB16 color (bit expand to 0-255 range)
-#define RGBBLUE(rgb16)                 (((rgb16) &0x10) ? ((((rgb16) << 3) & 0xff) | 7) : ((rgb16) << 3) & 0xfc)
-
-// Extract RGB components from a 16-grays color value
-#define G2RGBRED(gray)                 ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
-#define G2RGBGREEN(gray)               ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
-#define G2RGBBLUE(gray)                ((((gray) &0xf) << 4) | (((gray) &0x8) ? 0xf : 0))
-
-#ifndef TARGET_PRIME1
-#  define C2RGBRED(gray)   G2RGBRED(gray)
-#  define C2RGBGREEN(gray) G2RGBGREEN(gray)
-#  define C2RGBBLUE(gray)  G2RGBBLUE(gray)
-#else // TARGET_PRIME1
-#  define C2RGBRED(rgb16)   RGBRED(rgb16)
-#  define C2RGBGREEN(rgb16) RGBGREEN(rgb16)
-#  define C2RGBBLUE(rgb16)  RGBBLUE(rgb16)
-#endif // TARGET_PRIME1
+#define RGBBLUE(color)                 ggl_blue(ggl_color_to_rgb16(color))
 
 // Convert from RGB (0-255) to GRAY16(4-bit)
-#define RGB_TO_GRAY16(red, green, blue) ((((red) + (green) + (green) + (blue)) >> 6) & 0xf)
-
-
-#define REPEAT_NIBBLE(nib)              (((nib) &0xf) | (((nib) &0xf) << 4))
-#define REPEAT_BYTE(byte)               (((byte) &0xff) | (((byte) &0xff) << 8))
-#define REPEAT_uint16_t(hword)          (((hword) &0xffff) | (((hword) &0xffff) << 16))
-
-#define PATTERN_SOLID(gray)             REPEAT_uint16_t(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
-#define PATTERN_2COL(dot1, dot2) REPEAT_uint16_t(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
-#define PATTERN_4COL(dot1, dot2, dot3, dot4) \
-  REPEAT_uint16_t(((dot1) &0xf) | (((dot2) &0xf) << 4) | (((dot3) &0xf) << 8) | (((dot4) &0xf) << 12))
+#define RGB16_TO_GRAY(red, green, blue) ((((red) + (green) + (green) + (blue)) >> 6) & 0xf)
 
 // Theming engine definitions, include early to allow for target-specific overrides
 
@@ -208,7 +229,23 @@ static inline color16_t ggl_rgb32_to_rgb16(uint8_t red, uint8_t green, uint8_t b
 #define PALETTE_MASK 63
 
 // Global palette, can be used for grayscale conversion or for themes
-extern int ggl_palette[PALETTE_SIZE];
+extern color_t ggl_palette[PALETTE_SIZE];
+
+static inline color_t ggl_color(palette_index index)
+{
+    return ggl_palette[index & PALETTE_MASK];
+}
+
+static inline void ggl_set_color(palette_index index, color_t color)
+{
+    ggl_palette[index & PALETTE_MASK] = color;
+}
+
+static inline void ggl_set_color16(palette_index index, color16_t color)
+{
+    ggl_palette[index & PALETTE_MASK] = ggl_rgb16_to_color(color);
+}
+
 
 // internal buffer for hblt routines
 
@@ -247,6 +284,7 @@ extern int ggl_palette[PALETTE_SIZE];
 typedef struct
 {
     pixword *pixels;        //! Word-aligned address of the surface buffer
+    size     scanline;      //! Width in words of a line
     size     width;         //! Width (in pixels) of the buffer
     size     height;        //! Height (in pixels) of the buffer
     coord    x, y;          //! Offset coordinates within the buffer
@@ -255,9 +293,9 @@ typedef struct
     int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 
-typedef unsigned int (*gglfilter)(unsigned int pixels, int param);
+typedef pixword (*gglfilter_fn)(pixword color, pixword param);
 
-typedef unsigned int (*ggloperator)(unsigned int dest, unsigned int source, int param);
+typedef pixword (*ggloperator_fn)(pixword dest, pixword source, pixword param);
 
 // inline routines
 
@@ -276,25 +314,34 @@ void ggl_initscr(gglsurface *surface);
 // drawing primitives
 // general pixel set/read routines
 
-void ggl_pltnib(pixword *buff, int off, int color); // poke a pixel (off in nibbles)
-int  ggl_getnib(pixword *buff, int off);            // peek a pixel (off in nibbles)
-int  ggl_getmonopix(char *buf, int off);        // peek a pixel in monochrome bitmap (off in pixels)
+#ifndef TARGET_PRIME1
+void     ggl_pltnib(pixword *buff, size off, color4_t color); // poke a pixel (off in nibbles)
+color4_t ggl_getnib(pixword *buff, size off);                 // peek a pixel (off in nibbles)
+#endif // TARGET_PRIME1
+
+int  ggl_getmonopix(char *buf, int off);                      // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
 
-// note: the argument color is a 32-bit value containing a different
-//       color for each pixel. For solid colors, set color to contain the same value
-//       on every nibble (for color 8, color=0x88888888)
-//       or call ggl_mkcolor for that purpose
+// The low-level primitives take a pattern to describe colors because they work
+// on words rather than individual pixels.
+// The pattern_t argument is a 64-bit value containing a different color for
+// each pixel, arranged in a grid PATTERN_WIDTH wide and PATTERN_HEIGHT high.
+// The pattern repeats both horizontally and vertically, which makes it possible
+// to implement efficient operations on all supported BITS_PER_PIXEL configurations.
+// The ggl_solid will create a solid pattern from a palette index
+// The ggl_solid_pattern will do the same from a color
+// Note that the wrapping of data in a struct is zero-cost on any reasonably
+// decent compiler.
 
-void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color); // fast low-level horizontal line
-void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color);
-void ggl_vline(gglsurface *srf, int x, int yt, int yb, int color); // fast low-level vertical line
-void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, int color);
-void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, int color);     // low-level rectangle
-void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, int color); // low-level rectangle
+void ggl_hline(gglsurface *srf, int y, int xl, int xr, pattern_t color); // fast low-level horizontal line
+void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, pattern_t color);
+void ggl_vline(gglsurface *srf, int x, int yt, int yb, pattern_t color); // fast low-level vertical line
+void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern_t color);
+void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color);     // low-level rectangle
+void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color); // low-level rectangle
 
-void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, int *color); // low-level rectangle with 8x8 pattern
+void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, color_t *color); // low-level rectangle with 8x8 pattern
 
 // bit-blit functions
 
@@ -326,9 +373,9 @@ void ggl_revblt(gglsurface *dest, gglsurface *src, size width, size height); // 
 void ggl_ovlblt(gglsurface *dest, gglsurface *src, size width, size height); // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
 #define ggl_bitbltmask(dest, src, width, height, tcol) \
-  ggl_bitbltoper(dest, src, width, height, tcol, (ggloperator) &ggl_opmask)
+  ggl_bitbltoper(dest, src, width, height, tcol, (ggloperator_fn) &ggl_opmask)
 #define ggl_monobitbltmask(dest, src, width, height, tcol) \
-  ggl_monobitbltoper(dest, src, width, height, tcol, (ggloperator) &ggl_opmask)
+  ggl_monobitbltoper(dest, src, width, height, tcol, (ggloperator_fn) &ggl_opmask)
 
 void     ggl_bitbltclip(gglsurface *dest,
                         gglsurface *src,
@@ -346,63 +393,53 @@ void     ggl_scrollrt(gglsurface *dest, size width, size height, size npixels); 
 // custom filters and operators
 
 // low-level row filtering routine
-void     ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter filterfunc);
+void     ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter_fn filterfunc);
 // bitmap filtering routine
-void     ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter filterfunc);
+void     ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter_fn filterfunc);
 
 // low-level row operator routine
-void     ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator foperator);
+void     ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator_fn foperator);
 // low-level row operator routine for monochrome bitmaps
-void     ggl_monohbltoper(pixword       *dest,
-                          int            destoff,
-                          unsigned char *src,
-                          int            srcoff,
-                          int            npixels,
-                          int            param,
-                          ggloperator    foperator);
+void      ggl_monohbltoper(pixword       *dest,
+                           int            destoff,
+                           unsigned char *src,
+                           int            srcoff,
+                           int            npixels,
+                           int            param,
+                           ggloperator_fn foperator);
 // bitblt operator routine
-void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop);
+void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop);
 // bitblt operator routine for monochrome bitmaps
-void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop);
+void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop);
 
 // predefined filters and operators
 
 // filters (unary operators)
 // ligthens an image by subtracting param from all pixels
-unsigned ggl_fltlighten(unsigned word, int param);
+pixword ggl_fltlighten(pixword color, pixword param);
 // darkens an image by adding param to all pixels
-unsigned ggl_fltdarken(unsigned word, int param);
+pixword ggl_fltdarken(pixword color, pixword param);
 // invert the colors on all pixels
-unsigned ggl_fltinvert(unsigned word, int param);
+pixword ggl_fltinvert(pixword color, pixword param);
 // replace a color with another
-unsigned ggl_fltreplace(unsigned word, int param);
+pixword ggl_fltreplace(pixword color, pixword param);
 
 // operators (between two surfaces)
 // standard mask, tcolor in src is considered transparent
-unsigned ggl_opmask(unsigned dest, unsigned src, unsigned tcolor);
+pixword ggl_opmask(pixword dest, pixword src, pixword tcolor);
 // transparency blend, weight is 0 = src is opaque, 16 = src is fully transparent
-unsigned ggl_optransp(unsigned dest, unsigned src, int weight);
+pixword ggl_optransp(pixword dest, pixword src, pixword weight);
 // standard mask, tcolor in src is considered transparent, white color in src is replaced with newcolor
-unsigned ggl_opmaskcol(unsigned dest, unsigned src, unsigned tcolor, unsigned newcolor);
+pixword ggl_opmaskcol(pixword dest, pixword src, pixword tcolor, pixword newcolor);
 
-// ggl_mkcolor repeats the same color on every nibble
-// ggl_mkcolor(2) will return 0x22222222
-int      ggl_mksolid(int color); // solid color generator
+// ggl_color repeats the same color on every nibble
+// ggl_color(2) will return 0x22222222
+static inline pattern_t ggl_solid(palette_index index) { return ggl_solid_pattern(ggl_color(index)); }
 
-// ggl_getcolor takes a system palette index color and expands to an actual RGB16 color
-// for values 0-15 the system palette must match grayscale levels for compatibility
-#define ggl_mkcolor(color) (ggl_palette[(color) &PALETTE_MASK])
-
-// Set a palette index entry
-#define ggl_setpalette(index, color)              \
-  {                                               \
-    ggl_palette[(index) &PALETTE_MASK] = (color); \
-  }
-
-// ggl_mkcolor32 creates virtual 32-colors by using 8x8 patterns
+// ggl_color32 creates virtual 32-colors by using 8x8 patterns
 // col32 is a value from 0 to 30, being 30=black, 0=white
 // note: the user is responsible to provide a valid int[8] buffer in the
 // pattern argument
-void ggl_mkcolor32(int col32, int *pattern); // 50% dither pattern generator for 31 colors
+void ggl_color32(int col32, int *pattern); // 50% dither pattern generator for 31 colors
 
 #endif

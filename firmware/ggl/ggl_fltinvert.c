@@ -7,18 +7,7 @@
 
 #include <ggl.h>
 
-unsigned int ggl_fltinvert(unsigned word, int param)
+pixword ggl_fltinvert(pixword color, pixword param)
 {
-    (void) param; // THIS IS JUST TO SILENCE THE UNUSED ARGUMENT WARNING
-
-    register int          f;
-    register unsigned int res = 0;
-    for (f = 0; f < 8; ++f, word >>= 4)
-    {
-        // filter the pixel here
-        res |= 0xf - (word & 0xf);
-
-        res = (res >> 4) | (res << 28);
-    }
-    return res;
+    return color ^ ~param;
 }

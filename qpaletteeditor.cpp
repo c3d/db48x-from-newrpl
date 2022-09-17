@@ -147,7 +147,7 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
         for(k=0;k<64;++k)
         {
             QColor color=ui->pTable->item(k,0)->background().color();
-            ggl_palette[k]=RGB_TO_RGB16(color.red(),color.green(),color.blue());
+            ggl_palette[k]=ggl_rgb16_to_color(RGB_TO_RGB16(color.red(),color.green(),color.blue()));
             FullScreenUpdate();
         }
         return;

@@ -13,7 +13,7 @@
 // Color is a single color, no pattern supported
 
 #endif /* TARGET_PRIME1 */
-void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
+void ggl_hline(gglsurface *srf, int y, int xl, int xr, color_t color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -22,6 +22,7 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
     // RESTRICTIONS: xr>=xl
     //                 y MUST BE VALID
 
+    pixword       cword = color.value;
 #ifndef TARGET_PRIME1
     int           loff  = (y * srf->width + xl);
     int           roff  = (y * srf->width + xr);
@@ -33,33 +34,33 @@ void ggl_hline(gglsurface *srf, int y, int xl, int xr, int color)
     {
         // single word operation
         ml |= mr;
-        *left = (*left & ml) | (color & (~ml));
+        *left = (*left & ml) | (cword & (~ml));
         return;
     }
 
-    *left = (*left & ml) | (color & (~ml));
+    *left = (*left & ml) | (cword & (~ml));
     ++left;
     while (left != right)
     {
-        *left = color;
+        *left = cword;
         ++left;
     }
 
-    *right = (*right & mr) | (color & (~mr));
+    *right = (*right & mr) | (cword & (~mr));
 
 #else /* TARGET_PRIME1 */
 
     unsigned short int *ptr = (unsigned short int *) srf->pixels + y * srf->width + xl;
     while (xl <= xr)
     {
-        *ptr++ = color;
+        *ptr++ = cword;
         ++xl;
     }
 
 #endif /* TARGET_PRIME1 */
 }
 
-void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
+void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, color_t color)
 {
     // PAINTS A HORIZONTAL LINE FROM xl TO xr BOTH INCLUSIVE
     // color=COLORED PATTERN TO USE, 8 PIXELS - 1 NIBBLE PER PIXEL
@@ -88,24 +89,25 @@ void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, int color)
     register int *left  = (int *) srf->pixels + (loff >> 3);
     register int *right = (int *) srf->pixels + (roff >> 3);
     int           ml = ggl_leftmask(loff), mr = ggl_rightmask(roff);
+    pixword       cword = color.value;
 
     if (left == right)
     {
         // single word operation
         ml |= mr;
-        *left = (*left & ml) | (color & (~ml));
+        *left = (*left & ml) | (cword & (~ml));
         return;
     }
 
-    *left = (*left & ml) | (color & (~ml));
+    *left = (*left & ml) | (cword & (~ml));
     ++left;
     while (left != right)
     {
-        *left = color;
+        *left = cword;
         ++left;
     }
 
-    *right = (*right & mr) | (color & (~mr));
+    *right = (*right & mr) | (cword & (~mr));
 #else  /* TARGET_PRIME1 */
     ggl_hline(srf, y, xl, xr, color);
 #endif /* TARGET_PRIME1 */

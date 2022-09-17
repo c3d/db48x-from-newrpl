@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, int color)
+void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, color_t color)
 {
     // DRAWS A RECTANGLE BETWEEN x1,y1 and x2,y2 ALL INCLUSIVE
     // color CAN BE AN 8-BIT PATTERN THAT REPEATS VERTICALLY
@@ -22,7 +22,7 @@ void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, int color)
     }
 }
 
-void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, int color)
+void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, color_t color)
 {
     // SAME AS ggl_rect BUT WITH CLIPPING
 

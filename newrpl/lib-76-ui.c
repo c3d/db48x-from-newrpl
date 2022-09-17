@@ -764,14 +764,14 @@ void LIB_HANDLER()
 
         int k;
         word_p obj=rplPeekData(1)+1;
-        WORD palette[PALETTE_SIZE];
-        uint64_t color;
+        color16_t palette[PALETTE_SIZE];
+        color16_t color;
 
         for(k=0;k<PALETTE_SIZE;++k)
         {
-            color=rplReadNumberAsInt64(obj);
+            color.value=rplReadNumberAsInt64(obj);
             if(Exceptions) return;
-            palette[k]=(WORD)color;
+            palette[k]=color;
             obj=rplSkipOb(obj);
         }
 

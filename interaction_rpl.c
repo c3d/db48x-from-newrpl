@@ -313,7 +313,7 @@ void palette2list(uint32_t *list,int *size)
     for(k=0;k<PALETTE_SIZE;++k)
     {
         list[1+3*k]=MKPROLOG(HEXint32_t,2);
-        list[2+3*k]=ggl_palette[k];
+        list[2+3*k]=ggl_palette[k].value;
         list[3+3*k]=0;
     }
     list[1+3*k]=CMD_ENDLIST;
@@ -329,7 +329,7 @@ void list2palette(uint32_t *list)
     for(k=0;k<PALETTE_SIZE;++k)
     {
         if(*ptr==CMD_ENDLIST) break;
-        if(ISint32_t(*ptr)) ggl_palette[k]=ptr[1];
+        if(ISint32_t(*ptr)) ggl_palette[k].value=ptr[1];
         ptr=rplSkipOb(ptr);
     }
 }

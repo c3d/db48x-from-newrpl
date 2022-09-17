@@ -103,7 +103,7 @@ int32_t halWaitForKey()
                 halFlags &= ~HAL_FASTMODE;
             }
             if(halFlags & HAL_HOURGLASS) {
-                halSetNotification(N_HOURGLASS, 0);
+                halSetNotification(N_HOURGLASS, ggl_color(PAL_GRAY0));
                 halFlags &= ~HAL_HOURGLASS;
                 halScreenUpdated();
             }
@@ -164,7 +164,7 @@ int32_t halWaitForKeyTimeout(int32_t timeoutms)
                 halFlags &= ~HAL_FASTMODE;
             }
             if(halFlags & HAL_HOURGLASS) {
-                halSetNotification(N_HOURGLASS, 0);
+                halSetNotification(N_HOURGLASS, ggl_color(PAL_GRAY0));
                 halFlags &= ~HAL_HOURGLASS;
                 halScreenUpdated();
 
@@ -4175,14 +4175,14 @@ void onPlusKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+             ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     int j;
     for(j = 0; j < 15; ++j) {
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
+                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_color(j));
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_color(15 - j));
     }
 
     lcd_contrast++;
@@ -4212,14 +4212,14 @@ void onMinusKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+             ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     int j;
     for(j = 0; j < 15; ++j) {
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
+                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_color(j));
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
+                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_color(15 - j));
     }
 
     lcd_contrast--;
@@ -4276,12 +4276,13 @@ void onDotKeyHandler(WORD keymsg)
         halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+             ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
+
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Format:",
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)options[option], FONT_STATUS,ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG),
+               (char *)options[option], FONT_STATUS,ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG),
                &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4421,13 +4422,13 @@ void onSpcKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Display Mode:",
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)options[option], FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BG),
+               (char *)options[option], FONT_STATUS, ggl_color(PAL_STA_TEXT),ggl_color(PAL_STA_BG),
                &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -4526,14 +4527,14 @@ void onMulDivKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "ENG exponent:",
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
                (char *)onMulDivKeyHandler_options[option],
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
 
     if(option)
         option += 7;
@@ -4626,13 +4627,13 @@ void onDigitKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Display Digits:",
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)&digits, FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               (char *)&digits, FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4692,13 +4693,13 @@ void onUpDownKeyHandler(WORD keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, ggl_color(PAL_STA_BG));
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "System precision:",
-               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BG), &scr);
+               FONT_STATUS, ggl_color(PAL_STA_TEXT),ggl_color(PAL_STA_BG), &scr);
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               digits_string, FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+               digits_string, FONT_STATUS, ggl_color(PAL_STA_TEXT), ggl_color(PAL_STA_BG), &scr);
 
     halScreen.DirtyFlag |= STACK_DIRTY;
 
@@ -7781,56 +7782,56 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         if(KM_SHIFTPLANE(keymsg) & SHIFT_LS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
             {
-                halSetNotification(N_LEFTSHIFT, 0xf);
-                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+                halSetNotification(N_LEFTSHIFT, ggl_color(PAL_GRAY15));
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY15));
             }
             else
             {
-                halSetNotification(N_LEFTSHIFT, 0x8);
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+                halSetNotification(N_LEFTSHIFT, ggl_color(PAL_GRAY8));
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY0));
             }
         }
         else
         {
-            halSetNotification(N_LEFTSHIFT, 0);
+            halSetNotification(N_LEFTSHIFT, ggl_color(PAL_GRAY0));
             if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY0));
         }
 
         if(KM_SHIFTPLANE(keymsg) & SHIFT_RS) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
             {
-                halSetNotification(N_RIGHTSHIFT, 0xf);
-                halSetNotification(N_INTERNALSHIFTHOLD,0xf);
+                halSetNotification(N_RIGHTSHIFT, ggl_color(PAL_GRAY15));
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY15));
             }
             else
             {
-                halSetNotification(N_RIGHTSHIFT, 0x8);
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+                halSetNotification(N_RIGHTSHIFT, ggl_color(PAL_GRAY8));
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY0));
             }
         }
         else
         {
-            halSetNotification(N_RIGHTSHIFT, 0);
+            halSetNotification(N_RIGHTSHIFT, ggl_color(PAL_GRAY0));
             if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+                halSetNotification(N_INTERNALSHIFTHOLD,ggl_color(PAL_GRAY0));
         }
         if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA) {
             if((KM_SHIFTPLANE(keymsg) & SHIFT_ALHOLD))
             {
-                halSetNotification(N_ALPHA, 0xf);
-                halSetNotification(N_INTERNALALPHAHOLD,0xf);
+                halSetNotification(N_ALPHA, ggl_color(PAL_GRAY15));
+                halSetNotification(N_INTERNALALPHAHOLD,ggl_color(PAL_GRAY15));
             }
             else
             {
-                halSetNotification(N_ALPHA, 0x8);
-                halSetNotification(N_INTERNALALPHAHOLD,0);
+                halSetNotification(N_ALPHA, ggl_color(PAL_GRAY8));
+                halSetNotification(N_INTERNALALPHAHOLD,ggl_color(PAL_GRAY0));
             }
         }
         else
         {
-            halSetNotification(N_ALPHA, 0);
-            halSetNotification(N_INTERNALALPHAHOLD,0);
+            halSetNotification(N_ALPHA, ggl_color(PAL_GRAY0));
+            halSetNotification(N_INTERNALALPHAHOLD,ggl_color(PAL_GRAY0));
         }
 
         // UPDATE EDITOR MODE ACCORDINGLY
@@ -8079,14 +8080,14 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), in
             halDoDeferredProcess();
 
             if(usb_isconfigured()) {
-                halSetNotification(N_CONNECTION, 0xf);
+                halSetNotification(N_CONNECTION, ggl_color(PAL_GRAY15));
                 if(usb_hasdata())
-                    halSetNotification(N_DATARECVD, 0xf);
+                    halSetNotification(N_DATARECVD, ggl_color(PAL_GRAY15));
                 else
-                    halSetNotification(N_DATARECVD, 0);
+                    halSetNotification(N_DATARECVD, ggl_color(PAL_GRAY0));
             }
             else
-                halSetNotification(N_CONNECTION, 0);
+                halSetNotification(N_CONNECTION, ggl_color(PAL_GRAY0));
 
             if(!(flags & OL_NOCOMMS)) {
                 if(usb_hasdata()) {

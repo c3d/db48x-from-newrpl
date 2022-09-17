@@ -7,11 +7,13 @@
 
 #include <ggl.h>
 
-void ggl_pltnib(pixword *buf, int addr, int color)
+#ifndef TARGET_PRIME1
+void ggl_pltnib(pixword *buf, size addr, color4_t color)
 {
-    register char *ptr = ((char *) buf) + (addr >> 1);
+    color4_t *ptr = ((color4_t *) buf) + (addr >> 1);
     if (addr & 1)
-        *ptr = (*ptr & 0xf) | ((color << 4) & 0xf0);
+        ptr->nibbles.high = color.value;
     else
-        *ptr = (*ptr & 0xf0) | (color & 0xf);
+        ptr->nibbles.low = color.value;
 }
+#endif // TARGET_PRIME1
