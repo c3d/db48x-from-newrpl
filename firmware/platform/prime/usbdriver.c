@@ -200,8 +200,8 @@ const struct usb_string_descriptor_struct const _usb_string2 = {
 // request from the host (in wValue and wIndex).
 const struct descriptor_list_struct
 {
-    HALFWORD wValue;
-    HALFWORD wIndex;
+    uint16_t wValue;
+    uint16_t wIndex;
     const BYTE *addr;
     BYTE length;
 } const descriptor_list[] = {
@@ -666,7 +666,7 @@ static void usb_ep0_read_buffer(void)
     if (total > EP0_FIFO_SIZE) {
         total = EP0_FIFO_SIZE;
     }
-    int fifocount = *BRCR & 0x3ff; //BRCR HAS HALFWORDS
+    int fifocount = *BRCR & 0x3ff; //BRCR HAS uint16_tS
     if (total > (fifocount << 1)) {
         total = (fifocount << 1);
     }
@@ -1289,7 +1289,7 @@ void usb_ep2_receive()
         return;
     }
 
-    int fifocnt = *BRCR & 0x3ff; // BRCR HAS HALFWORDS;
+    int fifocnt = *BRCR & 0x3ff; // BRCR HAS uint16_tS;
     int lwo = *ESR & ESR_LWO;
 
     if(fifocnt < 4 || ( (fifocnt == 4) && lwo)) { // LESS THAN 8 BYTES
@@ -1300,7 +1300,7 @@ void usb_ep2_receive()
 
     // READ PACKET TYPE
     BYTEPTR rcvbuf;
-    HALFWORD halfword;
+    uint16_t halfword;
 
     // READ PACKET TYPE
     halfword = *EP2BR;

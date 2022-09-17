@@ -210,8 +210,8 @@ const struct usb_string_descriptor_struct const _usb_string2 = {
 // request from the host (in wValue and wIndex).
 const struct descriptor_list_struct
 {
-    HALFWORD wValue;
-    HALFWORD wIndex;
+    uint16_t wValue;
+    uint16_t wIndex;
     const BYTE *addr;
     BYTE length;
 } const descriptor_list[] = {

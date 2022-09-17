@@ -188,12 +188,12 @@ static inline color16_t ggl_rgb32_to_rgb16(uint8_t red, uint8_t green, uint8_t b
 
 #define REPEAT_NIBBLE(nib)              (((nib) &0xf) | (((nib) &0xf) << 4))
 #define REPEAT_BYTE(byte)               (((byte) &0xff) | (((byte) &0xff) << 8))
-#define REPEAT_HALFWORD(hword)          (((hword) &0xffff) | (((hword) &0xffff) << 16))
+#define REPEAT_uint16_t(hword)          (((hword) &0xffff) | (((hword) &0xffff) << 16))
 
-#define PATTERN_SOLID(gray)             REPEAT_HALFWORD(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
-#define PATTERN_2COL(dot1, dot2) REPEAT_HALFWORD(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
+#define PATTERN_SOLID(gray)             REPEAT_uint16_t(REPEAT_BYTE(REPEAT_NIBBLE(gray)))
+#define PATTERN_2COL(dot1, dot2) REPEAT_uint16_t(REPEAT_BYTE( ((dot1)&0xf) | (((dot2)&0xf)<<4) )))
 #define PATTERN_4COL(dot1, dot2, dot3, dot4) \
-  REPEAT_HALFWORD(((dot1) &0xf) | (((dot2) &0xf) << 4) | (((dot3) &0xf) << 8) | (((dot4) &0xf) << 12))
+  REPEAT_uint16_t(((dot1) &0xf) | (((dot2) &0xf) << 4) | (((dot3) &0xf) << 8) | (((dot4) &0xf) << 12))
 
 // Theming engine definitions, include early to allow for target-specific overrides
 

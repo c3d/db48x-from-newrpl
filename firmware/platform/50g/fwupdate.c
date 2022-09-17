@@ -72,8 +72,8 @@ extern const struct usb_string_descriptor_struct const _usb_string2;
 
 extern const struct descriptor_list_struct
 {
-    HALFWORD wValue;
-    HALFWORD wIndex;
+    uint16_t wValue;
+    uint16_t wIndex;
     const BYTE *addr;
     BYTE length;
 } const descriptor_list[];
@@ -1667,16 +1667,16 @@ ARM_MODE void ram_doreset()
 }
 
 #define FLASH_SECTORSIZE 4096   // SECTOR SIZE IN BYTES
-#define WRITE_HALFWORD_FLASH(address,data) *((volatile HALFWORD *)(address<<1))=data
+#define WRITE_uint16_t_FLASH(address,data) *((volatile uint16_t *)(address<<1))=data
 
 // ERASE FLASH AREA BETWEEN GIVEN ADDRESSES (IN 32-BIT WORDS)
 
 ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
 {
-    volatile HALFWORD *ptr = (HALFWORD *) (((WORD) address) & ~(FLASH_SECTORSIZE - 1)); // FIND START OF SECTOR
+    volatile uint16_t *ptr = (uint16_t *) (((WORD) address) & ~(FLASH_SECTORSIZE - 1)); // FIND START OF SECTOR
     nwords += (((WORD) address) & (FLASH_SECTORSIZE - 1)) >> 2; // CORRECTION FOR MISALIGNED SECTORS
 
-    HALFWORD data, prevdata;
+    uint16_t data, prevdata;
 
 // START ERASING SECTORS OF FLASH
     while(nwords > 0) {
@@ -1691,11 +1691,11 @@ ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
             asm volatile ("ldmia sp!, { r0 }");
 
             // SECTOR ERASE COMMAND
-            WRITE_HALFWORD_FLASH(0x5555, 0x00AA);       // write data 0x00AA to device addr 0x5555
-            WRITE_HALFWORD_FLASH(0x2AAA, 0x0055);       // write data 0x0055 to device addr 0x2AAA
-            WRITE_HALFWORD_FLASH(0x5555, 0x0080);       // write data 0x0080 to device addr 0x5555
-            WRITE_HALFWORD_FLASH(0x5555, 0x00AA);       // write data 0x00AA to device addr 0x5555
-            WRITE_HALFWORD_FLASH(0x2AAA, 0x0055);       // write data 0x0055 to device addr 0x2AAA
+            WRITE_uint16_t_FLASH(0x5555, 0x00AA);       // write data 0x00AA to device addr 0x5555
+            WRITE_uint16_t_FLASH(0x2AAA, 0x0055);       // write data 0x0055 to device addr 0x2AAA
+            WRITE_uint16_t_FLASH(0x5555, 0x0080);       // write data 0x0080 to device addr 0x5555
+            WRITE_uint16_t_FLASH(0x5555, 0x00AA);       // write data 0x00AA to device addr 0x5555
+            WRITE_uint16_t_FLASH(0x2AAA, 0x0055);       // write data 0x0055 to device addr 0x2AAA
             *ptr = 0x0030;      // write data 0x0030 to device sector addr
 
             // USE TOGGLE READY TO WAIT FOR COMPLETION
@@ -1715,7 +1715,7 @@ ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
         asm volatile ("ldmia sp!, { r1 }");
 
         nwords -= (FLASH_SECTORSIZE >> 2);      // IN 32-BIT WORDS
-        ptr += (FLASH_SECTORSIZE >> 1); // IN 16-BIT HALFWORDS
+        ptr += (FLASH_SECTORSIZE >> 1); // IN 16-BIT uint16_tS
     }
 // DONE - FLASH WAS ERASED
 }
@@ -1725,8 +1725,8 @@ ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
 ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
 {
 
-    volatile HALFWORD *ptr = (HALFWORD *) address;
-    HALFWORD data, prevdata;
+    volatile uint16_t *ptr = (uint16_t *) address;
+    uint16_t data, prevdata;
     // DISABLE INTERRUPTS
     asm volatile ("stmfd sp!, {r0}");
     asm volatile ("mrs r0,cpsr_all");
@@ -1735,10 +1735,10 @@ ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
     asm volatile ("ldmia sp!, { r0 }");
 
     // PROGRAM WORD COMMAND
-    WRITE_HALFWORD_FLASH(0x5555, 0x00AA);
-    WRITE_HALFWORD_FLASH(0x2AAA, 0x0055);
-    WRITE_HALFWORD_FLASH(0x5555, 0x00A0);
-    *ptr = (HALFWORD) (value & 0xffff);
+    WRITE_uint16_t_FLASH(0x5555, 0x00AA);
+    WRITE_uint16_t_FLASH(0x2AAA, 0x0055);
+    WRITE_uint16_t_FLASH(0x5555, 0x00A0);
+    *ptr = (uint16_t) (value & 0xffff);
 
     // USE TOGGLE READY TO WAIT FOR COMPLETION
     prevdata = *ptr;
@@ -1751,10 +1751,10 @@ ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
     ++ptr;
 
     // PROGRAM WORD COMMAND
-    WRITE_HALFWORD_FLASH(0x5555, 0x00AA);
-    WRITE_HALFWORD_FLASH(0x2AAA, 0x0055);
-    WRITE_HALFWORD_FLASH(0x5555, 0x00A0);
-    *ptr = (HALFWORD) ((value >> 16) & 0xffff);
+    WRITE_uint16_t_FLASH(0x5555, 0x00AA);
+    WRITE_uint16_t_FLASH(0x2AAA, 0x0055);
+    WRITE_uint16_t_FLASH(0x5555, 0x00A0);
+    *ptr = (uint16_t) ((value >> 16) & 0xffff);
 
     // USE TOGGLE READY TO WAIT FOR COMPLETION
     prevdata = *ptr;
@@ -1913,7 +1913,7 @@ ARM_MODE void ram_startfwupdate()
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED
     // THIS ROUTINE WILL MAKE SURE WE RUN FROM RAM, ERASE ALL FLASH AND UPDATE THE FIRMWARE
 
-    HALFWORD cfidata[50];       // ACTUALLY 36 WORDS ARE USED ONLY
+    uint16_t cfidata[50];       // ACTUALLY 36 WORDS ARE USED ONLY
     flash_CFIRead(cfidata);
 
     flash_prepareforwriting();

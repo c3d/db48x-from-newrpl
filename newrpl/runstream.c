@@ -145,7 +145,7 @@ void rplInstallCoreLibraries()
 
 BINT rplInstallLibrary(LIBHANDLER handler)
 {
-    HALFWORD *listnumbers;
+    uint16_t *listnumbers;
 
     if(!handler)
         return 0;
@@ -155,8 +155,8 @@ BINT rplInstallLibrary(LIBHANDLER handler)
     (*handler) ();      // CALL THE HANDLER TO GET THE LIBRARY NUMBER IN RetNum;
     CurOpcode = savedOpcode;
     if(RetNum == OK_CONTINUE) {
-        listnumbers = (HALFWORD *) LibraryList;
-        while((*listnumbers) || (listnumbers == (HALFWORD *) LibraryList)) {
+        listnumbers = (uint16_t *) LibraryList;
+        while((*listnumbers) || (listnumbers == (uint16_t *) LibraryList)) {
 
             if(*listnumbers < MAXLOWLIBS) {
                 if(LowLibRegistry[*listnumbers]) {

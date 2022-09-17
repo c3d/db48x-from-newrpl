@@ -308,14 +308,14 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     case BITMAP_RAWMONO:
 
     {
-        HALFWORDPTR destptr;
+        uint16_p destptr;
         BYTEPTR srcptr;
 
         BINT mask = 1;
         BINT pixel;
 
         srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (HALFWORDPTR) (newbmp + 3);
+        destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -328,7 +328,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
                 pixel = RGB_TO_RGB16(255,255,255);
 
             // WRITE TO DESTINATION
-                *destptr = (HALFWORD) pixel;
+                *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
             mask <<= 1;
@@ -347,14 +347,14 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     case BITMAP_RAW16G:
     {
-        HALFWORDPTR destptr;
+        uint16_p destptr;
         BYTEPTR srcptr;
 
         BINT mask = 0xf,rot=4;
         BINT pixel;
 
         srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (HALFWORDPTR) (newbmp + 3);
+        destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -366,7 +366,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
                 pixel = RGB_TO_RGB16(pixel,pixel,pixel);            // ASSUME GRAY16 GRAPHICS ARE BLACK ON WHITE (SAME AS 50G BITMAPS)
 
             // WRITE TO DESTINATION
-                *destptr = (HALFWORD) pixel;
+                *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
             mask <<= 4;
@@ -387,13 +387,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
 
-        HALFWORDPTR destptr;
+        uint16_p destptr;
         BYTEPTR srcptr;
 
         BINT pixel;
 
         srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (HALFWORDPTR) (newbmp + 3);
+        destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -403,7 +403,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
             pixel = RGB_TO_RGB16(pixel,pixel,pixel);
 
             // WRITE TO DESTINATION
-            *destptr = (HALFWORD)pixel;
+            *destptr = (uint16_t)pixel;
 
             //INCREASE SOURCE POINTER
             ++srcptr;
@@ -424,13 +424,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
 
-        HALFWORDPTR destptr;
+        uint16_p destptr;
         WORDPTR srcptr;
 
         WORD pixel;
 
         srcptr = (WORDPTR) (bitmap + 3);
-        destptr = (HALFWORDPTR) (newbmp + 3);
+        destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -440,7 +440,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
             // CONVERT TO PROPER FORMAT
             pixel = RGB_TO_RGB16((pixel>>16)&0xff,(pixel>>8)&0xff,(pixel)&0xff);
 
-            *destptr = (HALFWORD) pixel;
+            *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
             srcptr++;
