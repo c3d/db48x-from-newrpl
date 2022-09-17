@@ -328,7 +328,7 @@ WORDPTR rplGetLibPtrHelp(WORD libid, WORD libcmd)
 // FIND A COMMAND BY NAME WITHIN A LIBRARY, RETURN ITS INDEX IN THE HIGH WORD, LIBRARY NAME IN ITS LOW WORD
 // OR -1 IF NOT FOUND
 
-BINT64 rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
+int64_t rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
 {
 
     WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
@@ -357,7 +357,7 @@ BINT64 rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
             while(cmd < libend) {
                 if(rplCompareIDENTByName(cmd, start, end)) {
                     // FOUND A MATCH
-                    return (((BINT64) idx) << 32) | direntry[1][2];
+                    return (((int64_t) idx) << 32) | direntry[1][2];
                 }
 
                 cmd = rplSkipOb(cmd);   // SKIP NAME
@@ -385,7 +385,7 @@ BINT64 rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
 // AT THE BEGINNING OF THE TOKEN (USED FOR PROBING)
 // ALSO SETS *cmdinfo TO THE COMMAND INFORMATION LIST (NAME / TOKENINFO / HELPINFO / OBJECT)
 
-BINT64 rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
+int64_t rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
 {
 
     WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
@@ -452,7 +452,7 @@ BINT64 rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
     if(maxlen != 0) {
         if(cmdinfo)
             *cmdinfo = chosencmd;
-        return (((BINT64) chosenidx) << 32) | chosenlib;
+        return (((int64_t) chosenidx) << 32) | chosenlib;
     }
 
     return -1;
@@ -1166,7 +1166,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        BINT64 mcode;
+        int64_t mcode;
         mcode = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
@@ -1179,7 +1179,7 @@ void LIB_HANDLER()
             return;
         }
 
-        mcode = (((BINT64) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
+        mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
         WORDPTR newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
@@ -1210,7 +1210,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        BINT64 mcode;
+        int64_t mcode;
         mcode = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
@@ -1223,7 +1223,7 @@ void LIB_HANDLER()
             return;
         }
 
-        mcode = (((BINT64) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
+        mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
         WORDPTR newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
@@ -1524,7 +1524,7 @@ void LIB_HANDLER()
 
         // COMPILE COMMANDS FOR ALL OTHER REGISTERED LIBRARIES
 
-        BINT64 libidx =
+        int64_t libidx =
                 rplFindLibPtrIndex((BYTEPTR) TokenStart, (BYTEPTR) BlankStart);
 
         if(libidx >= 0) {
@@ -1894,7 +1894,7 @@ void LIB_HANDLER()
 
         // PROBE LIBRARY COMMANDS FIRST
         WORDPTR cmdinfo;
-        BINT64 libptr =
+        int64_t libptr =
                 rplProbeLibPtrIndex((BYTEPTR) TokenStart, (BYTEPTR) BlankStart,
                 &cmdinfo);
 

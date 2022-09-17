@@ -1053,27 +1053,27 @@ const WORD const system_unit_defs[] = {
 
     // [1295]='MiB' (MebiByte)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024 * 1024),
+    MAKEint64_t(1024 * 1024),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // =1048576_B
 
     // [1303]='GiB' (GibiByte)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // =(1024^3)_B
 
     // [1311]='TiB' (TebiByte)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // =(1024^4)_B
 
     // [1319]='PiB' (PebiByte)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // =(1024^5)_B
 
     // [1327]='EiB' (ExbiByte)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('B', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // =(1024^6)_B
 
     // [1335]='ZiB' (ZebiByte)
@@ -1093,27 +1093,27 @@ const WORD const system_unit_defs[] = {
 
     // [1362]='Mibit' (Mebibit)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024 * 1024),
+    MAKEint64_t(1024 * 1024),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('b', 'i', 't', 0), MAKESINT(1), MAKESINT(1),        // =1024_bit
 
     // [1370]='Gibit' (Gibibit)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('b', 'i', 't', 0), MAKESINT(1), MAKESINT(1),        // =1024_bit
 
     // [1378]='Tibit' (Tebibit)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('b', 'i', 't', 0), MAKESINT(1), MAKESINT(1),        // =1024_bit
 
     // [1386]='Pibit' (Pebibit)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('b', 'i', 't', 0), MAKESINT(1), MAKESINT(1),        // =1024_bit
 
     // [1394]='Eibit' (Exbibit)
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(1024LL * 1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
+    MAKEint64_t(1024LL * 1024LL * 1024LL * 1024LL * 1024LL * 1024LL),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('b', 'i', 't', 0), MAKESINT(1), MAKESINT(1),        // =1024_bit
 
     // [1402]='Zibit' (Zebibit)
@@ -1134,7 +1134,7 @@ const WORD const system_unit_defs[] = {
 
     // [1433] = 'annum' = Julian year
     MKPROLOG(DOUNIT, 7),
-    MAKEBINT64(31557600),
+    MAKEint64_t(31557600),
     MKPROLOG(DOIDENT, 1), TEXT2WORD('s', 0, 0, 0), MAKESINT(1), MAKESINT(1),    // = 365.25 days = 31557600 seconds
 
     //[1441]='psf'

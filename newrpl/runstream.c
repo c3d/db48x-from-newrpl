@@ -1314,10 +1314,10 @@ void rplWarmInit(void)
             if(nitems >= 4) {
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
-                UBINT64 value;
+                uint64_t value;
                 WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
                 WORDPTR numptr;
-                UBINT64 *uptr;
+                uint64_t *uptr;
                 BINT k;
                 for(k = 1; k <= 4; ++k) {
                     numptr = rplGetListElement(flags[1], k);
@@ -1325,7 +1325,7 @@ void rplWarmInit(void)
                         value = rplReadBINT(numptr);
                     else
                         value = 0;
-                    uptr = (UBINT64 *) nptr;
+                    uptr = (uint64_t *) nptr;
                     *uptr = value;
                     nptr += 2;
                 }
@@ -1409,10 +1409,10 @@ void rplHotInit()
             if(nitems >= 4) {
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
-                UBINT64 value;
+                uint64_t value;
                 WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
                 WORDPTR numptr;
-                UBINT64 *uptr;
+                uint64_t *uptr;
                 BINT k;
                 for(k = 1; k <= 4; ++k) {
                     numptr = rplGetListElement(flags[1], k);
@@ -1420,7 +1420,7 @@ void rplHotInit()
                         value = rplReadBINT(numptr);
                     else
                         value = 0;
-                    uptr = (UBINT64 *) nptr;
+                    uptr = (uint64_t *) nptr;
                     *uptr = value;
                     nptr += 2;
                 }

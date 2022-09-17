@@ -1153,7 +1153,7 @@ void          halCPUFastMode();
 void          halReset();
 
 // TIMER FUNCTIONS
-BINT64        halTicks();
+int64_t        halTicks();
 
 // SOTWARE ALARM FUNCTIONS
 void          halTriggerAlarm();

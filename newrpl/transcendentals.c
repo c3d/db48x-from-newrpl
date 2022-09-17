@@ -1398,7 +1398,7 @@ void hyp_exp(mpd_t * x0)
 
 // THE QUOTIENT NEEDS TO BE ADDED TO THE EXPONENT, SO IT SHOULD BE +/-30000
     uint32_t status = 0;
-    BINT64 quotient = mpd_qget_i64(&RReg[1], &status);
+    int64_t quotient = mpd_qget_i64(&RReg[1], &status);
     if(status) {
         if(isneg)
             rplZeroToRReg(0);   // IF THE NUMBER IS SO BIG, THEN EXP(-Inf)=0
@@ -1478,7 +1478,7 @@ void hyp_sinhcosh(mpd_t * x0)
     Context.prec += MPD_RDIGITS;
 // GET ANGLE MODULO LN(10)
     mpd_t ln10, ln10_2;
-    BINT64 quotient;
+    int64_t quotient;
 
 // LOAD CONSTANT 0.1
     RReg[7].data[0] = 1;

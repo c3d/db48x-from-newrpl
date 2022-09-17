@@ -2480,7 +2480,7 @@ void LIB_HANDLER()
 
         /*
 
-           BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k,oflowA,oflowB;
+           int64_t Ai1,Ai2,Bi1,Bi2,A,B,k,oflowA,oflowB;
            REAL num;
            BINT isneg;
            rplReadNumberAsReal(rplPeekData(1),&num);
@@ -2506,11 +2506,11 @@ void LIB_HANDLER()
            divReal(&RReg[3],&RReg[2],&RReg[0]);
            ipReal(&RReg[4],&RReg[3],0);
            fracReal(&RReg[0],&RReg[3]);
-           if(!inBINT64Range(&RReg[4])) {
+           if(!inint64_tRange(&RReg[4])) {
            // DENOMINATOR TOO BIG = ERROR TOO SMALL
            break;
            }
-           k=getBINT64Real(&RReg[4]);
+           k=getint64_tReal(&RReg[4]);
            oflowA=(Ai1>>32)*k+(Ai2>>32)+((((Ai1&0xffffffff)*k+(Ai2&0xffffffff))+0x80000000)>>32);
            oflowA>>=31;
            oflowB=(Bi1>>32)*k+(Bi2>>32)+((((Bi1&0xffffffff)*k+(Bi2&0xffffffff))+0x80000000)>>32);
@@ -2528,8 +2528,8 @@ void LIB_HANDLER()
            Bi1=B;
            } while(1);
 
-           newRealFromBINT64(&RReg[0],B,0);
-           newRealFromBINT64(&RReg[2],A,0);
+           newRealFromint64_t(&RReg[0],B,0);
+           newRealFromint64_t(&RReg[2],A,0);
            RReg[1].flags&=~F_APPROX;
            mulReal(&RReg[3],&RReg[1],&RReg[0]);
            addReal(&RReg[0],&RReg[2],&RReg[3]);
@@ -2809,7 +2809,7 @@ void LIB_HANDLER()
 
         if(ISBINT(*argstart) && ISBINT(*argend) && (ISBINT(*argstep))) {
             // ALL INTEGERS!, DO THIS FASTER
-            BINT64 start, end, step, k;
+            int64_t start, end, step, k;
             BINT size = 1;
             start = rplReadBINT(argstart);
             end = rplReadBINT(argend);
@@ -3025,7 +3025,7 @@ void LIB_HANDLER()
 
     {
         BYTEPTR tok = (BYTEPTR) TokenStart;
-        UBINT64 Locale = rplGetSystemLocale();
+        uint64_t Locale = rplGetSystemLocale();
 
         if(*tok == '(') {
             if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
@@ -3132,7 +3132,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, COMMA)) {
             // SPECIAL TREATMENT FOR ARGUMENT SEPARATOR DUE TO LOCALE
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
 
             rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
             RetNum = OK_CONTINUE;
@@ -3174,7 +3174,7 @@ void LIB_HANDLER()
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
 
-        UBINT64 Locale = rplGetSystemLocale();
+        uint64_t Locale = rplGetSystemLocale();
         if(*((char *)TokenStart) == '\'') {
             // FOUND END OF SYMBOLIC OBJECT
 

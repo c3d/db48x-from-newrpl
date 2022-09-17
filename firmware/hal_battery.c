@@ -262,9 +262,9 @@ void halSetBusyHandler()
 }
 
 // RETURN THE SYSTEM CLOCK TICKS
-BINT64 halTicks()
+int64_t halTicks()
 {
-    return (BINT64) tmr_ticks2us(0, tmr_ticks());
+    return (int64_t) tmr_ticks2us(0, tmr_ticks());
 }
 
 // DO ANY PREPARATIONS BEFORE ENTERING POWER OFF STATE
@@ -316,7 +316,7 @@ void halWakeUp()
         int k;
         WORDPTR obj=saved+1;
         WORD palette[PALETTE_SIZE];
-        UBINT64 color;
+        uint64_t color;
 
         if(!error) {
             for(k=0;k<PALETTE_SIZE;++k)

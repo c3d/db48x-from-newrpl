@@ -776,7 +776,7 @@ void LIB_HANDLER()
 
         // GET THE NUMBER OF LISTS
 
-        BINT64 nlists = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t nlists = rplReadNumberAsBINT(rplPeekData(2));
 
         if(initdepth < 2 + nlists) {
             rplError(ERR_BADARGCOUNT);
@@ -906,8 +906,8 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
         // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
 
-        BINT64 nlists = rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t nlists = rplReadBINT(*rplGetLAMn(2));
+        int64_t idx = rplReadBINT(*rplGetLAMn(4));
         BINT k;
 
         for(k = 0; k < nlists; ++k) {
@@ -937,9 +937,9 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        BINT64 length = rplReadBINT(*rplGetLAMn(3));
-        BINT64 nlists = rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t length = rplReadBINT(*rplGetLAMn(3));
+        int64_t nlists = rplReadBINT(*rplGetLAMn(2));
+        int64_t idx = rplReadBINT(*rplGetLAMn(4));
 
         if(idx < length) {
             // NEED TO DO ONE MORE LOOP
@@ -1065,7 +1065,7 @@ void LIB_HANDLER()
 
         // GET THE NUMBER OF VALUES WE NEED TO USE IN EACH ITERATION
 
-        BINT64 nvalues = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t nvalues = rplReadNumberAsBINT(rplPeekData(2));
 
         WORDPTR program = rplPeekData(1);
         if(ISIDENT(*program)) {
@@ -1173,8 +1173,8 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NVALUES, GETLAM3 = ENDSUB, GETLAM4 = NSUB, GETLAM 5 = LIST
 
-        BINT64 nvalues = rplReadBINT(*rplGetLAMn(2));
-        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t nvalues = rplReadBINT(*rplGetLAMn(2));
+        int64_t idx = rplReadBINT(*rplGetLAMn(4));
         BINT k;
         for(k = 0; k < nvalues; ++k) {
             rplPushData(rplGetListElement(*rplGetLAMn(5), idx + k));
@@ -1205,8 +1205,8 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        BINT64 endsub = rplReadBINT(*rplGetLAMn(3));
-        BINT64 idx = rplReadBINT(*rplGetLAMn(4));
+        int64_t endsub = rplReadBINT(*rplGetLAMn(3));
+        int64_t idx = rplReadBINT(*rplGetLAMn(4));
 
         if(idx < endsub) {
             // NEED TO DO ONE MORE LOOP
@@ -2916,7 +2916,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nitems = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nitems = rplReadNumberAsBINT(rplPeekData(1));
         if(nitems < 1) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;

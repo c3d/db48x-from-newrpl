@@ -2077,7 +2077,7 @@ void LIB_HANDLER()
 
                     itemptr = first;
                     for(j = 0; j < nitems; ++j, itemptr = rplSkipOb(itemptr)) {
-                        BINT64 ltype = rplReadNumberAsBINT(itemptr);
+                        int64_t ltype = rplReadNumberAsBINT(itemptr);
                         if(Exceptions) {
                             DSTop = savestk;
                             return;

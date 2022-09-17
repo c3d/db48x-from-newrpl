@@ -1811,7 +1811,7 @@ void LIB_HANDLER()
                 --tlen;
             }
 
-            UBINT64 locale = rplGetSystemLocale();
+            uint64_t locale = rplGetSystemLocale();
 
             newRealFromText(&RReg[0], (char *)strptr, utf8nskip((char *)strptr,
                         (char *)BlankStart, tlen), locale);
@@ -1842,8 +1842,8 @@ void LIB_HANDLER()
 
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER | angmode, 0));
 
-            if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                BINT64 num = getBINT64Real(&RReg[0]);
+            if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                int64_t num = getint64_tReal(&RReg[0]);
                 rplCompileBINT(num, DECBINT | isapprox);
             }
 

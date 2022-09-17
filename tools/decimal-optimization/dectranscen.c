@@ -3271,9 +3271,9 @@ void hyp_acosh(REAL * x)
 void hyp_pow(REAL * x, REAL * a)
 {
 
-    if(isintegerReal(a) && inBINT64Range(a)) {
+    if(isintegerReal(a) && inint64_tRange(a)) {
         // INTEGER EXPONENTIATION
-        BINT64 exponent = getBINT64Real(a);
+        int64_t exponent = getint64_tReal(a);
         BINT invert;
         REAL One;
         if(exponent < 0) {

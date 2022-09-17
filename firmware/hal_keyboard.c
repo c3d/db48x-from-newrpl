@@ -1201,7 +1201,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
         if(!(halGetContext() & (CONTEXT_INTSTACK | CONTEXT_PICT |
                         CONTEXT_PLOT))) {
             // ACTION WHEN IN THE STACK
-            BINT64 mcode = rplGetMenuCode(menunum);
+            int64_t mcode = rplGetMenuCode(menunum);
             WORDPTR menu = uiGetLibMenu(mcode);
             BINT nitems = uiCountMenuItems(mcode, menu);
             BINT idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
@@ -1261,8 +1261,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
-                    BINT64 libmcode =
-                            (((BINT64) action[2]) << 32) | MKMENUCODE(0,
+                    int64_t libmcode =
+                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
                     WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1306,8 +1306,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
-                    BINT64 libmcode =
-                            (((BINT64) action[2]) << 32) | MKMENUCODE(0,
+                    int64_t libmcode =
+                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
                     WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1349,8 +1349,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 }
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
-                    BINT64 libmcode =
-                            (((BINT64) action[2]) << 32) | MKMENUCODE(0,
+                    int64_t libmcode =
+                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
                     WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1392,7 +1392,7 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        BINT64 mcode = rplGetMenuCode(menunum);
+        int64_t mcode = rplGetMenuCode(menunum);
         WORDPTR menu = uiGetLibMenu(mcode);
         BINT nitems = uiCountMenuItems(mcode, menu);
         BINT idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
@@ -1509,8 +1509,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
             if(ISLIBRARY(*action)) {
 
                 // SHOW THE LIBRARY MENU
-                BINT64 libmcode =
-                        (((BINT64) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
+                int64_t libmcode =
+                        (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
                 WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1741,8 +1741,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
                 case 'P':
                 {
                     // SHOW THE LIBRARY MENU
-                    BINT64 libmcode =
-                            (((BINT64) action[2]) << 32) | MKMENUCODE(0,
+                    int64_t libmcode =
+                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
                     WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -2121,8 +2121,8 @@ void varsKeyHandler(WORD keymsg, BINT menunum, BINT varnum)
 
             if(ISLIBRARY(*action)) {
                 // SHOW THE LIBRARY MENU
-                BINT64 libmcode =
-                        (((BINT64) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
+                int64_t libmcode =
+                        (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
                 WORDPTR numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -2365,7 +2365,7 @@ void decimaldotKeyHandler(WORD keymsg)
             uiOpenCmdLine('D');
     }
 
-    UBINT64 Locale = rplGetSystemLocale();
+    uint64_t Locale = rplGetSystemLocale();
 
     WORD ucode = cp2utf8(DECIMAL_DOT(Locale));
     if(ucode & 0xff000000)
@@ -4849,7 +4849,7 @@ void shiftedalphaKeyHandler(WORD keymsg)
 
 }
 
-void changemenuKeyHandler(WORD keymsg, BINT64 menucode)
+void changemenuKeyHandler(WORD keymsg, int64_t menucode)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -5474,7 +5474,7 @@ void basecycleKeyHandler(WORD keymsg)
 
 #define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(WORD keymsg) \
 { \
-    changemenuKeyHandler(keymsg,(BINT64)(menucode)); \
+    changemenuKeyHandler(keymsg,(int64_t)(menucode)); \
     }
 
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(WORD keymsg) \
@@ -8115,7 +8115,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
     WORD keymsg = 0;
     int isidle, jobdone;
 #endif /* TARGET_PRIME1 */
-    BINT64 offcounter = 0;
+    int64_t offcounter = 0;
 
     gglsurface scr;
 #ifndef TARGET_PRIME1
@@ -8241,7 +8241,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
             // AUTO-OFF WHEN IDLING
             if(!(flags & OL_NOAUTOOFF) && (halFlags & HAL_AUTOOFFTIME)
                     && (!usb_isconnected())) {
-                BINT64 autoofftime = 15000000 << (GET_AUTOOFFTIME(halFlags));
+                int64_t autoofftime = 15000000 << (GET_AUTOOFFTIME(halFlags));
                 if(halTicks() - offcounter >= autoofftime) {
                     halPreparePowerOff();
                     halEnterPowerOff();

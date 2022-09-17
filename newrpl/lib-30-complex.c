@@ -7025,7 +7025,7 @@ void LIB_HANDLER()
                 && ISPROLOG(CurrentConstruct)) {
             BINT count = TokenLen;
             BYTEPTR ptr = (BYTEPTR) TokenStart;
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
 
             // THERE'S 3 PLACES TO HAVE A COMMA
             // ENDING TOKEN
@@ -7092,7 +7092,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
 
             rplDecompAppendString((BYTEPTR) "(");
 

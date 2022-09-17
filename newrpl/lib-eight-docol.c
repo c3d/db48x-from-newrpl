@@ -455,7 +455,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         if(ISNUMBER(*rplPeekData(1))) {
-            BINT64 errorcode = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t errorcode = rplReadNumberAsBINT(rplPeekData(1));
             if(Exceptions)
                 return;
             if((errorcode < 0) || (errorcode >= 0x7ffff)) {
@@ -650,7 +650,7 @@ void LIB_HANDLER()
             }
         }
 
-        BINT64 off = rplReadNumberAsBINT(offset);
+        int64_t off = rplReadNumberAsBINT(offset);
 
         if(off < 0) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
@@ -719,7 +719,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         if(ISNUMBER(*rplPeekData(1))) {
-            BINT64 errorcode = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t errorcode = rplReadNumberAsBINT(rplPeekData(1));
             if(Exceptions)
                 return;
             if((errorcode < 0) || (errorcode >= 0x7ffff)) {

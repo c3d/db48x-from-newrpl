@@ -62,7 +62,7 @@
 
 #define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
 
-const UBINT64 const powersof10[20] = {
+const uint64_t const powersof10[20] = {
     1000000000000000000LL,
     100000000000000000LL,
     10000000000000000LL,
@@ -204,7 +204,7 @@ void rplNewSINTPush(int num, int base)
 
 }
 
-WORDPTR rplNewBINT(BINT64 num, int base)
+WORDPTR rplNewBINT(int64_t num, int base)
 {
     WORDPTR obj;
 
@@ -228,7 +228,7 @@ WORDPTR rplNewBINT(BINT64 num, int base)
 }
 
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
-WORDPTR rplWriteBINT(BINT64 num, int base, WORDPTR dest)
+WORDPTR rplWriteBINT(int64_t num, int base, WORDPTR dest)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
@@ -245,7 +245,7 @@ WORDPTR rplWriteBINT(BINT64 num, int base, WORDPTR dest)
 }
 
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
-void rplCompileBINT(BINT64 num, int base)
+void rplCompileBINT(int64_t num, int base)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
@@ -258,7 +258,7 @@ void rplCompileBINT(BINT64 num, int base)
     }
 }
 
-void rplNewBINTPush(BINT64 num, int base)
+void rplNewBINTPush(int64_t num, int base)
 {
     WORDPTR obj;
 
@@ -281,12 +281,12 @@ void rplNewBINTPush(BINT64 num, int base)
     rplPushData(obj);
 }
 
-BINT64 rplReadBINT(WORDPTR ptr)
+int64_t rplReadBINT(WORDPTR ptr)
 {
-    BINT64 result;
+    int64_t result;
     if(ISPROLOG(*ptr))
         // THERE'S A PAYLOAD, READ THE NUMBER
-        result = *((BINT64 *) (ptr + 1));
+        result = *((int64_t *) (ptr + 1));
     else {
         result = OPCODE(*ptr);
         if(result & 0x20000)
@@ -395,9 +395,9 @@ void rplNumberToRReg(int num, WORDPTR number)
 // ROUNDING A REAL IS BY TRUNCATION
 // DOES CHECK FOR OVERFLOW!
 
-BINT64 rplReadNumberAsBINT(WORDPTR number)
+int64_t rplReadNumberAsBINT(WORDPTR number)
 {
-    BINT64 value;
+    int64_t value;
   readnumberbint_recheck:
     number = rplConstant2Number(number);
 
@@ -406,11 +406,11 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
     if(ISREAL(*number)) {
         REAL dec;
         rplReadReal(number, &dec);
-        if(!inBINT64Range(&dec)) {
+        if(!inint64_tRange(&dec)) {
             rplError(ERR_NUMBERTOOBIG);
             return 0;
         }
-        value = getBINT64Real(&dec);
+        value = getint64_tReal(&dec);
         return value;
     }
     else if(ISBINT(*number))
@@ -444,7 +444,7 @@ void rplReadNumberAsReal(WORDPTR number, REAL * dec)
     else if(ISBINT(*number)) {
         // PROVIDE STORAGE
         dec->data = RDigits + BINT2RealIdx * BINT_REGISTER_STORAGE;
-        newRealFromBINT64(dec, rplReadBINT(number), 0);
+        newRealFromint64_t(dec, rplReadBINT(number), 0);
         if(ISAPPROX(*number))
             dec->flags |= F_APPROX;
         ++BINT2RealIdx;
@@ -468,18 +468,18 @@ void rplReadNumberAsReal(WORDPTR number, REAL * dec)
 // TEMPORARY DATA STORAGE FOR UP TO 4 NUMBERS
 // IF CALLED MORE THAN 4 TIMES IT MIGHT OVERWRITE THE PREVIOUS
 
-void rplLoadBINTAsReal(BINT64 number, REAL * dec)
+void rplLoadBINTAsReal(int64_t number, REAL * dec)
 {
     // PROVIDE STORAGE
     dec->data = RDigits + BINT2RealIdx * BINT_REGISTER_STORAGE;
-    newRealFromBINT64(dec, number, 0);
+    newRealFromint64_t(dec, number, 0);
     ++BINT2RealIdx;
     if(BINT2RealIdx >= BINT2REAL)
         BINT2RealIdx = 0;
 }
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
-static int rpl_log2(BINT64 number, int bits)
+static int rpl_log2(int64_t number, int bits)
 {
     static const unsigned char const log2_table[16] =
             { 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
@@ -492,7 +492,7 @@ static int rpl_log2(BINT64 number, int bits)
 }
 
 // CONVERT TO STRING AND RETURN THE NUMBER OF BYTES OUTPUT
-BINT rplIntToString(BINT64 number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer)
+BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer)
 {
 
     base -= DOBINT;
@@ -536,7 +536,7 @@ BINT rplIntToString(BINT64 number, BINT base, BYTEPTR buffer, BYTEPTR endbuffer)
         // THIS IS A BINARY, OCTAL OR HEXA NUMBER
         // base HAS THE NUMBER OF BITS PER DIGIT
         BYTEPTR ptr = buffer;
-        UBINT64 unumber;
+        uint64_t unumber;
         BINT digit, neg;
 
         if(number < 0) {
@@ -600,7 +600,7 @@ void LIB_HANDLER()
         // OVERLOADABLE OPERATORS LIBRARY.
 
         // PROVIDE BEHAVIOR FOR OVERLOADABLE OPERATORS HERE
-        BINT64 op1 = 0, op2 = 0;
+        int64_t op1 = 0, op2 = 0;
         REAL rop1, rop2;
         int op1type = 0, op2type = 0;
         int op1app = 0, op2app = 0;
@@ -706,8 +706,8 @@ void LIB_HANDLER()
 
                     addReal(&RReg[0], &RReg[1], &rop2);
                     if(op1base != DECBINT) {
-                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                            rplNewBINTPush(getBINT64Real(&RReg[0]),
+                        if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -727,8 +727,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT64 maxop2;
-            BINT64 minop2;
+            int64_t maxop2;
+            int64_t minop2;
 
             if(op1 > 0) {
                 maxop2 = MAX_BINT - op1;
@@ -777,8 +777,8 @@ void LIB_HANDLER()
                     subReal(&RReg[0], &RReg[1], &rop2);
 
                     if(op1base != DECBINT) {
-                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                            rplNewBINTPush(getBINT64Real(&RReg[0]),
+                        if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -799,8 +799,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT64 maxop2;
-            BINT64 minop2;
+            int64_t maxop2;
+            int64_t minop2;
 
             if(op1 > 0) {
                 maxop2 = MAX_BINT - op1;
@@ -849,8 +849,8 @@ void LIB_HANDLER()
                     mulReal(&RReg[0], &RReg[1], &rop2);
 
                     if(op1base != DECBINT) {
-                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                            rplNewBINTPush(getBINT64Real(&RReg[0]),
+                        if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -881,7 +881,7 @@ void LIB_HANDLER()
             if(op2 < 0)
                 op2 = -op2;
             if(op2 > op1) {
-                BINT64 tmp = op2;
+                int64_t tmp = op2;
                 op2 = op1;
                 op1 = tmp;
             }
@@ -942,8 +942,8 @@ void LIB_HANDLER()
                     }
 
                     if(op1base != DECBINT) {
-                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                            rplNewBINTPush(getBINT64Real(&RReg[0]),
+                        if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -977,11 +977,11 @@ void LIB_HANDLER()
             if(op1app || op2app)
                 RReg[0].flags |= F_APPROX;
 
-            if(!(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0]))) {
+            if(!(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0]))) {
                 rplNewRealFromRRegPush(0);
             }
             else {
-                BINT64 result = getBINT64Real(&RReg[0]);
+                int64_t result = getint64_tReal(&RReg[0]);
                 rplNewBINTPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
@@ -1076,8 +1076,8 @@ void LIB_HANDLER()
             if(isneg)
                 RReg[0].flags |= F_NEGATIVE;
 
-            if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-                BINT64 result = getBINT64Real(&RReg[0]);
+            if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+                int64_t result = getint64_tReal(&RReg[0]);
                 rplNewBINTPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
@@ -1156,8 +1156,8 @@ void LIB_HANDLER()
             xrootReal(&RReg[8], &RReg[6], &RReg[7]);
 
             if(!isneg) {
-                if(isintegerReal(&RReg[8]) && inBINT64Range(&RReg[8])) {
-                    BINT64 result = getBINT64Real(&RReg[8]);
+                if(isintegerReal(&RReg[8]) && inint64_tRange(&RReg[8])) {
+                    int64_t result = getint64_tReal(&RReg[8]);
                     BINT base;
                     if(op1type)
                         base = DECBINT;
@@ -1526,8 +1526,8 @@ void LIB_HANDLER()
 #undef arg2
     }   // END OF OVERLOADABLE OPERATORS
 
-    BINT64 result;
-    UBINT64 uresult;
+    int64_t result;
+    uint64_t uresult;
     BYTEPTR strptr, strend;
     int base, libbase, digit, count, neg, argnum1;
     char basechr;
@@ -1554,7 +1554,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
             // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
             strptr = (BYTEPTR) TokenStart;
@@ -1706,7 +1706,7 @@ void LIB_HANDLER()
 
             if(ISPROLOG(*DecompileObject)) {
                 // THERE'S A PAYLOAD, READ THE NUMBER
-                result = *((BINT64 *) (DecompileObject + 1));
+                result = *((int64_t *) (DecompileObject + 1));
             }
             else {
                 result = OPCODE(*DecompileObject);

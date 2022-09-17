@@ -180,7 +180,7 @@ BINT rplIsLastElementFlat(WORDPTR composite, BINT pos)
 void rplCreateList()
 {
     // NO ARGUMENT CHECKING
-    BINT64 num = rplReadNumberAsBINT(rplPeekData(1));
+    int64_t num = rplReadNumberAsBINT(rplPeekData(1));
     if(rplDepthData() < num + 1) {
         rplError(ERR_BADARGCOUNT);
         return;

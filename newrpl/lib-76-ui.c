@@ -271,7 +271,7 @@ void LIB_HANDLER()
         REAL timeout;
         rplReadNumberAsReal(rplPeekData(1), &timeout);
         timeout.exp += 3;       // CONVERT FROM SECONDS TO MILLISECONDS
-        BINT64 mstimeout = getBINT64Real(&timeout);
+        int64_t mstimeout = getint64_tReal(&timeout);
 
         WORD keymsg;
 
@@ -456,7 +456,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -486,7 +486,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -516,7 +516,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -547,7 +547,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -577,7 +577,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -765,7 +765,7 @@ void LIB_HANDLER()
         int k;
         WORDPTR obj=rplPeekData(1)+1;
         WORD palette[PALETTE_SIZE];
-        UBINT64 color;
+        uint64_t color;
 
         for(k=0;k<PALETTE_SIZE;++k)
         {

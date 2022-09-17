@@ -19,8 +19,7 @@ typedef WORD *WORDPTR;
 typedef BYTE *BYTEPTR;
 typedef int32_t BINT;
 typedef uint32_t UBINT;
-typedef int64_t BINT64;
-typedef uint64_t UBINT64;
+typedef int64_t int64_t;
 typedef const char *cstring;
 #define NUMBER2PTR(a)   ((WORDPTR)(intptr_t)(WORD)(a))
 

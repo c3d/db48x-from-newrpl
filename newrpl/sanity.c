@@ -226,9 +226,9 @@ BINT rplVerifyTempOb(BINT fix)
 
 WORDPTR rplCreateHashIdent(BINT number)
 {
-    BINT64 bignumber =
-            ((BINT64) number << 32) ^ ((BINT64) number << 24) ^ ((BINT64) number
-            << 16) ^ ((BINT64) number << 8) ^ number;
+    int64_t bignumber =
+            ((int64_t) number << 32) ^ ((int64_t) number << 24) ^ ((int64_t) number
+            << 16) ^ ((int64_t) number << 8) ^ number;
     bignumber &= 0x0f0f0f0f0f0f0f00LL;
     bignumber += 0x414141414141412ELL;
 

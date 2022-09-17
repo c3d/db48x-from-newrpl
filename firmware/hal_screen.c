@@ -265,7 +265,7 @@ BINT halGetDispObjectHeight(WORDPTR object, UNIFONT *font)
     return font->BitmapHeight;
 }
 
-extern const UBINT64 const powersof10[20];
+extern const uint64_t const powersof10[20];
 
 // CONVERT INTEGER NUMBER INTO STRING FOR STACK LEVEL
 // str MUST CONTAIN AT LEAST 15: BYTES "-1,345,789,123[NULL]"
@@ -284,7 +284,7 @@ void                       halInt2String(int num, char *str)
     do
     {
         digit = 0;
-        while ((UBINT64) num >= powersof10[pow10idx])
+        while ((uint64_t) num >= powersof10[pow10idx])
         {
             ++digit;
             num -= powersof10[pow10idx];
@@ -856,7 +856,7 @@ void halRedrawHelp(gglsurface *scr)
     halScreenUpdated();
 
     WORDPTR helptext;
-    BINT64  m1code  = rplGetMenuCode(halScreen.HelpMode >> 16);
+    int64_t  m1code  = rplGetMenuCode(halScreen.HelpMode >> 16);
     WORDPTR MenuObj = uiGetLibMenu(m1code);
     BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
     BINT    k;
@@ -1079,7 +1079,7 @@ void halRedrawMenu1(gglsurface *scr)
     oldbottom = scr->bottom;
 
 #ifndef TARGET_PRIME1
-    BINT64  m1code  = rplGetMenuCode(1);
+    int64_t  m1code  = rplGetMenuCode(1);
     WORDPTR MenuObj = uiGetLibMenu(m1code);
     BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
     BINT    k;
@@ -1127,7 +1127,7 @@ void halRedrawMenu1(gglsurface *scr)
         ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
         ggl_cliphline(scr, ybottom, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
 
-        BINT64  m1code  = rplGetMenuCode(1);
+        int64_t  m1code  = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
         BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
         BINT    k;
@@ -1184,7 +1184,7 @@ void halRedrawMenu1(gglsurface *scr)
 
         // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
-        BINT64  m1code  = rplGetMenuCode(1);
+        int64_t  m1code  = rplGetMenuCode(1);
         WORDPTR MenuObj = uiGetLibMenu(m1code);
         BINT    nitems  = uiCountMenuItems(m1code, MenuObj);
         BINT    k;
@@ -1342,7 +1342,7 @@ void halRedrawMenu2(gglsurface *scr)
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 #endif /* TARGET_PRIME1 */
 
-    BINT64  m2code  = rplGetMenuCode(2);
+    int64_t  m2code  = rplGetMenuCode(2);
     WORDPTR MenuObj = uiGetLibMenu(m2code);
     BINT    nitems  = uiCountMenuItems(m2code, MenuObj);
     BINT    k;
@@ -1676,7 +1676,7 @@ void halRedrawStatus(gglsurface *scr)
 
         // FIRST 6 USER FLAGS
         {
-            UBINT64 *flags = rplGetUserFlagsLow();
+            uint64_t *flags = rplGetUserFlagsLow();
             if (flags)
             {
                 ggl_rect(scr,

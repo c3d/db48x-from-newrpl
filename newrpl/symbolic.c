@@ -816,7 +816,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
 
         if(ISBINT(*sobj)) {
             // THE OBJECT IS AN INTEGER NUMBER
-            BINT64 num = rplReadBINT(sobj);
+            int64_t num = rplReadBINT(sobj);
             if(num < 0) {
                 num = -num;
                 rplNewBINTPush(num, LIBNUM(*sobj));
@@ -1440,7 +1440,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, BINT for_display)
                     stkptr++;
                     firstarg[1] = (WORDPTR) one_bint;
                     // INCREASE THE COUNT OF OBJECTS
-                    BINT64 numargs = OPCODE(*firstarg[2]);
+                    int64_t numargs = OPCODE(*firstarg[2]);
                     ++numargs;
                     WORDPTR nnum = rplNewSINT(numargs, DECBINT);
                     if(Exceptions) {
@@ -1658,9 +1658,9 @@ BINT rplFractionSimplify()
         }
 
         // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
-        BINT64 num;
-        if(isintegerReal(&RReg[5]) && inBINT64Range(&RReg[5])) {
-            num = getBINT64Real(&RReg[5]);
+        int64_t num;
+        if(isintegerReal(&RReg[5]) && inint64_tRange(&RReg[5])) {
+            num = getint64_tReal(&RReg[5]);
             rplNewBINTPush(num, DECBINT | isapprox);
         }
         else {
@@ -1669,8 +1669,8 @@ BINT rplFractionSimplify()
 
         if(Exceptions)
             return 0;
-        if(isintegerReal(&RReg[6]) && inBINT64Range(&RReg[6])) {
-            num = getBINT64Real(&RReg[6]);
+        if(isintegerReal(&RReg[6]) && inint64_tRange(&RReg[6])) {
+            num = getint64_tReal(&RReg[6]);
             rplNewBINTPush(num, DECBINT | isapprox);
         }
         else {
@@ -1690,8 +1690,8 @@ BINT rplFractionSimplify()
 
     // BOTH NUMBERS ARE EXACT BINTS
 
-    BINT64 bnum, bden;
-    BINT64 tmpbig, tmpsmall, swap;
+    int64_t bnum, bden;
+    int64_t tmpbig, tmpsmall, swap;
     BINT numneg, denneg;
 
     bnum = rplReadBINT(rplPeekData(2));
@@ -2311,7 +2311,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         BINT n = 1 + ((reddenom > 0) ? 1 : 0);
                         // IF NUMERATOR IS NEGATIVE, STORE AS POSITIVE AND SET neg
                         if(ISBINT(*rplPeekData(n))) {
-                            BINT64 nnum = rplReadBINT(rplPeekData(n));
+                            int64_t nnum = rplReadBINT(rplPeekData(n));
                             // MARK TO ADD THE SIGN LATER
                             if(nnum < 0) {
                                 neg ^= 1;
@@ -2376,7 +2376,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         // IF DENOMINATOR IS ONE, THEN DON'T INCLUDE IT IN THE OBJECT
 
                         if(ISBINT(*rplPeekData(1))) {
-                            BINT64 denom = rplReadBINT(rplPeekData(1));
+                            int64_t denom = rplReadBINT(rplPeekData(1));
                             if(denom == 1)
                                 den_is_one = 1;
                         }
@@ -2534,7 +2534,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 // CHECK IF DENOMINATOR IS ONE
                 if(ISBINT(*rplPeekData(1))) {
-                    BINT64 denom = rplReadBINT(rplPeekData(1));
+                    int64_t denom = rplReadBINT(rplPeekData(1));
                     if(denom == 1)
                         den_is_one = 1;
                 }
@@ -3044,7 +3044,7 @@ BINT rplSymbIsOddNumber(WORDPTR ptr)
         ptr = rplSymbUnwrap(ptr) + 1;
 
     if(ISBINT(*ptr)) {
-        BINT64 n;
+        int64_t n;
         n = rplReadNumberAsBINT(ptr);
         if(n & 1)
             return 1;
@@ -3109,17 +3109,17 @@ static void reloadPointers(WORDPTR * stkbase, TRACK_STATE * ptr)
         ptr->leftnargs = 0;
 
     {
-        BINT64 tmpint = rplReadBINT(ptr->right[1]);
+        int64_t tmpint = rplReadBINT(ptr->right[1]);
         ptr->leftidx = (BINT) tmpint;
         ptr->leftdepth = (BINT) (tmpint >> 32);
     }
     {
-        BINT64 tmpint = rplReadBINT(ptr->right[2]);
+        int64_t tmpint = rplReadBINT(ptr->right[2]);
         ptr->rightidx = (BINT) tmpint;
         ptr->rightdepth = (BINT) (tmpint >> 32);
     }
     {
-        BINT64 tmpint = rplReadBINT(ptr->right[3]);
+        int64_t tmpint = rplReadBINT(ptr->right[3]);
         ptr->leftrot = (BINT) tmpint;
         ptr->lrotbase = (BINT) (tmpint >> 32);
     }
@@ -3152,17 +3152,17 @@ static void reloadLAMs(WORDPTR * orgrule, TRACK_STATE * ptr)
 static void updateCounters(TRACK_STATE * ptr)
 {
     ptr->right[1] =
-            rplNewBINT((((BINT64) ptr->leftdepth) << 32) + ptr->leftidx,
+            rplNewBINT((((int64_t) ptr->leftdepth) << 32) + ptr->leftidx,
             DECBINT);
     if(Exceptions)
         return;
     ptr->right[2] =
-            rplNewBINT((((BINT64) ptr->rightdepth) << 32) + ptr->rightidx,
+            rplNewBINT((((int64_t) ptr->rightdepth) << 32) + ptr->rightidx,
             DECBINT);
     if(Exceptions)
         return;
     ptr->right[3] =
-            rplNewBINT((((BINT64) ptr->lrotbase) << 32) + ptr->leftrot,
+            rplNewBINT((((int64_t) ptr->lrotbase) << 32) + ptr->leftrot,
             DECBINT);
     if(Exceptions)
         return;
@@ -3797,7 +3797,7 @@ BINT rplSymbRuleMatch()
                             s.leftrot = s.lrotbase = 0;
                             s.nlams = 0;
                             // PUSH NEW INDEX
-                            rplNewBINTPush(((BINT64) s.leftdepth) << 32,
+                            rplNewBINTPush(((int64_t) s.leftdepth) << 32,
                                     DECBINT);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
@@ -3806,7 +3806,7 @@ BINT rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplNewBINTPush(((BINT64) s.rightdepth) << 32,
+                            rplNewBINTPush(((int64_t) s.rightdepth) << 32,
                                     DECBINT);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
@@ -5341,7 +5341,7 @@ BINT rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewBINTPush(((BINT64) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5349,7 +5349,7 @@ BINT rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplNewBINTPush(((BINT64) s.rightdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.rightdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5843,7 +5843,7 @@ BINT rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewBINTPush(((BINT64) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;

@@ -515,7 +515,7 @@ void finalize(REAL * number)
 
 // ADD A 64-BIT INTEGER TO A LONG NUMBER AT start
 
-void add_single64(BINT * start, BINT64 number)
+void add_single64(BINT * start, int64_t number)
 {
     UWORDUNION tmp;
     BINT lo, hi;
@@ -539,7 +539,7 @@ void add_single64(BINT * start, BINT64 number)
 //        }
         /*
            // DEBUG ONLY - JUST DOUBLE CHECK
-           UBINT64 test=-((UBINT64)lo+((UBINT64)hi*100000000ULL));
+           uint64_t test=-((uint64_t)lo+((uint64_t)hi*100000000ULL));
 
            if(test!=number) {
            printf("Error!");
@@ -569,7 +569,7 @@ void add_single64(BINT * start, BINT64 number)
 //        }
         /*
            // DEBUG ONLY - JUST DOUBLE CHECK
-           UBINT64 test=((UBINT64)lo+((UBINT64)hi*100000000ULL));
+           uint64_t test=((uint64_t)lo+((uint64_t)hi*100000000ULL));
 
            if(test!=number) {
            printf("Error!");
@@ -588,13 +588,13 @@ void add_single64(BINT * start, BINT64 number)
 // AND ACCUMULATE RESULT
 void add_karatsuba(BINT * start, BINT * a, BINT * b)
 {
-    BINT64 hi, lo, mid;
+    int64_t hi, lo, mid;
     UWORDUNION tmp1, tmp2, tmp3;
     BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
-    lo = a[0] * (BINT64) b[0];
-    hi = a[1] * (BINT64) b[1];
-    mid = (a[1] + a[0]) * (BINT64) (b[0] + b[1]) - hi - lo;
+    lo = a[0] * (int64_t) b[0];
+    hi = a[1] * (int64_t) b[1];
+    mid = (a[1] + a[0]) * (int64_t) (b[0] + b[1]) - hi - lo;
 
     // UNROLLED add_single64()
     // NUMBER IS GUARANTEED TO BE POSITIVE
@@ -1167,7 +1167,7 @@ BINT shift_right(BINT word, BINT digits)
 
     UWORDUNION tmp;
 
-    tmp.w = word * (UBINT64) * consts;
+    tmp.w = word * (uint64_t) * consts;
 
     tmp.w32[0] = word - tmp.w32[1] * shift_constants[((digits & 7) << 1) + 1];
 
@@ -1184,10 +1184,10 @@ BINT shift_right(BINT word, BINT digits)
 // SHIFT AND SPLIT DIGITS
 // RETURN A 64-BIT NUMBER WITH THE LOW N DIGITS IN THE LOW WORD
 // AND THE HIGH (8-N) DIGITS IN THE HIGH WORD
-BINT64 shift_split(BINT word, BINT digits)
+int64_t shift_split(BINT word, BINT digits)
 {
     if(!digits)
-        return ((BINT64) word) << 32;
+        return ((int64_t) word) << 32;
 
     BINT shift = (8 - digits) & 7;
 
@@ -1197,7 +1197,7 @@ BINT64 shift_split(BINT word, BINT digits)
 
     UWORDUNION tmp;
 
-    tmp.w = word * (UBINT64) * consts;
+    tmp.w = word * (uint64_t) * consts;
 
     tmp.w32[0] = word - tmp.w32[1] * shift_constants[((digits & 7) << 1) + 1];
 
@@ -1209,7 +1209,7 @@ BINT64 shift_split(BINT word, BINT digits)
 
     // HERE tmp.w32[0] HAS THE LOW DIGITS
     // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
-    return (BINT64) tmp.w;
+    return (int64_t) tmp.w;
 
 }
 
@@ -1228,7 +1228,7 @@ BINT lo_digits(BINT word, BINT digits)
 
     UWORDUNION tmp;
 
-    tmp.w = word * (UBINT64) * consts;
+    tmp.w = word * (uint64_t) * consts;
 
     tmp.w32[0] = word - tmp.w32[1] * shift_constants[((digits & 7) << 1) + 1];
 
@@ -1258,7 +1258,7 @@ BINT hi_digits(BINT word, BINT digits)
 
     UWORDUNION tmp;
 
-    tmp.w = word * (UBINT64) * consts;
+    tmp.w = word * (uint64_t) * consts;
 
     tmp.w32[0] = word - tmp.w32[1] * shift_constants[((digits & 7) << 1) + 1];
 
@@ -1291,7 +1291,7 @@ BINT hi_digits_rounded(BINT word, BINT digits)
 
     UWORDUNION tmp;
     word += 5 * shift_constants[((digits & 7) << 1) - 1];
-    tmp.w = word * (UBINT64) * consts;
+    tmp.w = word * (uint64_t) * consts;
 
     tmp.w32[0] = word - tmp.w32[1] * shift_constants[((digits & 7) << 1) + 1];
 
@@ -1327,9 +1327,9 @@ void add_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     while(nwords >= 3) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
-        hi2 = (n1start[1] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
-        hi3 = (n1start[2] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi2 = (n1start[1] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
+        hi3 = (n1start[2] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
         lo2 = n1start[1] * K2 - hi2 * 100000000;        // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -1347,8 +1347,8 @@ void add_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     if(nwords == 2) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
-        hi2 = (n1start[1] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi2 = (n1start[1] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
         lo2 = n1start[1] * K2 - hi2 * 100000000;        // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -1361,7 +1361,7 @@ void add_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     if(nwords) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
 
@@ -1384,12 +1384,12 @@ void add_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
     // X=(2^32-10^8)/10^(8-N)+10^N
 
     UWORDUNION tmp;
-    UBINT64 a;
+    uint64_t a;
 
     while(nwords) {
-        tmp.w = n1start[nwords - 1] * (UBINT64) * consts;
+        tmp.w = n1start[nwords - 1] * (uint64_t) * consts;
         result[nwords] += tmp.w32[1];
-        a = n1start[nwords - 1] * (UBINT64) consts[1];
+        a = n1start[nwords - 1] * (uint64_t) consts[1];
         tmp.w = a - tmp.w32[1] * 100000000ULL;
         result[nwords - 1] += tmp.w32[0];
         --nwords;
@@ -1411,7 +1411,7 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
     // X=(2^32-10^8)/10^(8-N)+10^N
 
     UWORDUNION tmp;
-    UBINT64 a;
+    uint64_t a;
     BINT *nptr;
     nptr = n1start + nwords;
 
@@ -1420,8 +1420,8 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
     --nptr;
     while(nptr >= n1start) {
         if(*nptr < 0) {
-            tmp.w = (-*nptr) * (UBINT64) * consts;
-            a = (-*nptr) * (UBINT64) consts[1];
+            tmp.w = (-*nptr) * (uint64_t) * consts;
+            a = (-*nptr) * (uint64_t) consts[1];
             nptr[1] -= tmp.w32[1];
             tmp.w = a - tmp.w32[1] * 100000000ULL;
             if(tmp.w32[0] >= 100000000) {
@@ -1431,8 +1431,8 @@ void long_shift(BINT * n1start, BINT nwords, BINT shift)
             *nptr = -tmp.w32[0];
         }
         else {
-            tmp.w = (*nptr) * (UBINT64) * consts;
-            a = (*nptr) * (UBINT64) consts[1];
+            tmp.w = (*nptr) * (uint64_t) * consts;
+            a = (*nptr) * (uint64_t) consts[1];
             nptr[1] += tmp.w32[1];
             tmp.w = a - tmp.w32[1] * 100000000ULL;
             if(tmp.w32[0] >= 100000000) {
@@ -1565,9 +1565,9 @@ void sub_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     while(nwords >= 3) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
-        hi2 = (n1start[1] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
-        hi3 = (n1start[2] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi2 = (n1start[1] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
+        hi3 = (n1start[2] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
         lo2 = n1start[1] * K2 - hi2 * 100000000;        // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -1585,8 +1585,8 @@ void sub_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     if(nwords == 2) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
-        hi2 = (n1start[1] * (BINT64) K1) >> 24; // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi2 = (n1start[1] * (int64_t) K1) >> 24; // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
         lo2 = n1start[1] * K2 - hi2 * 100000000;        // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -1599,7 +1599,7 @@ void sub_long_mul_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift,
 
     if(nwords) {
 
-        hi = (n1start[0] * (BINT64) K1) >> 24;  // 64-bit MULTIPLICATION
+        hi = (n1start[0] * (int64_t) K1) >> 24;  // 64-bit MULTIPLICATION
 
         lo = n1start[0] * K2 - hi * 100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
 
@@ -1622,12 +1622,12 @@ void sub_long_shift(BINT * result, BINT * n1start, BINT nwords, BINT shift)
     // X=(2^32-10^8)/10^(8-N)+10^N
 
     UWORDUNION tmp;
-    UBINT64 a;
+    uint64_t a;
 
     while(nwords) {
-        tmp.w = n1start[nwords - 1] * (UBINT64) * consts;
+        tmp.w = n1start[nwords - 1] * (uint64_t) * consts;
         result[nwords] -= tmp.w32[1];
-        a = n1start[nwords - 1] * (UBINT64) consts[1];
+        a = n1start[nwords - 1] * (uint64_t) consts[1];
         tmp.w = a - tmp.w32[1] * 100000000ULL;
         result[nwords - 1] -= tmp.w32[0];
         --nwords;
@@ -2123,7 +2123,7 @@ void acc_real_int(REAL * result, BINT number, BINT exponent)
 void mul_real(REAL * r, REAL * a, REAL * b)
 {
     REAL c, *result = r;
-    BINT64 hi, lo, mid;
+    int64_t hi, lo, mid;
     UWORDUNION tmp1, tmp2, tmp3;
     BINT lo32_1, hi32_1, lo32_2, hi32_2, lo32_3, hi32_3;
 
@@ -2166,9 +2166,9 @@ void mul_real(REAL * r, REAL * a, REAL * b)
             //add_karatsuba(result->data+i+j,a->data+j,b->data+i);
             // INLINED add_karatsuba
 
-            lo = a->data[j] * (BINT64) b->data[i];
-            hi = a->data[j + 1] * (BINT64) b->data[i + 1];
-            mid = (a->data[j + 1] + a->data[j]) * (BINT64) (b->data[i] +
+            lo = a->data[j] * (int64_t) b->data[i];
+            hi = a->data[j + 1] * (int64_t) b->data[i + 1];
+            mid = (a->data[j + 1] + a->data[j]) * (int64_t) (b->data[i] +
                     b->data[i + 1]) - hi - lo;
 
             // UNROLLED add_single64()
@@ -2193,13 +2193,13 @@ void mul_real(REAL * r, REAL * a, REAL * b)
             j += 2;
         }
         if(j < a->len) {
-            //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
-            //add_single64(result->data+i+1+j,a->data[j]*(UBINT64)b->data[i+1]);
+            //add_single64(result->data+i+j,a->data[j]*(uint64_t)b->data[i]);
+            //add_single64(result->data+i+1+j,a->data[j]*(uint64_t)b->data[i+1]);
 
             // UNROLLED add_single64()
             // NUMBER IS GUARANTEED TO BE POSITIVE
-            tmp1.w = a->data[j] * (UBINT64) b->data[i];
-            tmp2.w = a->data[j] * (UBINT64) b->data[i + 1];
+            tmp1.w = a->data[j] * (uint64_t) b->data[i];
+            tmp2.w = a->data[j] * (uint64_t) b->data[i + 1];
             hi32_1 = (((tmp1.w32[1] << 6) | (tmp1.w32[0] >> 26)) *
                     2882303762ULL) >> 32;
             hi32_2 = (((tmp2.w32[1] << 6) | (tmp2.w32[0] >> 26)) *
@@ -2221,11 +2221,11 @@ void mul_real(REAL * r, REAL * a, REAL * b)
     while(i < b->len) {
         j = 0;
         while(j < a->len) {
-            //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+            //add_single64(result->data+i+j,a->data[j]*(uint64_t)b->data[i]);
 
             // UNROLLED add_single64()
             // NUMBER IS GUARANTEED TO BE POSITIVE
-            tmp1.w = a->data[j] * (UBINT64) b->data[i];
+            tmp1.w = a->data[j] * (uint64_t) b->data[i];
             hi32_1 = (((tmp1.w32[1] << 6) | (tmp1.w32[0] >> 26)) *
                     2882303762ULL) >> 32;
             lo32_1 = tmp1.w + hi32_1 * 4194967296U;
@@ -2263,7 +2263,7 @@ void mul_long_karatsuba(BINT * result, BINT * a, BINT * b, BINT m)
 
     if(m <= 2) {
         if(m == 1)
-            add_single64(result, a[0] * (BINT64) b[0]);
+            add_single64(result, a[0] * (int64_t) b[0]);
         else
             add_karatsuba(result, a, b);
         return;
@@ -2310,11 +2310,11 @@ void mul_long_karatsuba(BINT * result, BINT * a, BINT * b, BINT m)
 
         // ADD SECOND OPERAND WORD BY THE WHOLE FIRST OPERAND
         for(j = 0; j < m; ++j)
-            add_single64(result + m - 1 + j, a[j] * (BINT64) b[m - 1]);
+            add_single64(result + m - 1 + j, a[j] * (int64_t) b[m - 1]);
 
         // ADD FIRST OPERAND WORD BY THE SECOND OPERAND, EXCEPT THE LEFT OVER WORD
         for(j = 0; j < m - 1; ++j)
-            add_single64(result + m - 1 + j, b[j] * (BINT64) a[m - 1]);
+            add_single64(result + m - 1 + j, b[j] * (int64_t) a[m - 1]);
 
     }
 
@@ -2386,9 +2386,9 @@ void mul_real2(REAL * r, REAL * a, REAL * b)
             }
             if(j < a->len) {
                 add_single64(result->data + i + j,
-                        a->data[j] * (UBINT64) b->data[i]);
+                        a->data[j] * (uint64_t) b->data[i]);
                 add_single64(result->data + i + 1 + j,
-                        a->data[j] * (UBINT64) b->data[i + 1]);
+                        a->data[j] * (uint64_t) b->data[i + 1]);
             }
             if(!(i & 7))
                 carry_correct(result->data, result->len);
@@ -2400,7 +2400,7 @@ void mul_real2(REAL * r, REAL * a, REAL * b)
             j = wordoffset;
             while(j < a->len) {
                 add_single64(result->data + i + j,
-                        a->data[j] * (UBINT64) b->data[i]);
+                        a->data[j] * (uint64_t) b->data[i]);
                 ++j;
             }
             if(!(i & 7))
@@ -2442,7 +2442,7 @@ const int const pow10_8[8] = {
     10000000
 };
 
-void newRealFromText(REAL * result, char *text, char *end, UBINT64 chars)
+void newRealFromText(REAL * result, char *text, char *end, uint64_t chars)
 {
     int digits = 0;
     int exp = 0;
@@ -2816,7 +2816,7 @@ void word2digits(BINT word, char *digits)
 // ADD ROUND THE LAST DIGIT OF A STRING
 // RETURN THE NUMBER OF DIGITS ADDED TO THE STREAM
 
-int round_in_string(char *start, char *end, int format, UBINT64 chars,
+int round_in_string(char *start, char *end, int format, uint64_t chars,
         char rounddigit)
 {
     if(rounddigit < '5')
@@ -3055,7 +3055,7 @@ int round_in_string(char *start, char *end, int format, UBINT64 chars,
 
 // RETURN A POINTER TO THE END OF THE STRING (NOT 0 TERMINATED)
 
-char *formatReal(REAL * number, char *buffer, BINT format, UBINT64 chars)
+char *formatReal(REAL * number, char *buffer, BINT format, uint64_t chars)
 {
     int totaldigits, integer, frac, realexp, leftzeros, sep_spacing;
     int nbnumsep, nbfracsep, nbdot;
@@ -3427,7 +3427,7 @@ char *formatReal(REAL * number, char *buffer, BINT format, UBINT64 chars)
     return buffer + idx;
 }
 
-BINT formatlengthReal(REAL * number, BINT format, UBINT64 locale)
+BINT formatlengthReal(REAL * number, BINT format, uint64_t locale)
 {
     int totaldigits, integer, realexp, leftzeros, sep_spacing;
     int wantdigits = format & 0xfff;
@@ -3645,8 +3645,8 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
     int j;
 
     // DETERMINE MULTIPLICATIVE INVERSE OF THE FIRST WORD
-    UBINT64 inverse = ((1ULL << 63) / div->data[div->len - 1]) >> 26;
-    UBINT64 invhi = (100000000ULL << 28) / div->data[div->len - 1];
+    uint64_t inverse = ((1ULL << 63) / div->data[div->len - 1]) >> 26;
+    uint64_t invhi = (100000000ULL << 28) / div->data[div->len - 1];
 
     REAL remainder;
 
@@ -3660,7 +3660,7 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
 
     remword = remainder.len - 1;        // TAKE THE FIRST WORD TO START
     BINT tempres;
-    BINT64 tmp64;
+    int64_t tmp64;
     while(resword >= 0) {
         // COMPUTE A NEW WORD OF THE QUOTIENT
         result->data[resword] = 0;
@@ -3679,7 +3679,7 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
                 // SUBTRACT FROM THE REMAINDER
                 for(j = 0; j < div->len; ++j)
                     add_single64(remainder.data + remword + 1 - div->len + j,
-                            -(BINT64) tempres * div->data[j]);
+                            -(int64_t) tempres * div->data[j]);
                 carry_correct(remainder.data + remword + 1 - div->len,
                         div->len);
             }
@@ -3692,14 +3692,14 @@ void div_real(REAL * r, REAL * num, REAL * d, int maxdigits)
                     // SUBTRACT FROM THE REMAINDER
                     for(j = 0; j < div->len; ++j)
                         add_single64(remainder.data + remword + 1 - div->len +
-                                j, -(BINT64) tempres * div->data[j]);
+                                j, -(int64_t) tempres * div->data[j]);
                     carry_correct(remainder.data + remword + 1 - div->len,
                             div->len);
                 }
             }
             // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
-            tmp64 = (BINT64) remainder.data[remword] +
-                    (BINT64) remainder.data[remword + 1] * 100000000LL;
+            tmp64 = (int64_t) remainder.data[remword] +
+                    (int64_t) remainder.data[remword + 1] * 100000000LL;
             if(tmp64 > 2147483648LL || tmp64 < -214783648LL) {
                 carry_correct(remainder.data + remword, 2);
             }
@@ -3869,13 +3869,13 @@ void newRealFromBINT(REAL * result, BINT number, BINT exp10)
     }
     result->data[0] = 0;
     result->data[1] = 0;
-    add_single64(result->data, (BINT64) number);
+    add_single64(result->data, (int64_t) number);
     carry_correct(result->data, 2);
     result->len = 2;
 }
 
 // MAKE A REAL OUT OF A 64-BIT INTEGER
-void newRealFromBINT64(REAL * result, BINT64 number, BINT exp10)
+void newRealFromint64_t(REAL * result, int64_t number, BINT exp10)
 {
     if(number < 0) {
         result->flags = F_NEGATIVE;
@@ -3896,7 +3896,7 @@ void newRealFromBINT64(REAL * result, BINT64 number, BINT exp10)
         // UP TO 10^16 CAN BE HANDLED BY add_single64();
         result->data[0] = 0;
         result->data[1] = 0;
-        add_single64(result->data, (BINT64) number);
+        add_single64(result->data, (int64_t) number);
         carry_correct(result->data, 2);
         result->len = 2;
         return;
@@ -3908,7 +3908,7 @@ void newRealFromBINT64(REAL * result, BINT64 number, BINT exp10)
     result->data[2] = 0;
     // THIS IS 2^48 IN 8-DIGIT BASE
     const BINT two_48[2] = { 76710656, 2814749 };
-    BINT64 hibits = number >> 48;
+    int64_t hibits = number >> 48;
     number &= (1LL << 48) - 1;
     add_single64(result->data, number);
     add_karatsuba(result->data, (BINT *) & hibits, (BINT *) two_48);
@@ -4943,7 +4943,7 @@ BINT inBINTRange(REAL * n)
 
     // THE NUMBER HAS EXACTLY 10 DIGITS
     if(n->exp >= 0) {
-        BINT64 result;
+        int64_t result;
         if(n->len > 1)
             result = n->data[1] * 100000000LL;
         else
@@ -5050,13 +5050,13 @@ BINT inBINTRange(REAL * n)
 
 }
 
-BINT inBINT64Range(REAL * n)
+BINT inint64_tRange(REAL * n)
 {
 
     if(n->flags & (F_NOTANUMBER | F_INFINITY))
         return 0;
 
-    static const BINT64 const max_bint64[] = {
+    static const int64_t const max_bint64[] = {
         9223372036854775807,
         922337203685477580,
         92233720368547758,
@@ -5089,7 +5089,7 @@ BINT inBINT64Range(REAL * n)
 
     // THE NUMBER HAS EXACTLY 19 DIGITS
     if(n->exp > 0) {
-        BINT64 result;
+        int64_t result;
         if(n->len > 2)
             result = n->data[2] * 1000000000000000LL;
         else
@@ -5305,7 +5305,7 @@ BINT getBINTReal(REAL * n)
     int rshift = ((-n->exp) & 7);
     int lshift = (8 - rshift) & 7;
     BINT carry = 0;
-    BINT64 tmp;
+    int64_t tmp;
     result = 0;
     while(nwords--) {
         result *= 100000000LL;
@@ -5322,9 +5322,9 @@ BINT getBINTReal(REAL * n)
 }
 
 // EXTRACT A 64-BIT INTEGER FROM A REAL
-BINT64 getBINT64Real(REAL * n)
+int64_t getint64_tReal(REAL * n)
 {
-    BINT64 result;
+    int64_t result;
 
     int digits = ((n->len - 1) << 3) + sig_digits(n->data[n->len - 1]) + n->exp;
 
@@ -5360,7 +5360,7 @@ BINT64 getBINT64Real(REAL * n)
     int rshift = ((-n->exp) & 7);
     int lshift = (8 - rshift) & 7;
     BINT carry = 0;
-    BINT64 tmp;
+    int64_t tmp;
     result = 0;
     while(nwords--) {
         result *= 100000000;

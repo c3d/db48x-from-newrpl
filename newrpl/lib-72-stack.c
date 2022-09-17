@@ -209,7 +209,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0 || rplDepthData() < count + 1) {
@@ -255,7 +255,7 @@ void LIB_HANDLER()
 
             return;
         }
-        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0 || rplDepthData() < count + 1) {
@@ -264,7 +264,7 @@ void LIB_HANDLER()
             return;
         }
         rplDropData(1);
-        BINT64 f;
+        int64_t f;
         for(f = 0; f < count; ++f) {
             rplPushData(rplPeekData(count));
             if(Exceptions)
@@ -280,7 +280,7 @@ void LIB_HANDLER()
 
             return;
         }
-        BINT64 count = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t count = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
         if(count < 0) {
@@ -289,7 +289,7 @@ void LIB_HANDLER()
             return;
         }
         rplDropData(1);
-        BINT64 f;
+        int64_t f;
         for(f = 1; f < count; ++f) {
             rplPushData(rplPeekData(1));
             if(Exceptions)
@@ -327,7 +327,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
         if((level < 1) || (rplDepthData() < 1 + level)) {
@@ -358,7 +358,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -373,7 +373,7 @@ void LIB_HANDLER()
         WORDPTR objn = rplPeekData(level);
         WORDPTR *stkptr = DSTop - level;
 
-        BINT64 count;
+        int64_t count;
         for(count = 1; count < level; ++count, ++stkptr)
             *stkptr = *(stkptr + 1);
 
@@ -390,7 +390,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -405,7 +405,7 @@ void LIB_HANDLER()
         WORDPTR objn = rplPeekData(1);
         WORDPTR *stkptr = DSTop - 1;
 
-        BINT64 count;
+        int64_t count;
         for(count = 1; count < level; ++count, --stkptr)
             *stkptr = *(stkptr - 1);
 
@@ -451,7 +451,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 level = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t level = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -619,7 +619,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT64 snap, level;
+        int64_t snap, level;
 
         snap = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
@@ -654,7 +654,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT64 snap;
+        int64_t snap;
 
         snap = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)

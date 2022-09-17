@@ -4,9 +4,9 @@
 // res=a+b
 WORD bbintadd(WORD * res, WORD * a, WORD * b, int nwords)
 {
-    UBINT64 rr = 0;
+    uint64_t rr = 0;
     while(nwords) {
-        rr += (UBINT64) * a + (UBINT64) * b;
+        rr += (uint64_t) * a + (uint64_t) * b;
         *res = rr;
         ++res;
         ++a;
@@ -57,9 +57,9 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
                 (WORDPTR) res->data;
 
-        BINT64 rr = 0;
+        int64_t rr = 0;
         while(bwords > 0) {
-            rr += (BINT64) ((WORD) * aptr) - (BINT64) ((WORD) * bptr);
+            rr += (int64_t) ((WORD) * aptr) - (int64_t) ((WORD) * bptr);
             *resptr = (WORD) rr;
             ++resptr;
             ++aptr;
@@ -68,7 +68,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
             rr >>= 32;
         }
         while(xwords) {
-            rr += (BINT64) ((WORD) * aptr);
+            rr += (int64_t) ((WORD) * aptr);
             *resptr = (WORD) rr;
             ++resptr;
             ++aptr;
@@ -98,9 +98,9 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
     WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
             (WORDPTR) res->data;
 
-    BINT64 rr = 0;
+    int64_t rr = 0;
     while(bwords) {
-        rr += (BINT64) ((WORD) * aptr) + (BINT64) ((WORD) * bptr);
+        rr += (int64_t) ((WORD) * aptr) + (int64_t) ((WORD) * bptr);
         *resptr = (WORD) rr;
         ++resptr;
         ++aptr;
@@ -109,7 +109,7 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
         rr >>= 32;
     }
     while(xwords) {
-        rr += (BINT64) ((WORD) * aptr);
+        rr += (int64_t) ((WORD) * aptr);
         *resptr = (WORD) rr;
         ++resptr;
         ++aptr;
@@ -194,10 +194,10 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
             WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                     (WORDPTR) res->data;
 
-            BINT64 rr = 0;
+            int64_t rr = 0;
             while(bwords > 0) {
-                rr += (BINT64) (*bptr >> bshift) - (BINT64) * aptr +
-                        (BINT64) ((((UBINT64) bptr[1]) << (32 -
+                rr += (int64_t) (*bptr >> bshift) - (int64_t) * aptr +
+                        (int64_t) ((((uint64_t) bptr[1]) << (32 -
                                 bshift)) & 0xffffffff);
                 *resptr = (WORD) rr;
                 ++resptr;
@@ -207,8 +207,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
                 --bwords;
             }
             while(xwords > 1) {
-                rr += (BINT64) (*bptr >> bshift) +
-                        (BINT64) ((((UBINT64) bptr[1]) << (32 -
+                rr += (int64_t) (*bptr >> bshift) +
+                        (int64_t) ((((uint64_t) bptr[1]) << (32 -
                                 bshift)) & 0xffffffff);
                 *resptr = (WORD) rr;
                 ++resptr;
@@ -217,7 +217,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
                 rr >>= 32;
             }
             if(xwords > 0) {
-                rr += (BINT64) (*bptr >> bshift);
+                rr += (int64_t) (*bptr >> bshift);
                 if(rr) {
                     *resptr = (WORD) rr;
                     ++resptr;
@@ -242,10 +242,10 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                 (WORDPTR) res->data;
 
-        BINT64 rr = 0;
+        int64_t rr = 0;
         while(bwords > 0) {
-            rr += (BINT64) * aptr - (BINT64) (*bptr >> bshift) -
-                    (BINT64) ((((UBINT64) bptr[1]) << (32 -
+            rr += (int64_t) * aptr - (int64_t) (*bptr >> bshift) -
+                    (int64_t) ((((uint64_t) bptr[1]) << (32 -
                             bshift)) & 0xffffffff);
             *resptr = (WORD) rr;
             ++resptr;
@@ -256,9 +256,9 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         }
         // LAST LOOP IS UNROLLED TO AVOID BRINGING BITS FROM THE TOP OF bs
         if(xwords < 0)
-            rr -= (BINT64) (*bptr >> bshift);
+            rr -= (int64_t) (*bptr >> bshift);
         else
-            rr += (BINT64) * aptr - (BINT64) (*bptr >> bshift);
+            rr += (int64_t) * aptr - (int64_t) (*bptr >> bshift);
         *resptr = (WORD) rr;
         ++resptr;
         ++aptr;
@@ -266,7 +266,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         rr >>= 32;
 
         while(xwords > 0) {
-            rr += (BINT64) * aptr;
+            rr += (int64_t) * aptr;
             *resptr = (WORD) rr;
             ++resptr;
             ++aptr;
@@ -293,10 +293,10 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
                 (WORDPTR) res->data;
 
-        UBINT64 rr = 0;
+        uint64_t rr = 0;
         while(bwords > 0) {
-            rr += (BINT64) (*bptr >> bshift) + (BINT64) * aptr +
-                    (BINT64) ((((UBINT64) bptr[1]) << (32 -
+            rr += (int64_t) (*bptr >> bshift) + (int64_t) * aptr +
+                    (int64_t) ((((uint64_t) bptr[1]) << (32 -
                             bshift)) & 0xffffffff);
             *resptr = (WORD) rr;
             ++resptr;
@@ -306,8 +306,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
             --bwords;
         }
         while(xwords > 1) {
-            rr += (BINT64) (*bptr >> bshift) +
-                    (BINT64) ((((UBINT64) bptr[1]) << (32 -
+            rr += (int64_t) (*bptr >> bshift) +
+                    (int64_t) ((((uint64_t) bptr[1]) << (32 -
                             bshift)) & 0xffffffff);
             *resptr = (WORD) rr;
             ++resptr;
@@ -316,7 +316,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
             rr >>= 32;
         }
         if(xwords > 0) {
-            rr += (BINT64) (*bptr >> bshift);
+            rr += (int64_t) (*bptr >> bshift);
             if(rr) {
                 *resptr = (WORD) rr;
                 ++resptr;
@@ -338,10 +338,10 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
     WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
             (WORDPTR) res->data;
 
-    BINT64 rr = 0;
+    int64_t rr = 0;
     while(bwords > 0) {
-        rr += (BINT64) * aptr + (BINT64) (*bptr >> bshift) +
-                (BINT64) ((((UBINT64) bptr[1]) << (32 - bshift)) & 0xffffffff);
+        rr += (int64_t) * aptr + (int64_t) (*bptr >> bshift) +
+                (int64_t) ((((uint64_t) bptr[1]) << (32 - bshift)) & 0xffffffff);
         *resptr = (WORD) rr;
         ++resptr;
         ++aptr;
@@ -350,7 +350,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
         rr >>= 32;
     }
     // LAST WORD DONE MANUALLY TO AVOID BITS ENTERING FROM THE TOP ON bs
-    rr += (BINT64) * aptr + (BINT64) (*bptr >> bshift);
+    rr += (int64_t) * aptr + (int64_t) (*bptr >> bshift);
     *resptr = (WORD) rr;
     ++resptr;
     ++aptr;
@@ -358,7 +358,7 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
     rr >>= 32;
 
     while(xwords > 0) {
-        rr += (BINT64) * aptr;
+        rr += (int64_t) * aptr;
         *resptr = (WORD) rr;
         ++resptr;
         ++aptr;
@@ -381,10 +381,10 @@ WORD bbintacc2n(WORD * res, int shift, int nwords)
     res += awords;
     shift &= 31;
 
-    UBINT64 rr = 0x100000000LL >> shift;
+    uint64_t rr = 0x100000000LL >> shift;
 // CONTINUE A POSSIBLE CARRY
     while(xwords && (rr != 0)) {
-        rr += (UBINT64) * res;
+        rr += (uint64_t) * res;
         *res = rr;
         ++res;
         --xwords;
@@ -403,10 +403,10 @@ WORD bbintaccminus2n(WORD * res, int shift, int nwords)
     res += awords;
     shift &= 31;
 
-    UBINT64 rr = 0x100000000LL >> shift;
+    uint64_t rr = 0x100000000LL >> shift;
 // CONTINUE A POSSIBLE CARRY
     while(xwords && (rr != 0)) {
-        rr = (UBINT64) * res - rr;
+        rr = (uint64_t) * res - rr;
         *res = rr;
         ++res;
         --xwords;
@@ -420,9 +420,9 @@ WORD bbintaccminus2n(WORD * res, int shift, int nwords)
 
 WORD bbintaddshort(WORD * res, WORD * a, WORD b, int nwords)
 {
-    UBINT64 rr = b;
+    uint64_t rr = b;
     while(nwords) {
-        rr += (UBINT64) * a;
+        rr += (uint64_t) * a;
         *res = rr;
         ++res;
         ++a;
@@ -436,9 +436,9 @@ WORD bbintaddshort(WORD * res, WORD * a, WORD b, int nwords)
 
 WORD bbintacc(WORD * res, WORD * a, int nwords)
 {
-    UBINT64 rr = 0;
+    uint64_t rr = 0;
     while(nwords) {
-        rr += (UBINT64) * res + *a;
+        rr += (uint64_t) * res + *a;
         *res = rr;
         ++res;
         ++a;
@@ -457,9 +457,9 @@ WORD bbintaccshiftright(WORD * res, WORD * a, int shift, int nwords)
     a += shift >> 5;
     shift &= 31;
 
-    UBINT64 rr = 0;
+    uint64_t rr = 0;
     while(awords) {
-        rr += (UBINT64) * res + (((*((UBINT64 *) a)) >> shift) & 0xffffffffLL);
+        rr += (uint64_t) * res + (((*((uint64_t *) a)) >> shift) & 0xffffffffLL);
         *res = rr;
         ++res;
         ++a;
@@ -468,7 +468,7 @@ WORD bbintaccshiftright(WORD * res, WORD * a, int shift, int nwords)
     }
 // CONTINUE A POSSIBLE CARRY
     while(xwords && (rr != 0)) {
-        rr += (UBINT64) * res;
+        rr += (uint64_t) * res;
         *res = rr;
         ++res;
         --xwords;
@@ -483,11 +483,11 @@ WORD bbintaccshiftright(WORD * res, WORD * a, int shift, int nwords)
 
 WORD bbintmulshortacc(WORD * res, WORD * a, WORD b, int nwords)
 {
-    UBINT64 rr;
-    UBINT64 carry = 0;
+    uint64_t rr;
+    uint64_t carry = 0;
 
     while(nwords) {
-        rr = ((UBINT64) (*a)) * b;
+        rr = ((uint64_t) (*a)) * b;
         carry += *res;
         *res = rr + carry;
         carry = ((rr & 0xffffffff) + carry) >> 32;
@@ -505,11 +505,11 @@ WORD bbintmulshortacc(WORD * res, WORD * a, WORD b, int nwords)
 
 WORD bbintmulshortinplace(WORD * res, WORD b, int nwords)
 {
-    UBINT64 rr;
-    UBINT64 carry = 0;
+    uint64_t rr;
+    uint64_t carry = 0;
 
     while(nwords) {
-        rr = ((UBINT64) (*res)) * b;
+        rr = ((uint64_t) (*res)) * b;
         *res = rr + carry;
         carry = ((rr & 0xffffffff) + carry) >> 32;
         carry += rr >> 32;
@@ -619,7 +619,7 @@ void RealfrombInteger(REAL * res, REAL * integer)
 
     for(k = 0; k < integer->len; ++k) {
 
-        newRealFromBINT64(&tmp, (WORD) integer->data[integer->len - 1 - k], 0);
+        newRealFromint64_t(&tmp, (WORD) integer->data[integer->len - 1 - k], 0);
         mulReal(res, res, &two32);
         addReal(res, res, &tmp);
     }
@@ -656,14 +656,14 @@ void bIntegerMul(REAL * res, REAL * a, REAL * b, int FPShift)
 
     i = 0;
 
-    UBINT64 rr = 0;
+    uint64_t rr = 0;
     BINT carry = 0;
     while(i < b->len) {
         j = 0;
         while(j < a->len) {
             if(__builtin_uaddll_overflow(rr,
-                        ((UBINT64) (WORD) a->data[j]) *
-                        ((UBINT64) (WORD) b->data[i]),
+                        ((uint64_t) (WORD) a->data[j]) *
+                        ((uint64_t) (WORD) b->data[i]),
                         (unsigned long long *)&rr))
                 ++carry;
             if(__builtin_uadd_overflow((WORD) rr, (WORD) result->data[i + j],
@@ -718,7 +718,7 @@ void bIntegerMul(REAL * res, REAL * a, REAL * b, int FPShift)
             for(i = shword; i < res->len; ++i)
                 res->data[i - shword] =
                         (((WORD) res->
-                            data[i]) >> shbits) | ((WORD) (((UBINT64) res->
+                            data[i]) >> shbits) | ((WORD) (((uint64_t) res->
                                 data[i + 1]) << (32 - shbits)));
 
             res->len -= shword;

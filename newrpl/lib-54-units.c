@@ -864,7 +864,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1009,7 +1009,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1151,7 +1151,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1293,7 +1293,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1434,7 +1434,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     swap = 1;
@@ -1599,7 +1599,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     WORDPTR tmp = rplPeekData(1);
@@ -1733,7 +1733,7 @@ void LIB_HANDLER()
             if(ISBINT(*rplPeekData(2))) {
                 // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
                 // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
-                BINT64 num = rplReadBINT(rplPeekData(2));
+                int64_t num = rplReadBINT(rplPeekData(2));
 
                 if(num == 0) {
                     WORDPTR tmp = rplPeekData(1);
@@ -2393,7 +2393,7 @@ void LIB_HANDLER()
             BINT groupoff[8];
             BINT groupexp[8];
             BINT groupidx = 0;
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
             BINT toklen;
             BINT tokstart = 1;
 
@@ -2723,9 +2723,9 @@ void LIB_HANDLER()
                                 offset = rplSkipOb(denptr) - groupptr;
 
                                 if(isintegerReal(&RReg[2])
-                                        && inBINT64Range(&RReg[2])) {
+                                        && inint64_tRange(&RReg[2])) {
                                     // EXPONENT IS AN INTEGER
-                                    BINT64 finalexp = getBINT64Real(&RReg[2]);
+                                    int64_t finalexp = getint64_tReal(&RReg[2]);
                                     // COMPILE AS A BINT OR A SINT
                                     rplCompileBINT(finalexp, DECBINT);
                                     if(Exceptions) {
@@ -2745,9 +2745,9 @@ void LIB_HANDLER()
                                 }
 
                                 if(isintegerReal(&RReg[3])
-                                        && inBINT64Range(&RReg[3])) {
+                                        && inint64_tRange(&RReg[3])) {
                                     // EXPONENT IS AN INTEGER
-                                    BINT64 finalexp = getBINT64Real(&RReg[3]);
+                                    int64_t finalexp = getint64_tReal(&RReg[3]);
 
                                     // COMPILE AS A BINT OR A SINT
                                     rplCompileBINT(finalexp, DECBINT);
@@ -2942,9 +2942,9 @@ void LIB_HANDLER()
                             RReg[1].flags &= ~F_NEGATIVE;
 
                             if(isintegerReal(&RReg[0])
-                                    && inBINT64Range(&RReg[0])) {
+                                    && inint64_tRange(&RReg[0])) {
                                 // EXPONENT IS AN INTEGER
-                                BINT64 finalexp = getBINT64Real(&RReg[0]);
+                                int64_t finalexp = getint64_tReal(&RReg[0]);
                                 finalexp *= exponent;
                                 if(negexp)
                                     finalexp = -finalexp;
@@ -2973,9 +2973,9 @@ void LIB_HANDLER()
                             }
 
                             if(isintegerReal(&RReg[1])
-                                    && inBINT64Range(&RReg[1])) {
+                                    && inint64_tRange(&RReg[1])) {
                                 // EXPONENT IS AN INTEGER
-                                BINT64 finalexp = getBINT64Real(&RReg[1]);
+                                int64_t finalexp = getint64_tReal(&RReg[1]);
 
                                 // COMPILE AS A BINT OR A SINT
                                 rplCompileBINT(finalexp, DECBINT);
@@ -3037,9 +3037,9 @@ void LIB_HANDLER()
                                     utf8nlen((char *)nextptr, (char *)numend);
 
                             if(isintegerReal(&RReg[0])
-                                    && inBINT64Range(&RReg[0])) {
+                                    && inint64_tRange(&RReg[0])) {
                                 // EXPONENT IS AN INTEGER
-                                BINT64 finalexp = getBINT64Real(&RReg[0]);
+                                int64_t finalexp = getint64_tReal(&RReg[0]);
                                 finalexp *= exponent;
                                 if(negexp)
                                     finalexp = -finalexp;
@@ -3255,7 +3255,7 @@ void LIB_HANDLER()
             BINT totalsize = rplObjSize(DecompileObject);
             BINT needmult = 0;
             BINT Format = 4 | ((CurOpcode == OPCODE_DECOMPEDIT) ? FMT_CODE : 0);        // SIMPLE FORMAT FOR ALL EXPONENTS, ONLY 4 DECIMAL PLACES IS ENOUGH
-            UBINT64 Locale = rplGetSystemLocale();
+            uint64_t Locale = rplGetSystemLocale();
 
             offset += rplObjSize(DecompileObject + 1);  // SKIP THE MAIN VALUE
 

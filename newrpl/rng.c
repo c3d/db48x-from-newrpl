@@ -34,18 +34,18 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
 
 #include "newrpl.h"
 
-UBINT64 newRPL_rng[2];
+uint64_t newRPL_rng[2];
 
-static inline UBINT64 rotl(const UBINT64 x, int k)
+static inline uint64_t rotl(const uint64_t x, int k)
 {
     return (x << k) | (x >> (64 - k));
 }
 
-UBINT64 rplRandomNext(void)
+uint64_t rplRandomNext(void)
 {
-    const UBINT64 s0 = newRPL_rng[0];
-    UBINT64 s1 = newRPL_rng[1];
-    const UBINT64 result = s0 + s1;
+    const uint64_t s0 = newRPL_rng[0];
+    uint64_t s1 = newRPL_rng[1];
+    const uint64_t result = s0 + s1;
 
     s1 ^= s0;
     newRPL_rng[0] = rotl(s0, 55) ^ s1 ^ (s1 << 14);     // a, b
@@ -58,14 +58,14 @@ UBINT64 rplRandomNext(void)
    to 2^64 calls to next(); it can be used to generate 2^64
    non-overlapping subsequences for parallel computations. */
 
-static const UBINT64 const JUMP[] =
+static const uint64_t const JUMP[] =
         { 0xbeac0467eba5facbULL, 0xd86b048b86aa9922ULL };
 
 void rplRandomJump(void)
 {
 
-    UBINT64 s0 = 0;
-    UBINT64 s1 = 0;
+    uint64_t s0 = 0;
+    uint64_t s1 = 0;
     int i, b;
 
     for(i = 0; i < 2; i++)
@@ -84,7 +84,7 @@ void rplRandomJump(void)
 // RANDOM SEQUENCE STARTING FROM A SEED
 // JUST SPLIT THE SEED AND RUN THE RNG 5 TIMES
 
-void rplRandomSeed(UBINT64 seed)
+void rplRandomSeed(uint64_t seed)
 {
     /*  Based on SplitMix64 by Sebastiano Vigna (vigna@acm.org) */
 
@@ -109,7 +109,7 @@ void rplRandomSeed(UBINT64 seed)
 
 BINT rplRandom8Digits()
 {
-    UBINT64 dig = rplRandomNext() >> 2;
+    uint64_t dig = rplRandomNext() >> 2;
     dig %= 100000000;
     return (BINT) dig;
 }

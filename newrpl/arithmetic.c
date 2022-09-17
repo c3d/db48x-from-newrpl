@@ -13,13 +13,13 @@
 #include "newrpl.h"
 #include "cmdcodes.h"
 
-// EITHER RETURN THE FACTORIAL AS A BINT64 WHEN THE NUMBER IS SMALL ENOUGH
+// EITHER RETURN THE FACTORIAL AS A int64_t WHEN THE NUMBER IS SMALL ENOUGH
 // OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE
 // THE RETURN VALUE IS EITHER -1 OR THE ACTUAL FACTORIAL
 
-BINT64 factorialBINT(BINT n)
+int64_t factorialBINT(BINT n)
 {
-    BINT64 result = 1;
+    int64_t result = 1;
     BINT k;
 
     for(k = 2; (k <= n) && (k <= 20); ++k)
@@ -28,7 +28,7 @@ BINT64 factorialBINT(BINT n)
         return result;
 
     Context.precdigits += 8;
-    newRealFromBINT64(&RReg[0], result, 0);
+    newRealFromint64_t(&RReg[0], result, 0);
 
     for(; k <= n; ++k) {
         newRealFromBINT(&RReg[1], k, 0);
@@ -581,7 +581,7 @@ const int const primesieve_unpack[8] = { 1, 7, 11, 13, 17, 19, 23, 29 };
 
 // RETURN THE SMALLEST "COULD_BE" PRIME NUMBER > n
 
-BINT64 nextcbprimeBINT(BINT64 n)
+int64_t nextcbprimeBINT(int64_t n)
 {
     BINT idx;
     if(n < MAX_PRIME) {
@@ -630,7 +630,7 @@ BINT64 nextcbprimeBINT(BINT64 n)
 // RETURN SMALLEST CONFIRMED PRIME NUMBER > n
 // OR -1 IF NEXT PRIME >2^63 (IN SUCH CASE USER NEEDS TO USE REAL NUMBERS)
 
-BINT64 nextprimeBINT(BINT64 n)
+int64_t nextprimeBINT(int64_t n)
 {
     BINT idx;
     if(n < MAX_PRIME) {
@@ -682,7 +682,7 @@ BINT64 nextprimeBINT(BINT64 n)
     return n;
 }
 
-BINT isprimeBINT(BINT64 n)
+BINT isprimeBINT(int64_t n)
 {
     if(n < 0)
         n = -n;
@@ -711,7 +711,7 @@ BINT isprimeBINT(BINT64 n)
         return 0;
 
     // NOW TEST FOR ALL PRIMES, 7 AND UP TO SQRT OF N
-    BINT64 i = 7;
+    int64_t i = 7;
 
     while(i * i <= n) {
         if(n % i == 0)
@@ -724,8 +724,8 @@ BINT isprimeBINT(BINT64 n)
 
 BINT isprimeReal(REAL * n)
 {
-    if(inBINT64Range(n)) {
-        BINT64 nbint = getBINT64Real(n);
+    if(inint64_tRange(n)) {
+        int64_t nbint = getint64_tReal(n);
         return isprimeBINT(nbint);
     }
 
@@ -743,10 +743,10 @@ BINT isprimeReal(REAL * n)
         return 0;
 
     // NOW TEST FOR ALL PRIMES, 7 AND UP TO SQRT OF N
-    BINT64 i = 7;
+    int64_t i = 7;
 
     while(i < 3037000500LL) {
-        newRealFromBINT64(&RReg[2], i, 0);
+        newRealFromint64_t(&RReg[2], i, 0);
         divmodReal(&RReg[0], &RReg[1], n, &RReg[2]);
         if(iszeroReal(&RReg[1]))
             return 0;
@@ -769,11 +769,11 @@ void nextprimeReal(BINT regnum, REAL * n)
     // MAKE POSITIVE
     n->flags &= ~F_NEGATIVE;
 
-    if(inBINT64Range(n)) {
-        BINT64 nbint = getBINT64Real(n);
-        BINT64 next = nextprimeBINT(nbint);
+    if(inint64_tRange(n)) {
+        int64_t nbint = getint64_tReal(n);
+        int64_t next = nextprimeBINT(nbint);
         if(next > 0) {
-            newRealFromBINT64(&RReg[regnum], next, 0);
+            newRealFromint64_t(&RReg[regnum], next, 0);
             return;
         }
         // TESTED ALL INTEGERS UP TO 2^63, CONTINUE WITH LARGER ONES???
@@ -790,7 +790,7 @@ void nextprimeReal(BINT regnum, REAL * n)
 
     newRealFromBINT(&RReg[2], 30, 0);
 
-    BINT64 i = 0;
+    int64_t i = 0;
 
     do {
 
@@ -813,7 +813,7 @@ void nextprimeReal(BINT regnum, REAL * n)
         i = 7;
 
         while(i < 3037000500LL) {
-            newRealFromBINT64(&RReg[4], i, 0);
+            newRealFromint64_t(&RReg[4], i, 0);
             divmodReal(&RReg[3], &RReg[1], &RReg[0], &RReg[4]);
             if(iszeroReal(&RReg[1])) {
                 // NOT PRIME, NEXT
@@ -844,7 +844,7 @@ void nextprimeReal(BINT regnum, REAL * n)
 // WHERE a AND b, AND mod ARE INTEGERS
 // mod HAS TO BE < 2^31 OTHERWISE USE THE REAL VERSION
 
-BINT64 powmodBINT(BINT64 a, BINT64 b, BINT64 mod)
+int64_t powmodBINT(int64_t a, int64_t b, int64_t mod)
 {
     if(b == 0)
         return 1;       // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
@@ -857,7 +857,7 @@ BINT64 powmodBINT(BINT64 a, BINT64 b, BINT64 mod)
             return 0;
         return a;
     }
-    BINT64 result = 1;
+    int64_t result = 1;
 
     a = a % mod;
     while(b) {
@@ -979,11 +979,11 @@ void gcdReal(REAL * result, REAL * a, REAL * b)
         // b=a MOD b
         swapReal(&RReg[0], &RReg[1]);
         swapReal(&RReg[1], result);
-        if(inBINT64Range(&RReg[0])) {
+        if(inint64_tRange(&RReg[0])) {
             // SWITCH TO INTEGERS AS SOON AS THE SIZE PERMITS
-            BINT64 a = getBINT64Real(&RReg[0]);
-            BINT64 b = getBINT64Real(&RReg[1]);
-            BINT64 tmp;
+            int64_t a = getint64_tReal(&RReg[0]);
+            int64_t b = getint64_tReal(&RReg[1]);
+            int64_t tmp;
 
             while(b) {
                 tmp = b;
@@ -991,7 +991,7 @@ void gcdReal(REAL * result, REAL * a, REAL * b)
                 a = tmp;
             }
 
-            newRealFromBINT64(result, a, 0);
+            newRealFromint64_t(result, a, 0);
             return;
         }
     }
@@ -1000,9 +1000,9 @@ void gcdReal(REAL * result, REAL * a, REAL * b)
     swapReal(&RReg[0], result);
 }
 
-BINT64 gcdBINT64(BINT64 a, BINT64 b)
+int64_t gcdint64_t(int64_t a, int64_t b)
 {
-    BINT64 tmp;
+    int64_t tmp;
     while(b) {
         tmp = b;
         b = a % b;
@@ -1012,10 +1012,10 @@ BINT64 gcdBINT64(BINT64 a, BINT64 b)
 }
 
 // COMPUTE INTEGER SQUARE ROOT
-BINT64 sqrtBINT64(BINT64 num)
+int64_t sqrtint64_t(int64_t num)
 {
     int shift = 2;
-    BINT64 nshifted = num >> shift;
+    int64_t nshifted = num >> shift;
     while(nshifted) {
         shift += 2;
         nshifted = num >> shift;
@@ -1035,17 +1035,17 @@ BINT64 sqrtBINT64(BINT64 num)
 // RETURNS n IF n IS PRIME
 // USES POLLARD'S RHO ALGORITHM
 // n CAN'T BE RREG[0] TO [4]  OR [7] TO [9]
-// RETURNS THE FACTOR AS A BINT64 OR -1 AND THE RESULT IN result
+// RETURNS THE FACTOR AS A int64_t OR -1 AND THE RESULT IN result
 
 #define GIVEUP_PRIME    1000
 #define GIVEUP_ITERATIONS 2000
 
-BINT64 factorReal(REAL * result, REAL * n)
+int64_t factorReal(REAL * result, REAL * n)
 {
-    BINT64 startnum = 2, x, y, ni, d = 1, itercnt;
+    int64_t startnum = 2, x, y, ni, d = 1, itercnt;
 
-    if(inBINT64Range(n))
-        ni = getBINT64Real(n);
+    if(inint64_tRange(n))
+        ni = getint64_tReal(n);
     else
         ni = -1;
 
@@ -1059,7 +1059,7 @@ BINT64 factorReal(REAL * result, REAL * n)
 
             if(x >= (1LL << 31)) {
                 // SWITCH TO REALS
-                newRealFromBINT64(&RReg[8], x, 0);
+                newRealFromint64_t(&RReg[8], x, 0);
                 x = -1;
                 mulReal(&RReg[1], &RReg[8], &RReg[8]);
                 divmodReal(&RReg[8], &RReg[2], &RReg[1], n);
@@ -1109,7 +1109,7 @@ BINT64 factorReal(REAL * result, REAL * n)
 
             if(y >= (1LL << 31)) {
                 // SWITCH TO REALS
-                newRealFromBINT64(&RReg[9], y, 0);
+                newRealFromint64_t(&RReg[9], y, 0);
                 y = -1;
                 mulReal(&RReg[1], &RReg[9], &RReg[9]);
                 divmodReal(&RReg[9], &RReg[2], &RReg[1], n);
@@ -1155,7 +1155,7 @@ BINT64 factorReal(REAL * result, REAL * n)
 
             if(y >= (1LL << 31)) {
                 // SWITCH TO REALS
-                newRealFromBINT64(&RReg[9], y, 0);
+                newRealFromint64_t(&RReg[9], y, 0);
                 y = -1;
                 mulReal(&RReg[1], &RReg[9], &RReg[9]);
                 divmodReal(&RReg[9], &RReg[2], &RReg[1], n);
@@ -1204,17 +1204,17 @@ BINT64 factorReal(REAL * result, REAL * n)
             // DO d=gcd(abs(x-y),n)
             if((x < 0) || (y < 0) || (ni < 0)) {
                 if(x >= 0)
-                    newRealFromBINT64(&RReg[8], x, 0);
+                    newRealFromint64_t(&RReg[8], x, 0);
                 if(y >= 0)
-                    newRealFromBINT64(&RReg[9], y, 0);
+                    newRealFromint64_t(&RReg[9], y, 0);
 
                 subReal(&RReg[4], &RReg[8], &RReg[9]);
                 RReg[4].flags &= ~F_NEGATIVE;
 
                 gcdReal(&RReg[3], &RReg[4], n);
 
-                if(inBINT64Range(&RReg[3]))
-                    d = getBINT64Real(&RReg[3]);
+                if(inint64_tRange(&RReg[3]))
+                    d = getint64_tReal(&RReg[3]);
                 else {
                     d = -1;
                     swapReal(&RReg[3], &RReg[7]);
@@ -1223,10 +1223,10 @@ BINT64 factorReal(REAL * result, REAL * n)
             }
             else {
                 // ALL INTEGERS HERE
-                BINT64 tmp = x - y;
+                int64_t tmp = x - y;
                 if(tmp < 0)
                     tmp = -tmp;
-                d = gcdBINT64(tmp, ni);
+                d = gcdint64_t(tmp, ni);
             }
 
             // here d OR RReg[7] HAS gcd(abs(x-y),n)
@@ -1245,7 +1245,7 @@ BINT64 factorReal(REAL * result, REAL * n)
 
         if(d < 0) {
             if(ni > 0)
-                newRealFromBINT64(&RReg[0], ni, 0);
+                newRealFromint64_t(&RReg[0], ni, 0);
 
             if(!eqReal(&RReg[7], &RReg[0]))
                 break;

@@ -266,7 +266,7 @@ void LIB_HANDLER()
         // REINIT FILE SYSTEM
         int error = FSRestart();
         if(error != FS_OK) {
-            rplNewBINTPush((BINT64) FSystem.CurrentVolume, HEXBINT);
+            rplNewBINTPush((int64_t) FSystem.CurrentVolume, HEXBINT);
             rplError(rplFSError2Error(error));
         }
         return;
@@ -283,7 +283,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 partnum = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t partnum = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -1028,7 +1028,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
 
@@ -1070,11 +1070,11 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
-        BINT64 nchars = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t nchars = rplReadNumberAsBINT(rplPeekData(2));
         BINT bufsize = REAL_REGISTER_STORAGE * 4;
         BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data;
-        BINT64 currentpos;
+        int64_t currentpos;
         if(Exceptions)
             return;
 
@@ -1192,7 +1192,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
         BYTEPTR stringstart = (BYTEPTR) (rplPeekData(2) + 1);
         BINT nbytes = rplStrSize(rplPeekData(2));
 
@@ -1241,11 +1241,11 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         BINT bufsize = REAL_REGISTER_STORAGE * 4, readblock;
         BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data, ptr;
-        BINT64 currentpos, bytecount;
+        int64_t currentpos, bytecount;
         if(Exceptions)
             return;
 
@@ -1348,8 +1348,8 @@ void LIB_HANDLER()
         if(OPCODE(CurOpcode) == SDSEEKEND)
             seek_from = FSSEEK_END;
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
-        BINT64 offset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t num = rplReadBINT(rplPeekData(1));
+        int64_t offset = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
             return;
 
@@ -1384,7 +1384,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1394,7 +1394,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 pos = FSTell(handle);
+        int64_t pos = FSTell(handle);
 
         rplDropData(1);
         rplNewBINTPush(pos, DECBINT);
@@ -1418,7 +1418,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1428,7 +1428,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 len = FSFileLength(handle);
+        int64_t len = FSFileLength(handle);
 
         rplDropData(1);
         rplNewBINTPush(len, DECBINT);
@@ -1453,7 +1453,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1552,7 +1552,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1642,8 +1642,8 @@ void LIB_HANDLER()
         if(date.tm_mday != 0)   // DAY IS 1-BASED, THEREFORE DAY=0 MEANS DATE/TIME NOT SET
         {
             rplBINTToRReg(0,
-                    (BINT64) date.tm_year + 1900 + (BINT64) (date.tm_mon +
-                        1) * 10000 + (BINT64) date.tm_mday * 1000000);
+                    (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
+                        1) * 10000 + (int64_t) date.tm_mday * 1000000);
             RReg[0].exp -= 6;
             rplNewRealFromRRegPush(0);
             if(Exceptions) {
@@ -1653,8 +1653,8 @@ void LIB_HANDLER()
             }
             // LAST MODIFIED TIME
             rplBINTToRReg(0,
-                    (BINT64) date.tm_sec + (BINT64) date.tm_min * 100 +
-                    (BINT64) date.tm_hour * 10000);
+                    (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
+                    (int64_t) date.tm_hour * 10000);
             RReg[0].exp -= 4;
             rplNewRealFromRRegPush(0);
             if(Exceptions) {
@@ -1693,7 +1693,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1756,8 +1756,8 @@ void LIB_HANDLER()
         struct compact_tm date;
         FSGetWriteTime(&entry, &date);
         rplBINTToRReg(0,
-                (BINT64) date.tm_year + 1900 + (BINT64) (date.tm_mon +
-                    1) * 10000 + (BINT64) date.tm_mday * 1000000);
+                (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
+                    1) * 10000 + (int64_t) date.tm_mday * 1000000);
         RReg[0].exp -= 6;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {
@@ -1769,8 +1769,8 @@ void LIB_HANDLER()
         // LAST MODIFIED TIME
 
         rplBINTToRReg(0,
-                (BINT64) date.tm_sec + (BINT64) date.tm_min * 100 +
-                (BINT64) date.tm_hour * 10000);
+                (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
+                (int64_t) date.tm_hour * 10000);
         RReg[0].exp -= 4;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {
@@ -1801,7 +1801,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num = rplReadBINT(rplPeekData(1));
+        int64_t num = rplReadBINT(rplPeekData(1));
 
         FS_FILE *handle;
         BINT err = FSGetFileFromHandle(num, &handle);
@@ -1893,8 +1893,8 @@ void LIB_HANDLER()
         struct compact_tm date;
         FSGetWriteTime(&entry, &date);
         rplBINTToRReg(0,
-                (BINT64) date.tm_year + 1900 + (BINT64) (date.tm_mon +
-                    1) * 10000 + (BINT64) date.tm_mday * 1000000);
+                (int64_t) date.tm_year + 1900 + (int64_t) (date.tm_mon +
+                    1) * 10000 + (int64_t) date.tm_mday * 1000000);
         RReg[0].exp -= 6;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {
@@ -1906,8 +1906,8 @@ void LIB_HANDLER()
         // LAST MODIFIED TIME
 
         rplBINTToRReg(0,
-                (BINT64) date.tm_sec + (BINT64) date.tm_min * 100 +
-                (BINT64) date.tm_hour * 10000);
+                (int64_t) date.tm_sec + (int64_t) date.tm_min * 100 +
+                (int64_t) date.tm_hour * 10000);
         RReg[0].exp -= 4;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {
@@ -2202,7 +2202,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 size = FSGetVolumeFree(cvol);
+        int64_t size = FSGetVolumeFree(cvol);
         if(size < 0) {
             rplError(rplFSError2Error(size));
             return;

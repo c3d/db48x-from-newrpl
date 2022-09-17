@@ -2243,7 +2243,7 @@ void pexp()
         swapReal(&RReg[0], &RReg[2]);
 
     // SPEEDUP WITH POWERS OF 2
-    //newRealFromBINT64(&RReg[2],1LL<<EXP_CONDITIONING,0);
+    //newRealFromint64_t(&RReg[2],1LL<<EXP_CONDITIONING,0);
     //divReal(&RReg[1],&RReg[0],&RReg[2]);
     //swapReal(&RReg[1],&RReg[0]);
 
@@ -2715,9 +2715,9 @@ void XXhyp_acosh(REAL * x)
 void XXhyp_pow(REAL * x, REAL * a)
 {
 
-    if(isintegerReal(a) && inBINT64Range(a)) {
+    if(isintegerReal(a) && inint64_tRange(a)) {
         // INTEGER EXPONENTIATION
-        BINT64 exponent = getBINT64Real(a);
+        int64_t exponent = getint64_tReal(a);
         BINT invert;
         REAL One;
         if(exponent < 0) {

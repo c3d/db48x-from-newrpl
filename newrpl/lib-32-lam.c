@@ -165,7 +165,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
     0
 };
 
-extern const UBINT64 const powersof10[20];
+extern const uint64_t const powersof10[20];
 
 void LIB_HANDLER()
 {
@@ -1601,11 +1601,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while((UBINT64)result < powersof10[digit])
+                while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while((UBINT64)result >= powersof10[digit]) {
+                    while((uint64_t)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }
@@ -1662,11 +1662,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while((UBINT64)result < powersof10[digit])
+                while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while((UBINT64)result >= powersof10[digit]) {
+                    while((uint64_t)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }
@@ -1722,11 +1722,11 @@ void LIB_HANDLER()
 
                 BINT digit = 0;
                 char basechr = '0';
-                while((UBINT64)result < powersof10[digit])
+                while((uint64_t)result < powersof10[digit])
                     ++digit;    // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit < 18) {
-                    while((UBINT64)result >= powersof10[digit]) {
+                    while((uint64_t)result >= powersof10[digit]) {
                         ++basechr;
                         result -= powersof10[digit];
                     }

@@ -343,7 +343,7 @@ struct date rplDaysToDate(BINT days)
     // ADD DAY NUMBER OF OCTOBER 15, 1582, SINCE JANUARY 0, 0
     days += 578040;
 
-    year = (BINT) ((10000 * (BINT64) days + 14780) / 3652425);
+    year = (BINT) ((10000 * (int64_t) days + 14780) / 3652425);
 
     // REMAINING DAYS
     ddays = days - (year * 365 + year / 4 - year / 100 + year / 400);
@@ -362,31 +362,31 @@ struct date rplDaysToDate(BINT days)
     return dt;
 }
 
-BINT64 rplDateToSeconds(struct date dt, struct time tm)
+int64_t rplDateToSeconds(struct date dt, struct time tm)
 {
-    BINT64 sec;
+    int64_t sec;
 
     sec = tm.sec;
-    sec += (BINT64) tm.min * 60;
-    sec += (BINT64) tm.hour * 3600;
-    sec += (BINT64) rplDateToDays(dt) * 24 * 3600;
+    sec += (int64_t) tm.min * 60;
+    sec += (int64_t) tm.hour * 3600;
+    sec += (int64_t) rplDateToDays(dt) * 24 * 3600;
 
     return sec;
 }
 
-void rplSecondsToDate(BINT64 sec, struct date *dt, struct time *tm)
+void rplSecondsToDate(int64_t sec, struct date *dt, struct time *tm)
 {
     BINT days;
 
     days = sec / (24 * 3600);
     *dt = rplDaysToDate(days);
 
-    sec -= (BINT64) days *24 * 3600;
+    sec -= (int64_t) days *24 * 3600;
 
     tm->hour = sec / 3600;
-    sec -= (BINT64) tm->hour * 3600;
+    sec -= (int64_t) tm->hour * 3600;
     tm->min = sec / 60;
-    tm->sec = sec - ((BINT64) tm->min * 60);
+    tm->sec = sec - ((int64_t) tm->min * 60);
 
     return;
 }
@@ -487,7 +487,7 @@ void rplHMSToDecimal(REAL * hms, REAL * dec)
 #define alarms   ScratchPointer4
 #define alrm_obj ScratchPointer5
 
-static BINT64 GetSysTime()
+static int64_t GetSysTime()
 {
     struct date dt;
     struct time tm;
@@ -589,8 +589,8 @@ static void PushSysAlarm(struct alarm *alrm)
 
     alrm_obj = alrm->obj;
     rplNewBINTPush(alrm->time, DECBINT);
-    rplNewBINTPush((BINT64) alrm->rpt, DECBINT);
-    rplNewBINTPush((BINT64) alrm->flags, DECBINT);
+    rplNewBINTPush((int64_t) alrm->rpt, DECBINT);
+    rplNewBINTPush((int64_t) alrm->flags, DECBINT);
     rplPushData(alrm_obj);
 
     rplNewBINTPush(4, DECBINT);
@@ -757,7 +757,7 @@ static BINT DelSysAlarm(BINT id)
 // RETURN THE ALARM INDEX OF THE FIRST ALARM DUE AFTER THE
 // SPECIFIED TIME
 // RETURN 0 IF NOT FOUND
-static BINT FindNextAlarm(BINT64 time, struct alarm *alrm)
+static BINT FindNextAlarm(int64_t time, struct alarm *alrm)
 {
     BINT id = 0;
 
@@ -1079,7 +1079,7 @@ BINT rplTriggerAlarm()
 // RETURN 1 IF THERE IS A PAST DUE ALARM
 BINT rplCheckAlarms()
 {
-    BINT64 start_tm;
+    int64_t start_tm;
     struct alarm first_due;
 
     if(GetFirstAlarmId(PASTDUE_ALM))
@@ -1099,7 +1099,7 @@ void rplUpdateAlarms()
 {
     struct alarm alrm;
     BINT id = 0;
-    BINT64 now;
+    int64_t now;
 
     now = GetSysTime();
 
@@ -1206,7 +1206,7 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
     WORDPTR alarm_dt = NULL,
             alarm_tm = NULL, alarm_obj = NULL, alarm_rpt = NULL;
     BINT lst_sz;
-    BINT64 b_alarm_rpt;
+    int64_t b_alarm_rpt;
     REAL r_dt, r_tm;
 
     // EXTRACT ALARM DATA
@@ -1354,7 +1354,7 @@ void rplPushAlarm(struct alarm *alrm)
 }
 
 // COMPUTE STANDARD CRC-32 OF THE OBJECT
-BINT64 rplObjChecksum(WORDPTR object)
+int64_t rplObjChecksum(WORDPTR object)
 {
     BYTEPTR ptr = (BYTEPTR) object;
     BYTEPTR end = (BYTEPTR) rplSkipOb(object);
@@ -1434,7 +1434,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Return system clock in microseconds
         //@INCOMPAT
     {
-        BINT64 ticks = halTicks();
+        int64_t ticks = halTicks();
         rplNewBINTPush(ticks, DECBINT);
         return;
     }
@@ -1601,7 +1601,7 @@ void LIB_HANDLER()
         ddays -= rplDateToDays(dt);
 
         rplDropData(2);
-        rplNewBINTPush((BINT64) ddays, DECBINT);
+        rplNewBINTPush((int64_t) ddays, DECBINT);
 
         return;
     }
@@ -1960,7 +1960,7 @@ void LIB_HANDLER()
         struct alarm alrm;
         REAL r_dt, r_tm;
         WORDPTR arg, arg_tm, arg_dt;
-        BINT64 sec;
+        int64_t sec;
 
         if(rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
@@ -2073,7 +2073,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get available memory in bytes
         rplGCollect();
-        rplNewBINTPush((BINT64) rplGetFreeMemory(), DECBINT);
+        rplNewBINTPush((int64_t) rplGetFreeMemory(), DECBINT);
 
         return;
     }
@@ -2087,7 +2087,7 @@ void LIB_HANDLER()
             return;
         }
         BINT size = rplObjSize(rplPeekData(1));
-        BINT64 cksum = rplObjChecksum(rplPeekData(1));
+        int64_t cksum = rplObjChecksum(rplPeekData(1));
         rplDropData(1);
         rplNewBINTPush(cksum, HEXBINT);
         rplNewBINTPush(size * sizeof(WORD), DECBINT);
@@ -2108,7 +2108,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 addr = rplReadBINT(rplPeekData(1));
+        int64_t addr = rplReadBINT(rplPeekData(1));
 
         if((addr < 0) || (addr > 0xffffffffLL)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);
@@ -2148,8 +2148,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 addr = rplReadBINT(rplPeekData(2));
-        BINT64 value = rplReadBINT(rplPeekData(1));
+        int64_t addr = rplReadBINT(rplPeekData(2));
+        int64_t value = rplReadBINT(rplPeekData(1));
 
         if((addr < 0) || (addr > 0xffffffffLL)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);

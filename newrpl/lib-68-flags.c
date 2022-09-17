@@ -300,13 +300,13 @@ BINT rplSetUserFlag(BINT flag)
         return -1;
 
     WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
-    UBINT64 low64, hi64;
+    uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
         low64 = hi64 = 0;
     else {
-        low64 = *((UBINT64 *) (UserFlags + 1));
-        hi64 = *((UBINT64 *) (UserFlags + 3));
+        low64 = *((uint64_t *) (UserFlags + 1));
+        hi64 = *((uint64_t *) (UserFlags + 3));
     }
 
     if(flag < 65)
@@ -336,13 +336,13 @@ BINT rplClrUserFlag(BINT flag)
         return -1;
 
     WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
-    UBINT64 low64, hi64;
+    uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
         low64 = hi64 = 0;
     else {
-        low64 = *((UBINT64 *) (UserFlags + 1));
-        hi64 = *((UBINT64 *) (UserFlags + 3));
+        low64 = *((uint64_t *) (UserFlags + 1));
+        hi64 = *((uint64_t *) (UserFlags + 3));
     }
 
     if(flag < 65)
@@ -375,13 +375,13 @@ BINT rplTestUserFlag(BINT flag)
         return -1;
 
     WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
-    UBINT64 low64, hi64;
+    uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
         low64 = hi64 = 0;
     else {
-        low64 = *((UBINT64 *) (UserFlags + 1));
-        hi64 = *((UBINT64 *) (UserFlags + 3));
+        low64 = *((uint64_t *) (UserFlags + 1));
+        hi64 = *((uint64_t *) (UserFlags + 3));
     }
 
     if(flag < 65)
@@ -390,14 +390,14 @@ BINT rplTestUserFlag(BINT flag)
         return (hi64 & (1ULL << (flag - 65))) ? 1 : 0;
 }
 
-UBINT64 *rplGetUserFlagsLow()
+uint64_t *rplGetUserFlagsLow()
 {
     WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
     if(!UserFlags)
         return NULL;
     if(!ISBINDATA(*UserFlags))
         return NULL;
-    return (UBINT64 *) (UserFlags + 1);
+    return (uint64_t *) (UserFlags + 1);
 }
 
 BINT rplSetSystemFlag(BINT flag)
@@ -589,7 +589,7 @@ BINT rplTestSystemFlagByIdent(WORDPTR ident)
 }
 
 // RETURN THE SYSTEM LOCALE WORD, CONTAINING THE CHARACTERS TO BE USED FOR NUMBERS
-UBINT64 rplGetSystemLocale()
+uint64_t rplGetSystemLocale()
 {
     WORDPTR systemlist = rplGetSettings((WORDPTR) numfmt_ident);
     if(systemlist) {
@@ -597,21 +597,21 @@ UBINT64 rplGetSystemLocale()
             WORDPTR localestring = rplGetListElement(systemlist, 1);
             // EXPAND THE STRING INTO FOUR UNICODE CODEPOINTS
             if(localestring && (ISSTRING(*localestring))) {
-                UBINT64 result;
+                uint64_t result;
                 BYTEPTR locptr = (BYTEPTR) (localestring + 1), locend =
                         (BYTEPTR) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
 
@@ -636,21 +636,21 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
         if(ISLIST(*systemlist)) {
             WORDPTR localestring = rplGetListElement(systemlist, 1);
             if(localestring && (ISSTRING(*localestring))) {
-                UBINT64 result;
+                uint64_t result;
                 BYTEPTR locptr = (BYTEPTR) (localestring + 1), locend =
                         (BYTEPTR) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
                 result |=
-                        ((UBINT64) (utf82cp((char *)locptr,
+                        ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
                 locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
 
@@ -1229,7 +1229,7 @@ BINT rplNumFormatFromString(WORDPTR string)
 // ONLY VALID menunumbers ARE 1 AND 2
 // THIS MAY CHANGE IN OTHER IMPLEMENTATIONS
 
-void rplSetMenuCode(BINT menunumber, BINT64 menucode)
+void rplSetMenuCode(BINT menunumber, int64_t menucode)
 {
     if(!ISBINDATA(*SystemFlags))
         return;
@@ -1243,7 +1243,7 @@ void rplSetMenuCode(BINT menunumber, BINT64 menucode)
     return;
 }
 
-BINT64 rplGetMenuCode(BINT menunumber)
+int64_t rplGetMenuCode(BINT menunumber)
 {
     if(!ISBINDATA(*SystemFlags))
         return 0;
@@ -1251,7 +1251,7 @@ BINT64 rplGetMenuCode(BINT menunumber)
     if((menunumber < 1) || (menunumber > 2))
         return 0;
 
-    return ((BINT64) SystemFlags[4 + menunumber]) | (((BINT64) SystemFlags[6 +
+    return ((int64_t) SystemFlags[4 + menunumber]) | (((int64_t) SystemFlags[6 +
                     menunumber]) << 32);
 
 }
@@ -1304,7 +1304,7 @@ BINT rplGetActiveMenu()
 // CAN TRIGGER GC AND USES ScratchPointers 1 thru 3
 void rplSaveMenuHistory(BINT menu)
 {
-    BINT64 oldmcode = rplGetMenuCode(menu);
+    int64_t oldmcode = rplGetMenuCode(menu);
 
     // STORE THE OLD MENU IN THE HISTORY
     WORDPTR msetting;
@@ -1341,7 +1341,7 @@ void rplSaveMenuHistory(BINT menu)
     if(!levels)
         levels = (WORDPTR) ten_bint;
 
-    BINT64 nlevels = rplReadNumberAsBINT(levels);
+    int64_t nlevels = rplReadNumberAsBINT(levels);
 
     // THIS CAN TRIGGER A GC!
     WORDPTR newlist = rplListAddRot(oldlist, msetting, nlevels);
@@ -1394,7 +1394,7 @@ void rplChangeMenu(BINT menu, WORDPTR newmenu)
     if(ISLIST(*newmenu) || ISIDENT(*newmenu)) {
         // CUSTOM MENU
 
-        BINT64 mcode = MKMENUCODE(0, LIBRARY_NUMBER, menu - 1, 0);
+        int64_t mcode = MKMENUCODE(0, LIBRARY_NUMBER, menu - 1, 0);
 
         rplSetMenuCode(menu, mcode);
 
@@ -1409,7 +1409,7 @@ void rplChangeMenu(BINT menu, WORDPTR newmenu)
 
     if(ISBINT(*newmenu)) {
         // IT'S A PREDEFINED MENU CODE
-        BINT64 num = rplReadBINT(newmenu);
+        int64_t num = rplReadBINT(newmenu);
 
         if(num < 0) {
             // JUST SET IT TO ZERO
@@ -1908,7 +1908,7 @@ void LIB_HANDLER()
         BYTEPTR locstring, strend;
         strend = (BYTEPTR) (rplPeekData(1) + 1) + rplStrSize(rplPeekData(1));
         locstring = (BYTEPTR) (rplPeekData(1) + 1);
-        UBINT64 newlocale;
+        uint64_t newlocale;
 
         BINT cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1928,7 +1928,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newlocale |= (((UBINT64) cp) << 16);
+        newlocale |= (((uint64_t) cp) << 16);
 
         locstring = (BYTEPTR) utf8skipst((char *)locstring, (char *)strend);
 
@@ -1939,7 +1939,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newlocale |= (((UBINT64) cp) << 32);
+        newlocale |= (((uint64_t) cp) << 32);
 
         locstring = (BYTEPTR) utf8skipst((char *)locstring, (char *)strend);
 
@@ -1950,7 +1950,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newlocale |= (((UBINT64) cp) << 48);
+        newlocale |= (((uint64_t) cp) << 48);
 
         fmt.Locale = newlocale;
 
@@ -2070,7 +2070,7 @@ void LIB_HANDLER()
 
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (rplClrSystemFlag(flag)) {
                 case -1:
@@ -2127,7 +2127,7 @@ void LIB_HANDLER()
 
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (rplSetSystemFlag(flag)) {
                 case -1:
@@ -2185,7 +2185,7 @@ void LIB_HANDLER()
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2250,7 +2250,7 @@ void LIB_HANDLER()
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2317,7 +2317,7 @@ void LIB_HANDLER()
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2388,7 +2388,7 @@ void LIB_HANDLER()
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
-            BINT64 flag = rplReadNumberAsBINT(rplPeekData(1));
+            int64_t flag = rplReadNumberAsBINT(rplPeekData(1));
             if(flag < 0) {
                 switch (test = rplTestSystemFlag(flag)) {
                 case -1:
@@ -2525,7 +2525,7 @@ void LIB_HANDLER()
         else
             menu = rplGetActiveMenu();
 
-        BINT64 mcode = rplGetMenuCode(menu);
+        int64_t mcode = rplGetMenuCode(menu);
 
         if((MENULIBRARY(mcode) == LIBRARY_NUMBER) && (MENUNUMBER(mcode) < 2)) {
             // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
@@ -2546,7 +2546,7 @@ void LIB_HANDLER()
 
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
 
-        rplNewBINTPush((BINT64) mcode, HEXBINT);
+        rplNewBINTPush((int64_t) mcode, HEXBINT);
         return;
 
     }
@@ -2556,8 +2556,8 @@ void LIB_HANDLER()
         //@SHORT_DESC=Swap the contents of menu areas 1 and 2
         //@NEW
         // JUST SWAP MENUS 1 AND 2
-        BINT64 m1code = rplGetMenuCode(1);
-        BINT64 m2code = rplGetMenuCode(2);
+        int64_t m1code = rplGetMenuCode(1);
+        int64_t m2code = rplGetMenuCode(2);
 
         if((MENULIBRARY(m2code) == LIBRARY_NUMBER) && (MENUNUMBER(m2code) < 2))
             m2code = MKMENUCODE(0, LIBRARY_NUMBER, MENUNUMBER(m2code) ^ 1, MENUPAGE(m2code));   // ALTERNATE MENU'S 1 AND 2
@@ -2914,7 +2914,7 @@ void LIB_HANDLER()
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
                 if(TypeInfo % 100) {
-                    newRealFromBINT64(&RReg[0],
+                    newRealFromint64_t(&RReg[0],
                             TypeInfo + (istag ? 1000000 : 0), -2);
 
                     rplNewRealFromRRegPush(0);
@@ -2936,7 +2936,7 @@ void LIB_HANDLER()
         //@NEW
         // GET LOCALE STRING
 
-        UBINT64 loc;
+        uint64_t loc;
 
         loc = rplGetSystemLocale();
 
@@ -3094,12 +3094,12 @@ void LIB_HANDLER()
 
             // IT ALL CHECKS OUT, DO THE MAGIC:
 
-            UBINT64 value;
+            uint64_t value;
             WORDPTR nptr = SystemFlags + 1;     // DATA OF THE FIRST 64-BIT INTEGER
-            UBINT64 *uptr;
+            uint64_t *uptr;
             for(k = 1; k <= 4; ++k) {
                 value = rplReadBINT(rplGetListElement(rplPeekData(1), k));
-                uptr = (UBINT64 *) nptr;
+                uptr = (uint64_t *) nptr;
                 *uptr = value;
                 nptr += 2;
             }
@@ -3232,7 +3232,7 @@ void LIB_HANDLER()
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
                 if(TypeInfo % 100) {
-                    newRealFromBINT64(&RReg[0],
+                    newRealFromint64_t(&RReg[0],
                             TypeInfo + (istag ? 1000000 : 0), -2);
 
                     rplNewRealFromRRegPush(0);

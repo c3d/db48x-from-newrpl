@@ -135,7 +135,7 @@ void LIB_HANDLER()
         }
 
         // THIS IS A FLAG NUMBER
-        BINT64 wsize = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t wsize = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -192,7 +192,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -254,7 +254,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -317,7 +317,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -380,7 +380,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -418,7 +418,7 @@ void LIB_HANDLER()
         else if(num2 > 0)
             num1 <<= num2;
         else
-            num1 = (BINT64) (((UBINT64) num1) >> (-num2));
+            num1 = (int64_t) (((uint64_t) num1) >> (-num2));
 
         if(num1 & (1LL << wsize)) {
             // SIGN EXTEND THE RESULT
@@ -448,7 +448,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -479,14 +479,14 @@ void LIB_HANDLER()
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64 = SystemFlags + 1;
         BINT wsize = (low64[0] >> 4) & 0x3f;
-        UBINT64 wmask = (1ULL << wsize) - 1;
+        uint64_t wmask = (1ULL << wsize) - 1;
 
         num1 &= wmask | (1ULL << wsize);
 
         if((num2 > wsize) || (num2 < -wsize))
             num1 = 0;
         else if(num2 > 0)
-            num1 = (BINT64) (((UBINT64) num1) >> num2);
+            num1 = (int64_t) (((uint64_t) num1) >> num2);
         else
             num1 <<= -num2;
 
@@ -518,7 +518,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -584,7 +584,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -647,7 +647,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -710,7 +710,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -773,7 +773,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -854,7 +854,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -891,7 +891,7 @@ void LIB_HANDLER()
         if(num2 < 0)
             num2 += wsize + 1;
 
-        BINT64 left, right;
+        int64_t left, right;
 
         left = (num1 << num2);
         right = (num1 >> (wsize + 1 - num2)) & ((1LL << num2) - 1);
@@ -926,7 +926,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1, num2;
+        int64_t num1, num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num2 = rplReadNumberAsBINT(rplPeekData(1));
@@ -964,7 +964,7 @@ void LIB_HANDLER()
         if(num2 < 0)
             num2 += wsize + 1;
 
-        BINT64 left, right;
+        int64_t left, right;
 
         left = (num1 << num2);
         right = (num1 >> (wsize + 1 - num2)) & ((1LL << num2) - 1);
@@ -999,7 +999,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 num1;
+        int64_t num1;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num1 = rplReadNumberAsBINT(rplPeekData(1));
@@ -1047,7 +1047,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 num1;
+        int64_t num1;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
             num1 = rplReadNumberAsBINT(rplPeekData(1));

@@ -12,7 +12,7 @@
 // CONVERT A POINTER INTO A ROMPTR ID
 // IF IT FAILS, RETURNS 0
 
-UBINT64 rplConvertToRomptrID(WORDPTR ptr)
+uint64_t rplConvertToRomptrID(WORDPTR ptr)
 {
     BINT libnum = MAXLIBNUMBER;
     BINT SavedOpcode;
@@ -30,7 +30,7 @@ UBINT64 rplConvertToRomptrID(WORDPTR ptr)
             (*han) ();
 
             if(RetNum == OK_CONTINUE)
-                return ((UBINT64) ObjectID) | (((UBINT64) ObjectIDHash) << 32);
+                return ((uint64_t) ObjectID) | (((uint64_t) ObjectIDHash) << 32);
         }
         libnum = rplGetNextLib(libnum);
     }
@@ -45,7 +45,7 @@ UBINT64 rplConvertToRomptrID(WORDPTR ptr)
 // RETURNS 0 IF NOT A VALID ID
 // OR NOT RECOGNIZED BY ITS LIBRARIES
 
-WORDPTR rplConvertIDToPTR(UBINT64 romptrid)
+WORDPTR rplConvertIDToPTR(uint64_t romptrid)
 {
     if(!ISROMPTRID(romptrid))
         return 0;
@@ -225,7 +225,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
 
             // CONVERT TO ROMPTR ID
 
-            UBINT64 id = rplConvertToRomptrID(ptr);
+            uint64_t id = rplConvertToRomptrID(ptr);
 
             if(!id) {
                 // INVALID POINTER! NEED TO FIX THE MEMORY BEFORE DOING BACKUP
@@ -260,7 +260,7 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         }
         else {
 
-            UBINT64 id;
+            uint64_t id;
             if(!ptr) {
                 // NULL POINTER, STORE AS-IS
                 id = 0;
@@ -306,14 +306,14 @@ BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
         }
         else {
 
-            UBINT64 id;
+            uint64_t id;
 
             // SPECIAL CASE - HANDLE OFFSET NUMBERS STORED INSIDE THE STACK
             if((intptr_t) ptr <= (intptr_t) sections[5].nitems) {
                 // THIS IS A NUMBER, NOT A POINTER
                 //  IN THE STACK, THESE ARE STACK MARKERS
                 // REPLACE WITH A SPECIAL ROMPTRID FOR LIBRARY 0, ID=63, offset=31
-                id = (((UBINT64) ((intptr_t) ptr)) << 32) | MKROMPTRID(0, 63,
+                id = (((uint64_t) ((intptr_t) ptr)) << 32) | MKROMPTRID(0, 63,
                         31);
             }
             else {
@@ -518,7 +518,7 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
                 ++offset;
             }
             Directories[k] =
-                    rplConvertIDToPTR(((UBINT64) data) | (((UBINT64) hash) <<
+                    rplConvertIDToPTR(((uint64_t) data) | (((uint64_t) hash) <<
                         32));
         }
         else
@@ -551,7 +551,7 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
             }
 
             GC_PTRUpdate[k] =
-                    rplConvertIDToPTR(((UBINT64) data) | (((UBINT64) hash) <<
+                    rplConvertIDToPTR(((uint64_t) data) | (((uint64_t) hash) <<
                         32));
 
         }
@@ -600,7 +600,7 @@ BINT rplRestoreBackup(BINT includestack, WORD(*readfunc) (void *),
                 }
                 else
                     DStk[k] =
-                            rplConvertIDToPTR(((UBINT64) data) | (((UBINT64)
+                            rplConvertIDToPTR(((uint64_t) data) | (((uint64_t)
                                     hash) << 32));
 
             }

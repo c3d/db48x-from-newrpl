@@ -34,7 +34,7 @@ extern "C"
     int __fwupdate_nwords;
     BYTEPTR __fwupdate_buffer;
 
-    BINT64 rplObjChecksum(WORDPTR object);
+    int64_t rplObjChecksum(WORDPTR object);
 }
 
 USBSelector::USBSelector(QWidget * parent):

@@ -606,8 +606,8 @@ void LIB_HANDLER()
             WORDPTR rstatus = rplPeekData(2);
 
             // NO CHECKS, RENDERER HAS TO BE CALLED WITH PROPER ARGUMENTS
-            BINT64 w = (*WIDTHPTR(rstatus)) >> 24;
-            BINT64 h = (*HEIGHTPTR(rstatus)) >> 24;
+            int64_t w = (*WIDTHPTR(rstatus)) >> 24;
+            int64_t h = (*HEIGHTPTR(rstatus)) >> 24;
 
             BINT bitmaptype = LIBNUM(CurOpcode) - LIBRARY_NUMBER;
 
@@ -1056,14 +1056,14 @@ void LIB_HANDLER()
             // SIZE
             BYTE buffer[50];
             BINT len =
-                    rplIntToString((BINT64) DecompileObject[1], DECBINT, buffer,
+                    rplIntToString((int64_t) DecompileObject[1], DECBINT, buffer,
                     buffer + 50);
 
             rplDecompAppendString2(buffer, len);
 
             rplDecompAppendChar(' ');
 
-            len = rplIntToString((BINT64) DecompileObject[2], DECBINT, buffer,
+            len = rplIntToString((int64_t) DecompileObject[2], DECBINT, buffer,
                     buffer + 50);
 
             rplDecompAppendString2(buffer, len);

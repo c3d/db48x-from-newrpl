@@ -155,7 +155,7 @@ const char const modulo_name[] = "MOD";
 #define MIN_BINT    (-9223372036854775807LL-1LL)
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
-int rpl_log2(BINT64 number, int bits)
+int rpl_log2(int64_t number, int bits)
 {
     static const unsigned char log2_table[16] =
             { 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
@@ -168,10 +168,10 @@ int rpl_log2(BINT64 number, int bits)
 }
 
 inline __attribute__((always_inline))
-     BINT Add_BINT_is_Safe(BINT64 op1, BINT64 op2)
+     BINT Add_BINT_is_Safe(int64_t op1, int64_t op2)
 {
-    BINT64 maxop2;
-    BINT64 minop2;
+    int64_t maxop2;
+    int64_t minop2;
 
     if(op1 > 0) {
         maxop2 = MAX_BINT - op1;
@@ -192,10 +192,10 @@ inline __attribute__((always_inline))
 }
 
 inline __attribute__((always_inline))
-     BINT Sub_BINT_is_Safe(BINT64 op1, BINT64 op2)
+     BINT Sub_BINT_is_Safe(int64_t op1, int64_t op2)
 {
-    BINT64 maxop2;
-    BINT64 minop2;
+    int64_t maxop2;
+    int64_t minop2;
 
     if(op1 > 0) {
         maxop2 = MAX_BINT - op1;
@@ -216,14 +216,14 @@ inline __attribute__((always_inline))
 }
 
 inline __attribute__((always_inline))
-     BINT Mul_BINT_is_Safe(BINT64 op1, BINT64 op2)
+     BINT Mul_BINT_is_Safe(int64_t op1, int64_t op2)
 {
     if(op1 < 0)
         op1 = -op1;
     if(op2 < 0)
         op2 = -op2;
     if(op2 > op1) {
-        BINT64 tmp = op2;
+        int64_t tmp = op2;
         op2 = op1;
         op1 = tmp;
     }
@@ -297,7 +297,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        BINT64 number = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t number = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
         if(number < 4)
@@ -477,8 +477,8 @@ void LIB_HANDLER()
 
         ipReal(&RReg[0], &num, 1);
         WORDPTR newnum;
-        if(inBINT64Range(&RReg[0]))
-            newnum = rplNewBINT(getBINT64Real(&RReg[0]), DECBINT);
+        if(inint64_tRange(&RReg[0]))
+            newnum = rplNewBINT(getint64_tReal(&RReg[0]), DECBINT);
         else
             newnum = rplNewRealFromRReg(0);
 
@@ -589,7 +589,7 @@ void LIB_HANDLER()
 
         BINT n = (BINT) rplReadNumberAsBINT(arg);
 
-        BINT64 result = factorialBINT(n);
+        int64_t result = factorialBINT(n);
         if(Exceptions)
             return;
 
@@ -632,7 +632,7 @@ void LIB_HANDLER()
         }
 
         if(ISBINT(*arg)) {
-            BINT64 n = rplReadBINT(arg);
+            int64_t n = rplReadBINT(arg);
 
             if(isprimeBINT(n))
                 rplOverwriteData(1, (WORDPTR) one_bint);
@@ -689,9 +689,9 @@ void LIB_HANDLER()
         }
 
         if(ISBINT(*arg)) {
-            BINT64 n = rplReadBINT(arg);
+            int64_t n = rplReadBINT(arg);
 
-            BINT64 next = nextprimeBINT(n);
+            int64_t next = nextprimeBINT(n);
             if(next > 0) {
                 rplNewBINTPush(next, DECBINT);
                 if(Exceptions)
@@ -749,8 +749,8 @@ void LIB_HANDLER()
         }
 
         if(ISBINT(*arg)) {
-            BINT64 n = rplReadBINT(arg);
-            BINT64 next, prev;
+            int64_t n = rplReadBINT(arg);
+            int64_t next, prev;
             BINT previsprime;
             prev = n - 30;      // ARBITRARILY SCAN 1000 NUMBERS TO THE LEFT
             if(prev < 0)
@@ -843,7 +843,7 @@ void LIB_HANDLER()
         }
         else {
             if(ISBINT(*arg)) {
-                BINT64 m = rplReadBINT(arg);
+                int64_t m = rplReadBINT(arg);
                 if(m < 0)
                     m = -m;
                 if(m < 2)
@@ -893,7 +893,7 @@ void LIB_HANDLER()
             return;
         }
         if(ISBINT(*mod)) {
-            BINT64 m = rplReadBINT(mod);
+            int64_t m = rplReadBINT(mod);
             rplNewBINTPush(m, DECBINT);
             return;
         }
@@ -943,10 +943,10 @@ void LIB_HANDLER()
 
         if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
 
-            BINT64 a1 = rplReadBINT(arg1);
-            BINT64 a2 = rplReadBINT(arg2);
-            BINT64 m = rplReadBINT(mod);
-            BINT64 r;
+            int64_t a1 = rplReadBINT(arg1);
+            int64_t a2 = rplReadBINT(arg2);
+            int64_t m = rplReadBINT(mod);
+            int64_t r;
 
             if(m < 2147483648LL) {
                 BINT isOK = 1;
@@ -1104,11 +1104,11 @@ void LIB_HANDLER()
 
         if(ISBINT(*arg) && ISBINT(*mod)) {
 
-            BINT64 a = rplReadBINT(arg);
-            BINT64 m = rplReadBINT(mod);
-            BINT64 r, q;
+            int64_t a = rplReadBINT(arg);
+            int64_t m = rplReadBINT(mod);
+            int64_t r, q;
 
-            if(m == (BINT64) 0) {
+            if(m == (int64_t) 0) {
                 rplError(ERR_MATHDIVIDEBYZERO);
                 return;
             }
@@ -1502,7 +1502,7 @@ void LIB_HANDLER()
         }
 
         if(ISBINT(*arg)) {
-            BINT64 r = rplReadBINT(arg);
+            int64_t r = rplReadBINT(arg);
             if(r > 0)
                 rplOverwriteData(1, (WORDPTR) one_bint);
             else {
@@ -1935,10 +1935,10 @@ void LIB_HANDLER()
         BINT swapped = 0;
         if(ISBINT(*arg1) && ISBINT(*arg2)) {
 
-            BINT64 a1 = rplReadBINT(arg1);
-            BINT64 a2 = rplReadBINT(arg2);
-            BINT64 r1, r2, r3, gcd;
-            BINT64 q, s1, s2, s3, t1, t2, t3, s, t;
+            int64_t a1 = rplReadBINT(arg1);
+            int64_t a2 = rplReadBINT(arg2);
+            int64_t r1, r2, r3, gcd;
+            int64_t q, s1, s2, s3, t1, t2, t3, s, t;
             if(a1 < 0) {
                 a1 = -a1;
                 chs1 = 1;
@@ -1956,7 +1956,7 @@ void LIB_HANDLER()
                 r1 = a2;
                 swapped = 1;
             }
-            if(r2 == (BINT64) 0) {
+            if(r2 == (int64_t) 0) {
                 rplError(ERR_MATHDIVIDEBYZERO);
                 if(cleanup)
                     DSTop = cleanup;
@@ -2533,13 +2533,13 @@ void LIB_HANDLER()
         if(ISBINT(*wp_s) && ISBINT(*wp_t) && ISBINT(*wp_c)
                 && ISBINT(*wp_gcd_ab)) {
 
-            BINT64 c = rplReadBINT(wp_c);
-            BINT64 gcd = rplReadBINT(wp_gcd_ab);
-            BINT64 r = (c % gcd + gcd) % gcd;
+            int64_t c = rplReadBINT(wp_c);
+            int64_t gcd = rplReadBINT(wp_gcd_ab);
+            int64_t r = (c % gcd + gcd) % gcd;
             if(r == 0) {
-                BINT64 q = (c - r) / gcd;
-                BINT64 s = rplReadBINT(wp_s);
-                BINT64 t = rplReadBINT(wp_t);
+                int64_t q = (c - r) / gcd;
+                int64_t s = rplReadBINT(wp_s);
+                int64_t t = rplReadBINT(wp_t);
                 s *= q;
                 t *= q;
                 rplDropData(6);
@@ -3508,7 +3508,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR *savestk = DSTop;
-        BINT64 nd = rplReadNumberAsBINT(ndig), isunit = 0, unitlevels = 0;
+        int64_t nd = rplReadNumberAsBINT(ndig), isunit = 0, unitlevels = 0;
         if(Exceptions)
             return;
 
@@ -3538,8 +3538,8 @@ void LIB_HANDLER()
             WORDPTR newresult;
 
             if(isintegerReal(&RReg[0])) {
-                if(inBINT64Range(&RReg[0])) {
-                    BINT64 res = getBINT64Real(&RReg[0]);
+                if(inint64_tRange(&RReg[0])) {
+                    int64_t res = getint64_tReal(&RReg[0]);
                     newresult = rplNewBINT(res, DECBINT);
                 }
                 else
@@ -3663,8 +3663,8 @@ void LIB_HANDLER()
                     WORDPTR newresult;
 
                     if(isintegerReal(&RReg[0])) {
-                        if(inBINT64Range(&RReg[0])) {
-                            BINT64 res = getBINT64Real(&RReg[0]);
+                        if(inint64_tRange(&RReg[0])) {
+                            int64_t res = getint64_tReal(&RReg[0]);
                             newresult = rplNewBINT(res, DECBINT);
                         }
                         else
@@ -3804,7 +3804,7 @@ void LIB_HANDLER()
         }
 
         REAL re;
-        BINT64 start, end;
+        int64_t start, end;
 
         rplReadNumberAsReal(rplPeekData(3), &re);
         start = rplReadNumberAsBINT(rplPeekData(2));
@@ -3814,7 +3814,7 @@ void LIB_HANDLER()
             return;
 
         if(start < end) {
-            BINT64 tmp = start;
+            int64_t tmp = start;
             start = end;
             end = tmp;
         }
@@ -3826,8 +3826,8 @@ void LIB_HANDLER()
         fracReal(&RReg[1], &RReg[0]);
         RReg[1].exp += (start - end) + 1;
         rplDropData(3);
-        if(inBINT64Range(&RReg[1])) {
-            start = getBINT64Real(&RReg[1]);
+        if(inint64_tRange(&RReg[1])) {
+            start = getint64_tReal(&RReg[1]);
             rplNewBINTPush(start, DECBINT);
         }
         else
@@ -4297,7 +4297,7 @@ void LIB_HANDLER()
 
             REAL num, mult;
             BINT prec = Context.precdigits, isneg, exponent;
-            BINT64 onefactor, inum;
+            int64_t onefactor, inum;
             WORDPTR *savestk = DSTop;
 
             rplReadNumberAsReal(vect_val, &num);
@@ -4316,8 +4316,8 @@ void LIB_HANDLER()
                 exponent = 0;
 
             copyReal(&RReg[6], &num);
-            if(inBINT64Range(&RReg[6]))
-                inum = getBINT64Real(&RReg[6]);
+            if(inint64_tRange(&RReg[6]))
+                inum = getint64_tReal(&RReg[6]);
             else
                 inum = -1;
 
@@ -4359,7 +4359,7 @@ void LIB_HANDLER()
             }
             else {
                 BINT k = 2, count;
-                BINT64 prev;
+                int64_t prev;
                 while((k < FACTORS_TRIVIALLIMIT) && (k <= inum)) {
                     count = -1;
                     do {
@@ -4379,7 +4379,7 @@ void LIB_HANDLER()
                             return;
                         }
 
-                        newRealFromBINT64(&RReg[6], inum, 0);
+                        newRealFromint64_t(&RReg[6], inum, 0);
 
                     }
                     k = nextprimeBINT(k);
@@ -4416,7 +4416,7 @@ void LIB_HANDLER()
                     }
                 }
                 else {
-                    //BINT64 tmp=sqrtBINT64(onefactor);
+                    //int64_t tmp=sqrtint64_t(onefactor);
                     //if(tmp*tmp==onefactor) onefactor=tmp;
                     if(onefactor == 1) {
                         rplNewRealFromRRegPush(6);
@@ -4443,7 +4443,7 @@ void LIB_HANDLER()
 
                 if(inum < 0) {
                     if(onefactor >= 0)
-                        newRealFromBINT64(&RReg[7], onefactor, 0);
+                        newRealFromint64_t(&RReg[7], onefactor, 0);
                     BINT count = -1;
                     do {
                         divmodReal(&RReg[1], &RReg[0], &RReg[6], &RReg[7]);
@@ -4456,11 +4456,11 @@ void LIB_HANDLER()
 
                     rplNewBINTPush(count, DECBINT);
 
-                    if(inBINT64Range(&RReg[6]))
-                        inum = getBINT64Real(&RReg[6]);
+                    if(inint64_tRange(&RReg[6]))
+                        inum = getint64_tReal(&RReg[6]);
                 }
                 else {
-                    BINT64 prev;
+                    int64_t prev;
                     BINT count = -1;
                     do {
                         prev = inum;
@@ -4472,7 +4472,7 @@ void LIB_HANDLER()
                     inum = prev;
                     rplNewBINTPush(count, DECBINT);
 
-                    newRealFromBINT64(&RReg[6], inum, 0);
+                    newRealFromint64_t(&RReg[6], inum, 0);
                 }
                 if(Exceptions) {
                     DSTop = savestk;

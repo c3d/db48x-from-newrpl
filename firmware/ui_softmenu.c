@@ -72,7 +72,7 @@ WORDPTR uiGetLibObject(BINT libnum, WORD arg2, WORD arg3, WORD Opcode)
 
 // GET A MENU OBJECT FROM A MENU CODE
 
-WORDPTR uiGetLibMenu(BINT64 MenuCode)
+WORDPTR uiGetLibMenu(int64_t MenuCode)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS, NO NEED FOR MENU OBJECT
@@ -108,7 +108,7 @@ WORDPTR uiGetLibMsg(WORD MsgCode)
 // RETURN A POINTER TO A MENU ITEM OBJECT
 // FIRST ITEM = NUMBER 0
 
-WORDPTR uiGetMenuItem(BINT64 MenuCode, WORDPTR menu, BINT item)
+WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, BINT item)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
 // MENU IS VARS

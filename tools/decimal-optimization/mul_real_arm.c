@@ -75,11 +75,11 @@ void mul_real_opt(BINT * rdata, BINT * adata, BINT * bdata, UBINT len)
        while(i<b->len) {
        j=0;
        while(j<a->len) {
-       //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+       //add_single64(result->data+i+j,a->data[j]*(uint64_t)b->data[i]);
 
        // UNROLLED add_single64()
        // NUMBER IS GUARANTEED TO BE POSITIVE
-       tmp1.w=a->data[j]*(UBINT64)b->data[i];
+       tmp1.w=a->data[j]*(uint64_t)b->data[i];
        hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
        lo32_1=tmp1.w+hi32_1*4194967296U;
        result->data[i+j]+=lo32_1;

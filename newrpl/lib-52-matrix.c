@@ -876,7 +876,7 @@ void LIB_HANDLER()
             }
 
             // TODO: CHECK FOR INTEGER RANGE AND ISSUE "Integer too large" ERROR
-            BINT64 exp = rplReadNumberAsBINT(b);
+            int64_t exp = rplReadNumberAsBINT(b);
             if(Exceptions)
                 return;
             if(neg)
@@ -1066,7 +1066,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *Savestk = DSTop;
 
         if(ISLIST(*rplPeekData(1))) {
@@ -1244,7 +1244,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(3);
         BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
@@ -1386,7 +1386,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 ncol = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t ncol = rplReadNumberAsBINT(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(2);
         BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
@@ -1480,7 +1480,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
 
         if(rplDepthData() < nelem + 1) {
             rplError(ERR_BADARGCOUNT);
@@ -1628,7 +1628,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *Savestk = DSTop;
 
         if(ISLIST(*rplPeekData(1))) {
@@ -1796,7 +1796,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(3);
         BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
@@ -1938,7 +1938,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nrow = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nrow = rplReadNumberAsBINT(rplPeekData(1));
 
         WORDPTR matrix = rplPeekData(2);
         BINT rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
@@ -2041,7 +2041,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 nelem = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nelem = rplReadNumberAsBINT(rplPeekData(1));
 
         if(rplDepthData() < nelem + 1) {
             rplError(ERR_BADARGCOUNT);
@@ -2762,7 +2762,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *var = 0;
 
         if(!rplMatrixIsAllowed(rplPeekData(1))) {
@@ -3077,7 +3077,7 @@ void LIB_HANDLER()
             rplError(ERR_INTEGEREXPECTED);
             return;
         }
-        BINT64 cfrom, cto;
+        int64_t cfrom, cto;
         cfrom = rplReadNumberAsBINT(rplPeekData(2));
         cto = rplReadNumberAsBINT(rplPeekData(1));
 
@@ -3378,7 +3378,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR *savestk = DSTop;
-        BINT64 n = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t n = rplReadNumberAsBINT(rplPeekData(1));
 
         if(n < 1) {
             rplError(ERR_INVALIDDIMENSION);
@@ -3590,7 +3590,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
@@ -4381,7 +4381,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
@@ -4511,7 +4511,7 @@ void LIB_HANDLER()
             rows = cols;
             cols = 1;
         }
-        BINT64 row;
+        int64_t row;
         row = rplReadNumberAsBINT(rplPeekData(1));
 
         if((row < 1) || (row > rows)) {
@@ -4594,7 +4594,7 @@ void LIB_HANDLER()
             rows = cols;
             cols = 1;
         }
-        BINT64 rowf, rowto;
+        int64_t rowf, rowto;
         rowf = rplReadNumberAsBINT(rplPeekData(2));
         rowto = rplReadNumberAsBINT(rplPeekData(1));
 
@@ -4672,7 +4672,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *var = 0;
 
         if(ISIDENT(*rplPeekData(2))) {
@@ -5034,7 +5034,7 @@ void LIB_HANDLER()
             rows = cols;
             cols = 1;
         }
-        BINT64 rfrom, rto;
+        int64_t rfrom, rto;
         rfrom = rplReadNumberAsBINT(rplPeekData(2));
         rto = rplReadNumberAsBINT(rplPeekData(1));
 
@@ -5150,7 +5150,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 rows;
+        int64_t rows;
         WORDPTR *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
@@ -5196,7 +5196,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 rows, cols;
+        int64_t rows, cols;
         WORDPTR *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {

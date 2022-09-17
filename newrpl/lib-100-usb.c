@@ -230,7 +230,7 @@ void LIB_HANDLER()
         REAL timeout;
         rplReadNumberAsReal(rplPeekData(1), &timeout);
         timeout.exp += 3;       // CONVERT FROM SECONDS TO MILLISECONDS
-        BINT64 mstimeout = getBINT64Real(&timeout);
+        int64_t mstimeout = getint64_tReal(&timeout);
 
         RetNum = 0;
 
@@ -578,7 +578,7 @@ void LIB_HANDLER()
         REAL timeout;
         rplReadNumberAsReal(rplPeekData(1), &timeout);
         timeout.exp += 3;       // CONVERT FROM SECONDS TO MILLISECONDS
-        BINT64 mstimeout = getBINT64Real(&timeout);
+        int64_t mstimeout = getint64_tReal(&timeout);
 
         rplDropData(1);
 

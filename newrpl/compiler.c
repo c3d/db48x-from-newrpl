@@ -2059,7 +2059,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                 }
                 else {
                     // IF NOT, KEEP PROCESSING ARGUMENTS
-                    UBINT64 Locale = rplGetSystemLocale();
+                    uint64_t Locale = rplGetSystemLocale();
 
                     rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                 }
@@ -2123,7 +2123,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                 }
                 else {
                     // IF NOT, KEEP PROCESSING ARGUMENTS
-                    UBINT64 Locale = rplGetSystemLocale();
+                    uint64_t Locale = rplGetSystemLocale();
 
                     rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                 }
@@ -2151,7 +2151,7 @@ WORDPTR rplDecompile(WORDPTR object, BINT flags)
                 }
                 else {
                     // IF NOT, KEEP PROCESSING A LIST OF EXPRESSIONS (???)
-                    UBINT64 Locale = rplGetSystemLocale();
+                    uint64_t Locale = rplGetSystemLocale();
 
                     rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                 }

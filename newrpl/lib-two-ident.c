@@ -141,15 +141,15 @@ void LIB_HANDLER()
                if(rplIsValidIdent(splitpoint,(BYTEPTR)BlankStart)) {
                // CONFIRMED IMPLICIT MULTIPLICATION
                // TRY TO COMPILE AS NUMBER IDENT *
-               UBINT64 locale=rplGetSystemLocale();
+               uint64_t locale=rplGetSystemLocale();
                newRealFromText(&RReg[0],(char *)tok,(char *)splitpoint,locale);
                if(RReg[0].flags&F_ERROR) {
                RetNum=ERR_SYNTAX;
                return;
                }
 
-               if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-               rplCompileBINT(getBINT64Real(&RReg[0]),(RReg[0].flags&F_APPROX)? DECBINTAPP:DECBINT);
+               if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
+               rplCompileBINT(getint64_tReal(&RReg[0]),(RReg[0].flags&F_APPROX)? DECBINTAPP:DECBINT);
                }
                else rplCompileReal(&RReg[0]);
                tok=((BYTEPTR)TokenStart)+splitoff;

@@ -87,7 +87,7 @@ static inline void *memsetb(void *dst, int value, size_t nbytes)
 // FORMATTING FOR NUMBERS
     typedef struct
     {
-        UBINT64 Locale;
+        uint64_t Locale;
         BINT SmallFmt;
         BINT MiddleFmt;
         BINT BigFmt;
@@ -148,7 +148,7 @@ struct date
 //   0x? - ann=? & ack=? & dis=1
     struct alarm
     {
-        BINT64 time;    // alarm time (elapsed seconds since 10/15/1582)
+        int64_t time;    // alarm time (elapsed seconds since 10/15/1582)
         UBINT rpt;      // repeat interval (seconds)
         WORDPTR obj;
         union
@@ -314,15 +314,15 @@ struct date
     BINT rplSetUserFlag(BINT flag);
     BINT rplClrUserFlag(BINT flag);
     BINT rplTestUserFlag(BINT flag);
-    UBINT64 *rplGetUserFlagsLow();
+    uint64_t *rplGetUserFlagsLow();
 
-    UBINT64 rplGetSystemLocale();
+    uint64_t rplGetSystemLocale();
     void rplGetSystemNumberFormat(NUMFORMAT * fmt);
     void rplSetSystemNumberFormat(NUMFORMAT * fmt);
 
 // SYSTEM SOFT MENUS
-    void rplSetMenuCode(BINT menunumber, BINT64 menucode);
-    BINT64 rplGetMenuCode(BINT menunumber);
+    void rplSetMenuCode(BINT menunumber, int64_t menucode);
+    int64_t rplGetMenuCode(BINT menunumber);
     void rplSetActiveMenu(BINT menunumber);
     BINT rplGetActiveMenu();
     void rplChangeMenu(BINT menu, WORDPTR newmenu);
@@ -470,16 +470,16 @@ struct date
     void rplCallOperator(WORD op);
     void rplCopyObject(WORDPTR dest, WORDPTR src);
     WORDPTR rplMakeNewCopy(WORDPTR object);
-    BINT64 rplObjChecksum(WORDPTR object);
+    int64_t rplObjChecksum(WORDPTR object);
 
 // BINT FUNCTIONS
     WORDPTR rplNewSINT(int num, int base);
-    WORDPTR rplNewBINT(BINT64 num, int base);
+    WORDPTR rplNewBINT(int64_t num, int base);
     void rplNewSINTPush(int num, int base);
-    void rplNewBINTPush(BINT64 num, int base);
-    BINT64 rplReadBINT(WORDPTR ptr);
-    WORDPTR rplWriteBINT(BINT64 num, int base, WORDPTR dest);
-    void rplCompileBINT(BINT64 num, int base);
+    void rplNewBINTPush(int64_t num, int base);
+    int64_t rplReadBINT(WORDPTR ptr);
+    WORDPTR rplWriteBINT(int64_t num, int base, WORDPTR dest);
+    void rplCompileBINT(int64_t num, int base);
 
 // TRUE/FALSE FUNCTIONS
     void rplPushFalse();
@@ -493,7 +493,7 @@ struct date
     void rplInfinityToRReg(int num);
     void rplUndInfinityToRReg(int num);
     void rplNANToRReg(int num);
-    void rplBINTToRReg(int num, BINT64 value);
+    void rplBINTToRReg(int num, int64_t value);
     void rplReadReal(WORDPTR real, REAL * dec);
     BINT rplReadRealFlags(WORDPTR object);
     BINT rplIsNumberZero(WORDPTR obj);
@@ -529,11 +529,11 @@ struct date
 
 // GENERIC FUNCTIONS FOR BINTS AND REALS
     void rplNumberToRReg(int num, WORDPTR number);
-    BINT64 rplReadNumberAsBINT(WORDPTR number);
+    int64_t rplReadNumberAsBINT(WORDPTR number);
     void rplReadNumberAsReal(WORDPTR number, REAL * dec);
-    void rplLoadBINTAsReal(BINT64 number, REAL * dec);
+    void rplLoadBINTAsReal(int64_t number, REAL * dec);
     BINT rplIsNegative(WORDPTR objptr);
-    BINT rplIntToString(BINT64 number, BINT base, BYTEPTR buffer,
+    BINT rplIntToString(int64_t number, BINT base, BYTEPTR buffer,
             BYTEPTR endbuffer);
 
 // CONSTANTS
@@ -716,9 +716,9 @@ struct date
     WORDPTR rplPolyDeflateEx(WORDPTR * first, BINT degree, WORDPTR * value);
 
 // RANDOM NUMBER GENERATOR
-    void rplRandomSeed(UBINT64 seed);
+    void rplRandomSeed(uint64_t seed);
     void rplRandomJump(void);
-    UBINT64 rplRandomNext(void);
+    uint64_t rplRandomNext(void);
     BINT rplRandom8Digits();
 
 // DATE AND TIME FUNCTIONS
@@ -731,8 +731,8 @@ struct date
     BINT rplReadTimeAsReal(struct time tm, REAL * time);
     BINT rplDateToDays(struct date dt);
     struct date rplDaysToDate(BINT days);
-    BINT64 rplDateToSeconds(struct date dt, struct time tm);
-    void rplSecondsToDate(BINT64 sec, struct date *dt, struct time *tm);
+    int64_t rplDateToSeconds(struct date dt, struct time tm);
+    void rplSecondsToDate(int64_t sec, struct date *dt, struct time *tm);
     void rplDecimalToHMS(REAL * dec, REAL * hms);
     void rplHMSToDecimal(REAL * hms, REAL * dec);
 

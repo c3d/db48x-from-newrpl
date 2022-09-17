@@ -50,14 +50,14 @@ void trig_atan2(REAL *, REAL *, BINT angmode);
 void trig_asin(REAL *, BINT angmode);
 void trig_acos(REAL *, BINT angmode);
 
-BINT64 factorialBINT(BINT n);
-BINT64 nextcbprimeBINT(BINT64 n);
-BINT64 nextprimeBINT(BINT64 n);
-BINT isprimeBINT(BINT64 n);
+int64_t factorialBINT(BINT n);
+int64_t nextcbprimeBINT(int64_t n);
+int64_t nextprimeBINT(int64_t n);
+BINT isprimeBINT(int64_t n);
 void nextprimeReal(BINT regnum, REAL * n);
 BINT isprimeReal(REAL * n);
 
-BINT64 powmodBINT(BINT64 a, BINT64 b, BINT64 mod);
+int64_t powmodBINT(int64_t a, int64_t b, int64_t mod);
 void powmodReal(REAL * result, REAL * a, REAL * b, REAL * mod);
 
 #endif // ARITHMETIC_H

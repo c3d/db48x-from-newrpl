@@ -13,8 +13,8 @@
 #include "newrpl.h"
 #include "fastmath.h"
 
-#define HI(n) (((UBINT64)n)>>32)
-#define LO(n) (((UBINT64)n)&0xffffffff)
+#define HI(n) (((uint64_t)n)>>32)
+#define LO(n) (((uint64_t)n)&0xffffffff)
 
 //FPINT addFPINT(FPINT a,FPINT b) { return a+b; }
 //FPINT subFPINT(FPINT a,FPINT b) { return a-b; }
@@ -24,7 +24,7 @@ FPINT mulFPINT(FPINT a, FPINT b)
 {
     // PROPER MULTIPLICATION SEQUENCE TO AVOID OVERFLOWS
     BINT sign = 0;
-    UBINT64 res;
+    uint64_t res;
     if(a < 0) {
         sign ^= 1;
         a = -a;
@@ -55,7 +55,7 @@ FPINT mulFPINT(FPINT a, FPINT b)
 FPINT divFPINT(FPINT a, FPINT b)
 {
     BINT sign = 0;
-    UBINT64 res;
+    uint64_t res;
     if(a < 0) {
         sign ^= 1;
         a = -a;
@@ -99,7 +99,7 @@ FPINT divFPINT(FPINT a, FPINT b)
 
 // ANGLE NORMALIZED IN HALF-TURNS (1 AND -1 MEANS 180 DEG, 0.5 = 90 DEG, -0.5 = -90 DEG)
 
-UBINT64 sincosFPINT(FPINT angle)
+uint64_t sincosFPINT(FPINT angle)
 {
     BINT negsin = 0, negcos = 0;
     if(angle < 0) {
@@ -144,6 +144,6 @@ UBINT64 sincosFPINT(FPINT angle)
     if(negcos)
         cos = -cos;
 
-    return (((UBINT64) ((UBINT) sin)) << 32) + ((UBINT64) ((UBINT) cos));
+    return (((uint64_t) ((UBINT) sin)) << 32) + ((uint64_t) ((UBINT) cos));
 
 }

@@ -95,7 +95,7 @@ extern const LIBHANDLER ROMLibs[];
 #define MENUPAGE(menucode) ((menucode)&0xfff)
 #define MENUSPECIAL(menucode) (((menucode)>>18)&0x3)
 #define MKMENUCODE(special,lib,num,page) ( (((special)&0x3)<<18) | (((lib)&0xfff)<<20) | (((num)&0x3f)<<12) | ((page)&0xfff) )
-#define SETMENUPAGE(menucode,newpage) ((((BINT64)(menucode))&~0xfffLL) | ((newpage)&0xfff))
+#define SETMENUPAGE(menucode,newpage) ((((int64_t)(menucode))&~0xfffLL) | ((newpage)&0xfff))
 
 #define MENU_VARS       1
 #define MENU_USERLIB    2
@@ -356,7 +356,7 @@ WORD libComputeHash2(WORDPTR start, BINT nwords);
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
 #define MAKESINTH(a) MKOPCODE(HEXBINT,(a)&0x3ffff)
-#define MAKEBINT64(a) MKPROLOG(DECBINT,2),(WORD)(((BINT64)a)&0xffffffff),((WORD)(((BINT64)a)>>32))
+#define MAKEint64_t(a) MKPROLOG(DECBINT,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
 
@@ -588,30 +588,30 @@ extern const WORD lib70_basecycle[];
 
 #define RSTATUS_SIZE 21
 
-#define WIDTHPTR(rstatus)  ((BINT64 *)&(rstatus[2]))
-#define HEIGHTPTR(rstatus) ((BINT64 *)&(rstatus[2+3*1]))
-#define GA11PTR(rstatus) ((BINT64 *)&(rstatus[2+3*2]))
-#define GA12PTR(rstatus) ((BINT64 *)&(rstatus[2+3*3]))
-#define GA13PTR(rstatus) ((BINT64 *)&(rstatus[2+3*4]))
-#define GA21PTR(rstatus) ((BINT64 *)&(rstatus[2+3*5]))
-#define GA22PTR(rstatus) ((BINT64 *)&(rstatus[2+3*6]))
-#define GA23PTR(rstatus) ((BINT64 *)&(rstatus[2+3*7]))
+#define WIDTHPTR(rstatus)  ((int64_t *)&(rstatus[2]))
+#define HEIGHTPTR(rstatus) ((int64_t *)&(rstatus[2+3*1]))
+#define GA11PTR(rstatus) ((int64_t *)&(rstatus[2+3*2]))
+#define GA12PTR(rstatus) ((int64_t *)&(rstatus[2+3*3]))
+#define GA13PTR(rstatus) ((int64_t *)&(rstatus[2+3*4]))
+#define GA21PTR(rstatus) ((int64_t *)&(rstatus[2+3*5]))
+#define GA22PTR(rstatus) ((int64_t *)&(rstatus[2+3*6]))
+#define GA23PTR(rstatus) ((int64_t *)&(rstatus[2+3*7]))
 
-#define A11PTR(rstatus) ((BINT64 *)&(rstatus[2+3*8]))
-#define A12PTR(rstatus) ((BINT64 *)&(rstatus[2+3*9]))
-#define A13PTR(rstatus) ((BINT64 *)&(rstatus[2+3*10]))
-#define A21PTR(rstatus) ((BINT64 *)&(rstatus[2+3*11]))
-#define A22PTR(rstatus) ((BINT64 *)&(rstatus[2+3*12]))
-#define A23PTR(rstatus) ((BINT64 *)&(rstatus[2+3*13]))
+#define A11PTR(rstatus) ((int64_t *)&(rstatus[2+3*8]))
+#define A12PTR(rstatus) ((int64_t *)&(rstatus[2+3*9]))
+#define A13PTR(rstatus) ((int64_t *)&(rstatus[2+3*10]))
+#define A21PTR(rstatus) ((int64_t *)&(rstatus[2+3*11]))
+#define A22PTR(rstatus) ((int64_t *)&(rstatus[2+3*12]))
+#define A23PTR(rstatus) ((int64_t *)&(rstatus[2+3*13]))
 
-#define CXPTR(rstatus) ((BINT64 *)&(rstatus[2+3*14]))
-#define CYPTR(rstatus) ((BINT64 *)&(rstatus[2+3*15]))
-#define BXPTR(rstatus) ((BINT64 *)&(rstatus[2+3*16]))
-#define BYPTR(rstatus) ((BINT64 *)&(rstatus[2+3*17]))
-#define ARG1PTR(rstatus) ((BINT64 *)&(rstatus[2+3*18]))
-#define ARG2PTR(rstatus) ((BINT64 *)&(rstatus[2+3*19]))
+#define CXPTR(rstatus) ((int64_t *)&(rstatus[2+3*14]))
+#define CYPTR(rstatus) ((int64_t *)&(rstatus[2+3*15]))
+#define BXPTR(rstatus) ((int64_t *)&(rstatus[2+3*16]))
+#define BYPTR(rstatus) ((int64_t *)&(rstatus[2+3*17]))
+#define ARG1PTR(rstatus) ((int64_t *)&(rstatus[2+3*18]))
+#define ARG2PTR(rstatus) ((int64_t *)&(rstatus[2+3*19]))
 
-#define RLIBPTR(rstatus) ((BINT64 *)&(rstatus[2+3*20]))
+#define RLIBPTR(rstatus) ((int64_t *)&(rstatus[2+3*20]))
 #define ROBJPTR(rstatus) ((WORDPTR)&(rstatus[1+3*21]))
 #define PERSISTPTR(rstatus) ((WORDPTR)rplSkipOb(ROBJPTR(rstatus)))
 

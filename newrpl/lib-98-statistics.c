@@ -135,7 +135,7 @@ void LIB_HANDLER()
             return;
         if(iszeroReal(&r))
             rplLoadBINTAsReal(halTicks(), &r);
-        UBINT64 seed = 12345678901234567890ULL;
+        uint64_t seed = 12345678901234567890ULL;
         int k;
         for(k = 0; k < r.len; ++k) {
             if(r.data[k])

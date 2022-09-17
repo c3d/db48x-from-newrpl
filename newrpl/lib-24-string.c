@@ -408,7 +408,7 @@ void LIB_HANDLER()
 
         BYTEPTR strptr = (BYTEPTR) (newstring + 1);     // START OF NEW STRING AFTER THE PROLOG
 
-        BINT64 ucode;
+        int64_t ucode;
         WORD utfchar;
         BINT len;
 

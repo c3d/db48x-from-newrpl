@@ -2349,7 +2349,7 @@ void trig_acos(REAL * x, BINT angmode)
 // *******************************************  HYPERBOLICS ***************************************************
 
 /*
-static const BINT64 const powof10[19]={
+static const int64_t const powof10[19]={
     1000000000000000000LL,
     100000000000000000LL,
     10000000000000000LL,
@@ -2457,7 +2457,7 @@ void pexp()
         exp_conditioning = 62;
 
     if(exp_conditioning) {
-        newRealFromBINT64(&RReg[2], 1LL << exp_conditioning, 0);
+        newRealFromint64_t(&RReg[2], 1LL << exp_conditioning, 0);
         divReal(&RReg[1], &RReg[0], &RReg[2]);
         swapReal(&RReg[1], &RReg[0]);
     }
@@ -2506,7 +2506,7 @@ void pexp()
 
        // THIS IS THE CURRENT TERM IN  RREG[4]
        if(exp_conditioning) {
-       BINT64 exponent=powof10[18-exp_conditioning];
+       int64_t exponent=powof10[18-exp_conditioning];
        MACROOneToRReg(0);
        while(exponent) {
        if(exponent&1) {
@@ -3050,9 +3050,9 @@ void hyp_pow(REAL * x, REAL * a)
 
     }
 
-    if(isintegerReal(a) && inBINT64Range(a)) {
+    if(isintegerReal(a) && inint64_tRange(a)) {
         // INTEGER EXPONENTIATION
-        BINT64 exponent = getBINT64Real(a);
+        int64_t exponent = getint64_tReal(a);
         BINT invert;
         REAL One;
         if(exponent < 0) {

@@ -94,7 +94,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        BINT64 sizebytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t sizebytes = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;
 
@@ -137,7 +137,7 @@ void LIB_HANDLER()
 
         BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(5));
 
-        BINT64 destoffset = rplReadNumberAsBINT(rplPeekData(4));
+        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(4));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -146,11 +146,11 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
-        BINT64 nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -197,11 +197,11 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
-        BINT64 nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -249,7 +249,7 @@ void LIB_HANDLER()
 
         BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(4));
 
-        BINT64 destoffset = rplReadNumberAsBINT(rplPeekData(3));
+        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(3));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -258,7 +258,7 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 nbytes = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nbytes = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -428,7 +428,7 @@ void LIB_HANDLER()
 
         BINT destsize = rplObjSize(rplPeekData(4));
 
-        BINT64 destoffset = rplReadNumberAsBINT(rplPeekData(3));
+        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(3));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -437,7 +437,7 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -612,7 +612,7 @@ void LIB_HANDLER()
 
         BINT destsize = rplObjSize(rplPeekData(5));
 
-        BINT64 destoffset = rplReadNumberAsBINT(rplPeekData(4));
+        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(4));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -621,11 +621,11 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 1;
-        BINT64 nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -670,11 +670,11 @@ void LIB_HANDLER()
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 srcoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(2));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 1;
-        BINT64 nwords = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t nwords = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
 
@@ -731,7 +731,7 @@ void LIB_HANDLER()
 
         BINT destsize = sizeof(WORD) * rplObjSize(rplPeekData(3));
 
-        BINT64 destoffset = rplReadNumberAsBINT(rplPeekData(2));
+        int64_t destoffset = rplReadNumberAsBINT(rplPeekData(2));
 
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
@@ -775,7 +775,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
-        BINT64 srcoffset = rplReadNumberAsBINT(rplPeekData(1));
+        int64_t srcoffset = rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions)
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;

@@ -114,9 +114,9 @@ void rplNANToRReg(int num)
     RReg[num].data[0] = 0;
 }
 
-void rplBINTToRReg(int num, BINT64 value)
+void rplBINTToRReg(int num, int64_t value)
 {
-    newRealFromBINT64(&RReg[num], value, 0);
+    newRealFromint64_t(&RReg[num], value, 0);
 }
 
 // EXTRACT A CALCULATOR REAL INTO AN EXISTING REAL STRUCTURE
@@ -151,7 +151,7 @@ BINT rplIsNumberZero(WORDPTR obj)
 
     if(ISBINT(*obj)) {
         if(ISPROLOG(*obj)) {
-            BINT64 *ptr = (BINT64 *) (obj + 1);
+            int64_t *ptr = (int64_t *) (obj + 1);
             return (*ptr == 0) ? 1 : 0;
         }
         return (OPCODE(*obj) == 0) ? 1 : 0;
@@ -817,7 +817,7 @@ void LIB_HANDLER()
         BINT isapprox = 0;
         BINT tlen = TokenLen;
 
-        UBINT64 locale = rplGetSystemLocale();
+        uint64_t locale = rplGetSystemLocale();
 
         newRealFromText(&RReg[0], (char *)strptr, utf8nskip((char *)strptr,
                     (char *)BlankStart, tlen), locale);

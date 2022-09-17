@@ -153,11 +153,11 @@ ARM_MODE void mul_real_arm(BINT * rdata, BINT * adata, BINT * bdata,
        while(i<b->len) {
        j=0;
        while(j<a->len) {
-       //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+       //add_single64(result->data+i+j,a->data[j]*(uint64_t)b->data[i]);
 
        // UNROLLED add_single64()
        // NUMBER IS GUARANTEED TO BE POSITIVE
-       tmp1.w=a->data[j]*(UBINT64)b->data[i];
+       tmp1.w=a->data[j]*(uint64_t)b->data[i];
        hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
        lo32_1=tmp1.w+hi32_1*4194967296U;
        result->data[i+j]+=lo32_1;
@@ -336,9 +336,9 @@ ARM_MODE void add_long_mul_shift_arm(BINT * result, BINT * n1start,
 
     asm volatile (".multiloop:");
 
-    //hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-    //hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-    //hi3=(n1start[2] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi2=(n1start[1] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi3=(n1start[2] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
     asm volatile ("ldmia r1!,{r6,r7,r8}");
     asm volatile ("umull r9,r10,r6,r4");
@@ -405,8 +405,8 @@ ARM_MODE void add_long_mul_shift_arm(BINT * result, BINT * n1start,
 
     /*    if(nwords==2) {
 
-       hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-       hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+       hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+       hi2=(n1start[1] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
        lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
        lo2=n1start[1]*K2-hi2*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -463,7 +463,7 @@ ARM_MODE void add_long_mul_shift_arm(BINT * result, BINT * n1start,
     asm volatile ("orr r9,r9,r10,lsl #8");      // R9 = hi
     asm volatile ("mla r6,r9,r14,r6");  // R6 = lo
 
-    //  hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+    //  hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
     //  lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
 
@@ -524,9 +524,9 @@ ARM_MODE void sub_long_mul_shift_arm(BINT * result, BINT * n1start,
 
     asm volatile (".smultiloop:");
 
-    //hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-    //hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-    //hi3=(n1start[2] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi2=(n1start[1] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+    //hi3=(n1start[2] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
     asm volatile ("ldmia r1!,{r6,r7,r8}");
     asm volatile ("umull r9,r10,r6,r4");
@@ -593,8 +593,8 @@ ARM_MODE void sub_long_mul_shift_arm(BINT * result, BINT * n1start,
 
     /*    if(nwords==2) {
 
-       hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
-       hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+       hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
+       hi2=(n1start[1] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
        lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
        lo2=n1start[1]*K2-hi2*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
@@ -651,7 +651,7 @@ ARM_MODE void sub_long_mul_shift_arm(BINT * result, BINT * n1start,
     asm volatile ("orr r9,r9,r10,lsl #8");      // R9 = hi
     asm volatile ("mla r6,r9,r14,r6");  // R6 = lo
 
-    //  hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+    //  hi=(n1start[0] *(int64_t)K1)>>24;    // 64-bit MULTIPLICATION
 
     //  lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
 
