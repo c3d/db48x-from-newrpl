@@ -8,6 +8,7 @@
 #define _GGL_H
 
 #include "common-macros.h"
+#include "newrpl_types.h"
 
 #include <stdint.h>
 #include <target.h>
@@ -498,9 +499,16 @@ static inline void ggl_blit(gglsurface *dst,
 void ggl_initscr(gglsurface *surface);
 
 // drawing primitives
-// general pixel set/read routines
 
-int  ggl_getmonopix(char *buf, int off);                      // peek a pixel in monochrome bitmap (off in pixels)
+// Read a pixel from a monochrome bitmap
+static inline int ggl_getmonopix(byte_p buf, offset addr)
+{
+    byte_p ptr = buf + (addr >> 3);
+    return (*ptr & (1 << (addr & 7))) ? 1 : 0;
+}
+
+
+int  ggl_getmonopix(byte_p buf, offset off);                      // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
 

@@ -572,7 +572,7 @@ void DrawTextMono(gglsurface    *drawsurf,
                 address = srf.x + (srf.y + k) * srf.width;
                 destword = 0;
                 for(f = 0; f < (int)w; ++f) {
-                    if(ggl_getmonopix((char *)srf.pixels, address)) {
+                    if(ggl_getmonopix((byte_p) srf.pixels, address)) {
                         // PLOT A PIXEL ON DESTINATION
                         destword |= 1 << f;
                     }

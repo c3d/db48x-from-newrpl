@@ -163,7 +163,6 @@ SOURCES += \
         firmware/ggl/ggl_fltinvert.c \
         firmware/ggl/ggl_fltlighten.c \
         firmware/ggl/ggl_fltreplace.c \
-        firmware/ggl/ggl_getnib.c \
         firmware/ggl/ggl_hblt.c \
         firmware/ggl/ggl_hbltfilter.c \
         firmware/ggl/ggl_hbltoper.c \
