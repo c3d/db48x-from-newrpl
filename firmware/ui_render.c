@@ -125,7 +125,7 @@ void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
         // COPY IT TO DESTINATION
         gglsurface tsurf;
 
-        tsurf.pixels = (int *)(bmp + 3);
+        tsurf.pixels = (pixword *)(bmp + 3);
         tsurf.width = bmp[1];
         tsurf.left = 0;
         tsurf.right = bmp[1] - 1;
@@ -196,7 +196,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
         gglsurface tsurf;
 
-        tsurf.pixels = (int *)(newbmp + 3);
+        tsurf.pixels = (pixword *)(newbmp + 3);
         tsurf.width = numwidth;
         tsurf.left = 0;
         tsurf.right = numwidth - 1;
@@ -234,7 +234,7 @@ void uiDrawBitmap(word_p bmp, gglsurface * scr)
         // COPY IT TO DESTINATION
         gglsurface tsurf;
 
-        tsurf.pixels = (int *)(bmp + 3);
+        tsurf.pixels = (pixword *)(bmp + 3);
         tsurf.width = bmp[1];
         tsurf.left = 0;
         tsurf.right = bmp[1] - 1;

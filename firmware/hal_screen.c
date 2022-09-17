@@ -351,7 +351,7 @@ void halRedrawForm(gglsurface *scr)
 
     gglsurface viewport;
 
-    viewport.pixels = (int *) (bmp + 3);
+    viewport.pixels = (pixword *) (bmp + 3);
     viewport.width  = bmp[1];
     viewport.x      = 0;
     viewport.y      = 0; // TODO: CHANGE THIS TO ENABLE SCROLLING

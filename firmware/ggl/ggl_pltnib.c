@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_pltnib(int *buf, int addr, int color)
+void ggl_pltnib(pixword *buf, int addr, int color)
 {
     register char *ptr = ((char *) buf) + (addr >> 1);
     if (addr & 1)

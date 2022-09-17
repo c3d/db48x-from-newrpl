@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height)
+void ggl_bitblt(gglsurface *dest, gglsurface *src, size width, size height)
 {
     // COPIES A RECTANGULAR REGION FROM src TO dest
     // gglsurface CONTAINS THE BUFFER AND OFFSETS
@@ -15,7 +15,7 @@ void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height)
 
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-    int doff, soff, line;
+    size doff, soff, line;
 
     doff = dest->y * dest->width + dest->x;
     soff = src->y * src->width + src->x;
@@ -28,7 +28,7 @@ void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height)
     }
 }
 
-void ggl_bitbltclip(gglsurface *dest, gglsurface *src, int width, int height)
+void ggl_bitbltclip(gglsurface *dest, gglsurface *src, size width, size height)
 {
     // SOURCE CLIPPING FIRST - REDUNDANT
 #ifndef TARGET_PRIME1
@@ -48,13 +48,13 @@ void ggl_bitbltclip(gglsurface *dest, gglsurface *src, int width, int height)
         return;
     if (dest->y > dest->bottom)
         return;
-    if (dest->x + width < dest->left)
+    if (dest->x + (coord) width < dest->left)
         return;
-    if (dest->y + height < dest->top)
+    if (dest->y + (coord) height < dest->top)
         return;
     if (dest->x < dest->left)
         dest->x = dest->left;
-    if (dest->x + width > dest->right)
+    if (dest->x + (coord) width > dest->right)
         width = dest->right - dest->x + 1;
     if (dest->y < dest->top)
     {
@@ -62,7 +62,7 @@ void ggl_bitbltclip(gglsurface *dest, gglsurface *src, int width, int height)
         height -= dest->top - dest->y;
         dest->y = dest->top;
     }
-    if (dest->y + height > dest->bottom)
+    if (dest->y + (coord) height > dest->bottom)
         height = dest->bottom - dest->y + 1;
 
     ggl_bitblt(dest, src, width, height);

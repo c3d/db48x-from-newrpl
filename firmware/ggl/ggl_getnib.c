@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-int ggl_getnib(int *buf, int addr)
+int ggl_getnib(pixword *buf, int addr)
 {
     register char *ptr = ((char *) buf) + (addr >> 1);
     register int   a   = (int) (*ptr);

@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_revblt(gglsurface *dest, gglsurface *src, int width, int height)
+void ggl_revblt(gglsurface *dest, gglsurface *src, size width, size height)
 {
     // REVERSE bitblt
     // COPIES A RECTANGULAR REGION FROM src TO dest
@@ -16,7 +16,7 @@ void ggl_revblt(gglsurface *dest, gglsurface *src, int width, int height)
 
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-    int doff, soff, line;
+    size doff, soff, line;
 
     doff = dest->y * dest->width + dest->x;
     soff = src->y * src->width + src->x;

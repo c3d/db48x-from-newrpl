@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int param, ggloperator foperator)
+void ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator foperator)
 {
 #ifndef TARGET_PRIME1
     // SAME AS hblt BUT THIS ONE APPLIES AN ARBITRARY OPERATOR BETWEEN 2 SURFACES
@@ -32,12 +32,12 @@ void ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int
         srcoff += 504;
     }
 
-    int      tempmem[HBLT_BUFFER];
+    pixword tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
     int      rot = ((srcoff & 7) - (destoff & 7)) * 4;
     unsigned a, b = 0;
-    int     *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
+    pixword  *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
 #else  /* TARGET_PRIME1 */
         unsigned short int *pdest = (unsigned short int *) dest + destoff;
         unsigned short int *psrc  = (unsigned short int *) src + srcoff;
@@ -172,7 +172,7 @@ const const unsigned int ggl_mono2gray[256] = {
 };
 
 #endif /* ! TARGET_PRIME1 */
-void ggl_monohbltoper(int           *dest,
+void ggl_monohbltoper(pixword       *dest,
                       int            destoff,
                       unsigned char *src,
                       int            srcoff,
@@ -196,12 +196,12 @@ void ggl_monohbltoper(int           *dest,
         srcoff += 504;
     }
 
-    int            tempmem[HBLT_BUFFER];
+    pixword tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
     int            rot = ((srcoff & 7) - (destoff & 7)) * 4;
     unsigned       a, b = 0;
-    int           *ptr   = tempmem, *dstart, *dend;
+    pixword       *ptr   = tempmem, *dstart, *dend;
     unsigned char *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
 
     // FIRST STAGE: COPY AND ROTATION

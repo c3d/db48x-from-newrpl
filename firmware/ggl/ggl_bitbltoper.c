@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop)
+void ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop)
 {
     // COPIES A RECTANGULAR REGION FROM src TO dest AND APPLIES THE GIVEN OPERATOR
     // gglsurface CONTAINS THE BUFFER AND OFFSETS
@@ -15,7 +15,7 @@ void ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, in
 
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-    int doff, soff, line;
+    size doff, soff, line;
 
     doff = dest->y * dest->width + dest->x;
     soff = src->y * src->width + src->x;
@@ -28,7 +28,7 @@ void ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, in
     }
 }
 
-void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop)
+void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop)
 {
     // COPIES A RECTANGULAR REGION FROM src TO dest AND APPLIES THE GIVEN OPERATOR
     // src POINTS TO A MONOCHROME BITMAP, NOT GRAYSCALE
@@ -37,7 +37,7 @@ void ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height
 
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
-    int doff, soff, line;
+    size doff, soff, line;
 
     doff = dest->y * dest->width + dest->x;
     soff = src->y * src->width + src->x;

@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height)
+void ggl_ovlblt(gglsurface *dest, gglsurface *src, size width, size height)
 {
     // SAME AS ggl_bitblt BUT WITH OVERLAPPING CHECK
     // IT COPIES CORRECTLY WHEN dest AND src ZONES OVERLAP
@@ -19,7 +19,7 @@ void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height)
     // RESTRICTIONS: NO SAFETY CHECKS REGARDING MEMORY MOVEMENTS
 
     int  doff, soff;
-    int *dst, *dend, *st; //,*send;
+    pixword *dst, *dend, *st; //,*send;
 
     // CHECK FOR OVERLAPPING ZONES
 

@@ -186,7 +186,7 @@ void DrawTextN(int x, int y, char *Text, char *End, UNIFONT const * Font, int co
     unsigned int w = 0;
     int clipped = 0, h;
     gglsurface srf;
-    srf.pixels = (int *)fontbitmap;
+    srf.pixels = (pixword *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 
@@ -315,7 +315,7 @@ void DrawTextBkN(int x, int y, char *Text, char *End, UNIFONT const * Font, int 
     unsigned int w = 0;
     int clipped = 0, h;
     gglsurface srf;
-    srf.pixels = (int *)fontbitmap;
+    srf.pixels = (pixword *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 
@@ -476,7 +476,7 @@ void DrawTextMono(int x, int y, char *Text, UNIFONT const * Font, int color,
     unsigned int w;
     int h;
     gglsurface srf;
-    srf.pixels = (int *)fontbitmap;
+    srf.pixels = (pixword *)fontbitmap;
     srf.width = Font->BitmapWidth << 3;
     srf.y = 0;
 

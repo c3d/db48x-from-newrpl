@@ -27,7 +27,7 @@ word_p *halGrowMemory(int32_t zone, word_p * base, int32_t newsize)
 // COPY ASCENDING BY WORDS
 void memcpyw(void *dest, const void *source, int nwords)
 {
-    int *destint = (int *)dest;
+    pixword *destint = (int *)dest;
     int *sourceint = (int *)source;
     while(nwords) {
         *destint = *sourceint;
@@ -41,7 +41,7 @@ void memcpyw(void *dest, const void *source, int nwords)
 // COPY DESCENDING BY WORDS
 void memcpywd(void *dest, const void *source, int nwords)
 {
-    int *destint = ((int *)dest) + nwords;
+    pixword *destint = ((int *)dest) + nwords;
     int *sourceint = ((int *)source) + nwords;
     while(nwords) {
         *--destint = *--sourceint;

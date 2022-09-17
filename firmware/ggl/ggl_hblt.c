@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
+void ggl_hblt(pixword *dest, int destoff, pixword *src, int srcoff, size npixels)
 {
     // COPIES npixels NIBBLES FROM src TO dest
     // dest AND src ARE WORD ALIGNED ADDRESSES
@@ -26,12 +26,14 @@ void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels)
         srcoff += 504;
     }
 
-    int      tempmem[HBLT_BUFFER];
+    pixword tempmem[HBLT_BUFFER];
 
     // CALCULATE ROTATION
     int      rot = ((srcoff & 7) - (destoff & 7)) * 4;
     unsigned a, b = 0;
-    int     *ptr = tempmem, *start = src + (srcoff >> 3), *end = src + ((srcoff + npixels - 1) >> 3);
+    pixword *ptr   = tempmem;
+    pixword *start = src + (srcoff >> 3);
+    pixword *end   = src + ((srcoff + npixels - 1) >> 3);
 
     // FIRST STAGE: COPY AND ROTATION
 #else  /* TARGET_PRIME1 */

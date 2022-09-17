@@ -121,7 +121,7 @@ void uiUpdateForm(word_p form)
 
     gglsurface backgnd;
 
-    backgnd.pixels = (int *)(newbmp + 3);
+    backgnd.pixels = (pixword *)(newbmp + 3);
     backgnd.width = formw;
     backgnd.x = 0;
     backgnd.y = 0;

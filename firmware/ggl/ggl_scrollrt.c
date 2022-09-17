@@ -7,7 +7,7 @@
 
 #include <ggl.h>
 
-void ggl_scrollrt(gglsurface *dest, int width, int height, int npixels)
+void ggl_scrollrt(gglsurface *dest, size width, size height, size npixels)
 {
     // SCROLLS A RECTANGULAR REGION RIGHT npixelsup
     // gglsurface CONTAINS THE BUFFER AND OFFSETS

@@ -276,8 +276,8 @@ void ggl_initscr(gglsurface *surface);
 // drawing primitives
 // general pixel set/read routines
 
-void ggl_pltnib(int *buff, int off, int color); // poke a pixel (off in nibbles)
-int  ggl_getnib(int *buff, int off);            // peek a pixel (off in nibbles)
+void ggl_pltnib(pixword *buff, int off, int color); // poke a pixel (off in nibbles)
+int  ggl_getnib(pixword *buff, int off);            // peek a pixel (off in nibbles)
 int  ggl_getmonopix(char *buf, int off);        // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
@@ -308,22 +308,22 @@ void ggl_rectp(gglsurface *srf, int x1, int y1, int x2, int y2, int *color); // 
 // npixels is the number of nibbles to copy
 // note: hblt will behave well even if the zones overlap, no need for moveup/movedown
 
-void ggl_hblt(int *dest, int destoff, int *src, int srcoff, int npixels); // copy a row of pixels
+void ggl_hblt(pixword *dest, int destoff, pixword *src, int srcoff, size npixels); // copy a row of pixels
 
 // same behavior as hblt but specifying a transparent color
 // every pixel in *src with the transparent color will not affect the
 // corresponding pixel in *dest
-void ggl_hbltmask(int *dest, int destoff, int *src, int srcoff, int npixels, int tcol); // copy a row of pixels w/mask
+void ggl_hbltmask(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int tcol); // copy a row of pixels w/mask
 
 // rectangle blt
 // note: see gglsurface above for complete understanding of the behavior of these routines
 // ggl_bitblt loops from top to bottom
-void ggl_bitblt(gglsurface *dest, gglsurface *src, int width, int height); // copy a rectangular region
+void ggl_bitblt(gglsurface *dest, gglsurface *src, size width, size height); // copy a rectangular region
 // ggl_revblt loops from bottom to top, for overlapping zones
-void ggl_revblt(gglsurface *dest, gglsurface *src, int width, int height); // copy a rectangular region, reverse loop
+void ggl_revblt(gglsurface *dest, gglsurface *src, size width, size height); // copy a rectangular region, reverse loop
 // ggl_ovlblt chooses to use normal/reverse loop based on the addresses
 // use it when the direcction of movement is unknown
-void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height); // copy overlapped regions
+void ggl_ovlblt(gglsurface *dest, gglsurface *src, size width, size height); // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
 #define ggl_bitbltmask(dest, src, width, height, tcol) \
   ggl_bitbltoper(dest, src, width, height, tcol, (ggloperator) &ggl_opmask)
@@ -332,28 +332,28 @@ void ggl_ovlblt(gglsurface *dest, gglsurface *src, int width, int height); // co
 
 void     ggl_bitbltclip(gglsurface *dest,
                         gglsurface *src,
-                        int         width,
-                        int         height); // copy a rectangular region, clipped within dest
+                        size        width,
+                        size        height); // copy a rectangular region, clipped within dest
 
 // rectangle scrolling routines
 // dest contains the surface to scroll, and width and height define the rectangle
 // the area that needs to be redrawn after the scroll is not erased or modified by these routines
-void     ggl_scrollup(gglsurface *dest, int width, int height, int npixels); // scroll npixels up
-void     ggl_scrolldn(gglsurface *dest, int width, int height, int npixels); // scroll npixels dn
-void     ggl_scrolllf(gglsurface *dest, int width, int height, int npixels); // scroll npixels left
-void     ggl_scrollrt(gglsurface *dest, int width, int height, int npixels); // scroll npixels right
+void     ggl_scrollup(gglsurface *dest, size width, size height, size npixels); // scroll npixels up
+void     ggl_scrolldn(gglsurface *dest, size width, size height, size npixels); // scroll npixels dn
+void     ggl_scrolllf(gglsurface *dest, size width, size height, size npixels); // scroll npixels left
+void     ggl_scrollrt(gglsurface *dest, size width, size height, size npixels); // scroll npixels right
 
 // custom filters and operators
 
 // low-level row filtering routine
-void     ggl_hbltfilter(int *dest, int destoff, int npixels, int param, gglfilter filterfunc);
+void     ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter filterfunc);
 // bitmap filtering routine
-void     ggl_filter(gglsurface *dest, int width, int height, int param, gglfilter filterfunc);
+void     ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter filterfunc);
 
 // low-level row operator routine
-void     ggl_hbltoper(int *dest, int destoff, int *src, int srcoff, int npixels, int param, ggloperator foperator);
+void     ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int param, ggloperator foperator);
 // low-level row operator routine for monochrome bitmaps
-void     ggl_monohbltoper(int           *dest,
+void     ggl_monohbltoper(pixword       *dest,
                           int            destoff,
                           unsigned char *src,
                           int            srcoff,
@@ -361,9 +361,9 @@ void     ggl_monohbltoper(int           *dest,
                           int            param,
                           ggloperator    foperator);
 // bitblt operator routine
-void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop);
+void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop);
 // bitblt operator routine for monochrome bitmaps
-void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, int width, int height, int param, ggloperator fop);
+void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator fop);
 
 // predefined filters and operators
 
