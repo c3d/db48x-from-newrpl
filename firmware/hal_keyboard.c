@@ -3842,7 +3842,7 @@ void chsKeyHandler(WORD keymsg)
                 if(startnum != prevstnum)
                     ++moveleft;
                 int32_t char1, char2;
-                extern const char const forbiddenChars[];
+                extern const const char forbiddenChars[];
                 while(startnum >= line) {
                     byte_p ptr = (byte_p) forbiddenChars;
                     char1 = utf82cp((char *)startnum, (char *)prevstnum);
@@ -4169,36 +4169,20 @@ void onPlusKeyHandler(WORD keymsg)
 
     // INCREASE CONTRAST
     gglsurface scr;
-#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
-#else /* TARGET_PRIME1 */
-    ggl_initscr(&scr);
-#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-#ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, 0);
-#else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
-#endif /* TARGET_PRIME1 */
 
     int j;
     for(j = 0; j < 15; ++j) {
-#ifndef TARGET_PRIME1
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
-#else /* TARGET_PRIME1 */
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
-#endif /* TARGET_PRIME1 */
     }
 
     lcd_contrast++;
@@ -4222,36 +4206,20 @@ void onMinusKeyHandler(WORD keymsg)
 
     // DECREASE CONTRAST
     gglsurface scr;
-#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
-#else /* TARGET_PRIME1 */
-    ggl_initscr(&scr);
-#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-#ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, 0);
-#else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
-#endif /* TARGET_PRIME1 */
 
     int j;
     for(j = 0; j < 15; ++j) {
-#ifndef TARGET_PRIME1
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
-#else /* TARGET_PRIME1 */
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_mkcolor(j));
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_mkcolor(15 - j));
-#endif /* TARGET_PRIME1 */
     }
 
     lcd_contrast--;
@@ -4302,37 +4270,19 @@ void onDotKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
-#else /* TARGET_PRIME1 */
-    ggl_initscr(&scr);
-#endif /* TARGET_PRIME1 */
     int ytop =
         halScreen.Form + halScreen.Stack + halScreen.CmdLine +
         halScreen.Menu1;
     // CLEAR STATUS AREA
-#ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, 0);
-#else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
              ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
-#endif /* TARGET_PRIME1 */
-
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "Format:",
-#ifndef TARGET_PRIME1
-               FONT_STATUS, 0xf, 0, &scr);
-#else /* TARGET_PRIME1 */
-    FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
-#endif /* TARGET_PRIME1 */
-DrawTextBk(STATUS_AREA_X + 1,
+               FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
+    DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-#ifndef TARGET_PRIME1
-               (char *)options[option], FONT_STATUS, 0xf, 0,
-#else /* TARGET_PRIME1 */
                (char *)options[option], FONT_STATUS,ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG),
-#endif /* TARGET_PRIME1 */
-            &scr);
+               &scr);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
     switch (option) {
@@ -4532,24 +4482,10 @@ void onSpcKeyHandler(WORD keymsg)
 
 }
 
-const char const *const onMulDivKeyHandler_options[] = {
-    "Auto",
-    "  =  0",
-    "k = +3",
-    "M = +6",
-    "G = +9",
-    "T = +12",
-    "P = +15",
-    "E = +18",
-    "Z = +21",
-    "z = -21",
-    "a = -18",
-    "f = -15",
-    "p = -12",
-    "n = -9",
-    "µ = -6",
-    "m = -3"
-};
+const const char *const onMulDivKeyHandler_options[] = { "Auto",    "  =  0",  "k = +3",  "M = +6",
+                                                         "G = +9",  "T = +12", "P = +15", "E = +18",
+                                                         "Z = +21", "z = -21", "a = -18", "f = -15",
+                                                         "p = -12", "n = -9",  "µ = -6",  "m = -3" };
 
 void onMulDivKeyHandler(WORD keymsg)
 {
@@ -4750,36 +4686,19 @@ void onUpDownKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
-#else /* TARGET_PRIME1 */
-    ggl_initscr(&scr);
-#endif /* TARGET_PRIME1 */
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
     // CLEAR STATUS AREA
-#ifndef TARGET_PRIME1
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, 0);
-#else /* TARGET_PRIME1 */
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
             ytop + halScreen.Menu2 - 1, ggl_mkcolor(PAL_STA_BG));
-#endif /* TARGET_PRIME1 */
 
     DrawTextBk(STATUS_AREA_X + 1, ytop + 1, "System precision:",
-#ifndef TARGET_PRIME1
-               FONT_STATUS, 0xf, 0, &scr);
-#else /* TARGET_PRIME1 */
                FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT),ggl_mkcolor(PAL_STA_BG), &scr);
-#endif /* TARGET_PRIME1 */
     DrawTextBk(STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-#ifndef TARGET_PRIME1
-               digits_string, FONT_STATUS, 0xf, 0, &scr);
-#else /* TARGET_PRIME1 */
                digits_string, FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), &scr);
-#endif /* TARGET_PRIME1 */
 
     halScreen.DirtyFlag |= STACK_DIRTY;
 
@@ -8004,70 +7923,46 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         if(!wasProcessed)
             wasProcessed = halDoDefaultKey(keymsg);
 
-#ifndef TARGET_PRIME1
+#if 0
     // *************** DEBUG ONLY ************
-    /*
-       if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
+    if (!wasProcessed &&
+        ((KM_MESSAGE(keymsg) == KM_PRESS) || (KM_MESSAGE(keymsg) == KM_LPRESS) || (KM_MESSAGE(keymsg) == KM_REPEAT)))
+    {
+        // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
+        gglsurface scr;
+        ggl_initscr(&scr);
+        UNIFONT *fnt   = FONT_STATUS;
 
-       // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
-       gglsurface scr;
-       ggl_initscr(&scr);
-       UNIFONT *fnt=FONT_STATUS;
+        // FOR DEBUG ONLY
+        int      width = StringWidth((char *) keyNames[KM_KEY(keymsg)], fnt);
+        int      ytop  = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
+        // CLEAR STATUS AREA AND SHOW KEY THERE
+        ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1, ytop + halScreen.Menu2 - 1, 0);
+        DrawTextBk(LCD_W - width, ytop + halScreen.Menu2 / 2, (char *) keyNames[KM_KEY(keymsg)], fnt, 15, 0, &scr);
+        char *shiftstr;
+        switch (KM_SHIFTPLANE(keymsg))
+        {
+        case SHIFT_LS: shiftstr = "(LS)"; break;
+        case SHIFT_LS | SHIFT_LSHOLD: shiftstr = "(LSH)"; break;
+        case SHIFT_RS: shiftstr = "(RS)"; break;
+        case SHIFT_RS | SHIFT_RSHOLD: shiftstr = "(RSH)"; break;
+        case SHIFT_ALPHA: shiftstr = "(AL)"; break;
+        case SHIFT_ALPHA | SHIFT_ALPHAHOLD: shiftstr = "(ALH)"; break;
+        case SHIFT_ONHOLD: shiftstr = "(ONH)"; break;
+        case SHIFT_ALPHA | SHIFT_LS: shiftstr = "(AL-LS)"; break;
+        case SHIFT_ALPHA | SHIFT_RS: shiftstr = "(AL-RS)"; break;
+        case SHIFT_ALPHA | SHIFT_LSHOLD: shiftstr = "(AL-LSH)"; break;
+        case SHIFT_ALPHA | SHIFT_RSHOLD: shiftstr = "(AL-RSH)"; break;
 
-       // FOR DEBUG ONLY
-       int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);
-       int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-       // CLEAR STATUS AREA AND SHOW KEY THERE
-       ggl_rect(&scr,STATUS_AREA_X,ytop,LCD_W-1,ytop+halScreen.Menu2-1,0);
-       DrawTextBk(LCD_W-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
-       char *shiftstr;
-       switch(KM_SHIFTPLANE(keymsg))
-       {
-       case SHIFT_LS:
-       shiftstr="(LS)";
-       break;
-       case SHIFT_LS|SHIFT_LSHOLD:
-       shiftstr="(LSH)";
-       break;
-       case SHIFT_RS:
-       shiftstr="(RS)";
-       break;
-       case SHIFT_RS|SHIFT_RSHOLD:
-       shiftstr="(RSH)";
-       break;
-       case SHIFT_ALPHA:
-       shiftstr="(AL)";
-       break;
-       case SHIFT_ALPHA|SHIFT_ALPHAHOLD:
-       shiftstr="(ALH)";
-       break;
-       case SHIFT_ONHOLD:
-       shiftstr="(ONH)";
-       break;
-       case SHIFT_ALPHA|SHIFT_LS:
-       shiftstr="(AL-LS)";
-       break;
-       case SHIFT_ALPHA|SHIFT_RS:
-       shiftstr="(AL-RS)";
-       break;
-       case SHIFT_ALPHA|SHIFT_LSHOLD:
-       shiftstr="(AL-LSH)";
-       break;
-       case SHIFT_ALPHA|SHIFT_RSHOLD:
-       shiftstr="(AL-RSH)";
-       break;
+        default: shiftstr = "";
+        }
+        DrawTextBk(LCD_W - width - 32, ytop + halScreen.Menu2 / 2, shiftstr, fnt, 15, 0, &scr);
 
-       default:
-       shiftstr="";
-       }
-       DrawTextBk(LCD_W-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
+        if (KM_MESSAGE(keymsg) == KM_LPRESS)
+            DrawTextBk(LCD_W - width - 42, ytop + halScreen.Menu2 / 2, "L=", fnt, 15, 0, &scr);
+    }
+#  endif // DEBUG
 
-       if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(LCD_W-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
-
-       }
-     */
-#endif /* ! TARGET_PRIME1 */
-    // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     if(wasProcessed < 0)
         return 1;
     else
@@ -8102,27 +7997,14 @@ void halDoDeferredProcess()
 
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
-#ifndef TARGET_PRIME1
-void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD),
-#else /* TARGET_PRIME1 */
-void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
-#endif /* TARGET_PRIME1 */
-        int32_t flags)
+void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), int32_t flags)
 {
-#ifndef TARGET_PRIME1
-    int keymsg = 0, isidle, jobdone;
-#else /* TARGET_PRIME1 */
     WORD keymsg = 0;
     int isidle, jobdone;
-#endif /* TARGET_PRIME1 */
     int64_t offcounter = 0;
 
     gglsurface scr;
-#ifndef TARGET_PRIME1
     ggl_initscr(&scr);
-#else /* TARGET_PRIME1 */
-    ggl_initscr(&scr);
-#endif /* TARGET_PRIME1 */
     jobdone = isidle = 0;
     halTimeoutEvent = -1;
 
@@ -8134,8 +8016,9 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
         if(halFlags & HAL_POWEROFF) {
             halFlags &= ~HAL_POWEROFF;
 #ifndef CONFIG_NO_FSYSTEM
-            if(FSIsInit()) {
-                if(FSCardInserted())
+            if (FSIsInit())
+            {
+                if (FSCardInserted())
                     FSShutdown();
                 else
                     FSShutdownNoCard();
@@ -8179,11 +8062,8 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
         keymsg = halWaitForKeyTimeout(timeoutms);
         timeoutms = 0;
 
-#ifndef TARGET_PRIME1
-        if(keymsg < 0) {
-#else /* TARGET_PRIME1 */
-        if(keymsg == 0xffffffff) {
-#endif /* TARGET_PRIME1 */
+        if (keymsg == 0xffffffff)
+        {
             // TIMED OUT!
             if(halTimeoutEvent >= 0)
                 tmr_eventkill(halTimeoutEvent);
@@ -8192,7 +8072,8 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
             break;      // JUST EXIT THE POL
         }
 
-        if(!keymsg) {
+        if (!keymsg)
+        {
             // SOMETHING OTHER THAN A KEY WOKE UP THE CPU
 
             halDoDeferredProcess();
@@ -8273,7 +8154,6 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int(*doidle)(WORD),
             }
 
             isidle = 1;
-
         }
         else {
             jobdone = isidle = 0;
