@@ -34,7 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "recorder.h"
-#define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=(WORDPTR)Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
+#define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((word_p)ptr)+(len))>=(word_p)Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
 #endif
 
 #ifdef __cplusplus

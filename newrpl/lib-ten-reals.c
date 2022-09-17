@@ -65,10 +65,10 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) one_real,
-    (WORDPTR) one_half_real,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) one_real,
+    (word_p) one_half_real,
     0
 };
 
@@ -122,7 +122,7 @@ void rplint32_tToRReg(int num, int64_t value)
 // EXTRACT A CALCULATOR REAL INTO AN EXISTING REAL STRUCTURE
 // DATA IS **NOT** COPIED
 // DO **NOT** USE THIS FUNCTION WITH RREG REGISTERS
-void rplReadReal(WORDPTR real, REAL * dec)
+void rplReadReal(word_p real, REAL * dec)
 {
     REAL_HEADER *head = (REAL_HEADER *) (real + 1);
     dec->flags = 0;
@@ -133,7 +133,7 @@ void rplReadReal(WORDPTR real, REAL * dec)
 }
 
 // RETURN A REAL NUMBER OBJECT FLAGS WITHOUT READING THE NUMBER
-int32_t rplReadRealFlags(WORDPTR object)
+int32_t rplReadRealFlags(word_p object)
 {
     if(!ISREAL(*object))
         return 0;
@@ -144,7 +144,7 @@ int32_t rplReadRealFlags(WORDPTR object)
 }
 
 // CHECK IF AN OBJECT IS THE NUMBER ZERO
-int32_t rplIsNumberZero(WORDPTR obj)
+int32_t rplIsNumberZero(word_p obj)
 {
     if(ISCONSTANT(*obj))
         obj = rplConstant2Number(obj);
@@ -168,7 +168,7 @@ int32_t rplIsNumberZero(WORDPTR obj)
 }
 
 // EXTRACT A CALCULATOR REAL INTO A RREG REGISTER
-void rplCopyRealToRReg(int num, WORDPTR real)
+void rplCopyRealToRReg(int num, word_p real)
 {
     REAL_HEADER *head = (REAL_HEADER *) (real + 1);
     RReg[num].flags = 0;
@@ -182,21 +182,21 @@ void rplCopyRealToRReg(int num, WORDPTR real)
 // SET THE VALUE TO THE GIVEN RREG
 void rplNewRealFromRRegPush(int num)
 {
-    WORDPTR newreal = rplNewRealFromRReg(num);
+    word_p newreal = rplNewRealFromRReg(num);
     if(newreal)
         rplPushData(newreal);
 }
 
 void rplNewRealPush(REAL * num)
 {
-    WORDPTR newreal = rplNewReal(num);
+    word_p newreal = rplNewReal(num);
     if(newreal)
         rplPushData(newreal);
 }
 
 // STORE A REAL ON THE GIVEN POINTER
 // DOES NOT ALLOCATE MEMORY, USED FOR COMPOSITES
-WORDPTR rplNewRealInPlace(REAL * num, WORDPTR newreal)
+word_p rplNewRealInPlace(REAL * num, word_p newreal)
 {
 
     REAL_HEADER real;
@@ -231,12 +231,12 @@ WORDPTR rplNewRealInPlace(REAL * num, WORDPTR newreal)
 }
 
 // ALLOCATE MEMORY AND STORE A REAL ON IT
-WORDPTR rplNewReal(REAL * num)
+word_p rplNewReal(REAL * num)
 {
 
-    ScratchPointer1 = (WORDPTR) num->data;
+    ScratchPointer1 = (word_p) num->data;
 
-    WORDPTR newreal = rplAllocTempOb(num->len + 1);
+    word_p newreal = rplAllocTempOb(num->len + 1);
     if(!newreal) {
         return 0;
     }
@@ -248,7 +248,7 @@ WORDPTR rplNewReal(REAL * num)
     return newreal;
 }
 
-WORDPTR rplNewRealFromRReg(int num)
+word_p rplNewRealFromRReg(int num)
 {
     return rplNewReal(&RReg[num]);
 }
@@ -257,7 +257,7 @@ WORDPTR rplNewRealFromRReg(int num)
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITE OBJECTS
 
-WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest)
+word_p rplRRegToRealInPlace(int num, word_p dest)
 {
     return rplNewRealInPlace(&RReg[num], dest);
 }
@@ -652,67 +652,67 @@ void LIB_HANDLER()
         case OVR_EQ:
 
             if(eqReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
 
         case OVR_NOTEQ:
             if(!eqReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_LT:
             if(ltReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_GT:
             if(gtReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_LTE:
             if(!gtReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_GTE:
             if(!ltReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_SAME:
             if((Darg1.flags | Darg2.flags) & F_UNDINFINITY) {
                 // HANDLE SPECIALS
                 if((Darg1.flags & (F_NEGATIVE | F_UNDINFINITY)) ==
                         (Darg2.flags & (F_NEGATIVE | F_UNDINFINITY)))
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                 else
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 return;
             }
             if(eqReal(&Darg1, &Darg2))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_AND:
             if(iszeroReal(&Darg1) || iszeroReal(&Darg2))
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         case OVR_OR:
             if(iszeroReal(&Darg1) && iszeroReal(&Darg2))
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         case OVR_CMP:
             if((Darg1.flags | Darg2.flags) & F_NOTANUMBER) {
@@ -768,15 +768,15 @@ void LIB_HANDLER()
             return;
         case OVR_NOT:
             if(iszeroReal(&Darg1))
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_ISTRUE:
             if(iszeroReal(&Darg1))
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
 
             // ADD MORE case's HERE
@@ -813,7 +813,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR strptr = (BYTEPTR) TokenStart;
+        byte_p strptr = (byte_p) TokenStart;
         int32_t isapprox = 0;
         int32_t tlen = TokenLen;
 
@@ -906,14 +906,14 @@ void LIB_HANDLER()
 
         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-        BYTEPTR string;
+        byte_p string;
 
         int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
         // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
-        ScratchPointer1 = (WORDPTR) realnum.data;
-        ScratchPointer2 = (WORDPTR) fmt.SmallLimit.data;
-        ScratchPointer3 = (WORDPTR) fmt.BigLimit.data;
+        ScratchPointer1 = (word_p) realnum.data;
+        ScratchPointer2 = (word_p) fmt.SmallLimit.data;
+        ScratchPointer3 = (word_p) fmt.BigLimit.data;
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0, len);
@@ -923,7 +923,7 @@ void LIB_HANDLER()
         fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
         // NOW USE IT
-        string = (BYTEPTR) DecompStringEnd;
+        string = (byte_p) DecompStringEnd;
         string -= len;
 
         if(Exceptions) {
@@ -931,11 +931,11 @@ void LIB_HANDLER()
             return;
         }
         DecompStringEnd =
-                (WORDPTR) formatReal(&realnum, (char *)string, Format,
+                (word_p) formatReal(&realnum, (char *)string, Format,
                 fmt.Locale);
 
         // TODO: REMOVE THIS BEFORE FINAL RELEASE!
-        if((BYTEPTR) DecompStringEnd - string > len) {
+        if((byte_p) DecompStringEnd - string > len) {
             throw_dbgexception("Bad number length!", EX_CONT);
         }
 
@@ -1025,10 +1025,10 @@ void LIB_HANDLER()
         int32_t mode = MODE_IP;
         WORD num;
         int f, exitfor = 0;
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         for(f = 0; f < (int)TokenLen;
-                ++f, ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)ptr + 4)) {
+                ++f, ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4)) {
             num = utf82cp((char *)ptr, (char *)ptr + 4);
             switch (mode) {
             case MODE_IP:
@@ -1140,7 +1140,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1148,7 +1148,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1193,12 +1193,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

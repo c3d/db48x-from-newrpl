@@ -24,7 +24,7 @@ void uiClearRenderCache()
 }
 
 // ADD AN ENTRY TO THE CACHE
-void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font)
+void uiAddCacheEntry(word_p object, word_p bitmap, UNIFONT const *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -33,13 +33,13 @@ void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font)
 
     halCacheContents[NEXT_ENTRY * 3] = object;
     halCacheContents[NEXT_ENTRY * 3 + 1] = bitmap;
-    halCacheContents[NEXT_ENTRY * 3 + 2] = (WORDPTR) font;
+    halCacheContents[NEXT_ENTRY * 3 + 2] = (word_p) font;
     halCacheEntry = INC_NEXT_ENTRY;
     if(NEXT_ENTRY == 0)
         halCacheEntry |= CACHE_FULL;
 }
 
-void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font)
+void uiUpdateOrAddCacheEntry(word_p object, word_p bitmap, UNIFONT const *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -55,7 +55,7 @@ void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font
     for(k = 0; k < limit; k += 3) {
         if(halCacheContents[k] == object) {
             halCacheContents[k + 1] = bitmap;
-            halCacheContents[k + 2] = (WORDPTR) font;
+            halCacheContents[k + 2] = (word_p) font;
             return;
         }
 
@@ -63,14 +63,14 @@ void uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT const *font
 
     halCacheContents[NEXT_ENTRY * 3] = object;
     halCacheContents[NEXT_ENTRY * 3 + 1] = bitmap;
-    halCacheContents[NEXT_ENTRY * 3 + 2] = (WORDPTR) font;
+    halCacheContents[NEXT_ENTRY * 3 + 2] = (word_p) font;
     halCacheEntry = INC_NEXT_ENTRY;
     if(NEXT_ENTRY == 0)
         halCacheEntry |= CACHE_FULL;
 }
 
 // USE AN ENTRY IN THE CACHE
-WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
+word_p uiFindCacheEntry(word_p object, const UNIFONT *font)
 {
     if(GCFlags & GC_COMPLETED) {
         uiClearRenderCache();
@@ -86,7 +86,7 @@ WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
 
     for(k = 0; k < limit; k += 3) {
         if(halCacheContents[k] == object) {
-            if(halCacheContents[k + 2] == (WORDPTR) font)
+            if(halCacheContents[k + 2] == (word_p) font)
                 return halCacheContents[k + 1];
         }
 
@@ -96,7 +96,7 @@ WORDPTR uiFindCacheEntry(WORDPTR object, const UNIFONT *font)
 
 // ALLOCATE NEW BITMAP OBJECT, THIS IS HARDWARE DEPENDENT AS IT USES THE DEFAULT SCREEN COLOR MODE
 
-WORDPTR uiAllocNewBitmap(int32_t width, int32_t height)
+word_p uiAllocNewBitmap(int32_t width, int32_t height)
 {
 
     int32_t bits = BITS_PER_PIXEL * width * height;
@@ -104,7 +104,7 @@ WORDPTR uiAllocNewBitmap(int32_t width, int32_t height)
     bits += 31;
     bits >>= 5;
 
-    WORDPTR newobj = rplAllocTempOb(bits + 2);
+    word_p newobj = rplAllocTempOb(bits + 2);
     if(!newobj)
         return 0;
     newobj[0] = MKPROLOG(DOBITMAP + DEFAULT_BITMAP_MODE, bits + 2);
@@ -116,11 +116,11 @@ WORDPTR uiAllocNewBitmap(int32_t width, int32_t height)
 
 // RENDER AN OBJECT TO THE GIVEN gglsurface, USE CACHE IF POSSIBLE
 
-void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
+void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
-    WORDPTR bmp = uiRenderObject(object, font);
+    word_p bmp = uiRenderObject(object, font);
     if(bmp) {
         // COPY IT TO DESTINATION
         gglsurface tsurf;
@@ -141,11 +141,11 @@ void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
 
     // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
 
-    WORDPTR string = (WORDPTR) invalid_string;
+    word_p string = (word_p) invalid_string;
 
     // NOW PRINT THE STRING OBJECT
     int32_t nchars = rplStrSize(string);
-    BYTEPTR charptr = (BYTEPTR) (string + 1);
+    byte_p charptr = (byte_p) (string + 1);
 
     DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars, font,
             ggl_mkcolor(PAL_STK_ITEMS), scr);
@@ -154,12 +154,12 @@ void uiDrawObject(WORDPTR object, gglsurface * scr, UNIFONT const *font)
 
 // RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
 
-WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
+word_p uiRenderObject(word_p object, UNIFONT const *font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
 
-    WORDPTR bmp = uiFindCacheEntry(object, font);
+    word_p bmp = uiFindCacheEntry(object, font);
 
     if(bmp)
         return bmp;
@@ -167,16 +167,16 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
     // OBJECT WAS NOT IN CACHE, RENDER IT AND ADD IT TO CACHE
 
     // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
-    WORDPTR string;
+    word_p string;
     string = rplDecompile(object, DECOMP_NOHINTS);
 
     if(!string)
-        string = (WORDPTR) invalid_string;
+        string = (word_p) invalid_string;
 
     // NOW PRINT THE STRING OBJECT
 
     int32_t nchars = rplStrSize(string);
-    BYTEPTR charptr = (BYTEPTR) (string + 1);
+    byte_p charptr = (byte_p) (string + 1);
     int32_t numwidth =
             StringWidthN((char *)charptr, (char *)charptr + nchars, font);
 
@@ -185,12 +185,12 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 
     ScratchPointer1 = string;
 
-    WORDPTR newbmp = uiAllocNewBitmap(numwidth, font->BitmapHeight);
+    word_p newbmp = uiAllocNewBitmap(numwidth, font->BitmapHeight);
     if(newbmp) {
 
         // RELOAD ALL POINTERS IN CASE THERE WAS A GC
         string = ScratchPointer1;
-        charptr = (BYTEPTR) (string + 1);
+        charptr = (byte_p) (string + 1);
 
 
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
@@ -228,7 +228,7 @@ WORDPTR uiRenderObject(WORDPTR object, UNIFONT const *font)
 }
 
 // DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
-void uiDrawBitmap(WORDPTR bmp, gglsurface * scr)
+void uiDrawBitmap(word_p bmp, gglsurface * scr)
 {
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION
@@ -248,11 +248,11 @@ void uiDrawBitmap(WORDPTR bmp, gglsurface * scr)
     else {
         // DRAW DIRECTLY, SOMETHING WE COULDN'T RENDER
 
-        WORDPTR string = (WORDPTR) invalid_string;
+        word_p string = (word_p) invalid_string;
 
         // NOW PRINT THE STRING OBJECT
         int32_t nchars = rplStrSize(string);
-        BYTEPTR charptr = (BYTEPTR) (string + 1);
+        byte_p charptr = (byte_p) (string + 1);
 
         DrawTextN(scr->x, scr->y, (char *)charptr, (char *)charptr + nchars,
                   FONT_STACK, ggl_mkcolor(PAL_STK_ITEMS), scr);

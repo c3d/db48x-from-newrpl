@@ -26,7 +26,7 @@ void rplCompileAppend(WORD word)
 }
 
 // INSERT A WORD IN THE MIDDLE OF THE COMPILED STREAM
-void rplCompileInsert(WORDPTR position, WORD word)
+void rplCompileInsert(word_p position, WORD word)
 {
     memmovew(position + 1, position, CompileEnd - position);
     *position = word;
@@ -50,7 +50,7 @@ void rplCompileRemoveWords(int32_t nwords)
 // RETURNS A POINTER TO THE AREA OF MEMORY WHERE THE
 // CALLER WILL HAVE TO STORE THE WORDS
 
-WORDPTR rplCompileAppendWords(int32_t nwords)
+word_p rplCompileAppendWords(int32_t nwords)
 {
     CompileEnd += nwords;
     // ADJUST MEMORY AS NEEDED
@@ -64,9 +64,9 @@ WORDPTR rplCompileAppendWords(int32_t nwords)
 
 // REVERSE-SKIP AN OBJECT, FROM A POINTER TO AFTER THE OBJECT TO SKIP
 // NO ARGUMENT CHECKS, DO NOT CALL UNLESS THERE'S A VALID OBJECT LIST
-WORDPTR rplReverseSkipOb(WORDPTR list_start, WORDPTR after_object)
+word_p rplReverseSkipOb(word_p list_start, word_p after_object)
 {
-    WORDPTR next;
+    word_p next;
     while((next = rplSkipOb(list_start)) < after_object)
         list_start = next;
     if(next > after_object)
@@ -80,7 +80,7 @@ WORDPTR rplReverseSkipOb(WORDPTR list_start, WORDPTR after_object)
 int32_t rplRotArgs(int32_t nargs)
 {
 
-    WORDPTR ptr = CompileEnd, symbstart = *(ValidateTop - 1) + 1;
+    word_p ptr = CompileEnd, symbstart = *(ValidateTop - 1) + 1;
 
     //FIND THE START OF THE 'N' ARGUMENTS
     for(; (nargs > 0) && ptr; --nargs) {
@@ -125,7 +125,7 @@ static int32_t rplInfixApply(WORD opcode, int32_t nargs)
     // ARGn OBJECT
     // END OF SYMBOLIC OBJECT
 
-    WORDPTR ptr = CompileEnd, symbstart = *(ValidateTop - 1) + 1;
+    word_p ptr = CompileEnd, symbstart = *(ValidateTop - 1) + 1;
 
     //FIND THE START OF THE 'N' ARGUMENTS
     for(; (nargs > 0) && ptr; --nargs) {
@@ -159,7 +159,7 @@ static int32_t rplInfixApply(WORD opcode, int32_t nargs)
 // IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
 // (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
 
-WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
+word_p rplCompile(byte_p string, int32_t length, int32_t addwrapper)
 {
     // COMPILATION USES TEMPOB
     CompileEnd = TempObEnd;
@@ -169,7 +169,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
     int32_t probe_libnum = 0, probe_tokeninfo = 0, previous_tokeninfo;
     LIBHANDLER handler, ValidateHandler;
     int32_t libcnt, libnum;
-    WORDPTR InfixOpTop = 0;
+    word_p InfixOpTop = 0;
 
     LAMTopSaved = LAMTop;       // SAVE LAM ENVIRONMENT
 
@@ -181,8 +181,8 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
     infixmode = 0;
     previous_tokeninfo = 0;
 
-    NextTokenStart = (WORDPTR) string;
-    CompileStringEnd = (WORDPTR) (string + length);
+    NextTokenStart = (word_p) string;
+    CompileStringEnd = (word_p) (string + length);
 
     if(addwrapper) {
         rplCompileAppend(MKPROLOG(DOCOL, 0));
@@ -197,11 +197,11 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
     // FIND THE START OF NEXT TOKEN
     while((NextTokenStart < CompileStringEnd)
-            && ((*((BYTEPTR) NextTokenStart) == ' ')
-                || (*((BYTEPTR) NextTokenStart) == '\t')
-                || (*((BYTEPTR) NextTokenStart) == '\n')
-                || (*((BYTEPTR) NextTokenStart) == '\r')))
-        NextTokenStart = (WORDPTR) (((BYTEPTR) NextTokenStart) + 1);
+            && ((*((byte_p) NextTokenStart) == ' ')
+                || (*((byte_p) NextTokenStart) == '\t')
+                || (*((byte_p) NextTokenStart) == '\n')
+                || (*((byte_p) NextTokenStart) == '\r')))
+        NextTokenStart = (word_p) (((byte_p) NextTokenStart) + 1);
 
     do {
         if(!splittoken) {
@@ -212,20 +212,20 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                     && (*((char *)BlankStart) != '\t')
                     && (*((char *)BlankStart) != '\n')
                     && (*((char *)BlankStart) != '\r'))
-                BlankStart = (WORDPTR) (((char *)BlankStart) + 1);
+                BlankStart = (word_p) (((char *)BlankStart) + 1);
             NextTokenStart = BlankStart;
             while((NextTokenStart < CompileStringEnd)
                     && ((*((char *)NextTokenStart) == ' ')
                         || (*((char *)NextTokenStart) == '\t')
                         || (*((char *)NextTokenStart) == '\n')
                         || (*((char *)NextTokenStart) == '\r')))
-                NextTokenStart = (WORDPTR) (((char *)NextTokenStart) + 1);
+                NextTokenStart = (word_p) (((char *)NextTokenStart) + 1);
         }
         else
             splittoken = 0;
 
         TokenLen = (int32_t) utf8nlen((char *)TokenStart, (char *)BlankStart);
-        BlankLen = (int32_t) ((BYTEPTR) NextTokenStart - (BYTEPTR) BlankStart);
+        BlankLen = (int32_t) ((byte_p) NextTokenStart - (byte_p) BlankStart);
         CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
         ValidateHandler = rplGetLibHandler(LIBNUM(CurrentConstruct));
         LastCompiledObject = CompileEnd;
@@ -268,11 +268,11 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                     CurOpcode = MKOPCODE(libnum, OPCODE_COMPILE);
             }
             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-            WORDPTR *tmpRSTop = RSTop;
+            word_p *tmpRSTop = RSTop;
             if(infixmode)
-                RSTop = (WORDPTR *) InfixOpTop;
+                RSTop = (word_p *) InfixOpTop;
             else
-                RSTop = (WORDPTR *) ValidateTop;
+                RSTop = (word_p *) ValidateTop;
             (*handler) ();
             RSTop = tmpRSTop;
 
@@ -391,7 +391,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                     *ValidateTop++ = CompileEnd - 1;    // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     infixmode = 1;
                     previous_tokeninfo = 0;
-                    InfixOpTop = (WORDPTR) ValidateTop;
+                    InfixOpTop = (word_p) ValidateTop;
                     probe_libnum = -1;
                     probe_tokeninfo = 0;
                     libcnt = EXIT_LOOP;
@@ -405,7 +405,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
                     if(infixmode) {
                         // FLUSH OUT ANY OPERATORS IN THE STACK
-                        while(InfixOpTop > (WORDPTR) ValidateTop) {
+                        while(InfixOpTop > (word_p) ValidateTop) {
                             InfixOpTop -= 2;
                             if(TI_TYPE(InfixOpTop[1]) == TITYPE_OPENBRACKET) {
                                 // MISSING BRACKET SOMEWHERE!
@@ -501,7 +501,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                     CurOpcode = MKOPCODE(probe_libnum, OPCODE_COMPILE);
 
                     NextTokenStart = BlankStart =
-                            (WORDPTR) utf8nskip((char *)TokenStart,
+                            (word_p) utf8nskip((char *)TokenStart,
                             (char *)BlankStart, TI_LENGTH(probe_tokeninfo));
                     while((NextTokenStart < CompileStringEnd)
                             && ((*((char *)NextTokenStart) == ' ')
@@ -509,21 +509,21 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                                 || (*((char *)NextTokenStart) == '\n')
                                 || (*((char *)NextTokenStart) == '\r')))
                         NextTokenStart =
-                                (WORDPTR) (((char *)NextTokenStart) + 1);
+                                (word_p) (((char *)NextTokenStart) + 1);
                     TokenLen =
                             (int32_t) utf8nlen((char *)TokenStart,
                             (char *)BlankStart);
                     BlankLen =
-                            (int32_t) ((BYTEPTR) NextTokenStart -
-                            (BYTEPTR) BlankStart);
+                            (int32_t) ((byte_p) NextTokenStart -
+                            (byte_p) BlankStart);
                     CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);       // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject = CompileEnd;
 
                     RetNum = -1;
                     if(handler) {
                         // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                        WORDPTR *tmpRSTop = RSTop;
-                        RSTop = (WORDPTR *) InfixOpTop;
+                        word_p *tmpRSTop = RSTop;
+                        RSTop = (word_p *) InfixOpTop;
                         (*handler) ();
                         RSTop = tmpRSTop;
 
@@ -546,7 +546,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                     // UNITAPPLY (_[)
 
                     {
-                        WORDPTR NextObject = LastCompiledObject;
+                        word_p NextObject = LastCompiledObject;
                         while(rplSkipOb(NextObject) < CompileEnd)
                             NextObject = rplSkipOb(NextObject);
 
@@ -620,8 +620,8 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                                 // THIS IS A PARENTHESIS FOLLOWING AN OPERATOR
                                 // PUSH THE NEW OPERATOR
                                 if(RStkSize <=
-                                        (InfixOpTop + 3 - (WORDPTR) RStk))
-                                    growRStk(InfixOpTop - (WORDPTR) RStk +
+                                        (InfixOpTop + 3 - (word_p) RStk))
+                                    growRStk(InfixOpTop - (word_p) RStk +
                                             RSTKSLACK);
                                 if(Exceptions) {
                                     LAMTop = LAMTopSaved;
@@ -638,8 +638,8 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
                                 // PUSH OPERATOR FUNCEVAL FIRST
                                 if(RStkSize <=
-                                        (InfixOpTop + 5 - (WORDPTR) RStk))
-                                    growRStk(InfixOpTop - (WORDPTR) RStk +
+                                        (InfixOpTop + 5 - (word_p) RStk))
+                                    growRStk(InfixOpTop - (word_p) RStk +
                                             RSTKSLACK);
                                 if(Exceptions) {
                                     LAMTop = LAMTopSaved;
@@ -668,7 +668,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                                         TITYPE_COMMA)) {
                                 // POP ALL OPERATORS OFF THE STACK UNTIL THE OPENING BRACKET IS FOUND
 
-                                while(InfixOpTop > (WORDPTR) ValidateTop) {
+                                while(InfixOpTop > (word_p) ValidateTop) {
                                     if((TI_TYPE(*(InfixOpTop - 1)) ==
                                                 TITYPE_OPENBRACKET)) {
                                         // CHECK IF THE BRACKET IS THE RIGHT TYPE OF BRACKET
@@ -695,7 +695,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                                     }
                                 }
 
-                                if(InfixOpTop <= (WORDPTR) ValidateTop) {
+                                if(InfixOpTop <= (word_p) ValidateTop) {
                                     // OPENING BRACKET NOT FOUND, SYNTAX ERROR
                                     rplError(ERR_MISSINGBRACKET);
                                     LAMTop = LAMTopSaved;
@@ -710,15 +710,15 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
                                     int32_t nargs = 0;
                                     WORD brackettype = InfixOpTop[2];   // OPCODE WITH BRACKET TYPE TO DISTINGUISH BRACKETS
-                                    WORDPTR list = TempObEnd + InfixOpTop[0];
-                                    WORDPTR ptr = CompileEnd;
+                                    word_p list = TempObEnd + InfixOpTop[0];
+                                    word_p ptr = CompileEnd;
 
                                     while((ptr = rplReverseSkipOb(list,
                                                     ptr)) != NULL)
                                         ++nargs;
 
                                     // CHECK IF THE TOP OF STACK IS A FUNCTION
-                                    if((InfixOpTop > (WORDPTR) ValidateTop)
+                                    if((InfixOpTop > (word_p) ValidateTop)
                                             && ((TI_TYPE(*(InfixOpTop - 1)) ==
                                                     TITYPE_FUNCTION)
                                                 || (TI_TYPE(*(InfixOpTop -
@@ -780,7 +780,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
                                     // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
 
-                                    while(InfixOpTop > (WORDPTR) ValidateTop) {
+                                    while(InfixOpTop > (word_p) ValidateTop) {
                                         if((int32_t) TI_PRECEDENCE(*(InfixOpTop -
                                                         1)) <
                                                 TI_PRECEDENCE(probe_tokeninfo))
@@ -826,8 +826,8 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
                                 }
                                 // PUSH THE NEW OPERATOR
                                 if(RStkSize <=
-                                        (InfixOpTop + 1 - (WORDPTR) RStk))
-                                    growRStk(InfixOpTop - (WORDPTR) RStk +
+                                        (InfixOpTop + 1 - (word_p) RStk))
+                                    growRStk(InfixOpTop - (word_p) RStk +
                                             RSTKSLACK);
                                 if(Exceptions) {
                                     LAMTop = LAMTopSaved;
@@ -953,7 +953,7 @@ WORDPTR rplCompile(BYTEPTR string, int32_t length, int32_t addwrapper)
 
         // STORE BLOCK SIZE
         rplAddTempBlock(TempObEnd);
-        WORDPTR newobject = TempObEnd;
+        word_p newobject = TempObEnd;
         TempObEnd = CompileEnd;
         return newobject;
     }
@@ -983,16 +983,16 @@ enum
 void rplDecompAppendChar(BYTE c)
 {
 
-    *((BYTEPTR) DecompStringEnd) = c;
-    DecompStringEnd = (WORDPTR) (((BYTEPTR) DecompStringEnd) + 1);
+    *((byte_p) DecompStringEnd) = c;
+    DecompStringEnd = (word_p) (((byte_p) DecompStringEnd) + 1);
 
     if(!(((intptr_t) DecompStringEnd) & 3)) {
-        if(((WORDPTR) ((((intptr_t) DecompStringEnd) +
+        if(((word_p) ((((intptr_t) DecompStringEnd) +
                             3) & ~((intptr_t) 3))) + TEMPOBSLACK >=
                 TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((((((BYTEPTR) DecompStringEnd) + 3 -
-                                (BYTEPTR) TempOb)) >> 2) + TEMPOBSLACK);
+            growTempOb((((((byte_p) DecompStringEnd) + 3 -
+                                (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
         }
     }
 
@@ -1001,64 +1001,64 @@ void rplDecompAppendChar(BYTE c)
 void rplDecompAppendUTF8(WORD utf8bytes)
 {
     while(utf8bytes) {
-        *((BYTEPTR) DecompStringEnd) = utf8bytes & 0xff;
-        DecompStringEnd = (WORDPTR) (((BYTEPTR) DecompStringEnd) + 1);
+        *((byte_p) DecompStringEnd) = utf8bytes & 0xff;
+        DecompStringEnd = (word_p) (((byte_p) DecompStringEnd) + 1);
         utf8bytes >>= 8;
     }
 
     if(!(((intptr_t) DecompStringEnd) & 3)) {
-        if(((WORDPTR) ((((intptr_t) DecompStringEnd) +
+        if(((word_p) ((((intptr_t) DecompStringEnd) +
                             3) & ~((intptr_t) 3))) + TEMPOBSLACK >=
                 TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((((((BYTEPTR) DecompStringEnd) + 3 -
-                                (BYTEPTR) TempOb)) >> 2) + TEMPOBSLACK);
+            growTempOb((((((byte_p) DecompStringEnd) + 3 -
+                                (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
         }
     }
 
 }
 
-void rplDecompAppendString(BYTEPTR str)
+void rplDecompAppendString(byte_p str)
 {
     int32_t len = stringlen((char *)str);
 
-    if(((WORDPTR) ((((intptr_t) DecompStringEnd) + len +
+    if(((word_p) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {
 
-        rplPushDataNoGrow((WORDPTR) str);
+        rplPushDataNoGrow((word_p) str);
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((((((BYTEPTR) DecompStringEnd) + len + 3 -
-                            (BYTEPTR) TempOb)) >> 2) + TEMPOBSLACK);
-        str = (BYTEPTR) rplPopData();
+        growTempOb((((((byte_p) DecompStringEnd) + len + 3 -
+                            (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
+        str = (byte_p) rplPopData();
         // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
         if(Exceptions & EX_OUTOFMEM)
             return;
     }
 
-    BYTEPTR ptr = (BYTEPTR) DecompStringEnd;
+    byte_p ptr = (byte_p) DecompStringEnd;
 
     while(*str != 0) {
         *ptr = *str;
         ++ptr;
         ++str;
     }
-    DecompStringEnd = (WORDPTR) ptr;
+    DecompStringEnd = (word_p) ptr;
 }
 
 // APPEND A STRING OF A GIVEN LENGTH
 // IF PASSED POINTER IS NULL, MEMORY IS RESERVED BUT NOTHING IS COPIED
 
-void rplDecompAppendString2(BYTEPTR str, int32_t len)
+void rplDecompAppendString2(byte_p str, int32_t len)
 {
-    if(((WORDPTR) ((((intptr_t) DecompStringEnd) + len +
+    if(((word_p) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {
         if(str)
-            rplPushDataNoGrow((WORDPTR) str);
+            rplPushDataNoGrow((word_p) str);
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((((((BYTEPTR) DecompStringEnd) + len + 3 -
-                            (BYTEPTR) TempOb)) >> 2) + TEMPOBSLACK);
+        growTempOb((((((byte_p) DecompStringEnd) + len + 3 -
+                            (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
         if(str)
-            str = (BYTEPTR) rplPopData();
+            str = (byte_p) rplPopData();
 
         // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
         if(Exceptions & EX_OUTOFMEM)
@@ -1068,7 +1068,7 @@ void rplDecompAppendString2(BYTEPTR str, int32_t len)
 
     if(str) {
 
-        BYTEPTR ptr = (BYTEPTR) DecompStringEnd;
+        byte_p ptr = (byte_p) DecompStringEnd;
 
         while(len) {
             *ptr = *str;
@@ -1077,13 +1077,13 @@ void rplDecompAppendString2(BYTEPTR str, int32_t len)
             --len;
         }
 
-        DecompStringEnd = (WORDPTR) ptr;
+        DecompStringEnd = (word_p) ptr;
 
     }
     else {
-        BYTEPTR ptr = (BYTEPTR) DecompStringEnd;
+        byte_p ptr = (byte_p) DecompStringEnd;
         ptr += len;
-        DecompStringEnd = (WORDPTR) ptr;
+        DecompStringEnd = (word_p) ptr;
     }
 }
 
@@ -1091,13 +1091,13 @@ void rplDecompAppendString2(BYTEPTR str, int32_t len)
 // RETURNS A NEW STRING OBJECT IN TEMPOB
 #define SAVED_POINTERS  4
 
-WORDPTR rplDecompile(WORDPTR object, int32_t flags)
+word_p rplDecompile(word_p object, int32_t flags)
 {
     LIBHANDLER han;
     int32_t infixmode = 0, indent = 0, lastnewline = 0, lastnloffset = 0, maxwidth;
     uint32_t savecstruct = 0, savedecompmode = 0, dhints, savedhints = 0;
     int32_t validtop = 0, validbottom = 0;
-    WORDPTR *SavedRSTop = 0;
+    word_p *SavedRSTop = 0;
     if(flags & DECOMP_EMBEDDED) {
         SavedRSTop = RSTop;
         savecstruct = CurrentConstruct;
@@ -1110,7 +1110,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         // SAVE ALL DECOMPILER POINTERS
         *RSTop++ = DecompileObject;
         *RSTop++ = EndOfObject;
-        *RSTop++ = (WORDPTR) LAMTopSaved;
+        *RSTop++ = (word_p) LAMTopSaved;
         *RSTop++ = SavedDecompObject;
 
         // STORE POINTER BEFORE POSSIBLY TRIGGERING A GC
@@ -1134,7 +1134,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         flags |= DECOMP_MAXWIDTH(DEFAULT_DECOMP_WIDTH);
     }
 
-    WORDPTR InfixOpTop = (WORDPTR) RSTop;
+    word_p InfixOpTop = (word_p) RSTop;
 
     // START DECOMPILE LOOP
     // CREATE A STRING AT THE END OF TEMPOB
@@ -1168,11 +1168,11 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         }
         else {
             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-            WORDPTR *tmpRSTop = RSTop;
+            word_p *tmpRSTop = RSTop;
             if(infixmode)
-                RSTop = (WORDPTR *) InfixOpTop;
+                RSTop = (word_p *) InfixOpTop;
             else
-                RSTop = (WORDPTR *) ValidateTop;
+                RSTop = (word_p *) ValidateTop;
             (*han) ();
             RSTop = tmpRSTop;
         }
@@ -1191,9 +1191,9 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
            // BACKTRACK THE TEXT TO FIND THE START OF LINE AND COUNT THE NUMBER OF CHARACTERS
 
-           BYTEPTR dstring=(BYTEPTR)CompileEnd;
-           BYTEPTR end=(BYTEPTR)DecompStringEnd;
-           BYTEPTR ptr=end-1;
+           byte_p dstring=(byte_p)CompileEnd;
+           byte_p end=(byte_p)DecompStringEnd;
+           byte_p ptr=end-1;
            while( (ptr>dstring)&&(*ptr!='\n')) --ptr;
 
            if(*ptr=='\n') ++ptr;
@@ -1218,7 +1218,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     // WE NEED TO REDUCE THE INDENT
                     if(indent >= 2)
                         DecompStringEnd =
-                                (WORDPTR) (((BYTEPTR) DecompStringEnd) - 2);
+                                (word_p) (((byte_p) DecompStringEnd) - 2);
                     indent -= 2;
 
                 }
@@ -1254,11 +1254,11 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         }
         else {
             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-            WORDPTR *tmpRSTop = RSTop;
+            word_p *tmpRSTop = RSTop;
             if(infixmode)
-                RSTop = (WORDPTR *) InfixOpTop;
+                RSTop = (word_p *) InfixOpTop;
             else
-                RSTop = (WORDPTR *) ValidateTop;
+                RSTop = (word_p *) ValidateTop;
             DecompHints = SET_INDENT(dhints, indent);
             (*han) ();
             indent = GET_INDENT(DecompHints);
@@ -1279,7 +1279,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject = *--RSTop;
-                    LAMTopSaved = (WORDPTR *) * --RSTop;
+                    LAMTopSaved = (word_p *) * --RSTop;
                     EndOfObject = *--RSTop;
                     DecompileObject = *--RSTop;
                     CurrentConstruct = savecstruct;
@@ -1303,7 +1303,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject = *--RSTop;
-                    LAMTopSaved = (WORDPTR *) * --RSTop;
+                    LAMTopSaved = (word_p *) * --RSTop;
                     EndOfObject = *--RSTop;
                     DecompileObject = *--RSTop;
                     CurrentConstruct = savecstruct;
@@ -1327,7 +1327,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject = *--RSTop;
-                    LAMTopSaved = (WORDPTR *) * --RSTop;
+                    LAMTopSaved = (word_p *) * --RSTop;
                     EndOfObject = *--RSTop;
                     DecompileObject = *--RSTop;
                     CurrentConstruct = savecstruct;
@@ -1346,15 +1346,15 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         case OK_STARTCONSTRUCT_INFIX:
             // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
             if(!infixmode)
-                InfixOpTop = (WORDPTR) ValidateTop;
-            if(RStkSize <= (InfixOpTop + 1 - (WORDPTR) RStk))
-                growRStk(InfixOpTop - (WORDPTR) RStk + RSTKSLACK);
+                InfixOpTop = (word_p) ValidateTop;
+            if(RStkSize <= (InfixOpTop + 1 - (word_p) RStk))
+                growRStk(InfixOpTop - (word_p) RStk + RSTKSLACK);
             if(Exceptions) {
                 LAMTop = LAMTopSaved;
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject = *--RSTop;
-                    LAMTopSaved = (WORDPTR *) * --RSTop;
+                    LAMTopSaved = (word_p *) * --RSTop;
                     EndOfObject = *--RSTop;
                     DecompileObject = *--RSTop;
                     CurrentConstruct = savecstruct;
@@ -1378,7 +1378,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 infixmode = INFIX_STARTSYMBOLIC;
             break;
         default:
-            rplDecompAppendString((BYTEPTR) "INVALID_COMMAND");
+            rplDecompAppendString((byte_p) "INVALID_COMMAND");
             ++DecompileObject;
             break;
         }
@@ -1411,8 +1411,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     DecompMode = infixmode | (flags << 16);
 
                     // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                    WORDPTR *tmpRSTop = RSTop;
-                    RSTop = (WORDPTR *) InfixOpTop;
+                    word_p *tmpRSTop = RSTop;
+                    RSTop = (word_p *) InfixOpTop;
                     (*handler) ();
                     RSTop = tmpRSTop;
                 }
@@ -1422,14 +1422,14 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
                 if(TI_TYPE(RetNum) >= TITYPE_OPERATORS) {
                     // PUSH THE OPERATOR ON THE STACK
-                    if(RStkSize <= (InfixOpTop + 1 - (WORDPTR) RStk))
-                        growRStk(InfixOpTop - (WORDPTR) RStk + RSTKSLACK);
+                    if(RStkSize <= (InfixOpTop + 1 - (word_p) RStk))
+                        growRStk(InfixOpTop - (word_p) RStk + RSTKSLACK);
                     if(Exceptions) {
                         LAMTop = LAMTopSaved;
                         if(flags & DECOMP_EMBEDDED) {
                             // RESTORE ALL POINTERS BEFORE RETURNING
                             SavedDecompObject = *--RSTop;
-                            LAMTopSaved = (WORDPTR *) * --RSTop;
+                            LAMTopSaved = (word_p *) * --RSTop;
                             EndOfObject = *--RSTop;
                             DecompileObject = *--RSTop;
                             CurrentConstruct = savecstruct;
@@ -1446,7 +1446,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     InfixOpTop += 2;
 
                     // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-                    if((InfixOpTop - 6) >= (WORDPTR) ValidateTop) {
+                    if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                         // THERE'S AN OPERATOR IN THE STACK
                         if(ISPROLOG(*(InfixOpTop - 6))) {
                             // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1520,8 +1520,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                                 OPCODE_DECOMPILE);
                         {
                             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                            WORDPTR *tmpRSTop = RSTop;
-                            RSTop = (WORDPTR *) InfixOpTop;
+                            word_p *tmpRSTop = RSTop;
+                            RSTop = (word_p *) InfixOpTop;
                             DecompMode = infixmode | (flags << 16);
 
                             (*handler) ();
@@ -1529,7 +1529,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((BYTEPTR) "##INVALID##");
+                            rplDecompAppendString((byte_p) "##INVALID##");
 
                             /*
                                rplError(ERR_INVALIDOPERATORINSYMBOLIC);
@@ -1537,7 +1537,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                                if(flags&DECOMP_EMBEDDED) {
                                // RESTORE ALL POINTERS BEFORE RETURNING
                                SavedDecompObject=*--RSTop;
-                               LAMTopSaved=(WORDPTR *)*--RSTop;
+                               LAMTopSaved=(word_p *)*--RSTop;
                                EndOfObject=*--RSTop;
                                DecompileObject=*--RSTop;
                                RSTop=SavedRSTop;
@@ -1553,11 +1553,11 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     case TITYPE_CUSTOMFUNC:
                     {
                         // DECOMPILE THE FUNCTION NAME NOW, THEN ADD PARENTHESIS FOR THE LIST
-                        WORDPTR argList = DecompileObject + 1;
-                        WORDPTR EndofExpression =
+                        word_p argList = DecompileObject + 1;
+                        word_p EndofExpression =
                                 rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                                 EndOfObject);
-                        WORDPTR firstobj = argList;
+                        word_p firstobj = argList;
                         // FIND THE LAST ARGUMENT
                         while(rplSkipOb(argList) < EndofExpression)
                             argList = rplSkipOb(argList);
@@ -1575,8 +1575,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                         RetNum = -1;
                         if(handler) {
                             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                            WORDPTR *tmpRSTop = RSTop;
-                            RSTop = (WORDPTR *) InfixOpTop;
+                            word_p *tmpRSTop = RSTop;
+                            RSTop = (word_p *) InfixOpTop;
 
                             (*handler) ();
                             RSTop = tmpRSTop;
@@ -1584,7 +1584,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                         DecompileObject = rplPopRet();  // RESTORE THE NEXT OBJECT
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((BYTEPTR) "##INVALID##");
+                            rplDecompAppendString((byte_p) "##INVALID##");
                         }
                         rplDecompAppendChar('(');
                         ++DecompileObject;
@@ -1624,15 +1624,15 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                         RetNum = -1;
                         if(handler) {
                             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                            WORDPTR *tmpRSTop = RSTop;
-                            RSTop = (WORDPTR *) InfixOpTop;
+                            word_p *tmpRSTop = RSTop;
+                            RSTop = (word_p *) InfixOpTop;
 
                             (*handler) ();
                             RSTop = tmpRSTop;
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((BYTEPTR) "##INVALID##");
+                            rplDecompAppendString((byte_p) "##INVALID##");
                         }
 
                         ++DecompileObject;
@@ -1654,21 +1654,21 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                         RetNum = -1;
                         if(handler) {
                             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                            WORDPTR *tmpRSTop = RSTop;
-                            RSTop = (WORDPTR *) InfixOpTop;
+                            word_p *tmpRSTop = RSTop;
+                            RSTop = (word_p *) InfixOpTop;
 
                             (*handler) ();
                             RSTop = tmpRSTop;
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((BYTEPTR) "##INVALID##");
+                            rplDecompAppendString((byte_p) "##INVALID##");
                         }
                         rplDecompAppendChar('(');
                         ++DecompileObject;
 
                         // CHECK IF THIS IS THE LAST ARGUMENT
-                        WORDPTR EndofExpression =
+                        word_p EndofExpression =
                                 rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                                 EndOfObject);
 
@@ -1762,8 +1762,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
                     if(handler) {
                         // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                        WORDPTR *tmpRSTop = RSTop;
-                        RSTop = (WORDPTR *) InfixOpTop;
+                        word_p *tmpRSTop = RSTop;
+                        RSTop = (word_p *) InfixOpTop;
                         (*handler) ();
                         RSTop = tmpRSTop;
 
@@ -1772,13 +1772,13 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     DecompileObject = SavedDecompObject;
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum != OK_CONTINUE) {
-                        rplDecompAppendString((BYTEPTR) "##INVALID##");
+                        rplDecompAppendString((byte_p) "##INVALID##");
                     }
                 }
 
                 // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
-                WORDPTR afternext = rplSkipOb(DecompileObject);
-                WORDPTR EndofExpression =
+                word_p afternext = rplSkipOb(DecompileObject);
+                word_p EndofExpression =
                         rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                         EndOfObject);
 
@@ -1846,8 +1846,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
                     if(handler) {
                         // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                        WORDPTR *tmpRSTop = RSTop;
-                        RSTop = (WORDPTR *) InfixOpTop;
+                        word_p *tmpRSTop = RSTop;
+                        RSTop = (word_p *) InfixOpTop;
                         (*handler) ();
                         RSTop = tmpRSTop;
                     }
@@ -1855,7 +1855,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                     DecompileObject = SavedDecompObject;
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum != OK_CONTINUE) {
-                        rplDecompAppendString((BYTEPTR) "##INVALID##");
+                        rplDecompAppendString((byte_p) "##INVALID##");
                     }
                 }
 
@@ -1887,8 +1887,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                  */
 
                 // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
-                WORDPTR afternext = rplSkipOb(DecompileObject);
-                WORDPTR EndofExpression =
+                word_p afternext = rplSkipOb(DecompileObject);
+                word_p EndofExpression =
                         rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                         EndOfObject);
 
@@ -1909,7 +1909,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 // WE KNOW THIS IS THE LAST ARGUMENT
                 // POP EXPRESSION FROM THE STACK
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-                if((InfixOpTop - 6) >= (WORDPTR) ValidateTop) {
+                if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                     // THERE'S AN OPERATOR IN THE STACK
                     if(ISPROLOG(*(InfixOpTop - 6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1984,8 +1984,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
                 if(handler) {
                     // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                    WORDPTR *tmpRSTop = RSTop;
-                    RSTop = (WORDPTR *) InfixOpTop;
+                    word_p *tmpRSTop = RSTop;
+                    RSTop = (word_p *) InfixOpTop;
                     (*handler) ();
                     RSTop = tmpRSTop;
                 }
@@ -1993,11 +1993,11 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 DecompileObject = SavedDecompObject;
                 // IGNORE THE RESULT OF DECOMPILATION
                 if(RetNum != OK_CONTINUE) {
-                    rplDecompAppendString((BYTEPTR) "##INVALID##");
+                    rplDecompAppendString((byte_p) "##INVALID##");
                 }
 
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-                if((InfixOpTop - 6) >= (WORDPTR) ValidateTop) {
+                if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                     // THERE'S AN OPERATOR IN THE STACK
                     if(ISPROLOG(*(InfixOpTop - 6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -2038,7 +2038,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
             case INFIX_CUSTOMFUNCARG:
             {
                 // CHECK IF THIS IS THE LAST ARGUMENT
-                WORDPTR EndofExpression =
+                word_p EndofExpression =
                         rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                         EndOfObject);
 
@@ -2070,7 +2070,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
             case INFIX_FUNCARGUMENT:
             {
                 // CHECK IF THIS IS THE LAST ARGUMENT
-                WORDPTR EndofExpression =
+                word_p EndofExpression =
                         rplSkipOb(*(signed int *)(InfixOpTop - 4) +
                         EndOfObject);
 
@@ -2094,15 +2094,15 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
                         if(handler) {
                             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
-                            WORDPTR *tmpRSTop = RSTop;
-                            RSTop = (WORDPTR *) InfixOpTop;
+                            word_p *tmpRSTop = RSTop;
+                            RSTop = (word_p *) InfixOpTop;
                             (*handler) ();
                             RSTop = tmpRSTop;
                         }
 
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((BYTEPTR) "##INVALID##");
+                            rplDecompAppendString((byte_p) "##INVALID##");
                         }
                     }
                     else
@@ -2133,7 +2133,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
             case INFIX_ATOMIC:
             {
                 // CHECK IF THIS IS THE LAST ARGUMENT
-                WORDPTR EndofExpression =
+                word_p EndofExpression =
                         rplSkipOb(*(signed int *)(InfixOpTop - 2) +
                         EndOfObject);
 
@@ -2168,8 +2168,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
             // UPDATE LAST NEWLINE
 
-            BYTEPTR start = (((BYTEPTR) CompileEnd) + lastnloffset), ptr =
-                    (BYTEPTR) DecompStringEnd;
+            byte_p start = (((byte_p) CompileEnd) + lastnloffset), ptr =
+                    (byte_p) DecompStringEnd;
 
             if(!(flags & DECOMP_NOHINTS)) {
                 do {
@@ -2179,7 +2179,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 }
                 while(ptr > start);
 
-                lastnloffset = ptr - ((BYTEPTR) CompileEnd);
+                lastnloffset = ptr - ((byte_p) CompileEnd);
                 if(*ptr == '\n')
                     ++lastnloffset;
             }
@@ -2187,7 +2187,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 lastnloffset = 0;
 
             // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
-            if(((BYTEPTR) DecompStringEnd) - (((BYTEPTR) CompileEnd) +
+            if(((byte_p) DecompStringEnd) - (((byte_p) CompileEnd) +
                         lastnloffset) > maxwidth)
                 dhints |= HINT_NLAFTER;
 
@@ -2220,8 +2220,8 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
 
     // REMOVE END NEWLINE AND INDENT IF PRESENT
     if(lastnewline && !Exceptions) {
-        BYTEPTR start = (((BYTEPTR) CompileEnd) + lastnloffset), ptr =
-                (BYTEPTR) DecompStringEnd;
+        byte_p start = (((byte_p) CompileEnd) + lastnloffset), ptr =
+                (byte_p) DecompStringEnd;
         do {
             --ptr;
             if(*ptr == '\n')
@@ -2232,7 +2232,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         while(ptr > start);
 
         if(*ptr == '\n')
-            DecompStringEnd = (WORDPTR) ptr;
+            DecompStringEnd = (word_p) ptr;
     }
 
     if(!(flags & DECOMP_EMBEDDED)) {
@@ -2255,7 +2255,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
                 if(flags & DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject = *--RSTop;
-                    LAMTopSaved = (WORDPTR *) * --RSTop;
+                    LAMTopSaved = (word_p *) * --RSTop;
                     EndOfObject = *--RSTop;
                     DecompileObject = *--RSTop;
                     CurrentConstruct = savecstruct;
@@ -2273,7 +2273,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         if(flags & DECOMP_EMBEDDED) {
             // RESTORE ALL POINTERS BEFORE RETURNING
             SavedDecompObject = *--RSTop;
-            LAMTopSaved = (WORDPTR *) * --RSTop;
+            LAMTopSaved = (word_p *) * --RSTop;
             EndOfObject = *--RSTop;
             DecompileObject = *--RSTop;
             CurrentConstruct = savecstruct;
@@ -2287,7 +2287,7 @@ WORDPTR rplDecompile(WORDPTR object, int32_t flags)
         else {
             // STORE BLOCK SIZE
             rplAddTempBlock(TempObEnd);
-            WORDPTR newobject = TempObEnd;
+            word_p newobject = TempObEnd;
             TempObEnd = CompileEnd;
 
             return newobject;
@@ -2316,7 +2316,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
     if(!infixmode && !(flags & DECOMP_NOHINTS)) {
         int32_t indent = GET_INDENT(DecompHints);
 
-        BYTEPTR start = (BYTEPTR) CompileEnd, ptr = (BYTEPTR) DecompStringEnd;
+        byte_p start = (byte_p) CompileEnd, ptr = (byte_p) DecompStringEnd;
 
         do {
             --ptr;
@@ -2329,19 +2329,19 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
             ++ptr;
 
         // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
-        if(((BYTEPTR) DecompStringEnd) - ptr > DECOMP_GETMAXWIDTH(flags))
+        if(((byte_p) DecompStringEnd) - ptr > DECOMP_GETMAXWIDTH(flags))
             dhints |= HINT_NLAFTER;
 
         if(dhints & HINT_SUBINDENTBEFORE) {
             int32_t currentindent = 0;
 
             // SET THE INDENTATION OF THE CURRENT LINE
-            while((ptr < (BYTEPTR) DecompStringEnd) && (*ptr == ' ')) {
+            while((ptr < (byte_p) DecompStringEnd) && (*ptr == ' ')) {
                 ++currentindent;
                 ++ptr;
             }
 
-            if(ptr == (BYTEPTR) DecompStringEnd) {
+            if(ptr == (byte_p) DecompStringEnd) {
                 // ONLY CHANGE INDENTING IF THE CURRENT LINE HASN'T STARTED YET
                 indent -= 2;
                 if(indent < 0)
@@ -2350,7 +2350,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
 
                 if(currentindent > indent)
                     DecompStringEnd =
-                            (WORDPTR) (((BYTEPTR) DecompStringEnd) -
+                            (word_p) (((byte_p) DecompStringEnd) -
                             (currentindent - indent));
                 else {
                     while(currentindent < indent) {
@@ -2378,7 +2378,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
 
                 // DETERMINE THE INDENT OF THE CURRENT LINE
 
-                //while( (ptr<(BYTEPTR)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
+                //while( (ptr<(byte_p)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
 
                 rplDecompAppendChar('\n');
                 int k;

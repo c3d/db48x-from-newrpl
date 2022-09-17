@@ -222,69 +222,69 @@ ROMOBJECT fnt24_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
 
-    (WORDPTR) lib78_menu,
-    (WORDPTR) sysfonts_ident,
+    (word_p) lib78_menu,
+    (word_p) sysfonts_ident,
 
     // OTHER ROM OBJECTS INDEX 4-15
 
-    (WORDPTR) fontstack_ident,
-    (WORDPTR) fontstack1_ident,
-    (WORDPTR) fontcmdline_ident,
-    (WORDPTR) fontmenu_ident,
-    (WORDPTR) fontstarea_ident,
-    (WORDPTR) fontplot_ident,
-    (WORDPTR) fontform_ident,
-    (WORDPTR) fonthelp_ident,
-    (WORDPTR) fonthelptitle_ident,
-    (WORDPTR) zero_bint,
-    (WORDPTR) zero_bint,
-    (WORDPTR) zero_bint,
+    (word_p) fontstack_ident,
+    (word_p) fontstack1_ident,
+    (word_p) fontcmdline_ident,
+    (word_p) fontmenu_ident,
+    (word_p) fontstarea_ident,
+    (word_p) fontplot_ident,
+    (word_p) fontform_ident,
+    (word_p) fonthelp_ident,
+    (word_p) fonthelptitle_ident,
+    (word_p) zero_bint,
+    (word_p) zero_bint,
+    (word_p) zero_bint,
 
     // START OF ROM FONT NAME/OBJECT PAIRS INDEX 16-63
 
-    (WORDPTR) fnt5a_ident,
-    (WORDPTR) Font_5A,
-    (WORDPTR) fnt5b_ident,
-    (WORDPTR) Font_5B,
-    (WORDPTR) fnt5c_ident,
-    (WORDPTR) Font_5C,
-    (WORDPTR) fnt6a_ident,
-    (WORDPTR) Font_6A,
-    (WORDPTR) fnt6b_ident,
-    (WORDPTR) Font_6m,
-    (WORDPTR) fnt7a_ident,
-    (WORDPTR) Font_7A,
-    (WORDPTR) fnt8a_ident,
-    (WORDPTR) Font_8A,
-    (WORDPTR) fnt8b_ident,
-    (WORDPTR) Font_8B,
-    (WORDPTR) fnt8c_ident,
-    (WORDPTR) Font_8C,
-    (WORDPTR) fnt8d_ident,
-    (WORDPTR) Font_8D,
-    (WORDPTR) fnt10a_ident,
-    (WORDPTR) Font_10A,
-    (WORDPTR) fnt18_ident,
-    (WORDPTR) Font_18,
-    (WORDPTR) fnt24_ident,
-    (WORDPTR) Font_24,
+    (word_p) fnt5a_ident,
+    (word_p) Font_5A,
+    (word_p) fnt5b_ident,
+    (word_p) Font_5B,
+    (word_p) fnt5c_ident,
+    (word_p) Font_5C,
+    (word_p) fnt6a_ident,
+    (word_p) Font_6A,
+    (word_p) fnt6b_ident,
+    (word_p) Font_6m,
+    (word_p) fnt7a_ident,
+    (word_p) Font_7A,
+    (word_p) fnt8a_ident,
+    (word_p) Font_8A,
+    (word_p) fnt8b_ident,
+    (word_p) Font_8B,
+    (word_p) fnt8c_ident,
+    (word_p) Font_8C,
+    (word_p) fnt8d_ident,
+    (word_p) Font_8D,
+    (word_p) fnt10a_ident,
+    (word_p) Font_10A,
+    (word_p) fnt18_ident,
+    (word_p) Font_18,
+    (word_p) fnt24_ident,
+    (word_p) Font_24,
 
     0, // ZERO PAIR AS FINALIZER
     0
 };
 
-const WORDPTR const *rplGetFontRomPtrTableAddress(void)
+const word_p const *rplGetFontRomPtrTableAddress(void)
 {
     return ROMPTR_TABLE;
 }
 
 // FIND A SYSTEM FONT BY NAME
 
-WORDPTR rplGetSystemFont(WORDPTR ident)
+word_p rplGetSystemFont(word_p ident)
 {
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
@@ -298,14 +298,14 @@ WORDPTR rplGetSystemFont(WORDPTR ident)
 
     // CHECK FOR USER INSTALLED FONTS
 
-    WORDPTR fontlist = rplGetSettings((WORDPTR) sysfonts_ident);
+    word_p fontlist = rplGetSettings((word_p) sysfonts_ident);
 
     if(!fontlist)
         return 0;
     if(!ISLIST(*fontlist))
         return 0;
 
-    WORDPTR name = fontlist + 1, endofobj = rplSkipOb(fontlist);
+    word_p name = fontlist + 1, endofobj = rplSkipOb(fontlist);
 
     while((*name != CMD_ENDLIST) && (name < endofobj)) {
         if(rplCompareIDENT(ident, name))
@@ -318,7 +318,7 @@ WORDPTR rplGetSystemFont(WORDPTR ident)
 }
 
 // FIND A FONT NAME BY OBJECT
-WORDPTR rplGetSystemFontName(WORDPTR font)
+word_p rplGetSystemFontName(word_p font)
 {
     // CHECK FOR RESERVED ROM NAMES FIRST
     int k;
@@ -332,14 +332,14 @@ WORDPTR rplGetSystemFontName(WORDPTR font)
 
     // CHECK FOR USER INSTALLED FONTS
 
-    WORDPTR fontlist = rplGetSettings((WORDPTR) sysfonts_ident);
+    word_p fontlist = rplGetSettings((word_p) sysfonts_ident);
 
     if(!fontlist)
         return 0;
     if(!ISLIST(*fontlist))
         return 0;
 
-    WORDPTR name = fontlist + 1, endofobj = rplSkipOb(fontlist);
+    word_p name = fontlist + 1, endofobj = rplSkipOb(fontlist);
 
     while((*name != CMD_ENDLIST) && (name < endofobj)) {
         if(rplSkipOb(name) == font)
@@ -351,22 +351,22 @@ WORDPTR rplGetSystemFontName(WORDPTR font)
     return 0;   // NOT FOUND
 }
 
-void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
+void rplFontsNewList(word_p oldlist, word_p newlist)
 {
 
     if(oldlist) {
-        WORDPTR endoldlst = rplSkipOb(oldlist);
-        WORDPTR font, fontname;
-        WORDPTR fntid[FONTS_NUM] = {
-            (WORDPTR) fontstack_ident,
-            (WORDPTR) fontstack1_ident,
-            (WORDPTR) fontcmdline_ident,
-            (WORDPTR) fontmenu_ident,
-            (WORDPTR) fontstarea_ident,
-            (WORDPTR) fontplot_ident,
-            (WORDPTR) fontform_ident,
-            (WORDPTR) fonthelp_ident,
-            (WORDPTR) fonthelptitle_ident
+        word_p endoldlst = rplSkipOb(oldlist);
+        word_p font, fontname;
+        word_p fntid[FONTS_NUM] = {
+            (word_p) fontstack_ident,
+            (word_p) fontstack1_ident,
+            (word_p) fontcmdline_ident,
+            (word_p) fontmenu_ident,
+            (word_p) fontstarea_ident,
+            (word_p) fontplot_ident,
+            (word_p) fontform_ident,
+            (word_p) fonthelp_ident,
+            (word_p) fonthelptitle_ident
         };
 
         int k;
@@ -379,7 +379,7 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
                     rplPurgeSettings(fntid[k]);
                 else {
                     // FIND THE NAME IN THE NEW LIST
-                    WORDPTR ptr = newlist + 1, endnewlst = rplSkipOb(newlist);
+                    word_p ptr = newlist + 1, endnewlst = rplSkipOb(newlist);
                     while((*ptr != CMD_ENDLIST) && (ptr < endnewlst)) {
                         if(rplCompareIDENT(ptr, fontname)) {
                             // FOUND IT
@@ -405,12 +405,12 @@ void rplFontsNewList(WORDPTR oldlist, WORDPTR newlist)
     }
 
     // ALL FONTS POINTERS MOVED TO THE NEW LIST, NOW REPLACE THE LIST WITH THE NEW ONE
-    rplStoreSettings((WORDPTR) sysfonts_ident, newlist);
+    rplStoreSettings((word_p) sysfonts_ident, newlist);
 
 }
 
 // ADD/REPLACE A SYSTEM FONT, RETURN TRUE
-void rplAddSystemFont(WORDPTR ident, WORDPTR font)
+void rplAddSystemFont(word_p ident, word_p font)
 {
     if(!ISFONT(*font))
         return;
@@ -432,8 +432,8 @@ void rplAddSystemFont(WORDPTR ident, WORDPTR font)
 
     }
 
-    WORDPTR fontlist =
-            rplGetSettings((WORDPTR) sysfonts_ident), oldfont, endofobj;
+    word_p fontlist =
+            rplGetSettings((word_p) sysfonts_ident), oldfont, endofobj;
     int32_t newsize;
 
     if(fontlist) {
@@ -475,7 +475,7 @@ void rplAddSystemFont(WORDPTR ident, WORDPTR font)
     ScratchPointer3 = oldfont;
     ScratchPointer4 = fontlist;
 
-    WORDPTR newlist = rplAllocTempOb(newsize);
+    word_p newlist = rplAllocTempOb(newsize);
     if(!newlist)
         return;
 
@@ -515,7 +515,7 @@ void rplAddSystemFont(WORDPTR ident, WORDPTR font)
 }
 
 // PURGE A SYSTEM FONT
-void rplPurgeSystemFont(WORDPTR ident)
+void rplPurgeSystemFont(word_p ident)
 {
     if(!ISIDENT(*ident))
         return;
@@ -535,8 +535,8 @@ void rplPurgeSystemFont(WORDPTR ident)
 
     }
 
-    WORDPTR fontlist =
-            rplGetSettings((WORDPTR) sysfonts_ident), oldfont, endofobj =
+    word_p fontlist =
+            rplGetSettings((word_p) sysfonts_ident), oldfont, endofobj =
             rplSkipOb(fontlist);
     int32_t newsize, oldsize;
 
@@ -570,7 +570,7 @@ void rplPurgeSystemFont(WORDPTR ident)
     ScratchPointer2 = oldfont;
     ScratchPointer3 = fontlist;
 
-    WORDPTR newlist = rplAllocTempOb(newsize);
+    word_p newlist = rplAllocTempOb(newsize);
     if(!newlist)
         return;
 
@@ -578,7 +578,7 @@ void rplPurgeSystemFont(WORDPTR ident)
     oldfont = ScratchPointer2;
     fontlist = ScratchPointer3;
     endofobj = rplSkipOb(fontlist);
-    WORDPTR endold = rplSkipOb(rplSkipOb(oldfont));
+    word_p endold = rplSkipOb(rplSkipOb(oldfont));
     if(endold > endofobj - 1)
         endold = endofobj - 1;
 
@@ -590,86 +590,86 @@ void rplPurgeSystemFont(WORDPTR ident)
     newlist[0] = MKPROLOG(DOLIST, newsize);
     newlist[newsize] = CMD_ENDLIST;
 
-    rplStoreSettings((WORDPTR) sysfonts_ident, newlist);
+    rplStoreSettings((word_p) sysfonts_ident, newlist);
 
 }
 
 // CHANGE THE CURRENT FONT
-void rplSetCurrentFont(int32_t area, WORDPTR ident)
+void rplSetCurrentFont(int32_t area, word_p ident)
 {
-    WORDPTR font = rplGetSystemFont(ident);
+    word_p font = rplGetSystemFont(ident);
     if(!font) {
         rplError(ERR_FONTNOTINSTALLED);
         return;
     }
-    WORDPTR fntid;
+    word_p fntid;
     switch (area) {
     case FONT_INDEX_STACK:
-        fntid = (WORDPTR) fontstack_ident;
+        fntid = (word_p) fontstack_ident;
         break;
     case FONT_INDEX_STACKLVL1:
-        fntid = (WORDPTR) fontstack1_ident;
+        fntid = (word_p) fontstack1_ident;
         break;
     case FONT_INDEX_CMDLINE:
-        fntid = (WORDPTR) fontcmdline_ident;
+        fntid = (word_p) fontcmdline_ident;
         break;
     case FONT_INDEX_MENU:
-        fntid = (WORDPTR) fontmenu_ident;
+        fntid = (word_p) fontmenu_ident;
         break;
     case FONT_INDEX_STATUS:
-        fntid = (WORDPTR) fontstarea_ident;
+        fntid = (word_p) fontstarea_ident;
         break;
     case FONT_INDEX_PLOT:
-        fntid = (WORDPTR) fontplot_ident;
+        fntid = (word_p) fontplot_ident;
         break;
     case FONT_INDEX_FORMS:
-        fntid = (WORDPTR) fontform_ident;
+        fntid = (word_p) fontform_ident;
         break;
     case FONT_INDEX_HLPTEXT:
-        fntid = (WORDPTR) fonthelp_ident;
+        fntid = (word_p) fonthelp_ident;
         break;
     case FONT_INDEX_HLPTITLE:
-        fntid = (WORDPTR) fonthelptitle_ident;
+        fntid = (word_p) fonthelptitle_ident;
         break;
 
     default:
         return;
     }
 
-    rplStoreSettings((WORDPTR) fntid, font);
+    rplStoreSettings((word_p) fntid, font);
 
 }
 
-WORDPTR rplGetCurrentFont(int32_t area)
+word_p rplGetCurrentFont(int32_t area)
 {
-    WORDPTR fntid;
+    word_p fntid;
     switch (area) {
     case FONT_INDEX_STACK:
-        fntid = (WORDPTR) fontstack_ident;
+        fntid = (word_p) fontstack_ident;
         break;
     case FONT_INDEX_STACKLVL1:
-        fntid = (WORDPTR) fontstack1_ident;
+        fntid = (word_p) fontstack1_ident;
         break;
     case FONT_INDEX_CMDLINE:
-        fntid = (WORDPTR) fontcmdline_ident;
+        fntid = (word_p) fontcmdline_ident;
         break;
     case FONT_INDEX_MENU:
-        fntid = (WORDPTR) fontmenu_ident;
+        fntid = (word_p) fontmenu_ident;
         break;
     case FONT_INDEX_STATUS:
-        fntid = (WORDPTR) fontstarea_ident;
+        fntid = (word_p) fontstarea_ident;
         break;
     case FONT_INDEX_PLOT:
-        fntid = (WORDPTR) fontplot_ident;
+        fntid = (word_p) fontplot_ident;
         break;
     case FONT_INDEX_FORMS:
-        fntid = (WORDPTR) fontform_ident;
+        fntid = (word_p) fontform_ident;
         break;
     case FONT_INDEX_HLPTEXT:
-        fntid = (WORDPTR) fonthelp_ident;
+        fntid = (word_p) fonthelp_ident;
         break;
     case FONT_INDEX_HLPTITLE:
-        fntid = (WORDPTR) fonthelptitle_ident;
+        fntid = (word_p) fonthelptitle_ident;
         break;
     default:
         return 0;
@@ -681,19 +681,19 @@ WORDPTR rplGetCurrentFont(int32_t area)
         // RETURN A DEFAULT SYSTEM FONT
         switch (area) {
         case FONT_INDEX_STACK:
-            return (WORDPTR) fnt8c_ident;
+            return (word_p) fnt8c_ident;
         case FONT_INDEX_STACKLVL1:
-            return (WORDPTR) fnt8c_ident;
+            return (word_p) fnt8c_ident;
         case FONT_INDEX_CMDLINE:
-            return (WORDPTR) fnt8c_ident;
+            return (word_p) fnt8c_ident;
         case FONT_INDEX_MENU:
-            return (WORDPTR) fnt6a_ident;
+            return (word_p) fnt6a_ident;
         case FONT_INDEX_STATUS:
-            return (WORDPTR) fnt6a_ident;
+            return (word_p) fnt6a_ident;
         case FONT_INDEX_PLOT:
-            return (WORDPTR) fnt6a_ident;
+            return (word_p) fnt6a_ident;
         case FONT_INDEX_FORMS:
-            return (WORDPTR) fnt8c_ident;
+            return (word_p) fnt8c_ident;
         default:
             return 0;
         }
@@ -733,7 +733,7 @@ void LIB_HANDLER()
 
                 return;
             case OVR_ISTRUE:
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
                 return;
 
             default:
@@ -809,7 +809,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        WORDPTR fnt = rplGetSystemFont(rplPeekData(1));
+        word_p fnt = rplGetSystemFont(rplPeekData(1));
         if(!fnt) {
             rplError(ERR_FONTNOTINSTALLED);
             return;
@@ -841,7 +841,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for stack area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STACK);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_STACK);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -850,7 +850,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for stack level 1
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STACKLVL1);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_STACKLVL1);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -859,7 +859,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for menu area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_MENU);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_MENU);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -868,7 +868,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for command line area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_CMDLINE);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_CMDLINE);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -877,7 +877,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for status area
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_STATUS);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_STATUS);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -887,7 +887,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall name of current font for plot objects
         //@NEW
 
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_PLOT);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_PLOT);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -896,7 +896,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for forms
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_FORMS);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_FORMS);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1042,7 +1042,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_HLPTEXT);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_HLPTEXT);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1051,7 +1051,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help title
         //@NEW
-        WORDPTR fntid = rplGetCurrentFont(FONT_INDEX_HLPTITLE);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_HLPTITLE);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1135,16 +1135,16 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (byte_p) BlankStart - (byte_p) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
             }
 
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             WORD value = 0;
             int32_t digit;
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
                 else if((*ptr >= 'A') && (*ptr <= 'F'))
@@ -1175,7 +1175,7 @@ void LIB_HANDLER()
         // WE HAVE A SIZE
         // DO WE NEED ANY MORE DATA?
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         WORD value = 0;
         WORD checksum = 0;
@@ -1235,7 +1235,7 @@ void LIB_HANDLER()
                 }
                 ++ptr;
             }
-            while(ptr != (BYTEPTR) BlankStart);
+            while(ptr != (byte_p) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
                             (int32_t) OBJSIZE(*ScratchPointer4)))) {
@@ -1266,7 +1266,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
-            rplDecompAppendString((BYTEPTR) "FONTDATA ");
+            rplDecompAppendString((byte_p) "FONTDATA ");
             int32_t size = OBJSIZE(*DecompileObject);
             int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
@@ -1293,7 +1293,7 @@ void LIB_HANDLER()
 
             encoder[6] = 0;
 
-            WORDPTR ptr = DecompileObject + 1;
+            word_p ptr = DecompileObject + 1;
             int32_t nwords = 0;
 
             while(size) {
@@ -1420,7 +1420,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1428,7 +1428,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1455,7 +1455,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) lib78_menu;
+        ObjectPTR = (word_p) lib78_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -1465,7 +1465,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -1474,12 +1474,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

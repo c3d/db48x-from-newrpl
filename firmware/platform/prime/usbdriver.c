@@ -210,9 +210,9 @@ const struct descriptor_list_struct
     {0x2200, RAWHID_INTERFACE, rawhid_hid_report_desc,
                 sizeof(rawhid_hid_report_desc)},
     {0x2100, RAWHID_INTERFACE, config1_descriptor + RAWHID_HID_DESC_OFFSET, 9},
-    {0x0300, 0x0000, (const BYTEPTR)&_usb_string0, 4},
-    {0x0301, 0x0409, (const BYTEPTR)&_usb_string1, STR_MANUFLENGTH},
-    {0x0302, 0x0409, (const BYTEPTR)&_usb_string2, STR_PRODLENGTH}
+    {0x0300, 0x0000, (const byte_p)&_usb_string0, 4},
+    {0x0301, 0x0409, (const byte_p)&_usb_string1, STR_MANUFLENGTH},
+    {0x0302, 0x0409, (const byte_p)&_usb_string2, STR_PRODLENGTH}
 };
 
 #define NUM_DESC_LIST ((int)(sizeof(descriptor_list)/sizeof(struct descriptor_list_struct)))
@@ -245,7 +245,7 @@ volatile int32_t usb_rxtotalbytes SYSTEM_GLOBAL;     // TOTAL BYTES ON THE FILE,
 int32_t usb_txtotalbytes SYSTEM_GLOBAL;      // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 int32_t usb_txseq SYSTEM_GLOBAL;     // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
-BYTEPTR usb_ctlbufptr SYSTEM_GLOBAL;      // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
+byte_p usb_ctlbufptr SYSTEM_GLOBAL;      // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
 int32_t usb_ctlcount SYSTEM_GLOBAL;  // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
 
@@ -322,7 +322,7 @@ const WORD const crctable[256] = {
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-WORD usb_crc32roll(WORD oldcrc, BYTEPTR data, int32_t len)
+WORD usb_crc32roll(WORD oldcrc, byte_p data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -633,7 +633,7 @@ static void usb_ep1_send_zero_length_packet(void)
 // STARTS A NEW TRANSMISSION EVEN IF
 // THERE ARE ZERO BYTES IN THE BUFFER
 // FOR USE WITHIN ISR
-void usb_ep0_transmit(BYTEPTR buffer, int32_t count)
+void usb_ep0_transmit(byte_p buffer, int32_t count)
 {
 
     if(!(usb_drvstatus & USB_STATUS_CONNECTED))
@@ -701,7 +701,7 @@ static void usb_ep0_read_buffer(void)
 // STARTS A NEW TRANSMISSION EVEN IF
 // THERE ARE ZERO BYTES IN THE BUFFER
 // FOR USE WITHIN ISR
-void usb_ep0_receive(BYTEPTR buffer, int32_t count)
+void usb_ep0_receive(byte_p buffer, int32_t count)
 {
 
     if(!(usb_drvstatus & USB_STATUS_CONNECTED))
@@ -816,7 +816,7 @@ ARM_MODE void ep0_irqservice()
                             && (descriptor_list[k].wIndex == index)) {
                         // FOUND THE REQUESTED DESCRIPTOR
                         usb_ep0_transmit(
-                            (BYTEPTR) descriptor_list[k].addr,
+                            (byte_p) descriptor_list[k].addr,
                             (length < descriptor_list[k].length) ? length : descriptor_list[k].length
                         );    // SEND 0-DATA STATUS STAGE
                         usb_checkpipe();
@@ -832,7 +832,7 @@ ARM_MODE void ep0_irqservice()
 
                     // COPY THE SERIAL NUMBER - EXPAND ASCII TO UTF-16
                     int n;
-                    BYTEPTR ptr = (BYTEPTR) SERIAL_NUMBER_ADDRESS;
+                    byte_p ptr = (byte_p) SERIAL_NUMBER_ADDRESS;
                     for(n = 0; n < 10; ++n, ++ptr) {
                         usb_ctlbuffer[2 + 2 * n] = *ptr;
                         usb_ctlbuffer[3 + 2 * n] = 0;
@@ -1299,7 +1299,7 @@ void usb_ep2_receive()
     }
 
     // READ PACKET TYPE
-    BYTEPTR rcvbuf;
+    byte_p rcvbuf;
     uint16_t halfword;
 
     // READ PACKET TYPE

@@ -67,10 +67,10 @@ INCLUDE_ROMOBJECT(lib77_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib77_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib77_menu,
 
     0
 };
@@ -106,7 +106,7 @@ void LIB_HANDLER()
         sizebytes += 3;
         sizebytes >>= 2;
 
-        WORDPTR newobj = rplAllocTempOb(sizebytes);
+        word_p newobj = rplAllocTempOb(sizebytes);
         if(!newobj)
             return;
 
@@ -170,11 +170,11 @@ void LIB_HANDLER()
 
         // EVERYTHING WORKS
 
-        WORDPTR newobj = rplMakeNewCopy(rplPeekData(5));
+        word_p newobj = rplMakeNewCopy(rplPeekData(5));
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
-        memmoveb(((BYTEPTR) newobj) + destoffset,
-                ((BYTEPTR) rplPeekData(3)) + srcoffset, nbytes);
+        memmoveb(((byte_p) newobj) + destoffset,
+                ((byte_p) rplPeekData(3)) + srcoffset, nbytes);
 
         rplOverwriteData(5, newobj);
         rplDropData(4);
@@ -215,12 +215,12 @@ void LIB_HANDLER()
 
         // EVERYTHING WORKS
 
-        WORDPTR newobj = rplAllocTempOb(nbytes + 1);
+        word_p newobj = rplAllocTempOb(nbytes + 1);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
         int32_t k;
 
-        BYTEPTR ptr = (BYTEPTR) rplPeekData(3);
+        byte_p ptr = (byte_p) rplPeekData(3);
         ptr += srcoffset;
 
         for(k = 1; k <= nbytes; ++k, ++ptr) {
@@ -276,13 +276,13 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
             int k;
             int32_t byte_num;
-            BYTEPTR ptr = (BYTEPTR) newobj;
+            byte_p ptr = (byte_p) newobj;
             ptr += destoffset;
 
             ipReal(&RReg[0], &num, 0);
@@ -317,17 +317,17 @@ void LIB_HANDLER()
             // STORE THE STRING AS A STREAM OF UNICODE CODEPOINTS
             // ONLY THE LOWER 8 BITS OF EACH CODEPOINT IS STORED
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
             int k;
             int32_t byte_num;
-            BYTEPTR ptr = (BYTEPTR) newobj;
+            byte_p ptr = (byte_p) newobj;
             ptr += destoffset;
 
-            BYTEPTR src = (BYTEPTR) rplPeekData(2);
-            BYTEPTR srcend = src + 4 + rplStrSize(rplPeekData(2));
+            byte_p src = (byte_p) rplPeekData(2);
+            byte_p srcend = src + 4 + rplStrSize(rplPeekData(2));
             int32_t strlen = rplStrLenCp(rplPeekData(2));
 
             src += 4;
@@ -338,7 +338,7 @@ void LIB_HANDLER()
                 if(strlen > 0) {
                     byte_num = utf82cp((char *)src, (char *)srcend) & 0xff;
                     --strlen;
-                    src = (BYTEPTR) utf8skip((char *)src, (char *)srcend);
+                    src = (byte_p) utf8skip((char *)src, (char *)srcend);
                 }
                 else
                     byte_num = 0;
@@ -357,16 +357,16 @@ void LIB_HANDLER()
             // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 8 BITS OF EACH
 
             int32_t listlen = rplListLength(rplPeekData(2));
-            WORDPTR listptr = rplGetListElement(rplPeekData(2), 1);
+            word_p listptr = rplGetListElement(rplPeekData(2), 1);
             REAL num;
             int k;
             int32_t byte_num;
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
-            BYTEPTR ptr = (BYTEPTR) newobj;
+            byte_p ptr = (byte_p) newobj;
             ptr += destoffset;
 
             rplint32_tToRReg(3, 256);
@@ -455,13 +455,13 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
             int k;
             WORD word_num;
-            WORDPTR ptr = newobj;
+            word_p ptr = newobj;
             ptr += destoffset;
 
             ipReal(&RReg[0], &num, 0);
@@ -496,17 +496,17 @@ void LIB_HANDLER()
             // STORE THE STRING AS A STREAM OF UNICODE CODEPOINTS
             // ONLY THE LOWER 8 BITS OF EACH CODEPOINT IS STORED
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
             int k;
             WORD word_num;
-            WORDPTR ptr = newobj;
+            word_p ptr = newobj;
             ptr += destoffset;
 
-            BYTEPTR src = (BYTEPTR) rplPeekData(2);
-            BYTEPTR srcend = src + 4 + rplStrSize(rplPeekData(2));
+            byte_p src = (byte_p) rplPeekData(2);
+            byte_p srcend = src + 4 + rplStrSize(rplPeekData(2));
             int32_t strlen = rplStrLenCp(rplPeekData(2));
 
             src += 4;
@@ -517,7 +517,7 @@ void LIB_HANDLER()
                 if(strlen > 0) {
                     word_num = (WORD) utf82cp((char *)src, (char *)srcend);
                     --strlen;
-                    src = (BYTEPTR) utf8skip((char *)src, (char *)srcend);
+                    src = (byte_p) utf8skip((char *)src, (char *)srcend);
                 }
                 else
                     word_num = 0;
@@ -536,16 +536,16 @@ void LIB_HANDLER()
             // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 32 BITS OF EACH
 
             int32_t listlen = rplListLength(rplPeekData(2));
-            WORDPTR listptr = rplGetListElement(rplPeekData(2), 1);
+            word_p listptr = rplGetListElement(rplPeekData(2), 1);
             REAL num;
             int k;
             WORD word_num;
 
-            WORDPTR newobj = rplMakeNewCopy(rplPeekData(4));
+            word_p newobj = rplMakeNewCopy(rplPeekData(4));
             if(!newobj)
                 return; // NOT ENOUGH MEMORY
 
-            WORDPTR ptr = newobj;
+            word_p ptr = newobj;
             ptr += destoffset;
 
             rplint32_tToRReg(3, 0x100000000LL);
@@ -645,7 +645,7 @@ void LIB_HANDLER()
 
         // EVERYTHING WORKS
 
-        WORDPTR newobj = rplMakeNewCopy(rplPeekData(5));
+        word_p newobj = rplMakeNewCopy(rplPeekData(5));
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
         memmovew(newobj + destoffset, rplPeekData(3) + srcoffset, nwords);
@@ -687,12 +687,12 @@ void LIB_HANDLER()
 
         // EVERYTHING WORKS
 
-        WORDPTR newobj = rplAllocTempOb(nwords * 3 + 1);
+        word_p newobj = rplAllocTempOb(nwords * 3 + 1);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
         int32_t k;
 
-        WORDPTR ptr = rplPeekData(3);
+        word_p ptr = rplPeekData(3);
         ptr += srcoffset;
 
         for(k = 0; k < nwords; ++k, ++ptr) {
@@ -750,10 +750,10 @@ void LIB_HANDLER()
 
         // EVERYTHING WORKS
 
-        WORDPTR newobj = rplMakeNewCopy(rplPeekData(3));
+        word_p newobj = rplMakeNewCopy(rplPeekData(3));
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
-        memmoveb(((BYTEPTR) newobj) + destoffset, (BYTEPTR) rplPeekData(1),
+        memmoveb(((byte_p) newobj) + destoffset, (byte_p) rplPeekData(1),
                 nbytes);
 
         rplOverwriteData(3, newobj);
@@ -780,7 +780,7 @@ void LIB_HANDLER()
             return;     // A NUMBER WAS EXPECTED
         srcoffset += 4;
 
-        BYTEPTR ptr = (BYTEPTR) rplPeekData(2);
+        byte_p ptr = (byte_p) rplPeekData(2);
 
         ptr += srcoffset;
 
@@ -796,7 +796,7 @@ void LIB_HANDLER()
 
         // AT LEAST WE CAN READ AN OBJECT FROM THERE
 
-        WORDPTR newobj = rplAllocTempOb(nwords);
+        word_p newobj = rplAllocTempOb(nwords);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY
 
@@ -830,9 +830,9 @@ void LIB_HANDLER()
     case OVR_ISTRUE:
     {
         if(OBJSIZE(*rplPeekData(1)))
-            rplOverwriteData(1, (WORDPTR) one_bint);
+            rplOverwriteData(1, (word_p) one_bint);
         else
-            rplOverwriteData(1, (WORDPTR) zero_bint);
+            rplOverwriteData(1, (word_p) zero_bint);
         return;
     }
 
@@ -890,16 +890,16 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (byte_p) BlankStart - (byte_p) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
             }
 
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             WORD value = 0;
             int32_t digit;
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
                 else if((*ptr >= 'A') && (*ptr <= 'F'))
@@ -930,7 +930,7 @@ void LIB_HANDLER()
         // WE HAVE A SIZE
         // DO WE NEED ANY MORE DATA?
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         WORD value = 0;
         WORD checksum = 0;
@@ -990,7 +990,7 @@ void LIB_HANDLER()
                 }
                 ++ptr;
             }
-            while(ptr != (BYTEPTR) BlankStart);
+            while(ptr != (byte_p) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
                             (int32_t) OBJSIZE(*ScratchPointer4)))) {
@@ -1021,7 +1021,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
-            rplDecompAppendString((BYTEPTR) "BINDATA ");
+            rplDecompAppendString((byte_p) "BINDATA ");
             int32_t size = OBJSIZE(*DecompileObject);
             int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
@@ -1048,7 +1048,7 @@ void LIB_HANDLER()
 
             encoder[6] = 0;
 
-            WORDPTR ptr = DecompileObject + 1;
+            word_p ptr = DecompileObject + 1;
             int32_t nwords = 0;
 
             while(size) {
@@ -1175,7 +1175,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1183,7 +1183,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1221,7 +1221,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -1230,12 +1230,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

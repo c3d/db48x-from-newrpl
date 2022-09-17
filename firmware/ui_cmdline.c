@@ -19,7 +19,7 @@
 int32_t uiGetLinebyOffset(int32_t offset, int32_t * linestart)
 {
 
-    BYTEPTR ptr = (BYTEPTR) (CmdLineText + 1);
+    byte_p ptr = (byte_p) (CmdLineText + 1);
     int32_t len = rplStrSize(CmdLineText);
     int32_t f, found, count;
 
@@ -41,7 +41,7 @@ int32_t uiGetLinebyOffset(int32_t offset, int32_t * linestart)
 
 }
 
-BYTEPTR uiGetStartOfLine(BYTEPTR ptr, BYTEPTR startofstring)
+byte_p uiGetStartOfLine(byte_p ptr, byte_p startofstring)
 {
     while(ptr > startofstring) {
         --ptr;
@@ -51,7 +51,7 @@ BYTEPTR uiGetStartOfLine(BYTEPTR ptr, BYTEPTR startofstring)
     return ptr;
 }
 
-BYTEPTR uiGetEndOfLine(BYTEPTR ptr, BYTEPTR endofstring)
+byte_p uiGetEndOfLine(byte_p ptr, byte_p endofstring)
 {
     while(ptr < endofstring) {
         if(*ptr == '\n')
@@ -73,15 +73,15 @@ int32_t uiGetCmdLineState()
 
 // SET THE COMMAND LINE TO A GIVEN STRING OBJECT
 // RETURN THE TOTAL NUMBER OF LINES OF TEXT
-int32_t uiSetCmdLineText(WORDPTR text)
+int32_t uiSetCmdLineText(word_p text)
 {
     CmdLineText = text;
-    CmdLineCurrentLine = (WORDPTR) empty_string;
-    CmdLineUndoList = (WORDPTR) empty_list;
+    CmdLineCurrentLine = (word_p) empty_string;
+    CmdLineUndoList = (word_p) empty_list;
     halScreen.LineIsModified = -1;
 
-    BYTEPTR newstart = ((BYTEPTR) CmdLineText) + 4;
-    BYTEPTR newend = newstart + rplStrSize(CmdLineText);
+    byte_p newstart = ((byte_p) CmdLineText) + 4;
+    byte_p newend = newstart + rplStrSize(CmdLineText);
     int32_t nl = 1;
     while(newstart != newend) {
         if(*newstart == '\n')
@@ -92,10 +92,10 @@ int32_t uiSetCmdLineText(WORDPTR text)
     // SET CURSOR AT END OF TEXT
     int32_t end = rplStrSize(CmdLineText);
     int32_t linestoff;
-    BYTEPTR linestart;
+    byte_p linestart;
     halScreen.LineCurrent = uiGetLinebyOffset(end, &linestoff);
-    linestart = ((BYTEPTR) (CmdLineText + 1)) + linestoff;
-    halScreen.CursorPosition = ((BYTEPTR) (CmdLineText + 1)) + end - linestart;
+    linestart = ((byte_p) (CmdLineText + 1)) + linestoff;
+    halScreen.CursorPosition = ((byte_p) (CmdLineText + 1)) + end - linestart;
 
     if(halScreen.CursorPosition < 0)
         halScreen.CursorPosition = 0;
@@ -110,9 +110,9 @@ int32_t uiSetCmdLineText(WORDPTR text)
                 EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
-        //CmdLineText=(WORDPTR)empty_string;
-        //CmdLineCurrentLine=(WORDPTR)empty_string;
-        //CmdLineUndoList=(WORDPTR)empty_list;
+        //CmdLineText=(word_p)empty_string;
+        //CmdLineCurrentLine=(word_p)empty_string;
+        //CmdLineUndoList=(word_p)empty_list;
         return 0;
     }
 
@@ -124,7 +124,7 @@ int32_t uiSetCmdLineText(WORDPTR text)
 
 }
 
-WORDPTR uiGetCmdLineText()
+word_p uiGetCmdLineText()
 {
     if(halScreen.LineIsModified > 0)
         uiModifyLine(0);
@@ -195,9 +195,9 @@ void uicursorupdate()
 void uiOpenCmdLine(int32_t mode)
 {
     int32_t AlphaMode;
-    CmdLineText = (WORDPTR) empty_string;
-    CmdLineCurrentLine = (WORDPTR) empty_string;
-    CmdLineUndoList = (WORDPTR) empty_list;
+    CmdLineText = (word_p) empty_string;
+    CmdLineCurrentLine = (word_p) empty_string;
+    CmdLineUndoList = (word_p) empty_list;
     halScreen.LineCurrent = 1;
     halScreen.LineIsModified = -1;
     halScreen.LineVisible = 1;
@@ -247,9 +247,9 @@ void uiCloseCmdLine()
         halScreen.CursorTimer = -1;
     }
 
-    CmdLineText = (WORDPTR) empty_string;
-    CmdLineCurrentLine = (WORDPTR) empty_string;
-    CmdLineUndoList = (WORDPTR) empty_list;
+    CmdLineText = (word_p) empty_string;
+    CmdLineCurrentLine = (word_p) empty_string;
+    CmdLineUndoList = (word_p) empty_list;
     halScreen.LineCurrent = 1;
     halScreen.LineIsModified = -1;
     halScreen.LineVisible = 1;
@@ -293,9 +293,9 @@ void uiSetCurrentLine(int32_t line)
                 EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
-        //CmdLineText=(WORDPTR)empty_string;
-        //CmdLineCurrentLine=(WORDPTR)empty_string;
-        //CmdLineUndoList=(WORDPTR)empty_list;
+        //CmdLineText=(word_p)empty_string;
+        //CmdLineCurrentLine=(word_p)empty_string;
+        //CmdLineUndoList=(word_p)empty_list;
         return;
     }
 
@@ -303,9 +303,9 @@ void uiSetCurrentLine(int32_t line)
 
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int targetx = halScreen.CursorX;
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR ptr2 =
-        (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p ptr2 =
+        (byte_p) StringCoordToPointer((char *)ptr, (char *)ptr + len,
                                        FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
@@ -322,14 +322,14 @@ void uiSetCurrentLine(int32_t line)
 
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
 // RETURNS THE NUMBER OF LINES ADDED TO THE TEXT (IF ANY)
-int32_t uiInsertCharacters(BYTEPTR string)
+int32_t uiInsertCharacters(byte_p string)
 {
-    BYTEPTR end = string + stringlen((char *)string);
+    byte_p end = string + stringlen((char *)string);
 
     return uiInsertCharactersN(string, end);
 }
 
-int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
+int32_t uiInsertCharactersN(byte_p string, byte_p endstring)
 {
     if(endstring <= string)
         return 0;
@@ -340,7 +340,7 @@ int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
     int32_t length = endstring - string;
     int32_t lenwords = (length + 3) >> 2;
 // PROTECT string FROM POSSIBLE GC
-    ScratchPointer1 = (WORDPTR) string;
+    ScratchPointer1 = (word_p) string;
 
     if(halScreen.LineIsModified < 0) {
 
@@ -351,26 +351,26 @@ int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
 
             return 0;
         }
 
     }
 
-    if(CmdLineCurrentLine == (WORDPTR) empty_string) {
+    if(CmdLineCurrentLine == (word_p) empty_string) {
 
-        WORDPTR newobj = rplAllocTempObLowMem(lenwords);
+        word_p newobj = rplAllocTempObLowMem(lenwords);
         if(!newobj) {
             throw_dbgexception("No memory to insert text",
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return 0;
         }
 
@@ -387,15 +387,15 @@ int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
             // NOT AT THE END OF TEMPOB
             // MAKE A COPY OF THE OBJECT AT THE END
 
-            WORDPTR newobj = rplAllocTempObLowMem(lenwords);
+            word_p newobj = rplAllocTempObLowMem(lenwords);
             if(!newobj) {
                 throw_dbgexception("No memory to insert text",
                         EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return 0;
             }
             rplCopyObject(newobj, CmdLineCurrentLine);
@@ -408,21 +408,21 @@ int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
                 EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
-        //CmdLineText=(WORDPTR)empty_string;
-        //CmdLineCurrentLine=(WORDPTR)empty_string;
-        //CmdLineUndoList=(WORDPTR)empty_list;
+        //CmdLineText=(word_p)empty_string;
+        //CmdLineCurrentLine=(word_p)empty_string;
+        //CmdLineUndoList=(word_p)empty_list;
         return 0;
     }
 
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
 
 // MOVE THE TAIL TO THE END
-    memmoveb(((BYTEPTR) CmdLineCurrentLine) + 4 + halScreen.CursorPosition +
+    memmoveb(((byte_p) CmdLineCurrentLine) + 4 + halScreen.CursorPosition +
             length,
-            ((BYTEPTR) CmdLineCurrentLine) + 4 + halScreen.CursorPosition,
+            ((byte_p) CmdLineCurrentLine) + 4 + halScreen.CursorPosition,
             rplStrSize(CmdLineCurrentLine) - halScreen.CursorPosition);
 // ADD THE NEW DATA IN
-    memmoveb(((BYTEPTR) CmdLineCurrentLine) + 4 + halScreen.CursorPosition,
+    memmoveb(((byte_p) CmdLineCurrentLine) + 4 + halScreen.CursorPosition,
             ScratchPointer1, length);
 
 // PATCH THE LENGTH OF THE STRING
@@ -434,14 +434,14 @@ int32_t uiInsertCharactersN(BYTEPTR string, BYTEPTR endstring)
 
 // ADVANCE THE CURSOR
 // IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
-    BYTEPTR newstart =
-            ((BYTEPTR) CmdLineCurrentLine) + 4 + halScreen.CursorPosition;
-    BYTEPTR newend = newstart + length;
+    byte_p newstart =
+            ((byte_p) CmdLineCurrentLine) + 4 + halScreen.CursorPosition;
+    byte_p newend = newstart + length;
     int32_t nl = 0;
     while(newstart != newend) {
         if(*newstart == '\n')
             ++nl;
-        newstart = (BYTEPTR) utf8skip((char *)newstart, (char *)newend);
+        newstart = (byte_p) utf8skip((char *)newstart, (char *)newend);
     }
 
     if(nl) {
@@ -541,15 +541,15 @@ void uiRemoveCharacters(int32_t length)
         if(rplSkipOb(CmdLineCurrentLine) != TempObEnd) {
             // NOT AT THE END OF TEMPOB
             // MAKE A COPY OF THE OBJECT AT THE END
-            WORDPTR newobj = rplAllocTempObLowMem(OBJSIZE(*CmdLineCurrentLine));
+            word_p newobj = rplAllocTempObLowMem(OBJSIZE(*CmdLineCurrentLine));
             if(!newobj) {
                 throw_dbgexception("No memory to insert text",
                         EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return;
             }
             rplCopyObject(newobj, CmdLineCurrentLine);
@@ -560,10 +560,10 @@ void uiRemoveCharacters(int32_t length)
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
         int32_t tailchars =
                 rplStrSize(CmdLineCurrentLine) - halScreen.CursorPosition;
-        BYTEPTR delete_start =
-                ((BYTEPTR) CmdLineCurrentLine) + 4 + halScreen.CursorPosition;
-        BYTEPTR delete_end =
-                (BYTEPTR) utf8nskipst((char *)delete_start,
+        byte_p delete_start =
+                ((byte_p) CmdLineCurrentLine) + 4 + halScreen.CursorPosition;
+        byte_p delete_end =
+                (byte_p) utf8nskipst((char *)delete_start,
                 (char *)delete_start + tailchars, length);
         int32_t actualcount = utf8nlen((char *)delete_start, (char *)delete_end);
 
@@ -653,19 +653,19 @@ void uiSeparateToken()
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
 
     }
 
-    BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR lastchar = start + halScreen.CursorPosition - 1;
+    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p lastchar = start + halScreen.CursorPosition - 1;
     if(lastchar >= start) {
         if(*lastchar != ' ')
-            uiInsertCharacters((BYTEPTR) " ");
+            uiInsertCharacters((byte_p) " ");
     }
 }
 
@@ -673,7 +673,7 @@ void uiSeparateToken()
 // CREATES A COPY OF THE TEXT
 void uiModifyLine(int dontaddnewline)
 {
-    WORDPTR newobj;
+    word_p newobj;
     int32_t newsize;
 
     // GET A NEW OBJECT WITH ROOM FOR THE ENTIRE TEXT
@@ -685,21 +685,21 @@ void uiModifyLine(int dontaddnewline)
                 EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
-        //CmdLineText=(WORDPTR)empty_string;
-        //CmdLineCurrentLine=(WORDPTR)empty_string;
-        //CmdLineUndoList=(WORDPTR)empty_list;
+        //CmdLineText=(word_p)empty_string;
+        //CmdLineCurrentLine=(word_p)empty_string;
+        //CmdLineUndoList=(word_p)empty_list;
         return;
     }
-    BYTEPTR src = (BYTEPTR) (CmdLineText + 1), dest = (BYTEPTR) (newobj + 1);
+    byte_p src = (byte_p) (CmdLineText + 1), dest = (byte_p) (newobj + 1);
     int32_t totallen = rplStrSize(CmdLineText);
     int32_t lineoff = rplStringGetLinePtr(CmdLineText, halScreen.LineCurrent);
     if(lineoff < 0)
         lineoff = totallen;
-    BYTEPTR startline = src + lineoff;
+    byte_p startline = src + lineoff;
     lineoff = rplStringGetLinePtr(CmdLineText, halScreen.LineCurrent + 1);
     if(lineoff < 0)
         lineoff = totallen;
-    BYTEPTR endline = src + lineoff;
+    byte_p endline = src + lineoff;
     if(endline > startline) {
         if((!dontaddnewline) && (*(endline - 1) == '\n'))
             --endline;
@@ -710,7 +710,7 @@ void uiModifyLine(int dontaddnewline)
 
     memmoveb(dest, src, startline - src);
     // COPY THE NEW LINE TO THE OBJECT
-    memmoveb(dest + (startline - src), (WORDPTR) (CmdLineCurrentLine + 1),
+    memmoveb(dest + (startline - src), (word_p) (CmdLineCurrentLine + 1),
             rplStrSize(CmdLineCurrentLine));
     // COPY THE REST BACK
     if(endline < src + totallen) {
@@ -734,12 +734,12 @@ void uiModifyLine(int dontaddnewline)
 // COPY A LINE FROM THE TEXT INTO THE EDITING BUFFER
 void uiExtractLine(int32_t line)
 {
-    WORDPTR newobj;
+    word_p newobj;
 
     // GET A NEW OBJECT WITH ROOM FOR THE ENTIRE LINE
-    BYTEPTR text = (BYTEPTR) (CmdLineText + 1);
-    BYTEPTR startline = text + rplStringGetLinePtr(CmdLineText, line);
-    BYTEPTR endline = text + rplStringGetLinePtr(CmdLineText, line + 1);
+    byte_p text = (byte_p) (CmdLineText + 1);
+    byte_p startline = text + rplStringGetLinePtr(CmdLineText, line);
+    byte_p endline = text + rplStringGetLinePtr(CmdLineText, line + 1);
 
     if(startline < text) {
         // CREATE AN EMPTY LINE
@@ -761,9 +761,9 @@ void uiExtractLine(int32_t line)
                 EX_CONT | EX_WARM | EX_RESET);
         // CLEAN UP AND RETURN
         uiOpenCmdLine(0);
-        //CmdLineText=(WORDPTR)empty_string;
-        //CmdLineCurrentLine=(WORDPTR)empty_string;
-        //CmdLineUndoList=(WORDPTR)empty_list;
+        //CmdLineText=(word_p)empty_string;
+        //CmdLineCurrentLine=(word_p)empty_string;
+        //CmdLineUndoList=(word_p)empty_list;
         return;
     }
 
@@ -771,7 +771,7 @@ void uiExtractLine(int32_t line)
     newobj[(endline - startline) >> 2] = 0;
 
     // COPY LINE TO NEW OBJECT
-    memmoveb(newobj + 1, (BYTEPTR) (CmdLineText + 1) + (startline - text),
+    memmoveb(newobj + 1, (byte_p) (CmdLineText + 1) + (startline - text),
             endline - startline);
 
     rplSetStringLength(newobj, endline - startline);
@@ -791,15 +791,15 @@ int32_t uiGetIndentLevel(int32_t * isemptyline)
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return 0;
         }
 
     }
 
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1), end =
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1), end =
             ptr + rplStrSize(CmdLineCurrentLine);
     if(end > ptr + halScreen.CursorPosition)
         end = ptr + halScreen.CursorPosition;
@@ -831,15 +831,15 @@ void uiMoveCursor(int32_t offset)
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
 
     }
 
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1), ptr2;
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1), ptr2;
     int32_t len = rplStrSize(CmdLineCurrentLine);
 
     if(offset > len)
@@ -850,9 +850,9 @@ void uiMoveCursor(int32_t offset)
     halScreen.CursorState |= 0x4000;
 
 // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
-    ptr2 = (BYTEPTR) utf8findst((char *)ptr + offset, (char *)ptr + len);
+    ptr2 = (byte_p) utf8findst((char *)ptr + offset, (char *)ptr + len);
 
-//while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
+//while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=(byte_p)utf8skip((char *)ptr2,(char *)ptr+len);
 
     offset = ptr2 - ptr;
 
@@ -870,7 +870,7 @@ void uiMoveCursor(int32_t offset)
 // MOVE THE CURSOR LEFT, NCHARS IS GIVEN IN UNICODE CODEPOINTS
 void uiCursorLeft(int32_t nchars)
 {
-    BYTEPTR ptr, ptr2;
+    byte_p ptr, ptr2;
     int32_t offset;
 
     if(halScreen.LineIsModified < 0) {
@@ -881,20 +881,20 @@ void uiCursorLeft(int32_t nchars)
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
 
     }
 
-    ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
+    ptr = (byte_p) (CmdLineCurrentLine + 1);
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2 = ptr + halScreen.CursorPosition;
 
     while(nchars && (ptr2 > ptr)) {
-        ptr2 = (BYTEPTR) utf8rskipst((char *)ptr2, (char *)ptr);
+        ptr2 = (byte_p) utf8rskipst((char *)ptr2, (char *)ptr);
         --nchars;
     }
 
@@ -919,10 +919,10 @@ void uiCursorLeft(int32_t nchars)
             offset = rplStringGetLinePtr(CmdLineText, halScreen.LineCurrent);
             if(offset < 0)
                 offset = rplStrSize(CmdLineText);
-            ptr = (BYTEPTR) (CmdLineText + 1);
+            ptr = (byte_p) (CmdLineText + 1);
             ptr2 = ptr + offset;        // THIS IS THE BEGINNING OF THE CURRENT LINE
             while(nchars && (ptr2 > ptr)) {
-                ptr2 = (BYTEPTR) utf8rskipst((char *)ptr2, (char *)ptr);
+                ptr2 = (byte_p) utf8rskipst((char *)ptr2, (char *)ptr);
                 if(*ptr2 == '\n')
                     --halScreen.LineCurrent;
                 --nchars;
@@ -941,9 +941,9 @@ void uiCursorLeft(int32_t nchars)
                         EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return;
             }
 
@@ -982,22 +982,22 @@ void uiCursorRight(int32_t nchars)
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
 
     }
 
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1), ptr2;
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1), ptr2;
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int32_t offset;
 
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2 = ptr + halScreen.CursorPosition;
     while(nchars && (ptr2 < ptr + len)) {
-        ptr2 = (BYTEPTR) utf8skipst((char *)ptr2, (char *)ptr + len);
+        ptr2 = (byte_p) utf8skipst((char *)ptr2, (char *)ptr + len);
         --nchars;
     }
 
@@ -1024,13 +1024,13 @@ void uiCursorRight(int32_t nchars)
             offset = rplStringGetLinePtr(CmdLineText, halScreen.LineCurrent);
             if(offset < 0)
                 offset = rplStrSize(CmdLineText);
-            ptr = (BYTEPTR) (CmdLineText + 1);
+            ptr = (byte_p) (CmdLineText + 1);
             len = rplStrSize(CmdLineText);
             ptr2 = uiGetEndOfLine(ptr + offset, ptr + len);     // THIS IS THE END OF THE CURRENT LINE
             while(nchars && (ptr2 < ptr + len)) {
                 if(*ptr2 == '\n')
                     ++halScreen.LineCurrent;
-                ptr2 = (BYTEPTR) utf8skipst((char *)ptr2, (char *)ptr + len);
+                ptr2 = (byte_p) utf8skipst((char *)ptr2, (char *)ptr + len);
                 --nchars;
             }
 
@@ -1047,9 +1047,9 @@ void uiCursorRight(int32_t nchars)
                         EX_CONT | EX_WARM | EX_RESET);
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return;
             }
 
@@ -1137,9 +1137,9 @@ void uiCursorPageRight()
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
     }
@@ -1148,8 +1148,8 @@ void uiCursorPageRight()
 
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int targetx = halScreen.CursorX + LCD_W;
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR ptr2 = (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p ptr2 = (byte_p) StringCoordToPointer((char *)ptr, (char *)ptr + len,
                                                   FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
@@ -1176,9 +1176,9 @@ void uiCursorPageLeft()
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
 
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
     }
@@ -1187,9 +1187,9 @@ void uiCursorPageLeft()
 
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int targetx = halScreen.CursorX - LCD_W;
-    BYTEPTR ptr = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR ptr2 =
-            (BYTEPTR) StringCoordToPointer((char *)ptr, (char *)ptr + len,
+    byte_p ptr = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p ptr2 =
+            (byte_p) StringCoordToPointer((char *)ptr, (char *)ptr + len,
                                            FONT_CMDLINE, &targetx);
 
     halScreen.CursorX = targetx;
@@ -1227,7 +1227,7 @@ void uiCursorPageDown()
 }
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
-BYTEPTR uiFindNumberStart(BYTEPTR * endofnum, int32_t * flagsptr)
+byte_p uiFindNumberStart(byte_p * endofnum, int32_t * flagsptr)
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1238,16 +1238,16 @@ BYTEPTR uiFindNumberStart(BYTEPTR * endofnum, int32_t * flagsptr)
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
 
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return NULL;
         }
 
     }
 
-    BYTEPTR line = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR end, start, ptr;
+    byte_p line = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p end, start, ptr;
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int32_t flags, minbase = 2, countE = 0;
 
@@ -1489,17 +1489,17 @@ void uiAutocompleteUpdate()
 
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return;
         }
 
     }
 
-    BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR end = start + halScreen.CursorPosition;
-    BYTEPTR ptr, tokptr = (BYTEPTR) utf8rskipst((char *)end, (char *)start);
+    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p end = start + halScreen.CursorPosition;
+    byte_p ptr, tokptr = (byte_p) utf8rskipst((char *)end, (char *)start);
     int32_t char1, char2;
     // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
     static const char const forbiddenChars[] = "{}[]()#;:, \"\'_`@|«»";       // OUTSIDE OF ALG. MODE
@@ -1510,15 +1510,15 @@ void uiAutocompleteUpdate()
             'A') ? algforbiddenChars : forbiddenChars;
 
     while(tokptr >= start) {
-        ptr = (BYTEPTR) forbstring;
+        ptr = (byte_p) forbstring;
         char1 = utf82cp((char *)tokptr, (char *)end);
         do {
             char2 = utf82cp((char *)ptr, (char *)ptr + 4);
             if(char1 == char2) {
-                tokptr = (BYTEPTR) utf8skip((char *)tokptr, (char *)end);
+                tokptr = (byte_p) utf8skip((char *)tokptr, (char *)end);
                 break;
             }
-            ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)ptr + 4);
+            ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
         }
         while(*ptr);
         if(*ptr) {
@@ -1526,7 +1526,7 @@ void uiAutocompleteUpdate()
             break;
         }
         if(tokptr > start)
-            tokptr = (BYTEPTR) utf8rskipst((char *)tokptr, (char *)start);
+            tokptr = (byte_p) utf8rskipst((char *)tokptr, (char *)start);
         else
             --tokptr;
 
@@ -1562,16 +1562,16 @@ void uiAutocompNext()
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
 
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return;
             }
 
         }
 
-        BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
-        BYTEPTR end = start + halScreen.CursorPosition;
+        byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+        byte_p end = start + halScreen.CursorPosition;
 
         halScreen.ACSuggestion =
                 rplGetNextSuggestion(halScreen.ACSuggestion, SuggestedObject,
@@ -1596,16 +1596,16 @@ void uiAutocompPrev()
                 // CLEAN UP AND RETURN
                 uiOpenCmdLine(0);
 
-                //CmdLineText=(WORDPTR)empty_string;
-                //CmdLineCurrentLine=(WORDPTR)empty_string;
-                //CmdLineUndoList=(WORDPTR)empty_list;
+                //CmdLineText=(word_p)empty_string;
+                //CmdLineCurrentLine=(word_p)empty_string;
+                //CmdLineUndoList=(word_p)empty_list;
                 return;
             }
 
         }
 
-        BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
-        BYTEPTR end = start + halScreen.CursorPosition;
+        byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+        byte_p end = start + halScreen.CursorPosition;
 
         halScreen.ACSuggestion =
                 rplGetPrevSuggestion(halScreen.ACSuggestion, SuggestedObject,
@@ -1622,15 +1622,15 @@ void uiAutocompPrev()
 void uiAutocompInsert()
 {
     if(halScreen.ACSuggestion != 0) {
-        BYTEPTR tokstart = uiAutocompStringStart();
-        BYTEPTR tokend = uiAutocompStringEnd();
+        byte_p tokstart = uiAutocompStringStart();
+        byte_p tokend = uiAutocompStringEnd();
 
-        WORDPTR cmdname =
+        word_p cmdname =
                 rplDecompile(((ISPROLOG(halScreen.
                             ACSuggestion)) ? SuggestedObject : (&halScreen.
                         ACSuggestion)), DECOMP_NOHINTS);
-        BYTEPTR namest = (BYTEPTR) (cmdname + 1);
-        BYTEPTR nameend = namest + rplStrSize(cmdname);
+        byte_p namest = (byte_p) (cmdname + 1);
+        byte_p nameend = namest + rplStrSize(cmdname);
 
         if((!cmdname) || Exceptions) {
             // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
@@ -1642,7 +1642,7 @@ void uiAutocompInsert()
         int32_t nchars = 0;
         while(tokstart != tokend) {
             ++nchars;
-            tokstart = (BYTEPTR) utf8skipst((char *)tokstart, (char *)tokend);
+            tokstart = (byte_p) utf8skipst((char *)tokstart, (char *)tokend);
         }
 
         uiCursorLeft(nchars);
@@ -1653,7 +1653,7 @@ void uiAutocompInsert()
 
 }
 
-BYTEPTR uiAutocompStringStart()
+byte_p uiAutocompStringStart()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1663,20 +1663,20 @@ BYTEPTR uiAutocompStringStart()
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return NULL;
         }
 
     }
 
-    BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
+    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
 
     return start + halScreen.ACTokenStart;
 }
 
-BYTEPTR uiAutocompStringEnd()
+byte_p uiAutocompStringEnd()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1686,21 +1686,21 @@ BYTEPTR uiAutocompStringEnd()
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return NULL;
         }
 
     }
 
-    BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
-    BYTEPTR end = start + halScreen.CursorPosition;
+    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+    byte_p end = start + halScreen.CursorPosition;
 
     return end;
 }
 
-BYTEPTR uiAutocompStringTokEnd()
+byte_p uiAutocompStringTokEnd()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1710,17 +1710,17 @@ BYTEPTR uiAutocompStringTokEnd()
                     EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
-            //CmdLineText=(WORDPTR)empty_string;
-            //CmdLineCurrentLine=(WORDPTR)empty_string;
-            //CmdLineUndoList=(WORDPTR)empty_list;
+            //CmdLineText=(word_p)empty_string;
+            //CmdLineCurrentLine=(word_p)empty_string;
+            //CmdLineUndoList=(word_p)empty_list;
             return NULL;
         }
 
     }
 
-    BYTEPTR start = (BYTEPTR) (CmdLineCurrentLine + 1);
+    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
     int32_t len = rplStrSize(CmdLineCurrentLine);
-    BYTEPTR end = start + len, ptr = start + halScreen.CursorPosition;
+    byte_p end = start + len, ptr = start + halScreen.CursorPosition;
 
     while((ptr < end) && (*((char *)ptr) != ' ') && (*((char *)ptr) != '\t')
             && (*((char *)ptr) != '\n') && (*((char *)ptr) != '\r'))
@@ -1779,7 +1779,7 @@ void uiSetSelectionEnd()
 
 // CREATE A NEW RPL STRING WITH THE TEXT SELECTED IN THE EDITOR
 
-WORDPTR uiExtractSelection()
+word_p uiExtractSelection()
 {
     if(!(halScreen.CmdLineState & CMDSTATE_OPEN))
         return 0;
@@ -1806,9 +1806,9 @@ WORDPTR uiExtractSelection()
         return 0;
 
     // HERE WE NEED TO CREATE A NEW OBJECT
-    WORDPTR newstr =
-            rplCreateString((BYTEPTR) (CmdLineText + 1) + selst,
-            (BYTEPTR) (CmdLineText + 1) + selend);
+    word_p newstr =
+            rplCreateString((byte_p) (CmdLineText + 1) + selst,
+            (byte_p) (CmdLineText + 1) + selend);
 
     return newstr;
 }
@@ -1869,10 +1869,10 @@ int32_t uiDeleteSelection()
 // MUST BE ABLE TO RESTORE THE COMMAND LINE COMPLETELY
 // FROM THIS INFORMATION ALONE, AS IF NOTHING HAPPENED
 
-WORDPTR halSaveCmdLine()
+word_p halSaveCmdLine()
 {
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     // COMMIT ANY CHANGES TO THE CURRENT LINE
     if(halScreen.LineIsModified > 0)
@@ -1983,7 +1983,7 @@ WORDPTR halSaveCmdLine()
         return 0;
     }
 
-    WORDPTR list = rplCreateListN(16, 1, 1);
+    word_p list = rplCreateListN(16, 1, 1);
     if(!list || Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1996,7 +1996,7 @@ WORDPTR halSaveCmdLine()
 // EXPORTED HAL API FOR LIBRARIES, CAN FULLY RESTORE A COMMAND LINE STATE
 // FROM A LIST OF DATA GENERATED BY halSaveCmdLine()
 
-int32_t halRestoreCmdLine(WORDPTR data)
+int32_t halRestoreCmdLine(word_p data)
 {
     if(!data)
         return 0;
@@ -2010,7 +2010,7 @@ int32_t halRestoreCmdLine(WORDPTR data)
 
 //  NOW RESTORE FROM SCRATCH
 
-    WORDPTR ptr = rplGetListElement(data, 1);
+    word_p ptr = rplGetListElement(data, 1);
     if(!ptr) {
         uiCloseCmdLine();
         return 0;
@@ -2148,16 +2148,16 @@ int32_t halRestoreCmdLine(WORDPTR data)
 
 }
 
-void uiOpenAndInsertTextN(BYTEPTR start, BYTEPTR end)
+void uiOpenAndInsertTextN(byte_p start, byte_p end)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
 
-        ScratchPointer1 = (WORDPTR) start;
+        ScratchPointer1 = (word_p) start;
         halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         uiOpenCmdLine('D');
-        end = ((BYTEPTR) ScratchPointer1) + (end - start);
-        start = (BYTEPTR) ScratchPointer1;
+        end = ((byte_p) ScratchPointer1) + (end - start);
+        start = (byte_p) ScratchPointer1;
     }
 
     uiInsertCharactersN(start, end);

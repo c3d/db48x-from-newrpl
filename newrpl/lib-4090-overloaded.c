@@ -140,7 +140,7 @@ void rplCallOvrOperator(WORD op)
 {
     int nargs = OVR_GETNARGS(op);
     int libnum = 0;
-    WORDPTR ptr;
+    word_p ptr;
     if(nargs > rplDepthData()) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -220,7 +220,7 @@ void LIB_HANDLER()
         case OPCODE_COMPILE:
 
             libCompileCmds(LIBRARY_NUMBER, (char **)LIB_NAMES,
-                    (WORDPTR) LIB_OPCODES, LIB_NUMBEROFCMDS);
+                    (word_p) LIB_OPCODES, LIB_NUMBEROFCMDS);
             return;
         case OPCODE_DECOMPEDIT:
 
@@ -252,7 +252,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            libDecompileCmds((char **)LIB_NAMES, (WORDPTR) LIB_OPCODES,
+            libDecompileCmds((char **)LIB_NAMES, (word_p) LIB_OPCODES,
                     LIB_NUMBEROFCMDS);
 
             if(DecompMode & 0xffff) {
@@ -314,7 +314,7 @@ void LIB_HANDLER()
             }
 
             libGetInfo(*DecompileObject, (char **)LIB_NAMES,
-                    (WORDPTR) LIB_OPCODES, (int32_t *) LIB_TOKENINFO,
+                    (word_p) LIB_OPCODES, (int32_t *) LIB_TOKENINFO,
                     LIB_NUMBEROFCMDS);
             return;
 
@@ -386,7 +386,7 @@ void LIB_HANDLER()
         }
 
         case OPCODE_LIBINSTALL:
-            LibraryList = (WORDPTR) libnumberlist;
+            LibraryList = (word_p) libnumberlist;
             RetNum = OK_CONTINUE;
             return;
         case OPCODE_LIBREMOVE:

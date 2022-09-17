@@ -136,23 +136,23 @@ INCLUDE_ROMOBJECT(allroots_rules);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) symbeval_seco,
-    (WORDPTR) symbeval1_seco,
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib56_menu,
-    (WORDPTR) lib56_autosimplify_pre,
-    (WORDPTR) lib56_autosimplify_group1,
-    (WORDPTR) lib56_autosimplify_group2,
-    (WORDPTR) lib56_autosimplify_group3,
-    (WORDPTR) lib56_autosimplify_group4,
-    (WORDPTR) lib56_autosimplify_group5,
-    (WORDPTR) lib56_autosimplify_group6,
-    (WORDPTR) lib56_autosimplify_group7,
-    (WORDPTR) lib56_autosimplify_group8,
-    (WORDPTR) lib56_autosimplify_post,
-    (WORDPTR) trigsin_rules,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) symbeval_seco,
+    (word_p) symbeval1_seco,
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib56_menu,
+    (word_p) lib56_autosimplify_pre,
+    (word_p) lib56_autosimplify_group1,
+    (word_p) lib56_autosimplify_group2,
+    (word_p) lib56_autosimplify_group3,
+    (word_p) lib56_autosimplify_group4,
+    (word_p) lib56_autosimplify_group5,
+    (word_p) lib56_autosimplify_group6,
+    (word_p) lib56_autosimplify_group7,
+    (word_p) lib56_autosimplify_group8,
+    (word_p) lib56_autosimplify_post,
+    (word_p) trigsin_rules,
 
     0
 };
@@ -162,10 +162,10 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // THAT A PARENT EVALUATION ALREADY USED THIS OBJECT
 // SO IT'S A CIRCULAR REFERENCE
 
-int32_t rplCheckCircularReference(WORDPTR env_owner, WORDPTR object, int32_t lamnum)
+int32_t rplCheckCircularReference(word_p env_owner, word_p object, int32_t lamnum)
 {
-    WORDPTR *lamenv = rplGetNextLAMEnv(LAMTop);
-    WORDPTR *lamobj;
+    word_p *lamenv = rplGetNextLAMEnv(LAMTop);
+    word_p *lamobj;
     int32_t nlams;
     while(lamenv) {
         if(*rplGetLAMnEnv(lamenv, 0) == env_owner) {
@@ -185,14 +185,14 @@ int32_t rplCheckCircularReference(WORDPTR env_owner, WORDPTR object, int32_t lam
 int32_t rplExpandRuleList()
 {
     int32_t nrules = 1;
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     if(ISLIST(*rplPeekData(1))) {
         // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
         // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
         // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
 
-        WORDPTR *rulelist = DSTop - 1;
-        WORDPTR first = (*rulelist) + 1;
+        word_p *rulelist = DSTop - 1;
+        word_p first = (*rulelist) + 1;
         while(first != rplSkipOb(*rulelist)) {
 
             if(rplSymbIsRule(first)) {
@@ -209,7 +209,7 @@ int32_t rplExpandRuleList()
                 }       // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
 
                 if(*first == CMD_ENDLIST) {
-                    WORDPTR *stkptr = DSTop - 1;
+                    word_p *stkptr = DSTop - 1;
                     while((stkptr >= rulelist) && !ISLIST(**stkptr)) {
                         --stkptr;       // FIND THE LIST
                     }
@@ -220,14 +220,14 @@ int32_t rplExpandRuleList()
                     if(DSTop > stkptr + 1)
                         memmovew(stkptr - 1, stkptr + 1,
                                 (DSTop - stkptr -
-                                    1) * sizeof(WORDPTR) / sizeof(WORD));
+                                    1) * sizeof(word_p) / sizeof(WORD));
                     DSTop -= 2;
                     continue;
                 }
 
                 // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
                 if(ISIDENT(*first)) {
-                    WORDPTR *var = rplFindLAM(first, 1);
+                    word_p *var = rplFindLAM(first, 1);
                     if(!var)
                         var = rplFindGlobal(first, 1);
                     if(var) {
@@ -268,11 +268,11 @@ void rplSymbRuleApply()
 
     // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
     int32_t nrules;
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     nrules = rplExpandRuleList();
 
-    WORDPTR *firstrule = savestk - 1;
+    word_p *firstrule = savestk - 1;
     int32_t k;
     int32_t nsolutions, totalreplacements = 0, prevreplacements = -1;
     WORD objhash, prevhash;
@@ -329,11 +329,11 @@ void rplSymbRuleApply1()
 
     // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
     int32_t nrules;
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     nrules = rplExpandRuleList();
 
-    WORDPTR *firstrule = savestk - 1;
+    word_p *firstrule = savestk - 1;
     int32_t k;
     int32_t nsolutions, totalreplacements = 0;
     rplPushDataNoGrow(*(savestk - 2));  // COPY THE EXPRESSION
@@ -408,11 +408,11 @@ void LIB_HANDLER()
         {
             // UNARY OPERATION ON A SYMBOLIC
 
-            WORDPTR object = rplPeekData(1);
+            word_p object = rplPeekData(1);
 
             if(rplSymbMainOperator(object) == CurOpcode) {
                 // THIS SYMBOLIC ALREADY HAS THE OPERATOR, REMOVE IT!
-                WORDPTR arg = rplSymbUnwrap(object) + 2;
+                word_p arg = rplSymbUnwrap(object) + 2;
 
                 if(!ISSYMBOLIC(*arg))
                     arg = rplSymbWrap(arg);     // WRAP IT AS SYMBOLIC
@@ -436,7 +436,7 @@ void LIB_HANDLER()
             size += 2;
 
             ScratchPointer1 = object;
-            WORDPTR newobject = rplAllocTempOb(size - 1);
+            word_p newobject = rplAllocTempOb(size - 1);
             if(!newobject)
                 return;
 
@@ -444,8 +444,8 @@ void LIB_HANDLER()
             newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = ScratchPointer1;   // RESTORE AS IT MIGHT'VE MOVED DURING GC
 
-            WORDPTR endptr = rplSkipOb(object);
-            WORDPTR ptr = newobject + 2;
+            word_p endptr = rplSkipOb(object);
+            word_p ptr = newobject + 2;
             while(object != endptr)
                 *ptr++ = *object++;
 
@@ -461,7 +461,7 @@ void LIB_HANDLER()
         case OVR_EVAL1:
             // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
         {
-            WORDPTR object = rplPeekData(1);
+            word_p object = rplPeekData(1);
             if(!ISSYMBOLIC(*object)) {
                 rplError(ERR_SYMBOLICEXPECTED);
 
@@ -471,16 +471,16 @@ void LIB_HANDLER()
             // HERE WE HAVE program = PROGRAM TO EXECUTE
 
             // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-            rplCreateLAMEnvironment((WORDPTR) symbeval1_seco + 2);
+            rplCreateLAMEnvironment((word_p) symbeval1_seco + 2);
 
             object = rplSymbUnwrap(object);
-            WORDPTR endobject = rplSkipOb(object);
+            word_p endobject = rplSkipOb(object);
             WORD Opcode = rplSymbMainOperator(object);
-            WORDPTR Opcodeptr = rplSymbMainOperatorPTR(object);
+            word_p Opcodeptr = rplSymbMainOperatorPTR(object);
             if(!Opcodeptr)
-                Opcodeptr = (WORDPTR) zero_bint;
+                Opcodeptr = (word_p) zero_bint;
 
-            rplCreateLAM((WORDPTR) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
+            rplCreateLAM((word_p) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -495,7 +495,7 @@ void LIB_HANDLER()
 
                 if(OPCODE(Opcode) == OVR_FUNCEVAL) {
                     // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
-                    WORDPTR lastobj = object;
+                    word_p lastobj = object;
                     while(rplSkipOb(lastobj) != endobject)
                         lastobj = rplSkipOb(lastobj);
                     endobject = lastobj;
@@ -509,7 +509,7 @@ void LIB_HANDLER()
                                 TITYPE_CASBINARYOP_RIGHT)) {
 
                         // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
-                        WORDPTR *argstart = DSTop;
+                        word_p *argstart = DSTop;
                         ScratchPointer1 = object;
                         ScratchPointer2 = endobject;
                         // PUSH ALL ARGUMENTS TO THE STACK UNEVALUATED
@@ -524,19 +524,19 @@ void LIB_HANDLER()
                         // SIGNAL THAT WE ARE DONE PROCESSING THE LAST ARGUMENT
                         object = endobject = ScratchPointer2;
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
+                        rplCreateLAM((word_p) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
+                        rplCreateLAM((word_p) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 4 = ANY ARGUMENT CHANGED?
+                        rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);     // LAM 4 = ANY ARGUMENT CHANGED?
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
@@ -560,9 +560,9 @@ void LIB_HANDLER()
                                 || (rplPeekRet(1) > symbeval1_seco + 6)) {
                             // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
                             // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-                            rplPushRet((WORDPTR) symbeval1_seco + 6);
+                            rplPushRet((word_p) symbeval1_seco + 6);
                         }
-                        IPtr = (WORDPTR) symbeval1_seco;
+                        IPtr = (word_p) symbeval1_seco;
                         CurOpcode = (CMD_OVR_EVAL);     // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
                         // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
@@ -574,19 +574,19 @@ void LIB_HANDLER()
 
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM 4 = ANY ARGUMENT CHANGED?
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // LAM 4 = ANY ARGUMENT CHANGED?
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -609,9 +609,9 @@ void LIB_HANDLER()
                     || (rplPeekRet(1) > symbeval1_seco + 6)) {
                 // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
                 // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-                rplPushRet((WORDPTR) symbeval1_seco + 6);
+                rplPushRet((word_p) symbeval1_seco + 6);
             }
-            IPtr = (WORDPTR) symbeval1_seco;
+            IPtr = (word_p) symbeval1_seco;
             CurOpcode = (CMD_OVR_EVAL1);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -632,14 +632,14 @@ void LIB_HANDLER()
             // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
         {
 
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISSYMBOLIC(*object)) {
                 rplError(ERR_SYMBOLICEXPECTED);
 
                 return;
             }
 
-            if(rplCheckCircularReference((WORDPTR) symbeval_seco + 2, object,
+            if(rplCheckCircularReference((word_p) symbeval_seco + 2, object,
                         4)) {
                 rplError(ERR_CIRCULARREFERENCE);
 
@@ -649,20 +649,20 @@ void LIB_HANDLER()
             mainobj = object;
 
             // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-            rplCreateLAMEnvironment((WORDPTR) symbeval_seco + 2);
+            rplCreateLAMEnvironment((word_p) symbeval_seco + 2);
 
             object = rplSymbUnwrap(object);
-            WORDPTR endobject = rplSkipOb(object);
+            word_p endobject = rplSkipOb(object);
             WORD Opcode;
-            WORDPTR Opcodeptr = rplSymbMainOperatorPTR(object);
+            word_p Opcodeptr = rplSymbMainOperatorPTR(object);
             if(!Opcodeptr) {
-                Opcodeptr = (WORDPTR) zero_bint;
+                Opcodeptr = (word_p) zero_bint;
                 Opcode = 0;
             }
             else
                 Opcode = *Opcodeptr;
 
-            rplCreateLAM((WORDPTR) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
+            rplCreateLAM((word_p) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -676,7 +676,7 @@ void LIB_HANDLER()
 
                 if(OPCODE(Opcode) == OVR_FUNCEVAL) {
                     // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
-                    WORDPTR lastobj = object;
+                    word_p lastobj = object;
                     while(rplSkipOb(lastobj) != endobject)
                         lastobj = rplSkipOb(lastobj);
                     endobject = lastobj;
@@ -690,7 +690,7 @@ void LIB_HANDLER()
                                 TITYPE_CASBINARYOP_RIGHT)) {
 
                         // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
-                        WORDPTR *argstart = DSTop;
+                        word_p *argstart = DSTop;
                         ScratchPointer1 = object;
                         ScratchPointer2 = endobject;
                         ScratchPointer3 = mainobj;
@@ -707,19 +707,19 @@ void LIB_HANDLER()
                         object = endobject = ScratchPointer2;
                         mainobj = ScratchPointer3;
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
+                        rplCreateLAM((word_p) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
+                        rplCreateLAM((word_p) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, mainobj); // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+                        rplCreateLAM((word_p) nulllam_ident, mainobj); // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
@@ -743,9 +743,9 @@ void LIB_HANDLER()
                                 || (rplPeekRet(1) > symbeval_seco + 4)) {
                             // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
                             // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-                            rplPushRet((WORDPTR) symbeval_seco + 4);
+                            rplPushRet((word_p) symbeval_seco + 4);
                         }
-                        IPtr = (WORDPTR) symbeval_seco;
+                        IPtr = (word_p) symbeval_seco;
                         CurOpcode = (CMD_OVR_EVAL);     // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
                         // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
@@ -757,19 +757,19 @@ void LIB_HANDLER()
 
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -793,9 +793,9 @@ void LIB_HANDLER()
                     || (rplPeekRet(1) > symbeval_seco + 4)) {
                 // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
                 // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-                rplPushRet((WORDPTR) symbeval_seco + 4);
+                rplPushRet((word_p) symbeval_seco + 4);
             }
-            IPtr = (WORDPTR) symbeval_seco;
+            IPtr = (word_p) symbeval_seco;
             CurOpcode = (CMD_OVR_EVAL); // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -807,7 +807,7 @@ void LIB_HANDLER()
         {
             // UNARY OPERATION ON A SYMBOLIC
 
-            WORDPTR object = rplPeekData(1);
+            word_p object = rplPeekData(1);
 
             if(rplSymbMainOperator(object) == CurOpcode) {
                 // THIS SYMBOLIC ALREADY HAS THE OPERATOR, NO NEED TO ADD IT
@@ -824,7 +824,7 @@ void LIB_HANDLER()
             // NEED TO WRAP AND ADD THE OPERATOR
             size += 2;
 
-            WORDPTR newobject = rplAllocTempOb(size - 1);
+            word_p newobject = rplAllocTempOb(size - 1);
             if(!newobject)
                 return;
 
@@ -832,8 +832,8 @@ void LIB_HANDLER()
             newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = rplSymbUnwrap(rplPeekData(1));     // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
 
-            WORDPTR endptr = rplSkipOb(object);
-            WORDPTR ptr = newobject + 2;
+            word_p endptr = rplSkipOb(object);
+            word_p ptr = newobject + 2;
             while(object != endptr)
                 *ptr++ = *object++;
 
@@ -845,14 +845,14 @@ void LIB_HANDLER()
         case OVR_NUM:
             // NUM NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
         {
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISSYMBOLIC(*object)) {
                 rplError(ERR_SYMBOLICEXPECTED);
 
                 return;
             }
 
-            if(rplCheckCircularReference((WORDPTR) symbnum_seco + 2, object, 4)) {
+            if(rplCheckCircularReference((word_p) symbnum_seco + 2, object, 4)) {
                 rplError(ERR_CIRCULARREFERENCE);
 
                 return;
@@ -861,16 +861,16 @@ void LIB_HANDLER()
             mainobj = object;
 
             // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-            rplCreateLAMEnvironment((WORDPTR) symbnum_seco + 2);
+            rplCreateLAMEnvironment((word_p) symbnum_seco + 2);
 
             object = rplSymbUnwrap(object);
-            WORDPTR endobject = rplSkipOb(object);
+            word_p endobject = rplSkipOb(object);
             WORD Opcode = rplSymbMainOperator(object);
-            WORDPTR Opcodeptr = rplSymbMainOperatorPTR(object);
+            word_p Opcodeptr = rplSymbMainOperatorPTR(object);
             if(!Opcodeptr)
-                Opcodeptr = (WORDPTR) zero_bint;
+                Opcodeptr = (word_p) zero_bint;
 
-            rplCreateLAM((WORDPTR) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
+            rplCreateLAM((word_p) nulllam_ident, Opcodeptr);   // LAM 1 = OPCODE
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -885,7 +885,7 @@ void LIB_HANDLER()
 
                 if(OPCODE(Opcode) == OVR_FUNCEVAL) {
                     // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
-                    WORDPTR lastobj = object;
+                    word_p lastobj = object;
                     while(rplSkipOb(lastobj) != endobject)
                         lastobj = rplSkipOb(lastobj);
                     endobject = lastobj;
@@ -899,7 +899,7 @@ void LIB_HANDLER()
                                 TITYPE_CASBINARYOP_RIGHT)) {
 
                         // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
-                        WORDPTR *argstart = DSTop;
+                        word_p *argstart = DSTop;
                         ScratchPointer1 = object;
                         ScratchPointer2 = endobject;
                         ScratchPointer3 = mainobj;
@@ -916,25 +916,25 @@ void LIB_HANDLER()
                         object = endobject = ScratchPointer2;
                         mainobj = ScratchPointer3;
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
+                        rplCreateLAM((word_p) nulllam_ident, endobject);       // LAM 2 = END OF CURRENT OBJECT
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
+                        rplCreateLAM((word_p) nulllam_ident, object);  // LAM 3 = NEXT OBJECT TO PROCESS
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, mainobj); // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+                        rplCreateLAM((word_p) nulllam_ident, mainobj); // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
                         }
 
-                        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
+                        rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);     // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
                         if(Exceptions) {
                             rplCleanupLAMs(0);
                             return;
@@ -959,10 +959,10 @@ void LIB_HANDLER()
                            {
                            // THIS ->NUM IS NOT INSIDE A RECURSIVE LOOP
                            // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER ->NUM
-                           rplPushRet((WORDPTR)symbnum_seco+6);
+                           rplPushRet((word_p)symbnum_seco+6);
                            }
                          */
-                        IPtr = (WORDPTR) symbnum_seco;
+                        IPtr = (word_p) symbnum_seco;
                         CurOpcode = (CMD_OVR_NUM);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
                         // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
@@ -974,25 +974,25 @@ void LIB_HANDLER()
 
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 2 = END OF CURRENT OBJECT
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 3 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -1017,10 +1017,10 @@ void LIB_HANDLER()
                {
                // THIS ->NUM IS NOT INSIDE A RECURSIVE LOOP
                // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER ->NUM
-               rplPushRet((WORDPTR)symbnum_seco+6);
+               rplPushRet((word_p)symbnum_seco+6);
                }
              */
-            IPtr = (WORDPTR) symbnum_seco;
+            IPtr = (word_p) symbnum_seco;
             CurOpcode = (CMD_OVR_NUM);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -1036,7 +1036,7 @@ void LIB_HANDLER()
         {
             // UNARY OPERATION ON A SYMBOLIC
 
-            WORDPTR object = rplPeekData(1);
+            word_p object = rplPeekData(1);
 
             if(rplSymbMainOperator(object) == CurOpcode) {
                 // THIS SYMBOLIC ALREADY HAS THE OPERATOR, NO NEED TO ADD IT
@@ -1053,7 +1053,7 @@ void LIB_HANDLER()
             // NEED TO WRAP AND ADD THE OPERATOR
             size += 2;
 
-            WORDPTR newobject = rplAllocTempOb(size - 1);
+            word_p newobject = rplAllocTempOb(size - 1);
             if(!newobject)
                 return;
 
@@ -1061,8 +1061,8 @@ void LIB_HANDLER()
             newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = rplSymbUnwrap(rplPeekData(1));     // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
 
-            WORDPTR endptr = rplSkipOb(object);
-            WORDPTR ptr = newobject + 2;
+            word_p endptr = rplSkipOb(object);
+            word_p ptr = newobject + 2;
             while(object != endptr)
                 *ptr++ = *object++;
 
@@ -1074,8 +1074,8 @@ void LIB_HANDLER()
         case OVR_ADD:
             // ADDITION IS A SPECIAL CASE, NEEDS TO KEEP ARGUMENTS FLAT
         {
-            WORDPTR arg1 = rplPeekData(2);
-            WORDPTR arg2 = rplPeekData(1);
+            word_p arg1 = rplPeekData(2);
+            word_p arg2 = rplPeekData(1);
 
             // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
             if(ISLIST(*arg1) || ISLIST(*arg2)) {
@@ -1100,7 +1100,7 @@ void LIB_HANDLER()
             int32_t argtype = 0;
 
             if(ISCOMPLEX(*rplPeekData(2))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(2));
+                word_p newsymb = rplComplexToSymb(rplPeekData(2));
                 if(!newsymb)
                     return;
                 rplOverwriteData(2, newsymb);
@@ -1109,7 +1109,7 @@ void LIB_HANDLER()
             }
 
             if(ISCOMPLEX(*rplPeekData(1))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(1));
+                word_p newsymb = rplComplexToSymb(rplPeekData(1));
                 if(!newsymb)
                     return;
                 rplOverwriteData(1, newsymb);
@@ -1176,8 +1176,8 @@ void LIB_HANDLER()
                 // OR BOTH ARGUMENTS ARE NON-SYMBOLIC
 
                 // SORT ARGUMENTS BY LIBRARY NUMBER
-                WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
-                WORDPTR *left,*right;
+                word_p *ptr,*ptr2,*endlimit,*startlimit,save;
+                word_p *left,*right;
 
                 startlimit=DSTop-(rplDepthData()-initdepth)+1;    // POINT TO SECOND ELEMENT IN THE LIST
                 endlimit=DSTop;           // POINT AFTER THE LAST ELEMENT
@@ -1201,7 +1201,7 @@ void LIB_HANDLER()
                         } else right=left;
                         // INSERT THE POINTER RIGHT BEFORE right
                         for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
-                        //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
+                        //memmoveb(right+1,right,(ptr-right)*sizeof(word_p));
                         *right=save;
                     }
                 }
@@ -1241,8 +1241,8 @@ void LIB_HANDLER()
         {
             // IMMEDIATELY RETURN TRUE/FALSE BY COMPARISON OF OBJECTS
 
-            WORDPTR arg1 = rplPeekData(2);
-            WORDPTR arg2 = rplPeekData(1);
+            word_p arg1 = rplPeekData(2);
+            word_p arg2 = rplPeekData(1);
 
             // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
             if(ISLIST(*arg1) || ISLIST(*arg2)) {
@@ -1261,7 +1261,7 @@ void LIB_HANDLER()
             }
 
             if(ISCOMPLEX(*rplPeekData(2))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(2));
+                word_p newsymb = rplComplexToSymb(rplPeekData(2));
                 if(Exceptions)
                     return;
                 rplOverwriteData(2, newsymb);
@@ -1270,7 +1270,7 @@ void LIB_HANDLER()
             }
 
             if(ISCOMPLEX(*rplPeekData(1))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(1));
+                word_p newsymb = rplComplexToSymb(rplPeekData(1));
                 if(Exceptions)
                     return;
                 rplOverwriteData(1, newsymb);
@@ -1282,7 +1282,7 @@ void LIB_HANDLER()
             ScratchPointer3 = rplSkipOb(arg1);
             ScratchPointer4 = rplSkipOb(arg2);
 
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
             int32_t same = 1;
             while(same && (ScratchPointer1 < ScratchPointer3)
                     && (ScratchPointer2 < ScratchPointer4)) {
@@ -1347,8 +1347,8 @@ void LIB_HANDLER()
             // BINARY OPERATORS
 
             // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
-            WORDPTR arg1 = rplPeekData(2);
-            WORDPTR arg2 = rplPeekData(1);
+            word_p arg1 = rplPeekData(2);
+            word_p arg2 = rplPeekData(1);
 
             // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
             if(ISLIST(*arg1) || ISLIST(*arg2)) {
@@ -1373,7 +1373,7 @@ void LIB_HANDLER()
             }
 
             if(ISCOMPLEX(*rplPeekData(2))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(2));
+                word_p newsymb = rplComplexToSymb(rplPeekData(2));
                 if(Exceptions)
                     return;
                 rplOverwriteData(2, newsymb);
@@ -1381,7 +1381,7 @@ void LIB_HANDLER()
             }
 
             if(ISCOMPLEX(*rplPeekData(1))) {
-                WORDPTR newsymb = rplComplexToSymb(rplPeekData(1));
+                word_p newsymb = rplComplexToSymb(rplPeekData(1));
                 if(Exceptions)
                     return;
                 rplOverwriteData(1, newsymb);
@@ -1401,16 +1401,16 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT, GETLAM4=FLAG TO SEE IF ANY OBJECT CHANGED
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         if(nextobj == endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORDPTR Opcodeptr = *rplGetLAMn(1), anyargschanged = *rplGetLAMn(4);
+            word_p Opcodeptr = *rplGetLAMn(1), anyargschanged = *rplGetLAMn(4);
             WORD Opcode = (Opcodeptr == zero_bint) ? 0 : *Opcodeptr;
 
-            WORDPTR *prevDStk;
+            word_p *prevDStk;
             if(Opcodeptr == zero_bint)
                 prevDStk = rplUnprotectData();
             else
@@ -1439,7 +1439,7 @@ void LIB_HANDLER()
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
-                    rplPutLAMn(1, (WORDPTR) zero_bint); // SIGNAL OPCODE IS DONE
+                    rplPutLAMn(1, (word_p) zero_bint); // SIGNAL OPCODE IS DONE
                     // AND EXECUTION WILL CONTINUE AT EVAL
 
                     return;
@@ -1472,10 +1472,10 @@ void LIB_HANDLER()
                     if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                         if(newdepth <= 2)
-                            rplPutLAMn(1, (WORDPTR) zero_bint); // SIGNAL OPCODE IS DONE
+                            rplPutLAMn(1, (word_p) zero_bint); // SIGNAL OPCODE IS DONE
                     }
                     else
-                        rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
+                        rplPutLAMn(1, (word_p) zero_bint);     // SIGNAL OPCODE IS DONE
 
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
@@ -1499,7 +1499,7 @@ void LIB_HANDLER()
             rplDropData(1);
 
             // SET/CLEAR THE FORCED_RAD ANGLE
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 rplClrSystemFlag(FL_FORCED_RAD);
             else
                 rplSetSystemFlag(FL_FORCED_RAD);
@@ -1529,8 +1529,8 @@ void LIB_HANDLER()
         // IF IT WASN'T THE OPCODE, KEEP GOING TO THE SAME OPERATOR
         // ELSE SKIP TO THE POST-PROCESSING
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         if(nextobj < endoflist) {
             rplPushData(nextobj);       // GET THE ORIGINAL OBJECT
@@ -1542,7 +1542,7 @@ void LIB_HANDLER()
 
         // WE ALREADY PROCESSED THE ENTIRE SYMBOLIC
         // JUST PUT A 1 ON THE STACK, AND SKIP SAME
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
         IPtr++; // SKIP NEXT COMMAND
 
         return;
@@ -1555,10 +1555,10 @@ void LIB_HANDLER()
 
         // STACK IS SUPPOSED TO HAVE EVAL1(OBJECT) THEN THE RESULT OF SAME(OBJECT,EVAL1(OBJECT))
         if(rplIsFalse(rplPopData()))
-            rplPutLAMn(4, (WORDPTR) one_bint);
+            rplPutLAMn(4, (word_p) one_bint);
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
         int32_t forced_rad;
@@ -1568,7 +1568,7 @@ void LIB_HANDLER()
         }
         else {
             // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 forced_rad = 0;
             else
                 forced_rad = 1;
@@ -1576,9 +1576,9 @@ void LIB_HANDLER()
         if(rplTestSystemFlag(FL_FORCED_RAD))
             forced_rad |= 1;
         if(forced_rad)
-            rplPutLAMn(5, (WORDPTR) one_bint);
+            rplPutLAMn(5, (word_p) one_bint);
         else
-            rplPutLAMn(5, (WORDPTR) zero_bint);
+            rplPutLAMn(5, (word_p) zero_bint);
 
         if(nextobj < endoflist)
             rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
@@ -1592,7 +1592,7 @@ void LIB_HANDLER()
         if(nextobj < endoflist)
             rplPutLAMn(3, rplSkipOb(nextobj));  // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr = (WORDPTR) symbeval1_seco;        // CONTINUE THE LOOP
+        IPtr = (word_p) symbeval1_seco;        // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -1649,9 +1649,9 @@ void LIB_HANDLER()
 
         if(!rplTestSystemFlag(FL_AUTOSIMPRULES)) {
 
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
 
-            rplPushDataNoGrow((WORDPTR) lib56_autosimplify_pre);
+            rplPushDataNoGrow((word_p) lib56_autosimplify_pre);
             rplCallOperator(CMD_RULEAPPLY1);
             //DEBUG ONLY:
             if(!rplIsFalse(rplPeekData(1)))
@@ -1669,7 +1669,7 @@ void LIB_HANDLER()
                 prevhash = hash;
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP1)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group1);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group1);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1683,7 +1683,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP2)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group2);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group2);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1697,7 +1697,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP3)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group3);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group3);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1711,7 +1711,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP4)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group4);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group4);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1725,7 +1725,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP5)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group5);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group5);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1739,7 +1739,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP6)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group6);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group6);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1753,7 +1753,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP7)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group7);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group7);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
                 }
 
                 if(!rplTestSystemFlag(FL_AUTOSIMPGROUP8)) {
-                    rplPushDataNoGrow((WORDPTR) lib56_autosimplify_group8);
+                    rplPushDataNoGrow((word_p) lib56_autosimplify_group8);
                     rplCallOperator(CMD_RULEAPPLY1);
                     //DEBUG ONLY:
                     if(!rplIsFalse(rplPeekData(1)))
@@ -1789,7 +1789,7 @@ void LIB_HANDLER()
             }
             while(prevhash != hash);
 
-            rplPushDataNoGrow((WORDPTR) lib56_autosimplify_post);
+            rplPushDataNoGrow((word_p) lib56_autosimplify_post);
             rplCallOperator(CMD_RULEAPPLY1);
             //DEBUG ONLY:
             if(!rplIsFalse(rplPeekData(1)))
@@ -1803,7 +1803,7 @@ void LIB_HANDLER()
         }
 
         // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-        WORDPTR newobj = rplSymbCanonicalForm(rplPeekData(1), 1);
+        word_p newobj = rplSymbCanonicalForm(rplPeekData(1), 1);
         if(newobj)
             rplOverwriteData(1, newobj);
 
@@ -1815,16 +1815,16 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         if(nextobj >= endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORDPTR Opcodeptr = *rplGetLAMn(1);
+            word_p Opcodeptr = *rplGetLAMn(1);
             WORD Opcode = (Opcodeptr == zero_bint) ? 0 : *Opcodeptr;
 
-            WORDPTR *prevDStk;
+            word_p *prevDStk;
             if(Opcodeptr == zero_bint)
                 prevDStk = rplUnprotectData();
             else
@@ -1853,7 +1853,7 @@ void LIB_HANDLER()
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
-                    rplPutLAMn(1, (WORDPTR) zero_bint); // SIGNAL OPCODE IS DONE
+                    rplPutLAMn(1, (word_p) zero_bint); // SIGNAL OPCODE IS DONE
                     // AND EXECUTION WILL CONTINUE AT EVAL
 
                     return;
@@ -1878,7 +1878,7 @@ void LIB_HANDLER()
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
                     // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                     if(newdepth <= 2)
-                        rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
+                        rplPutLAMn(1, (word_p) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
                 else {
                     int32_t tinfo = rplSymbGetTokenInfo(Opcodeptr);
@@ -1886,11 +1886,11 @@ void LIB_HANDLER()
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_LEFT)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_RIGHT)) {
                         // CAS OPERATORS NEED TO EVAL THE RESULT AFTERWARDS
-                        rplPutLAMn(1, (WORDPTR) symbeval_seco + 2);     // SIGNAL OPCODE EVAL IS NEXT
+                        rplPutLAMn(1, (word_p) symbeval_seco + 2);     // SIGNAL OPCODE EVAL IS NEXT
 
                     }
                     else
-                        rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
+                        rplPutLAMn(1, (word_p) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
 
                 // PUSH THE NEXT OBJECT IN THE STACK
@@ -1913,7 +1913,7 @@ void LIB_HANDLER()
             rplDropData(1);
 
             // SET/CLEAR THE FORCED_RAD ANGLE
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 rplClrSystemFlag(FL_FORCED_RAD);
             else
                 rplSetSystemFlag(FL_FORCED_RAD);
@@ -1943,8 +1943,8 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
         int32_t forced_rad;
@@ -1954,7 +1954,7 @@ void LIB_HANDLER()
         }
         else {
             // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 forced_rad = 0;
             else
                 forced_rad = 1;
@@ -1962,9 +1962,9 @@ void LIB_HANDLER()
         if(rplTestSystemFlag(FL_FORCED_RAD))
             forced_rad |= 1;
         if(forced_rad)
-            rplPutLAMn(5, (WORDPTR) one_bint);
+            rplPutLAMn(5, (word_p) one_bint);
         else
-            rplPutLAMn(5, (WORDPTR) zero_bint);
+            rplPutLAMn(5, (word_p) zero_bint);
 
         if(nextobj < endoflist)
             rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
@@ -1978,7 +1978,7 @@ void LIB_HANDLER()
         if(nextobj < endoflist)
             rplPutLAMn(3, rplSkipOb(nextobj));  // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr = (WORDPTR) symbeval_seco; // CONTINUE THE LOOP
+        IPtr = (word_p) symbeval_seco; // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2008,16 +2008,16 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
 
-        WORDPTR nextobj = *rplGetLAMn(3);
-        WORDPTR endoflist = *rplGetLAMn(2);
+        word_p nextobj = *rplGetLAMn(3);
+        word_p endoflist = *rplGetLAMn(2);
 
         if(nextobj >= endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORDPTR Opcodeptr = *rplGetLAMn(1);
+            word_p Opcodeptr = *rplGetLAMn(1);
             WORD Opcode = (Opcodeptr == zero_bint) ? 0 : *Opcodeptr;
 
-            WORDPTR *prevDStk;
+            word_p *prevDStk;
             if(Opcodeptr == zero_bint)
                 prevDStk = rplUnprotectData();
             else
@@ -2046,7 +2046,7 @@ void LIB_HANDLER()
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
-                    rplPutLAMn(1, (WORDPTR) zero_bint); // SIGNAL OPCODE IS DONE
+                    rplPutLAMn(1, (word_p) zero_bint); // SIGNAL OPCODE IS DONE
                     // AND EXECUTION WILL CONTINUE AT EVAL
                     IPtr += 3;
                     return;
@@ -2072,7 +2072,7 @@ void LIB_HANDLER()
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
                     // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                     if(newdepth <= 2)
-                        rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
+                        rplPutLAMn(1, (word_p) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
                 else {
                     int32_t tinfo = rplSymbGetTokenInfo(Opcodeptr);
@@ -2080,11 +2080,11 @@ void LIB_HANDLER()
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_LEFT)
                             || (TI_TYPE(tinfo) == TITYPE_CASBINARYOP_RIGHT)) {
                         // CAS OPERATORS NEED TO ->NUM THE RESULT AFTERWARDS
-                        rplPutLAMn(1, (WORDPTR) symbnum_seco + 2);      // SIGNAL OPCODE ->NUM IS NEXT
+                        rplPutLAMn(1, (word_p) symbnum_seco + 2);      // SIGNAL OPCODE ->NUM IS NEXT
 
                     }
                     else
-                        rplPutLAMn(1, (WORDPTR) zero_bint);     // SIGNAL OPCODE IS DONE
+                        rplPutLAMn(1, (word_p) zero_bint);     // SIGNAL OPCODE IS DONE
                 }
                 // PUSH THE NEXT OBJECT IN THE STACK
                 rplPushData(Opcodeptr);
@@ -2108,7 +2108,7 @@ void LIB_HANDLER()
             rplDropData(1);
 
             // SET/CLEAR THE FORCED_RAD ANGLE
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 rplClrSystemFlag(FL_FORCED_RAD);
             else
                 rplSetSystemFlag(FL_FORCED_RAD);
@@ -2138,8 +2138,8 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        WORDPTR endoflist = *rplGetLAMn(2);
-        WORDPTR nextobj = rplSkipOb(*rplGetLAMn(3));
+        word_p endoflist = *rplGetLAMn(2);
+        word_p nextobj = rplSkipOb(*rplGetLAMn(3));
 
         // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
         int32_t forced_rad;
@@ -2149,7 +2149,7 @@ void LIB_HANDLER()
         }
         else {
             // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
-            if(*rplGetLAMn(5) == (WORDPTR) zero_bint)
+            if(*rplGetLAMn(5) == (word_p) zero_bint)
                 forced_rad = 0;
             else
                 forced_rad = 1;
@@ -2157,9 +2157,9 @@ void LIB_HANDLER()
         if(rplTestSystemFlag(FL_FORCED_RAD))
             forced_rad |= 1;
         if(forced_rad)
-            rplPutLAMn(5, (WORDPTR) one_bint);
+            rplPutLAMn(5, (word_p) one_bint);
         else
-            rplPutLAMn(5, (WORDPTR) zero_bint);
+            rplPutLAMn(5, (word_p) zero_bint);
 
         if(nextobj < endoflist)
             rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
@@ -2174,7 +2174,7 @@ void LIB_HANDLER()
             rplPutLAMn(3, nextobj);     // MOVE TO THE NEXT OBJECT IN THE LIST
         }
 
-        IPtr = (WORDPTR) symbnum_seco;  // CONTINUE THE LOOP
+        IPtr = (word_p) symbnum_seco;  // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2256,7 +2256,7 @@ void LIB_HANDLER()
 
             }
             else {
-                rplPushData((WORDPTR) empty_list);
+                rplPushData((word_p) empty_list);
             }
 
             rplCleanupLAMs(0);
@@ -2275,7 +2275,7 @@ void LIB_HANDLER()
 
         if(!Exceptions) {
             // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-            WORDPTR newobj = rplSymbCanonicalForm(rplPeekData(2), 1);
+            word_p newobj = rplSymbCanonicalForm(rplPeekData(2), 1);
             if(newobj)
                 rplOverwriteData(2, newobj);    // REPLACE ORIGINAL EXPRESSION WITH RESULT
         }
@@ -2291,7 +2291,7 @@ void LIB_HANDLER()
 
         if(!Exceptions) {
             // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-            WORDPTR newobj = rplSymbCanonicalForm(rplPeekData(2), 1);
+            word_p newobj = rplSymbCanonicalForm(rplPeekData(2), 1);
             if(newobj)
                 rplOverwriteData(2, newobj);    // REPLACE ORIGINAL EXPRESSION WITH RESULT
         }
@@ -2447,7 +2447,7 @@ void LIB_HANDLER()
 
         Context.precdigits = saveprec;
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
         rplNewRealPush(&t1);
         if(Exceptions) {
@@ -2613,8 +2613,8 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
         if(ISLIST(*arg1) || ISLIST(*arg2)) {
@@ -2645,9 +2645,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR firstexp = rplPeekData(1);
-        WORDPTR endexp = rplSkipOb(firstexp);
-        WORDPTR *stksave = DSTop;
+        word_p firstexp = rplPeekData(1);
+        word_p endexp = rplSkipOb(firstexp);
+        word_p *stksave = DSTop;
 
         if(ISLIST(*firstexp)) {
             firstexp++;
@@ -2683,7 +2683,7 @@ void LIB_HANDLER()
                 // REPLACE ALL OCCURRENCES OF THE IDENT IN THE SYMBOLIC
                 ScratchPointer4 = firstexp;
                 ScratchPointer5 = endexp;
-                WORDPTR newobj =
+                word_p newobj =
                         rplSymbReplaceVar(rplPeekData(1), firstexp, firstexp);
                 if(Exceptions || !newobj) {
                     DSTop = stksave;
@@ -2710,7 +2710,7 @@ void LIB_HANDLER()
 
                     if(!Exceptions) {
                         // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-                        WORDPTR newobj =
+                        word_p newobj =
                                 rplSymbCanonicalForm(rplPeekData(2), 1);
                         if(newobj)
                             rplOverwriteData(2, newobj);        // REPLACE ORIGINAL EXPRESSION WITH RESULT
@@ -2756,8 +2756,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR *stksave = DSTop;
-        rplPushDataNoGrow((WORDPTR) trigsin_rules);
+        word_p *stksave = DSTop;
+        rplPushDataNoGrow((word_p) trigsin_rules);
         rplSymbRuleApply();
         DSTop = stksave;
         if(!Exceptions)
@@ -2772,8 +2772,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR *stksave = DSTop;
-        rplPushDataNoGrow((WORDPTR) allroots_rules);
+        word_p *stksave = DSTop;
+        rplPushDataNoGrow((word_p) allroots_rules);
         rplSymbRuleApply();
         DSTop = stksave;
         if(!Exceptions)
@@ -2792,7 +2792,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(3);
 
-        WORDPTR argstart, argend, argstep;
+        word_p argstart, argend, argstep;
 
         argstart = rplPeekData(3);
         argend = rplPeekData(2);
@@ -2839,7 +2839,7 @@ void LIB_HANDLER()
 
             }
             // HERE WE HAVE THE SIZE OF THE LIST
-            WORDPTR newlist = rplAllocTempOb(size), ptr;
+            word_p newlist = rplAllocTempOb(size), ptr;
             if(!newlist)
                 return;
             newlist[0] = MKPROLOG(DOCASELIST, size);
@@ -2864,7 +2864,7 @@ void LIB_HANDLER()
         // USE REAL NUMBERS, WE ARE DEALING WITH LARGE INTEGERS
         REAL start, end, step;
         int32_t direction;
-        WORDPTR newlist = rplAllocTempOb(2), ptr;
+        word_p newlist = rplAllocTempOb(2), ptr;
         if(!newlist)
             return;
         ptr = newlist + 1;
@@ -2933,9 +2933,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR firstexp = rplPeekData(1);
-        WORDPTR endexp = rplSkipOb(firstexp);
-        WORDPTR *stksave = DSTop;
+        word_p firstexp = rplPeekData(1);
+        word_p endexp = rplSkipOb(firstexp);
+        word_p *stksave = DSTop;
 
         if(ISLIST(*rplPeekData(2))) {
             rplListBinaryDoCmd();
@@ -2986,7 +2986,7 @@ void LIB_HANDLER()
             // REPLACE ALL OCCURRENCES OF THE IDENT IN THE SYMBOLIC
             ScratchPointer4 = firstexp;
             ScratchPointer5 = endexp;
-            WORDPTR newobj =
+            word_p newobj =
                     rplSymbReplaceVar(rplPeekData(1), firstexp, firstexp);
             if(Exceptions || !newobj) {
                 DSTop = stksave;
@@ -3024,7 +3024,7 @@ void LIB_HANDLER()
         // RetNum =  enum CompileErrors
 
     {
-        BYTEPTR tok = (BYTEPTR) TokenStart;
+        byte_p tok = (byte_p) TokenStart;
         uint64_t Locale = rplGetSystemLocale();
 
         if(*tok == '(') {
@@ -3179,7 +3179,7 @@ void LIB_HANDLER()
             // FOUND END OF SYMBOLIC OBJECT
 
             if(TokenLen > 1)
-                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                NextTokenStart = (word_p) (((char *)TokenStart) + 1);
             RetNum = OK_ENDCONSTRUCT_INFIX;
             return;
         }
@@ -3234,7 +3234,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3242,7 +3242,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -3280,7 +3280,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -3289,12 +3289,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

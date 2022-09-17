@@ -20,14 +20,14 @@ typedef void (*LIBHANDLER)(void);
 typedef uint16_t uint16_t;
 typedef uint32_t WORD;
 typedef uint8_t BYTE;
-typedef WORD *WORDPTR;
-typedef BYTE *BYTEPTR;
+typedef WORD *word_p;
+typedef BYTE *byte_p;
 typedef int32_t int32_t;
 typedef uint32_t uint32_t;
 typedef int64_t int64_t;
 typedef uint64_t uint64_t;
 typedef intptr_t intptr_t;
-#define NUMBER2PTR(a) ((WORDPTR)(intptr_t)(WORD)(a))
+#define NUMBER2PTR(a) ((word_p)(intptr_t)(WORD)(a))
 
 #ifdef __cplusplus
 "C" {

@@ -19,11 +19,11 @@ void uiRepaintForm(gglsurface * scr)
 // COMPUTE THE TOTAL DIMENSIONS OF A FORM
 // USED TO ALLOCATE THE FORM BITMAP
 
-void uiFormGetDimensions(WORDPTR form, int32_t * width, int32_t * height)
+void uiFormGetDimensions(word_p form, int32_t * width, int32_t * height)
 {
     int32_t w = 0, h = 0;
     int32_t roww, rowh;
-    WORDPTR item, end;
+    word_p item, end;
 
     if(!ISLIST(*form)) {
         if(width)
@@ -53,7 +53,7 @@ void uiFormGetDimensions(WORDPTR form, int32_t * width, int32_t * height)
             // A LIST OF COLUMNS
             int ncols = 0, forced = 0;
             roww = 0;
-            WORDPTR col = item + 1, endcol = rplSkipOb(item);
+            word_p col = item + 1, endcol = rplSkipOb(item);
 
             while(col < endcol) {
                 // SCAN THE COLUMN
@@ -89,7 +89,7 @@ void uiFormGetDimensions(WORDPTR form, int32_t * width, int32_t * height)
 
 }
 
-void uiUpdateForm(WORDPTR form)
+void uiUpdateForm(word_p form)
 {
     // THE FORM IS A LIST OF ELEMENTS IN ROW ORDER
     // AN ELEMENT CAN BE ONLY 3 THINGS: TEXT, AN IDENT OR A LIST. ANY OF THESE ELEMENTS MIGHT BE PRECEDED BY AN INTEGER WITH THE ROW HEIGHT
@@ -112,7 +112,7 @@ void uiUpdateForm(WORDPTR form)
     // ALLOCATE NEW BITMAP
     ScratchPointer1 = form;
 
-    WORDPTR newbmp = rplBmpCreate(DEFAULT_BITMAP_MODE, formw, formh, 1);  // ALLOCATE A NEW BITMAP AND CLEAR IT
+    word_p newbmp = rplBmpCreate(DEFAULT_BITMAP_MODE, formw, formh, 1);  // ALLOCATE A NEW BITMAP AND CLEAR IT
     if(!newbmp)
         return;
     form = ScratchPointer1;
@@ -129,7 +129,7 @@ void uiUpdateForm(WORDPTR form)
     int32_t ycoord = 0;
 
     int32_t roww, rowh, rowid = 0;
-    WORDPTR item, end;
+    word_p item, end;
     end = rplSkipOb(form);
     item = form + 1;
     while(item < end) {
@@ -146,7 +146,7 @@ void uiUpdateForm(WORDPTR form)
             // A LIST OF COLUMNS
             int ncols = 0, forced = 0;
             roww = 0;
-            WORDPTR col = item + 1, endcol = rplSkipOb(item);
+            word_p col = item + 1, endcol = rplSkipOb(item);
             int32_t def_itemw, itemw;
 
             while(col < endcol) {

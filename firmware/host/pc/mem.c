@@ -17,12 +17,12 @@
 #define TEMPBLK_SIZE  32768     //  TEMP BLOCKS
 
 // ALL MEMORY IS ALLOCATED STATICALLY FOR THE SIMULATOR
-WORDPTR dstk_memory[DSTK_SIZE];
-WORDPTR rstk_memory[RSTK_SIZE];
+word_p dstk_memory[DSTK_SIZE];
+word_p rstk_memory[RSTK_SIZE];
 WORD dir_memory[DIR_SIZE];
 WORD lam_memory[LAM_SIZE];
 WORD tempob_memory[TEMPOB_SIZE];
-WORDPTR tempblk_memory[TEMPBLK_SIZE];
+word_p tempblk_memory[TEMPBLK_SIZE];
 int32_t dstk_used, rstk_used, dir_used, lam_used, tempob_used,
         tempblk_used;
 int32_t memmap_intact = 0;
@@ -51,39 +51,39 @@ int halGetTotalPages()
 // RETURN SAME base OR A NEW LOCATION OF base
 // RETURN NULL IF NOT ENOUGH MEMORY
 
-WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
+word_p *halGrowMemory(int32_t zone, word_p * base, int32_t newsize)
 {
     int maxpages;
     int32_t *current;
     switch (zone) {
 
     case MEM_AREA_RSTK:
-        base = (WORDPTR *) rstk_memory;
+        base = (word_p *) rstk_memory;
         current = &rstk_used;
         maxpages = RSTK_SIZE >> 10;
         break;
     case MEM_AREA_DSTK:
-        base = (WORDPTR *) dstk_memory;
+        base = (word_p *) dstk_memory;
         current = &dstk_used;
         maxpages = DSTK_SIZE >> 10;
         break;
     case MEM_AREA_DIR:
-        base = (WORDPTR *) dir_memory;
+        base = (word_p *) dir_memory;
         current = &dir_used;
         maxpages = DIR_SIZE >> 10;
         break;
     case MEM_AREA_LAM:
-        base = (WORDPTR *) lam_memory;
+        base = (word_p *) lam_memory;
         current = &lam_used;
         maxpages = LAM_SIZE >> 10;
         break;
     case MEM_AREA_TEMPOB:
-        base = (WORDPTR *) tempob_memory;
+        base = (word_p *) tempob_memory;
         current = &tempob_used;
         maxpages = TEMPOB_SIZE >> 10;
         break;
     case MEM_AREA_TEMPBLOCKS:
-        base = (WORDPTR *) tempblk_memory;
+        base = (word_p *) tempblk_memory;
         current = &tempblk_used;
         maxpages = TEMPBLK_SIZE >> 10;
         break;
@@ -134,7 +134,7 @@ void halInitMemoryMap()
             tempblk_used = 0;
 // MAKE DSTK MEMORY DIRTY WITH KNOWN STATE
     memsetw(dstk_memory, 0xbaadf00d,
-            DSTK_SIZE * sizeof(WORDPTR) / sizeof(WORD));
+            DSTK_SIZE * sizeof(word_p) / sizeof(WORD));
     memsetw(tempob_memory, 0xbaadf00d, TEMPOB_SIZE);
 
 }

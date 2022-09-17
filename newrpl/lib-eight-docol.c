@@ -108,14 +108,14 @@ INCLUDE_ROMOBJECT(lib8_menu_error);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib8_menu_debug,
-    (WORDPTR) lib8_menu_error,
-    (WORDPTR) errormsg_ident,
-    (WORDPTR) error_reenter_seco,
-    (WORDPTR) bkpoint_seco,
-    (WORDPTR) nullptr_catastrophic_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib8_menu_debug,
+    (word_p) lib8_menu_error,
+    (word_p) errormsg_ident,
+    (word_p) error_reenter_seco,
+    (word_p) bkpoint_seco,
+    (word_p) nullptr_catastrophic_seco,
     0
 };
 
@@ -291,7 +291,7 @@ void LIB_HANDLER()
         if(RSTop > HaltedRSTop) {
             // REMOVE ALL INFORMATION LEFT BY THE HALTED PROGRAM, KEEP THE CURRENT ONE
             memmovew(RStk, HaltedRSTop,
-                    (RSTop - HaltedRSTop) * (sizeof(WORDPTR *) / sizeof(WORD)));
+                    (RSTop - HaltedRSTop) * (sizeof(word_p *) / sizeof(WORD)));
             RSTop -= HaltedRSTop - RStk;
         }
         else
@@ -300,7 +300,7 @@ void LIB_HANDLER()
             // REMOVE ALL INFORMATION LEFT BY THE HALTED PROGRAM, KEEP THE CURRENT ONE
             memmovew(LAMs, HaltedLAMTop,
                     (LAMTop -
-                        HaltedLAMTop) * (sizeof(WORDPTR *) / sizeof(WORD)));
+                        HaltedLAMTop) * (sizeof(word_p *) / sizeof(WORD)));
             LAMTop -= HaltedLAMTop - LAMs;
             nLAMBase -= HaltedLAMTop - LAMs;
         }
@@ -428,7 +428,7 @@ void LIB_HANDLER()
             // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERROR HANDLER, JUST DO NOP
             return;
         }
-        if(ErrorHandler != (WORDPTR) error_reenter_seco) {
+        if(ErrorHandler != (word_p) error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, DO NOTHING
             return;
         }
@@ -497,7 +497,7 @@ void LIB_HANDLER()
         }
 
         if(ISSTRING(*rplPeekData(1))) {
-            rplStoreSettings((WORDPTR) errormsg_ident, rplPeekData(1));
+            rplStoreSettings((word_p) errormsg_ident, rplPeekData(1));
             if(!Exceptions) {
                 rplDropData(1);
                 rplError(MAKEMSG(LIBRARY_NUMBER, 0));
@@ -544,7 +544,7 @@ void LIB_HANDLER()
         //@INCOMPAT
         // GET THE PREVIOUS ERROR CODE
         int32_t msgcode;
-        WORDPTR string = 0;
+        word_p string = 0;
         if(TrappedExceptions == EX_ERRORCODE)
             msgcode = TrappedErrorCode;
         else {
@@ -562,7 +562,7 @@ void LIB_HANDLER()
         // TRY TO GET A MESSAGE FROM A LIBRARY
         LIBHANDLER han = rplGetLibHandler(LIBFROMMSG(msgcode));
         if(!han) {
-            string = (WORDPTR) empty_string;
+            string = (word_p) empty_string;
         }
         else {
             WORD SavedOpcode = CurOpcode;
@@ -580,7 +580,7 @@ void LIB_HANDLER()
             CurOpcode = SavedOpcode;
 
             if(RetNum != OK_CONTINUE)
-                string = (WORDPTR) empty_string;
+                string = (word_p) empty_string;
             else
                 string = ObjectPTR;
         }
@@ -615,7 +615,7 @@ void LIB_HANDLER()
         // THAT LEAVES 1 OR 0 (TRUE/FALSE) IN THE STACK. MUST MAKE NO OTHER CHANGES!
         // BREAKPOINT WILL TRIGGER IF CONDITION IS TRUE.
 
-        WORDPTR code, offset, condition;
+        word_p code, offset, condition;
 
         if(rplDepthData() < 2) {
             rplError(ERR_BADARGCOUNT);
@@ -657,7 +657,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR ptr = code + 1;
+        word_p ptr = code + 1;
         --off;
         while(off--) {
             ptr = rplSkipOb(ptr);
@@ -756,7 +756,7 @@ void LIB_HANDLER()
 
             rplDropData(1);
 
-            WORDPTR blame = rplPopData();
+            word_p blame = rplPopData();
             if(!ISSTRING(*blame) && !ISIDENT(*blame))
                 blame = 0;
 
@@ -770,10 +770,10 @@ void LIB_HANDLER()
         }
 
         if(ISSTRING(*rplPeekData(1))) {
-            rplStoreSettings((WORDPTR) errormsg_ident, rplPeekData(1));
+            rplStoreSettings((word_p) errormsg_ident, rplPeekData(1));
             if(!Exceptions) {
                 rplDropData(1);
-                WORDPTR blame = rplPopData();
+                word_p blame = rplPopData();
                 if(!ISSTRING(*blame) && !ISIDENT(*blame))
                     blame = 0;
 
@@ -797,7 +797,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Early exit from the current program or loop
         //@NEW
         // EXIT FROM THE CURRENT SECONDARY
-        while(ErrorHandler == (WORDPTR) error_reenter_seco) {
+        while(ErrorHandler == (word_p) error_reenter_seco) {
             // WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, EXIT SHOULD WORK LIKE ENDERR
 
             // EXIT THE ERROR HANDLER
@@ -809,7 +809,7 @@ void LIB_HANDLER()
         }
         // INSPECT THE RETURN STACK
 
-        WORDPTR *rptr = RSTop - 1;
+        word_p *rptr = RSTop - 1;
 
         while(rptr >= RStk) {
             if(ISSECO(**rptr)) {
@@ -865,7 +865,7 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        WORDPTR *stksave=DSTop;
+        word_p *stksave=DSTop;
 
         rplRunAtomic(CMD_OVR_XEQ);
 
@@ -982,7 +982,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR) "::");
+            rplDecompAppendString((byte_p) "::");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -996,13 +996,13 @@ void LIB_HANDLER()
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplDecompAppendString((BYTEPTR) ";");
+            rplDecompAppendString((byte_p) ";");
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, XEQSECO)) {
-            rplDecompAppendString((BYTEPTR) "→");
+            rplDecompAppendString((byte_p) "→");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1088,7 +1088,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1098,7 +1098,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
         if(ISPROLOG(*ObjectPTR)) {
             // BASIC CHECKS
-            WORDPTR ptr, objend;
+            word_p ptr, objend;
 
             objend = rplSkipOb(ObjectPTR);
             ptr = ObjectPTR + 1;
@@ -1144,7 +1144,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -1154,16 +1154,16 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
         // RETURN A CUSTOM MESSAGE STORED IN SETTINGS
-        WORDPTR string = rplGetSettings((WORDPTR) errormsg_ident);
+        word_p string = rplGetSettings((word_p) errormsg_ident);
         if(!string)
-            string = (WORDPTR) empty_string;
+            string = (word_p) empty_string;
         ObjectPTR = string;
         RetNum = OK_CONTINUE;
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

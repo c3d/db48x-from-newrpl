@@ -1153,194 +1153,194 @@ const WORD const system_unit_defs[] = {
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
-const WORDPTR const system_unit_dir[] = {
-    (WORDPTR) & system_unit_names[0], (WORDPTR) & one_bint,     // 'm'=1
-    (WORDPTR) & system_unit_names[2], (WORDPTR) & one_bint,     // 'kg'=1
-    (WORDPTR) & system_unit_names[4], (WORDPTR) & one_bint,     // 's'=1
-    (WORDPTR) & system_unit_names[6], (WORDPTR) & system_unit_defs[0],  // 'a'=1_m^2
-    (WORDPTR) & system_unit_names[282], (WORDPTR) & system_unit_defs[1120],     // 'ha'=100_a
-    (WORDPTR) & system_unit_names[284], (WORDPTR) & system_unit_defs[1126],     // 'ca'=0.01_a
-    (WORDPTR) & system_unit_names[8], (WORDPTR) & system_unit_defs[6],  // 'Å'=1e-10_m
-    (WORDPTR) & system_unit_names[10], (WORDPTR) & one_bint,    // 'A'=1
-    (WORDPTR) & system_unit_names[12], (WORDPTR) & system_unit_defs[14],        // 'acre'=4840_yd^2
-    (WORDPTR) & system_unit_names[14], (WORDPTR) & system_unit_defs[20],        // 'acreUS'=4840_ydUS^2
-    (WORDPTR) & system_unit_names[17], (WORDPTR) & system_unit_defs[26],        // 'arcmin'=3*(180^-2)*pi_r
-    (WORDPTR) & system_unit_names[20], (WORDPTR) & system_unit_defs[40],        // 'arcs'=9*(180^-3)*pi_r
-    (WORDPTR) & system_unit_names[22], (WORDPTR) & system_unit_defs[54],        // 'atm'=101325_Pa
-    (WORDPTR) & system_unit_names[24], (WORDPTR) & system_unit_defs[60],        // 'au'=149597870700_m
-    (WORDPTR) & system_unit_names[26], (WORDPTR) & system_unit_defs[68],        // 'b'=1e-28_m^2
-    (WORDPTR) & system_unit_names[28], (WORDPTR) & system_unit_defs[76],        // 'bar'=1e5_Pa
-    (WORDPTR) & system_unit_names[30], (WORDPTR) & system_unit_defs[82],        // 'bbl'=42_gal
-    (WORDPTR) & system_unit_names[32], (WORDPTR) & system_unit_defs[88],        // 'Bq'=1_1/s
-    (WORDPTR) & system_unit_names[34], (WORDPTR) & system_unit_defs[1164],      // 'Btu'=1055.056_J
-    (WORDPTR) & system_unit_names[291], (WORDPTR) & system_unit_defs[94],       // 'BtuIT'=1055.05585262_J
-    (WORDPTR) & system_unit_names[36], (WORDPTR) & system_unit_defs[103],       // 'bu'=2150.42_in^3
-    (WORDPTR) & system_unit_names[306], (WORDPTR) & system_unit_defs[1218],     // 'buC'=8_galC
-    (WORDPTR) & system_unit_names[304], (WORDPTR) & system_unit_defs[1224],     // 'buUK'=8_galUK
-    (WORDPTR) & system_unit_names[38], (WORDPTR) & one_bint,    // '°C' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
-    (WORDPTR) & system_unit_names[40], (WORDPTR) & system_unit_defs[111],       // 'Δ°C'=1_ΔK
-    (WORDPTR) & system_unit_names[43], (WORDPTR) & system_unit_defs[117],       // 'c'=299792458_m/s
-    (WORDPTR) & system_unit_names[45], (WORDPTR) & system_unit_defs[129],       // 'C'=1_A*s
-    (WORDPTR) & system_unit_names[47], (WORDPTR) & system_unit_defs[477],       // 'cal'=4.184_J
-    (WORDPTR) & system_unit_names[288], (WORDPTR) & system_unit_defs[139],      // 'calIT'=4.1868_J
-    (WORDPTR) & system_unit_names[49], (WORDPTR) & system_unit_defs[147],       // 'kcal'=1000_cal
-    (WORDPTR) & system_unit_names[51], (WORDPTR) & one_bint,    // 'cd'=1
-    (WORDPTR) & system_unit_names[53], (WORDPTR) & system_unit_defs[153],       // 'chain'=66_ftUS
-    (WORDPTR) & system_unit_names[56], (WORDPTR) & system_unit_defs[159],       // 'Ci'=3.7e10_Bq
-    (WORDPTR) & system_unit_names[58], (WORDPTR) & system_unit_defs[167],       // 'ct'=200_mg
-    (WORDPTR) & system_unit_names[60], (WORDPTR) & system_unit_defs[173],       // 'cu'=1/16_gal (US cup)
-    (WORDPTR) & system_unit_names[62], (WORDPTR) & system_unit_defs[181],       // '°'=pi/180_r
-    (WORDPTR) & system_unit_names[64], (WORDPTR) & system_unit_defs[195],       // 'd'=86400_s
-    (WORDPTR) & system_unit_names[294], (WORDPTR) & one_real,   // 'dB'=1 (non-dimensional)
-    (WORDPTR) & system_unit_names[66], (WORDPTR) & system_unit_defs[201],       // 'dyn'=1_g*cm/s^2
-    (WORDPTR) & system_unit_names[68], (WORDPTR) & system_unit_defs[215],       // 'erg'=1_g*cm^2/s^2
-    (WORDPTR) & system_unit_names[70], (WORDPTR) & system_unit_defs[229],       // 'eV'=1.602176634e-19_J
-    (WORDPTR) & system_unit_names[72], (WORDPTR) & system_unit_defs[238],       // 'F'=1_C/V
-    (WORDPTR) & system_unit_names[74], (WORDPTR) & one_bint,    // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
-    (WORDPTR) & system_unit_names[76], (WORDPTR) & system_unit_defs[248],       // 'Δ°F'=1_Δ°R
-    (WORDPTR) & system_unit_names[79], (WORDPTR) & system_unit_defs[255],       // 'fath'=6_ftUS
-    (WORDPTR) & system_unit_names[81], (WORDPTR) & system_unit_defs[261],       // 'fbm'=144_in^3
-    (WORDPTR) & system_unit_names[83], (WORDPTR) & system_unit_defs[267],       // 'fc'=1_lm/ft^2
-    (WORDPTR) & system_unit_names[85], (WORDPTR) & system_unit_defs[277],       // 'Fdy'=96485.3321233100184_C (exact per 2019 SI redefinition)
-    (WORDPTR) & system_unit_names[87], (WORDPTR) & system_unit_defs[303],       // 'fermi'=1_fm
-    (WORDPTR) & system_unit_names[90], (WORDPTR) & system_unit_defs[309],       // 'flam'=1/pi_cd/ft^2
-    (WORDPTR) & system_unit_names[92], (WORDPTR) & system_unit_defs[323],       // 'ft'=12_in'
-    (WORDPTR) & system_unit_names[94], (WORDPTR) & system_unit_defs[329],       // 'ftUS'=1200/3937_m
-    (WORDPTR) & system_unit_names[96], (WORDPTR) & system_unit_defs[339],       // 'g'=0.001_kg
-    (WORDPTR) & system_unit_names[98], (WORDPTR) & system_unit_defs[347],       // 'ga'=9.80665_m/s^2
-    (WORDPTR) & system_unit_names[100], (WORDPTR) & system_unit_defs[359],      // 'gal'=231_in^3
-    (WORDPTR) & system_unit_names[102], (WORDPTR) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
-    (WORDPTR) & system_unit_names[104], (WORDPTR) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
-    (WORDPTR) & system_unit_names[107], (WORDPTR) & system_unit_defs[373],      // 'gf'=1_g*ga
-    (WORDPTR) & system_unit_names[109], (WORDPTR) & system_unit_defs[383],      // 'grad'=pi/200_r
-    (WORDPTR) & system_unit_names[111], (WORDPTR) & system_unit_defs[395],      // 'grain'=0.00006479891
-    (WORDPTR) & system_unit_names[114], (WORDPTR) & system_unit_defs[403],      // 'Gy'=1_J/kg
-    (WORDPTR) & system_unit_names[116], (WORDPTR) & system_unit_defs[413],      // 'H'=1_Wb/A
-    (WORDPTR) & system_unit_names[118], (WORDPTR) & system_unit_defs[423],      // 'h'=3600_s
-    (WORDPTR) & system_unit_names[120], (WORDPTR) & system_unit_defs[429],      // 'hp'=550_ft*lbf/s
-    (WORDPTR) & system_unit_names[122], (WORDPTR) & system_unit_defs[443],      // 'Hz'=1/s
-    (WORDPTR) & system_unit_names[124], (WORDPTR) & system_unit_defs[449],      // 'in'=0.0254_m
-    (WORDPTR) & system_unit_names[126], (WORDPTR) & system_unit_defs[457],      // 'inHg'=13595.1_kg/m^3*in*ga (at 0°C)
-    (WORDPTR) & system_unit_names[128], (WORDPTR) & system_unit_defs[1134],     // 'inH2O'=999.972_kg/m^3*in*ga (at 4°C)
-    (WORDPTR) & system_unit_names[131], (WORDPTR) & system_unit_defs[896],      // 'J'=1_N*m
-    (WORDPTR) & system_unit_names[133], (WORDPTR) & one_bint,   // 'K'=1
-    (WORDPTR) & system_unit_names[135], (WORDPTR) & system_unit_defs[1114],     // 'ΔK'=1_K
-    (WORDPTR) & system_unit_names[137], (WORDPTR) & system_unit_defs[485],      // 'kip'=1000_lbf
-    (WORDPTR) & system_unit_names[139], (WORDPTR) & system_unit_defs[491],      // 'knot'=1_nmi/h
-    (WORDPTR) & system_unit_names[141], (WORDPTR) & system_unit_defs[501],      // 'kph'=1_km/h
-    (WORDPTR) & system_unit_names[143], (WORDPTR) & system_unit_defs[511],      // 'l'=1_dm^3
-    (WORDPTR) & system_unit_names[145], (WORDPTR) & system_unit_defs[517],      // 'lam'=10000/pi_cd/m^2
-    (WORDPTR) & system_unit_names[147], (WORDPTR) & system_unit_defs[531],      // 'lb'=7000_grain
-    (WORDPTR) & system_unit_names[149], (WORDPTR) & system_unit_defs[538],      // 'lbf'=1_lb*ga
-    (WORDPTR) & system_unit_names[151], (WORDPTR) & system_unit_defs[548],      // 'lbt'=5760_grain
-    (WORDPTR) & system_unit_names[153], (WORDPTR) & system_unit_defs[555],      // 'lm'=1_cd*sr
-    (WORDPTR) & system_unit_names[155], (WORDPTR) & system_unit_defs[565],      // 'lx'=1_lm/m^2
-    (WORDPTR) & system_unit_names[157], (WORDPTR) & system_unit_defs[575],      // 'lyr'=365.25_d*c
-    (WORDPTR) & system_unit_names[159], (WORDPTR) & system_unit_defs[593],      // 'µ'=1_µm
-    (WORDPTR) & system_unit_names[161], (WORDPTR) & system_unit_defs[599],      // 'mho'=1_A/V
-    (WORDPTR) & system_unit_names[163], (WORDPTR) & system_unit_defs[609],      // 'mi'=5280_ft
-    (WORDPTR) & system_unit_names[165], (WORDPTR) & system_unit_defs[615],      // 'mil'=0.001_in
-    (WORDPTR) & system_unit_names[167], (WORDPTR) & system_unit_defs[623],      // 'min'=60_s
-    (WORDPTR) & system_unit_names[169], (WORDPTR) & system_unit_defs[629],      // 'miUS'=5280_ftUS
-    (WORDPTR) & system_unit_names[171], (WORDPTR) & system_unit_defs[635],      // 'mmHg'=1_13595.1_kg/m^3*mm*ga
-    (WORDPTR) & system_unit_names[173], (WORDPTR) & one_bint,   // 'mol'=1 (base unit)
-    (WORDPTR) & system_unit_names[312], (WORDPTR) & system_unit_defs[922],      // 'gmol=1_mol
-    (WORDPTR) & system_unit_names[314], (WORDPTR) & system_unit_defs[1244],     // 'lbmol=453.59237_mol
-    (WORDPTR) & system_unit_names[175], (WORDPTR) & system_unit_defs[655],      // 'mph'=1_mi/h
-    (WORDPTR) & system_unit_names[177], (WORDPTR) & system_unit_defs[665],      // 'N'=1_kg*m/s^2
-    (WORDPTR) & system_unit_names[179], (WORDPTR) & system_unit_defs[679],      // 'nmi'=1852_m
-    (WORDPTR) & system_unit_names[181], (WORDPTR) & system_unit_defs[685],      // 'Ω'= 1_V/A
-    (WORDPTR) & system_unit_names[183], (WORDPTR) & system_unit_defs[695],      // 'oz'= 437.5_grain
-    (WORDPTR) & system_unit_names[185], (WORDPTR) & system_unit_defs[704],      // 'ozfl'= 1/128_gal
-    (WORDPTR) & system_unit_names[187], (WORDPTR) & system_unit_defs[712],      // 'ozt'= 480_grain
-    (WORDPTR) & system_unit_names[189], (WORDPTR) & system_unit_defs[719],      // 'ozUK'= 1/160_galUK
-    (WORDPTR) & system_unit_names[302], (WORDPTR) & system_unit_defs[1210],     // 'ozC'= 1/160_galC
-    (WORDPTR) & system_unit_names[191], (WORDPTR) & system_unit_defs[728],      // 'P'=0.1_Pa*s
-    (WORDPTR) & system_unit_names[193], (WORDPTR) & system_unit_defs[740],      // 'Pa'=1_N/m^2 = 1_kg/m/s^2
-    (WORDPTR) & system_unit_names[195], (WORDPTR) & system_unit_defs[754],      // 'pc'=648000/pi_au
-    (WORDPTR) & system_unit_names[197], (WORDPTR) & system_unit_defs[766],      // 'pdl'= 1_lb*ft/s^2
-    (WORDPTR) & system_unit_names[199], (WORDPTR) & system_unit_defs[780],      // 'ph'= 1_lm/cm^2
-    (WORDPTR) & system_unit_names[201], (WORDPTR) & system_unit_defs[790],      // 'pk'=1/4_bu
-    (WORDPTR) & system_unit_names[310], (WORDPTR) & system_unit_defs[1231],     // 'pkC'=1/4_buC
-    (WORDPTR) & system_unit_names[308], (WORDPTR) & system_unit_defs[1237],     // 'pkUK'=1/4_buUK
-    (WORDPTR) & system_unit_names[203], (WORDPTR) & system_unit_defs[798],      // 'psi'=1_lbf/in^2
-    (WORDPTR) & system_unit_names[205], (WORDPTR) & system_unit_defs[808],      // 'pt'=1/8_gal
-    (WORDPTR) & system_unit_names[298], (WORDPTR) & system_unit_defs[880],      // 'ptC'=1/8_galC
-    (WORDPTR) & system_unit_names[224], (WORDPTR) & system_unit_defs[1192],     // 'ptUK'=1/8_galUK
-    (WORDPTR) & system_unit_names[207], (WORDPTR) & system_unit_defs[816],      // 'qt'=1/4_gal
-    (WORDPTR) & system_unit_names[300], (WORDPTR) & system_unit_defs[888],      // 'qtC'=1/4_galC
-    (WORDPTR) & system_unit_names[226], (WORDPTR) & system_unit_defs[1201],     // 'qtUK'=1/4_galUK
-    (WORDPTR) & system_unit_names[209], (WORDPTR) & one_real,   // 'r'=1 (non-dimensional)
-    (WORDPTR) & system_unit_names[211], (WORDPTR) & system_unit_defs[824],      // 'R'=2.58e-4_C/kg
-    (WORDPTR) & system_unit_names[213], (WORDPTR) & system_unit_defs[836],      // '°R'=5/9_K
-    (WORDPTR) & system_unit_names[215], (WORDPTR) & system_unit_defs[846],      // 'Δ°R'=5/9_ΔK
-    (WORDPTR) & system_unit_names[218], (WORDPTR) & system_unit_defs[856],      // 'rad'=0.01_Gy
-    (WORDPTR) & system_unit_names[220], (WORDPTR) & system_unit_defs[864],      // 'rd'=16.5_ft
-    (WORDPTR) & system_unit_names[222], (WORDPTR) & system_unit_defs[872],      // 'rdUS'=16.5_ftUS
-    (WORDPTR) & system_unit_names[226], (WORDPTR) & system_unit_defs[888],      // 'qtUK'=1/4_galUK
+const word_p const system_unit_dir[] = {
+    (word_p) & system_unit_names[0], (word_p) & one_bint,     // 'm'=1
+    (word_p) & system_unit_names[2], (word_p) & one_bint,     // 'kg'=1
+    (word_p) & system_unit_names[4], (word_p) & one_bint,     // 's'=1
+    (word_p) & system_unit_names[6], (word_p) & system_unit_defs[0],  // 'a'=1_m^2
+    (word_p) & system_unit_names[282], (word_p) & system_unit_defs[1120],     // 'ha'=100_a
+    (word_p) & system_unit_names[284], (word_p) & system_unit_defs[1126],     // 'ca'=0.01_a
+    (word_p) & system_unit_names[8], (word_p) & system_unit_defs[6],  // 'Å'=1e-10_m
+    (word_p) & system_unit_names[10], (word_p) & one_bint,    // 'A'=1
+    (word_p) & system_unit_names[12], (word_p) & system_unit_defs[14],        // 'acre'=4840_yd^2
+    (word_p) & system_unit_names[14], (word_p) & system_unit_defs[20],        // 'acreUS'=4840_ydUS^2
+    (word_p) & system_unit_names[17], (word_p) & system_unit_defs[26],        // 'arcmin'=3*(180^-2)*pi_r
+    (word_p) & system_unit_names[20], (word_p) & system_unit_defs[40],        // 'arcs'=9*(180^-3)*pi_r
+    (word_p) & system_unit_names[22], (word_p) & system_unit_defs[54],        // 'atm'=101325_Pa
+    (word_p) & system_unit_names[24], (word_p) & system_unit_defs[60],        // 'au'=149597870700_m
+    (word_p) & system_unit_names[26], (word_p) & system_unit_defs[68],        // 'b'=1e-28_m^2
+    (word_p) & system_unit_names[28], (word_p) & system_unit_defs[76],        // 'bar'=1e5_Pa
+    (word_p) & system_unit_names[30], (word_p) & system_unit_defs[82],        // 'bbl'=42_gal
+    (word_p) & system_unit_names[32], (word_p) & system_unit_defs[88],        // 'Bq'=1_1/s
+    (word_p) & system_unit_names[34], (word_p) & system_unit_defs[1164],      // 'Btu'=1055.056_J
+    (word_p) & system_unit_names[291], (word_p) & system_unit_defs[94],       // 'BtuIT'=1055.05585262_J
+    (word_p) & system_unit_names[36], (word_p) & system_unit_defs[103],       // 'bu'=2150.42_in^3
+    (word_p) & system_unit_names[306], (word_p) & system_unit_defs[1218],     // 'buC'=8_galC
+    (word_p) & system_unit_names[304], (word_p) & system_unit_defs[1224],     // 'buUK'=8_galUK
+    (word_p) & system_unit_names[38], (word_p) & one_bint,    // '°C' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
+    (word_p) & system_unit_names[40], (word_p) & system_unit_defs[111],       // 'Δ°C'=1_ΔK
+    (word_p) & system_unit_names[43], (word_p) & system_unit_defs[117],       // 'c'=299792458_m/s
+    (word_p) & system_unit_names[45], (word_p) & system_unit_defs[129],       // 'C'=1_A*s
+    (word_p) & system_unit_names[47], (word_p) & system_unit_defs[477],       // 'cal'=4.184_J
+    (word_p) & system_unit_names[288], (word_p) & system_unit_defs[139],      // 'calIT'=4.1868_J
+    (word_p) & system_unit_names[49], (word_p) & system_unit_defs[147],       // 'kcal'=1000_cal
+    (word_p) & system_unit_names[51], (word_p) & one_bint,    // 'cd'=1
+    (word_p) & system_unit_names[53], (word_p) & system_unit_defs[153],       // 'chain'=66_ftUS
+    (word_p) & system_unit_names[56], (word_p) & system_unit_defs[159],       // 'Ci'=3.7e10_Bq
+    (word_p) & system_unit_names[58], (word_p) & system_unit_defs[167],       // 'ct'=200_mg
+    (word_p) & system_unit_names[60], (word_p) & system_unit_defs[173],       // 'cu'=1/16_gal (US cup)
+    (word_p) & system_unit_names[62], (word_p) & system_unit_defs[181],       // '°'=pi/180_r
+    (word_p) & system_unit_names[64], (word_p) & system_unit_defs[195],       // 'd'=86400_s
+    (word_p) & system_unit_names[294], (word_p) & one_real,   // 'dB'=1 (non-dimensional)
+    (word_p) & system_unit_names[66], (word_p) & system_unit_defs[201],       // 'dyn'=1_g*cm/s^2
+    (word_p) & system_unit_names[68], (word_p) & system_unit_defs[215],       // 'erg'=1_g*cm^2/s^2
+    (word_p) & system_unit_names[70], (word_p) & system_unit_defs[229],       // 'eV'=1.602176634e-19_J
+    (word_p) & system_unit_names[72], (word_p) & system_unit_defs[238],       // 'F'=1_C/V
+    (word_p) & system_unit_names[74], (word_p) & one_bint,    // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
+    (word_p) & system_unit_names[76], (word_p) & system_unit_defs[248],       // 'Δ°F'=1_Δ°R
+    (word_p) & system_unit_names[79], (word_p) & system_unit_defs[255],       // 'fath'=6_ftUS
+    (word_p) & system_unit_names[81], (word_p) & system_unit_defs[261],       // 'fbm'=144_in^3
+    (word_p) & system_unit_names[83], (word_p) & system_unit_defs[267],       // 'fc'=1_lm/ft^2
+    (word_p) & system_unit_names[85], (word_p) & system_unit_defs[277],       // 'Fdy'=96485.3321233100184_C (exact per 2019 SI redefinition)
+    (word_p) & system_unit_names[87], (word_p) & system_unit_defs[303],       // 'fermi'=1_fm
+    (word_p) & system_unit_names[90], (word_p) & system_unit_defs[309],       // 'flam'=1/pi_cd/ft^2
+    (word_p) & system_unit_names[92], (word_p) & system_unit_defs[323],       // 'ft'=12_in'
+    (word_p) & system_unit_names[94], (word_p) & system_unit_defs[329],       // 'ftUS'=1200/3937_m
+    (word_p) & system_unit_names[96], (word_p) & system_unit_defs[339],       // 'g'=0.001_kg
+    (word_p) & system_unit_names[98], (word_p) & system_unit_defs[347],       // 'ga'=9.80665_m/s^2
+    (word_p) & system_unit_names[100], (word_p) & system_unit_defs[359],      // 'gal'=231_in^3
+    (word_p) & system_unit_names[102], (word_p) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
+    (word_p) & system_unit_names[104], (word_p) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
+    (word_p) & system_unit_names[107], (word_p) & system_unit_defs[373],      // 'gf'=1_g*ga
+    (word_p) & system_unit_names[109], (word_p) & system_unit_defs[383],      // 'grad'=pi/200_r
+    (word_p) & system_unit_names[111], (word_p) & system_unit_defs[395],      // 'grain'=0.00006479891
+    (word_p) & system_unit_names[114], (word_p) & system_unit_defs[403],      // 'Gy'=1_J/kg
+    (word_p) & system_unit_names[116], (word_p) & system_unit_defs[413],      // 'H'=1_Wb/A
+    (word_p) & system_unit_names[118], (word_p) & system_unit_defs[423],      // 'h'=3600_s
+    (word_p) & system_unit_names[120], (word_p) & system_unit_defs[429],      // 'hp'=550_ft*lbf/s
+    (word_p) & system_unit_names[122], (word_p) & system_unit_defs[443],      // 'Hz'=1/s
+    (word_p) & system_unit_names[124], (word_p) & system_unit_defs[449],      // 'in'=0.0254_m
+    (word_p) & system_unit_names[126], (word_p) & system_unit_defs[457],      // 'inHg'=13595.1_kg/m^3*in*ga (at 0°C)
+    (word_p) & system_unit_names[128], (word_p) & system_unit_defs[1134],     // 'inH2O'=999.972_kg/m^3*in*ga (at 4°C)
+    (word_p) & system_unit_names[131], (word_p) & system_unit_defs[896],      // 'J'=1_N*m
+    (word_p) & system_unit_names[133], (word_p) & one_bint,   // 'K'=1
+    (word_p) & system_unit_names[135], (word_p) & system_unit_defs[1114],     // 'ΔK'=1_K
+    (word_p) & system_unit_names[137], (word_p) & system_unit_defs[485],      // 'kip'=1000_lbf
+    (word_p) & system_unit_names[139], (word_p) & system_unit_defs[491],      // 'knot'=1_nmi/h
+    (word_p) & system_unit_names[141], (word_p) & system_unit_defs[501],      // 'kph'=1_km/h
+    (word_p) & system_unit_names[143], (word_p) & system_unit_defs[511],      // 'l'=1_dm^3
+    (word_p) & system_unit_names[145], (word_p) & system_unit_defs[517],      // 'lam'=10000/pi_cd/m^2
+    (word_p) & system_unit_names[147], (word_p) & system_unit_defs[531],      // 'lb'=7000_grain
+    (word_p) & system_unit_names[149], (word_p) & system_unit_defs[538],      // 'lbf'=1_lb*ga
+    (word_p) & system_unit_names[151], (word_p) & system_unit_defs[548],      // 'lbt'=5760_grain
+    (word_p) & system_unit_names[153], (word_p) & system_unit_defs[555],      // 'lm'=1_cd*sr
+    (word_p) & system_unit_names[155], (word_p) & system_unit_defs[565],      // 'lx'=1_lm/m^2
+    (word_p) & system_unit_names[157], (word_p) & system_unit_defs[575],      // 'lyr'=365.25_d*c
+    (word_p) & system_unit_names[159], (word_p) & system_unit_defs[593],      // 'µ'=1_µm
+    (word_p) & system_unit_names[161], (word_p) & system_unit_defs[599],      // 'mho'=1_A/V
+    (word_p) & system_unit_names[163], (word_p) & system_unit_defs[609],      // 'mi'=5280_ft
+    (word_p) & system_unit_names[165], (word_p) & system_unit_defs[615],      // 'mil'=0.001_in
+    (word_p) & system_unit_names[167], (word_p) & system_unit_defs[623],      // 'min'=60_s
+    (word_p) & system_unit_names[169], (word_p) & system_unit_defs[629],      // 'miUS'=5280_ftUS
+    (word_p) & system_unit_names[171], (word_p) & system_unit_defs[635],      // 'mmHg'=1_13595.1_kg/m^3*mm*ga
+    (word_p) & system_unit_names[173], (word_p) & one_bint,   // 'mol'=1 (base unit)
+    (word_p) & system_unit_names[312], (word_p) & system_unit_defs[922],      // 'gmol=1_mol
+    (word_p) & system_unit_names[314], (word_p) & system_unit_defs[1244],     // 'lbmol=453.59237_mol
+    (word_p) & system_unit_names[175], (word_p) & system_unit_defs[655],      // 'mph'=1_mi/h
+    (word_p) & system_unit_names[177], (word_p) & system_unit_defs[665],      // 'N'=1_kg*m/s^2
+    (word_p) & system_unit_names[179], (word_p) & system_unit_defs[679],      // 'nmi'=1852_m
+    (word_p) & system_unit_names[181], (word_p) & system_unit_defs[685],      // 'Ω'= 1_V/A
+    (word_p) & system_unit_names[183], (word_p) & system_unit_defs[695],      // 'oz'= 437.5_grain
+    (word_p) & system_unit_names[185], (word_p) & system_unit_defs[704],      // 'ozfl'= 1/128_gal
+    (word_p) & system_unit_names[187], (word_p) & system_unit_defs[712],      // 'ozt'= 480_grain
+    (word_p) & system_unit_names[189], (word_p) & system_unit_defs[719],      // 'ozUK'= 1/160_galUK
+    (word_p) & system_unit_names[302], (word_p) & system_unit_defs[1210],     // 'ozC'= 1/160_galC
+    (word_p) & system_unit_names[191], (word_p) & system_unit_defs[728],      // 'P'=0.1_Pa*s
+    (word_p) & system_unit_names[193], (word_p) & system_unit_defs[740],      // 'Pa'=1_N/m^2 = 1_kg/m/s^2
+    (word_p) & system_unit_names[195], (word_p) & system_unit_defs[754],      // 'pc'=648000/pi_au
+    (word_p) & system_unit_names[197], (word_p) & system_unit_defs[766],      // 'pdl'= 1_lb*ft/s^2
+    (word_p) & system_unit_names[199], (word_p) & system_unit_defs[780],      // 'ph'= 1_lm/cm^2
+    (word_p) & system_unit_names[201], (word_p) & system_unit_defs[790],      // 'pk'=1/4_bu
+    (word_p) & system_unit_names[310], (word_p) & system_unit_defs[1231],     // 'pkC'=1/4_buC
+    (word_p) & system_unit_names[308], (word_p) & system_unit_defs[1237],     // 'pkUK'=1/4_buUK
+    (word_p) & system_unit_names[203], (word_p) & system_unit_defs[798],      // 'psi'=1_lbf/in^2
+    (word_p) & system_unit_names[205], (word_p) & system_unit_defs[808],      // 'pt'=1/8_gal
+    (word_p) & system_unit_names[298], (word_p) & system_unit_defs[880],      // 'ptC'=1/8_galC
+    (word_p) & system_unit_names[224], (word_p) & system_unit_defs[1192],     // 'ptUK'=1/8_galUK
+    (word_p) & system_unit_names[207], (word_p) & system_unit_defs[816],      // 'qt'=1/4_gal
+    (word_p) & system_unit_names[300], (word_p) & system_unit_defs[888],      // 'qtC'=1/4_galC
+    (word_p) & system_unit_names[226], (word_p) & system_unit_defs[1201],     // 'qtUK'=1/4_galUK
+    (word_p) & system_unit_names[209], (word_p) & one_real,   // 'r'=1 (non-dimensional)
+    (word_p) & system_unit_names[211], (word_p) & system_unit_defs[824],      // 'R'=2.58e-4_C/kg
+    (word_p) & system_unit_names[213], (word_p) & system_unit_defs[836],      // '°R'=5/9_K
+    (word_p) & system_unit_names[215], (word_p) & system_unit_defs[846],      // 'Δ°R'=5/9_ΔK
+    (word_p) & system_unit_names[218], (word_p) & system_unit_defs[856],      // 'rad'=0.01_Gy
+    (word_p) & system_unit_names[220], (word_p) & system_unit_defs[864],      // 'rd'=16.5_ft
+    (word_p) & system_unit_names[222], (word_p) & system_unit_defs[872],      // 'rdUS'=16.5_ftUS
+    (word_p) & system_unit_names[226], (word_p) & system_unit_defs[888],      // 'qtUK'=1/4_galUK
 
-    (WORDPTR) & system_unit_names[228], (WORDPTR) & system_unit_defs[910],      // 'rem'=0.01_m^2/s^2
-    (WORDPTR) & system_unit_names[230], (WORDPTR) & system_unit_defs[1182],     // 'rpm'=1_tr/min
-    (WORDPTR) & system_unit_names[232], (WORDPTR) & system_unit_defs[599],      // 'S'=1_A/V
-    (WORDPTR) & system_unit_names[234], (WORDPTR) & system_unit_defs[928],      // 'sb'=10000_cd/m^2
-    (WORDPTR) & system_unit_names[236], (WORDPTR) & system_unit_defs[938],      // 'slug'=1_lb*s^2/ft*ga
-    (WORDPTR) & system_unit_names[238], (WORDPTR) & one_real,   // 'sr'=1 (non-dimensional)
-    (WORDPTR) & system_unit_names[317], (WORDPTR) & system_unit_defs[1252],     // 'spat'=4*pi_sr
-    (WORDPTR) & system_unit_names[240], (WORDPTR) & system_unit_defs[956],      // 'st'=1_m^3
-    (WORDPTR) & system_unit_names[242], (WORDPTR) & system_unit_defs[962],      // 'St'=0.0001_m^2/s
-    (WORDPTR) & system_unit_names[244], (WORDPTR) & system_unit_defs[974],      // 'Sv'=1_m^2/s^2
-    (WORDPTR) & system_unit_names[246], (WORDPTR) & system_unit_defs[984],      // 't'=1000_kg
-    (WORDPTR) & system_unit_names[248], (WORDPTR) & system_unit_defs[990],      // 'T'=1_kg/A/s^2
-    (WORDPTR) & system_unit_names[250], (WORDPTR) & system_unit_defs[1004],     // 'tbsp'=0.5_ozfl
-    (WORDPTR) & system_unit_names[252], (WORDPTR) & system_unit_defs[1012],     // 'therm'=100000_Btu
-    (WORDPTR) & system_unit_names[255], (WORDPTR) & system_unit_defs[1018],     // 'ton'=2000_lb
-    (WORDPTR) & system_unit_names[257], (WORDPTR) & system_unit_defs[1024],     // 'tonUK'=2240_lb
-    (WORDPTR) & system_unit_names[260], (WORDPTR) & system_unit_defs[1154],     // 'Torr'=1/760_atm
-    (WORDPTR) & system_unit_names[296], (WORDPTR) & system_unit_defs[1172],     // 'tr'=2*pi_r
+    (word_p) & system_unit_names[228], (word_p) & system_unit_defs[910],      // 'rem'=0.01_m^2/s^2
+    (word_p) & system_unit_names[230], (word_p) & system_unit_defs[1182],     // 'rpm'=1_tr/min
+    (word_p) & system_unit_names[232], (word_p) & system_unit_defs[599],      // 'S'=1_A/V
+    (word_p) & system_unit_names[234], (word_p) & system_unit_defs[928],      // 'sb'=10000_cd/m^2
+    (word_p) & system_unit_names[236], (word_p) & system_unit_defs[938],      // 'slug'=1_lb*s^2/ft*ga
+    (word_p) & system_unit_names[238], (word_p) & one_real,   // 'sr'=1 (non-dimensional)
+    (word_p) & system_unit_names[317], (word_p) & system_unit_defs[1252],     // 'spat'=4*pi_sr
+    (word_p) & system_unit_names[240], (word_p) & system_unit_defs[956],      // 'st'=1_m^3
+    (word_p) & system_unit_names[242], (word_p) & system_unit_defs[962],      // 'St'=0.0001_m^2/s
+    (word_p) & system_unit_names[244], (word_p) & system_unit_defs[974],      // 'Sv'=1_m^2/s^2
+    (word_p) & system_unit_names[246], (word_p) & system_unit_defs[984],      // 't'=1000_kg
+    (word_p) & system_unit_names[248], (word_p) & system_unit_defs[990],      // 'T'=1_kg/A/s^2
+    (word_p) & system_unit_names[250], (word_p) & system_unit_defs[1004],     // 'tbsp'=0.5_ozfl
+    (word_p) & system_unit_names[252], (word_p) & system_unit_defs[1012],     // 'therm'=100000_Btu
+    (word_p) & system_unit_names[255], (word_p) & system_unit_defs[1018],     // 'ton'=2000_lb
+    (word_p) & system_unit_names[257], (word_p) & system_unit_defs[1024],     // 'tonUK'=2240_lb
+    (word_p) & system_unit_names[260], (word_p) & system_unit_defs[1154],     // 'Torr'=1/760_atm
+    (word_p) & system_unit_names[296], (word_p) & system_unit_defs[1172],     // 'tr'=2*pi_r
 
-    (WORDPTR) & system_unit_names[262], (WORDPTR) & system_unit_defs[1030],     // 'tsp'=1/6_ozfl
-    (WORDPTR) & system_unit_names[264], (WORDPTR) & system_unit_defs[1040],     // 'u'= 1.6605390666050E-27_kg
-    (WORDPTR) & system_unit_names[266], (WORDPTR) & system_unit_defs[1049],     // 'V'=1_kg*m^2/A/s^3
-    (WORDPTR) & system_unit_names[268], (WORDPTR) & system_unit_defs[1067],     // 'W'=1_J/s=1_kg*m^2/s^3
-    (WORDPTR) & system_unit_names[270], (WORDPTR) & system_unit_defs[1081],     // 'Wb'=1_kg*m^2/A/s^2
-    (WORDPTR) & system_unit_names[272], (WORDPTR) & system_unit_defs[1099],     // 'yd'=3_ft
-    (WORDPTR) & system_unit_names[274], (WORDPTR) & system_unit_defs[1105],     // 'yr'=31556925.9747_s (tropical year per 1952 ephemeris time definition)
+    (word_p) & system_unit_names[262], (word_p) & system_unit_defs[1030],     // 'tsp'=1/6_ozfl
+    (word_p) & system_unit_names[264], (word_p) & system_unit_defs[1040],     // 'u'= 1.6605390666050E-27_kg
+    (word_p) & system_unit_names[266], (word_p) & system_unit_defs[1049],     // 'V'=1_kg*m^2/A/s^3
+    (word_p) & system_unit_names[268], (word_p) & system_unit_defs[1067],     // 'W'=1_J/s=1_kg*m^2/s^3
+    (word_p) & system_unit_names[270], (word_p) & system_unit_defs[1081],     // 'Wb'=1_kg*m^2/A/s^2
+    (word_p) & system_unit_names[272], (word_p) & system_unit_defs[1099],     // 'yd'=3_ft
+    (word_p) & system_unit_names[274], (word_p) & system_unit_defs[1105],     // 'yr'=31556925.9747_s (tropical year per 1952 ephemeris time definition)
 
-    (WORDPTR) & system_unit_names[276], (WORDPTR) & system_unit_defs[587],      // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
-    (WORDPTR) & system_unit_names[278], (WORDPTR) & system_unit_defs[588],      // '?CDG'=180 (NON-DIMENSIONAL)
-    (WORDPTR) & system_unit_names[280], (WORDPTR) & system_unit_defs[589],      // '?CFT'=3937 (NON-DIMENSIONAL)
-    (WORDPTR) & system_unit_names[286], (WORDPTR) & system_unit_defs[590],      // '?CTO'=760 (NON-DIMENSIONAL)
+    (word_p) & system_unit_names[276], (word_p) & system_unit_defs[587],      // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
+    (word_p) & system_unit_names[278], (word_p) & system_unit_defs[588],      // '?CDG'=180 (NON-DIMENSIONAL)
+    (word_p) & system_unit_names[280], (word_p) & system_unit_defs[589],      // '?CFT'=3937 (NON-DIMENSIONAL)
+    (word_p) & system_unit_names[286], (word_p) & system_unit_defs[590],      // '?CTO'=760 (NON-DIMENSIONAL)
 
-    (WORDPTR) & system_unit_names[319], (WORDPTR) & system_unit_defs[1262],     // 'ydUS'= 3_ftUS
-    (WORDPTR) & system_unit_names[321], (WORDPTR) & system_unit_defs[1268],     // 'Da'= 1.6605390666050E-27_kg
-    (WORDPTR) & system_unit_names[323], (WORDPTR) & system_unit_defs[1277],     // 'ksi'= 1000_psi
+    (word_p) & system_unit_names[319], (word_p) & system_unit_defs[1262],     // 'ydUS'= 3_ftUS
+    (word_p) & system_unit_names[321], (word_p) & system_unit_defs[1268],     // 'Da'= 1.6605390666050E-27_kg
+    (word_p) & system_unit_names[323], (word_p) & system_unit_defs[1277],     // 'ksi'= 1000_psi
 
-    (WORDPTR) & system_unit_names[325], (WORDPTR) & system_unit_defs[1283],     // 'B'= 8_bit (one byte)
-    (WORDPTR) & system_unit_names[327], (WORDPTR) & one_bint,   // 'bit'=1 (base unit)
+    (word_p) & system_unit_names[325], (word_p) & system_unit_defs[1283],     // 'B'= 8_bit (one byte)
+    (word_p) & system_unit_names[327], (word_p) & one_bint,   // 'bit'=1 (base unit)
 
-    (WORDPTR) & system_unit_names[329], (WORDPTR) & system_unit_defs[1289],     // 'KiB'= (2^10)_B
-    (WORDPTR) & system_unit_names[331], (WORDPTR) & system_unit_defs[1295],     // 'MiB'= (2^20)_B
-    (WORDPTR) & system_unit_names[333], (WORDPTR) & system_unit_defs[1303],     // 'GiB'= (2^30)_B
-    (WORDPTR) & system_unit_names[335], (WORDPTR) & system_unit_defs[1311],     // 'TiB'= (2^40)_B
-    (WORDPTR) & system_unit_names[337], (WORDPTR) & system_unit_defs[1319],     // 'PiB'= (2^50)_B
-    (WORDPTR) & system_unit_names[339], (WORDPTR) & system_unit_defs[1327],     // 'EiB'= (2^60)_B
-    (WORDPTR) & system_unit_names[341], (WORDPTR) & system_unit_defs[1335],     // 'ZiB'= (2^70)_B
-    (WORDPTR) & system_unit_names[343], (WORDPTR) & system_unit_defs[1345],     // 'YiB'= (2^80)_B
+    (word_p) & system_unit_names[329], (word_p) & system_unit_defs[1289],     // 'KiB'= (2^10)_B
+    (word_p) & system_unit_names[331], (word_p) & system_unit_defs[1295],     // 'MiB'= (2^20)_B
+    (word_p) & system_unit_names[333], (word_p) & system_unit_defs[1303],     // 'GiB'= (2^30)_B
+    (word_p) & system_unit_names[335], (word_p) & system_unit_defs[1311],     // 'TiB'= (2^40)_B
+    (word_p) & system_unit_names[337], (word_p) & system_unit_defs[1319],     // 'PiB'= (2^50)_B
+    (word_p) & system_unit_names[339], (word_p) & system_unit_defs[1327],     // 'EiB'= (2^60)_B
+    (word_p) & system_unit_names[341], (word_p) & system_unit_defs[1335],     // 'ZiB'= (2^70)_B
+    (word_p) & system_unit_names[343], (word_p) & system_unit_defs[1345],     // 'YiB'= (2^80)_B
 
-    (WORDPTR) & system_unit_names[345], (WORDPTR) & system_unit_defs[1356],     // 'Kibit'= (2^10)_bit
-    (WORDPTR) & system_unit_names[348], (WORDPTR) & system_unit_defs[1362],     // 'Mibit'= (2^20)_bit
-    (WORDPTR) & system_unit_names[351], (WORDPTR) & system_unit_defs[1370],     // 'Gibit'= (2^30)_bit
-    (WORDPTR) & system_unit_names[354], (WORDPTR) & system_unit_defs[1378],     // 'Tibit'= (2^40)_bit
-    (WORDPTR) & system_unit_names[357], (WORDPTR) & system_unit_defs[1386],     // 'Pibit'= (2^50)_bit
-    (WORDPTR) & system_unit_names[360], (WORDPTR) & system_unit_defs[1394],     // 'Eibit'= (2^60)_bit
-    (WORDPTR) & system_unit_names[363], (WORDPTR) & system_unit_defs[1402],     // 'Zibit'= (2^70)_bit
-    (WORDPTR) & system_unit_names[366], (WORDPTR) & system_unit_defs[1412],     // 'Yibit'= (2^80)_bit
+    (word_p) & system_unit_names[345], (word_p) & system_unit_defs[1356],     // 'Kibit'= (2^10)_bit
+    (word_p) & system_unit_names[348], (word_p) & system_unit_defs[1362],     // 'Mibit'= (2^20)_bit
+    (word_p) & system_unit_names[351], (word_p) & system_unit_defs[1370],     // 'Gibit'= (2^30)_bit
+    (word_p) & system_unit_names[354], (word_p) & system_unit_defs[1378],     // 'Tibit'= (2^40)_bit
+    (word_p) & system_unit_names[357], (word_p) & system_unit_defs[1386],     // 'Pibit'= (2^50)_bit
+    (word_p) & system_unit_names[360], (word_p) & system_unit_defs[1394],     // 'Eibit'= (2^60)_bit
+    (word_p) & system_unit_names[363], (word_p) & system_unit_defs[1402],     // 'Zibit'= (2^70)_bit
+    (word_p) & system_unit_names[366], (word_p) & system_unit_defs[1412],     // 'Yibit'= (2^80)_bit
 
-    (WORDPTR) & system_unit_names[369], (WORDPTR) & system_unit_defs[1423],     // 'kat'= 1_mol/s (katal = unit of catalytic activity)
-    (WORDPTR) & system_unit_names[371], (WORDPTR) & system_unit_defs[1433],     // 'annum'= 365.25_d (Julian year)
+    (word_p) & system_unit_names[369], (word_p) & system_unit_defs[1423],     // 'kat'= 1_mol/s (katal = unit of catalytic activity)
+    (word_p) & system_unit_names[371], (word_p) & system_unit_defs[1433],     // 'annum'= 365.25_d (Julian year)
 
-    (WORDPTR) & system_unit_names[374], (WORDPTR) & system_unit_defs[1441],     // 'psf'= 1_lbf/ft^2 (US Customary)
-    (WORDPTR) & system_unit_names[376], (WORDPTR) & system_unit_defs[1451],     // 'U'= 0.000001_mol/min (unit of catalytic activity)
+    (word_p) & system_unit_names[374], (word_p) & system_unit_defs[1441],     // 'psf'= 1_lbf/ft^2 (US Customary)
+    (word_p) & system_unit_names[376], (word_p) & system_unit_defs[1451],     // 'U'= 0.000001_mol/min (unit of catalytic activity)
 
     0, 0        // NULL TERMINATED LIST
 };
@@ -1349,14 +1349,14 @@ const WORDPTR const system_unit_dir[] = {
 // °C AND °F, AND THE REPLACEMENT IS DONE BY ADDING A CONSTANT RATHER THAN MULTIPLYING
 // IT EFFECTIVELY CONVERTS °C INTO K, AND °F INTO °R
 
-const WORDPTR const system_unit_special[] = {
+const word_p const system_unit_special[] = {
     // SPECIAL UNIT NAME ,     DELTA UNIT NAME      ,   ABSOLUTE UNIT EQUIVALENT OF THE ZERO IN THE SCALE
-    (WORDPTR) & system_unit_names[38], (WORDPTR) & system_unit_names[40],
-            (WORDPTR) & system_unit_defs[287],
-    (WORDPTR) & system_unit_names[74], (WORDPTR) & system_unit_names[76],
-            (WORDPTR) & system_unit_defs[295],
-    (WORDPTR) & system_unit_names[133], (WORDPTR) & system_unit_names[135], 0,
-    (WORDPTR) & system_unit_names[213], (WORDPTR) & system_unit_names[215], 0,
+    (word_p) & system_unit_names[38], (word_p) & system_unit_names[40],
+            (word_p) & system_unit_defs[287],
+    (word_p) & system_unit_names[74], (word_p) & system_unit_names[76],
+            (word_p) & system_unit_defs[295],
+    (word_p) & system_unit_names[133], (word_p) & system_unit_names[135], 0,
+    (word_p) & system_unit_names[213], (word_p) & system_unit_names[215], 0,
 
     // ADD HERE RANKINE AND KELVIN FOR CONVERSION TO THEIR DELTA TYPES
     0, 0, 0
@@ -1377,9 +1377,9 @@ const WORDPTR const system_unit_special[] = {
 #define RAD_IDENT 209   // [209]='r' (radian)
 #define GRAD_IDENT 109  // [109]='grad'
 
-int32_t rplUnitExplode(WORDPTR unitobj)
+int32_t rplUnitExplode(word_p unitobj)
 {
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     if(!ISUNIT(*unitobj)) {
         unitobj = rplConstant2Number(unitobj);  // GET THE VALUE IF IT'S A CONSTANT
         if(!ISint32_t(*unitobj) && !ISPROLOG(*unitobj)) {
@@ -1403,32 +1403,32 @@ int32_t rplUnitExplode(WORDPTR unitobj)
                 switch (anglemode) {
                 case ANGLEDEG:
                     rplOverwriteData(1, unitobj + 1);
-                    rplPushData((WORDPTR) & system_unit_names[DEG_IDENT]);
+                    rplPushData((word_p) & system_unit_names[DEG_IDENT]);
                     break;
 
                 case ANGLEGRAD:
                     rplOverwriteData(1, unitobj + 1);
-                    rplPushData((WORDPTR) & system_unit_names[GRAD_IDENT]);
+                    rplPushData((word_p) & system_unit_names[GRAD_IDENT]);
                     break;
                 case ANGLEDMS:
                     rplConvertAngleObj(unitobj, ANGLEDEG);
 
-                    WORDPTR newang = rplNewReal(&RReg[0]);
+                    word_p newang = rplNewReal(&RReg[0]);
                     if(!newang) {
                         DSTop = savestk;
                         return 0;
                     }
                     rplOverwriteData(1, newang);
-                    rplPushData((WORDPTR) & system_unit_names[DEG_IDENT]);
+                    rplPushData((word_p) & system_unit_names[DEG_IDENT]);
                     break;
                 case ANGLERAD:
                 default:
                     rplOverwriteData(1, unitobj + 1);
-                    rplPushData((WORDPTR) & system_unit_names[RAD_IDENT]);
+                    rplPushData((word_p) & system_unit_names[RAD_IDENT]);
                     break;
                 }
-                rplPushData((WORDPTR) one_bint);
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
+                rplPushData((word_p) one_bint);
                 return 4;
 
             }
@@ -1460,7 +1460,7 @@ int32_t rplUnitExplode(WORDPTR unitobj)
 // DOES NOT CLEAN UP THE STACK
 // WARNING: THIS IS LOW-LEVEL, NO VALIDITY CHECKS DONE HERE
 
-WORDPTR rplUnitAssemble(int32_t nlevels)
+word_p rplUnitAssemble(int32_t nlevels)
 {
     // A SINGLE VALUE OBJECT WHERE ALL UNITS CANCELLED OUT
     // NO NEED TO CREATE A NEW OBJECT
@@ -1474,8 +1474,8 @@ WORDPTR rplUnitAssemble(int32_t nlevels)
         size += rplObjSize(rplPeekData(lvl));
 
     // ALLOCATE MEMORY FOR THE NEW OBJECT
-    WORDPTR newobj = rplAllocTempOb(size);
-    WORDPTR newptr;
+    word_p newobj = rplAllocTempOb(size);
+    word_p newptr;
     if(!newobj)
         return 0;
 
@@ -1511,7 +1511,7 @@ int32_t rplUnitPopItem(int32_t level)
     }
 
     memmovew(DSTop - level, DSTop - level + nitems,
-            (level - nitems) * sizeof(WORDPTR *) / sizeof(WORD));
+            (level - nitems) * sizeof(word_p *) / sizeof(WORD));
     DSTop -= nitems;
     return nitems;
 }
@@ -1552,7 +1552,7 @@ int32_t rplUnitMulItem(int32_t level1, int32_t level2)
         if(!rplCompareIDENT(rplPeekData(level1), rplPeekData(level2)))
             return 0;   // NOTHING TO DO IF DIFFERENT IDENTS
         // COPY THE IDENTIFIER TO THE TOP OF STACK
-        WORDPTR *stackptr = DSTop;
+        word_p *stackptr = DSTop;
 
         rplPushData(rplPeekData(level1));
 
@@ -1609,7 +1609,7 @@ int32_t rplUnitMulItem(int32_t level1, int32_t level2)
 
     // NOT AN IDENTIFIER, USE THE OVERLOADED OPERATOR TO MULTIPLY
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     rplUnitPickItem(level1);
     rplUnitPickItem(level2 + 1);
     rplCallOvrOperator((CMD_OVR_MUL));
@@ -1638,7 +1638,7 @@ void rplUnitPowItem(int32_t level1, int32_t level2)
 {
     if(ISIDENT(*rplPeekData(level2))) {
         // POW 2 IDENTIFIERS BY MULTIPLYING THEIR EXPONENTS
-        WORDPTR *stackptr = DSTop;
+        word_p *stackptr = DSTop;
         int32_t isident = ISIDENT(*rplPeekData(level1));
         if(isident)
             rplPushData(rplPeekData(level1 - 1));       // FIRST NUMERATOR
@@ -1679,7 +1679,7 @@ void rplUnitPowItem(int32_t level1, int32_t level2)
     }
 
     // NOT AN IDENTIFIER, USE THE OVERLOADED OPERATOR TO DO THE POWER
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     rplUnitPickItem(level2);
     if(ISIDENT(*rplPeekData(level1 + 1))) {
         // DIVIDE THE NUMERATOR AND DENOMINATOR TO GET AN EXPONENT
@@ -1779,13 +1779,13 @@ int32_t rplUnitSimplify(int32_t nlevels)
     if(lvl <= 0) {
         // ERROR! SOMETHING HAPPENED AND THERE'S NO UNIT VALUE!
         // TRY TO FIX IT BY ADDING A 1
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
         ++nlevels;
         lvl = 1;
     }
 
     // UNROLL THIS VALUE TO THE BOTTOM OF THE UNIT
-    WORDPTR value = rplPeekData(lvl);
+    word_p value = rplPeekData(lvl);
     while(lvl != nlevels) {
         rplOverwriteData(lvl, rplPeekData(lvl + 1));
         ++lvl;
@@ -1803,7 +1803,7 @@ void rplUnitInvert(int32_t level)
     if(!ISIDENT(*rplPeekData(level)))
         return;
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     rplPushData(rplPeekData(level - 1));
     rplCallOvrOperator((CMD_OVR_NEG));
@@ -1823,7 +1823,7 @@ void rplUnitInvert(int32_t level)
 // RETURN THE NUMBER OF ELEMENTS AFTER THE SIMPLIFICATION
 int32_t rplUnitDivide(int32_t numlvl, int32_t divlvl)
 {
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     rplPushData(rplPeekData(numlvl));   // GET THE VALUE
     rplPushData(rplPeekData(divlvl + 1));       // GET THE VALUE OF THE DIVISOR
@@ -1929,14 +1929,14 @@ const int32_t const siprefix_exp[] = {
 
 // RETURN THE INDEX TO A SI PREFIX
 
-int32_t rplUnitGetSIPrefix(WORDPTR ident)
+int32_t rplUnitGetSIPrefix(word_p ident)
 {
     int32_t k, len, ilen;
-    BYTEPTR istart, iend;
+    byte_p istart, iend;
 
 // FIND START AND END OF THE IDENT TEXT
-    istart = (BYTEPTR) (ident + 1);
-    iend = (BYTEPTR) rplSkipOb(ident);
+    istart = (byte_p) (ident + 1);
+    iend = (byte_p) rplSkipOb(ident);
     while((iend > istart) && (*(iend - 1) == 0))
         --iend;
     ilen = utf8nlen((char *)istart, (char *)iend);
@@ -1968,7 +1968,7 @@ int32_t rplUnitGetSIPrefix(WORDPTR ident)
 // -1 = THEY ARE IDENTICAL
 // n = THEY DIFFER ONLY IN THE SI PREFIX, OTHERWISE IDENTICAL UNIT (n=SI PREFIX INDEX)
 
-int32_t rplUnitCompare(WORDPTR ident, WORDPTR baseident)
+int32_t rplUnitCompare(word_p ident, word_p baseident)
 {
     int32_t siidx;
 
@@ -1984,11 +1984,11 @@ int32_t rplUnitCompare(WORDPTR ident, WORDPTR baseident)
         return 0;       // THERE WAS NO PREFIX, SO THEY CANNOT BE THE SAME UNIT
 
     // THERE'S AN SI PREFIX, NEED TO COMPARE TEXT BY SKIPPING IT
-    BYTEPTR st1, end1, st2, end2;
-    st1 = (BYTEPTR) (ident + 1);
-    st2 = (BYTEPTR) (baseident + 1);
-    end1 = (BYTEPTR) rplSkipOb(ident);
-    end2 = (BYTEPTR) rplSkipOb(baseident);
+    byte_p st1, end1, st2, end2;
+    st1 = (byte_p) (ident + 1);
+    st2 = (byte_p) (baseident + 1);
+    end1 = (byte_p) rplSkipOb(ident);
+    end2 = (byte_p) rplSkipOb(baseident);
 
     // FIND THE END IN BOTH IDENTS
     while((end1 > st1) && (*(end1 - 1) == 0))
@@ -1997,9 +1997,9 @@ int32_t rplUnitCompare(WORDPTR ident, WORDPTR baseident)
         --end2;
 
     if(siidx == 10)
-        st1 = (BYTEPTR) utf8nskip((char *)st1, (char *)end1, 2);
+        st1 = (byte_p) utf8nskip((char *)st1, (char *)end1, 2);
     else
-        st1 = (BYTEPTR) utf8nskip((char *)st1, (char *)end1, 1);
+        st1 = (byte_p) utf8nskip((char *)st1, (char *)end1, 1);
 
     // NOW DO THE COMPARISON BYTE BY BYTE
     if((end1 - st1) != (end2 - st2))
@@ -2027,16 +2027,16 @@ int32_t rplUnitCompare(WORDPTR ident, WORDPTR baseident)
 // IF THE siindex POINTER IS NOT NULL, IT STORES THE
 // INDEX TO THE SI PREFIX THAT WAS FOUND IN THE GIVEN NAME
 
-WORDPTR *rplUnitFind(WORDPTR ident, int32_t * siindex)
+word_p *rplUnitFind(word_p ident, int32_t * siindex)
 {
     static const BYTE const unitdir_name[] = "UNITS";
 
-    WORDPTR unitdir_obj =
-            rplGetSettingsbyName((BYTEPTR) unitdir_name,
-            (BYTEPTR) unitdir_name + 5);
-    WORDPTR baseid;
+    word_p unitdir_obj =
+            rplGetSettingsbyName((byte_p) unitdir_name,
+            (byte_p) unitdir_name + 5);
+    word_p baseid;
     int32_t result;
-    WORDPTR *entry;
+    word_p *entry;
 
     if(unitdir_obj) {
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
@@ -2063,7 +2063,7 @@ WORDPTR *rplUnitFind(WORDPTR ident, int32_t * siindex)
 
     // SEARCH THROUGH THE SYSTEM UNITS
 
-    entry = (WORDPTR *) system_unit_dir;
+    entry = (word_p *) system_unit_dir;
     while(entry[0]) {
         baseid = entry[0];
 
@@ -2096,16 +2096,16 @@ WORDPTR *rplUnitFind(WORDPTR ident, int32_t * siindex)
 // IF THE siindex POINTER IS NOT NULL, IT STORES THE
 // INDEX TO THE SI PREFIX THAT WAS FOUND IN THE GIVEN NAME
 
-WORDPTR *rplUnitFindCustom(WORDPTR ident, int32_t * siindex)
+word_p *rplUnitFindCustom(word_p ident, int32_t * siindex)
 {
     static const BYTE const unitdir_name[] = "UNITS";
 
-    WORDPTR unitdir_obj =
-            rplGetSettingsbyName((BYTEPTR) unitdir_name,
-            (BYTEPTR) unitdir_name + 5);
-    WORDPTR baseid;
+    word_p unitdir_obj =
+            rplGetSettingsbyName((byte_p) unitdir_name,
+            (byte_p) unitdir_name + 5);
+    word_p baseid;
     int32_t result;
-    WORDPTR *entry;
+    word_p *entry;
 
     if(unitdir_obj) {
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
@@ -2146,14 +2146,14 @@ int32_t rplUnitExpand(int32_t level)
     if(ISIDENT(*rplPeekData(level))) {
 
         int32_t siidx;
-        WORDPTR *entry = rplUnitFind(rplPeekData(level), &siidx);
+        word_p *entry = rplUnitFind(rplPeekData(level), &siidx);
 
         if(!entry) {
             // NOT FOUND, KEEP AS-IS
             return 0;
         }
 
-        WORDPTR *stktop = DSTop;
+        word_p *stktop = DSTop;
 
         // UNIT WAS FOUND
 
@@ -2168,8 +2168,8 @@ int32_t rplUnitExpand(int32_t level)
                 // UNIT WAS A BASE UNIT WITH AN SI PREFIX
                 // ADD THE BASE UNIT WITHOUT THE PREFIX
                 rplPushData(entry[0]);
-                rplPushData((WORDPTR) one_bint);
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
+                rplPushData((word_p) one_bint);
                 nlevels += 3;
             }
             else {
@@ -2186,7 +2186,7 @@ int32_t rplUnitExpand(int32_t level)
             REAL value;
             rplReadNumberAsReal(rplPeekData(nlevels), &value);
             value.exp += siprefix_exp[siidx];
-            WORDPTR newval = rplNewReal(&value);
+            word_p newval = rplNewReal(&value);
             if(!newval) {
                 DSTop = stktop;
                 return 0;
@@ -2266,7 +2266,7 @@ int32_t rplUnitIsConsistent(int32_t nlevels, int32_t reflevel)
             lvl = rplUnitSkipItem(lvl);
             continue;
         }
-        WORDPTR mainident = rplPeekData(lvl);
+        word_p mainident = rplPeekData(lvl);
         lvl2 = reflevel;
         while(lvl2 > nlevels) {
             if(rplCompareIDENT(mainident, rplPeekData(lvl2))) {
@@ -2307,13 +2307,13 @@ int32_t rplUnitIsConsistent(int32_t nlevels, int32_t reflevel)
 // SPECIAL UNITS (TEMPERATURE) WHICH NEED SEPARATE HANDLING DUE TO
 // SCALE SHIFTING
 
-int32_t rplUnitIsSpecial(WORDPTR unitobj)
+int32_t rplUnitIsSpecial(word_p unitobj)
 {
     if(!ISUNIT(*unitobj))
         return 0;
 
     // THERE HAS TO BE ONE AND ONLY ONE IDENT
-    WORDPTR id = unitobj + 1, end = rplSkipOb(unitobj);
+    word_p id = unitobj + 1, end = rplSkipOb(unitobj);
     int32_t count = 0;
 
     while(id != end) {
@@ -2326,7 +2326,7 @@ int32_t rplUnitIsSpecial(WORDPTR unitobj)
 
     id = rplSkipOb(unitobj + 1);        // POINT TO THE IDENTIFIER
 
-    WORDPTR *ptr = (WORDPTR *) system_unit_special;
+    word_p *ptr = (word_p *) system_unit_special;
 
     while(*ptr) {
         if(rplCompareIDENT(id, *ptr))
@@ -2365,7 +2365,7 @@ void rplUnitReplaceSpecial(int32_t nlevels)
 
     }
 
-    WORDPTR *ptr = (WORDPTR *) system_unit_special;
+    word_p *ptr = (word_p *) system_unit_special;
 
     while(ptr[2]) {
         if(rplCompareIDENT(rplPeekData(ident), *ptr))
@@ -2376,7 +2376,7 @@ void rplUnitReplaceSpecial(int32_t nlevels)
     if(!ptr[2])
         return; // NOTHING SPECIAL IN THIS UNIT
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     // DO THE REPLACEMENT
     rplPushData(rplPeekData(value));
     rplPushData(ptr[2] + 1);
@@ -2420,7 +2420,7 @@ void rplUnitReverseReplaceSpecial(int32_t nlevels)
 
     }
 
-    WORDPTR *ptr = (WORDPTR *) system_unit_special;
+    word_p *ptr = (word_p *) system_unit_special;
 
     while(ptr[2]) {
         if(rplCompareIDENT(rplPeekData(ident), rplSkipOb(ptr[2] + 1)))
@@ -2431,7 +2431,7 @@ void rplUnitReverseReplaceSpecial(int32_t nlevels)
     if(!ptr[2])
         return; // NOTHING SPECIAL IN THIS UNIT
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     // DO THE REPLACEMENT
     rplPushData(rplPeekData(value));
     rplPushData(ptr[2] + 1);
@@ -2458,14 +2458,14 @@ void rplUnitReverseReplaceSpecial(int32_t nlevels)
 
 void rplUnitReverseReplaceSpecial2(int32_t isspec_idx)
 {
-    WORDPTR *ptr = (WORDPTR *) system_unit_special;
+    word_p *ptr = (word_p *) system_unit_special;
 
     ptr += isspec_idx - 1;
 
     if(!ptr[2])
         return; // NOTHING SPECIAL IN THIS UNIT
 
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     // DO THE REPLACEMENT
     rplPushData(ptr[2] + 1);
 
@@ -2502,7 +2502,7 @@ void rplUnitSpecialToDelta(int32_t nlevels)
 
     }
 
-    WORDPTR *ptr = (WORDPTR *) system_unit_special;
+    word_p *ptr = (word_p *) system_unit_special;
 
     while(*ptr) {
         if(rplCompareIDENT(rplPeekData(ident), *ptr))
@@ -2523,13 +2523,13 @@ void rplUnitSpecialToDelta(int32_t nlevels)
 // OTHERWISE RETURN FALSE AND STACK UNMODIFIED
 // MAY TRIGGER ERRORS AND/OR GC
 
-int32_t rplUnitIsNonDimensional(WORDPTR uobject)
+int32_t rplUnitIsNonDimensional(word_p uobject)
 {
     if(!ISUNIT(*uobject)) {
         rplPushData(uobject);
         return 1;
     }
-    WORDPTR *stkclean = DSTop;
+    word_p *stkclean = DSTop;
     int32_t nlevels = rplUnitExplode(uobject);
     if(Exceptions) {
         DSTop = stkclean;
@@ -2563,7 +2563,7 @@ int32_t rplUnitIsNonDimensional(WORDPTR uobject)
 
 void rplUnitUnaryDoCmd()
 {
-    WORDPTR *stkclean = DSTop;
+    word_p *stkclean = DSTop;
     int32_t nlevels = rplUnitExplode(rplPeekData(1));
     if(Exceptions) {
         DSTop = stkclean;
@@ -2577,7 +2577,7 @@ void rplUnitUnaryDoCmd()
     }
     rplOverwriteData(nlevels + 1, rplPeekData(1));
     rplDropData(1);
-    WORDPTR newobj = rplUnitAssemble(nlevels);
+    word_p newobj = rplUnitAssemble(nlevels);
     if(Exceptions) {
         DSTop = stkclean;
         return;
@@ -2591,7 +2591,7 @@ void rplUnitUnaryDoCmd()
 
 void rplUnitUnaryDoCmdNonDimensional()
 {
-    WORDPTR *stkclean = DSTop;
+    word_p *stkclean = DSTop;
     int32_t nlevels = rplUnitExplode(rplPeekData(1));
     if(Exceptions) {
         DSTop = stkclean;
@@ -2623,7 +2623,7 @@ void rplUnitUnaryDoCmdNonDimensional()
 
 // ALLOCATE AND CREATE A NEW OBJECT WITH THE GIVEN VALUE AND THE UNITS OF THE GIVEN OBJECT
 // USES 2 SCRATCH POINTERS AND MAY TRIGGER A GC
-WORDPTR rplUnitApply(WORDPTR value, WORDPTR unitobj)
+word_p rplUnitApply(word_p value, word_p unitobj)
 {
     if(!ISUNIT(*unitobj))
         return value;
@@ -2633,7 +2633,7 @@ WORDPTR rplUnitApply(WORDPTR value, WORDPTR unitobj)
 
     ScratchPointer1 = value;
     ScratchPointer2 = unitobj;
-    WORDPTR newobj = rplAllocTempOb(size + vsize);
+    word_p newobj = rplAllocTempOb(size + vsize);
     if(!newobj)
         return 0;
     value = ScratchPointer1;

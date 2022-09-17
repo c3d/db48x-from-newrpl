@@ -12,7 +12,7 @@
 // SIZE IS THE NUMBER OF WORDS REQUIRED, NOT COUNTING THE PROLOG!
 // IT AUTOMATICALLY RESERVES ONE EXTRA WORD FOR THE PROLOG
 
-WORDPTR rplAllocTempOb(WORD size)
+word_p rplAllocTempOb(WORD size)
 {
     // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
 
@@ -32,14 +32,14 @@ WORDPTR rplAllocTempOb(WORD size)
     if(Exceptions)
         return 0;
 
-    WORDPTR ptr = TempObEnd;
+    word_p ptr = TempObEnd;
     TempObEnd += adjustedsize + 1;
     if(size>0x3ffff) TempObEnd[-1]=size;                      // STORE REQUESTED SIZE AT THE LAST WORD OF THE LARGE BLOCK, SO GRANULARITY IS NOT LOST
     return ptr;
 }
 
 // SAME BUT FOR MORE CRITICAL TASK THAT NEED TO WORK ON LOW-MEM CONDITIONS
-WORDPTR rplAllocTempObLowMem(WORD size)
+word_p rplAllocTempObLowMem(WORD size)
 {
     // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
 
@@ -59,7 +59,7 @@ WORDPTR rplAllocTempObLowMem(WORD size)
     if(Exceptions)
         return 0;
 
-    WORDPTR ptr = TempObEnd;
+    word_p ptr = TempObEnd;
     TempObEnd += adjustedsize + 1;
     if(size>0x3ffff) TempObEnd[-1]=size;                      // STORE REQUESTED SIZE AT THE LAST WORD OF THE LARGE BLOCK, SO GRANULARITY IS NOT LOST
     return ptr;
@@ -67,7 +67,7 @@ WORDPTR rplAllocTempObLowMem(WORD size)
 
 // TRUNCATES A RECENTLY ALLOCATED BLOCK AT THE END OF TEMPOB
 // IT HAS TO BE THE LAST BLOCK ALLOCATED WITH ALLOCTEMPOB
-void rplTruncateLastObject(WORDPTR newend)
+void rplTruncateLastObject(word_p newend)
 {
 
     if(newend <= *(TempBlocksEnd - 1)) {
@@ -123,14 +123,14 @@ void rplResizeLastObject(WORD additionalsize)
 }
 
 // BORROW THE PATCH FUNCTION FROM THE GARBAGE COLLECTOR
-void Patch(WORDPTR * start, WORDPTR * end, WORDPTR startfrom, WORDPTR endfrom,
+void Patch(word_p * start, word_p * end, word_p startfrom, word_p endfrom,
         int32_t offset);
 
 // GROW THE TEMPORARY OBJECT MEMORY
 
 void growTempOb(WORD newtotalsize)
 {
-    WORDPTR *newtempob;
+    word_p *newtempob;
     WORD slack = newtotalsize - (WORD) (TempObEnd - TempOb);
     int32_t gc_done = 0;
 
@@ -138,7 +138,7 @@ void growTempOb(WORD newtotalsize)
         newtotalsize = (newtotalsize + 1023) & ~1023;
 
         newtempob =
-                halGrowMemory(MEM_AREA_TEMPOB, (WORDPTR *) TempOb,
+                halGrowMemory(MEM_AREA_TEMPOB, (word_p *) TempOb,
                 newtotalsize);
 
         if(!newtempob) {
@@ -156,24 +156,24 @@ void growTempOb(WORD newtotalsize)
     }
     while(!newtempob);
 
-    if(TempOb && (((WORDPTR *) TempOb) != newtempob)) {
+    if(TempOb && (((word_p *) TempOb) != newtempob)) {
         // TEMPOB HAD TO BE MOVED IN MEMORY
         // FIX ALL DSTK/RSTK/TEMPBLOCKS/DIRECTORIES/LAMS POINTERS
 
-        Patch(DStk, DSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // DATA STACK
+        Patch(DStk, DSTop, TempOb, TempObSize, newtempob - (word_p *) TempOb); // DATA STACK
 
-        Patch(RStk, RSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // RETURN STACK
+        Patch(RStk, RSTop, TempOb, TempObSize, newtempob - (word_p *) TempOb); // RETURN STACK
 
-        Patch(LAMs, LAMTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // LOCAL VARIABLES
+        Patch(LAMs, LAMTop, TempOb, TempObSize, newtempob - (word_p *) TempOb);        // LOCAL VARIABLES
 
-        Patch(Directories, DirsTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // GLOBAL VARIABLES
+        Patch(Directories, DirsTop, TempOb, TempObSize, newtempob - (word_p *) TempOb);        // GLOBAL VARIABLES
 
-        Patch(GC_PTRUpdate, GC_PTRUpdate + MAX_GC_PTRUPDATE, TempOb, TempObSize + 1, newtempob - (WORDPTR *) TempOb);   // SYSTEM POINTERS, USE TempObSize+1 TO UPDATE POINTERS POINTING TO END OF TEMPOB TOO
+        Patch(GC_PTRUpdate, GC_PTRUpdate + MAX_GC_PTRUPDATE, TempOb, TempObSize + 1, newtempob - (word_p *) TempOb);   // SYSTEM POINTERS, USE TempObSize+1 TO UPDATE POINTERS POINTING TO END OF TEMPOB TOO
 
-        Patch(TempBlocks, TempBlocksEnd, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);   // ALL TEMPBLOCK POINTERS
+        Patch(TempBlocks, TempBlocksEnd, TempOb, TempObSize, newtempob - (word_p *) TempOb);   // ALL TEMPBLOCK POINTERS
 
     }
-    TempOb = (WORDPTR) newtempob;
+    TempOb = (word_p) newtempob;
     TempObSize = TempOb + newtotalsize;
 // FOR DEBUG ONLY
     //halCheckRplMemory();
@@ -184,41 +184,41 @@ void growTempOb(WORD newtotalsize)
 
 void shrinkTempOb(WORD newtotalsize)
 {
-    WORDPTR *newtempob;
+    word_p *newtempob;
 
     newtotalsize = (newtotalsize + 1023) & ~1023;
 
     newtempob =
-            halGrowMemory(MEM_AREA_TEMPOB, (WORDPTR *) TempOb, newtotalsize);
+            halGrowMemory(MEM_AREA_TEMPOB, (word_p *) TempOb, newtotalsize);
 
     if(!newtempob) {
         rplException(EX_OUTOFMEM);
         return;
     }
-    if(TempOb && (((WORDPTR *) TempOb) != newtempob)) {
+    if(TempOb && (((word_p *) TempOb) != newtempob)) {
         // TEMPOB HAD TO BE MOVED IN MEMORY
         // FIX ALL DSTK/RSTK/TEMPBLOCKS/DIRECTORIES/LAMS POINTERS
 
-        Patch(DStk, DSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // DATA STACK
+        Patch(DStk, DSTop, TempOb, TempObSize, newtempob - (word_p *) TempOb); // DATA STACK
 
-        Patch(RStk, RSTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb); // RETURN STACK
+        Patch(RStk, RSTop, TempOb, TempObSize, newtempob - (word_p *) TempOb); // RETURN STACK
 
-        Patch(LAMs, LAMTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // LOCAL VARIABLES
+        Patch(LAMs, LAMTop, TempOb, TempObSize, newtempob - (word_p *) TempOb);        // LOCAL VARIABLES
 
-        Patch(Directories, DirsTop, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);        // GLOBAL VARIABLES
+        Patch(Directories, DirsTop, TempOb, TempObSize, newtempob - (word_p *) TempOb);        // GLOBAL VARIABLES
 
-        Patch(GC_PTRUpdate, GC_PTRUpdate + MAX_GC_PTRUPDATE, TempOb, TempObSize + 1, newtempob - (WORDPTR *) TempOb);   // SYSTEM POINTERS, USE TempObSize+1 TO UPDATE POINTERS POINTING TO END OF TEMPOB TOO
+        Patch(GC_PTRUpdate, GC_PTRUpdate + MAX_GC_PTRUPDATE, TempOb, TempObSize + 1, newtempob - (word_p *) TempOb);   // SYSTEM POINTERS, USE TempObSize+1 TO UPDATE POINTERS POINTING TO END OF TEMPOB TOO
 
-        Patch(TempBlocks, TempBlocksEnd, TempOb, TempObSize, newtempob - (WORDPTR *) TempOb);   // ALL TEMPBLOCK POINTERS
+        Patch(TempBlocks, TempBlocksEnd, TempOb, TempObSize, newtempob - (word_p *) TempOb);   // ALL TEMPBLOCK POINTERS
 
     }
-    TempOb = (WORDPTR) newtempob;
+    TempOb = (word_p) newtempob;
     TempObSize = TempOb + newtotalsize;
 }
 
 void growTempBlocks(WORD newtotalsize)
 {
-    WORDPTR *newtempblocks;
+    word_p *newtempblocks;
     WORD slack = newtotalsize - (WORD) (TempBlocksEnd - TempBlocks);
     int32_t gc_done = 0;
 
@@ -254,7 +254,7 @@ void growTempBlocks(WORD newtotalsize)
 
 void shrinkTempBlocks(WORD newtotalsize)
 {
-    WORDPTR *newtempblocks;
+    word_p *newtempblocks;
 
     newtotalsize = (newtotalsize + 1023) & ~1023;
 
@@ -276,7 +276,7 @@ void shrinkTempBlocks(WORD newtotalsize)
 
 // TEMPBLOCKS ARE INCREASE AFTER FOR WRITE, DECREASE BEFORE FOR READ.
 
-void rplAddTempBlock(WORDPTR block)
+void rplAddTempBlock(word_p block)
 {
     *TempBlocksEnd++ = block;
 

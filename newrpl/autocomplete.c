@@ -9,8 +9,8 @@
 #include "newrpl.h"
 #include "sysvars.h"
 
-WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
-        BYTEPTR end)
+WORD rplGetNextSuggestion(WORD suggestion, word_p suggobject, byte_p start,
+        byte_p end)
 {
 
     int32_t libcnt;
@@ -25,8 +25,8 @@ WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
             libcnt = LIBNUM(*suggobject);
     }
 
-    TokenStart = (WORDPTR) start;
-    BlankStart = (WORDPTR) end;
+    TokenStart = (word_p) start;
+    BlankStart = (word_p) end;
     TokenLen = (int32_t) utf8nlen((char *)start, (char *)end);
     SuggestedObject = suggobject;
     SuggestedOpcode = suggestion;
@@ -67,24 +67,24 @@ WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
     return 0;
 }
 
-WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
-        BYTEPTR end)
+WORD rplGetPrevSuggestion(WORD suggestion, word_p suggobject, byte_p start,
+        byte_p end)
 {
 
     int32_t libcnt;
     LIBHANDLER han;
     WORD saveop = CurOpcode, prevsugg;
-    WORDPTR prevsuggobj;
+    word_p prevsuggobj;
 
     if(!suggestion && !suggobject)
         return 0;
 
     libcnt = rplGetNextLib(MAXLIBNUMBER + 1);   // START FROM THE HIGHEST NUMBER
 
-    TokenStart = (WORDPTR) start;
-    BlankStart = (WORDPTR) end;
+    TokenStart = (word_p) start;
+    BlankStart = (word_p) end;
     TokenLen = (int32_t) utf8nlen((char *)start, (char *)end);
-    SuggestedObject = (WORDPTR) zero_bint;
+    SuggestedObject = (word_p) zero_bint;
     SuggestedOpcode = -1;
 
     //if(!suggestion) suggestion=1;
@@ -133,8 +133,8 @@ WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
 }
 
 // UPDATE THE SUGGESTION
-WORD rplUpdateSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
-        BYTEPTR end)
+WORD rplUpdateSuggestion(WORD suggestion, word_p suggobject, byte_p start,
+        byte_p end)
 {
     return rplGetNextSuggestion(suggestion, suggobject, start, end);
 }

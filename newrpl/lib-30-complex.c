@@ -67,44 +67,44 @@ INCLUDE_ROMOBJECT(lib30_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib30_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib30_menu,
     0
 };
 
 // DECODE A COMPLEX NUMBER INTO A REAL
 // DOES NOT ALLOCATE ANY MEMORY, MIGHT USE RREG[8] IF STORAGE IS NEEDED
 
-void rplRealPart(WORDPTR complex, REAL * real)
+void rplRealPart(word_p complex, REAL * real)
 {
-    WORDPTR part = ++complex;
+    word_p part = ++complex;
     if(ISANGLE(*part))
         ++part;
     rplReadNumberAsReal(part, real);
 }
 
-void rplImaginaryPart(WORDPTR complex, REAL * imag)
+void rplImaginaryPart(word_p complex, REAL * imag)
 {
-    WORDPTR part = rplSkipOb(++complex);
+    word_p part = rplSkipOb(++complex);
     if(ISANGLE(*part))
         ++part;
     rplReadNumberAsReal(part, imag);
 }
 
 // RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
-int32_t rplPolarComplexMode(WORDPTR complex)
+int32_t rplPolarComplexMode(word_p complex)
 {
     if(!ISCOMPLEX(*complex))
             return ANGLENONE;
-    WORDPTR part = rplSkipOb(++complex);
+    word_p part = rplSkipOb(++complex);
     if(ISANGLE(*part))
         return ANGLEMODE(*part);
     return ANGLENONE;
 }
 
-int32_t rplComplexClass(WORDPTR complex)
+int32_t rplComplexClass(word_p complex)
 {
     if(!ISCOMPLEX(*complex))
     {
@@ -141,7 +141,7 @@ int32_t rplComplexClass(WORDPTR complex)
     }
 
     int32_t cclass = 0;
-    WORDPTR re, im;
+    word_p re, im;
     re = ++complex;
     im = rplSkipOb(re);
 
@@ -188,7 +188,7 @@ int32_t rplComplexClass(WORDPTR complex)
 }
 
 // GETS THE REAL PART OF ANY NUMBER: IF int32_t OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
-void rplReadCNumberAsReal(WORDPTR complex, REAL * real)
+void rplReadCNumberAsReal(word_p complex, REAL * real)
 {
     if(ISCOMPLEX(*complex))
             rplRealPart(complex, real);
@@ -196,7 +196,7 @@ void rplReadCNumberAsReal(WORDPTR complex, REAL * real)
         rplReadNumberAsReal(complex, real);
 }
 
-void rplReadCNumberAsImag(WORDPTR complex, REAL * imag)
+void rplReadCNumberAsImag(word_p complex, REAL * imag)
 {
     if(ISCOMPLEX(*complex))
             rplImaginaryPart(complex, imag);
@@ -209,11 +209,11 @@ void rplReadCNumberAsImag(WORDPTR complex, REAL * imag)
     }
 }
 
-void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, int32_t * angmode)
+void rplReadCNumber(word_p complex, REAL * real, REAL * imag, int32_t * angmode)
 {
     if(ISCOMPLEX(*complex))
     {
-        WORDPTR part = rplSkipOb(complex +1);
+        word_p part = rplSkipOb(complex +1);
         if(ISANGLE(*part)) {
             *angmode = ANGLEMODE(*part);
             rplReadNumberAsReal(part + 1, imag);
@@ -241,7 +241,7 @@ void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag, int32_t * angmode
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-WORDPTR rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
+word_p rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
 {
 
     if(angmode != ANGLENONE) {
@@ -305,11 +305,11 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
     if(angmode != ANGLENONE)
         ++size;
 
-    ScratchPointer1 = (WORDPTR) real->data;
-    ScratchPointer2 = (WORDPTR) imag->data;
+    ScratchPointer1 = (word_p) real->data;
+    ScratchPointer2 = (word_p) imag->data;
 
-    WORDPTR newobject = rplAllocTempOb(size);
-    WORDPTR parts, end;
+    word_p newobject = rplAllocTempOb(size);
+    word_p parts, end;
     if(!newobject) {
         return 0;
     }
@@ -331,7 +331,7 @@ WORDPTR rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
 
 void rplNewComplexPush(REAL * real, REAL * imag, int32_t angmode)
 {
-    WORDPTR newobject = rplNewComplex(real, imag, angmode);
+    word_p newobject = rplNewComplex(real, imag, angmode);
     if(!newobject)
         return;
     rplPushData(newobject);
@@ -405,14 +405,14 @@ int rplNormalizeComplex(REAL * real, REAL * imag, int32_t angmode)
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITES
 
-WORDPTR rplRRegToComplexInPlace(int32_t real, int32_t imag, WORDPTR dest,
+word_p rplRRegToComplexInPlace(int32_t real, int32_t imag, word_p dest,
         int32_t angmode)
 {
     if(iszeroReal(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
         return rplRRegToRealInPlace(real, dest);
     }
-    WORDPTR parts, end;
+    word_p parts, end;
     parts = rplRRegToRealInPlace(real, dest + 1);
     end = rplRRegToRealInPlace(imag, parts + ((angmode != ANGLENONE) ? 1 : 0));
     if(angmode != ANGLENONE)
@@ -1230,7 +1230,7 @@ void LIB_HANDLER()
                 case CPLX_ZERO:
                 case CPLX_NORMAL:
                 case CPLX_NORMAL | CPLX_POLAR:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
                 case CPLX_INF:
                 case CPLX_INF | CPLX_POLAR:
@@ -1939,7 +1939,7 @@ void LIB_HANDLER()
                 }
 
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 case CPLX_NAN:
@@ -2158,7 +2158,7 @@ void LIB_HANDLER()
                 }
 
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 case CPLX_NAN:
@@ -2196,7 +2196,7 @@ void LIB_HANDLER()
                 case CPLX_INF | CPLX_POLAR:
                 case CPLX_INF | CPLX_MALFORMED:
                 case CPLX_UNDINF:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 case CPLX_ZERO:
@@ -2599,7 +2599,7 @@ void LIB_HANDLER()
                 case CPLX_INF | CPLX_MALFORMED:
                 {
                     // (a,b) / (Inf * e^(i*Theta))
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 }
@@ -2701,7 +2701,7 @@ void LIB_HANDLER()
                 case CPLX_UNDINF:
                 case CPLX_INF | CPLX_MALFORMED:
                 {
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
                 }
 
@@ -2743,7 +2743,7 @@ void LIB_HANDLER()
                 switch (cclass2) {
                 case CPLX_NORMAL:
                 case CPLX_NORMAL | CPLX_POLAR:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 case CPLX_INF:
@@ -2754,13 +2754,13 @@ void LIB_HANDLER()
                         rplCheckResultAndError(&RReg[0]);
                         return;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
                 }
                 case CPLX_INF | CPLX_POLAR:
                 {
                     if(iszeroReal(&Iarg2)) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     REAL pi;
@@ -2812,7 +2812,7 @@ void LIB_HANDLER()
             {
                 switch (cclass2) {
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     return;
 
                 case CPLX_NORMAL:
@@ -3011,7 +3011,7 @@ void LIB_HANDLER()
                     if(!iszeroReal(&Iarg1)) {
                         // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
                         if(Rarg2.flags & F_NEGATIVE) {
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
                         rplUndInfinityToRReg(0);
@@ -3032,7 +3032,7 @@ void LIB_HANDLER()
                         case -1:
                             // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
                             if(!(Rarg2.flags & F_NEGATIVE)) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplUndInfinityToRReg(0);
@@ -3042,7 +3042,7 @@ void LIB_HANDLER()
                         case 1:
                             // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
                             if(Rarg2.flags & F_NEGATIVE) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplUndInfinityToRReg(0);
@@ -3064,7 +3064,7 @@ void LIB_HANDLER()
                     case -1:
                         // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
                         if(!(Rarg2.flags & F_NEGATIVE)) {
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
                         rplInfinityToRReg(0);
@@ -3074,7 +3074,7 @@ void LIB_HANDLER()
                     case 1:
                         // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
                         if(Rarg2.flags & F_NEGATIVE) {
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
                         rplInfinityToRReg(0);
@@ -3125,7 +3125,7 @@ void LIB_HANDLER()
                             switch (cmpReal(&Rarg1, &one)) {
                             case -1:
                                 // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
@@ -3147,7 +3147,7 @@ void LIB_HANDLER()
                         switch (cmpReal(&Rarg1, &one)) {
                         case -1:
                             // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 1:
                             // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
@@ -3191,7 +3191,7 @@ void LIB_HANDLER()
 
                         if(!iszeroReal(&Iarg1)) {
                             // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
 
@@ -3212,7 +3212,7 @@ void LIB_HANDLER()
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 0:
                             default:
@@ -3234,7 +3234,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -3268,7 +3268,7 @@ void LIB_HANDLER()
             {
                 switch (cclass2) {
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     return;
 
                 case CPLX_NORMAL:
@@ -3458,7 +3458,7 @@ void LIB_HANDLER()
                         case -1:
                             // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
                             if(!(Rarg2.flags & F_NEGATIVE)) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplInfinityToRReg(0);
@@ -3468,7 +3468,7 @@ void LIB_HANDLER()
                         case 1:
                             // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
                             if(Rarg2.flags & F_NEGATIVE) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplInfinityToRReg(0);
@@ -3499,7 +3499,7 @@ void LIB_HANDLER()
                         // NO NUMBER CAN BE EXACTLY EQUAL TO PI, THEREFORE IT'S NAN
                         // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
                         if(Rarg2.flags & F_NEGATIVE) {
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
                         rplUndInfinityToRReg(0);
@@ -3521,7 +3521,7 @@ void LIB_HANDLER()
                         case -1:
                             // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
                             if(!(Rarg2.flags & F_NEGATIVE)) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplUndInfinityToRReg(0);
@@ -3531,7 +3531,7 @@ void LIB_HANDLER()
                         case 1:
                             // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
                             if(Rarg2.flags & F_NEGATIVE) {
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             }
                             rplUndInfinityToRReg(0);
@@ -3550,7 +3550,7 @@ void LIB_HANDLER()
 
                     // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     rplUndInfinityToRReg(0);
@@ -3575,7 +3575,7 @@ void LIB_HANDLER()
                             switch (cmpReal(&Rarg1, &one)) {
                             case -1:
                                 // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
@@ -3624,7 +3624,7 @@ void LIB_HANDLER()
                             switch (cmpReal(&Rarg1, &one)) {
                             case -1:
                                 // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
@@ -3688,7 +3688,7 @@ void LIB_HANDLER()
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)>1 --> Z^Inf = Inf ; Z^-Inf = 0
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 0:
                             default:
@@ -3713,7 +3713,7 @@ void LIB_HANDLER()
                         default:
                             // NO NUMBER CAN BE EXACTLY EQUAL TO PI, THEREFORE IT'S NAN
                             // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         }
 
@@ -3734,7 +3734,7 @@ void LIB_HANDLER()
                                 return;
                             case 1:
                                 // Im(Z)==0 Re(Z)<-1 --> Z^Inf = UndInf ; Z^-Inf = Zero
-                                rplPushData((WORDPTR) zero_bint);
+                                rplPushData((word_p) zero_bint);
                                 return;
                             case 0:
                             default:
@@ -3747,7 +3747,7 @@ void LIB_HANDLER()
                         }
 
                         // Im(Z)!=0 --> Z^Inf = Undinf ; Z^-Inf = 0
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
 
                     }
@@ -3789,7 +3789,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -3888,7 +3888,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -3951,7 +3951,7 @@ void LIB_HANDLER()
                     // +/-Inf ^ Inf = UndInf
                     // +/-Inf ^ -Inf = 0
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     rplUndInfinityToRReg(0);
@@ -3993,7 +3993,7 @@ void LIB_HANDLER()
                         return;
                     case 1:
                         // Arg(Z)>pi/2
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     case 0:
                     default:
@@ -4035,7 +4035,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -4113,7 +4113,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -4159,7 +4159,7 @@ void LIB_HANDLER()
                     // +/-Inf ^ Inf = UndInf
                     // +/-Inf ^ -Inf = 0
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     rplUndInfinityToRReg(0);
@@ -4201,7 +4201,7 @@ void LIB_HANDLER()
                         return;
                     case 1:
                         // Arg(Z)>pi/2
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     case 0:
                     default:
@@ -4243,7 +4243,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -4320,7 +4320,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -4365,7 +4365,7 @@ void LIB_HANDLER()
                     // +/-Inf ^ Inf = UndInf
                     // +/-Inf ^ -Inf = 0
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     rplUndInfinityToRReg(0);
@@ -4407,7 +4407,7 @@ void LIB_HANDLER()
                         return;
                     case 1:
                         // Arg(Z)>pi/2
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     case 0:
                     default:
@@ -4452,7 +4452,7 @@ void LIB_HANDLER()
                 switch (cclass2) {
                 case CPLX_NORMAL:
                 case CPLX_NORMAL | CPLX_POLAR:
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     return;
 
                 case CPLX_INF | CPLX_MALFORMED:
@@ -4680,7 +4680,7 @@ void LIB_HANDLER()
                 case CPLX_UNDINF:
                 {
                     // Z^(1/Inf) = Z^0 = 1
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     return;
                 }
 
@@ -4882,7 +4882,7 @@ void LIB_HANDLER()
                 case CPLX_UNDINF:
                 {
                     // Z^(1/Inf) = Z^0 = 1
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     return;
                 }
 
@@ -4921,7 +4921,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -5027,7 +5027,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -5119,7 +5119,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -5195,7 +5195,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -5267,7 +5267,7 @@ void LIB_HANDLER()
                     }
 
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
 
@@ -5344,7 +5344,7 @@ void LIB_HANDLER()
                             return;
                         case 1:
                             // Arg(Z)>pi/2
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             return;
                         case 0:
                         default:
@@ -5389,7 +5389,7 @@ void LIB_HANDLER()
                     // +/-Inf ^ Inf = UndInf
                     // +/-Inf ^ -Inf = 0
                     if(Rarg2.flags & F_NEGATIVE) {
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     }
                     rplUndInfinityToRReg(0);
@@ -5431,7 +5431,7 @@ void LIB_HANDLER()
                         return;
                     case 1:
                         // Arg(Z)>pi/2
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         return;
                     case 0:
                     default:
@@ -6140,7 +6140,7 @@ void LIB_HANDLER()
             case CPLX_INF | CPLX_MALFORMED:
             case CPLX_UNDINF:
             {
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
@@ -6159,7 +6159,7 @@ void LIB_HANDLER()
         {
             switch (cclass1) {
             case CPLX_ZERO:
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             case CPLX_NORMAL:
             case CPLX_INF:
@@ -6223,7 +6223,7 @@ void LIB_HANDLER()
         {
             switch (cclass1) {
             case CPLX_ZERO:
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
 
             case CPLX_NORMAL:
@@ -6280,17 +6280,17 @@ void LIB_HANDLER()
         case OVR_NOT:
         {
             if(cclass1 == CPLX_ZERO)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
         case OVR_ISTRUE:
         {
             if(cclass1 == CPLX_ZERO)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
         case OVR_UPLUS:
@@ -6353,7 +6353,7 @@ void LIB_HANDLER()
         case CPLX_NORMAL:
         {
             // AVOID CREATING A NEW OBJECT
-            WORDPTR real;
+            word_p real;
             if(ISNUMBER(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1)))
                 real = rplPeekData(1);
             else
@@ -6376,7 +6376,7 @@ void LIB_HANDLER()
 
             rplPolar2Rect(&re, &im, angmode);
 
-            WORDPTR newreal = rplNewRealFromRReg(0);
+            word_p newreal = rplNewRealFromRReg(0);
 
             if(!newreal)
                 return;
@@ -6422,7 +6422,7 @@ void LIB_HANDLER()
                 break;
             }
 
-            WORDPTR newobj = rplNewReal(&RReg[0]);
+            word_p newobj = rplNewReal(&RReg[0]);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6432,7 +6432,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_MALFORMED:
         {
             // AVOID CREATING A NEW OBJECT
-            WORDPTR real = rplPeekData(1) + 1;
+            word_p real = rplPeekData(1) + 1;
             rplOverwriteData(1, real);
             return;
         }
@@ -6441,7 +6441,7 @@ void LIB_HANDLER()
         default:
         {
             rplNANToRReg(0);
-            WORDPTR newobj = rplNewReal(&RReg[0]);
+            word_p newobj = rplNewReal(&RReg[0]);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6495,11 +6495,11 @@ void LIB_HANDLER()
 
             if(iszeroReal(&im)) {
                 rplDropData(1);
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
-            WORDPTR newobj = rplNewReal(&im);
+            word_p newobj = rplNewReal(&im);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6521,7 +6521,7 @@ void LIB_HANDLER()
 
             rplPolar2Rect(&re, &im, angmode);
 
-            WORDPTR newreal = rplNewRealFromRReg(1);
+            word_p newreal = rplNewRealFromRReg(1);
 
             if(!newreal)
                 return;
@@ -6553,7 +6553,7 @@ void LIB_HANDLER()
                 RReg[0].flags |= im.flags & F_NEGATIVE;
             }
 
-            WORDPTR newobj = rplNewReal(&RReg[0]);
+            word_p newobj = rplNewReal(&RReg[0]);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6568,7 +6568,7 @@ void LIB_HANDLER()
 
             if(Exceptions)
                 return;
-            WORDPTR newobj = rplNewReal(&im);
+            word_p newobj = rplNewReal(&im);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6580,7 +6580,7 @@ void LIB_HANDLER()
         default:
         {
             rplNANToRReg(0);
-            WORDPTR newobj = rplNewReal(&RReg[0]);
+            word_p newobj = rplNewReal(&RReg[0]);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6624,14 +6624,14 @@ void LIB_HANDLER()
         case CPLX_ZERO:
             // UNDEFINED OR ZERO?
         {
-            WORDPTR angle;
+            word_p angle;
             int32_t angmode;
             if(rplTestSystemFlag(FL_COMPLEXMODE)) {
                 // IN COMPLEX MODE, ARG(0) IS UNDEFINED
                 angle = 0;
             }
             else {
-                angle = (WORDPTR) angle_0;
+                angle = (word_p) angle_0;
             }
             angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
@@ -6676,7 +6676,7 @@ void LIB_HANDLER()
 
             // RETURN AN ANGLE IN THE CURRENT SYSTEM
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], angmode);
+            word_p newang = rplNewAngleFromReal(&RReg[0], angmode);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -6700,7 +6700,7 @@ void LIB_HANDLER()
 
             // RETURN AN ANGLE IN THE CURRENT SYSTEM
 
-            WORDPTR newang = rplNewAngleFromReal(&imag, angmode);
+            word_p newang = rplNewAngleFromReal(&imag, angmode);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -6712,7 +6712,7 @@ void LIB_HANDLER()
         case CPLX_INF | CPLX_MALFORMED:
         {
             int32_t angmode;
-            WORDPTR angle;
+            word_p angle;
             REAL real, imag;
 
             rplReadCNumber(rplPeekData(1), &real, &imag, &angmode);
@@ -6723,9 +6723,9 @@ void LIB_HANDLER()
                 if(!isinfiniteReal(&imag))      // CHECK IF THE IMAGINARY AXIS IS FINITE
                 {
                     if(real.flags & F_NEGATIVE)
-                        angle = (WORDPTR) angle_180;
+                        angle = (word_p) angle_180;
                     else
-                        angle = (WORDPTR) angle_0;
+                        angle = (word_p) angle_0;
                 }
                 else
                     angle = 0;
@@ -6733,9 +6733,9 @@ void LIB_HANDLER()
             else {
                 // THE IMAGINARY AXIS HAS TO BE INFINTE
                 if(imag.flags & F_NEGATIVE)
-                    angle = (WORDPTR) angle_270;
+                    angle = (word_p) angle_270;
                 else
-                    angle = (WORDPTR) angle_90;
+                    angle = (word_p) angle_90;
             }
 
             angmode =
@@ -6822,7 +6822,7 @@ void LIB_HANDLER()
             if(!iszeroReal(&im))
                 im.flags ^= F_NEGATIVE;
 
-            WORDPTR newobj = rplNewComplex(&re, &im, angmode);
+            word_p newobj = rplNewComplex(&re, &im, angmode);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6845,7 +6845,7 @@ void LIB_HANDLER()
             if(!iszeroReal(&im))
                 im.flags ^= F_NEGATIVE;
 
-            WORDPTR newobj = rplNewComplex(&re, &im, angmode);
+            word_p newobj = rplNewComplex(&re, &im, angmode);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6859,7 +6859,7 @@ void LIB_HANDLER()
         default:
         {
             rplNANToRReg(0);
-            WORDPTR newobj = rplNewReal(&RReg[0]);
+            word_p newobj = rplNewReal(&RReg[0]);
             if(!newobj)
                 return;
             rplOverwriteData(1, newobj);
@@ -6956,7 +6956,7 @@ void LIB_HANDLER()
         // CONSTRUCT THE COMPLEX NUMBER
         int32_t sizer = rplObjSize(rplPeekData(2));
         int32_t sizei = rplObjSize(rplPeekData(1));
-        WORDPTR newcplx = rplAllocTempOb(sizer + sizei);
+        word_p newcplx = rplAllocTempOb(sizer + sizei);
         if(!newcplx) {
             return;
         }
@@ -6992,7 +6992,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
             if(TokenLen > 1) {
-                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_STARTCONSTRUCT;
             }
             else
@@ -7005,7 +7005,7 @@ void LIB_HANDLER()
                     TokenLen - 1) == ')') {
             if(TokenLen > 1) {
                 BlankStart = NextTokenStart =
-                        (WORDPTR) utf8nskip((char *)TokenStart,
+                        (word_p) utf8nskip((char *)TokenStart,
                         (char *)BlankStart, TokenLen - 1);
                 RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
@@ -7024,7 +7024,7 @@ void LIB_HANDLER()
         if((LIBNUM(CurrentConstruct) == LIBRARY_NUMBER)
                 && ISPROLOG(CurrentConstruct)) {
             int32_t count = TokenLen;
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             uint64_t Locale = rplGetSystemLocale();
 
             // THERE'S 3 PLACES TO HAVE A COMMA
@@ -7037,7 +7037,7 @@ void LIB_HANDLER()
                 // STARTS WITH COMMA
                 if(TokenLen > 1)
                     NextTokenStart =
-                            (WORDPTR) utf8skip((char *)ptr, (char *)BlankStart);
+                            (word_p) utf8skip((char *)ptr, (char *)BlankStart);
                 // WE DID NOT PRODUCE ANY OUTPUT, SO DON'T VALIDATE
                 RetNum = OK_CONTINUE_NOVALIDATE;
                 return;
@@ -7046,7 +7046,7 @@ void LIB_HANDLER()
                         (char *)BlankStart) == ARG_SEP(Locale)) {
                 // ENDS WITH A COMMA, SPLIT THE TOKEN
                 BlankStart = NextTokenStart =
-                        (WORDPTR) utf8rskip((char *)BlankStart, (char *)ptr);
+                        (word_p) utf8rskip((char *)BlankStart, (char *)ptr);
                 RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
@@ -7054,7 +7054,7 @@ void LIB_HANDLER()
             while(count
                     && ((WORD) utf82cp((char *)ptr,
                             (char *)BlankStart) != ARG_SEP(Locale))) {
-                ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
                 --count;
             }
 
@@ -7062,7 +7062,7 @@ void LIB_HANDLER()
 
                 // THERE'S A COMMA IN THE MIDDLE
                 // SPLIT THE TOKEN
-                BlankStart = NextTokenStart = (WORDPTR) (ptr);
+                BlankStart = NextTokenStart = (word_p) (ptr);
                 RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
@@ -7094,7 +7094,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             uint64_t Locale = rplGetSystemLocale();
 
-            rplDecompAppendString((BYTEPTR) "(");
+            rplDecompAppendString((byte_p) "(");
 
             // POINT TO THE REAL PART
             DecompileObject++;
@@ -7112,7 +7112,7 @@ void LIB_HANDLER()
             if(libhan)
                 (*libhan) ();
 
-            rplDecompAppendString((BYTEPTR) ")");
+            rplDecompAppendString((byte_p) ")");
 
             RetNum = OK_CONTINUE;
 
@@ -7242,7 +7242,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
         if(ISPROLOG(*ObjectPTR)) {
-            WORDPTR real, imag;
+            word_p real, imag;
 
             // CHECK MINIMUM SIZE
             if(OBJSIZE(*ObjectPTR) < 2) {
@@ -7289,7 +7289,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) lib30_menu;
+        ObjectPTR = (word_p) lib30_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -7299,7 +7299,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -7308,12 +7308,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

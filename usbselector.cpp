@@ -32,9 +32,9 @@ extern "C"
     int __fwupdate_progress;
     int __fwupdate_address;
     int __fwupdate_nwords;
-    BYTEPTR __fwupdate_buffer;
+    byte_p __fwupdate_buffer;
 
-    int64_t rplObjChecksum(WORDPTR object);
+    int64_t rplObjChecksum(word_p object);
 }
 
 USBSelector::USBSelector(QWidget * parent):
@@ -410,7 +410,7 @@ void USBSelector::RefreshList()
                             if(!res)
                                 break;
 
-                            res = usb_filewrite(fileid, (BYTEPTR) getversion,
+                            res = usb_filewrite(fileid, (byte_p) getversion,
                                     6 * sizeof(uint32_t));
 
                             if(!res)
@@ -613,7 +613,7 @@ void USBSelector::on_syncTime_clicked()
     if(!res)
         goto failed;
 
-    res = usb_filewrite(fileid, (BYTEPTR) setdate,
+    res = usb_filewrite(fileid, (byte_p) setdate,
             22 * sizeof(uint32_t));
 
     if(!res)
@@ -630,7 +630,7 @@ void USBSelector::on_syncTime_clicked()
     if(!res)
         goto failed;
 
-    res = usb_filewrite(fileid, (BYTEPTR) settime,
+    res = usb_filewrite(fileid, (byte_p) settime,
             12 * sizeof(uint32_t));
 
     if(!res)
@@ -839,7 +839,7 @@ void USBSelector::on_updateFirmware_clicked()
     __fwupdate_progress = 0;
     __fwupdate_address = address;
     __fwupdate_nwords = nwords;
-    __fwupdate_buffer = (BYTEPTR) filedata.constData();
+    __fwupdate_buffer = (byte_p) filedata.constData();
 
     connect(&update_thread, SIGNAL(finished()), this, SLOT(finishedupdate()));
 
@@ -926,12 +926,12 @@ static QString send_package(int nwords, int offset)
     header[1]=__fwupdate_address+(offset<<2);
     header[2]=nwords;
 
-    if(!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD))) {
+    if(!usb_filewrite(fileid,(byte_p)header,3*sizeof(WORD))) {
         return "Could not send data to usb device";
     }
 
 
-    BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
+    byte_p buffer=__fwupdate_buffer+offset*sizeof(WORD);
     if(!usb_filewrite(fileid,buffer,nwords*sizeof(WORD))) {
         return "Could not send data to usb device";
     }
@@ -956,7 +956,7 @@ static QString send_reset()
     header[1]=0xffffffff;
     header[2]=0;
 
-    if(!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD))) {
+    if(!usb_filewrite(fileid,(byte_p)header,3*sizeof(WORD))) {
         return "Could not initiate reset";
     }
 

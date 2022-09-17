@@ -54,8 +54,8 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
 
         // HERE IS GUARANTEED THAT a IS LARGER THAN b
         int32_t xwords = a->len - b->len, bwords = b->len;
-        WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
-                (WORDPTR) res->data;
+        word_p aptr = (word_p) a->data, bptr = (word_p) b->data, resptr =
+                (word_p) res->data;
 
         int64_t rr = 0;
         while(bwords > 0) {
@@ -95,8 +95,8 @@ void bIntegerAdd(REAL * res, REAL * a, REAL * b)
 
     // HERE IS GUARANTEED THAT a IS LARGER THAN b
     int32_t xwords = a->len - b->len, bwords = b->len;
-    WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) b->data, resptr =
-            (WORDPTR) res->data;
+    word_p aptr = (word_p) a->data, bptr = (word_p) b->data, resptr =
+            (word_p) res->data;
 
     int64_t rr = 0;
     while(bwords) {
@@ -191,8 +191,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
 
             // HERE IS GUARANTEED THAT bs IS LARGER THAN a
             int32_t xwords = bs.len - a->len, bwords = a->len;
-            WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
-                    (WORDPTR) res->data;
+            word_p aptr = (word_p) a->data, bptr = (word_p) bs.data, resptr =
+                    (word_p) res->data;
 
             int64_t rr = 0;
             while(bwords > 0) {
@@ -239,8 +239,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
 
         // HERE IS GUARANTEED THAT a IS LARGER THAN bs
         int32_t xwords = a->len - bs.len, bwords = bs.len - 1;
-        WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
-                (WORDPTR) res->data;
+        word_p aptr = (word_p) a->data, bptr = (word_p) bs.data, resptr =
+                (word_p) res->data;
 
         int64_t rr = 0;
         while(bwords > 0) {
@@ -290,8 +290,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
 
         // HERE IS GUARANTEED THAT bs IS LARGER THAN a
         int32_t xwords = bs.len - a->len, bwords = a->len;
-        WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
-                (WORDPTR) res->data;
+        word_p aptr = (word_p) a->data, bptr = (word_p) bs.data, resptr =
+                (word_p) res->data;
 
         uint64_t rr = 0;
         while(bwords > 0) {
@@ -335,8 +335,8 @@ void bIntegerAddShift(REAL * res, REAL * a, REAL * b, int bshift)
 
     // HERE IS GUARANTEED THAT a IS LARGER THAN bs
     int32_t xwords = a->len - bs.len, bwords = bs.len - 1;
-    WORDPTR aptr = (WORDPTR) a->data, bptr = (WORDPTR) bs.data, resptr =
-            (WORDPTR) res->data;
+    word_p aptr = (word_p) a->data, bptr = (word_p) bs.data, resptr =
+            (word_p) res->data;
 
     int64_t rr = 0;
     while(bwords > 0) {
@@ -551,7 +551,7 @@ void bbintneg(WORD * res, WORD * a, int nwords)
 void bIntegerfromReal(REAL * res, REAL * number)
 {
     int nwords = ((WORD) ((number->len << 3) + number->exp) * 217706U) >> 21;   // (len*8+exp)*ln(10)/ln(2)/32;
-    WORDPTR resdata = res->data;
+    word_p resdata = res->data;
     int k;
 
     if(resdata == number->data)
@@ -667,7 +667,7 @@ void bIntegerMul(REAL * res, REAL * a, REAL * b, int FPShift)
                         (unsigned long long *)&rr))
                 ++carry;
             if(__builtin_uadd_overflow((WORD) rr, (WORD) result->data[i + j],
-                        (WORDPTR) result->data + i + j)) {
+                        (word_p) result->data + i + j)) {
                 rr >>= 32;
                 rr++;
             }
@@ -682,7 +682,7 @@ void bIntegerMul(REAL * res, REAL * a, REAL * b, int FPShift)
         }
         while(rr) {
             if(__builtin_uadd_overflow((WORD) rr, (WORD) result->data[i + j],
-                        (WORDPTR) result->data + i + j)) {
+                        (word_p) result->data + i + j)) {
                 rr >>= 32;
                 rr++;
             }

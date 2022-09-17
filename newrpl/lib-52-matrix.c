@@ -199,18 +199,18 @@ INCLUDE_ROMOBJECT(lib52_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) matrixeval_seco,
-    (WORDPTR) matrixeval1_seco,
-    (WORDPTR) matrixtonum_seco,
-    (WORDPTR) matrixistrue_seco,
-    (WORDPTR) matrixmap_seco,
-    (WORDPTR) rowindex_ident,
-    (WORDPTR) colindex_ident,
-    (WORDPTR) elem_ident,
-    (WORDPTR) lib52_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) matrixeval_seco,
+    (word_p) matrixeval1_seco,
+    (word_p) matrixtonum_seco,
+    (word_p) matrixistrue_seco,
+    (word_p) matrixmap_seco,
+    (word_p) rowindex_ident,
+    (word_p) colindex_ident,
+    (word_p) elem_ident,
+    (word_p) lib52_menu,
     // ADD MORE MENUS HERE
     0
 };
@@ -251,7 +251,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR a = rplPeekData(1);
+            word_p a = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 rplError(ERR_MATRIXEXPECTED);
@@ -268,7 +268,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR a = rplPeekData(1);
+            word_p a = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 rplError(ERR_MATRIXEXPECTED);
@@ -288,7 +288,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR a = rplPeekData(1);
+            word_p a = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 rplError(ERR_MATRIXEXPECTED);
@@ -306,7 +306,7 @@ void LIB_HANDLER()
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {
 
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISMATRIX(*object)) {
                 rplError(ERR_MATRIXEXPECTED);
                 return;
@@ -317,21 +317,21 @@ void LIB_HANDLER()
             rplCreateLAMEnvironment(IPtr);
 
             object = rplMatrixGetFirstObj(object);
-            WORDPTR endobject = rplSkipOb(mainobj);
+            word_p endobject = rplSkipOb(mainobj);
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -351,7 +351,7 @@ void LIB_HANDLER()
             // IN ORDER TO KEEP THE LOOP RUNNING
 
             rplPushRet(IPtr);
-            IPtr = (WORDPTR) matrixeval1_seco;
+            IPtr = (word_p) matrixeval1_seco;
             CurOpcode = (CMD_OVR_EVAL1);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -363,8 +363,8 @@ void LIB_HANDLER()
             // EVALUATING A MATRIX OR VECTOR AS A FUNCTION GETS THE ELEMENT
 
         {
-            WORDPTR comp = rplPeekData(1);
-            WORDPTR posobj;
+            word_p comp = rplPeekData(1);
+            word_p posobj;
             int32_t rows, cols, ndims;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -393,7 +393,7 @@ void LIB_HANDLER()
                     return;
                 }
 
-                WORDPTR *stksave = DSTop;
+                word_p *stksave = DSTop;
                 rplPushData(posobj);
                 rplSymbNumericCompute();
                 if(Exceptions) {
@@ -421,7 +421,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    WORDPTR *stksave = DSTop;
+                    word_p *stksave = DSTop;
                     rplPushData(posobj);
                     rplSymbNumericCompute();
                     if(Exceptions) {
@@ -451,7 +451,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR item = rplMatrixGet(comp, posrow, poscol);
+            word_p item = rplMatrixGet(comp, posrow, poscol);
             if(!item) {
                 rplError(ERR_INDEXOUTOFBOUNDS);
                 return;
@@ -466,7 +466,7 @@ void LIB_HANDLER()
         case OVR_EVAL:
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISMATRIX(*object)) {
                 rplError(ERR_MATRIXEXPECTED);
                 return;
@@ -477,21 +477,21 @@ void LIB_HANDLER()
             rplCreateLAMEnvironment(IPtr);
 
             object = rplMatrixGetFirstObj(object);
-            WORDPTR endobject = rplSkipOb(mainobj);
+            word_p endobject = rplSkipOb(mainobj);
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -511,7 +511,7 @@ void LIB_HANDLER()
             // IN ORDER TO KEEP THE LOOP RUNNING
 
             rplPushRet(IPtr);
-            IPtr = (WORDPTR) matrixeval_seco;
+            IPtr = (word_p) matrixeval_seco;
             CurOpcode = (CMD_OVR_EVAL); // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -521,7 +521,7 @@ void LIB_HANDLER()
         case OVR_NUM:
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISMATRIX(*object)) {
                 rplError(ERR_MATRIXEXPECTED);
                 return;
@@ -532,21 +532,21 @@ void LIB_HANDLER()
             rplCreateLAMEnvironment(IPtr);
 
             object = rplMatrixGetFirstObj(object);
-            WORDPTR endobject = rplSkipOb(mainobj);
+            word_p endobject = rplSkipOb(mainobj);
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -566,7 +566,7 @@ void LIB_HANDLER()
             // IN ORDER TO KEEP THE LOOP RUNNING
 
             rplPushRet(IPtr);
-            IPtr = (WORDPTR) matrixtonum_seco;
+            IPtr = (word_p) matrixtonum_seco;
             CurOpcode = (CMD_OVR_NUM);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -577,7 +577,7 @@ void LIB_HANDLER()
         case OVR_ISTRUE:
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {
-            WORDPTR object = rplPeekData(1), mainobj;
+            word_p object = rplPeekData(1), mainobj;
             if(!ISMATRIX(*object)) {
                 rplError(ERR_MATRIXEXPECTED);
                 return;
@@ -588,21 +588,21 @@ void LIB_HANDLER()
             rplCreateLAMEnvironment(IPtr);
 
             object = rplMatrixGetFirstObj(object);
-            WORDPTR endobject = rplSkipOb(mainobj);
+            word_p endobject = rplSkipOb(mainobj);
 
-            rplCreateLAM((WORDPTR) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
+            rplCreateLAM((word_p) nulllam_ident, endobject);   // LAM 1 = END OF CURRENT LIST
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
+            rplCreateLAM((word_p) nulllam_ident, object);      // LAM 2 = NEXT OBJECT TO PROCESS
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
+            rplCreateLAM((word_p) nulllam_ident, mainobj);     // LAM 3 = ORIGINAL MATRIX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -622,7 +622,7 @@ void LIB_HANDLER()
             // IN ORDER TO KEEP THE LOOP RUNNING
 
             rplPushRet(IPtr);
-            IPtr = (WORDPTR) matrixistrue_seco;
+            IPtr = (word_p) matrixistrue_seco;
             CurOpcode = (CMD_OVR_ISTRUE);       // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
             rplProtectData();   // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -651,7 +651,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 // CHECK DIMENSIONS OF MATRIX B
@@ -661,7 +661,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(b, 1, 1);
+                        word_p scalar = rplMatrixGet(b, 1, 1);
                         rplOverwriteData(1, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -678,7 +678,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(a, 1, 1);
+                        word_p scalar = rplMatrixGet(a, 1, 1);
                         rplOverwriteData(2, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -702,7 +702,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 // CHECK DIMENSIONS OF MATRIX B
@@ -712,7 +712,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(b, 1, 1);
+                        word_p scalar = rplMatrixGet(b, 1, 1);
                         rplOverwriteData(1, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -729,7 +729,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(a, 1, 1);
+                        word_p scalar = rplMatrixGet(a, 1, 1);
                         rplOverwriteData(2, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -752,7 +752,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             // NEED TO DETECT SCALAR * MATRIX AND MATRIX * SCALAR CASES
             if((ISNUMBERCPLX(*a)
@@ -790,7 +790,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             // NEED TO DETECT SCALAR / MATRIX AND MATRIX / SCALAR CASES
             if((ISNUMBERCPLX(*a)
@@ -833,7 +833,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
             int32_t neg = 0;
 
             // ONLY MATRIX RAISED TO NUMERIC POWER IS SUPPORTED
@@ -926,7 +926,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 // CHECK DIMENSIONS OF MATRIX B
@@ -936,7 +936,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(b, 1, 1);
+                        word_p scalar = rplMatrixGet(b, 1, 1);
                         rplOverwriteData(1, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -969,7 +969,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(a, 1, 1);
+                        word_p scalar = rplMatrixGet(a, 1, 1);
                         rplOverwriteData(2, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -993,7 +993,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+            word_p a = rplPeekData(2), b = rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
                 // CHECK DIMENSIONS OF MATRIX B
@@ -1003,7 +1003,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(b);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(b, 1, 1);
+                        word_p scalar = rplMatrixGet(b, 1, 1);
                         rplOverwriteData(1, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -1036,7 +1036,7 @@ void LIB_HANDLER()
                     int32_t cols = rplMatrixCols(a);
                     if((rows < 2) && (cols == 1)) {
                         // OPERATION IS SCALAR, ACCEPT IT
-                        WORDPTR scalar = rplMatrixGet(a, 1, 1);
+                        word_p scalar = rplMatrixGet(a, 1, 1);
                         rplOverwriteData(2, scalar);
                         rplCallOvrOperator(CurOpcode);
                         return;
@@ -1067,7 +1067,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
         int64_t rows, cols;
-        WORDPTR *Savestk = DSTop;
+        word_p *Savestk = DSTop;
 
         if(ISLIST(*rplPeekData(1))) {
             rplExplodeList(rplPeekData(1));
@@ -1133,7 +1133,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
 
         if(newmat) {
             rplDropData(elements);
@@ -1157,22 +1157,22 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR matrix = rplPeekData(1);
+        word_p matrix = rplPeekData(1);
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
-        WORDPTR *elem = rplMatrixExplode();
+        word_p *elem = rplMatrixExplode();
         if(Exceptions)
             return;
 
         // NOW REMOVE THE ORIGINAL MATRIX FROM THE STACK
-        memmovew(elem - 1, elem, (DSTop - elem) * (sizeof(WORDPTR *) / sizeof(WORD)));  // ADDED sizeof() ONLY FOR 64-BIT COMPATIBILITY
+        memmovew(elem - 1, elem, (DSTop - elem) * (sizeof(word_p *) / sizeof(WORD)));  // ADDED sizeof() ONLY FOR 64-BIT COMPATIBILITY
 
         DSTop--;
 
         if(rows)
             rplNewint32_tPush(rows, DECint32_t);
         rplNewint32_tPush(cols, DECint32_t);
-        rplPushData((WORDPTR) ((rows) ? two_bint : one_bint));
+        rplPushData((word_p) ((rows) ? two_bint : one_bint));
         rplCreateList();
 
         return;
@@ -1191,9 +1191,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR matrix = rplPeekData(1);
-        WORDPTR *matptr = DSTop - 1;
-        WORDPTR elem;
+        word_p matrix = rplPeekData(1);
+        word_p *matptr = DSTop - 1;
+        word_p elem;
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
         int32_t nrows = (rows) ? rows : 1;
         int32_t i, j;
@@ -1246,10 +1246,10 @@ void LIB_HANDLER()
 
         int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
-        WORDPTR matrix = rplPeekData(3);
+        word_p matrix = rplPeekData(3);
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
-        WORDPTR *matptr = DSTop - 3;
+        word_p *matptr = DSTop - 3;
 
         if((nelem < 1) || (nelem > cols + 1)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -1266,14 +1266,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR *first = rplMatrixNewEx(1, cols + 1);
+            word_p *first = rplMatrixNewEx(1, cols + 1);
 
             if(!first) {
                 return;
             }
 
             int32_t j;
-            WORDPTR *stkelem;
+            word_p *stkelem;
             for(j = 1; j < nelem; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols + 1, 1, j);
                 *stkelem = rplMatrixFastGet(*matptr, 1, j);
@@ -1290,7 +1290,7 @@ void LIB_HANDLER()
 
             // MAKE A NEW VECTOR
 
-            WORDPTR newmat = rplMatrixCompose(0, cols + 1);
+            word_p newmat = rplMatrixCompose(0, cols + 1);
             if(!newmat) {
                 DSTop = matptr + 3;
                 return;
@@ -1309,7 +1309,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR mat2 = rplPeekData(2);
+        word_p mat2 = rplPeekData(2);
         int32_t rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
 
         // CHECK PROPER SIZE
@@ -1327,14 +1327,14 @@ void LIB_HANDLER()
 
         // ADD THE COLUMNS
 
-        WORDPTR *first = rplMatrixNewEx(rows, cols + cols2);
+        word_p *first = rplMatrixNewEx(rows, cols + cols2);
 
         if(!first) {
             return;
         }
 
         int32_t i, j;
-        WORDPTR *stkelem;
+        word_p *stkelem;
         for(j = 1; j < nelem; ++j) {
             for(i = 1; i <= rows; ++i) {
                 stkelem = rplMatrixFastGetEx(first, cols + cols2, i, j);
@@ -1358,7 +1358,7 @@ void LIB_HANDLER()
 
         // MAKE A NEW VECTOR
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols + cols2);
+        word_p newmat = rplMatrixCompose(rows, cols + cols2);
         if(!newmat) {
             DSTop = matptr + 3;
             return;
@@ -1388,11 +1388,11 @@ void LIB_HANDLER()
 
         int64_t ncol = rplReadNumberAsInt64(rplPeekData(1));
 
-        WORDPTR matrix = rplPeekData(2);
+        word_p matrix = rplPeekData(2);
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
         int32_t nrows = (rows) ? rows : 1;
 
-        WORDPTR *matptr = DSTop - 2;
+        word_p *matptr = DSTop - 2;
 
         if(cols <= 1) {
             rplError(ERR_INVALIDDIMENSION);
@@ -1406,14 +1406,14 @@ void LIB_HANDLER()
 
         // MAKE THE NEW MATRIX WITHOUT ONE COLUMN
 
-        WORDPTR *first = rplMatrixNewEx(rows, cols - 1);
+        word_p *first = rplMatrixNewEx(rows, cols - 1);
 
         if(!first) {
             return;
         }
 
         int32_t i, j;
-        WORDPTR *stkelem;
+        word_p *stkelem;
         for(j = 1; j < ncol; ++j) {
             for(i = 1; i <= nrows; ++i) {
                 stkelem = rplMatrixFastGetEx(first, cols - 1, i, j);
@@ -1434,7 +1434,7 @@ void LIB_HANDLER()
         }
 
         // MAKE THE VECTOR FROM THE ELEMENTS
-        WORDPTR newmat;
+        word_p newmat;
 
         if(rows) {
             newmat = rplMatrixCompose(0, nrows);
@@ -1492,7 +1492,7 @@ void LIB_HANDLER()
 
         for(i = 2; i <= nelem + 1; ++i) {
             if(ISMATRIX(*rplPeekData(i))) {
-                WORDPTR matrix = rplPeekData(i);
+                word_p matrix = rplPeekData(i);
                 int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
                 if(rows) {
@@ -1536,13 +1536,13 @@ void LIB_HANDLER()
 
         if(veclen) {
             // EXPAND ANY VECTORS AND THEN COMPOSE THE MATRIX
-            WORDPTR *base = DSTop;
+            word_p *base = DSTop;
             for(j = 1; j <= veclen; ++j) {
                 for(i = nelem + 1; i >= 2; i--) {
                     rplPushData(rplMatrixGet(base[-i], 1, j));
                 }
             }
-            WORDPTR newmat = rplMatrixCompose(veclen, nelem);
+            word_p newmat = rplMatrixCompose(veclen, nelem);
 
             if(!newmat) {
                 DSTop = base;
@@ -1558,7 +1558,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR newmat = rplMatrixCompose(0, nelem);
+        word_p newmat = rplMatrixCompose(0, nelem);
 
         if(!newmat) {
             return;
@@ -1583,8 +1583,8 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR matrix = rplPeekData(1);
-        WORDPTR *matptr = DSTop - 1;
+        word_p matrix = rplPeekData(1);
+        word_p *matptr = DSTop - 1;
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
         int32_t nrows = (rows) ? rows : 1;
         int32_t i;
@@ -1620,7 +1620,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR matrix = rplPeekData(2);
+        word_p matrix = rplPeekData(2);
         int32_t drows = MATROWS(matrix[1]), dcols = MATCOLS(matrix[1]);
 
         if(drows) {
@@ -1629,7 +1629,7 @@ void LIB_HANDLER()
         }
 
         int64_t rows, cols;
-        WORDPTR *Savestk = DSTop;
+        word_p *Savestk = DSTop;
 
         if(ISLIST(*rplPeekData(1))) {
             rplExplodeList(rplPeekData(1));
@@ -1688,9 +1688,9 @@ void LIB_HANDLER()
         int32_t elements = (rows) ? rows * cols : cols;
 
         int32_t i;
-        WORDPTR *first = DSTop;
+        word_p *first = DSTop;
         for(i = 0; i < elements; ++i)
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
 
         if(Exceptions) {
             DSTop = Savestk;
@@ -1709,7 +1709,7 @@ void LIB_HANDLER()
                     rplMatrixFastGet(matrix, 1, i);
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
 
         if(newmat) {
             rplDropData(elements + 1);
@@ -1736,9 +1736,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR matrix = rplPeekData(1);
-        WORDPTR *matptr = DSTop - 1;
-        WORDPTR elem;
+        word_p matrix = rplPeekData(1);
+        word_p *matptr = DSTop - 1;
+        word_p elem;
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
         int32_t nrows = (rows) ? rows : 1;
         int32_t i, j;
@@ -1798,10 +1798,10 @@ void LIB_HANDLER()
 
         int64_t nelem = rplReadNumberAsInt64(rplPeekData(1));
 
-        WORDPTR matrix = rplPeekData(3);
+        word_p matrix = rplPeekData(3);
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
-        WORDPTR *matptr = DSTop - 3;
+        word_p *matptr = DSTop - 3;
 
         if((nelem < 1) || (nelem > cols + 1)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -1818,14 +1818,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR *first = rplMatrixNewEx(1, cols + 1);
+            word_p *first = rplMatrixNewEx(1, cols + 1);
 
             if(!first) {
                 return;
             }
 
             int32_t j;
-            WORDPTR *stkelem;
+            word_p *stkelem;
             for(j = 1; j < nelem; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols + 1, 1, j);
                 *stkelem = rplMatrixFastGet(*matptr, 1, j);
@@ -1842,7 +1842,7 @@ void LIB_HANDLER()
 
             // MAKE A NEW VECTOR
 
-            WORDPTR newmat = rplMatrixCompose(0, cols + 1);
+            word_p newmat = rplMatrixCompose(0, cols + 1);
             if(!newmat) {
                 DSTop = matptr + 3;
                 return;
@@ -1861,7 +1861,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR mat2 = rplPeekData(2);
+        word_p mat2 = rplPeekData(2);
         int32_t rows2 = MATROWS(mat2[1]), cols2 = MATCOLS(mat2[1]);
 
         // CHECK PROPER SIZE
@@ -1878,14 +1878,14 @@ void LIB_HANDLER()
 
         // ADD THE ROWS
 
-        WORDPTR *first = rplMatrixNewEx(rows + rows2, cols);
+        word_p *first = rplMatrixNewEx(rows + rows2, cols);
 
         if(!first) {
             return;
         }
 
         int32_t i, j;
-        WORDPTR *stkelem;
+        word_p *stkelem;
         for(i = 1; i < nelem; ++i) {
             for(j = 1; j <= cols; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols, i, j);
@@ -1909,7 +1909,7 @@ void LIB_HANDLER()
 
         // MAKE A NEW VECTOR
 
-        WORDPTR newmat = rplMatrixCompose(rows + rows2, cols);
+        word_p newmat = rplMatrixCompose(rows + rows2, cols);
         if(!newmat) {
             DSTop = matptr + 3;
             return;
@@ -1940,11 +1940,11 @@ void LIB_HANDLER()
 
         int64_t nrow = rplReadNumberAsInt64(rplPeekData(1));
 
-        WORDPTR matrix = rplPeekData(2);
+        word_p matrix = rplPeekData(2);
         int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
         int32_t nrows = (rows) ? rows : 1;
 
-        WORDPTR *matptr = DSTop - 2;
+        word_p *matptr = DSTop - 2;
 
         if(!rows) {
             // MAKE IT A COLUMN VECTOR
@@ -1964,14 +1964,14 @@ void LIB_HANDLER()
 
         // MAKE THE NEW MATRIX WITHOUT ONE ROW
 
-        WORDPTR *first = rplMatrixNewEx(nrows - 1, cols);
+        word_p *first = rplMatrixNewEx(nrows - 1, cols);
 
         if(!first) {
             return;
         }
 
         int32_t i, j;
-        WORDPTR *stkelem;
+        word_p *stkelem;
         for(i = 1; i < nrow; ++i) {
             for(j = 1; j <= cols; ++j) {
                 stkelem = rplMatrixFastGetEx(first, cols, i, j);
@@ -1992,7 +1992,7 @@ void LIB_HANDLER()
         }
 
         // MAKE THE VECTOR FROM THE ELEMENTS
-        WORDPTR newmat;
+        word_p newmat;
 
         if(rows) {
             newmat = rplMatrixCompose(0, cols);
@@ -2053,7 +2053,7 @@ void LIB_HANDLER()
 
         for(i = 2; i <= nelem + 1; ++i) {
             if(ISMATRIX(*rplPeekData(i))) {
-                WORDPTR matrix = rplPeekData(i);
+                word_p matrix = rplPeekData(i);
                 int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
                 if(rows) {
@@ -2097,13 +2097,13 @@ void LIB_HANDLER()
 
         if(veclen) {
             // EXPAND ANY VECTORS AND THEN COMPOSE THE MATRIX
-            WORDPTR *base = DSTop;
+            word_p *base = DSTop;
             for(i = nelem + 1; i >= 2; i--) {
                 for(j = 1; j <= veclen; ++j) {
                     rplPushData(rplMatrixGet(base[-i], 1, j));
                 }
             }
-            WORDPTR newmat = rplMatrixCompose(nelem, veclen);
+            word_p newmat = rplMatrixCompose(nelem, veclen);
 
             if(!newmat) {
                 DSTop = base;
@@ -2119,7 +2119,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR newmat = rplMatrixCompose(0, nelem);
+        word_p newmat = rplMatrixCompose(0, nelem);
 
         if(!newmat) {
             return;
@@ -2140,7 +2140,7 @@ void LIB_HANDLER()
         // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
         rplStripTagStack(2);
 
-        WORDPTR newmat = rplMatrixCompose(0, 2);
+        word_p newmat = rplMatrixCompose(0, 2);
         if(!newmat)
             return;
 
@@ -2158,7 +2158,7 @@ void LIB_HANDLER()
         // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
         rplStripTagStack(3);
 
-        WORDPTR newmat = rplMatrixCompose(0, 3);
+        word_p newmat = rplMatrixCompose(0, 3);
         if(!newmat)
             return;
 
@@ -2184,7 +2184,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR matrix = rplPeekData(1);
+        word_p matrix = rplPeekData(1);
         int32_t rows = MATROWS(matrix[1]);
 
         if((rows != 0) && (rows != 1)) {
@@ -2192,7 +2192,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
         // NOW REMOVE THE ORIGINAL MATRIX
         memmovew(first - 1, first, (DSTop - first) * (sizeof(void *) >> 2));
         rplDropData(1);
@@ -2222,7 +2222,7 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DOING THE EVALUATION
 
         // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
-        WORDPTR endobj = *rplGetLAMn(1),
+        word_p endobj = *rplGetLAMn(1),
                 nextobj = rplSkipOb(*rplGetLAMn(2)), matrix = *rplGetLAMn(3);
 
         if(nextobj < endobj) {
@@ -2237,7 +2237,7 @@ void LIB_HANDLER()
         // ALL ELEMENTS WERE PROCESSED
         // FORM A NEW MATRIX WITH ALL THE NEW ELEMENTS
 
-        WORDPTR *prevDStk = rplUnprotectData();
+        word_p *prevDStk = rplUnprotectData();
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2256,9 +2256,9 @@ void LIB_HANDLER()
             rplDropData(newdepth);
 
             if(istrue)
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
             else
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
 
             rplCleanupLAMs(0);
             CurOpcode = *(IPtr - 1);    // BLAME THE OPERATOR IN QUESTION
@@ -2274,7 +2274,7 @@ void LIB_HANDLER()
 
         // NOW ALLOCATE THE NEW MATRIX
 
-        WORDPTR newmat = rplAllocTempOb(totalsize - 1);
+        word_p newmat = rplAllocTempOb(totalsize - 1);
         if((!newmat) || Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);  // CLEANUP LOCAL VARIABLES
@@ -2291,7 +2291,7 @@ void LIB_HANDLER()
 
         int32_t nelem = nextobj - matrix - 2;
         int32_t oldidx;
-        WORDPTR oldobj, newobj, firstobj, oldfirst, oldptr;
+        word_p oldobj, newobj, firstobj, oldfirst, oldptr;
 
         // FILL THE MATRIX WITH ALL THE OBJECTS FROM THE STACK
         firstobj = newobj = rplMatrixGetFirstObj(newmat);       // STORE NEW OBJECTS HERE
@@ -2357,7 +2357,7 @@ void LIB_HANDLER()
             // MATRIX TO LIST
 
             int32_t cols, rows, i, j;
-            WORDPTR *mat = DSTop - 1;
+            word_p *mat = DSTop - 1;
             cols = rplMatrixCols(*mat);
             rows = rplMatrixRows(*mat);
 
@@ -2401,7 +2401,7 @@ void LIB_HANDLER()
             // LIST TO MATRIX
 
             int32_t cols, rows, i, j, tmpcols;
-            WORDPTR *lst = DSTop - 1, lstptr;
+            word_p *lst = DSTop - 1, lstptr;
             cols = 0;
             // DETERMINE IF DIMENSIONS ARE SUITABLE
             rows = rplListLength(*lst);
@@ -2456,7 +2456,7 @@ void LIB_HANDLER()
                 }
             }
 
-            WORDPTR mat = rplMatrixCompose(rows, cols);
+            word_p mat = rplMatrixCompose(rows, cols);
             if(Exceptions || (!mat)) {
                 DSTop = lst + 1;
                 return;
@@ -2485,15 +2485,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1;
-        WORDPTR *savestk = DSTop;
+        word_p *a = DSTop - 1;
+        word_p *savestk = DSTop;
 
         if(!ISLIST(**a)) {
             rplError(ERR_LISTEXPECTED);
             return;
         }
 
-        WORDPTR lelem = *a + 1, endoflist = rplSkipOb(*a);
+        word_p lelem = *a + 1, endoflist = rplSkipOb(*a);
         int32_t ncols = 0, nvecs = 0, allzeros;
         int32_t i, j, k;
 
@@ -2546,7 +2546,7 @@ void LIB_HANDLER()
 
         // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
 
-        WORDPTR *base = DSTop;
+        word_p *base = DSTop;
 
         for(i = 1; i <= nvecs; ++i) {
 
@@ -2582,7 +2582,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
 
-        WORDPTR newlist = rplCreateListN(nvecs, 1, 1);
+        word_p newlist = rplCreateListN(nvecs, 1, 1);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -2601,7 +2601,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -2622,7 +2622,7 @@ void LIB_HANDLER()
         // ORIGINAL COMMAND GIVES BAD RESULTS IF MATRIX IS NOT SPD
         // AND DOESN'T EVEN ALLOW COMPLEX
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
         if(Exceptions)
             return;
 
@@ -2678,7 +2678,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -2698,7 +2698,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -2763,7 +2763,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         int64_t rows, cols;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(!rplMatrixIsAllowed(rplPeekData(1))) {
             rplError(ERR_NOTALLOWEDINMATRIX);
@@ -2844,7 +2844,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
 
-        WORDPTR newmat = rplMatrixFill(rows, cols, rplPeekData(1));
+        word_p newmat = rplMatrixFill(rows, cols, rplPeekData(1));
 
         if(newmat) {
             *var = newmat;
@@ -2866,7 +2866,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
         if(!ISMATRIX(*rplPeekData(1))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -2886,7 +2886,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR tmp = rplPeekData(2);
+        word_p tmp = rplPeekData(2);
         rplOverwriteData(2, rplPeekData(1));
         rplOverwriteData(1, tmp);
 
@@ -2919,7 +2919,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *v1 = DSTop - 2, *v2 = DSTop - 1;
+        word_p *v1 = DSTop - 2, *v2 = DSTop - 1;
         int32_t rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
         int32_t cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
 
@@ -2937,11 +2937,11 @@ void LIB_HANDLER()
         if(cols1 >= 2)
             rplPushData(rplMatrixFastGet(*v1, 1, 2));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         if(cols2 >= 3)
             rplPushData(rplMatrixFastGet(*v2, 1, 3));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -2950,11 +2950,11 @@ void LIB_HANDLER()
         if(cols2 >= 2)
             rplPushData(rplMatrixFastGet(*v2, 1, 2));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         if(cols1 >= 3)
             rplPushData(rplMatrixFastGet(*v1, 1, 3));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -2979,7 +2979,7 @@ void LIB_HANDLER()
         if(cols2 >= 3)
             rplPushData(rplMatrixFastGet(*v2, 1, 3));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -2989,7 +2989,7 @@ void LIB_HANDLER()
         if(cols1 >= 3)
             rplPushData(rplMatrixFastGet(*v1, 1, 3));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -3014,7 +3014,7 @@ void LIB_HANDLER()
         if(cols2 >= 2)
             rplPushData(rplMatrixFastGet(*v2, 1, 2));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -3024,7 +3024,7 @@ void LIB_HANDLER()
         if(cols1 >= 2)
             rplPushData(rplMatrixFastGet(*v1, 1, 2));
         else
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_MUL);
         if(Exceptions) {
             DSTop = v2 + 1;
@@ -3043,7 +3043,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR newmat = rplMatrixComposeN(1, 0, 3);
+        word_p newmat = rplMatrixComposeN(1, 0, 3);
         if(!newmat) {
             DSTop = v2 + 1;
             return;
@@ -3069,7 +3069,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *m = DSTop - 3;
+        word_p *m = DSTop - 3;
         int32_t rows = rplMatrixRows(*m);
         int32_t cols = rplMatrixCols(*m);
 
@@ -3087,7 +3087,7 @@ void LIB_HANDLER()
         }
 
 // SWAP THE COLUMNS INTERNALLY TO REDUCE OVERHEAD
-        WORDPTR newmat = rplMakeNewCopy(*m);
+        word_p newmat = rplMakeNewCopy(*m);
         WORD offset;
         int32_t i;
 
@@ -3116,7 +3116,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -3134,7 +3134,7 @@ void LIB_HANDLER()
         }
 
         // PREPARE THE PERMUTATIONS INDEX
-        WORDPTR idx = rplMatrixInitIdx(rows);
+        word_p idx = rplMatrixInitIdx(rows);
         if(!idx)
             return;
 
@@ -3171,7 +3171,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR det = rplPeekData(1);
+        word_p det = rplPeekData(1);
         DSTop = savestk;
         rplOverwriteData(1, det);
         return;
@@ -3200,7 +3200,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *v1 = DSTop - 2, *v2 = DSTop - 1;
+        word_p *v1 = DSTop - 2, *v2 = DSTop - 1;
         int32_t rows1 = rplMatrixRows(*v1), rows2 = rplMatrixRows(*v2);
         int32_t cols1 = rplMatrixCols(*v1), cols2 = rplMatrixCols(*v2);
 
@@ -3261,7 +3261,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -3292,8 +3292,8 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *diag = DSTop - rows - 1;
-        WORDPTR q = rplMatrixQRDoRQ(a, rows, diag);
+        word_p *diag = DSTop - rows - 1;
+        word_p q = rplMatrixQRDoRQ(a, rows, diag);
 
         if(Exceptions) {
             DSTop = savestk;
@@ -3321,7 +3321,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR a = rplPeekData(2), b = rplPeekData(1);
+        word_p a = rplPeekData(2), b = rplPeekData(1);
 
         if(!ISMATRIX(*a)) {
             // CHECK DIMENSIONS OF MATRIX B
@@ -3331,7 +3331,7 @@ void LIB_HANDLER()
                 int32_t cols = rplMatrixCols(b);
                 if((rows < 2) && (cols == 1)) {
                     // OPERATION IS SCALAR, ACCEPT IT
-                    WORDPTR scalar = rplMatrixGet(b, 1, 1);
+                    word_p scalar = rplMatrixGet(b, 1, 1);
                     rplOverwriteData(1, scalar);
                     rplCallOvrOperator(CurOpcode);
                     return;
@@ -3348,7 +3348,7 @@ void LIB_HANDLER()
                 int32_t cols = rplMatrixCols(a);
                 if((rows < 2) && (cols == 1)) {
                     // OPERATION IS SCALAR, ACCEPT IT
-                    WORDPTR scalar = rplMatrixGet(a, 1, 1);
+                    word_p scalar = rplMatrixGet(a, 1, 1);
                     rplOverwriteData(2, scalar);
                     rplCallOvrOperator(CurOpcode);
                     return;
@@ -3377,7 +3377,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         int64_t n = rplReadNumberAsInt64(rplPeekData(1));
 
         if(n < 1) {
@@ -3393,7 +3393,7 @@ void LIB_HANDLER()
                     rplPushData(rplPeekData(n - 1));
                 else {
                     // CREATE THE FRACTION IN CANONICAL FORM TO SAVE THE AUTOSIMPLIFY STEP
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     if(i + j - 1 > 1) {
                         rplNewint32_tPush(i + j - 1, DECint32_t);
                         if(Exceptions) {
@@ -3416,7 +3416,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR newmat = rplMatrixCompose(n, n);
+        word_p newmat = rplMatrixCompose(n, n);
 
         if(!newmat) {
             DSTop = savestk;
@@ -3437,15 +3437,15 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR *a = DSTop - 1, *b = DSTop - 2;
-        WORDPTR *savestk = DSTop;
+        word_p *a = DSTop - 1, *b = DSTop - 2;
+        word_p *savestk = DSTop;
 
         if(!ISLIST(**a) || !ISLIST(**b)) {
             rplError(ERR_LISTEXPECTED);
             return;
         }
 
-        WORDPTR lelem = *a + 1, endoflist = rplSkipOb(*a);
+        word_p lelem = *a + 1, endoflist = rplSkipOb(*a);
         int32_t ncols = 0, nvecs = 0, allzeros;
         int32_t i, j, k;
 
@@ -3535,7 +3535,7 @@ void LIB_HANDLER()
 
         // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
 
-        WORDPTR *base = DSTop;
+        word_p *base = DSTop;
 
         for(i = 1; i <= nvecs; ++i) {
 
@@ -3571,7 +3571,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
 
-        WORDPTR newlist = rplCreateListN(nvecs, 1, 1);
+        word_p newlist = rplCreateListN(nvecs, 1, 1);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -3591,7 +3591,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int64_t rows, cols;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
 
@@ -3667,7 +3667,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
 
-        WORDPTR newmat = rplMatrixIdent(rows);
+        word_p newmat = rplMatrixIdent(rows);
 
         if(newmat) {
             *var = newmat;
@@ -3689,8 +3689,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1;
-        WORDPTR *savestk = DSTop;
+        word_p *a = DSTop - 1;
+        word_p *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -3726,7 +3726,7 @@ void LIB_HANDLER()
 
         // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
 
-        WORDPTR *base = DSTop;
+        word_p *base = DSTop;
         int32_t nvecs = ncols, allzeros;
         int32_t i, j;
 
@@ -3750,7 +3750,7 @@ void LIB_HANDLER()
             else {
                 // MAKE A ROW VECTOR AND LEAVE IT IN THE STACK
                 --base;
-                WORDPTR newvect = rplMatrixComposeN(DSTop - base, 0, nrows);
+                word_p newvect = rplMatrixComposeN(DSTop - base, 0, nrows);
                 if(!newvect) {
                     DSTop = savestk;
                     return;
@@ -3764,7 +3764,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
 
-        WORDPTR newlist = rplCreateListN(nvecs, 1, 1);
+        word_p newlist = rplCreateListN(nvecs, 1, 1);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -3797,8 +3797,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1;
-        WORDPTR *savestk = DSTop;
+        word_p *a = DSTop - 1;
+        word_p *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -3813,7 +3813,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -3841,7 +3841,7 @@ void LIB_HANDLER()
                         // j=COLUMN OF THE LEFTMOST NON-ZERO ELEMENT IN THIS ROW
                         while(j > i) {
                             // INSERT A NEW ROW
-                            WORDPTR *rowptr =
+                            word_p *rowptr =
                                     rplMatrixFastGetEx(first, ncols, i, 1);
                             // MAKE ROOM
                             rplExpandStack(ncols);
@@ -3851,12 +3851,12 @@ void LIB_HANDLER()
                             }
                             memmovew(rowptr + ncols, rowptr,
                                     (DSTop -
-                                        rowptr) * sizeof(WORDPTR) /
+                                        rowptr) * sizeof(word_p) /
                                     sizeof(WORD));
                             DSTop += ncols;
                             ++nrows;
                             for(k = 1; k <= ncols; ++k, ++rowptr)
-                                *rowptr = (WORDPTR) zero_bint;
+                                *rowptr = (word_p) zero_bint;
                             ++i;
                         }
 
@@ -3870,7 +3870,7 @@ void LIB_HANDLER()
             else {
                 // NEED TO ADD A ROW AT THE END
                 for(k = 1; k <= ncols; ++k) {
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         DSTop = savestk;
                         return;
@@ -3891,7 +3891,7 @@ void LIB_HANDLER()
 
                 for(k = 1; k <= nrows; ++k) {
                     if(k == j)
-                        rplPushData((WORDPTR) minusone_bint);
+                        rplPushData((word_p) minusone_bint);
                     else
                         rplPushData(*rplMatrixFastGetEx(first, ncols, k, j));
                     if(Exceptions) {
@@ -3901,7 +3901,7 @@ void LIB_HANDLER()
                 }
 
                 // CREATE A VECTOR
-                WORDPTR newvec = rplMatrixCompose(0, ncols);
+                word_p newvec = rplMatrixCompose(0, ncols);
                 if(!newvec) {
                     DSTop = savestk;
                     return;
@@ -3915,7 +3915,7 @@ void LIB_HANDLER()
 
         // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
 
-        WORDPTR newlist = rplCreateListN(nvecs, 1, 1);
+        word_p newlist = rplCreateListN(nvecs, 1, 1);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -3948,7 +3948,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -3966,12 +3966,12 @@ void LIB_HANDLER()
         }
 
         // EXPLODE THE MATRIX IN THE STACK
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
         if(Exceptions)
             return;
 
         // INITIALIZE A PERMUTATION INDEX
-        WORDPTR idx = rplMatrixInitIdx(rows), *indexptr;
+        word_p idx = rplMatrixInitIdx(rows), *indexptr;
         if(!idx || Exceptions) {
             DSTop = savestk;
             return;
@@ -3990,7 +3990,7 @@ void LIB_HANDLER()
 
         // SPLIT L AND U
 
-        WORDPTR *lfirst = DSTop;
+        word_p *lfirst = DSTop;
         int32_t k, j;
 
         rplExpandStack(rows * cols);
@@ -4022,7 +4022,7 @@ void LIB_HANDLER()
 
                 }
                 else
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     DSTop = savestk;
                     return;
@@ -4034,7 +4034,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4051,14 +4051,14 @@ void LIB_HANDLER()
         }
         DSTop += rows * cols;
 
-        WORDPTR *ufirst = DSTop;
+        word_p *ufirst = DSTop;
 
         for(k = 1; k <= rows; ++k) {
             for(j = 1; j <= cols; ++j) {
                 if(j < k)
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 else if(j == k)
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                 else {
                     rplPushData(*rplMatrixFastGetEx(first, cols, k, j));
                     // SPLIT THE DIAGONAL FACTOR Dii = u(i-1,i-1) FOR L AND Dii=u(i,i) FOR U
@@ -4087,9 +4087,9 @@ void LIB_HANDLER()
         for(k = 1; k <= rows; ++k) {
             for(j = 1; j <= cols; ++j) {
                 if((*indexptr)[k] == (WORD) j)
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                 else
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     DSTop = savestk;
                     return;
@@ -4139,8 +4139,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1;
-        WORDPTR *savestk = DSTop;
+        word_p *a = DSTop - 1;
+        word_p *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4158,19 +4158,19 @@ void LIB_HANDLER()
 
         // GENERATE CANONICAL VECTOR [ 1 0 0 0 ... 0 ]
 
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
         if(Exceptions) {
             DSTop = savestk;
             return;
         }
         for(k = 1; k < nrows; ++k) {
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             if(Exceptions) {
                 DSTop = savestk;
                 return;
             }
         }
-        WORDPTR newvec = rplMatrixCompose(0, ncols);
+        word_p newvec = rplMatrixCompose(0, ncols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4201,7 +4201,7 @@ void LIB_HANDLER()
         // HERE WE HAVE e1, A*e1, A^2*e1, ... A^n*e1 AT a[1]...a[n+1]
 
         // NOW USE THE ELEMENTS TO CREATE AN EXPLODED AUGMENTED MATRIX
-        WORDPTR *firstelem = DSTop;
+        word_p *firstelem = DSTop;
         rplExpandStack(nrows * (nrows + 1));
         DSTop += nrows * (nrows + 1);
         if(Exceptions) {
@@ -4233,7 +4233,7 @@ void LIB_HANDLER()
         // THE COLUMN NEXT TO THE LAST ROW WITH A NON-ZERO DIAGONAL
         // EXCEPT FOR THE FIRST COEFFICIENT, WHICH IS ONE
 
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4255,7 +4255,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR poly = rplMatrixCompose(0, j);
+        word_p poly = rplMatrixCompose(0, j);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4276,7 +4276,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4299,8 +4299,8 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *diag = DSTop - rows - 1;
-        WORDPTR q = rplMatrixQRGetQ(a, rows, cols, diag);
+        word_p *diag = DSTop - rows - 1;
+        word_p q = rplMatrixQRGetQ(a, rows, cols, diag);
 
         if(Exceptions) {
             DSTop = savestk;
@@ -4308,7 +4308,7 @@ void LIB_HANDLER()
         }
         rplPushDataNoGrow(q);   // PROTECT FROM GC
 
-        WORDPTR r = rplMatrixQRGetR(a, rows, cols, diag);
+        word_p r = rplMatrixQRGetR(a, rows, cols, diag);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4331,7 +4331,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4363,7 +4363,7 @@ void LIB_HANDLER()
         }
 
         DSTop = savestk;
-        WORDPTR rankobj = rplNewint32_t(rank, DECint32_t);
+        word_p rankobj = rplNewint32_t(rank, DECint32_t);
         if(!rankobj)
             return;
 
@@ -4382,7 +4382,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int64_t rows, cols;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
 
@@ -4463,7 +4463,7 @@ void LIB_HANDLER()
         if(Exceptions)
             return;
 
-        WORDPTR *first = DSTop;
+        word_p *first = DSTop;
         int32_t k;
         int32_t random;
         for(k = 0; k < nelem; ++k) {
@@ -4475,7 +4475,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
 
         DSTop = first;
 
@@ -4498,7 +4498,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *m = DSTop - 3;
+        word_p *m = DSTop - 3;
         int32_t rows = rplMatrixRows(*m);
         int32_t cols = rplMatrixCols(*m);
 
@@ -4519,10 +4519,10 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop, *factor = DSTop - 2;
+        word_p *savestk = DSTop, *factor = DSTop - 2;
         rplPushData(rplPeekData(3));
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
 
         if(Exceptions) {
             DSTop = savestk;
@@ -4553,7 +4553,7 @@ void LIB_HANDLER()
             *rplMatrixFastGetEx(first, cols, row, i) = rplPopData();
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(!newmat) {
             DSTop = savestk;
             return;
@@ -4581,7 +4581,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *m = DSTop - 4;
+        word_p *m = DSTop - 4;
         int32_t rows = rplMatrixRows(*m);
         int32_t cols = rplMatrixCols(*m);
 
@@ -4603,10 +4603,10 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop, *factor = DSTop - 3;
+        word_p *savestk = DSTop, *factor = DSTop - 3;
         rplPushData(rplPeekData(4));
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
 
         if(Exceptions) {
             DSTop = savestk;
@@ -4649,7 +4649,7 @@ void LIB_HANDLER()
             *rplMatrixFastGetEx(first, cols, rowto, i) = rplPopData();
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(!newmat) {
             DSTop = savestk;
             return;
@@ -4673,7 +4673,7 @@ void LIB_HANDLER()
         rplStripTagStack(2);
 
         int64_t rows, cols;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(ISIDENT(*rplPeekData(2))) {
 
@@ -4752,10 +4752,10 @@ void LIB_HANDLER()
 
         // HERE WE HAVE PROPER ROWS AND COLUMNS
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         rplPushData(*var);
 
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
 
         if(Exceptions) {
             DSTop = savestk;
@@ -4778,10 +4778,10 @@ void LIB_HANDLER()
                 return;
             }
             for(i = 0; i < totalelem - actualelem; ++i)
-                *DSTop++ = (WORDPTR) zero_bint;
+                *DSTop++ = (word_p) zero_bint;
         }
 
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(!newmat) {
             DSTop = savestk;
             return;
@@ -4806,7 +4806,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4830,7 +4830,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4849,7 +4849,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4914,7 +4914,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4945,7 +4945,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -4979,7 +4979,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
         rplPushData(rplPeekData(3));
         rplPushData(rplPeekData(3));
@@ -5021,7 +5021,7 @@ void LIB_HANDLER()
             rplError(ERR_MATRIXEXPECTED);
             return;
         }
-        WORDPTR *m = DSTop - 3;
+        word_p *m = DSTop - 3;
         int32_t rows = rplMatrixRows(*m);
         int32_t cols = rplMatrixCols(*m);
 
@@ -5044,7 +5044,7 @@ void LIB_HANDLER()
         }
 
 // SWAP THE ROWS INTERNALLY TO REDUCE OVERHEAD
-        WORDPTR newmat = rplMakeNewCopy(*m);
+        word_p newmat = rplMakeNewCopy(*m);
         WORD offset;
         int32_t i;
 
@@ -5120,7 +5120,7 @@ void LIB_HANDLER()
         if(cols < rows)
             rows = cols;
 
-        WORDPTR *mat = DSTop - 1;
+        word_p *mat = DSTop - 1;
 
         for(k = 1; k <= rows; ++k) {
             rplPushData(rplMatrixFastGet(*mat, k, k));
@@ -5151,7 +5151,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int64_t rows;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
 
@@ -5197,7 +5197,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int64_t rows, cols;
-        WORDPTR *var = 0;
+        word_p *var = 0;
 
         if(ISIDENT(*rplPeekData(1))) {
 
@@ -5241,9 +5241,9 @@ void LIB_HANDLER()
         // DO IT MANUALLY INSTEAD OF USING rplMatrixTranspose() and rplMatrixConj()
         // TO AVOID DOUBLE rplMatrixCompose() OVERHEAD
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR *a = DSTop;
+        word_p *a = DSTop;
 
         rplPushData(*var);
 
@@ -5286,7 +5286,7 @@ void LIB_HANDLER()
 
 #undef STACKELEM
 
-        WORDPTR newmat = rplMatrixCompose(cols, rows);
+        word_p newmat = rplMatrixCompose(cols, rows);
 
         DSTop = savestk;
         if(newmat) {
@@ -5327,7 +5327,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *a = DSTop - 1, *savestk = DSTop;
+        word_p *a = DSTop - 1, *savestk = DSTop;
 
         if(!ISMATRIX(**a)) {
             rplError(ERR_MATRIXEXPECTED);
@@ -5345,12 +5345,12 @@ void LIB_HANDLER()
         }
 
         // EXPLODE THE MATRIX IN THE STACK
-        WORDPTR *first = rplMatrixExplode();
+        word_p *first = rplMatrixExplode();
         if(Exceptions)
             return;
 
         // INITIALIZE A PERMUTATION INDEX
-        WORDPTR idx = rplMatrixInitIdx(rows), *indexptr;
+        word_p idx = rplMatrixInitIdx(rows), *indexptr;
         if(!idx || Exceptions) {
             DSTop = savestk;
             return;
@@ -5369,7 +5369,7 @@ void LIB_HANDLER()
 
         // SPLIT L AND U
 
-        WORDPTR *lfirst = DSTop;
+        word_p *lfirst = DSTop;
         int32_t k, j;
 
         rplExpandStack(rows * cols);
@@ -5388,7 +5388,7 @@ void LIB_HANDLER()
                     rplPushData(*rplMatrixFastGetEx(first, cols, k, j));
                 }
                 else
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     DSTop = savestk;
                     return;
@@ -5400,7 +5400,7 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-        WORDPTR newmat = rplMatrixCompose(rows, cols);
+        word_p newmat = rplMatrixCompose(rows, cols);
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -5417,12 +5417,12 @@ void LIB_HANDLER()
         }
         DSTop += rows * cols;
 
-        WORDPTR *dfirst = DSTop;
+        word_p *dfirst = DSTop;
 
         for(k = 1; k <= rows; ++k) {
             for(j = 1; j <= cols; ++j) {
                 if(j != k)
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 else {
                     rplPushData(*rplMatrixFastGetEx(first, cols, k, k));
                     if(k > 1) {
@@ -5456,12 +5456,12 @@ void LIB_HANDLER()
         }
         DSTop += rows * cols;
 
-        WORDPTR *ufirst = DSTop;
+        word_p *ufirst = DSTop;
 
         for(k = 1; k <= rows; ++k) {
             for(j = 1; j <= cols; ++j) {
                 if(j < k)
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 else {
                     rplPushData(*rplMatrixFastGetEx(first, cols, k, j));
                 }
@@ -5486,9 +5486,9 @@ void LIB_HANDLER()
         for(k = 1; k <= rows; ++k) {
             for(j = 1; j <= cols; ++j) {
                 if((*indexptr)[k] == (WORD) j)
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                 else
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     DSTop = savestk;
                     return;
@@ -5531,7 +5531,7 @@ void LIB_HANDLER()
         // simplification will be applied to the expression, but the user needs to call AUTOSIMPLIFY or →NUM manually afterwards.
 
     {
-        WORDPTR object = rplPeekData(2);
+        word_p object = rplPeekData(2);
 
         do {
 
@@ -5541,7 +5541,7 @@ void LIB_HANDLER()
 
             if(ISIDENT(*object)) {
                 // SEE IF THE VARIABLE IS AN ACTUAL MATRIX
-                WORDPTR *var = rplFindLAM(object, 1);
+                word_p *var = rplFindLAM(object, 1);
                 if(!var)
                     var = rplFindGlobal(object, 1);
                 if(!var) {
@@ -5573,19 +5573,19 @@ void LIB_HANDLER()
         ScratchPointer1 = object;
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, ScratchPointer1); // LAM 1 = MATRIX OBJECT
+        rplCreateLAM((word_p) nulllam_ident, ScratchPointer1); // LAM 1 = MATRIX OBJECT
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 2 = PROGRAM OR EXPRESSION TO REPLACE
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 2 = PROGRAM OR EXPRESSION TO REPLACE
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);     // LAM 3 = FLAT INDEX OF OBJECT TO PROCESS NEXT (0 TO m*n-1)
+        rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);     // LAM 3 = FLAT INDEX OF OBJECT TO PROCESS NEXT (0 TO m*n-1)
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -5593,13 +5593,13 @@ void LIB_HANDLER()
 
         // ONLY FOR PROGRAMS:
         if(isprog) {
-            rplCreateLAM((WORDPTR) rowindex_ident, (WORDPTR) one_bint); // LAM 4 = ROW INDEX
+            rplCreateLAM((word_p) rowindex_ident, (word_p) one_bint); // LAM 4 = ROW INDEX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
             }
 
-            rplCreateLAM((WORDPTR) rowindex_ident, (WORDPTR) one_bint); // LAM 5 = COLUMN INDEX
+            rplCreateLAM((word_p) rowindex_ident, (word_p) one_bint); // LAM 5 = COLUMN INDEX
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -5620,7 +5620,7 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) matrixmap_seco;
+        IPtr = (word_p) matrixmap_seco;
         CurOpcode = (CMD_MMAP); // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
@@ -5652,7 +5652,7 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            WORDPTR number = rplNewint32_t(row + 1, DECint32_t);
+            word_p number = rplNewint32_t(row + 1, DECint32_t);
             if(!number)
                 return;
             rplPutLAMn(4, number);
@@ -5677,12 +5677,12 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            WORDPTR number = rplNewint32_t(row + 1, DECint32_t);
+            word_p number = rplNewint32_t(row + 1, DECint32_t);
             if(!number)
                 return;
 
             // CREATE RULE TO SUBSTITUTE ROW
-            rplPushDataNoGrow((WORDPTR) rowindex_ident);
+            rplPushDataNoGrow((word_p) rowindex_ident);
             rplPushDataNoGrow(number);
             rplSymbApplyOperator(CMD_RULESEPARATOR, 2);
             if(Exceptions)
@@ -5692,20 +5692,20 @@ void LIB_HANDLER()
             if(!number)
                 return;
             // CREATE RULE TO SUBSTITUTE COLUMN
-            rplPushDataNoGrow((WORDPTR) colindex_ident);
+            rplPushDataNoGrow((word_p) colindex_ident);
             rplPushDataNoGrow(number);
             rplSymbApplyOperator(CMD_RULESEPARATOR, 2);
             if(Exceptions)
                 return;
 
             // CREATE RULE TO SUBSTITUTE OLD ELEMENT
-            rplPushDataNoGrow((WORDPTR) elem_ident);
+            rplPushDataNoGrow((word_p) elem_ident);
             rplPushDataNoGrow(rplMatrixFastGetFlat(*rplGetLAMn(1), index));
             rplSymbApplyOperator(CMD_RULESEPARATOR, 2);
             if(Exceptions)
                 return;
 
-            WORDPTR rulelist = rplCreateListN(3, 1, 1);
+            word_p rulelist = rplCreateListN(3, 1, 1);
             if(!rulelist)
                 return;
 
@@ -5732,7 +5732,7 @@ void LIB_HANDLER()
         // GETLAM 1 = MATRIX, GETLAM2 = EXPRESSION/PROGRAM, GETLAM3=FLAT INDEX
 
         // TODO STARTS HERE...
-        WORDPTR matrix = *rplGetLAMn(1);
+        word_p matrix = *rplGetLAMn(1);
         int32_t index = rplReadint32_t(*rplGetLAMn(3));
         if(Exceptions)
             return;
@@ -5747,7 +5747,7 @@ void LIB_HANDLER()
         if(index < nelem - 1) {
             // LEAVE THE CURRENT RESULT ON THE STACK
             // INCREASE THE INDEX
-            WORDPTR number = rplNewint32_t(index + 1, DECint32_t);
+            word_p number = rplNewint32_t(index + 1, DECint32_t);
             if(!number)
                 return;
             rplPutLAMn(3, number);
@@ -5760,7 +5760,7 @@ void LIB_HANDLER()
         // ALL ELEMENTS WERE PROCESSED
         // FORM A NEW MATRIX WITH ALL THE NEW ELEMENTS
 
-        WORDPTR *prevDStk = rplUnprotectData();
+        word_p *prevDStk = rplUnprotectData();
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -5782,7 +5782,7 @@ void LIB_HANDLER()
 
         // NOW ALLOCATE THE NEW MATRIX
 
-        WORDPTR newmat = rplAllocTempOb(totalsize - 1);
+        word_p newmat = rplAllocTempOb(totalsize - 1);
         if((!newmat) || Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);  // CLEANUP LOCAL VARIABLES
@@ -5797,13 +5797,13 @@ void LIB_HANDLER()
         newmat[0] = MKPROLOG(DOMATRIX, totalsize - 1);
         newmat[1] = matrix[1];  // SAME SIZE AS ORIGINAL MATRIX
 
-        WORDPTR newobj;
+        word_p newobj;
 
         // FILL THE MATRIX WITH ALL THE OBJECTS FROM THE STACK
         newobj = rplMatrixGetFirstObj(newmat);  // STORE NEW OBJECTS HERE
         for(k = 1; k <= nelem; ++k) {
             // VERIFY THAT THE OBJECTS ARE VALID
-            WORDPTR checkobj = rplPeekData(nelem - (k - 1));
+            word_p checkobj = rplPeekData(nelem - (k - 1));
             if(!ISNUMBERCPLX(*checkobj) && !ISIDENT(*checkobj)
                     && !ISCONSTANT(*checkobj) && !ISSYMBOLIC(*checkobj)) {
                 rplError(ERR_NOTALLOWEDINMATRIX);
@@ -5871,7 +5871,7 @@ void LIB_HANDLER()
                     // WE ARE IN THE OUTER DIMENSION
                     // INCREASE DEPTH OF DIMENSION AND ACCEPT
                     // WARNING, THIS USES INTERNAL COMPILER WORKINGS
-                    WORDPTR matrix = *(ValidateTop - 1);
+                    word_p matrix = *(ValidateTop - 1);
                     ++*matrix;
                     // CHECK IF THERE IS A SIZE WORD YET
                     if(CompileEnd == matrix + 1) {
@@ -5893,7 +5893,7 @@ void LIB_HANDLER()
                     }
 
                     if(TokenLen > 1)
-                        NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                        NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                     RetNum = OK_CONTINUE_NOVALIDATE;
                     return;
                 }
@@ -5906,7 +5906,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
             if(TokenLen > 1) {
-                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_STARTCONSTRUCT;
             }
             else
@@ -5920,7 +5920,7 @@ void LIB_HANDLER()
 
             if(TokenLen > 1) {
                 BlankStart = NextTokenStart =
-                        (WORDPTR) utf8nskip((char *)TokenStart,
+                        (word_p) utf8nskip((char *)TokenStart,
                         (char *)BlankStart, TokenLen - 1);
                 RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
@@ -5930,7 +5930,7 @@ void LIB_HANDLER()
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            WORDPTR matrix = *(ValidateTop - 1);
+            word_p matrix = *(ValidateTop - 1);
             int32_t rows, cols;
             int32_t totalelements;
 
@@ -5961,7 +5961,7 @@ void LIB_HANDLER()
                 // BY CHECKING THE NEXT EMPTY OBJECT IS THE START OF A ROW
 
                 int32_t count;
-                WORDPTR index = matrix + 2;
+                word_p index = matrix + 2;
 
                 count = 0;
                 while((count < totalelements) && (index < CompileEnd)) {
@@ -5976,7 +5976,7 @@ void LIB_HANDLER()
                 }
 
                 if(TokenLen > 1)
-                    NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                    NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_CONTINUE_NOVALIDATE;
                 return;
 
@@ -5989,7 +5989,7 @@ void LIB_HANDLER()
             }
 
             // STRETCH THE OBJECT, ADD THE INDEX AND REMOVE DUPLICATES
-            WORDPTR endofobjects = rplCompileAppendWords(totalelements);
+            word_p endofobjects = rplCompileAppendWords(totalelements);
             if(Exceptions)
                 return;
 
@@ -5999,7 +5999,7 @@ void LIB_HANDLER()
             endofobjects += totalelements;
 
             // NOW WRITE THE INDICES. ALL OFFSETS ARE RELATIVE TO MATRIX PROLOG!
-            WORDPTR ptr = matrix + 2, objptr =
+            word_p ptr = matrix + 2, objptr =
                     ptr + totalelements, nextobj, index;
             int32_t count = 0;
 
@@ -6074,7 +6074,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR) "[ ");
+            rplDecompAppendString((byte_p) "[ ");
             int32_t rows = MATROWS(*(DecompileObject + 1)), cols =
                     MATCOLS(*(DecompileObject + 1));
             int32_t doublebracket = rows;
@@ -6090,7 +6090,7 @@ void LIB_HANDLER()
                     rplDecompDoHintsWidth(HINT_NLAFTER | ((i ==
                                     0) ? HINT_ADDINDENTAFTER : 0));
 
-                    rplDecompAppendString((BYTEPTR) "[ ");
+                    rplDecompAppendString((byte_p) "[ ");
 
                 }
                 if(Exceptions) {
@@ -6110,7 +6110,7 @@ void LIB_HANDLER()
                         rplDecompAppendChar(' ');
                 }
                 if(doublebracket)
-                    rplDecompAppendString((BYTEPTR) "] ");
+                    rplDecompAppendString((byte_p) "] ");
                 if(Exceptions) {
                     RetNum = ERR_INVALID;
                     return;
@@ -6159,7 +6159,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR matrix = *(ValidateTop - 1);
+        word_p matrix = *(ValidateTop - 1);
         if(LastCompiledObject == matrix + 1) {
             // THIS IS THE FIRST OBJECT IN THE ARRAY
             // ADD A DUMMY WORD
@@ -6257,7 +6257,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -6265,7 +6265,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -6304,7 +6304,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -6313,12 +6313,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

@@ -97,32 +97,32 @@ INCLUDE_ROMOBJECT(unitmenu_20_information);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) unitdir_ident,
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) unitdir_ident,
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
 
-    (WORDPTR) unitmenu_0_main,
-    (WORDPTR) unitmenu_1_tools,
-    (WORDPTR) unitmenu_2_length,
-    (WORDPTR) unitmenu_3_area,
-    (WORDPTR) unitmenu_4_volume,
-    (WORDPTR) unitmenu_5_time,
-    (WORDPTR) unitmenu_6_speed,
-    (WORDPTR) unitmenu_7_mass,
-    (WORDPTR) unitmenu_8_force,
-    (WORDPTR) unitmenu_9_energy,
-    (WORDPTR) unitmenu_10_power,
-    (WORDPTR) unitmenu_11_pressure,
-    (WORDPTR) unitmenu_12_temperature,
-    (WORDPTR) unitmenu_13_electrical,
-    (WORDPTR) unitmenu_14_angles,
-    (WORDPTR) unitmenu_15_light,
-    (WORDPTR) unitmenu_16_radiation,
-    (WORDPTR) unitmenu_17_viscosity,
-    (WORDPTR) unitmenu_18_acceleration,
-    (WORDPTR) unitmenu_19_chemistry,
-    (WORDPTR) unitmenu_20_information,
+    (word_p) unitmenu_0_main,
+    (word_p) unitmenu_1_tools,
+    (word_p) unitmenu_2_length,
+    (word_p) unitmenu_3_area,
+    (word_p) unitmenu_4_volume,
+    (word_p) unitmenu_5_time,
+    (word_p) unitmenu_6_speed,
+    (word_p) unitmenu_7_mass,
+    (word_p) unitmenu_8_force,
+    (word_p) unitmenu_9_energy,
+    (word_p) unitmenu_10_power,
+    (word_p) unitmenu_11_pressure,
+    (word_p) unitmenu_12_temperature,
+    (word_p) unitmenu_13_electrical,
+    (word_p) unitmenu_14_angles,
+    (word_p) unitmenu_15_light,
+    (word_p) unitmenu_16_radiation,
+    (word_p) unitmenu_17_viscosity,
+    (word_p) unitmenu_18_acceleration,
+    (word_p) unitmenu_19_chemistry,
+    (word_p) unitmenu_20_information,
 
     0
 };
@@ -130,13 +130,13 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // RETURN A POINTER TO THE END OF THE NEXT UNIT IDENTIFIER
 // SEPARATOR SYMBOLS ALLOWED ARE ( ) * / ^
 
-BYTEPTR rplNextUnitToken(BYTEPTR start, BYTEPTR end)
+byte_p rplNextUnitToken(byte_p start, byte_p end)
 {
     while(start < end) {
         if((*start == '*') || (*start == '/') || (*start == '^')
                 || (*start == '(') || (*start == ')'))
             break;
-        start = (BYTEPTR) utf8skip((char *)start, (char *)end);
+        start = (byte_p) utf8skip((char *)start, (char *)end);
     }
     return start;
 }
@@ -204,7 +204,7 @@ void LIB_HANDLER()
                 return;
             }
             // JUST APPLY THE OPERATOR TO THE VALUE
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
             rplPushData(rplPeekData(1) + 1);
             rplCallOvrOperator(CurOpcode);
             if(Exceptions) {
@@ -218,7 +218,7 @@ void LIB_HANDLER()
                 DSTop = stkclean;
                 return;
             }
-            WORDPTR newunit = rplUnitAssemble(nlevels);
+            word_p newunit = rplUnitAssemble(nlevels);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -257,7 +257,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
             int32_t bothunit = (ISUNIT(*rplPeekData(1))
@@ -297,7 +297,7 @@ void LIB_HANDLER()
                 DSTop = stkclean;
                 return;
             }
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -312,7 +312,7 @@ void LIB_HANDLER()
         case OVR_INV:
             // JUST PUT A NUMBER ONE IN THE STACK AND FALL THROUGH A NORMAL DIVISION
             rplPushData(rplPeekData(1));
-            rplOverwriteData(2, (WORDPTR) one_bint);
+            rplOverwriteData(2, (word_p) one_bint);
             // DELIBERATE FALL THROUGH
 
         case OVR_DIV:
@@ -331,7 +331,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2, bothunit;
 
@@ -370,7 +370,7 @@ void LIB_HANDLER()
                 DSTop = stkclean;
                 return;
             }
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -397,7 +397,7 @@ void LIB_HANDLER()
                 return;
             }
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
@@ -418,7 +418,7 @@ void LIB_HANDLER()
             }
             ScratchPointer3 = rplPeekData(nlevels1);    // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -477,7 +477,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             rplPushData(ScratchPointer3);
 
@@ -524,7 +524,7 @@ void LIB_HANDLER()
                     rplUnitReverseReplaceSpecial(nlevels1);
             }
 
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -552,7 +552,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
             isspec2 = rplUnitIsSpecial(rplPeekData(1));
@@ -573,7 +573,7 @@ void LIB_HANDLER()
             }
             ScratchPointer3 = rplPeekData(nlevels1);    // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -632,7 +632,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             rplPushData(ScratchPointer3);
 
@@ -679,7 +679,7 @@ void LIB_HANDLER()
                     rplUnitReverseReplaceSpecial(nlevels1);
             }
 
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -708,7 +708,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1;
 
@@ -752,7 +752,7 @@ void LIB_HANDLER()
                 DSTop = stkclean;
                 return;
             }
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -774,7 +774,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1;
 
@@ -796,8 +796,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplPushData((WORDPTR) temp_ident);
-            rplPushData((WORDPTR) one_bint);
+            rplPushData((word_p) temp_ident);
+            rplPushData((word_p) one_bint);
             rplPushData(rplPeekData(3));
 
             isspec1 = rplUnitIsSpecial(rplPeekData(5));
@@ -820,7 +820,7 @@ void LIB_HANDLER()
                 DSTop = stkclean;
                 return;
             }
-            WORDPTR newunit = rplUnitAssemble(nlevels1);
+            word_p newunit = rplUnitAssemble(nlevels1);
             if(!newunit) {
                 DSTop = stkclean;
                 return;
@@ -844,7 +844,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2, swap = 0;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -855,7 +855,7 @@ void LIB_HANDLER()
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -868,7 +868,7 @@ void LIB_HANDLER()
 
                 if(num == 0) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -892,7 +892,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -937,7 +937,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -957,7 +957,7 @@ void LIB_HANDLER()
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
             if(swap) {
-                WORDPTR tmp = rplPeekData(1);
+                word_p tmp = rplPeekData(1);
                 rplOverwriteData(1, rplPeekData(2));
                 rplOverwriteData(2, tmp);
             }
@@ -989,7 +989,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2, swap = 0;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1000,7 +1000,7 @@ void LIB_HANDLER()
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1013,7 +1013,7 @@ void LIB_HANDLER()
 
                 if(num == 0) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1037,7 +1037,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1082,7 +1082,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1131,7 +1131,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2, swap = 0;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1142,7 +1142,7 @@ void LIB_HANDLER()
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1155,7 +1155,7 @@ void LIB_HANDLER()
 
                 if(num == 0) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1179,7 +1179,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1224,7 +1224,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1273,7 +1273,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2, swap = 0;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1284,7 +1284,7 @@ void LIB_HANDLER()
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1297,7 +1297,7 @@ void LIB_HANDLER()
 
                 if(num == 0) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1321,7 +1321,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1366,7 +1366,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1414,7 +1414,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2, swap = 0;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1425,7 +1425,7 @@ void LIB_HANDLER()
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1438,7 +1438,7 @@ void LIB_HANDLER()
 
                 if(num == 0) {
                     swap = 1;
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1462,7 +1462,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1507,7 +1507,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1580,7 +1580,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1590,7 +1590,7 @@ void LIB_HANDLER()
                 REAL p;
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1602,7 +1602,7 @@ void LIB_HANDLER()
                 int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1626,7 +1626,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1671,7 +1671,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1714,7 +1714,7 @@ void LIB_HANDLER()
             }
 
             int32_t nlevels1, nlevels2;
-            WORDPTR *stkclean = DSTop;
+            word_p *stkclean = DSTop;
 
             int32_t isspec1, isspec2;
 
@@ -1724,7 +1724,7 @@ void LIB_HANDLER()
                 REAL p;
                 rplReadReal(rplPeekData(2), &p);
                 if(iszeroReal(&p)) {
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1736,7 +1736,7 @@ void LIB_HANDLER()
                 int64_t num = rplReadint32_t(rplPeekData(2));
 
                 if(num == 0) {
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
@@ -1760,7 +1760,7 @@ void LIB_HANDLER()
                 ScratchPointer3 = rplPeekData(nlevels1);        // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1, (WORDPTR) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1, (word_p) one_bint);     // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1 = rplUnitToBase(nlevels1);
             if(Exceptions) {
                 DSTop = stkclean;
@@ -1805,7 +1805,7 @@ void LIB_HANDLER()
             }
 
             // THE UNITS ARE CONSISTENT
-            WORDPTR unitval;
+            word_p unitval;
 
             if(isspec1)
                 rplPushData(ScratchPointer3);
@@ -1857,7 +1857,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR unit, name;
+        word_p unit, name;
 
         unit = rplPeekData(2);
         name = rplPeekData(1);
@@ -1885,14 +1885,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(!rplIsValidIdent((BYTEPTR) (name + 1) + 1,
-                        (BYTEPTR) (name + 1) + newlen)) {
+            if(!rplIsValidIdent((byte_p) (name + 1) + 1,
+                        (byte_p) (name + 1) + newlen)) {
                 rplError(ERR_INVALIDUNITNAME);
                 return;
             }
 
-            name = rplCreateIDENT(DOIDENTSIPREFIX, (BYTEPTR) (name + 1) + 1,
-                    (BYTEPTR) (name + 1) + newlen);
+            name = rplCreateIDENT(DOIDENTSIPREFIX, (byte_p) (name + 1) + 1,
+                    (byte_p) (name + 1) + newlen);
 
             if(!name)
                 return;
@@ -1905,7 +1905,7 @@ void LIB_HANDLER()
 
         // CHECK IF THE UNIT EXISTS OR CONFLICTS WITH ANOTHER UNIT
         int32_t siindex = 0;
-        WORDPTR *found = rplUnitFindCustom(name, &siindex);
+        word_p *found = rplUnitFindCustom(name, &siindex);
 
         if(found) {
             // HERE, WE HAVE A UNIT THAT WAS EXISTING
@@ -1925,15 +1925,15 @@ void LIB_HANDLER()
         // UNIT DOESN'T EXIST, WE NEED TO CREATE IT
         // GET THE UNITS DIRECTORY
 
-        WORDPTR unitdir_obj = rplGetSettings((WORDPTR) unitdir_ident);
+        word_p unitdir_obj = rplGetSettings((word_p) unitdir_ident);
 
         if(!unitdir_obj) {
-            WORDPTR *settings = rplFindDirbyHandle(SettingsDir);
+            word_p *settings = rplFindDirbyHandle(SettingsDir);
             if(!settings)
                 return;
 
             // NEED TO CREATE A NEW DIRECTORY
-            unitdir_obj = rplCreateNewDir((WORDPTR) unitdir_ident, settings);
+            unitdir_obj = rplCreateNewDir((word_p) unitdir_ident, settings);
             if(!unitdir_obj)
                 return; // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
             // RELOAD THE POINTERS FROM THE STACK, IN CASE THERE WAS A GC
@@ -1941,7 +1941,7 @@ void LIB_HANDLER()
             name = rplPeekData(1);
         }
 
-        WORDPTR *unitdir = rplFindDirbyHandle(unitdir_obj);
+        word_p *unitdir = rplFindDirbyHandle(unitdir_obj);
         if(!unitdir)
             return;     // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
         rplCreateGlobalInDir(name, unit, unitdir);
@@ -1964,7 +1964,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR name = rplPeekData(1);
+        word_p name = rplPeekData(1);
 
         if(!ISIDENT(*name)) {
             rplError(ERR_IDENTEXPECTED);
@@ -1973,14 +1973,14 @@ void LIB_HANDLER()
 
         //  GET THE UNITS DIRECTORY
 
-        WORDPTR unitdir_obj = rplGetSettings((WORDPTR) unitdir_ident);
+        word_p unitdir_obj = rplGetSettings((word_p) unitdir_ident);
 
         if(!unitdir_obj) {
             rplError(ERR_UNDEFINEDUNIT);
             return;
         }
         int32_t siindex = 0;
-        WORDPTR *found = rplUnitFindCustom(name, &siindex);
+        word_p *found = rplUnitFindCustom(name, &siindex);
 
         if((!found) || (siindex != 0)) {
             rplError(ERR_UNDEFINEDUNIT);
@@ -2011,7 +2011,7 @@ void LIB_HANDLER()
             rplError(ERR_UNITEXPECTED);
             return;
         }
-        WORDPTR *stkclean = DSTop;
+        word_p *stkclean = DSTop;
         int32_t nlevels = rplUnitExplode(rplPeekData(1));
         if(Exceptions) {
             DSTop = stkclean;
@@ -2042,7 +2042,7 @@ void LIB_HANDLER()
            } */
 
         int32_t nlevels1, nlevels2;
-        WORDPTR *stkclean = DSTop;
+        word_p *stkclean = DSTop;
         int32_t isspec1, isspec2;
         isspec1 = rplUnitIsSpecial(rplPeekData(1));
         isspec2 = rplUnitIsSpecial(rplPeekData(2));
@@ -2060,7 +2060,7 @@ void LIB_HANDLER()
             }
         }
 
-        rplOverwriteData(nlevels1, (WORDPTR) one_bint); // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+        rplOverwriteData(nlevels1, (word_p) one_bint); // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
         nlevels1 = rplUnitToBase(nlevels1);
         if(Exceptions) {
             DSTop = stkclean;
@@ -2121,7 +2121,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR unitval = rplPopData(); // GET THE NEW VALUE
+        word_p unitval = rplPopData(); // GET THE NEW VALUE
         rplDropData(nlevels2 + nlevels1);       // CLEANUP THE STACK, EXCEPT THE ORIGINAL ARGUMENTS
         rplPushData(unitval);   // PUSH THE NEW VALUE
         nlevels1 = rplUnitExplode(rplPeekData(2));      // EXPLODE THE NEW UNIT
@@ -2131,7 +2131,7 @@ void LIB_HANDLER()
         }
         rplUnitPopItem(nlevels1);       // AND REMOVE THE OLD VALUE, LEAVING THE NEW VALUE AND THE UNIT
 
-        WORDPTR newunit = rplUnitAssemble(nlevels1);
+        word_p newunit = rplUnitAssemble(nlevels1);
         if(!newunit) {
             DSTop = stkclean;
             return;
@@ -2166,7 +2166,7 @@ void LIB_HANDLER()
          */
 
         // DO SWAP OVER
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
 
@@ -2214,7 +2214,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR val, unit;
+        word_p val, unit;
 
         val = rplPeekData(2);
         unit = rplPeekData(1);
@@ -2260,7 +2260,7 @@ void LIB_HANDLER()
            rplError(ERR_UNITEXPECTED);
            return;
            } */
-        WORDPTR *stkclean = DSTop;
+        word_p *stkclean = DSTop;
         int32_t nlevels = rplUnitExplode(rplPeekData(1));
         if(Exceptions) {
             DSTop = stkclean;
@@ -2279,7 +2279,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR newunit = rplUnitAssemble(nlevels);
+        word_p newunit = rplUnitAssemble(nlevels);
         if(!newunit) {
             DSTop = stkclean;
             return;
@@ -2298,15 +2298,15 @@ void LIB_HANDLER()
         //@NEW
         //  GET THE UNITS DIRECTORY
 
-        WORDPTR unitdir_obj = rplGetSettings((WORDPTR) unitdir_ident);
+        word_p unitdir_obj = rplGetSettings((word_p) unitdir_ident);
 
         if(!unitdir_obj) {
-            rplPushData((WORDPTR) empty_list);
+            rplPushData((word_p) empty_list);
             return;
         }
 
-        WORDPTR *entry;
-        WORDPTR *savestk = DSTop;
+        word_p *entry;
+        word_p *savestk = DSTop;
         int32_t count = 0;
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT ALL IDENTS
         entry = rplFindFirstByHandle(unitdir_obj);
@@ -2317,14 +2317,14 @@ void LIB_HANDLER()
             // (n-1): IDENTIFIER
             // (n-2): NUMERATOR
             // (n-3): DENOMINATOR
-            rplPushData((WORDPTR) one_bint);
+            rplPushData((word_p) one_bint);
 
             rplPushData(entry[0]);
 
-            rplPushData((WORDPTR) one_bint);
-            rplPushData((WORDPTR) one_bint);
+            rplPushData((word_p) one_bint);
+            rplPushData((word_p) one_bint);
 
-            WORDPTR newunit = rplUnitAssemble(4);
+            word_p newunit = rplUnitAssemble(4);
             if(Exceptions || (!newunit)) {
                 DSTop = savestk;
                 return;
@@ -2335,11 +2335,11 @@ void LIB_HANDLER()
             entry = rplFindNext(entry);
         }
 
-        WORDPTR list;
+        word_p list;
         if(count)
             list = rplCreateListN(count, 1, 1);
         else
-            list = (WORDPTR) empty_list;
+            list = (word_p) empty_list;
         if(Exceptions || (!list)) {
             DSTop = savestk;
             return;
@@ -2367,7 +2367,7 @@ void LIB_HANDLER()
         // RetNum =  enum CompileErrors
     {
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         if(*ptr == '_') {
             // STARTS WITH THE UNIT, CHECK IF WE ARE IN A UNIT CONSTRUCT
@@ -2387,7 +2387,7 @@ void LIB_HANDLER()
             // PARENTHESIS ARE SUPPORTED BUT REMOVED AT COMPILE TIME s^2/(Kg*m) --> s^2*Kg^-1*m^-1
             // MAXIMUM 8 LEVELS SUPPORTED
 
-            BYTEPTR nextptr, endptr;
+            byte_p nextptr, endptr;
             int32_t count = 0;
             int32_t exponent = 1, negexp = 0, needident = 0, needexp = 0;
             int32_t groupoff[8];
@@ -2398,7 +2398,7 @@ void LIB_HANDLER()
             int32_t tokstart = 1;
 
             nextptr = ptr + 1;
-            endptr = (BYTEPTR) BlankStart;
+            endptr = (byte_p) BlankStart;
             toklen = endptr - nextptr;
 
             if(*nextptr == '[') {
@@ -2408,14 +2408,14 @@ void LIB_HANDLER()
                 // FIND MATCHING BRACKET
                 endptr = nextptr;
 
-                while((endptr < (BYTEPTR) BlankStart) && (*endptr != ']')) {
-                    endptr = (BYTEPTR) utf8skip((char *)endptr,
+                while((endptr < (byte_p) BlankStart) && (*endptr != ']')) {
+                    endptr = (byte_p) utf8skip((char *)endptr,
                             (char *)BlankStart);
                 }
 
                 // IT'S OK TO REACH END OF TOKEN WITHOUT A BRACKET
                 // SINCE IT MAY HAVE BEEN SPLIT BY THE MATRIX LIB
-                /*if(endptr>=(BYTEPTR)BlankStart) {
+                /*if(endptr>=(byte_p)BlankStart) {
                    // CLOSING BRACKET WAS NEVER FOUND
                    RetNum=ERR_SYNTAX;
                    return;
@@ -2465,7 +2465,7 @@ void LIB_HANDLER()
                     }
 
                     // GET THE NEXT IDENT
-                    BYTEPTR nameend = rplNextUnitToken(nextptr, endptr);
+                    byte_p nameend = rplNextUnitToken(nextptr, endptr);
 
                     if(nameend <= nextptr) {
                         rplError(ERR_INVALIDUNITDEFINITION);
@@ -2490,9 +2490,9 @@ void LIB_HANDLER()
 
                     // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                     nextptr =
-                            (BYTEPTR) utf8nskip(((char *)TokenStart) + tokstart,
+                            (byte_p) utf8nskip(((char *)TokenStart) + tokstart,
                             (char *)BlankStart, count) + (nameend - nextptr);
-                    endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                    endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                     count += nletters;
                     needexp = 1;
@@ -2515,9 +2515,9 @@ void LIB_HANDLER()
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
-                            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                             needexp = 0;
                         }
@@ -2536,7 +2536,7 @@ void LIB_HANDLER()
                                 nextptr += 2;
                                 count += 2;
 
-                                BYTEPTR numend =
+                                byte_p numend =
                                         rplNextUnitToken(nextptr, endptr);
 
                                 if(numend <= nextptr) {
@@ -2565,7 +2565,7 @@ void LIB_HANDLER()
 
                                 count += nletters;
                                 nextptr =
-                                        (BYTEPTR) utf8nskip(((char *)TokenStart)
+                                        (byte_p) utf8nskip(((char *)TokenStart)
                                         + tokstart, (char *)BlankStart, count);
 
                                 // ONLY OPERATOR ALLOWED HERE IS DIVISION
@@ -2586,7 +2586,7 @@ void LIB_HANDLER()
                                     ++nextptr;
                                     ++count;
 
-                                    BYTEPTR numend =
+                                    byte_p numend =
                                             rplNextUnitToken(nextptr, endptr);
 
                                     if(numend <= nextptr) {
@@ -2633,7 +2633,7 @@ void LIB_HANDLER()
                                 // ONLY A REAL NUMBER SUPPORTED AS EXPONENT
                                 // GET THE NEXT TOKEN
                                 nextptr++;
-                                BYTEPTR numend =
+                                byte_p numend =
                                         rplNextUnitToken(nextptr, endptr);
 
                                 if(numend <= nextptr) {
@@ -2674,7 +2674,7 @@ void LIB_HANDLER()
                             // CYCLE THROUGH ALL IDENTIFIERS SINCE THE GROUP STARTED
                             // MULTIPLY THEIR EXPONENTS BY THIS ONE
 
-                            WORDPTR groupptr, unitptr, numptr, denptr;
+                            word_p groupptr, unitptr, numptr, denptr;
                             int32_t groupsize, offset = 0;
                             REAL orgnum, orgden;
 
@@ -2798,9 +2798,9 @@ void LIB_HANDLER()
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
-                            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                             needexp = 0;
                             negexp = 0;
@@ -2819,9 +2819,9 @@ void LIB_HANDLER()
                             rplCompileAppend(MAKESINT(1));
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
-                            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                             needexp = 0;
                         }
@@ -2848,7 +2848,7 @@ void LIB_HANDLER()
                             nextptr += 2;
                             count += 2;
 
-                            BYTEPTR numend = rplNextUnitToken(nextptr, endptr);
+                            byte_p numend = rplNextUnitToken(nextptr, endptr);
 
                             if(numend <= nextptr) {
                                 rplError(ERR_INVALIDUNITDEFINITION);
@@ -2875,7 +2875,7 @@ void LIB_HANDLER()
 
                             count += nletters;
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
 
                             // ONLY OPERATOR ALLOWED HERE IS DIVISION
@@ -2896,7 +2896,7 @@ void LIB_HANDLER()
                                 ++nextptr;
                                 ++count;
 
-                                BYTEPTR numend =
+                                byte_p numend =
                                         rplNextUnitToken(nextptr, endptr);
 
                                 if(numend <= nextptr) {
@@ -3000,9 +3000,9 @@ void LIB_HANDLER()
                             count += nletters;
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
-                            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                             needexp = 0;
                             continue;
@@ -3012,7 +3012,7 @@ void LIB_HANDLER()
                             // ONLY A REAL NUMBER SUPPORTED AS EXPONENT
                             // GET THE NEXT TOKEN
                             nextptr++;
-                            BYTEPTR numend = rplNextUnitToken(nextptr, endptr);
+                            byte_p numend = rplNextUnitToken(nextptr, endptr);
 
                             if(numend <= nextptr) {
                                 rplError(ERR_INVALIDUNITDEFINITION);
@@ -3073,9 +3073,9 @@ void LIB_HANDLER()
                             count += 1 + nletters;
                             // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                             nextptr =
-                                    (BYTEPTR) utf8nskip(((char *)TokenStart) +
+                                    (byte_p) utf8nskip(((char *)TokenStart) +
                                     tokstart, (char *)BlankStart, count);
-                            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+                            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
                             needexp = 0;
                             continue;
@@ -3105,11 +3105,11 @@ void LIB_HANDLER()
 
             // HERE WE SHOULD HAVE A UNIT OBJECT PROPERLY COMPILED!
 
-            endptr = ((BYTEPTR) TokenStart) + tokstart + toklen;
+            endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
             if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0)) {
                 // THERE'S NO CONSTRUCT, WE MUST COMPILE AN ATOMIC OBJECT
-                if((endptr == (BYTEPTR) BlankStart) && (tokstart > 1)) {
+                if((endptr == (byte_p) BlankStart) && (tokstart > 1)) {
                     // THIS IMMEDIATE MODE REQUIRES THE CLOSING BRACKET
                     rplError(ERR_INVALIDUNITDEFINITION);
                     RetNum = ERR_SYNTAX;
@@ -3127,7 +3127,7 @@ void LIB_HANDLER()
 
             }
 
-            if((endptr == (BYTEPTR) BlankStart) && (tokstart > 1)) {
+            if((endptr == (byte_p) BlankStart) && (tokstart > 1)) {
                 // THE NEXT TOKEN MUST BE A CLOSING BRACKET
                 // REQUEST IT TO THE COMPILER
                 RetNum = OK_NEEDMORE;
@@ -3152,7 +3152,7 @@ void LIB_HANDLER()
         for(f = 0; f < (int)TokenLen; ++f) {
             if(*ptr == '_')
                 break;
-            ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)BlankStart);
+            ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
         }
 
         if(f == (int)TokenLen) {
@@ -3169,7 +3169,7 @@ void LIB_HANDLER()
             // A UNIT-APPLY OPERATOR INSTEAD OF COMPILING A UNIT OBJECT
 
             BlankStart = NextTokenStart =
-                    (WORDPTR) utf8nskip((char *)TokenStart, (char *)BlankStart,
+                    (word_p) utf8nskip((char *)TokenStart, (char *)BlankStart,
                     f);
             RetNum = ERR_NOTMINE_SPLITTOKEN;
             return;
@@ -3179,7 +3179,7 @@ void LIB_HANDLER()
         rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
 
         BlankStart = NextTokenStart =
-                (WORDPTR) utf8nskip((char *)TokenStart, (char *)BlankStart, f);
+                (word_p) utf8nskip((char *)TokenStart, (char *)BlankStart, f);
         RetNum = OK_STARTCONSTRUCT_SPLITTOKEN;
         return;
     }
@@ -3188,7 +3188,7 @@ void LIB_HANDLER()
     {
         // THE OBJECT SHOULD'VE BEEN PROPERLY COMPILED
         // THE ONLY ACCEPTED TOKEN IS THE CLOSING BRACKET
-        if((TokenLen == 1) && (*((BYTEPTR) TokenStart) == ']')) {
+        if((TokenLen == 1) && (*((byte_p) TokenStart) == ']')) {
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -3215,14 +3215,14 @@ void LIB_HANDLER()
             // TO SEE IF THE SYMBOLIC UNIT OPERATOR WAS ALREADY INCLUDED
             // AND SKIP THE NUMERIC PART OF THE UNIT IF IT WAS
 
-            BYTEPTR decstring = (BYTEPTR) DecompStringEnd;
+            byte_p decstring = (byte_p) DecompStringEnd;
             int32_t closebracket = 1, addnumber = 1;
 
             if((decstring[-2] != '_') || (decstring[-1] != '[')) {
 
                 // ALSO, IF NOT IN SYMBOLIC MODE, CHECK IF THE NEXT OBJECT IS THE SYMBTOUNIT COMMAND
                 if(!(DecompMode & 0xffff)) {
-                    WORDPTR nextobj = rplSkipOb(DecompileObject);
+                    word_p nextobj = rplSkipOb(DecompileObject);
                     if(nextobj < EndOfObject) {
                         if(*nextobj == MKOPCODE(LIBRARY_NUMBER, SYMBTOUNIT)) {
                             // SPECIAL CASE, DON'T ADD THE NUMERIC PART OF THE UNIT AND DON'T
@@ -3262,7 +3262,7 @@ void LIB_HANDLER()
             while(offset < totalsize) {
 
                 // TAKE A LOOK AT THE EXPONENT
-                WORDPTR expnum, expden;
+                word_p expnum, expden;
                 REAL rnum, rden;
                 expnum = rplSkipOb(DecompileObject + offset);
                 expden = rplSkipOb(expnum);
@@ -3288,15 +3288,15 @@ void LIB_HANDLER()
 
                 // DECOMPILE THE IDENTIFIER
 
-                BYTEPTR ptr =
-                        (BYTEPTR) (DecompileObject + offset +
+                byte_p ptr =
+                        (byte_p) (DecompileObject + offset +
                         OBJSIZE(*(DecompileObject + offset)));
                 if(ptr[3] == 0)
                     // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
-                    rplDecompAppendString((BYTEPTR) (DecompileObject + offset +
+                    rplDecompAppendString((byte_p) (DecompileObject + offset +
                                 1));
                 else
-                    rplDecompAppendString2((BYTEPTR) (DecompileObject + offset +
+                    rplDecompAppendString2((byte_p) (DecompileObject + offset +
                                 1), OBJSIZE(*(DecompileObject + offset)) << 2);
 
                 if(Exceptions) {
@@ -3315,7 +3315,7 @@ void LIB_HANDLER()
 
                         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-                        BYTEPTR string;
+                        byte_p string;
 
                         int32_t len = formatlengthReal(&rnum, Format, Locale);
 
@@ -3323,7 +3323,7 @@ void LIB_HANDLER()
                         rplDecompAppendString2(0, len);
 
                         // NOW USE IT
-                        string = (BYTEPTR) DecompStringEnd;
+                        string = (byte_p) DecompStringEnd;
                         string -= len;
 
                         if(Exceptions) {
@@ -3331,7 +3331,7 @@ void LIB_HANDLER()
                             return;
                         }
                         DecompStringEnd =
-                                (WORDPTR) formatReal(&rnum, (char *)string,
+                                (word_p) formatReal(&rnum, (char *)string,
                                 Format, Locale);
 
                         rplDecompAppendChar('/');
@@ -3342,7 +3342,7 @@ void LIB_HANDLER()
                         rplDecompAppendString2(0, len);
 
                         // NOW USE IT
-                        string = (BYTEPTR) DecompStringEnd;
+                        string = (byte_p) DecompStringEnd;
                         string -= len;
 
                         if(Exceptions) {
@@ -3350,7 +3350,7 @@ void LIB_HANDLER()
                             return;
                         }
                         DecompStringEnd =
-                                (WORDPTR) formatReal(&rden, (char *)string,
+                                (word_p) formatReal(&rden, (char *)string,
                                 Format, Locale);
 
                         rplDecompAppendChar(')');
@@ -3360,7 +3360,7 @@ void LIB_HANDLER()
                         // JUST A NUMBER
                         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-                        BYTEPTR string;
+                        byte_p string;
 
                         int32_t len = formatlengthReal(&rnum, Format, Locale);
 
@@ -3368,7 +3368,7 @@ void LIB_HANDLER()
                         rplDecompAppendString2(0, len);
 
                         // NOW USE IT
-                        string = (BYTEPTR) DecompStringEnd;
+                        string = (byte_p) DecompStringEnd;
                         string -= len;
 
                         if(Exceptions) {
@@ -3376,7 +3376,7 @@ void LIB_HANDLER()
                             return;
                         }
                         DecompStringEnd =
-                                (WORDPTR) formatReal(&rnum, (char *)string,
+                                (word_p) formatReal(&rnum, (char *)string,
                                 Format, Locale);
 
                     }
@@ -3406,10 +3406,10 @@ void LIB_HANDLER()
                 // THE UNIT ITSELF ELIMINATED THE NUMBER, SO DON'T INCLUDE ANY OUTPUT
                 //rplDecompAppendString("→UNIT");
                 // NEED TO REMOVE THE LAST SPACE TO PREVENT A DOUBLE SPACE
-                BYTEPTR lastspace = (BYTEPTR) DecompStringEnd;
+                byte_p lastspace = (byte_p) DecompStringEnd;
                 --lastspace;
                 if(*lastspace == ' ')
-                    DecompStringEnd = (WORDPTR) lastspace;
+                    DecompStringEnd = (word_p) lastspace;
                 RetNum = OK_CONTINUE;
                 return;
             }
@@ -3451,21 +3451,21 @@ void LIB_HANDLER()
 
     {
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         if((TokenLen >= 2) && (ptr[0] == '_') && (ptr[1] == '[')) {
 
-            BYTEPTR endptr;
+            byte_p endptr;
             int32_t count = 2;
             // FIND MATCHING BRACKET
             endptr = ptr + 2;
 
-            while((endptr < (BYTEPTR) BlankStart) && (*endptr != ']')) {
-                endptr = (BYTEPTR) utf8skip((char *)endptr, (char *)BlankStart);
+            while((endptr < (byte_p) BlankStart) && (*endptr != ']')) {
+                endptr = (byte_p) utf8skip((char *)endptr, (char *)BlankStart);
                 ++count;
             }
 
-            if(endptr < (BYTEPTR) BlankStart)
+            if(endptr < (byte_p) BlankStart)
                 ++count;        // INCLUDE THE CLOSING BRACKET
 
             RetNum = OK_TOKENINFO | MKTOKENINFO(count, TITYPE_POSTFIXOP, 2, 1);
@@ -3510,7 +3510,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3518,7 +3518,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -3528,7 +3528,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
         if(ISPROLOG(*ObjectPTR)) {
             // BASIC CHECKS
-            WORDPTR ptr, objend;
+            word_p ptr, objend;
 
             objend = rplSkipOb(ObjectPTR);
             ptr = ObjectPTR + 1;
@@ -3603,7 +3603,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -3612,12 +3612,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

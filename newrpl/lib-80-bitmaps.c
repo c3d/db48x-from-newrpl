@@ -68,10 +68,10 @@ INCLUDE_ROMOBJECT(lib80_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib80_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib80_menu,
 
     0
 };
@@ -106,7 +106,7 @@ typedef struct
 
 // CONVERT A BITMAP FROM ANY FORMAT INTO THE DEFAULT DISPLAY FORMAT
 
-WORDPTR rplBmpToDisplay(WORDPTR bitmap)
+word_p rplBmpToDisplay(word_p bitmap)
 {
     if(!ISBITMAP(*bitmap)) {
         rplError(ERR_BITMAPEXPECTED);
@@ -125,7 +125,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     totalsize >>= 5;    // BITMAP SIZE IN WORDS
 
-    WORDPTR newbmp = rplAllocTempOb(totalsize + 2);
+    word_p newbmp = rplAllocTempOb(totalsize + 2);
     if(!newbmp)
         return 0;
 
@@ -138,13 +138,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     case BITMAP_RAWMONO:
 
     {
-        BYTEPTR destptr, srcptr;
+        byte_p destptr, srcptr;
 
         int32_t mask = 1, destmask = 0;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (BYTEPTR) (newbmp + 3);
+        srcptr = (byte_p) (bitmap + 3);
+        destptr = (byte_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -186,13 +186,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
 
-        BYTEPTR destptr, srcptr;
+        byte_p destptr, srcptr;
 
         int32_t destmask = 0;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (BYTEPTR) (newbmp + 3);
+        srcptr = (byte_p) (bitmap + 3);
+        destptr = (byte_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -223,13 +223,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
 
-        BYTEPTR destptr, srcptr;
+        byte_p destptr, srcptr;
 
         int32_t destmask = 0;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (BYTEPTR) (newbmp + 3);
+        srcptr = (byte_p) (bitmap + 3);
+        destptr = (byte_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -264,13 +264,13 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
 
-        BYTEPTR destptr, srcptr;
+        byte_p destptr, srcptr;
 
         int32_t destmask = 0;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
-        destptr = (BYTEPTR) (newbmp + 3);
+        srcptr = (byte_p) (bitmap + 3);
+        destptr = (byte_p) (newbmp + 3);
 
         while(npixels) {
 
@@ -309,12 +309,12 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
     {
         uint16_p destptr;
-        BYTEPTR srcptr;
+        byte_p srcptr;
 
         int32_t mask = 1;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
+        srcptr = (byte_p) (bitmap + 3);
         destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
@@ -348,12 +348,12 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     case BITMAP_RAW16G:
     {
         uint16_p destptr;
-        BYTEPTR srcptr;
+        byte_p srcptr;
 
         int32_t mask = 0xf,rot=4;
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
+        srcptr = (byte_p) (bitmap + 3);
         destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
@@ -388,11 +388,11 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     {
 
         uint16_p destptr;
-        BYTEPTR srcptr;
+        byte_p srcptr;
 
         int32_t pixel;
 
-        srcptr = (BYTEPTR) (bitmap + 3);
+        srcptr = (byte_p) (bitmap + 3);
         destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
@@ -425,11 +425,11 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     {
 
         uint16_p destptr;
-        WORDPTR srcptr;
+        word_p srcptr;
 
         WORD pixel;
 
-        srcptr = (WORDPTR) (bitmap + 3);
+        srcptr = (word_p) (bitmap + 3);
         destptr = (uint16_p) (newbmp + 3);
 
         while(npixels) {
@@ -464,7 +464,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 
 // CREATE A BITMAP OF THE REQUESTED SIZE AND TYPE
 
-WORDPTR rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear)
+word_p rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear)
 {
     int32_t bitspixel;
 
@@ -493,7 +493,7 @@ WORDPTR rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear)
 
     totalsize >>= 5;    // BITMAP SIZE IN WORDS
 
-    WORDPTR newbmp = rplAllocTempOb(totalsize + 2);
+    word_p newbmp = rplAllocTempOb(totalsize + 2);
     if(!newbmp)
         return 0;
 
@@ -509,10 +509,10 @@ WORDPTR rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear)
 
 // QUICKLY RETRIEVE THE RENDERER STATUS BEFORE EACH COMMAND IS PROCESSED
 // RECEIVES rstatus LIST IN STACK LEVEL 2
-void rplBMPRenderUdateState(WORDPTR * rstatusptr,
+void rplBMPRenderUdateState(word_p * rstatusptr,
         BMP_RENDERSTATE ** renderstptr)
 {
-    WORDPTR rstatus = rplPeekData(2);
+    word_p rstatus = rplPeekData(2);
     BMP_RENDERSTATE *renderst;
 
     *rstatusptr = rstatus;      // UPDATE rstatus LIST
@@ -525,10 +525,10 @@ void rplBMPRenderUdateState(WORDPTR * rstatusptr,
 
 // ALLOCATE MORE SPACE FOR PATH POINTS IN THE BMP_RENDERSTATE STRUCTURE
 // UPDATE STACK LEVELS 1 AND 2 AS NEEDED IF THINGS MOVE
-void rplBMPRenderAllocPoint(WORDPTR * rstatusptr,
+void rplBMPRenderAllocPoint(word_p * rstatusptr,
         BMP_RENDERSTATE ** renderstptr, int32_t npoints)
 {
-    WORDPTR rstatus = *rstatusptr;
+    word_p rstatus = *rstatusptr;
     BMP_RENDERSTATE *renderst = *renderstptr;
 
     if(renderst->ptalloc >= renderst->npoints + npoints)
@@ -544,7 +544,7 @@ void rplBMPRenderAllocPoint(WORDPTR * rstatusptr,
             rplObjSize(rstatus) - 1 -
             sizeof(renderst->points) / 4 * renderst->ptalloc;
 
-    WORDPTR newobj = rplAllocTempOb(wordsneed);
+    word_p newobj = rplAllocTempOb(wordsneed);
     if(!newobj)
         return;
 
@@ -553,7 +553,7 @@ void rplBMPRenderAllocPoint(WORDPTR * rstatusptr,
     memmovew(newobj, rstatus, OBJSIZE(*rstatus));
 
     // STRETCH THE BINDATA OBJECT
-    WORDPTR libdata = PERSISTPTR(newobj);
+    word_p libdata = PERSISTPTR(newobj);
     *libdata = MKPROLOG(DOBINDATA, RENDERSTATE_SIZE(need * 8));
     renderst = (BMP_RENDERSTATE *) (libdata + 1);
     libdata = rplSkipOb(libdata);
@@ -603,7 +603,7 @@ void LIB_HANDLER()
         case CMD_PLTRENDERSIZE:
         {
             // USE THE INFORMATION IN THE RENDERER STATUS, NOT ARGUMENTS
-            WORDPTR rstatus = rplPeekData(2);
+            word_p rstatus = rplPeekData(2);
 
             // NO CHECKS, RENDERER HAS TO BE CALLED WITH PROPER ARGUMENTS
             int64_t w = (*WIDTHPTR(rstatus)) >> 24;
@@ -645,7 +645,7 @@ void LIB_HANDLER()
 
             wordsneeded += totalsize + 3;
 
-            WORDPTR newrst = rplAllocTempOb(wordsneeded), ptr;
+            word_p newrst = rplAllocTempOb(wordsneeded), ptr;
 
             if(!newrst)
                 return;
@@ -691,7 +691,7 @@ void LIB_HANDLER()
         case CMD_PLTBASE + PLT_MOVETO:
         {
             // UPDATE RENDER STATUS
-            WORDPTR rstatus;
+            word_p rstatus;
             BMP_RENDERSTATE *renderst;
             rplBMPRenderUdateState(&rstatus, &renderst);
 
@@ -705,7 +705,7 @@ void LIB_HANDLER()
         case CMD_PLTBASE + PLT_LINETO:
         {
             // UPDATE RENDER STATUS
-            WORDPTR rstatus;
+            word_p rstatus;
             BMP_RENDERSTATE *renderst;
             rplBMPRenderUdateState(&rstatus, &renderst);
 
@@ -734,7 +734,7 @@ void LIB_HANDLER()
         case CMD_PLTBASE + PLT_STROKE:
         {
             // UPDATE RENDER STATUS
-            WORDPTR rstatus;
+            word_p rstatus;
             BMP_RENDERSTATE *renderst;
             rplBMPRenderUdateState(&rstatus, &renderst);
             // DRAW THE PERIMETER OF THE PATH
@@ -773,15 +773,15 @@ void LIB_HANDLER()
     case OVR_ISTRUE:
     {
         if(ISPROLOG(*rplPeekData(1))) {
-            WORDPTR dataptr=rplPeekData(1);
+            word_p dataptr=rplPeekData(1);
             int32_t size=OBJSIZE(*dataptr)-2;
             dataptr+=2;
             int32_t iszero=1;
             while(size--) if(*dataptr++) { iszero=0; break; }
-            rplOverwriteData(1, (iszero)? (WORDPTR)zero_bint:(WORDPTR) one_bint);
+            rplOverwriteData(1, (iszero)? (word_p)zero_bint:(word_p) one_bint);
         }
         else
-            rplOverwriteData(1, (WORDPTR) one_bint);
+            rplOverwriteData(1, (word_p) one_bint);
         return;
     }
 
@@ -844,7 +844,7 @@ void LIB_HANDLER()
 
         if(!(*ScratchPointer4 & 0x10000)) {
             // NEED TO INPUT THE BITMAP TYPE IN 4-LETTERS: MONO,16GR,256G,64KC,ARGB,OTHR
-            if(((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart)
+            if(((int32_t) TokenLen != (byte_p) BlankStart - (byte_p) TokenStart)
                     || (TokenLen != 4)) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 // OR THERE'S NOT 4 CHARACTERS
@@ -884,9 +884,9 @@ void LIB_HANDLER()
             // NEED TO CAPTURE THE WIDTH AND HEIGHT AS INTEGERS
             WORD value = 0;
             int32_t digit;
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
 
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
                 else {
@@ -949,7 +949,7 @@ void LIB_HANDLER()
 
         // DO WE NEED ANY MORE DATA?
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         WORD value = 0;
         WORD checksum = 0;
@@ -1007,7 +1007,7 @@ void LIB_HANDLER()
             }
             ++ptr;
         }
-        while(ptr != (BYTEPTR) BlankStart);
+        while(ptr != (byte_p) BlankStart);
 
         if(ndigits) {
             // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
@@ -1045,10 +1045,10 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE BITMAP
 
-            rplDecompAppendString((BYTEPTR) "BITMAPDATA ");
+            rplDecompAppendString((byte_p) "BITMAPDATA ");
 
             // TYPE
-            rplDecompAppendString((BYTEPTR)
+            rplDecompAppendString((byte_p)
                     bitmap_modes[LIBNUM(*DecompileObject) & 7]);
 
             rplDecompAppendChar(' ');
@@ -1083,7 +1083,7 @@ void LIB_HANDLER()
 
             encoder[6] = 0;
 
-            WORDPTR ptr = DecompileObject + 3;
+            word_p ptr = DecompileObject + 3;
             int32_t nwords = 0;
 
             while(size) {
@@ -1211,7 +1211,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1219,7 +1219,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -1260,7 +1260,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -1269,12 +1269,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

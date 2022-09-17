@@ -14,7 +14,7 @@
 
 void growRStk(WORD newtotalsize)
 {
-    WORDPTR *newrstk;
+    word_p *newrstk;
 
     int32_t gc_done = 0;
 
@@ -44,7 +44,7 @@ void growRStk(WORD newtotalsize)
 
 void shrinkRStk(WORD newtotalsize)
 {
-    WORDPTR *newrstk;
+    word_p *newrstk;
 
     newtotalsize = (newtotalsize + 1023) & ~1023;
 
@@ -64,7 +64,7 @@ void shrinkRStk(WORD newtotalsize)
 // NEVER DIRECTLY A WORD OR A COMMAND
 // STACK IS "INCREASE AFTER" FOR STORE, "DECREASE BEFORE" FOR READ
 
-void rplPushRet(WORDPTR p)
+void rplPushRet(word_p p)
 {
 // PUSH FIRST (USE THE GUARANTEED SLACK)
 // SO THAT IF GROWING THE RETURN STACK TRIGGERS A GC, THE POINTER WILL BE AUTOMATICALLY FIXED
@@ -77,14 +77,14 @@ void rplPushRet(WORDPTR p)
 }
 
 // PUSH WITHOUT GROWING THE STACK - USE CAREFULLY, USES THE GUARANTEED SLACK ONLY
-void rplPushRetNoGrow(WORDPTR p)
+void rplPushRetNoGrow(word_p p)
 {
 // PUSH FIRST (USE THE GUARANTEED SLACK)
     *RSTop++ = p;
 
 }
 
-WORDPTR rplPopRet()
+word_p rplPopRet()
 {
     if(RSTop <= RStk) {
         rplError(ERR_INTERNALEMPTYRETSTACK);
@@ -104,7 +104,7 @@ void rplDropRet(int nlevels)
 }
 
 // LOW LEVEL VERSION FOR USE IN LIBRARIES
-inline WORDPTR rplPeekRet(int level)
+inline word_p rplPeekRet(int level)
 {
     return (RSTop - level < RStk) ? 0 : *(RSTop - level);
 }

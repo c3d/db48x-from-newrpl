@@ -18,7 +18,7 @@
 // VECTORS ARE AUTO-ROTATED
 // ROWS AND COLUMNS ARE 1-BASED
 
-WORDPTR rplMatrixGet(WORDPTR matrix, int32_t row, int32_t col)
+word_p rplMatrixGet(word_p matrix, int32_t row, int32_t col)
 {
     if(!ISMATRIX(*matrix))
         return 0;
@@ -52,21 +52,21 @@ WORDPTR rplMatrixGet(WORDPTR matrix, int32_t row, int32_t col)
 }
 
 // RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
-int32_t rplMatrixCols(WORDPTR matrix)
+int32_t rplMatrixCols(word_p matrix)
 {
     return MATCOLS(*(matrix + 1));
 }
 
 // RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
 // ROWS=0 MEANS A VECTOR WITH cols ELEMENTS
-int32_t rplMatrixRows(WORDPTR matrix)
+int32_t rplMatrixRows(word_p matrix)
 {
     return MATROWS(*(matrix + 1));
 }
 
 // GET A POINTER TO THE FIRST OBJECT WITHIN A MATRIX
 
-WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)
+word_p rplMatrixGetFirstObj(word_p matrix)
 {
     int32_t rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
     if(!rows)
@@ -76,7 +76,7 @@ WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)
 
 // GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE
 
-WORDPTR rplMatrixFastGet(WORDPTR matrix, int32_t row, int32_t col)
+word_p rplMatrixFastGet(word_p matrix, int32_t row, int32_t col)
 {
     int32_t rows = MATROWS(*(matrix + 1)), cols = MATCOLS(*(matrix + 1));
     if(!rows)
@@ -86,14 +86,14 @@ WORDPTR rplMatrixFastGet(WORDPTR matrix, int32_t row, int32_t col)
 
 // GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE - FLAT INDEX 0..(n-1)
 
-WORDPTR rplMatrixFastGetFlat(WORDPTR matrix, int32_t index)
+word_p rplMatrixFastGetFlat(word_p matrix, int32_t index)
 {
     return GETELEMENT(matrix, index);
 }
 
 // FAST GET THE PTR TO AN ELEMENT IN A MATRIX EXPLODED IN THE STACK
 
-WORDPTR *rplMatrixFastGetEx(WORDPTR * first, int32_t cols, int32_t i, int32_t j)
+word_p *rplMatrixFastGetEx(word_p * first, int32_t cols, int32_t i, int32_t j)
 {
     return first + (i - 1) * cols + (j - 1);
 }
@@ -101,7 +101,7 @@ WORDPTR *rplMatrixFastGetEx(WORDPTR * first, int32_t cols, int32_t i, int32_t j)
 // CREATE A NEW MATRIX EXPLODED IN THE STACK, FILLED WITH ZEROS
 // RETURN THE POINTER TO THE FIRST ELEMENT IN THE STACK
 
-WORDPTR *rplMatrixNewEx(int32_t rows, int32_t cols)
+word_p *rplMatrixNewEx(int32_t rows, int32_t cols)
 {
     if(!rows)
         ++rows;
@@ -109,13 +109,13 @@ WORDPTR *rplMatrixNewEx(int32_t rows, int32_t cols)
     if((rows < 1) || (cols < 1))
         return 0;
 
-    WORDPTR *Firstelem = DSTop;
+    word_p *Firstelem = DSTop;
     int32_t k, nelem;
 
     nelem = rows * cols;
 
     for(k = 0; k < nelem; ++k) {
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) zero_bint);
         if(Exceptions) {
             DSTop = Firstelem;
             return 0;
@@ -130,9 +130,9 @@ WORDPTR *rplMatrixNewEx(int32_t rows, int32_t cols)
 // PUTS A POINTER TO THE MATRIX, THEN THE ELEMENTS IN ROW ORDER
 // RETURNS A POINTER TO THE DATA STACK WHERE THE FIRST ELEMENT IS
 // LEAVES THE ORIGINAL MATRIX POINTER IN THE STACK
-WORDPTR *rplMatrixExplode()
+word_p *rplMatrixExplode()
 {
-    WORDPTR *matrix = DSTop - 1;
+    word_p *matrix = DSTop - 1;
     int32_t rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
     if(!rows)
         ++rows;
@@ -156,9 +156,9 @@ WORDPTR *rplMatrixExplode()
 // PUTS A POINTER TO THE MATRIX, THEN THE ELEMENTS IN COLUMN ORDER
 // RETURNS A POINTER TO THE DATA STACK WHERE THE FIRST ELEMENT IS
 // LEAVES THE ORIGINAL MATRIX POINTER IN THE STACK
-WORDPTR *rplMatrixExplodeByCols()
+word_p *rplMatrixExplodeByCols()
 {
-    WORDPTR *matrix = DSTop - 1;
+    word_p *matrix = DSTop - 1;
     int32_t rows = MATROWS(*(*matrix + 1)), cols = MATCOLS(*(*matrix + 1));
     if(!rows)
         return rplMatrixExplode();
@@ -182,7 +182,7 @@ WORDPTR *rplMatrixExplodeByCols()
 // RETURNS 0 IF ERROR, AND SETS Exceptions AND ExceptionPtr.
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
-WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
+word_p rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
 {
     int32_t totalelements = (rows) ? rows * cols : cols;
 
@@ -199,7 +199,7 @@ WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
 
 //   CHECK VALIDITY OF ALL ELEMENTS
     int32_t k, j, totalsize = 0;
-    WORDPTR obj;
+    word_p obj;
 
     for(k = level; k < level + totalelements; ++k) {
         obj = rplPeekData(k);
@@ -214,8 +214,8 @@ WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
         totalsize += rplObjSize(obj);
     }
 
-    WORDPTR matrix = rplAllocTempOb(totalsize + 1 + totalelements);
-    WORDPTR newobj = matrix + 2 + totalelements;        // POINT TO THE NEXT OBJECT TO STORE
+    word_p matrix = rplAllocTempOb(totalsize + 1 + totalelements);
+    word_p newobj = matrix + 2 + totalelements;        // POINT TO THE NEXT OBJECT TO STORE
 
     if(!matrix)
         return 0;
@@ -248,7 +248,7 @@ WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
 
 }
 
-WORDPTR rplMatrixCompose(int32_t rows, int32_t cols)
+word_p rplMatrixCompose(int32_t rows, int32_t cols)
 {
     return rplMatrixComposeN(1, rows, cols);
 }
@@ -257,7 +257,7 @@ WORDPTR rplMatrixCompose(int32_t rows, int32_t cols)
 
 void rplMatrixBinary(WORD Opcode)
 {
-    WORDPTR *Savestk, *a, *b;
+    word_p *Savestk, *a, *b;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
 // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -341,7 +341,7 @@ void rplMatrixBinary(WORD Opcode)
 
     }
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(!newmat)
         return;
@@ -367,7 +367,7 @@ void rplMatrixHadamard()
 
 void rplMatrixMulScalar()
 {
-    WORDPTR *Savestk, *a, *b;
+    word_p *Savestk, *a, *b;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
 // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -377,7 +377,7 @@ void rplMatrixMulScalar()
 // MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
 
     if(!ISMATRIX(**a)) {
-        WORDPTR *tmp = a;
+        word_p *tmp = a;
         a = b;
         b = tmp;
     }
@@ -410,7 +410,7 @@ void rplMatrixMulScalar()
 
     }
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(!newmat)
         return;
@@ -420,7 +420,7 @@ void rplMatrixMulScalar()
 
 void rplMatrixDivScalar()
 {
-    WORDPTR *Savestk, *a, *b;
+    word_p *Savestk, *a, *b;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
 // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -430,7 +430,7 @@ void rplMatrixDivScalar()
 // MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
 
     if(!ISMATRIX(**a)) {
-        WORDPTR *tmp = a;
+        word_p *tmp = a;
         a = b;
         b = tmp;
     }
@@ -463,7 +463,7 @@ void rplMatrixDivScalar()
 
     }
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(!newmat)
         return;
@@ -474,7 +474,7 @@ void rplMatrixDivScalar()
 // APPLY UNARY OPERATOR THAT WORKS ELEMENT-BY-ELEMENT (NEG, EVAL, ->NUM, ETC)
 void rplMatrixUnary(WORD Opcode)
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
 // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -509,7 +509,7 @@ void rplMatrixUnary(WORD Opcode)
 
     }
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(!newmat)
         return;
@@ -533,7 +533,7 @@ void rplMatrixConj()
 void rplMatrixMul()
 {
 
-    WORDPTR *Savestk, *a, *b;
+    word_p *Savestk, *a, *b;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -684,7 +684,7 @@ void rplMatrixMul()
     }
 
     // HERE WE HAVE ALL THE ELEMENTS IN ROW ORDER
-    WORDPTR newmat;
+    word_p newmat;
     if(rrows + rcols > 1) {
         newmat = rplMatrixCompose(rrows, rcols);
         if(!newmat) {
@@ -709,7 +709,7 @@ void rplMatrixMul()
 // EXPLODED IN THE STACK
 // RETURNS FALSE IF MATRIX IS SINGULAR OR THERE WAS AN ERROR, TRUE OTHERWISE
 
-int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t colsa,
+int32_t rplMatrixBareissEx(word_p * a, word_p * index, int32_t rowsa, int32_t colsa,
         int32_t upperonly)
 {
     int32_t i, j, k, q, startrow = 1;
@@ -760,7 +760,7 @@ int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t 
         else {
             // ZERO ELEMENT IN THE DIAGONAL, TRY SWAPPING ROWS
             int s;
-            WORDPTR tmp;
+            word_p tmp;
             for(s = 1; s <= colsa; ++s) {
                 tmp = STACKELEM(1, s);
                 STACKELEM(1, s) = STACKELEM(q, s);
@@ -817,7 +817,7 @@ int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t 
                         else {
                             // ZERO ELEMENT IN THE DIAGONAL, TRY SWAPPING ROWS
                             int s;
-                            WORDPTR tmp;
+                            word_p tmp;
                             for(s = k; s <= colsa; ++s) {
                                 tmp = STACKELEM(i, s);
                                 STACKELEM(i, s) = STACKELEM(q, s);
@@ -869,7 +869,7 @@ int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t 
 
         for(i = 2; i <= rowsa; i++) {
             for(j = 1; j < i; ++j) {
-                STACKELEM(i, j) = (WORDPTR) zero_bint;
+                STACKELEM(i, j) = (word_p) zero_bint;
             }
 
         }
@@ -886,7 +886,7 @@ int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa, int32_t 
 
 void rplMatrixReduce()
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -907,7 +907,7 @@ void rplMatrixReduce()
     /*
        // RESERVE SPACE FOR THE ROW INDEX LIST
 
-       WORDPTR IdxList=rplAllocTempOb(rowsa);
+       word_p IdxList=rplAllocTempOb(rowsa);
 
        if(!IdxList) {
        return;
@@ -937,7 +937,7 @@ void rplMatrixReduce()
         return;
     }
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(Exceptions)
         return;
@@ -954,7 +954,7 @@ void rplMatrixReduce()
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
 
-void rplMatrixBackSubstEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
+void rplMatrixBackSubstEx(word_p * a, int32_t rowsa, int32_t colsa)
 {
     int32_t i, j, k, l;
 
@@ -1008,7 +1008,7 @@ void rplMatrixBackSubstEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
                     // PUT THE ELEMENT IN ITS PLACE
                     STACKELEM(l, j) = rplPopData();
                 }
-                STACKELEM(l, k) = (WORDPTR) zero_bint;
+                STACKELEM(l, k) = (word_p) zero_bint;
             }
         }
 
@@ -1023,7 +1023,7 @@ void rplMatrixBackSubstEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 
 void rplMatrixInvert()
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -1044,7 +1044,7 @@ void rplMatrixInvert()
     /*
        // RESERVE SPACE FOR THE ROW INDEX LIST
 
-       WORDPTR IdxList=rplAllocTempOb(rowsa);
+       word_p IdxList=rplAllocTempOb(rowsa);
 
        if(!IdxList) {
        return;
@@ -1088,7 +1088,7 @@ void rplMatrixInvert()
     for(i = rowsa; i >= 1; --i) {
         for(j = colsa << 1; j > colsa; --j)
             NEWSTACKELEM(i, j) =
-                    (WORDPTR) ((i == j - colsa) ? one_bint : zero_bint);
+                    (word_p) ((i == j - colsa) ? one_bint : zero_bint);
     }
 
     DSTop = &(NEWSTACKELEM(rowsa, colsa << 1)) + 1;
@@ -1138,7 +1138,7 @@ void rplMatrixInvert()
        // FIND WHERE IS THE CORRECT ROW
        for(k=i+1;k<=rowsa;++k) if((*idx)[k]==(WORD)i) break;
        // SWAP IT
-       WORDPTR tmp;
+       word_p tmp;
        for(j=1;j<=colsa;++j) {
        tmp=STACKELEM(i,j);
        STACKELEM(i,j)=STACKELEM(k,j);
@@ -1153,7 +1153,7 @@ void rplMatrixInvert()
     // WE FINALLY HAVE INV(A) HERE
 
     // AND COMPOSE A NEW MATRIX
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     DSTop = Savestk;
     if(Exceptions)
         return;
@@ -1165,7 +1165,7 @@ void rplMatrixInvert()
 
 void rplMatrixNorm()
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
 // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -1181,7 +1181,7 @@ void rplMatrixNorm()
         rowsa = 1;
 
     int32_t i, j;
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
 // DO THE ELEMENT-BY-ELEMENT OPERATION
     for(i = 0; i < rowsa; ++i) {
         for(j = 0; j < colsa; ++j) {
@@ -1231,13 +1231,13 @@ void rplMatrixNorm()
 // DOES NOT EXPLODE OR USE THE STACK
 // NO TYPE CHECK, MAKE SURE IT'S A MATRIX
 
-int32_t rplMatrixIsPolar(WORDPTR matobj)
+int32_t rplMatrixIsPolar(word_p matobj)
 {
     // CHECK DIMENSIONS
 
     int32_t rowsa = MATROWS(*(matobj + 1)), colsa = MATCOLS(*(matobj + 1));
     int32_t k;
-    WORDPTR item;
+    word_p item;
 
     if(rowsa)
         return 0;       // NOT A VECTOR
@@ -1254,7 +1254,7 @@ int32_t rplMatrixIsPolar(WORDPTR matobj)
 // GET THE POLAR MODE TEMPLATE FOR A MATRIX (UP TO 32 DIMENSIONS SUPPORTED IN POLAR MODE)
 // BIT0=1 MEANS x2 IS AN ANGLE, BIT1=x3, .... BITn=x(n+1)
 
-WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
+WORD rplMatrixPolarGetTemplate(word_p matrix)
 {
     WORD templ = 0;
 
@@ -1262,7 +1262,7 @@ WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
 
     int32_t rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
     int32_t k;
-    WORDPTR item;
+    word_p item;
 
     if(rowsa)
         return 0;       // NOT A VECTOR
@@ -1278,13 +1278,13 @@ WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
 
 // GET THE ANGLE MODE
 
-int32_t rplMatrixPolarGetAngMode(WORDPTR matrix)
+int32_t rplMatrixPolarGetAngMode(word_p matrix)
 {
     // CHECK DIMENSIONS
 
     int32_t rowsa = MATROWS(*(matrix + 1)), colsa = MATCOLS(*(matrix + 1));
     int32_t k;
-    WORDPTR item;
+    word_p item;
 
     if(rowsa)
         return ANGLENONE;       // NOT A VECTOR
@@ -1306,10 +1306,10 @@ int32_t rplMatrixPolarGetAngMode(WORDPTR matrix)
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
 
-void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
+void rplMatrixPolarToRectEx(word_p * a, int32_t rowsa, int32_t colsa)
 {
     int32_t i, j, k;
-    WORDPTR *stacksave = DSTop;
+    word_p *stacksave = DSTop;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
 // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
@@ -1317,7 +1317,7 @@ void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 
     for(i = rowsa; i >= 1; --i) {
         // COMPUTE THE TOTAL VECTOR LENGTH (SQUARED) UP TO HERE
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) zero_bint);
         for(j = 1; j <= colsa; ++j) {
 
             if(ISANGLE(*STACKELEM(i, j))) {
@@ -1336,7 +1336,7 @@ void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
                     return;
                 }
                 // REPLACE THE ANGLE
-                WORDPTR angle = STACKELEM(i, j);
+                word_p angle = STACKELEM(i, j);
                 STACKELEM(i, j) = rplPeekData(1);
                 // NOW MULTIPLY EVERY PREVIOUS VALUE BY THE COS(angle)
                 rplOverwriteData(1, angle);
@@ -1389,11 +1389,11 @@ void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 // 3D SPHERICAL IS 3
 // A SINGLE angmode APPLIES TO ALL ANGLES IN THE VECTOR (ANGLE_XXX CONSTANTS)
 
-void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
+void rplMatrixRectToPolarEx(word_p * a, int32_t rowsa, int32_t colsa,
         WORD angtemplate, int32_t angmode)
 {
     int32_t i, j, k;
-    WORDPTR *stacksave = DSTop;
+    word_p *stacksave = DSTop;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
 // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
@@ -1401,10 +1401,10 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
 
     for(i = rowsa; i >= 1; --i) {
         // LEAVE THE COSINE SQUARE MULTIPLIER HERE, INITIALLY ONE
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
 
         // COMPUTE THE TOTAL VECTOR LENGTH (SQUARED)
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) zero_bint);
 
         for(k = 1; k <= colsa; ++k) {
             rplPushData(STACKELEM(i, k));
@@ -1428,7 +1428,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                 if(rplIsFalse(rplPeekData(1))) {
                     // ZERO LENGTH VECTOR? USE ZERO ANGLE BY CONVENTION
                     rplZeroToRReg(0);
-                    WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+                    word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
                     if(!newangle) {
                         DSTop = stacksave;
                         return;
@@ -1466,7 +1466,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                         // FIRST ANGLE CAN BE FROM -180 TO +180
                         int32_t negsine = rplIsNegative(rplPeekData(1));
                         rplPushData(rplPeekData(1));
-                        rplOverwriteData(2, (WORDPTR) angle_180);
+                        rplOverwriteData(2, (word_p) angle_180);
                         if(negsine)
                             rplCallOvrOperator(CMD_OVR_NEG);
                         rplCallOvrOperator(CMD_OVR_SUB);
@@ -1479,7 +1479,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                     if(ISNUMBER(*rplPeekData(1)) || ISANGLE(*rplPeekData(1))) {
                         // CONVERT TO THE DESIRED angmode, OTHERWISE LEAVE ALONE
                         rplConvertAngleObj(rplPeekData(1), angmode);
-                        WORDPTR newangle =
+                        word_p newangle =
                                 rplNewAngleFromReal(&RReg[0], angmode);
                         if(!newangle) {
                             DSTop = stacksave;
@@ -1489,7 +1489,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                     }
 
                     // REPLACE THE ELEMENT WITH THE NEW ANGLE
-                    WORDPTR oldelem = STACKELEM(i, j);
+                    word_p oldelem = STACKELEM(i, j);
                     STACKELEM(i, j) = rplPeekData(1);
 
                     // COMPUTE THE COS^2 OF THE ANGLE = 1-SIN^2 = 1-xn^2/(Rn^2*cosmult^2)
@@ -1502,7 +1502,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                     rplCallOvrOperator(CMD_OVR_MUL);
                     rplCallOvrOperator(CMD_OVR_DIV);
                     rplPushData(rplPeekData(1));
-                    rplOverwriteData(2, (WORDPTR) & one_bint);
+                    rplOverwriteData(2, (word_p) & one_bint);
                     rplCallOvrOperator(CMD_OVR_SUB);
 
                     if(Exceptions) {
@@ -1534,7 +1534,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
                             STACKELEM(i, 1) = rplPopData();
                             // AND RESET THE cosmult TO 1 SINCE ALL VALUES ARE ZERO AND
                             // THE FIRST VALUE DOESN'T NEED TO BE MODIFIED
-                            rplOverwriteData(2, (WORDPTR) one_bint);
+                            rplOverwriteData(2, (word_p) one_bint);
                             negcosine = 0;
                         }
                         else {
@@ -1600,7 +1600,7 @@ void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
 
 void rplMatrixAddPolar(int32_t negv2)
 {
-    WORDPTR *v1, *v2, *savestk = DSTop;
+    word_p *v1, *v2, *savestk = DSTop;
 
     v1 = DSTop - 2;
     v2 = DSTop - 1;
@@ -1649,7 +1649,7 @@ void rplMatrixAddPolar(int32_t negv2)
     int32_t angmode = rplMatrixPolarGetAngMode(*v1);
 
     rplPushData(*v1);
-    WORDPTR *firstv1 = rplMatrixExplode() - 1;  // EXPLODE V1
+    word_p *firstv1 = rplMatrixExplode() - 1;  // EXPLODE V1
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -1663,7 +1663,7 @@ void rplMatrixAddPolar(int32_t negv2)
     }
 
     rplPushData(*v2);
-    WORDPTR *firstv2 = rplMatrixExplode() - 1;  // EXPLODE V2
+    word_p *firstv2 = rplMatrixExplode() - 1;  // EXPLODE V2
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -1706,7 +1706,7 @@ void rplMatrixAddPolar(int32_t negv2)
         }
     }
 
-    WORDPTR newmat = rplMatrixCompose(rows1, cols1);
+    word_p newmat = rplMatrixCompose(rows1, cols1);
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -1727,10 +1727,10 @@ void rplMatrixNegPolar()
 {
     // CHECK DIMENSIONS
 
-    WORDPTR *matrix = DSTop - 1;
+    word_p *matrix = DSTop - 1;
     int32_t rows1 = MATROWS(*(*matrix + 1)), cols1 = MATCOLS(* (*matrix + 1));
     int32_t k, elem, negdone;
-    WORDPTR item;
+    word_p item;
 
     if(rows1 > 1) {
         if(cols1 != 1) {
@@ -1781,7 +1781,7 @@ void rplMatrixNegPolar()
 
             // HERE RReg[0] HAS THE REDUCED ANGLE
 
-            WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+            word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
             if(Exceptions) {
                 DSTop = matrix + 1;
                 return;
@@ -1807,7 +1807,7 @@ void rplMatrixNegPolar()
 
     // HERE WE HAVE A VECTOR WITH THE SAME FORMAT AS THE ORIGINAL
 
-    WORDPTR newvec = rplMatrixCompose(rows1, cols1);
+    word_p newvec = rplMatrixCompose(rows1, cols1);
     if(Exceptions) {
         DSTop = matrix + 1;
         return;
@@ -1825,7 +1825,7 @@ void rplMatrixNegPolar()
 // IF AN ELEMENT IS A MATRIX, IT IS EQUIVALENT TO MULTIPLE ROWS
 // ALL VECTORS AND MATRICES MUST HAVE THE SAME NUMBER OF COLUMNS
 
-WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
+word_p rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
 {
     int32_t rows, cols;
 
@@ -1840,7 +1840,7 @@ WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
 
 //   CHECK VALIDITY OF ALL ELEMENTS
     int32_t k, j, totalsize = 0, nelem = 0;
-    WORDPTR obj;
+    word_p obj;
 
     for(k = level; k < level + totalelements; ++k) {
         obj = rplPeekData(k);
@@ -1910,10 +1910,10 @@ WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
         return 0;
     }
 
-    WORDPTR matrix =
+    word_p matrix =
             rplAllocTempOb(totalsize + 1 + (rows ? rows * cols : cols));
-    WORDPTR newobj = matrix + 2 + (rows ? rows * cols : cols);  // POINT TO THE NEXT OBJECT TO STORE
-    WORDPTR firstobj = newobj, ptr;
+    word_p newobj = matrix + 2 + (rows ? rows * cols : cols);  // POINT TO THE NEXT OBJECT TO STORE
+    word_p firstobj = newobj, ptr;
 
     if(!matrix)
         return 0;
@@ -1978,7 +1978,7 @@ WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
 
 }
 
-int32_t rplMatrixIsAllowed(WORDPTR object)
+int32_t rplMatrixIsAllowed(word_p object)
 {
     if(!(ISNUMBERCPLX(*object)
                 || ISSYMBOLIC(*object)
@@ -1992,9 +1992,9 @@ int32_t rplMatrixIsAllowed(WORDPTR object)
 
 // PUSHES TRUE ON THE STACK IF ALL ELEMENTS IN A MATRIX AT LEVEL 1 ARE ZERO
 
-int32_t rplIsZeroMatrix(WORDPTR object)
+int32_t rplIsZeroMatrix(word_p object)
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -2022,7 +2022,7 @@ int32_t rplIsZeroMatrix(WORDPTR object)
             rplDropData(1);
             continue;
         }
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) zero_bint);
         rplCallOvrOperator(CMD_OVR_EQ);
         if(Exceptions) {
             DSTop = Savestk;
@@ -2097,7 +2097,7 @@ void rplMatrixEqual()
 
 void rplMatrixTranspose()
 {
-    WORDPTR *Savestk, *a;
+    word_p *Savestk, *a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk = DSTop;
@@ -2116,7 +2116,7 @@ void rplMatrixTranspose()
         DSTop = Savestk;
         return;
     }
-    WORDPTR newmat = rplMatrixCompose(colsa, rowsa);
+    word_p newmat = rplMatrixCompose(colsa, rowsa);
     DSTop = Savestk;
     if(Exceptions)
         return;
@@ -2126,7 +2126,7 @@ void rplMatrixTranspose()
 // COMPOSES A NEW MATRIX OBJECT FROM FILLED WITH GIVEN OBJECT
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
-WORDPTR rplMatrixFill(int32_t rows, int32_t cols, WORDPTR obj)
+word_p rplMatrixFill(int32_t rows, int32_t cols, word_p obj)
 {
     int32_t k, totalelements = (rows) ? rows * cols : cols;
 
@@ -2141,8 +2141,8 @@ WORDPTR rplMatrixFill(int32_t rows, int32_t cols, WORDPTR obj)
     }
 
     ScratchPointer1 = obj;
-    WORDPTR matrix = rplAllocTempOb(1 + totalelements + rplObjSize(obj));
-    WORDPTR newobj = matrix + 2 + totalelements;        // POINT TO THE NEXT OBJECT TO STORE
+    word_p matrix = rplAllocTempOb(1 + totalelements + rplObjSize(obj));
+    word_p newobj = matrix + 2 + totalelements;        // POINT TO THE NEXT OBJECT TO STORE
 
     if(!matrix)
         return 0;
@@ -2169,11 +2169,11 @@ WORDPTR rplMatrixFill(int32_t rows, int32_t cols, WORDPTR obj)
 // CREATE TEMPORARY STORAGE FOR ROW INDEX PERMUTATION VECTOR
 // USED IN PARTIAL PIVOTING
 
-WORDPTR rplMatrixInitIdx(int32_t nrows)
+word_p rplMatrixInitIdx(int32_t nrows)
 {
     // RESERVE SPACE FOR THE ROW INDEX LIST
 
-    WORDPTR IdxList = rplAllocTempOb(nrows);
+    word_p IdxList = rplAllocTempOb(nrows);
 
     if(!IdxList) {
         return 0;
@@ -2190,7 +2190,7 @@ WORDPTR rplMatrixInitIdx(int32_t nrows)
 
 // COMPOSES A NEW IDENTITY MATRIX OBJECT
 
-WORDPTR rplMatrixIdent(int32_t rows)
+word_p rplMatrixIdent(int32_t rows)
 {
     int32_t k;
 
@@ -2199,8 +2199,8 @@ WORDPTR rplMatrixIdent(int32_t rows)
         return 0;
     }
 
-    WORDPTR matrix = rplAllocTempOb(1 + rows * rows + 2);
-    WORDPTR newobj = matrix + 2 + rows * rows;  // POINT TO THE NEXT OBJECT TO STORE
+    word_p matrix = rplAllocTempOb(1 + rows * rows + 2);
+    word_p newobj = matrix + 2 + rows * rows;  // POINT TO THE NEXT OBJECT TO STORE
 
     if(!matrix)
         return 0;
@@ -2224,7 +2224,7 @@ WORDPTR rplMatrixIdent(int32_t rows)
 
 // COMPOSES A NEW ZERO MATRIX/VECTOR OBJECT
 
-WORDPTR rplMatrixZero(int32_t rows, int32_t cols)
+word_p rplMatrixZero(int32_t rows, int32_t cols)
 {
     int32_t k;
     if((rows < 0) || (rows > 65535) || (cols < 1) || (cols > 65535)) {
@@ -2236,8 +2236,8 @@ WORDPTR rplMatrixZero(int32_t rows, int32_t cols)
 
     if(isvector)
         rows = 1;
-    WORDPTR matrix = rplAllocTempOb(1 + rows * cols + 1);
-    WORDPTR newobj = matrix + 2 + rows * cols;  // POINT TO THE NEXT OBJECT TO STORE
+    word_p matrix = rplAllocTempOb(1 + rows * cols + 1);
+    word_p newobj = matrix + 2 + rows * cols;  // POINT TO THE NEXT OBJECT TO STORE
     if(!matrix)
         return 0;
 
@@ -2267,7 +2267,7 @@ WORDPTR rplMatrixZero(int32_t rows, int32_t cols)
 // [ ... ... qmm ... rmn ]
 // THE VECTOR ON THE STACK HAS [ rii ... rmm ]
 
-void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
+void rplMatrixQREx(word_p * a, int32_t rowsa, int32_t colsa)
 {
     int32_t i, j, k;
 
@@ -2293,8 +2293,8 @@ void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 #define VECTELEM(c) diagv[(c)]
 //   STORE THE EIGENVALUE VECTOR d ON THE STACK AS WELL
-    WORDPTR *diagv = DSTop;
-    WORDPTR vector = rplMatrixZero(0, rowsa);
+    word_p *diagv = DSTop;
+    word_p vector = rplMatrixZero(0, rowsa);
     if(!vector)
         return;
     rplPushDataNoGrow(vector);  // PLACEHOLDER FOR THE VECTOR OBJECT
@@ -2302,12 +2302,12 @@ void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
     if(Exceptions)
         return;
     for(k = 1; k <= rowsa; ++k)
-        rplPushDataNoGrow((WORDPTR) zero_bint); // ALL ELEMENTS OF THE VECTOR
+        rplPushDataNoGrow((word_p) zero_bint); // ALL ELEMENTS OF THE VECTOR
 
 //    for j:= 1 to n do begin
     for(j = 1; j <= colsa; ++j) {
         //     s:= 0;
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) zero_bint);
         //     for i:=j to m do s:=s+a2ij;
         for(i = j; i <= rowsa; ++i) {
             rplPushDataNoGrow(STACKELEM(i, j));
@@ -2385,7 +2385,7 @@ void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
         for(i = j + 1; i <= colsa; ++i) {
 
             //            s:= 0;
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
 
             //            for k:=j to m do s:=s+akj∗aki;
             for(k = j; k <= rowsa; ++k) {
@@ -2437,7 +2437,7 @@ void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa)
 // EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
 // RETURNS Q AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * diagv)
+word_p rplMatrixQRGetQ(word_p * a, int32_t rowsa, int32_t colsa, word_p * diagv)
 {
     UNUSED_ARGUMENT(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -2445,14 +2445,14 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 #define VECTELEM(c) diagv[(c)]
 #define ZELEM(r) z[(r)-1]
-    WORDPTR *stksave = DSTop, *z;
+    word_p *stksave = DSTop, *z;
     int32_t i, j, k;
 
     for(i = 1; i <= rowsa; ++i) {
 
         z = DSTop;
         for(k = 1; k <= rowsa; ++k) {
-            rplPushData((i == k) ? (WORDPTR) one_bint : (WORDPTR) zero_bint);
+            rplPushData((i == k) ? (word_p) one_bint : (word_p) zero_bint);
             if(Exceptions) {
                 DSTop = stksave;
                 return 0;
@@ -2460,7 +2460,7 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
         }
 
         for(j = colsa; j >= 1; --j) {
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
             for(k = j; k <= rowsa; ++k) {
                 rplPushDataNoGrow(STACKELEM(k, j));
                 rplPushDataNoGrow(ZELEM(k));
@@ -2514,7 +2514,7 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
 #undef VECTELEM
 #undef ZELEM
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, rowsa);
+    word_p newmat = rplMatrixCompose(rowsa, rowsa);
     if(!newmat) {
         DSTop = stksave;
         return 0;
@@ -2533,21 +2533,21 @@ WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
 // EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
 // RETURNS Q AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRGetR(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * diagv)
+word_p rplMatrixQRGetR(word_p * a, int32_t rowsa, int32_t colsa, word_p * diagv)
 {
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 #define VECTELEM(c) diagv[(c)]
 
-    WORDPTR *stksave = DSTop;
+    word_p *stksave = DSTop;
     int32_t i, j;
 
     for(i = 1; i <= rowsa; ++i) {
 
         for(j = 1; j <= colsa; ++j) {
             if(j < i)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else if(j == i)
                 rplPushData(VECTELEM(j));
             else
@@ -2563,7 +2563,7 @@ WORDPTR rplMatrixQRGetR(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
 #undef STACKELEM
 #undef VECTELEM
 
-    WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+    word_p newmat = rplMatrixCompose(rowsa, colsa);
     if(!newmat) {
         DSTop = stksave;
         return 0;
@@ -2581,7 +2581,7 @@ WORDPTR rplMatrixQRGetR(WORDPTR * a, int32_t rowsa, int32_t colsa, WORDPTR * dia
 // MATRIX MUST BE SQUARE OF nxn AND diag IS THE n ELEMENT DIAGONAL
 // RETURNS A(k+1) AS A MATRIX OBJECT
 
-WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv)
+word_p rplMatrixQRDoRQ(word_p * a, int32_t n, word_p * diagv)
 {
     UNUSED_ARGUMENT(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
@@ -2589,14 +2589,14 @@ WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv)
 #define STACKELEM(r,c) a[((r)-1)*n+(c)]
 #define VECTELEM(c) diagv[(c)]
 #define ZELEM(r) z[(r)-1]
-    WORDPTR *stksave = DSTop, *z;
+    word_p *stksave = DSTop, *z;
     int32_t i, j, k;
 
     for(i = 1; i <= n; ++i) {
 
         z = DSTop;
         for(k = 1; k <= n; ++k) {   // EXTRACT VECTORS FROM THE ROWS OF MATRIX R
-            if(k<i) rplPushData((WORDPTR) zero_bint);
+            if(k<i) rplPushData((word_p) zero_bint);
             else if(k>i) rplPushData(STACKELEM(i,k));
             else rplPushData(VECTELEM(i));
             if(Exceptions) {
@@ -2606,7 +2606,7 @@ WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv)
         }
 
         for(j = 1; j <= n; ++j) {       // PERFORM LOOP FOR QT*RT
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
             for(k = j; k <= n; ++k) {
                 rplPushDataNoGrow(STACKELEM(k, j));
                 rplPushDataNoGrow(ZELEM(k));
@@ -2660,7 +2660,7 @@ WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv)
 #undef VECTELEM
 #undef ZELEM
 
-    WORDPTR newmat = rplMatrixCompose(n, n);
+    word_p newmat = rplMatrixCompose(n, n);
     if(!newmat) {
         DSTop = stksave;
         return 0;

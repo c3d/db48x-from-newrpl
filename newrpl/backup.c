@@ -12,7 +12,7 @@
 // CONVERT A POINTER INTO A ROMPTR ID
 // IF IT FAILS, RETURNS 0
 
-uint64_t rplConvertToRomptrID(WORDPTR ptr)
+uint64_t rplConvertToRomptrID(word_p ptr)
 {
     int32_t libnum = MAXLIBNUMBER;
     int32_t SavedOpcode;
@@ -45,7 +45,7 @@ uint64_t rplConvertToRomptrID(WORDPTR ptr)
 // RETURNS 0 IF NOT A VALID ID
 // OR NOT RECOGNIZED BY ITS LIBRARIES
 
-WORDPTR rplConvertIDToPTR(uint64_t romptrid)
+word_p rplConvertIDToPTR(uint64_t romptrid)
 {
     if(!ISROMPTRID(romptrid))
         return 0;
@@ -90,7 +90,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     // GENERIC SECTIONS
     struct
     {
-        WORDPTR start;
+        word_p start;
         int32_t nitems;
         int32_t offwords;
     } sections[10];
@@ -102,7 +102,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
 
     k = 0;
     // TEMPBLOCKS
-    sections[k].start = (WORDPTR) TempBlocks;
+    sections[k].start = (word_p) TempBlocks;
     sections[k].nitems = TempBlocksEnd - TempBlocks;
     sections[k].offwords = offset;
 
@@ -110,7 +110,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     ++k;
 
     // TEMPOB
-    sections[k].start = (WORDPTR) TempOb;
+    sections[k].start = (word_p) TempOb;
     sections[k].nitems = TempObEnd - TempOb;
     sections[k].offwords = offset;
 
@@ -118,7 +118,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     ++k;
 
     // TEMPOB AFTER END
-    sections[k].start = (WORDPTR) TempObEnd;
+    sections[k].start = (word_p) TempObEnd;
     sections[k].nitems = TempObSize - TempObEnd;        // INCLUDE SPACE AFTER TEMPOBEND IN CASE THE BACKUP IS DONE DURING COMPILE/DECOMPILE
     sections[k].offwords = offset;
 
@@ -126,7 +126,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     ++k;
 
     // DIRECTORIES
-    sections[k].start = (WORDPTR) Directories;
+    sections[k].start = (word_p) Directories;
     sections[k].nitems = DirsTop - Directories;
     sections[k].offwords = offset;
 
@@ -134,7 +134,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     ++k;
 
     // SYSTEM POINTERS
-    sections[k].start = (WORDPTR) GC_PTRUpdate;
+    sections[k].start = (word_p) GC_PTRUpdate;
     sections[k].nitems = (MAX_GC_PTRUPDATE);
     sections[k].offwords = offset;
 
@@ -142,7 +142,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     ++k;
 
     // STACK
-    sections[k].start = (WORDPTR) DStk;
+    sections[k].start = (word_p) DStk;
     sections[k].nitems = (DSTop - DStk);
     sections[k].offwords = offset;
 
@@ -211,7 +211,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
     }
 
     // DUMP DIRECTORIES TO THE FILE
-    WORDPTR ptr;
+    word_p ptr;
     for(k = 0; k < sections[3].nitems; ++k) {
         ptr = Directories[k];
         if((ptr >= TempOb) && (ptr < TempObEnd)) {
@@ -275,7 +275,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
                 if(!id) {
                     // INVALID POINTER! THESE ARE NORMAL IN THIS ARE, NO BIG DEAL
                     // REPLACE WITH zero_bint FOR GOOD MEASURES
-                    id = rplConvertToRomptrID((WORDPTR) zero_bint);
+                    id = rplConvertToRomptrID((word_p) zero_bint);
                 }
             }
             if(!writefunc(id, OpaqueArgument))
@@ -324,7 +324,7 @@ int32_t rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArgument)
                 id = rplConvertToRomptrID(ptr);
 
                 if(!id)
-                    id = rplConvertToRomptrID((WORDPTR) zero_bint);
+                    id = rplConvertToRomptrID((word_p) zero_bint);
             }
 
             if(!writefunc(id, OpaqueArgument))
@@ -365,7 +365,7 @@ int32_t rplRestoreBackup(int32_t includestack, WORD(*readfunc) (void *),
     // GENERIC SECTIONS
     struct
     {
-        WORDPTR start;
+        word_p start;
         int32_t nitems;
         int32_t offwords;
     } sections[10];
@@ -425,11 +425,11 @@ int32_t rplRestoreBackup(int32_t includestack, WORD(*readfunc) (void *),
 
     // NOW DETERMINE THE POINTERS
 
-    sections[0].start = (WORDPTR) TempBlocks;
+    sections[0].start = (word_p) TempBlocks;
     sections[1].start = TempOb;
     sections[2].start = TempOb + sections[1].nitems;
-    sections[3].start = (WORDPTR) Directories;
-    sections[4].start = (WORDPTR) GC_PTRUpdate;
+    sections[3].start = (word_p) Directories;
+    sections[4].start = (word_p) GC_PTRUpdate;
 
     // RESIZE ALL SECTIONS TO THE REQUESTED SIZE
     if(sections[0].nitems + TEMPBLOCKSLACK > 1024)
@@ -638,7 +638,7 @@ int32_t rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
 
     // GENERIC SECTIONS
     struct {
-        WORDPTR start;
+        word_p start;
         int32_t nitems;
         int32_t offwords;
     } sections[10];
@@ -663,10 +663,10 @@ int32_t rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
 
     // NOW DETERMINE THE POINTERS
 
-    sections[0].start=(WORDPTR)TempBlocks;
+    sections[0].start=(word_p)TempBlocks;
     sections[1].start=TempOb;
     sections[2].start=TempOb+sections[1].nitems;
-    sections[3].start=(WORDPTR)Directories;
+    sections[3].start=(word_p)Directories;
 
     // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)
 

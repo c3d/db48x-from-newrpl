@@ -51,10 +51,10 @@ void compShowErrorMsg(char *inputfile, char *mainbuffer, FILE * stream)
     if(Exceptions != EX_ERRORCODE) {
         if(ExceptionPointer && (*ExceptionPointer != 0))        // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
-            WORDPTR cmdname = halGetCommandName(ExceptionPointer);
+            word_p cmdname = halGetCommandName(ExceptionPointer);
             if(cmdname) {
-                BYTEPTR start = (BYTEPTR) (cmdname + 1);
-                BYTEPTR end = start + rplStrSize(cmdname);
+                byte_p start = (byte_p) (cmdname + 1);
+                byte_p end = start + rplStrSize(cmdname);
 
                 fwrite(start, 1, end - start, stream);
 
@@ -67,7 +67,7 @@ void compShowErrorMsg(char *inputfile, char *mainbuffer, FILE * stream)
         {
             if(Exceptions & (1 << errbit)) {
                 ecode = MAKEMSG(0, errbit);
-                WORDPTR message = uiGetLibMsg(ecode);
+                word_p message = uiGetLibMsg(ecode);
                 fwrite((char *)(message + 1), 1, rplStrSize(message), stream);
                 break;
             }
@@ -77,17 +77,17 @@ void compShowErrorMsg(char *inputfile, char *mainbuffer, FILE * stream)
         // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
         if(ExceptionPointer && (*ExceptionPointer != 0))        // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
-            WORDPTR cmdname = halGetCommandName(ExceptionPointer);
+            word_p cmdname = halGetCommandName(ExceptionPointer);
             if(cmdname) {
-                BYTEPTR start = (BYTEPTR) (cmdname + 1);
-                BYTEPTR end = start + rplStrSize(cmdname);
+                byte_p start = (byte_p) (cmdname + 1);
+                byte_p end = start + rplStrSize(cmdname);
 
                 fwrite(start, 1, end - start, stream);
             }
         }
         fprintf(stream, " error: ");
         // TODO: GET NEW TRANSLATABLE MESSAGES
-        WORDPTR message = uiGetLibMsg(ErrorCode);
+        word_p message = uiGetLibMsg(ErrorCode);
         if(!message)
             fprintf(stream, " %d in library %d\n", ErrorCode & 0x7f,
                     LIBFROMMSG(ErrorCode));
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 
         if(end > start) {
 
-            WORDPTR newobject = rplCompile((BYTEPTR) start, end - start, 1);
+            word_p newobject = rplCompile((byte_p) start, end - start, 1);
 
             if(Exceptions) {
                 compShowErrorMsg(inputfile, mainbuffer, stderr);
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 
                     fprintf(f, "[]= {\n");
 
-                    WORDPTR p = newobject + 1, endp = rplSkipOb(newobject) - 1;
+                    word_p p = newobject + 1, endp = rplSkipOb(newobject) - 1;
 
                     int wordcount = 0;
                     while(p < endp) {
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
                                 }
 
                                 rplError(ERR_SYNTAXERROR);
-                                TokenStart = (WORDPTR) foundtext;
+                                TokenStart = (word_p) foundtext;
                                 compShowErrorMsg(inputfile, mainbuffer, stderr);
 
                             }

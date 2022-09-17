@@ -92,7 +92,7 @@ volatile int32_t usb_rxtotalbytes SYSTEM_GLOBAL;     // TOTAL BYTES ON THE FILE,
 int32_t usb_txtotalbytes SYSTEM_GLOBAL;      // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 int32_t usb_txseq SYSTEM_GLOBAL;     // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
-BYTEPTR usb_ctlbufptr SYSTEM_GLOBAL;      // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
+byte_p usb_ctlbufptr SYSTEM_GLOBAL;      // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
 int32_t usb_ctlcount SYSTEM_GLOBAL;  // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 int32_t usb_ctlpadding SYSTEM_GLOBAL;        // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
@@ -168,7 +168,7 @@ static WORD crctable[256] = {
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-WORD usb_crc32roll(WORD oldcrc, BYTEPTR data, int32_t len)
+WORD usb_crc32roll(WORD oldcrc, byte_p data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -538,7 +538,7 @@ void usb_ep2_receive()
 
     // READ PACKET TYPE
     int p_type = tmpbuf[0];
-    BYTEPTR rcvbuf;
+    byte_p rcvbuf;
 
     if(p_type & 0x80) {
         usb_mutex_lock();

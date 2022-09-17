@@ -11,7 +11,7 @@
 #ifdef TARGET_PC
 
 // NEWSIZE IS IN 32-BIT WORDS!
-WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
+word_p *halGrowMemory(int32_t zone, word_p * base, int32_t newsize)
 {
     UNUSED_ARGUMENT(zone);
 

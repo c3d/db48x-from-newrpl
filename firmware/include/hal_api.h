@@ -1077,13 +1077,13 @@ int         usb_hasdata();
 int         usb_waitfordata(int nbytes);
 
 int         usb_txfileopen(int file_type);
-int         usb_filewrite(int fileid, BYTEPTR data, int nbytes);
+int         usb_filewrite(int fileid, byte_p data, int nbytes);
 int         usb_txfileclose(int fileid);
 
 int         usb_rxfileopen();
 int         usb_rxbytesready(int fileid);
 int         usb_eof(int fileid);
-int         usb_fileread(int fileid, BYTEPTR dest, int nbytes);
+int         usb_fileread(int fileid, byte_p dest, int nbytes);
 int         usb_rxfileclose(int fileid);
 // file_type = 'O','B','W', OR 'D', SEE SPECS
 #define usb_filetype(fileid) ((fileid) >> 8)
@@ -1123,7 +1123,7 @@ int         usb_isconfigured();
 
 // HIGHER LEVEL MEMORY MANAGEMENT
 
-WORDPTR    *halGrowMemory(int32_t zone, WORDPTR *base, int32_t newsize);
+word_p    *halGrowMemory(int32_t zone, word_p *base, int32_t newsize);
 int         halGetFreePages();
 int         halGetTotalPages();
 int         halCheckMemoryMap();
@@ -1171,7 +1171,7 @@ int           halCheckSystemAlarm();
 
 // SCREEN FUNCTIONS
 void          halInitScreen();
-void          halSetupTheme(WORDPTR palette);
+void          halSetupTheme(word_p palette);
 void          halSetNotification(enum halNotification type, int color);
 int           halGetNotification(enum halNotification type);
 void          halShowErrorMsg();
@@ -1190,7 +1190,7 @@ void          halSetMenu1Height(int h);
 void          halSetMenu2Height(int h);
 
 // ERROR REPORTING AND MESSAGES
-WORDPTR       halGetCommandName(WORDPTR NameObject);
+word_p       halGetCommandName(word_p NameObject);
 
 // HIGHER LEVEL UI
 int32_t          halGetContext();
@@ -1233,19 +1233,19 @@ void           halDeferProcess(void (*function)(void));
 
 
 // RENDER CACHE EXTERNAL DATA
-extern WORDPTR halCacheContents[3 * MAX_RENDERCACHE_ENTRIES];
+extern word_p halCacheContents[3 * MAX_RENDERCACHE_ENTRIES];
 extern WORD    halCacheEntry;
 
 
 // RENDER
 
 void           uiClearRenderCache();
-void           uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
-void           uiUpdateOrAddCacheEntry(WORDPTR object, WORDPTR bitmap, const UNIFONT *font);
-WORDPTR        uiFindCacheEntry(WORDPTR object, const UNIFONT *font);
-void           uiDrawObject(WORDPTR object, gglsurface *scr, const UNIFONT *font);
-WORDPTR        uiRenderObject(WORDPTR object, const UNIFONT *font);
-void           uiDrawBitmap(WORDPTR bmp, gglsurface *scr);
+void           uiAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
+void           uiUpdateOrAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
+word_p        uiFindCacheEntry(word_p object, const UNIFONT *font);
+void           uiDrawObject(word_p object, gglsurface *scr, const UNIFONT *font);
+word_p        uiRenderObject(word_p object, const UNIFONT *font);
+void           uiDrawBitmap(word_p bmp, gglsurface *scr);
 
 
 RECORDER_DECLARE(hal_api);

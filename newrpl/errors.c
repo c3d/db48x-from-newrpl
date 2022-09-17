@@ -24,25 +24,25 @@ void decTrapHandler(int32_t error)
 
 // SET THE HANDLER THAT WILL TRAP EXCEPTIONS
 
-void rplSetExceptionHandler(WORDPTR Handler)
+void rplSetExceptionHandler(word_p Handler)
 {
     // SAVE CURRENT ERROR HANDLERS
     if(!ErrorHandler)
-        rplPushRet((WORDPTR) nullptr_catastrophic_seco);
+        rplPushRet((word_p) nullptr_catastrophic_seco);
     else
-        rplPushRet((WORDPTR) ErrorHandler);
+        rplPushRet((word_p) ErrorHandler);
     if(!ErrorRSTop)
-        rplPushRet((WORDPTR) nullptr_catastrophic_seco);
+        rplPushRet((word_p) nullptr_catastrophic_seco);
     else
-        rplPushRet((WORDPTR) ErrorRSTop);
+        rplPushRet((word_p) ErrorRSTop);
     if(!ErrorLAMTop)
-        rplPushRet((WORDPTR) nullptr_catastrophic_seco);
+        rplPushRet((word_p) nullptr_catastrophic_seco);
     else
-        rplPushRet((WORDPTR) ErrorLAMTop);
+        rplPushRet((word_p) ErrorLAMTop);
     if(!ErrornLAMBase)
-        rplPushRet((WORDPTR) nullptr_catastrophic_seco);
+        rplPushRet((word_p) nullptr_catastrophic_seco);
     else
-        rplPushRet((WORDPTR) ErrornLAMBase);
+        rplPushRet((word_p) ErrornLAMBase);
 
     ErrorHandler = Handler;
     ErrorLAMTop = LAMTop;
@@ -63,18 +63,18 @@ void rplRemoveExceptionHandler()
     RSTop = ErrorRSTop;
 
     // RESTORE OLD ERROR HANDLER POINTERS
-    ErrornLAMBase = (WORDPTR *) rplPopRet();
-    ErrorLAMTop = (WORDPTR *) rplPopRet();
-    ErrorRSTop = (WORDPTR *) rplPopRet();
-    ErrorHandler = (WORDPTR) rplPopRet();
+    ErrornLAMBase = (word_p *) rplPopRet();
+    ErrorLAMTop = (word_p *) rplPopRet();
+    ErrorRSTop = (word_p *) rplPopRet();
+    ErrorHandler = (word_p) rplPopRet();
 
-    if(ErrorHandler == (WORDPTR) nullptr_catastrophic_seco)
+    if(ErrorHandler == (word_p) nullptr_catastrophic_seco)
         ErrorHandler = 0;
-    if(ErrorLAMTop == (WORDPTR *) nullptr_catastrophic_seco)
+    if(ErrorLAMTop == (word_p *) nullptr_catastrophic_seco)
         ErrorLAMTop = 0;
-    if(ErrorRSTop == (WORDPTR *) nullptr_catastrophic_seco)
+    if(ErrorRSTop == (word_p *) nullptr_catastrophic_seco)
         ErrorRSTop = 0;
-    if(ErrornLAMBase == (WORDPTR *) nullptr_catastrophic_seco)
+    if(ErrornLAMBase == (word_p *) nullptr_catastrophic_seco)
         ErrornLAMBase = 0;
 
 }
@@ -91,7 +91,7 @@ void rplCatchException()
     // DO NOT CLEANUP ANYTHING OR REMOVE THE HANDLER
     rplProtectData();   // PROTECT THE USER DATA STACK WITHIN THE ERROR HANDLER
     rplPushRet(IPtr);   // PUSH THE OFFENDING OPCODE TO RESUME AFTER THE ERROR HANDLER FINISHED
-    rplSetExceptionHandler((WORDPTR) error_reenter_seco);
+    rplSetExceptionHandler((word_p) error_reenter_seco);
 
     IPtr = rplPeekRet(4) - 1; /*=ErrorHandler (original)*/ ;
     CurOpcode = 0;
@@ -132,7 +132,7 @@ void rplBlameUserCommand()
 {
     int32_t depth = rplDepthRet();
     int32_t idx = 1;
-    WORDPTR cmdpointer = ExceptionPointer;
+    word_p cmdpointer = ExceptionPointer;
 
     while(!rplIsTempObPointer(cmdpointer) && (idx <= depth)) {
         cmdpointer = rplPeekRet(idx);
@@ -145,7 +145,7 @@ void rplBlameUserCommand()
 }
 
 // BLAMES AN ERROR TO THE GIVEN COMMAND (WITHIN A USER PROGRAM OR OBJECT)
-void rplBlameError(WORDPTR command)
+void rplBlameError(word_p command)
 {
     ExceptionPointer = command;
 }

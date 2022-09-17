@@ -103,7 +103,7 @@ extern volatile int32_t usb_rxtotalbytes;        // TOTAL BYTES ON THE FILE, 0 M
 extern int32_t usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 extern int32_t usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
-extern BYTEPTR usb_ctlbufptr; // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
+extern byte_p usb_ctlbufptr; // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
 extern int32_t usb_ctlcount;     // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 extern int32_t usb_ctlpadding;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 
@@ -118,7 +118,7 @@ extern const WORD const crctable[256];
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 #define RAM_CRCTABLE RReg[9].data
 
-ARM_MODE WORD ramusb_crc32roll(WORD oldcrc, BYTEPTR data, int32_t len)
+ARM_MODE WORD ramusb_crc32roll(WORD oldcrc, byte_p data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -388,7 +388,7 @@ ARM_MODE void ramep0_irqservice()
                     if((descriptor_list[k].wValue == value)
                             && (descriptor_list[k].wIndex == index)) {
                         // FOUND THE REQUESTED DESCRIPTOR
-                        usb_ctlbufptr = (BYTEPTR) descriptor_list[k].addr;
+                        usb_ctlbufptr = (byte_p) descriptor_list[k].addr;
                         if(length < descriptor_list[k].length) {
                             usb_ctlcount = length;
                             usb_ctlpadding = 0;
@@ -414,7 +414,7 @@ ARM_MODE void ramep0_irqservice()
 
                     // COPY THE SERIAL NUMBER - EXPAND ASCII TO UTF-16
                     int n;
-                    BYTEPTR ptr = (BYTEPTR) SERIAL_NUMBER_ADDRESS;
+                    byte_p ptr = (byte_p) SERIAL_NUMBER_ADDRESS;
                     for(n = 0; n < 10; ++n, ++ptr) {
                         usb_ctlbuffer[2 + 2 * n] = *ptr;
                         usb_ctlbuffer[3 + 2 * n] = 0;
@@ -935,7 +935,7 @@ ARM_MODE void ramusb_ep2_receive()
 
     // READ PACKET TYPE
     int p_type = *EP2_FIFO;
-    BYTEPTR rcvbuf;
+    byte_p rcvbuf;
 
     if(p_type & 0x80) {
         // THIS IS A CONTROL PACKET
@@ -1495,7 +1495,7 @@ ARM_MODE int ramusb_rxbytesready(int fileid)
 }
 
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
-ARM_MODE int ramusb_fileread(int fileid, BYTEPTR dest, int nbytes)
+ARM_MODE int ramusb_fileread(int fileid, byte_p dest, int nbytes)
 {
     if(fileid != (int)usb_fileid)
         return 0;
@@ -1671,7 +1671,7 @@ ARM_MODE void ram_doreset()
 
 // ERASE FLASH AREA BETWEEN GIVEN ADDRESSES (IN 32-BIT WORDS)
 
-ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
+ARM_MODE void ram_flasherase(word_p address, int nwords)
 {
     volatile uint16_t *ptr = (uint16_t *) (((WORD) address) & ~(FLASH_SECTORSIZE - 1)); // FIND START OF SECTOR
     nwords += (((WORD) address) & (FLASH_SECTORSIZE - 1)) >> 2; // CORRECTION FOR MISALIGNED SECTORS
@@ -1722,7 +1722,7 @@ ARM_MODE void ram_flasherase(WORDPTR address, int nwords)
 
 // PROGRAM A 32-BIT WORD INTO FLASH
 
-ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
+ARM_MODE void ram_flashprogramword(word_p address, WORD value)
 {
 
     volatile uint16_t *ptr = (uint16_t *) address;
@@ -1787,7 +1787,7 @@ ARM_MODE void ram_flashprogramword(WORDPTR address, WORD value)
 ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 {
     int pass = 1, result, fileid;
-    WORDPTR flash_address;
+    word_p flash_address;
     WORD flash_nwords, data;
     WORD receivedwords;
 
@@ -1809,7 +1809,7 @@ ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 // THIS WAY WE AVOID IRQS DURING FLASHING
         receivedwords = (ramusb_waitfordata(6000) + 3) >> 2;
 
-        if(ramusb_fileread(fileid, (BYTEPTR) & data, 4) < 4) {
+        if(ramusb_fileread(fileid, (byte_p) & data, 4) < 4) {
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
@@ -1817,11 +1817,11 @@ ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
-        if(ramusb_fileread(fileid, (BYTEPTR) & flash_address, 4) < 4) {
+        if(ramusb_fileread(fileid, (byte_p) & flash_address, 4) < 4) {
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
-        if(ramusb_fileread(fileid, (BYTEPTR) & flash_nwords, 4) < 4) {
+        if(ramusb_fileread(fileid, (byte_p) & flash_nwords, 4) < 4) {
             ram_doreset();
         }
 
@@ -1877,7 +1877,7 @@ ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 // ERASE THE FLASH
         ram_flasherase(flash_address, flash_nwords);    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
 
-        WORDPTR dataptr = (WORDPTR) (usb_rxtxbuffer + usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
+        word_p dataptr = (word_p) (usb_rxtxbuffer + usb_rxtxbottom);      // THIS POINTS TO THE NEXT BYTE TO READ
 
         while(flash_nwords--) {
             ram_flashprogramword(flash_address, *dataptr);
@@ -1938,9 +1938,9 @@ ARM_MODE void ram_startfwupdate()
     // NOW COPY THE CODE TO RAM
 
     int needwords =
-            (WORDPTR) & ram_startfwupdate - (WORDPTR) & ramusb_crc32roll;
+            (word_p) & ram_startfwupdate - (word_p) & ramusb_crc32roll;
 
-    WORDPTR codeblock = (WORDPTR) scratch_buffer;     // STORE CODE ON TOP OF THE STACK
+    word_p codeblock = (word_p) scratch_buffer;     // STORE CODE ON TOP OF THE STACK
 
     memmovew(codeblock, &ramusb_crc32roll, needwords);
 
@@ -1956,24 +1956,24 @@ ARM_MODE void ram_startfwupdate()
 
     // MOVE MAIN ISR TO RAM AS WELL
     *((unsigned int *)0x08000018) =
-            (unsigned int)(codeblock + ((WORDPTR) & ramirq_service -
-                (WORDPTR) & ramusb_crc32roll));
+            (unsigned int)(codeblock + ((word_p) & ramirq_service -
+                (word_p) & ramusb_crc32roll));
 
     // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
     cpu_flushicache();
 
     // SET INTERRUPT HANDLER IN RAM
     irq_addhook(25,
-            (void *)(codeblock + ((WORDPTR) & ramusb_irqservice -
-                    (WORDPTR) & ramusb_crc32roll)));
+            (void *)(codeblock + ((word_p) & ramusb_irqservice -
+                    (word_p) & ramusb_crc32roll)));
 
     // UNMASK ONLY THE ONE INTERRUPT WE NEED
     irq_unmask(25);
 
     void (*ptr)(int);
 
-    ptr = (void *)(codeblock + ((WORDPTR) & ram_receiveandflashfw -
-                (WORDPTR) & ramusb_crc32roll));
+    ptr = (void *)(codeblock + ((word_p) & ram_receiveandflashfw -
+                (word_p) & ramusb_crc32roll));
 
     (ptr) (flashsize);
 

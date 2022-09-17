@@ -475,7 +475,7 @@ int usb_waitfordata(int nbytes)
 }
 
 // HIGH LEVEL FUNCTION TO ACCESS A BLOCK OF DATA
-BYTEPTR usb_accessdata(int *datasize)
+byte_p usb_accessdata(int *datasize)
 {
     int bytes;
     if((usb_drvstatus & USB_STATUS_RXDATA)
@@ -607,7 +607,7 @@ int usb_txfileopen(int file_type)
 
 // WRITE BYTES TO A FILE BEING SENT
 
-int usb_filewrite(int fileid, BYTEPTR data, int nbytes)
+int usb_filewrite(int fileid, byte_p data, int nbytes)
 {
     if(fileid != usb_fileid)
         return 0;
@@ -762,7 +762,7 @@ int usb_rxbytesready(int fileid)
 }
 
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
-int usb_fileread(int fileid, BYTEPTR dest, int nbytes)
+int usb_fileread(int fileid, byte_p dest, int nbytes)
 {
     if(fileid != (int)usb_fileid)
         return 0;

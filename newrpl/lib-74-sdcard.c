@@ -108,10 +108,10 @@ INCLUDE_ROMOBJECT(lib74_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib74_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib74_menu,
     0
 };
 
@@ -150,10 +150,10 @@ int32_t rplFSError2Error(int32_t err)
     }
 }
 
-int32_t rplPathFromList(BYTEPTR path, WORDPTR list)
+int32_t rplPathFromList(byte_p path, word_p list)
 {
-    WORDPTR ptr = list + 1;
-    WORDPTR eol = rplSkipOb(list);
+    word_p ptr = list + 1;
+    word_p eol = rplSkipOb(list);
     int off = 0;
 
     while((*ptr != CMD_ENDLIST) && (ptr < eol)) {
@@ -177,7 +177,7 @@ int32_t rplPathFromList(BYTEPTR path, WORDPTR list)
                 return 0;
             }
         }
-        BYTEPTR strptr = (BYTEPTR) (ptr + 1);
+        byte_p strptr = (byte_p) (ptr + 1);
         memcpyb(path + off, strptr, len);
         off += len;
         ptr = rplSkipOb(ptr);
@@ -192,7 +192,7 @@ int rplSDArchiveWriteWord(unsigned int data, void *opaque)
 {
 
     FS_FILE *file = (FS_FILE *) opaque;
-    if(FSWrite((BYTEPTR) & data, 4, file) != 4)
+    if(FSWrite((byte_p) & data, 4, file) != 4)
         return 0;
     return 1;
 }
@@ -202,7 +202,7 @@ WORD rplSDArchiveReadWord(void *opaque)
     WORD data;
     FS_FILE *file = (FS_FILE *) opaque;
 
-    if(FSRead((BYTEPTR) & data, 4, file) != 4)
+    if(FSRead((byte_p) & data, 4, file) != 4)
         return 0;
     return data;
 }
@@ -319,7 +319,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -395,7 +395,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -457,13 +457,13 @@ void LIB_HANDLER()
                 rplError(ERR_NOTANRPLFILE);
                 return;
             }
-            int32_t objsize = rplObjSize((WORDPTR) RReg[0].data);
+            int32_t objsize = rplObjSize((word_p) RReg[0].data);
             if(objsize * (int32_t) sizeof(WORD) < objlen) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
             }
-            WORDPTR newobj = rplAllocTempOb(objsize - 1);
+            word_p newobj = rplAllocTempOb(objsize - 1);
             if(!newobj) {
                 FSClose(objfile);
                 return;
@@ -511,7 +511,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -588,7 +588,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -649,7 +649,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -710,7 +710,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -771,7 +771,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -835,7 +835,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -901,7 +901,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -965,7 +965,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -1073,7 +1073,7 @@ void LIB_HANDLER()
         int64_t num = rplReadint32_t(rplPeekData(1));
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(2));
         int32_t bufsize = REAL_REGISTER_STORAGE * 4;
-        BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data;
+        byte_p tmpbuf = (byte_p) RReg[0].data;
         int64_t currentpos;
         if(Exceptions)
             return;
@@ -1107,12 +1107,12 @@ void LIB_HANDLER()
 
             readblock += bufused;
 
-            BYTEPTR lastgood, ptr;
-            lastgood = (BYTEPTR) utf8rskipst((char *)tmpbuf + readblock, (char *)tmpbuf);       // FIND THE LAST GOOD UNICODE CODE POINT STARTER, MIGHT BE INCOMPLETE!
+            byte_p lastgood, ptr;
+            lastgood = (byte_p) utf8rskipst((char *)tmpbuf + readblock, (char *)tmpbuf);       // FIND THE LAST GOOD UNICODE CODE POINT STARTER, MIGHT BE INCOMPLETE!
 
             ptr = tmpbuf;
             while((charcount < nchars) && (ptr < lastgood)) {
-                ptr = (BYTEPTR) utf8skipst((char *)ptr, (char *)lastgood);      // SKIP AND COUNT ONE CHARACTER
+                ptr = (byte_p) utf8skipst((char *)ptr, (char *)lastgood);      // SKIP AND COUNT ONE CHARACTER
                 ++charcount;
             }
 
@@ -1128,7 +1128,7 @@ void LIB_HANDLER()
                 }
 
                 // WE HAVE THEM ALL!
-                WORDPTR newstring = rplAllocTempOb((bytecount + 3) >> 2);
+                word_p newstring = rplAllocTempOb((bytecount + 3) >> 2);
                 if(!newstring) {
                     return;
                 }
@@ -1193,7 +1193,7 @@ void LIB_HANDLER()
         }
 
         int64_t num = rplReadint32_t(rplPeekData(1));
-        BYTEPTR stringstart = (BYTEPTR) (rplPeekData(2) + 1);
+        byte_p stringstart = (byte_p) (rplPeekData(2) + 1);
         int32_t nbytes = rplStrSize(rplPeekData(2));
 
         FS_FILE *handle;
@@ -1244,7 +1244,7 @@ void LIB_HANDLER()
         int64_t num = rplReadint32_t(rplPeekData(1));
 
         int32_t bufsize = REAL_REGISTER_STORAGE * 4, readblock;
-        BYTEPTR tmpbuf = (BYTEPTR) RReg[0].data, ptr;
+        byte_p tmpbuf = (byte_p) RReg[0].data, ptr;
         int64_t currentpos, bytecount;
         if(Exceptions)
             return;
@@ -1290,7 +1290,7 @@ void LIB_HANDLER()
         }
         while(!FSEof(handle));
 
-        WORDPTR newstring = rplAllocTempOb((bytecount + 3) >> 2);
+        word_p newstring = rplAllocTempOb((bytecount + 3) >> 2);
         if(!newstring) {
             return;
         }
@@ -1489,7 +1489,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -1600,10 +1600,10 @@ void LIB_HANDLER()
 
         // PUT THE DATA ON A LIST
 
-        WORDPTR *dsave = DSTop;
-        WORDPTR newobj =
-                rplCreateString((BYTEPTR) entry.Name,
-                (BYTEPTR) entry.Name + stringlen(entry.Name));
+        word_p *dsave = DSTop;
+        word_p newobj =
+                rplCreateString((byte_p) entry.Name,
+                (byte_p) entry.Name + stringlen(entry.Name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1716,10 +1716,10 @@ void LIB_HANDLER()
 
         // PUT THE DATA ON A LIST
 
-        WORDPTR *dsave = DSTop;
-        WORDPTR newobj =
-                rplCreateString((BYTEPTR) entry.Name,
-                (BYTEPTR) entry.Name + stringlen(entry.Name));
+        word_p *dsave = DSTop;
+        word_p newobj =
+                rplCreateString((byte_p) entry.Name,
+                (byte_p) entry.Name + stringlen(entry.Name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1853,10 +1853,10 @@ void LIB_HANDLER()
 
         // PUT THE DATA ON A LIST
 
-        WORDPTR *dsave = DSTop;
-        WORDPTR newobj =
-                rplCreateString((BYTEPTR) entry.Name,
-                (BYTEPTR) entry.Name + stringlen(entry.Name));
+        word_p *dsave = DSTop;
+        word_p newobj =
+                rplCreateString((byte_p) entry.Name,
+                (byte_p) entry.Name + stringlen(entry.Name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1946,8 +1946,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR pathfrom = (BYTEPTR) RReg[0].data;
-        BYTEPTR pathto = (BYTEPTR) RReg[1].data;
+        byte_p pathfrom = (byte_p) RReg[0].data;
+        byte_p pathto = (byte_p) RReg[1].data;
 
         if(ISIDENT(*rplPeekData(1))) {
             int32_t pathlen = rplGetIdentLength(rplPeekData(1));
@@ -2088,8 +2088,8 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR pathfrom = (BYTEPTR) RReg[0].data;
-        BYTEPTR pathto = (BYTEPTR) RReg[1].data;
+        byte_p pathfrom = (byte_p) RReg[0].data;
+        byte_p pathto = (byte_p) RReg[1].data;
 
         if(ISIDENT(*rplPeekData(1))) {
             int32_t pathlen = rplGetIdentLength(rplPeekData(1));
@@ -2168,7 +2168,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) FSGetcwd(cvol), endpath;
+        byte_p path = (byte_p) FSGetcwd(cvol), endpath;
         if(!path) {
             rplError(ERR_UNKNOWNFSERROR);
             return;
@@ -2176,7 +2176,7 @@ void LIB_HANDLER()
         endpath = path;
         while(*endpath)
             ++endpath;
-        WORDPTR newstring = rplCreateString(path, endpath);
+        word_p newstring = rplCreateString(path, endpath);
 
         if(!newstring)
             return;
@@ -2231,7 +2231,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -2273,17 +2273,17 @@ void LIB_HANDLER()
         }
 
         // ALSO PACK AND SAVE THE STACK
-        WORDPTR stklist = 0;
+        word_p stklist = 0;
 
         if(rplDepthData() > 1)
             stklist = rplCreateListN(rplDepthData() - 1, 2, 0);
         // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
         if(stklist) {
             rplListAutoExpand(stklist);
-            rplStoreSettings((WORDPTR) stksave_ident, stklist);
+            rplStoreSettings((word_p) stksave_ident, stklist);
         }
         else
-            rplPurgeSettings((WORDPTR) stksave_ident);
+            rplPurgeSettings((word_p) stksave_ident);
 
         err = rplBackup(&rplSDArchiveWriteWord, (void *)objfile);
 
@@ -2316,7 +2316,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BYTEPTR path = (BYTEPTR) RReg[0].data;
+        byte_p path = (byte_p) RReg[0].data;
 
         // USE RReg[0] TO STORE THE FILE PATH
 
@@ -2511,7 +2511,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2519,7 +2519,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2559,7 +2559,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2568,12 +2568,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

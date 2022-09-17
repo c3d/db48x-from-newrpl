@@ -430,7 +430,7 @@ static const WORD const crctable[256] = {
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-static WORD crc32(WORD oldcrc, BYTEPTR data, int32_t len)
+static WORD crc32(WORD oldcrc, byte_p data, int32_t len)
 {
     WORD crc = oldcrc ^ 0xffffffff;
     while(len--)
@@ -471,7 +471,7 @@ static WORD crc32(WORD oldcrc, BYTEPTR data, int32_t len)
 
 #define MMU_TOTAL_TABLE_SIZE    (MMU_TABLE_END-MMU_REVERSE_TABLE_ADDR)
 
-#define COMPUTE_MMU_CRC()  crc32(0,(BYTEPTR)MMU_REVERSE_TABLE_ADDR,MMU_TOTAL_TABLE_SIZE)
+#define COMPUTE_MMU_CRC()  crc32(0,(byte_p)MMU_REVERSE_TABLE_ADDR,MMU_TOTAL_TABLE_SIZE)
 
 ARM_MODE int check_and_create_mmu_tables(WORD oldcrc32);
 int check_and_create_mmu_tables(WORD oldcrc32)

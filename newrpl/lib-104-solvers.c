@@ -66,12 +66,12 @@ INCLUDE_ROMOBJECT(lib104_ROOT);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib104_menu,
-    (WORDPTR) lib104_TVMmenu,
-    (WORDPTR) lib104_ROOT,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib104_menu,
+    (word_p) lib104_TVMmenu,
+    (word_p) lib104_ROOT,
     0
 };
 
@@ -156,14 +156,14 @@ void LIB_HANDLER()
                 rplError(ERR_INVALIDSYMBFUNCTION);
                 return;
             }
-            WORDPTR leftpart = rplSymbMainOperatorPTR(rplPeekData(4)) + 1;
+            word_p leftpart = rplSymbMainOperatorPTR(rplPeekData(4)) + 1;
             if(ISSYMBOLIC(*leftpart)) {
                 if(rplSymbMainOperator(leftpart) != CMD_OVR_FUNCEVAL) {
                     rplError(ERR_INVALIDSYMBFUNCTION);
                     return;
                 }
                 // COUNT NUMBER OF ARGUMENTS
-                WORDPTR end = rplSkipOb(leftpart);
+                word_p end = rplSkipOb(leftpart);
                 int32_t nargs = 0;
                 leftpart = rplSymbMainOperatorPTR(leftpart) + 1;
                 while(leftpart < end) {
@@ -197,7 +197,7 @@ void LIB_HANDLER()
         rplOverwriteData(2, rplConstant2Number(rplPeekData(2)));
         rplOverwriteData(3, rplConstant2Number(rplPeekData(3)));
 
-        WORDPTR *dstkptr = DSTop;
+        word_p *dstkptr = DSTop;
 
 #define ARG_USERFUNC  *(dstkptr-4)
 #define ARG_A   *(dstkptr-3)
@@ -205,7 +205,7 @@ void LIB_HANDLER()
 #define ARG_ERROR *(dstkptr-1)
 
 #define TOTAL_AREA *dstkptr
-        rplPushDataNoGrow((WORDPTR) zero_bint); // INITIAL AREA = 0
+        rplPushDataNoGrow((word_p) zero_bint); // INITIAL AREA = 0
 
         // PREPARE FOR MAIN LOOP
         // MAIN LOOP NEEDS ERR A B C FA FB FC AREA ON THE STACK
@@ -225,7 +225,7 @@ void LIB_HANDLER()
             DSTop = dstkptr;
             return;
         }
-        rplPushData((WORDPTR) one_half_real);
+        rplPushData((word_p) one_half_real);
         rplCallOvrOperator(CMD_OVR_MUL);        // C=(A+B)/2
         if(Exceptions) {
             DSTop = dstkptr;
@@ -256,7 +256,7 @@ void LIB_HANDLER()
         // COMPUTE INITIAL AREA APPROXIMATION
         // AREA = (F(A)+F(B)+4*F(C))*(B-A)/6
         rplPushData(rplPeekData(1));
-        rplPushData((WORDPTR) four_bint);
+        rplPushData((word_p) four_bint);
         rplCallOvrOperator(CMD_OVR_MUL);        // 4*F(C)
         if(Exceptions) {
             DSTop = dstkptr;
@@ -288,7 +288,7 @@ void LIB_HANDLER()
             DSTop = dstkptr;
             return;
         }
-        rplPushData((WORDPTR) six_bint);
+        rplPushData((word_p) six_bint);
         rplCallOvrOperator(CMD_OVR_DIV);        // AREA = (F(A)+F(B)+4*F(C)) * (B-A)/6
 
         rplPushData(rplPeekData(6));    // B
@@ -304,7 +304,7 @@ void LIB_HANDLER()
         // MAIN LOOP NEEDS: ERR A B C FA FB FC AREA H_12
 
         while(DSTop > dstkptr + 1) {
-            WORDPTR *argbase = DSTop - 9;
+            word_p *argbase = DSTop - 9;
 
 #define     L_ERR argbase[0]
 #define     L_A   argbase[1]
@@ -325,7 +325,7 @@ void LIB_HANDLER()
                 DSTop = dstkptr;
                 return;
             }
-            rplPushData((WORDPTR) one_half_real);
+            rplPushData((word_p) one_half_real);
             rplCallOvrOperator(CMD_OVR_MUL);
 
             // F(D)
@@ -344,7 +344,7 @@ void LIB_HANDLER()
                 DSTop = dstkptr;
                 return;
             }
-            rplPushData((WORDPTR) one_half_real);
+            rplPushData((word_p) one_half_real);
             rplCallOvrOperator(CMD_OVR_MUL);
 
             // F(E)
@@ -357,7 +357,7 @@ void LIB_HANDLER()
 
             // AREA_L=(F(A)+4*F(D)+F(C))*(B-A)/12
             rplPushData(rplPeekData(3));        // F(D)
-            rplPushData((WORDPTR) four_bint);
+            rplPushData((word_p) four_bint);
             rplCallOvrOperator(CMD_OVR_MUL);
             if(Exceptions) {
                 DSTop = dstkptr;
@@ -385,7 +385,7 @@ void LIB_HANDLER()
 
             // AREA_R=(F(C)+4*F(E)+F(B))*(B-A)/12
             rplPushData(rplPeekData(2));        // F(E)
-            rplPushData((WORDPTR) four_bint);
+            rplPushData((word_p) four_bint);
             rplCallOvrOperator(CMD_OVR_MUL);
             if(Exceptions) {
                 DSTop = dstkptr;
@@ -455,12 +455,12 @@ void LIB_HANDLER()
 
                 rplOverwriteData(1, L_ERR);
                 // *** TESTING: DO NOT HALVE THE ERROR EACH TIME
-                //plPushData((WORDPTR)one_half_real);
+                //plPushData((word_p)one_half_real);
                 //rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
                 //if(Exceptions) { DSTop=dstkptr;  return; }
 
                 rplPushData(L_H_12);
-                rplPushData((WORDPTR) one_half_real);
+                rplPushData((word_p) one_half_real);
                 rplCallOvrOperator(CMD_OVR_MUL);        // PUSH L_H_12/2
                 if(Exceptions) {
                     DSTop = dstkptr;
@@ -574,7 +574,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *dstkptr = DSTop;
+        word_p *dstkptr = DSTop;
 
 #define ARG_USERFUNC  *(dstkptr-4)
 #define ARG_A   *(dstkptr-3)
@@ -599,7 +599,7 @@ void LIB_HANDLER()
 
         if(rplIsFalse(rplPopData())) {
             // SWAP POINTS A AND B
-            WORDPTR tmp;
+            word_p tmp;
             tmp = ARG_A;
             ARG_A = ARG_B;
             ARG_B = tmp;
@@ -810,12 +810,12 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *listmin = DSTop - 3;
-        WORDPTR *listmax = DSTop - 2;
-        WORDPTR *listofeq = DSTop - 5;
-        WORDPTR *listofvars = DSTop - 4;
-        WORDPTR *toler = DSTop - 1;
-        WORDPTR *stksave = DSTop, *pointarray = DSTop;
+        word_p *listmin = DSTop - 3;
+        word_p *listmax = DSTop - 2;
+        word_p *listofeq = DSTop - 5;
+        word_p *listofvars = DSTop - 4;
+        word_p *toler = DSTop - 1;
+        word_p *stksave = DSTop, *pointarray = DSTop;
 
         int32_t nvars = rplListLength(*listofvars), i, j;
 
@@ -825,7 +825,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR vptr = rplGetListElement(*listofvars, 1), minptr =
+        word_p vptr = rplGetListElement(*listofvars, 1), minptr =
                 rplGetListElement(*listmin, 1), maxptr =
                 rplGetListElement(*listmax, 1);
 
@@ -970,7 +970,7 @@ void LIB_HANDLER()
 
 
             // NOW CREATE THE POINT VECTOR
-            WORDPTR newpoint = rplCreateListN(nvars + 1, 1, 1);
+            word_p newpoint = rplCreateListN(nvars + 1, 1, 1);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1018,7 +1018,7 @@ void LIB_HANDLER()
                             nvars + 1), &x2);
                 if(ltReal(&x1, &x2)) {
                     // SWAP
-                    WORDPTR tmp = rplPeekData(j + 1);
+                    word_p tmp = rplPeekData(j + 1);
                     rplOverwriteData(j + 1, rplPeekData(j));
                     rplOverwriteData(j, tmp);
                 }
@@ -1304,7 +1304,7 @@ void LIB_HANDLER()
 
 
                 // REPLACE POINT AND CONTINUE
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
+                word_p newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
                     DSTop = stksave;
                     return;
@@ -1399,7 +1399,7 @@ void LIB_HANDLER()
                 else
                     rplZeroToRReg(0);   // USE ZERO GRADIENT IF DIVISION BY ZERO
 
-                WORDPTR newreal = rplNewRealFromRReg(0);
+                word_p newreal = rplNewRealFromRReg(0);
                 if(!newreal) {
                     DSTop = stksave;
                     return;
@@ -1436,7 +1436,7 @@ void LIB_HANDLER()
                     }
                     else
                         mulReal(&RReg[0], &x1, &RReg[2]);
-                    WORDPTR newreal = rplNewRealFromRReg(0);
+                    word_p newreal = rplNewRealFromRReg(0);
                     if(!newreal) {
                         DSTop = stksave;
                         return;
@@ -1483,7 +1483,7 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(rplPeekData(nvars + 2 - j), &x2);   // G(j)
 
                 subReal(&RReg[0], &x1, &x2);    // G'(j)=X0(j)-G(j)
-                WORDPTR newreal = rplNewRealFromRReg(0);
+                word_p newreal = rplNewRealFromRReg(0);
                 if(!newreal) {
                     DSTop = stksave;
                     return;
@@ -1559,7 +1559,7 @@ void LIB_HANDLER()
             if(ltReal(&fx, &x2)) {
                 // REPLACE POINT AND CONTINUE
 
-                 WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
+                 word_p newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
                     DSTop = stksave;
                     return;
@@ -1649,7 +1649,7 @@ void LIB_HANDLER()
 
 
                 // REPLACE POINT AND CONTINUE
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
+                word_p newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
                     DSTop = stksave;
                     return;
@@ -1733,7 +1733,7 @@ void LIB_HANDLER()
                 }
 
                 // REPLACE POINT
-                WORDPTR newpt = rplCreateListN(nvars + 1, 1, 1);
+                word_p newpt = rplCreateListN(nvars + 1, 1, 1);
                 if(!newpt) {
                     DSTop = stksave;
                     return;
@@ -1754,7 +1754,7 @@ void LIB_HANDLER()
                                 nvars + 1), &x2);
                     if(ltReal(&x1, &x2)) {
                         // SWAP
-                        WORDPTR tmp = rplPeekData(j + 1);
+                        word_p tmp = rplPeekData(j + 1);
                         rplOverwriteData(j + 1, rplPeekData(j));
                         rplOverwriteData(j, tmp);
                     }
@@ -1806,7 +1806,7 @@ void LIB_HANDLER()
             return;
         }
         rplDropData(1);
-        WORDPTR newlist = rplCreateListN(nvars, 1, 0);
+        word_p newlist = rplCreateListN(nvars, 1, 0);
         if(!newlist) {
             DSTop = stksave;
             return;
@@ -1858,7 +1858,7 @@ void LIB_HANDLER()
         // RUN RPL PROGRAM
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) lib104_ROOT;
+        IPtr = (word_p) lib104_ROOT;
 
         return;
     }
@@ -1923,7 +1923,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1931,7 +1931,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2006,7 +2006,7 @@ void LIB_HANDLER()
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = (WORDPTR) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = (word_p) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }
@@ -2016,7 +2016,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -2025,12 +2025,12 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

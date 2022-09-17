@@ -109,11 +109,11 @@ ROMOBJECT cplot_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib88_menu,
-    (WORDPTR) cplot_ident,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib88_menu,
+    (word_p) cplot_ident,
 
     0
 };
@@ -123,15 +123,15 @@ const WORDPTR const ROMPTR_TABLE[] = {
 
 // GET THE POINTER TO CPlt, BUT COPY IT TO THE END OF TEMPOB TO APPEND
 
-WORDPTR rplCPlotGetPtr()
+word_p rplCPlotGetPtr()
 {
-    WORDPTR *var = rplFindLAM((WORDPTR) cplot_ident, 1);
+    word_p *var = rplFindLAM((word_p) cplot_ident, 1);
     if(!var)
         return 0;
     if(rplSkipOb(var[1]) == TempObEnd)
         return var[1];
 
-    WORDPTR newobj = rplMakeNewCopy(var[1]);    // MAKE A NEW COPY THAT WE CAN STRETCH AND MODIFY
+    word_p newobj = rplMakeNewCopy(var[1]);    // MAKE A NEW COPY THAT WE CAN STRETCH AND MODIFY
     if(!newobj)
         return 0;
     var[1] = newobj;    // REPLACE WITH A NEW COPY AT END OF TEMPOB
@@ -143,7 +143,7 @@ WORDPTR rplCPlotGetPtr()
 // APPEND A NUMBER TO THE CURRENT PLOT
 void rplCPlotNumber(int64_t num)
 {
-    WORDPTR obj = rplCPlotGetPtr();
+    word_p obj = rplCPlotGetPtr();
     if(!obj)
         return;
 
@@ -182,8 +182,8 @@ void rplCPlotNumber(int64_t num)
     bpack[used - 1] |= ((used - 1) | sign) << 4;        // STARTER BYTE
 
     // NEED TO STORE 'used' BYTES
-    BYTEPTR ptr = ((BYTEPTR) (obj + 1)) + PLTLEN(*obj); // POINT TO THE NEXT BYTE
-    BYTEPTR end = (BYTEPTR) (obj + 1 + OBJSIZE(*obj));
+    byte_p ptr = ((byte_p) (obj + 1)) + PLTLEN(*obj); // POINT TO THE NEXT BYTE
+    byte_p end = (byte_p) (obj + 1 + OBJSIZE(*obj));
 
     // HERE ptr POINTS TO THE FIRST AVAILABLE BYTE IN THE OBJECT
     int32_t needwords = (ptr + used + 3 - end) / 4;
@@ -204,20 +204,20 @@ void rplCPlotNumber(int64_t num)
     }
 
     // UPDATE THE PROLOG
-    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((WORDPTR) end) - (obj + 1));
+    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
 
 }
 
 // APPEND A COMMAND TO THE CURRENT PLOT
 void rplCPlotCmd(int32_t cmd)
 {
-    WORDPTR obj = rplCPlotGetPtr();
+    word_p obj = rplCPlotGetPtr();
     if(!obj)
         return;
 
     // NEED TO STORE 1 BYTE
-    BYTEPTR ptr = ((BYTEPTR) (obj + 1)) + PLTLEN(*obj); // POINT TO THE NEXT BYTE
-    BYTEPTR end = (BYTEPTR) (obj + 1 + OBJSIZE(*obj));
+    byte_p ptr = ((byte_p) (obj + 1)) + PLTLEN(*obj); // POINT TO THE NEXT BYTE
+    byte_p end = (byte_p) (obj + 1 + OBJSIZE(*obj));
 
     // HERE ptr POINTS TO THE FIRST AVAILABLE BYTE IN THE OBJECT
 
@@ -233,14 +233,14 @@ void rplCPlotCmd(int32_t cmd)
     *ptr++ = (BYTE) (cmd & 0xff);
 
     // UPDATE THE PROLOG
-    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((WORDPTR) end) - (obj + 1));
+    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
 
     return;
 }
 
 // SKIP TO THE NEXT OBJECT (NUMBER OR OPCODE)
 // NO ARGUMENT CHECKS
-BYTEPTR rplPlotSkip(BYTEPTR ptr)
+byte_p rplPlotSkip(byte_p ptr)
 {
     switch (*ptr >> 4) {
     case 1:
@@ -276,7 +276,7 @@ BYTEPTR rplPlotSkip(BYTEPTR ptr)
 
 // DECODE A NUMBER INSIDE A PLOT OBJECT
 
-int64_t rplPlotNumber2int32_t(BYTEPTR ptr)
+int64_t rplPlotNumber2int32_t(byte_p ptr)
 {
 
     switch (*ptr >> 4) {
@@ -328,7 +328,7 @@ int64_t rplPlotNumber2int32_t(BYTEPTR ptr)
 
 }
 
-void rplRenderClrGTransf(WORDPTR rstatus)
+void rplRenderClrGTransf(word_p rstatus)
 {
 
     *GA11PTR(rstatus) = 1LL;
@@ -340,7 +340,7 @@ void rplRenderClrGTransf(WORDPTR rstatus)
 
 }
 
-void rplRenderClrLTransf(WORDPTR rstatus)
+void rplRenderClrLTransf(word_p rstatus)
 {
 
     *A11PTR(rstatus) = 1LL;
@@ -352,7 +352,7 @@ void rplRenderClrLTransf(WORDPTR rstatus)
 
 }
 
-void rplRenderGTranslate(WORDPTR rstatus, int64_t tx, int64_t ty)
+void rplRenderGTranslate(word_p rstatus, int64_t tx, int64_t ty)
 {
 
     *GA13PTR(rstatus) += tx;
@@ -360,7 +360,7 @@ void rplRenderGTranslate(WORDPTR rstatus, int64_t tx, int64_t ty)
 
 }
 
-void rplRenderGScale(WORDPTR rstatus, int64_t scale)
+void rplRenderGScale(word_p rstatus, int64_t scale)
 {
     *GA11PTR(rstatus) = mulFPINT(*GA11PTR(rstatus), scale);
     *GA12PTR(rstatus) = mulFPINT(*GA12PTR(rstatus), scale);
@@ -371,7 +371,7 @@ void rplRenderGScale(WORDPTR rstatus, int64_t scale)
 
 }
 
-void rplRenderLTranslate(WORDPTR rstatus, int64_t tx, int64_t ty)
+void rplRenderLTranslate(word_p rstatus, int64_t tx, int64_t ty)
 {
 
     *A13PTR(rstatus) += tx;
@@ -379,7 +379,7 @@ void rplRenderLTranslate(WORDPTR rstatus, int64_t tx, int64_t ty)
 
 }
 
-void rplRenderSetSize(WORDPTR rstatus, int64_t w, int64_t h)
+void rplRenderSetSize(word_p rstatus, int64_t w, int64_t h)
 {
 
     *WIDTHPTR(rstatus) = w;
@@ -387,7 +387,7 @@ void rplRenderSetSize(WORDPTR rstatus, int64_t w, int64_t h)
 
 }
 
-void rplRenderSetCPoint(WORDPTR rstatus, int64_t x, int64_t y)
+void rplRenderSetCPoint(word_p rstatus, int64_t x, int64_t y)
 {
 
     *CXPTR(rstatus) = x;
@@ -395,7 +395,7 @@ void rplRenderSetCPoint(WORDPTR rstatus, int64_t x, int64_t y)
 
 }
 
-void rplRenderSetBPoint(WORDPTR rstatus, int64_t x, int64_t y)
+void rplRenderSetBPoint(word_p rstatus, int64_t x, int64_t y)
 {
 
     *BXPTR(rstatus) = x;
@@ -404,7 +404,7 @@ void rplRenderSetBPoint(WORDPTR rstatus, int64_t x, int64_t y)
 }
 
 // MAKE THE CURRENT PLOT FIT THE GIVEN AREA IN ITS VIEW
-void rplRenderViewport(WORDPTR rstatus, int64_t x, int64_t y, int64_t x2,
+void rplRenderViewport(word_p rstatus, int64_t x, int64_t y, int64_t x2,
         int64_t y2)
 {
     int64_t scalex = divFPINT(*WIDTHPTR(rstatus), (x2 - x));
@@ -470,13 +470,13 @@ void LIB_HANDLER()
         }
 
         // START A NEW EMPTY PLOT OBJECT AND STORE IT IN LOCAL VARIABLE CPlt
-        WORDPTR newobj = rplAllocTempOb(0);
+        word_p newobj = rplAllocTempOb(0);
         if(!newobj)
             return;
         newobj[0] = MKPROLOG(DOPLOT, 0);
 
-        rplOverwriteData(2, (WORDPTR) newobj);
-        rplOverwriteData(1, (WORDPTR) cplot_ident);
+        rplOverwriteData(2, (word_p) newobj);
+        rplOverwriteData(1, (word_p) cplot_ident);
         rplCallOperator(CMD_LSTO);
 
         if(Exceptions)
@@ -509,7 +509,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplPushData((WORDPTR) cplot_ident);
+        rplPushData((word_p) cplot_ident);
         rplCallOperator(CMD_LSTO);
 
         if(Exceptions)
@@ -524,7 +524,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Finish current plot object and leave it on the stack
         // PUSH THE CURRENT PLOT OBJECT TO THE STACK
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(val)
             rplPushData(val);
         else
@@ -536,7 +536,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Change the current stroke color
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -578,7 +578,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Change current stroke type
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -620,7 +620,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Change the current fill color
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -662,7 +662,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Change the current fill type
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -704,7 +704,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Fill the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -728,7 +728,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw the outline of the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -752,7 +752,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw the outline and fill the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -776,7 +776,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Move current coordinates
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -824,7 +824,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw a line
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -872,7 +872,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw a circle
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -915,7 +915,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw a rectangle
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -963,7 +963,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Add a control node to the current polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -1011,7 +1011,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Draw a curve using all previous control points
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
-        WORDPTR val = rplGetLAM((WORDPTR) cplot_ident);
+        word_p val = rplGetLAM((word_p) cplot_ident);
         if(!val) {
             rplError(ERR_NOCURRENTPLOT);
             return;
@@ -1144,7 +1144,7 @@ void LIB_HANDLER()
          *
          *
          */
-        WORDPTR rstatus = rplAllocTempOb(RSTATUS_SIZE * 3 + 2 + 1);     // 14 int64_t + 1 WORDS FOR THE STRING + 1 WORD FOR PERSIST_OBJECT (ANOTHER EMPTY STRING) + 1 FOR ENDLIST
+        word_p rstatus = rplAllocTempOb(RSTATUS_SIZE * 3 + 2 + 1);     // 14 int64_t + 1 WORDS FOR THE STRING + 1 WORD FOR PERSIST_OBJECT (ANOTHER EMPTY STRING) + 1 FOR ENDLIST
         if(!rstatus)
             return;
         rstatus[0] = MKPROLOG(DOLIST, RSTATUS_SIZE * 3 + 2 + 1);
@@ -1173,7 +1173,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
         rplOverwriteData(2, rstatus);
-        rplOverwriteData(1, (WORDPTR) zero_bint);       // LEAVE A
+        rplOverwriteData(1, (word_p) zero_bint);       // LEAVE A
 
         // NOW CALL THE RENDERER TO INITIALIZE ITS OWN OBJECT FOR THE PROPER SIZE
 
@@ -1210,16 +1210,16 @@ void LIB_HANDLER()
             rplError(ERR_INVALIDRENDERER);
             return;
         }
-        WORDPTR rstatus = rplPeekData(2);
+        word_p rstatus = rplPeekData(2);
 
         if(!ISPLOT(*rplPeekData(1))) {
             rplError(ERR_PLOTEXPECTED);
             return;
         }
 
-        WORDPTR plotobj = rplPeekData(1);
-        BYTEPTR ptr = (BYTEPTR) (plotobj + 1);
-        BYTEPTR end = ptr + PLTLEN(*plotobj);
+        word_p plotobj = rplPeekData(1);
+        byte_p ptr = (byte_p) (plotobj + 1);
+        byte_p end = ptr + PLTLEN(*plotobj);
 
         int32_t argn = 0;
         LIBHANDLER rhandler = rplGetLibHandler(*RLIBPTR(rstatus));
@@ -1322,7 +1322,7 @@ void LIB_HANDLER()
 
                 CurOpcode = MKOPCODE(*RLIBPTR(rstatus), CMD_PLTBASE + *ptr);
 
-                int32_t ptroff = ptr - (BYTEPTR) plotobj;
+                int32_t ptroff = ptr - (byte_p) plotobj;
 
                 (*rhandler) ();
 
@@ -1332,8 +1332,8 @@ void LIB_HANDLER()
                 // RESTORE ALL POINTERS IN CASE THEY MOVED DURING GC
                 plotobj = rplPeekData(1);
                 rstatus = rplPeekData(2);
-                ptr = ((BYTEPTR) plotobj) + ptroff;
-                end = (BYTEPTR) (plotobj + 1) + PLTLEN(*plotobj);
+                ptr = ((byte_p) plotobj) + ptroff;
+                end = (byte_p) (plotobj + 1) + PLTLEN(*plotobj);
 
             }
             else if(((*ptr >> 4) & 7) < 0x5) {
@@ -1365,7 +1365,7 @@ void LIB_HANDLER()
                     return;
                 }
                 *ARG1PTR(rstatus) = len;        // NOTE: LENGTH OF STRING IS IN BYTES, NOT IN CODE POINTS BUT THE STRING IS UTF8
-                *ARG2PTR(rstatus) = ptr + 2 - (BYTEPTR) plotobj;        // PASS THE OFFSET OF THE STRING WITHIN THE PLOT OBJECT
+                *ARG2PTR(rstatus) = ptr + 2 - (byte_p) plotobj;        // PASS THE OFFSET OF THE STRING WITHIN THE PLOT OBJECT
                 argn = 2;
 
             }
@@ -1377,7 +1377,7 @@ void LIB_HANDLER()
         // DONE RENDERING!
 
         rplDropData(2);
-        rplOverwriteData(1, (WORDPTR) ROBJPTR(rstatus));
+        rplOverwriteData(1, (word_p) ROBJPTR(rstatus));
 
         return;
     }
@@ -1395,7 +1395,7 @@ void LIB_HANDLER()
             rplError(ERR_INVALIDRENDERER);
             return;
         }
-        WORDPTR rstatus = rplPeekData(3);
+        word_p rstatus = rplPeekData(3);
 
         int64_t deltax, deltay;
 
@@ -1432,7 +1432,7 @@ void LIB_HANDLER()
             rplError(ERR_INVALIDRENDERER);
             return;
         }
-        WORDPTR rstatus = rplPeekData(2);
+        word_p rstatus = rplPeekData(2);
 
         int64_t scfactor;
 
@@ -1463,7 +1463,7 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        rplOverwriteData(1, (WORDPTR) one_bint);
+        rplOverwriteData(1, (word_p) one_bint);
         return;
     }
 
@@ -1536,14 +1536,14 @@ void LIB_HANDLER()
             --CompileEnd;
             temp.word = *CompileEnd;    // GET LAST WORD
         }
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         if(stringmode) {
             int32_t addedbytes = 0;
             // COMPILE IT JUST LIKE A STRING
             do {
                 while(count < 4) {
-                    if(ptr == (BYTEPTR) NextTokenStart) {
+                    if(ptr == (byte_p) NextTokenStart) {
                         // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                         // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -1554,7 +1554,7 @@ void LIB_HANDLER()
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
                         RetNum = OK_NEEDMORE;
 
-                        BYTEPTR nptr = (BYTEPTR) ScratchPointer3;       // RESTORE SAVED STRING START LOCATION
+                        byte_p nptr = (byte_p) ScratchPointer3;       // RESTORE SAVED STRING START LOCATION
 
                         // PATCH THE STRING LENGTH SO FAR
                         addedbytes += rplPlotNumber2int32_t(nptr); // ADD THE NEW BYTES TO THE ORIGINAL SIZE
@@ -1580,9 +1580,9 @@ void LIB_HANDLER()
                         stringmode = 0;
 
                         // UPDATE THE STRING SIZE AT START OF STRING
-                        BYTEPTR nptr = (BYTEPTR) ScratchPointer3;       // RESTORE SAVED STRING START LOCATION
+                        byte_p nptr = (byte_p) ScratchPointer3;       // RESTORE SAVED STRING START LOCATION
 
-                        if(nptr + 3 > (BYTEPTR) CompileEnd) {
+                        if(nptr + 3 > (byte_p) CompileEnd) {
                             // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
                             // WASN'T STORED YET
                             // JUST STORE IT TEMPORARILY TO READ THE NUMBER PROPERLY
@@ -1603,7 +1603,7 @@ void LIB_HANDLER()
                         nptr[2] = (addedbytes >> 8) & 0xff;
                         nptr[1] = (addedbytes) & 0xff;
 
-                        if(nptr + 3 > (BYTEPTR) CompileEnd) {
+                        if(nptr + 3 > (byte_p) CompileEnd) {
                             // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
                             // WASN'T STORED YET
                             temp.word = *CompileEnd;
@@ -1623,9 +1623,9 @@ void LIB_HANDLER()
                 }
                 if(count == 4) {
                     //  WE HAVE A COMPLETE WORD HERE
-                    ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                    ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                     rplCompileAppend(temp.word);
-                    ptr = (BYTEPTR) ScratchPointer1;
+                    ptr = (byte_p) ScratchPointer1;
 
                     count = 0;
                 }
@@ -1666,7 +1666,7 @@ void LIB_HANDLER()
 
         do {
             while(count < 4) {
-                if(ptr >= (BYTEPTR) BlankStart) {
+                if(ptr >= (byte_p) BlankStart) {
                     // WE ARE AT THE END OF THE TOKEN, WE NEED MORE
 
                     if(isnum) {
@@ -1713,9 +1713,9 @@ void LIB_HANDLER()
                         int32_t k;
                         for(k = 0; k < used; ++k) {
                             if(count > 3) {
-                                ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                                ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (BYTEPTR) ScratchPointer1;
+                                ptr = (byte_p) ScratchPointer1;
                                 temp.word = 0;
                                 count = 0;
                             }
@@ -1769,7 +1769,7 @@ void LIB_HANDLER()
                     else if(ucode == '\"') {
                         // START A STRING COMPILE
                         stringmode = 1;
-                        ScratchPointer3 = (WORDPTR) (((BYTEPTR) CompileEnd) + count);   // POINT TO THE COMPILED START OF STRING
+                        ScratchPointer3 = (word_p) (((byte_p) CompileEnd) + count);   // POINT TO THE COMPILED START OF STRING
 
                         if(count == 0)
                             temp.word = 0;
@@ -1777,9 +1777,9 @@ void LIB_HANDLER()
                         ++count;
                         if(count == 4) {
                             //  WE HAVE A COMPLETE WORD HERE
-                            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                            ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                             rplCompileAppend(temp.word);
-                            ptr = (BYTEPTR) ScratchPointer1;
+                            ptr = (byte_p) ScratchPointer1;
 
                             count = 0;
                             temp.word = 0;
@@ -1788,9 +1788,9 @@ void LIB_HANDLER()
                         ++count;
                         if(count == 4) {
                             //  WE HAVE A COMPLETE WORD HERE
-                            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                            ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                             rplCompileAppend(temp.word);
-                            ptr = (BYTEPTR) ScratchPointer1;
+                            ptr = (byte_p) ScratchPointer1;
 
                             count = 0;
                             temp.word = 0;
@@ -1799,9 +1799,9 @@ void LIB_HANDLER()
                         ++count;
                         if(count == 4) {
                             //  WE HAVE A COMPLETE WORD HERE
-                            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                            ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                             rplCompileAppend(temp.word);
-                            ptr = (BYTEPTR) ScratchPointer1;
+                            ptr = (byte_p) ScratchPointer1;
 
                             count = 0;
                             temp.word = 0;
@@ -1813,7 +1813,7 @@ void LIB_HANDLER()
                         // COMPILE IT JUST LIKE A STRING
                         do {
                             while(count < 4) {
-                                if(ptr == (BYTEPTR) NextTokenStart) {
+                                if(ptr == (byte_p) NextTokenStart) {
                                     // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                                     // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -1827,7 +1827,7 @@ void LIB_HANDLER()
                                     RetNum = OK_NEEDMORE;
 
                                     // UPDATE THE STRING SIZE AT START OF STRING
-                                    BYTEPTR nptr = (BYTEPTR) ScratchPointer3;   // RESTORE SAVED STRING START LOCATION
+                                    byte_p nptr = (byte_p) ScratchPointer3;   // RESTORE SAVED STRING START LOCATION
 
                                     addedbytes += rplPlotNumber2int32_t(nptr);     // ADD THE NEW BYTES TO THE ORIGINAL SIZE
 
@@ -1852,9 +1852,9 @@ void LIB_HANDLER()
                                     stringmode = 0;
 
                                     // UPDATE THE STRING SIZE AT START OF STRING
-                                    BYTEPTR nptr = (BYTEPTR) ScratchPointer3;   // RESTORE SAVED STRING START LOCATION
+                                    byte_p nptr = (byte_p) ScratchPointer3;   // RESTORE SAVED STRING START LOCATION
 
-                                    if(nptr + 3 > (BYTEPTR) CompileEnd) {
+                                    if(nptr + 3 > (byte_p) CompileEnd) {
                                         // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
                                         // WASN'T STORED YET
                                         // JUST STORE IT TEMPORARILY TO READ THE NUMBER PROPERLY
@@ -1875,7 +1875,7 @@ void LIB_HANDLER()
                                     nptr[2] = (addedbytes >> 8) & 0xff;
                                     nptr[1] = (addedbytes) & 0xff;
 
-                                    if(nptr + 3 > (BYTEPTR) CompileEnd) {
+                                    if(nptr + 3 > (byte_p) CompileEnd) {
                                         // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
                                         // WASN'T STORED YET
                                         temp.word = *CompileEnd;
@@ -1895,9 +1895,9 @@ void LIB_HANDLER()
                             }
                             if(count == 4) {
                                 //  WE HAVE A COMPLETE WORD HERE
-                                ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                                ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (BYTEPTR) ScratchPointer1;
+                                ptr = (byte_p) ScratchPointer1;
 
                                 count = 0;
                             }
@@ -1966,9 +1966,9 @@ void LIB_HANDLER()
                         int32_t k;
                         for(k = 0; k < used; ++k) {
                             if(count > 3) {
-                                ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                                ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (BYTEPTR) ScratchPointer1;
+                                ptr = (byte_p) ScratchPointer1;
                                 temp.word = 0;
                                 count = 0;
                             }
@@ -1986,14 +1986,14 @@ void LIB_HANDLER()
 
                 }
 
-                ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
                 continue;
 
             }
             //  WE HAVE A COMPLETE WORD HERE
-            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+            ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
             rplCompileAppend(temp.word);
-            ptr = (BYTEPTR) ScratchPointer1;
+            ptr = (byte_p) ScratchPointer1;
 
             count = 0;
 
@@ -2013,11 +2013,11 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE PLOT OBJECT
 
-            rplDecompAppendString((BYTEPTR) "PLOTDATA ");
+            rplDecompAppendString((byte_p) "PLOTDATA ");
 
             int64_t Locale = rplGetSystemLocale();
-            BYTEPTR ptr = (BYTEPTR) (DecompileObject + 1);
-            BYTEPTR end = ptr + PLTLEN(*DecompileObject);
+            byte_p ptr = (byte_p) (DecompileObject + 1);
+            byte_p end = ptr + PLTLEN(*DecompileObject);
             int32_t needscomma = 0;
 
             while(ptr < end) {
@@ -2028,13 +2028,13 @@ void LIB_HANDLER()
                         break;
                     }
 
-                    int32_t off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (byte_p) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
                         needscomma = 1;
                     rplDecompAppendChar(*ptr);
-                    ptr = ((BYTEPTR) DecompileObject) + off;
+                    ptr = ((byte_p) DecompileObject) + off;
                 }
                 else if(((*ptr >> 4) & 7) < 0x5) {
                     // IT'S A NUMBER
@@ -2048,21 +2048,21 @@ void LIB_HANDLER()
                             rplIntToString(num, DECint32_t, tmpbuffer,
                             tmpbuffer + 12);
 
-                    int32_t off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (byte_p) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
                         needscomma = 1;
                     rplDecompAppendString2(tmpbuffer, nbytes);
 
-                    ptr = ((BYTEPTR) DecompileObject) + off;
+                    ptr = ((byte_p) DecompileObject) + off;
 
                 }
                 else if((*ptr >> 4) == 0x5) {
                     // OUTPUT A STRING
                     int64_t len = rplPlotNumber2int32_t(ptr);
 
-                    int32_t off = ptr - (BYTEPTR) DecompileObject;
+                    int32_t off = ptr - (byte_p) DecompileObject;
                     if(needscomma)
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
@@ -2070,7 +2070,7 @@ void LIB_HANDLER()
                     rplDecompAppendChar('\"');
                     rplDecompAppendString2(ptr + 3, len);
                     rplDecompAppendChar('\"');
-                    ptr = ((BYTEPTR) DecompileObject) + off;
+                    ptr = ((byte_p) DecompileObject) + off;
 
                 }
 
@@ -2078,7 +2078,7 @@ void LIB_HANDLER()
 
             }
 
-            rplDecompAppendString((BYTEPTR) " ENDPLOT");
+            rplDecompAppendString((byte_p) " ENDPLOT");
 
             RetNum = OK_CONTINUE;
             return;
@@ -2157,7 +2157,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2165,7 +2165,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2206,7 +2206,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2215,12 +2215,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

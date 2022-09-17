@@ -68,15 +68,15 @@ INCLUDE_ROMOBJECT(lib55_j);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) lib55_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_HELPTABLE,
+    (word_p) LIB_MSGTABLE,
+    (word_p) lib55_menu,
     // HERE ADD THE VALUES OF THE CONSTANTS AS RPL OBJECTS. ALL CONSTANTS NEED TO HAVE THEIR NUMERIC OBJECTS IN ROM
-    (WORDPTR) lib55_pi,
-    (WORDPTR) lib55_i,
-    (WORDPTR) lib55_e,
-    (WORDPTR) lib55_j,
+    (word_p) lib55_pi,
+    (word_p) lib55_i,
+    (word_p) lib55_e,
+    (word_p) lib55_j,
 
     0
 };
@@ -86,7 +86,7 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // OR THE SAME OBJECT AS BEFORE.
 // RETURNS OBJECTS IN ROM, VERY FAST, NEVER TRIGGERS GC OR ALLOCATES ANY MEMORY
 // DRAWBACK: IT'S ALWAYS AT MAXIMUM PRECISION (2000 DIGITS)
-WORDPTR rplConstant2Number(WORDPTR object)
+word_p rplConstant2Number(word_p object)
 {
     if(!ISCONSTANT(*object))
         return object;
@@ -312,7 +312,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -320,7 +320,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -353,7 +353,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) lib55_menu;
+        ObjectPTR = (word_p) lib55_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -363,7 +363,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -372,12 +372,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

@@ -22,7 +22,7 @@ const char const subscriptChars[] = "₀₁₂₃₄₅₆₇₈₉";
 
 void growLAMs(WORD newtotalsize)
 {
-    WORDPTR *newlam;
+    word_p *newlam;
     int32_t gc_done = 0;
 
     do {
@@ -52,7 +52,7 @@ void growLAMs(WORD newtotalsize)
 
 void shrinkLAMs(WORD newtotalsize)
 {
-    WORDPTR *newlam;
+    word_p *newlam;
 
     newtotalsize = (newtotalsize + 1023) & ~1023;
 
@@ -71,7 +71,7 @@ void shrinkLAMs(WORD newtotalsize)
 
 // LAM STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
 // RETURN THE LAM NUMBER IN THE CURRENT ENVIRONMENT (FOR USE WITH FAST GETLAMn FUNCTIONS)
-int32_t rplCreateLAM(WORDPTR nameobj, WORDPTR value)
+int32_t rplCreateLAM(word_p nameobj, word_p value)
 {
     *LAMTop++ = nameobj;
     *LAMTop++ = value;
@@ -85,13 +85,13 @@ int32_t rplCreateLAM(WORDPTR nameobj, WORDPTR value)
 }
 
 // CREATE A NEW TOP LAM ENVIRONMENT, SET THE OWNER TO THE GIVEN OBJECT
-void rplCreateLAMEnvironment(WORDPTR owner)
+void rplCreateLAMEnvironment(word_p owner)
 {
     nLAMBase = LAMTop;
-    rplCreateLAM((WORDPTR) lam_baseseco_bint, owner);
+    rplCreateLAM((word_p) lam_baseseco_bint, owner);
 }
 
-int32_t rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
+int32_t rplCompareIDENTByName(word_p id1, byte_p name, byte_p nameend)
 {
     int32_t len = nameend - name;
     int32_t nwords = (len + 3) >> 2;
@@ -100,7 +100,7 @@ int32_t rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
             && (((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENTATTR,
                     nwords + 1)))
         return 0;
-    BYTEPTR ptr = (BYTEPTR) (id1 + 1);
+    byte_p ptr = (byte_p) (id1 + 1);
     while(len) {
         if(*ptr != *name)
             return 0;
@@ -122,7 +122,7 @@ int32_t rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend)
 }
 
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
-int32_t rplCompareIDENT(WORDPTR id1, WORDPTR id2)
+int32_t rplCompareIDENT(word_p id1, word_p id2)
 {
     int32_t nwords, nwords2;
 
@@ -154,7 +154,7 @@ int32_t rplCompareIDENT(WORDPTR id1, WORDPTR id2)
 
 // GET THE ATTRIBUTES WORD OF AN IDENT, OR 0 IF IT DOESN'T HAVE ANY
 
-WORD rplGetIdentAttr(WORDPTR name)
+WORD rplGetIdentAttr(word_p name)
 {
     if(IDENTHASATTR(*name))
         return name[OBJSIZE(*name)];
@@ -164,9 +164,9 @@ WORD rplGetIdentAttr(WORDPTR name)
 // RETURN A NEW IDENT WITH THE ATTRIBUTES CHANGED
 // ONLY BITS THAT ARE ONE IN attrmask WILL BE CHANGED
 // USES ONE SCRATCHPOINTER
-WORDPTR rplSetIdentAttr(WORDPTR name, WORD attr, WORD attrmask)
+word_p rplSetIdentAttr(word_p name, WORD attr, WORD attrmask)
 {
-    WORDPTR newobj;
+    word_p newobj;
     if(LIBNUM(*name) & HASATTR_BIT)
         newobj = rplMakeNewCopy(name);
     else {
@@ -186,7 +186,7 @@ WORDPTR rplSetIdentAttr(WORDPTR name, WORD attr, WORD attrmask)
 }
 
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
-int32_t rplCompareObjects(WORDPTR id1, WORDPTR id2)
+int32_t rplCompareObjects(word_p id1, word_p id2)
 {
     if(id1 == id2)
         return 1;
@@ -208,9 +208,9 @@ int32_t rplCompareObjects(WORDPTR id1, WORDPTR id2)
 // FINDS A LAM, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE LAM ENVIRONMENT
 // DOES NOT STOP FOR CURRENT SECONDARY
 
-WORDPTR *rplFindLAMbyName(BYTEPTR name, int32_t len, int32_t scanparents)
+word_p *rplFindLAMbyName(byte_p name, int32_t len, int32_t scanparents)
 {
-    WORDPTR *ltop = LAMTop, *stop =
+    word_p *ltop = LAMTop, *stop =
             scanparents ? LAMs : (nLAMBase ? nLAMBase : LAMs);
 
     while(ltop > stop) {
@@ -223,9 +223,9 @@ WORDPTR *rplFindLAMbyName(BYTEPTR name, int32_t len, int32_t scanparents)
     return 0;
 }
 
-WORDPTR *rplFindLAM(WORDPTR nameobj, int32_t scanparents)
+word_p *rplFindLAM(word_p nameobj, int32_t scanparents)
 {
-    WORDPTR *ltop = LAMTop, *stop =
+    word_p *ltop = LAMTop, *stop =
             scanparents ? LAMs : (nLAMBase ? nLAMBase : LAMs);
     while(ltop > stop) {
         ltop -= 2;
@@ -239,9 +239,9 @@ WORDPTR *rplFindLAM(WORDPTR nameobj, int32_t scanparents)
 
 // RECLAIMS A LAM VALUE, FROM CURRENT SECO OR PARENTS
 
-WORDPTR rplGetLAM(WORDPTR nameobj)
+word_p rplGetLAM(word_p nameobj)
 {
-    WORDPTR *ltop = LAMTop;
+    word_p *ltop = LAMTop;
     while(ltop > LAMs) {
         ltop -= 2;
         if(rplCompareIDENT(nameobj, *ltop))
@@ -254,13 +254,13 @@ WORDPTR rplGetLAM(WORDPTR nameobj)
 
 // VERY FAST GETLAM, NO ERROR CHECKS!
 // ONLY USED BY SYSTEM LIBRARIES
-inline WORDPTR *rplGetLAMn(int32_t idx)
+inline word_p *rplGetLAMn(int32_t idx)
 {
     return nLAMBase + 2 * idx + 1;
 }
 
 // RETURN A POINTER TO THE THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
-inline WORDPTR *rplGetLAMnName(int32_t idx)
+inline word_p *rplGetLAMnName(int32_t idx)
 {
     return nLAMBase + 2 * idx;
 }
@@ -268,20 +268,20 @@ inline WORDPTR *rplGetLAMnName(int32_t idx)
 // VERY FAST GETLAM, NO ERROR CHECKS!
 // ONLY USED BY SYSTEM LIBRARIES
 // GET THE CONTENT OF A LAM IN A GIVEN ENVIRONMENT
-inline WORDPTR *rplGetLAMnEnv(WORDPTR * LAMEnv, int32_t idx)
+inline word_p *rplGetLAMnEnv(word_p * LAMEnv, int32_t idx)
 {
-    return (WORDPTR *) (LAMEnv + 2 * idx + 1);
+    return (word_p *) (LAMEnv + 2 * idx + 1);
 }
 
 // RETURN THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
 // IN THE GIVEN ENVIRONMENT
-inline WORDPTR *rplGetLAMnNameEnv(WORDPTR * LAMEnv, int32_t idx)
+inline word_p *rplGetLAMnNameEnv(word_p * LAMEnv, int32_t idx)
 {
-    return (WORDPTR *) (LAMEnv + 2 * idx);
+    return (word_p *) (LAMEnv + 2 * idx);
 }
 
 // FAST PUTLAM, NO ERROR CHECKS!
-inline void rplPutLAMn(int32_t idx, WORDPTR object)
+inline void rplPutLAMn(int32_t idx, word_p object)
 {
     nLAMBase[2 * idx + 1] = object;
 }
@@ -289,12 +289,12 @@ inline void rplPutLAMn(int32_t idx, WORDPTR object)
 // COUNT HOW MANY LAMS IN THE GIVEN ENVIRONMENT
 // LAMS ARE NUMBERED FROM 1 TO THE RETURNED NUMBER (INCLUSIVE)
 // IF GIVEN ENVIRONMENT IS NULL, RETURN COUNT ON THE TOP ENVIRONMENT
-int32_t rplLAMCount(WORDPTR * LAMEnvironment)
+int32_t rplLAMCount(word_p * LAMEnvironment)
 {
     // FIND THE END OF THE GIVEN ENVIRONMENT
     if(!LAMEnvironment)
         LAMEnvironment = nLAMBase;
-    WORDPTR *endofenv = LAMEnvironment;
+    word_p *endofenv = LAMEnvironment;
     endofenv += 2;
     while(endofenv < LAMTop) {
         if(*endofenv == lam_baseseco_bint)
@@ -306,9 +306,9 @@ int32_t rplLAMCount(WORDPTR * LAMEnvironment)
 
 // REMOVE ALL LAMS CREATED BY THE GIVEN SECONDARY AND BELOW
 // OR JUST THE LAST ENVIRONMENT IF currentseco==0
-void rplCleanupLAMs(WORDPTR currentseco)
+void rplCleanupLAMs(word_p currentseco)
 {
-    WORDPTR *ltop = LAMTop;
+    word_p *ltop = LAMTop;
     while(ltop > LAMs) {
         ltop -= 2;
         if(**ltop == LAM_ENVOWNER) {
@@ -332,7 +332,7 @@ void rplCleanupLAMs(WORDPTR currentseco)
 // FIND THE NEXT ONE. TO GET THE INNERMOST ENVIRONMENT
 // GIVE LAMTop AS STARTING POINT
 
-WORDPTR *rplGetNextLAMEnv(WORDPTR * startpoint)
+word_p *rplGetNextLAMEnv(word_p * startpoint)
 {
     while(startpoint > LAMs) {
         startpoint -= 2;
@@ -350,8 +350,8 @@ WORDPTR *rplGetNextLAMEnv(WORDPTR * startpoint)
 int32_t rplNeedNewLAMEnv()
 {
     // FIRST DETERMINE THE ADDRESS OF THE CURRENT SECONDARY
-    WORDPTR *rsptr = RSTop - 1;
-    WORDPTR seco = 0;
+    word_p *rsptr = RSTop - 1;
+    word_p seco = 0;
 
     while(rsptr >= RStk) {
         if(ISPROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
@@ -456,8 +456,8 @@ int32_t rplNeedNewLAMEnv()
 int32_t rplNeedNewLAMEnvCompiler()
 {
     // FIRST DETERMINE THE ADDRESS OF THE CURRENT SECONDARY
-    WORDPTR *rsptr = ValidateTop - 1;
-    WORDPTR seco = 0;
+    word_p *rsptr = ValidateTop - 1;
+    word_p seco = 0;
 
     while(rsptr >= ValidateBottom) {
         if(ISPROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
@@ -523,31 +523,31 @@ void rplClearLAMs()
     LAMTop = nLAMBase = LAMs;
 }
 
-void rplCompileIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
+void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend)
 {
     // CHECK IF THERE'S SUBSCRIPT ATTRIBUTES TO THIS IDENT
     WORD attr = 0;
-    BYTEPTR lastchar = (BYTEPTR) utf8rskipst((char *)tokend, (char *)tok);
+    byte_p lastchar = (byte_p) utf8rskipst((char *)tokend, (char *)tok);
 
-    BYTEPTR subs = (BYTEPTR) subscriptChars;
+    byte_p subs = (byte_p) subscriptChars;
 
-    while(subs - (BYTEPTR) subscriptChars < 30) {
+    while(subs - (byte_p) subscriptChars < 30) {
 
         if(!utf8ncmp((char *)lastchar, (char *)tokend, (char *)subs,
                     subscriptChars + 30, 1)) {
             // HAS ATTRIBUTE
             attr <<= 4;
-            attr |= ((subs - (BYTEPTR) subscriptChars) / 3);
-            subs = (BYTEPTR) subscriptChars;
+            attr |= ((subs - (byte_p) subscriptChars) / 3);
+            subs = (byte_p) subscriptChars;
             if(lastchar == tok)
                 break;
-            lastchar = (BYTEPTR) utf8rskipst((char *)lastchar, (char *)tok);
+            lastchar = (byte_p) utf8rskipst((char *)lastchar, (char *)tok);
             continue;
         }
-        subs = (BYTEPTR) utf8skip((char *)subs, (char *)subscriptChars + 30);
+        subs = (byte_p) utf8skip((char *)subs, (char *)subscriptChars + 30);
     }
 
-    tokend = (BYTEPTR) utf8skipst((char *)lastchar, (char *)tokend);
+    tokend = (byte_p) utf8skipst((char *)lastchar, (char *)tokend);
 
     // CHECK IF THERE'S MNEMONIC ATTRIBUTES
 
@@ -569,20 +569,20 @@ void rplCompileIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
     int32_t lenwords = (tokend - tok + 3) >> 2;
     int32_t len = tokend - tok;
-    ScratchPointer1 = (WORDPTR) tok;
+    ScratchPointer1 = (word_p) tok;
     if(attr) {
         ++lenwords;
         libnum |= HASATTR_BIT;
     }
     rplCompileAppend(MKPROLOG(libnum, lenwords));
     WORD nextword;
-    tok = (BYTEPTR) ScratchPointer1;
+    tok = (byte_p) ScratchPointer1;
     while(len > 3) {
         // WARNING: THIS IS LITTLE ENDIAN ONLY!
         nextword = tok[0] + (tok[1] << 8) + (tok[2] << 16) + (tok[3] << 24);
-        ScratchPointer1 = (WORDPTR) tok;
+        ScratchPointer1 = (word_p) tok;
         rplCompileAppend(nextword);
-        tok = (BYTEPTR) ScratchPointer1;
+        tok = (byte_p) ScratchPointer1;
         tok += 4;
         len -= 4;
     }
@@ -609,22 +609,22 @@ void rplCompileIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
 // RETURNS NULL ON ERROR, DOESN'T CHECK IF IDENT IS VALID!
 // USER MUST CALL rplIsValidIdent() BEFORE CALLING THIS FUNCTION
 
-WORDPTR rplCreateIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
+word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend)
 {
     // CREATE THE OBJECT
     int32_t lenwords = (tokend - tok + 3) >> 2;
     int32_t len = tokend - tok;
 
-    ScratchPointer1 = (WORDPTR) tok;
+    ScratchPointer1 = (word_p) tok;
 
-    WORDPTR newobj = rplAllocTempOb(lenwords), newptr;
+    word_p newobj = rplAllocTempOb(lenwords), newptr;
     if(!newobj)
         return 0;
     newptr = newobj;
     *newptr = MKPROLOG(libnum, lenwords);
     ++newptr;
     WORD nextword;
-    tok = (BYTEPTR) ScratchPointer1;
+    tok = (byte_p) ScratchPointer1;
     while(len > 3) {
         // WARNING: THIS IS LITTLE ENDIAN ONLY!
         nextword = tok[0] + (tok[1] << 8) + (tok[2] << 16) + (tok[3] << 24);
@@ -671,7 +671,7 @@ WORDPTR rplCreateIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend)
 // ≤0
 // <0
 
-int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
+int32_t rplDecodeAttrib(byte_p st, byte_p end)
 {
     int32_t attr = 0;
     if(st >= end)
@@ -715,7 +715,7 @@ int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
 
     if(!utf8ncmp2((char *)st, (char *)end, "∞", 1)) {
         // SKIP THE INFINITY MODIFIER
-        st = (BYTEPTR) utf8skipst((char *)st, (char *)end);
+        st = (byte_p) utf8skipst((char *)st, (char *)end);
     }
     else if(attr & (IDATTR_ISINFCPLX | IDATTR_ISINFREAL))
         attr |= IDATTR_ISNOTINF;
@@ -729,15 +729,15 @@ int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
 
     if(!utf8ncmp2((char *)st, (char *)end, "≥", 1)) {
         attr |= IDATTR_GTEZERO;
-        st = (BYTEPTR) utf8skipst((char *)st, (char *)end);
+        st = (byte_p) utf8skipst((char *)st, (char *)end);
     }
     else if(!utf8ncmp2((char *)st, (char *)end, "≤", 1)) {
         attr |= IDATTR_LTEZERO;
-        st = (BYTEPTR) utf8skipst((char *)st, (char *)end);
+        st = (byte_p) utf8skipst((char *)st, (char *)end);
     }
     else if(!utf8ncmp2((char *)st, (char *)end, "≠", 1)) {
         attr |= IDATTR_NOTZERO;
-        st = (BYTEPTR) utf8skipst((char *)st, (char *)end);
+        st = (byte_p) utf8skipst((char *)st, (char *)end);
     }
     else if(*st == '>') {
         attr |= IDATTR_GTEZERO | IDATTR_NOTZERO;
@@ -755,12 +755,12 @@ int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end)
 
 }
 
-int32_t rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend)
+int32_t rplIsValidIdent(byte_p tok, byte_p tokend)
 {
-    BYTEPTR ptr;
+    byte_p ptr;
     int32_t char1, char2;
     int32_t argsep;
-    BYTEPTR attribend, attribst;
+    byte_p attribend, attribst;
 
     if(tokend <= tok)
         return 0;
@@ -797,26 +797,26 @@ int32_t rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend)
 
     // OR CONTAIN ANY OF THE FORBIDDEN CHARACTERS
     while(tok != tokend) {
-        ptr = (BYTEPTR) forbiddenChars;
+        ptr = (byte_p) forbiddenChars;
         char1 = utf82cp((char *)tok, (char *)tokend);
         do {
             char2 = utf82cp((char *)ptr, (char *)ptr + 4);
             if(char1 == char2)
                 return 0;
-            ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)ptr + 4);
+            ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
         }
         while(*ptr);
 
         if(char1 == argsep)
             return 0;   // DON'T ALLOW THE ARGUMENT SEPARATOR
 
-        tok = (BYTEPTR) utf8skip((char *)tok, (char *)tokend);
+        tok = (byte_p) utf8skip((char *)tok, (char *)tokend);
     }
     return 1;
 }
 
 // DETERMINE THE LENGTH OF AN IDENT STRING IN BYTES (NOT CHARACTERS)
-int32_t rplGetIdentLength(WORDPTR ident)
+int32_t rplGetIdentLength(word_p ident)
 {
     int32_t len = OBJSIZE(*ident);
     if(LIBNUM(*ident) & HASATTR_BIT)
@@ -838,7 +838,7 @@ int32_t rplGetIdentLength(WORDPTR ident)
 // MAKE A NEW COPY OF THE CURRENT ENVIRONMENT
 void rplDupLAMEnv()
 {
-    WORDPTR *ptr = nLAMBase, *endptr = LAMTop;
+    word_p *ptr = nLAMBase, *endptr = LAMTop;
     while(ptr < endptr) {
         rplCreateLAM(ptr[0], ptr[1]);
         if(Exceptions)

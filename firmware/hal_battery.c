@@ -273,36 +273,36 @@ void halPreparePowerOff()
 
     // SAVE THE COMMAND LINE STATE
 
-    WORDPTR saved;
+    word_p saved;
     if(halScreen.CmdLineState & CMDSTATE_OPEN) {
         saved = halSaveCmdLine();
         if(!saved)
-            saved = (WORDPTR) empty_list;
+            saved = (word_p) empty_list;
     }
     else
-        saved = (WORDPTR) empty_list;
+        saved = (word_p) empty_list;
 
-    rplStoreSettings((WORDPTR) savedcmdline_ident, saved);
+    rplStoreSettings((word_p) savedcmdline_ident, saved);
 
     // TODO: ADD OTHER POWEROF PROCEDURES
 
     saved = rplNewint32_t(halFlags, DECint32_t);
     if(!saved)
-        saved = (WORDPTR) zero_bint;
-    rplStoreSettings((WORDPTR) savedflags_ident, saved);
+        saved = (word_p) zero_bint;
+    rplStoreSettings((word_p) savedflags_ident, saved);
 
 }
 
 // DO ANY PREPARATIONS BEFORE WAKEUP FROM POWEROFF
 void halWakeUp()
 {
-    WORDPTR saved;
+    word_p saved;
 
 #ifdef TARGET_PRIME1
 
 // RESTORE UI THEME
 
-    saved = rplGetSettings((WORDPTR) theme_ident);
+    saved = rplGetSettings((word_p) theme_ident);
     if(saved) {
         int error = 0;
         if(!ISLIST(*saved)) {
@@ -314,7 +314,7 @@ void halWakeUp()
         if(!error && (rplListLength(saved)<PALETTE_SIZE)) error=1;
 
         int k;
-        WORDPTR obj=saved+1;
+        word_p obj=saved+1;
         WORD palette[PALETTE_SIZE];
         uint64_t color;
 
@@ -330,20 +330,20 @@ void halWakeUp()
         // Here we were able to read all numbers without any errors, so it's a valid palette
 
         if(!error) halSetupTheme(palette);
-        else rplPurgeSettings((WORDPTR)theme_ident);
+        else rplPurgeSettings((word_p)theme_ident);
     }
 
 #endif /* TARGET_PRIME1 */
 
 // RESTORE THE FLAGS
 
-    saved = rplGetSettings((WORDPTR) savedflags_ident);
+    saved = rplGetSettings((word_p) savedflags_ident);
     if(saved) {
         int32_t tmpflags = rplReadint32_t(saved);
         int32_t flagmask = (HAL_FASTMODE | HAL_HOURGLASS | HAL_SLOWLOCK | HAL_SKIPNEXTALARM);      // SOME FLAGS SHOULD NOT BE PRESERVED
         halFlags = (tmpflags & (~flagmask)) | (halFlags & flagmask);
     }
-    rplPurgeSettings((WORDPTR) savedflags_ident);
+    rplPurgeSettings((word_p) savedflags_ident);
 
 // AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS
     halUpdateFonts();
@@ -360,14 +360,14 @@ void halWakeUp()
     else
         halFlags &= ~HAL_QUICKRESPONSE;
 // RESTORE STACK
-    saved = rplGetSettings((WORDPTR) stksave_ident);
+    saved = rplGetSettings((word_p) stksave_ident);
 
     if(saved) {
         if(ISAUTOEXPLIST(*saved)) {
             int32_t nitems = rplListLength(saved);
             rplExpandStack(nitems);
             if(!Exceptions) {
-                WORDPTR ptr = saved + 1;
+                word_p ptr = saved + 1;
                 while(nitems--) {
                     rplPushDataNoGrow(ptr);
                     ptr = rplSkipOb(ptr);
@@ -378,17 +378,17 @@ void halWakeUp()
             rplPushData(saved);
 
     }
-    rplPurgeSettings((WORDPTR) stksave_ident);
+    rplPurgeSettings((word_p) stksave_ident);
 
 // AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS
     halUpdateFonts();
 
 // RESTORE THE COMMAND LINE
-    saved = rplGetSettings((WORDPTR) savedcmdline_ident);
+    saved = rplGetSettings((word_p) savedcmdline_ident);
     if(saved) {
         if(halRestoreCmdLine(saved))
             halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        rplPurgeSettings((WORDPTR) savedcmdline_ident);
+        rplPurgeSettings((word_p) savedcmdline_ident);
     }
 
 // AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS

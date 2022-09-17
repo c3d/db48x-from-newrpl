@@ -68,10 +68,10 @@ INCLUDE_ROMOBJECT(lib100_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib100_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib100_menu,
     0
 };
 
@@ -104,7 +104,7 @@ int rplUSBArchiveWriteWord(unsigned int data, void *opaque)
     }
     ++info->progress;
     WORD buffer = data;
-    return usb_filewrite(info->fileid, (BYTEPTR) & buffer, 4);
+    return usb_filewrite(info->fileid, (byte_p) & buffer, 4);
 }
 
 // FOR rplRestoreBackup, RETURNS THE WORD, SET AND rplError ON ERROR
@@ -123,7 +123,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
     }
     ++info->progress;
 
-    switch (usb_fileread(info->fileid, (BYTEPTR) & data, 4)) {
+    switch (usb_fileread(info->fileid, (byte_p) & data, 4)) {
     case 0:
         // OPERATION TIMED OUT
         if(usb_eof(info->fileid))
@@ -249,7 +249,7 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        WORDPTR newobj = 0, newobjptr = 0;
+        word_p newobj = 0, newobjptr = 0;
         WORD fileid;
         int32_t bytesread, allocated, offset = 0;
 
@@ -288,7 +288,7 @@ void LIB_HANDLER()
         while(!Exceptions) {
             offset = newobjptr - newobj;
             bytesread =
-                    usb_fileread(fileid, (BYTEPTR) newobjptr,
+                    usb_fileread(fileid, (byte_p) newobjptr,
                     (allocated - offset) * sizeof(WORD));
             newobjptr += (bytesread + 3) >> 2;
             if(bytesread < (allocated - offset) * (int32_t) sizeof(WORD)) {
@@ -362,7 +362,7 @@ void LIB_HANDLER()
         int32_t result, fileid = usb_txfileopen('O');      // OPEN AN RPL OBJECT TYPE TRANSMISSION
         result = fileid ? 1 : 0;
         if(result)
-            result = usb_filewrite(fileid, (BYTEPTR) rplPeekData(1),
+            result = usb_filewrite(fileid, (byte_p) rplPeekData(1),
                     rplObjSize(rplPeekData(1)) * sizeof(WORD));
         if(result)
             result = usb_txfileclose(fileid);
@@ -370,9 +370,9 @@ void LIB_HANDLER()
             usb_txfileclose(fileid);
 
         if(!result)
-            rplOverwriteData(1, (WORDPTR) zero_bint);
+            rplOverwriteData(1, (word_p) zero_bint);
         else
-            rplOverwriteData(1, (WORDPTR) one_bint);
+            rplOverwriteData(1, (word_p) one_bint);
 
         return;
     }
@@ -406,7 +406,7 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        WORDPTR newobj = 0, newobjptr = 0;
+        word_p newobj = 0, newobjptr = 0;
         WORD fileid;
         int32_t bytesread, allocated, offset = 0;
 
@@ -445,7 +445,7 @@ void LIB_HANDLER()
         while(!Exceptions) {
             offset = newobjptr - newobj;
             bytesread =
-                    usb_fileread(fileid, (BYTEPTR) newobjptr,
+                    usb_fileread(fileid, (byte_p) newobjptr,
                     (allocated - offset) * sizeof(WORD));
             newobjptr += (bytesread + 3) >> 2;
             if(bytesread < (allocated - offset) * (int32_t) sizeof(WORD)) {
@@ -526,17 +526,17 @@ void LIB_HANDLER()
             return;
         }
         // PACK THE STACK
-        WORDPTR stklist = 0;
+        word_p stklist = 0;
 
         if(rplDepthData() >= 1)
             stklist = rplCreateListN(rplDepthData(), 1, 0);
         // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
         if(stklist) {
             rplListAutoExpand(stklist);
-            rplStoreSettings((WORDPTR) stksave_ident, stklist);
+            rplStoreSettings((word_p) stksave_ident, stklist);
         }
         else
-            rplPurgeSettings((WORDPTR) stksave_ident);
+            rplPurgeSettings((word_p) stksave_ident);
 
         int32_t err = rplBackup(&rplUSBArchiveWriteWord, (void *)&info);
 
@@ -547,7 +547,7 @@ void LIB_HANDLER()
                 rplError(ERR_USBCOMMERROR);
             return;
         }
-        rplPurgeSettings((WORDPTR) stksave_ident);
+        rplPurgeSettings((word_p) stksave_ident);
         return;
 
     }
@@ -617,7 +617,7 @@ void LIB_HANDLER()
             WORD data;
             // KEEP READING UNLESS THERE'S SOME KIND OF ERROR
             while(!usb_eof(info.fileid)) {
-                if(usb_fileread(info.fileid, (BYTEPTR) & data, 4) < 4)
+                if(usb_fileread(info.fileid, (byte_p) & data, 4) < 4)
                     break;
             }
         }
@@ -757,7 +757,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -765,7 +765,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -806,7 +806,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -816,12 +816,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

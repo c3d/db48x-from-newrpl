@@ -74,10 +74,10 @@ void LIB_HANDLER()
         if((TokenLen > 2)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "##",
                         2))) {
-            BYTEPTR numptr = (BYTEPTR) TokenStart;
+            byte_p numptr = (byte_p) TokenStart;
             int32_t numwords = 0;
             numptr += 2;
-            while(numptr < (BYTEPTR) BlankStart) {
+            while(numptr < (byte_p) BlankStart) {
                 if((*numptr >= '0') && (*numptr <= '9')) {
                     numwords = numwords * 10 + (*numptr - '0');
                     ++numptr;
@@ -92,10 +92,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            if((numptr < (BYTEPTR) BlankStart) && (*numptr == ','))
+            if((numptr < (byte_p) BlankStart) && (*numptr == ','))
                 ++numptr;       // SKIP THE COMMA TO POINT TO THE TEXT TO REPLACE
 
-            int32_t endoffset = ((BYTEPTR) CompileStringEnd) - numptr;
+            int32_t endoffset = ((byte_p) CompileStringEnd) - numptr;
 
             if(numwords == 1)
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, endoffset));
@@ -136,7 +136,7 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

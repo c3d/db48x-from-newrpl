@@ -129,15 +129,15 @@ INCLUDE_ROMOBJECT(lib28_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib28_menu,
-    (WORDPTR) dir_start_bint,
-    (WORDPTR) dir_parent_bint,
-    (WORDPTR) dir_end_bint,
-    (WORDPTR) root_dir_handle,
-    (WORDPTR) home_opcode,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib28_menu,
+    (word_p) dir_start_bint,
+    (word_p) dir_parent_bint,
+    (word_p) dir_end_bint,
+    (word_p) root_dir_handle,
+    (word_p) home_opcode,
     0
 };
 
@@ -166,19 +166,19 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
         if(rplDepthData() >= 5) {
             // CHECK IF THIS IS A RETRY DUE TO SYMBOLIC EVALUATION
             if(rplPeekData(3) == IPtr) {
 
                 // REMOVE THE ERROR HANDLER IF THERE WERE NO ERRORS
-                if(ErrorHandler == (WORDPTR) retrysemi_seco) {
+                if(ErrorHandler == (word_p) retrysemi_seco) {
                     rplRemoveExceptionHandler();
                     rplDropRet(1);
                 }
                 // RETURN STACK HAS THE SAVED TOP OF STACK
-                WORDPTR *stkptr = (WORDPTR *) rplPopRet();
+                word_p *stkptr = (word_p *) rplPopRet();
                 // ONLY RESTORE THE DATA STACK IF WITHIN LIMITS
                 if((stkptr >= DStkBottom) && (stkptr < stksave))
                     stksave = stkptr;
@@ -204,11 +204,11 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR *indir = 0;
+        word_p *indir = 0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1))) {
             int32_t elemcount = rplListLength(rplPeekData(1));
-            WORDPTR firstelem = rplPeekData(1) + 1;
+            word_p firstelem = rplPeekData(1) + 1;
             if((elemcount > 1) || !ISLIST(*firstelem)) {
                 rplListBinaryNoResultDoCmd();
                 return;
@@ -246,7 +246,7 @@ void LIB_HANDLER()
                 nargs -= 2;     // REMOVE THE OPERATOR AND COUNT FROM THE STACK
                 if(nargs > 2) {
                     // MAKE A LIST OF ARGUMENTS
-                    WORDPTR newlist = rplCreateListN(nargs - 1, 2, 1);
+                    word_p newlist = rplCreateListN(nargs - 1, 2, 1);
                     if(!newlist) {
                         DSTop = stksave;
                         return;
@@ -256,22 +256,22 @@ void LIB_HANDLER()
                 }
                 else {
                     // SWAP THE IDENT NAME AND ARGUMENT
-                    WORDPTR tmp = rplPeekData(1);
+                    word_p tmp = rplPeekData(1);
                     rplOverwriteData(1, rplPeekData(2));
                     rplOverwriteData(2, tmp);
                 }
 
                 // NOW PREPARE FRO A NON-ATOMIC EXECUTION OF ->NUM
 
-                rplPushRet((WORDPTR) stksave);
+                rplPushRet((word_p) stksave);
                 rplPushRet(IPtr);
-                rplSetExceptionHandler((WORDPTR) retrysemi_seco);
-                WORDPTR *rstopsave = RSTop;
+                rplSetExceptionHandler((word_p) retrysemi_seco);
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_NUM);
                 if(IPtr != rstopsave[0]) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 // OPERATION WAS ATOMIC, RESTORE AND CONTINUE
@@ -312,7 +312,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR *val;
+        word_p *val;
         WORD valattr = 0;
 
         if(!indir)
@@ -358,11 +358,11 @@ void LIB_HANDLER()
 
             }
             // HANDLE SPECIAL CASE OF STORING DIRECTORY OBJECTS
-            WORDPTR obj = rplPeekData(2);
+            word_p obj = rplPeekData(2);
             if(LIBNUM(*obj) == DODIR) {
-                WORDPTR *sourcedir = rplFindDirbyHandle(obj);
+                word_p *sourcedir = rplFindDirbyHandle(obj);
                 if(sourcedir) {
-                    WORDPTR *newdir = rplDeepCopyDir(sourcedir);
+                    word_p *newdir = rplDeepCopyDir(sourcedir);
                     if(newdir) {
                         if(val) {
                             *(newdir + 3) = *(rplGetDirfromGlobal(val) + 1);    // SET PARENT DIR
@@ -372,7 +372,7 @@ void LIB_HANDLER()
                             // NOT FOUND, CREATE A NEW VARIABLE
                             if(!indir) {
                                 *(newdir + 3) = *(CurrentDir + 1);
-                                WORDPTR name =
+                                word_p name =
                                         rplMakeIdentQuoted(rplPeekData(1));
                                 if(!name)
                                     return;
@@ -381,7 +381,7 @@ void LIB_HANDLER()
                             else {
                                 // SET PARENT DIR
                                 *(newdir + 3) = *(indir + 1);
-                                WORDPTR name =
+                                word_p name =
                                         rplMakeIdentQuoted(rplGetListElement
                                         (rplPeekData(1) + 1,
                                             rplListLength(rplPeekData(1) + 1)));
@@ -403,7 +403,7 @@ void LIB_HANDLER()
                 }
             }
             else if(LIBNUM(*obj) == DOPACKDIR) {
-                WORDPTR *recurseptr = 0;
+                word_p *recurseptr = 0;
                 int32_t recurseoffset = 0;
                 do {
                     if(recurseptr) {
@@ -421,7 +421,7 @@ void LIB_HANDLER()
                         recurseptr += 2;
                     }
 
-                    WORDPTR *newdir = rplMakeNewDir();
+                    word_p *newdir = rplMakeNewDir();
                     if(newdir) {
                         if(val) {
                             *(newdir + 3) = *(rplGetDirfromGlobal(val) + 1);    // SET PARENT DIR
@@ -431,7 +431,7 @@ void LIB_HANDLER()
                             // NOT FOUND, CREATE A NEW VARIABLE
                             if(!indir) {
                                 *(newdir + 3) = *(CurrentDir + 1);
-                                WORDPTR name =
+                                word_p name =
                                         rplMakeIdentQuoted(rplPeekData(1));
                                 if(!name)
                                     return;
@@ -442,7 +442,7 @@ void LIB_HANDLER()
                             else {
                                 // SET PARENT DIR
                                 *(newdir + 3) = *(indir + 1);
-                                WORDPTR name =
+                                word_p name =
                                         rplMakeIdentQuoted(rplGetListElement
                                         (rplPeekData(1) + 1,
                                             rplListLength(rplPeekData(1) + 1)));
@@ -461,7 +461,7 @@ void LIB_HANDLER()
                         if(recurseptr)
                             obj += recurseoffset;
 
-                        WORDPTR name, value, endobj;
+                        word_p name, value, endobj;
 
                         endobj = rplSkipOb(obj);
 
@@ -477,7 +477,7 @@ void LIB_HANDLER()
 
                         // NOW WE HAVE A COUNT OF VARIABLES
 
-                        WORDPTR *direntries =
+                        word_p *direntries =
                                 rplCreateNGlobalsInDir(count, newdir);
 
                         if(!direntries || Exceptions)
@@ -521,13 +521,13 @@ void LIB_HANDLER()
             else {
                 // CREATE A NEW GLOBAL VARIABLE
                 if(!indir) {
-                    WORDPTR name = rplMakeIdentQuoted(rplPeekData(1));
+                    word_p name = rplMakeIdentQuoted(rplPeekData(1));
                     if(!name)
                         return;
                     rplCreateGlobal(name, rplPeekData(2));
                 }
                 else {
-                    WORDPTR name =
+                    word_p name =
                             rplMakeIdentQuoted(rplGetListElement(rplPeekData(1)
                                 + 1, rplListLength(rplPeekData(1) + 1)));
                     if(!name)
@@ -553,11 +553,11 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *indir = 0;
+        word_p *indir = 0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1))) {
             int32_t nelem = rplListLength(rplPeekData(1));
-            WORDPTR firstelem = rplPeekData(1) + 1;
+            word_p firstelem = rplPeekData(1) + 1;
             if((nelem > 1) || !ISLIST(*firstelem)) {
                 rplListUnaryNonRecursiveDoCmd();
                 return;
@@ -586,7 +586,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR val;
+        word_p val;
 
         if(!indir)
             val = rplGetLAM(rplPeekData(1));
@@ -602,7 +602,7 @@ void LIB_HANDLER()
                 val = rplGetGlobal(rplPeekData(1));
             }
             else {
-                WORDPTR *var =
+                word_p *var =
                         rplFindGlobalInDir(rplGetListElement(rplPeekData(1) + 1,
                             rplListLength(rplPeekData(1) + 1)), indir, 0);
                 if(var)
@@ -654,9 +654,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -685,12 +685,12 @@ void LIB_HANDLER()
                 }
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_ADD);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -749,9 +749,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -780,12 +780,12 @@ void LIB_HANDLER()
                 }
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_SUB);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -845,9 +845,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -876,12 +876,12 @@ void LIB_HANDLER()
                 }
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_MUL);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -941,9 +941,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -972,12 +972,12 @@ void LIB_HANDLER()
                 }
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_DIV);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1035,9 +1035,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -1058,12 +1058,12 @@ void LIB_HANDLER()
                 rplPushData(*(var + 1));
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_INV);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1120,9 +1120,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -1143,12 +1143,12 @@ void LIB_HANDLER()
                 rplPushData(*(var + 1));
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_NEG);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1205,9 +1205,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -1228,12 +1228,12 @@ void LIB_HANDLER()
                 rplPushData(*(var + 1));
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOperator(CMD_CONJ);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1298,9 +1298,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -1320,15 +1320,15 @@ void LIB_HANDLER()
                 if(Exceptions)
                     return;
                 rplPushData(*(var + 1));
-                rplPushData((WORDPTR) one_bint);        // PUSH THE OBJECT TO ADD
+                rplPushData((word_p) one_bint);        // PUSH THE OBJECT TO ADD
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_ADD);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1394,9 +1394,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -1416,15 +1416,15 @@ void LIB_HANDLER()
                 if(Exceptions)
                     return;
                 rplPushData(*(var + 1));
-                rplPushData((WORDPTR) one_bint);        // PUSH THE OBJECT TO ADD
+                rplPushData((word_p) one_bint);        // PUSH THE OBJECT TO ADD
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOvrOperator(CMD_OVR_SUB);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -1507,7 +1507,7 @@ void LIB_HANDLER()
         }
 
         // SAFEGUARD AGAINST OVERWRITING
-        WORDPTR *val = rplFindGlobal(rplPeekData(1), 0);
+        word_p *val = rplFindGlobal(rplPeekData(1), 0);
         if(val) {
             if(ISDIR(*val[1])) {
                 rplError(ERR_CANTOVERWRITEDIR);
@@ -1520,7 +1520,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR name = rplMakeIdentQuoted(rplPeekData(1));
+        word_p name = rplMakeIdentQuoted(rplPeekData(1));
         rplCreateNewDir(name, CurrentDir);
 
         rplDropData(1);
@@ -1560,7 +1560,7 @@ void LIB_HANDLER()
     case UPDIR:
     {
         //@SHORT_DESC=Change current directory to its parent
-        WORDPTR *dir = rplGetParentDir(CurrentDir);
+        word_p *dir = rplGetParentDir(CurrentDir);
         if(dir)
             CurrentDir = dir;
         return;
@@ -1574,12 +1574,12 @@ void LIB_HANDLER()
 
     {
         //@SHORT_DESC=Get a path to the current directory
-        WORDPTR *scandir = CurrentDir;
+        word_p *scandir = CurrentDir;
         int32_t nitems = 0;
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
         while(scandir != Directories) {
-            WORDPTR name = rplGetDirName(scandir);
+            word_p name = rplGetDirName(scandir);
             if(name) {
                 rplPushData(name);
                 if(Exceptions) {
@@ -1592,7 +1592,7 @@ void LIB_HANDLER()
         }
 
         if(scandir == Directories) {
-            rplPushData((WORDPTR) home_opcode);
+            rplPushData((word_p) home_opcode);
             ++nitems;
             if(Exceptions) {
                 DSTop = stksave;
@@ -1601,12 +1601,12 @@ void LIB_HANDLER()
         }
 
         if(nitems == 0)
-            rplPushData((WORDPTR) empty_list);
+            rplPushData((word_p) empty_list);
         else {
             // REVERSE THE ORDER IN THE STACK, AS HOME IS THE LAST ONE
 
             int32_t f;
-            WORDPTR obj;
+            word_p obj;
             for(f = 1; f <= nitems / 2; ++f) {
                 obj = rplPeekData(f);
                 rplOverwriteData(f, rplPeekData(nitems + 1 - f));
@@ -1623,8 +1623,8 @@ void LIB_HANDLER()
     case VARS:
     {
         //@SHORT_DESC=List all visible variables in a directory
-        WORDPTR *varptr = rplFindFirstInDir(CurrentDir);
-        WORDPTR *stksave = DSTop;
+        word_p *varptr = rplFindFirstInDir(CurrentDir);
+        word_p *stksave = DSTop;
         int32_t nitems = 0;
 
         while(varptr) {
@@ -1636,7 +1636,7 @@ void LIB_HANDLER()
         }
 
         if(nitems == 0)
-            rplPushData((WORDPTR) empty_list);
+            rplPushData((word_p) empty_list);
         else {
             rplNewint32_tPush(nitems, DECint32_t);
             if(Exceptions) {
@@ -1657,8 +1657,8 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=List all variables in a directory
         //@NEW
-        WORDPTR *varptr = rplFindFirstInDir(CurrentDir);
-        WORDPTR *stksave = DSTop;
+        word_p *varptr = rplFindFirstInDir(CurrentDir);
+        word_p *stksave = DSTop;
         int32_t nitems = 0;
 
         while(varptr) {
@@ -1668,7 +1668,7 @@ void LIB_HANDLER()
         }
 
         if(nitems == 0)
-            rplPushData((WORDPTR) empty_list);
+            rplPushData((word_p) empty_list);
         else {
             rplNewint32_tPush(nitems, DECint32_t);
             if(Exceptions) {
@@ -1699,16 +1699,16 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR nextname = rplPeekData(1) + 1;
-        WORDPTR endoflist = rplSkipOb(rplPeekData(1));
+        word_p nextname = rplPeekData(1) + 1;
+        word_p endoflist = rplSkipOb(rplPeekData(1));
 
-        WORDPTR *firstentry = rplFindFirstInDir(CurrentDir);
-        WORDPTR *foundentry;
+        word_p *firstentry = rplFindFirstInDir(CurrentDir);
+        word_p *foundentry;
 
         while((*nextname != CMD_ENDLIST) && (nextname < endoflist)) {
             foundentry = rplFindGlobal(nextname, 0);
             if(foundentry) {
-                WORDPTR name, val;
+                word_p name, val;
                 // BRING THIS ENTRY TO THE PROPER LOCATION
                 name = foundentry[0];
                 val = foundentry[1];
@@ -1742,7 +1742,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR ident = rplMakeIdentQuoted(rplPeekData(1));
+        word_p ident = rplMakeIdentQuoted(rplPeekData(1));
 
         if(!ident)
             return;     // SOME ERROR OCCURRED
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR ident = rplMakeIdentUnquoted(rplPeekData(1));
+        word_p ident = rplMakeIdentUnquoted(rplPeekData(1));
 
         if(!ident)
             return;     // SOME ERROR OCCURRED
@@ -1803,11 +1803,11 @@ void LIB_HANDLER()
 
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(1), 1);
         if(var) {
-            WORDPTR ident = rplMakeIdentHidden(var[0]);
+            word_p ident = rplMakeIdentHidden(var[0]);
             if(!ident)
                 return;
             if(ident != var[0])
@@ -1847,11 +1847,11 @@ void LIB_HANDLER()
 
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(1), 1);
         if(var) {
-            WORDPTR ident = rplMakeIdentVisible(var[0]);
+            word_p ident = rplMakeIdentVisible(var[0]);
             if(!ident)
                 return;
             if(ident != var[0])
@@ -1873,7 +1873,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Purge all variables and empty subdirectories in current directory
         // PURGE ALL VARIABLES AND EMPTY SUBDIRECTORIES IN CURRENT DIR
 
-        WORDPTR *var;
+        word_p *var;
 
         int32_t idx = 0;
 
@@ -1918,11 +1918,11 @@ void LIB_HANDLER()
 
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(1), 1);
         if(var) {
-            WORDPTR ident = rplMakeIdentReadOnly(var[0]);
+            word_p ident = rplMakeIdentReadOnly(var[0]);
             if(!ident)
                 return;
             if(ident != var[0])
@@ -1962,11 +1962,11 @@ void LIB_HANDLER()
 
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(1), 1);
         if(var) {
-            WORDPTR ident = rplMakeIdentWriteable(var[0]);
+            word_p ident = rplMakeIdentWriteable(var[0]);
             if(!ident)
                 return;
             if(ident != var[0])
@@ -1999,7 +1999,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *val = rplFindLAM(rplPeekData(2), 0);   // DON'T ALLOW TO RENAME IN UPPER ENVIRONMENTS
+        word_p *val = rplFindLAM(rplPeekData(2), 0);   // DON'T ALLOW TO RENAME IN UPPER ENVIRONMENTS
 
         if(val) {
             if(ISLOCKEDIDENT(*val[0])) {
@@ -2039,7 +2039,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int32_t nitems;
-        WORDPTR first, itemptr;
+        word_p first, itemptr;
         if(!ISLIST(*rplPeekData(1))) {
             nitems = 1;
             first = rplPeekData(1);
@@ -2051,9 +2051,9 @@ void LIB_HANDLER()
         // SCAN CURRENT DIRECTORY FOR VARIABLES
 
         int32_t nvars = rplGetVisibleVarCount();
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         int32_t k, j, totalcount = 0;
-        WORDPTR *var;
+        word_p *var;
 
         for(k = 0; k < nvars; ++k) {
             var = rplFindVisibleGlobalByIndex(k);
@@ -2100,7 +2100,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR newlist = rplCreateListN(totalcount, 1, 1);
+        word_p newlist = rplCreateListN(totalcount, 1, 1);
         if(!newlist) {
             DSTop = savestk;
             return;
@@ -2122,7 +2122,7 @@ void LIB_HANDLER()
         rplStripTagStack(1);
 
         int32_t nitems;
-        WORDPTR first, itemptr;
+        word_p first, itemptr;
         if(!ISLIST(*rplPeekData(1))) {
             nitems = 1;
             first = rplPeekData(1);
@@ -2134,9 +2134,9 @@ void LIB_HANDLER()
         // SCAN CURRENT DIRECTORY FOR VARIABLES
 
         int32_t nvars = rplGetVisibleVarCount();
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         int32_t k, j, totalcount = 0;
-        WORDPTR *var;
+        word_p *var;
 
         for(k = 0; k < nvars; ++k) {
             var = rplFindVisibleGlobalByIndex(k);
@@ -2187,7 +2187,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR newlist = rplCreateListN(totalcount, 1, 1);
+        word_p newlist = rplCreateListN(totalcount, 1, 1);
         if(!newlist) {
             DSTop = savestk;
             return;
@@ -2230,9 +2230,9 @@ void LIB_HANDLER()
         }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
-        WORDPTR *var = rplFindLAM(rplPeekData(varidx), 1);
+        word_p *var = rplFindLAM(rplPeekData(varidx), 1);
         if(!var)
             var = rplFindGlobal(rplPeekData(varidx), 1);
         if(var) {
@@ -2261,12 +2261,12 @@ void LIB_HANDLER()
                 }
                 if(Exceptions)
                     return;
-                WORDPTR *rstopsave = RSTop;
+                word_p *rstopsave = RSTop;
                 rplPushRet(IPtr);
                 rplCallOperator(CMD_ADD);
                 if(IPtr != *rstopsave) {
                     // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-                    rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+                    rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
                     return;
                 }
                 RSTop = rstopsave;
@@ -2326,17 +2326,17 @@ void LIB_HANDLER()
         }
 
         // WE HAVE A VALID PROPERTY, JUST STORE IT IN THE CURRENT DIRECTORY
-        WORDPTR varname = rplMakeIdentNoProps(rplPeekData(1));
+        word_p varname = rplMakeIdentNoProps(rplPeekData(1));
         if(!varname)
             return;
 
-        WORDPTR *var = rplFindGlobalInDir(varname, CurrentDir, 0);
+        word_p *var = rplFindGlobalInDir(varname, CurrentDir, 0);
         if(!var) {
             // CAN'T SET A PROPERTY OF A VARIABLE THAT DOESN'T EXIST
             // TODO: UNLESS IT'S THE 'Defn' PROPERTY, THEN IT SHOULD BE EVALUATED
             if(prop == IDPROP_DEFN) {
                 ScratchPointer1 = varname;
-                rplCreateGlobalInDir(varname, (WORDPTR) zero_bint, CurrentDir);
+                rplCreateGlobalInDir(varname, (word_p) zero_bint, CurrentDir);
                 if(Exceptions)
                     return;
 
@@ -2353,8 +2353,8 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *varprop = rplFindGlobalInDir(rplPeekData(1), CurrentDir, 0);
-        WORDPTR oldvarprop = 0;
+        word_p *varprop = rplFindGlobalInDir(rplPeekData(1), CurrentDir, 0);
+        word_p oldvarprop = 0;
         if(varprop) {
             oldvarprop = varprop[1];
             varprop[1] = rplPeekData(2);
@@ -2362,7 +2362,7 @@ void LIB_HANDLER()
         else {
             // CREATE A NEW PROPERTY
             ScratchPointer2 = varname;
-            WORDPTR newname = rplMakeIdentHidden(rplPeekData(1));
+            word_p newname = rplMakeIdentHidden(rplPeekData(1));
             if(!newname)
                 return;
             rplCreateGlobal(newname, rplPeekData(2));
@@ -2380,10 +2380,10 @@ void LIB_HANDLER()
             // EVALUATE THE DEFINITION FOR THE FIRST TIME
             // FOUND A FORMULA OR PROGRAM, IF A PROGRAM, RUN XEQ THEN ->NUM
             // IF A FORMULA OR ANYTHING ELSE, ->NUM
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
             rplPushData(oldvarprop);
             rplPushData(rplPeekData(2));
-            WORDPTR *stkcheck = DSTop;
+            word_p *stkcheck = DSTop;
             if(ISPROGRAM(*rplPeekData(1)))
                 rplRunAtomic(CMD_OVR_XEQ);
             if(Exceptions) {
@@ -2467,7 +2467,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *varprop = rplFindGlobalInDir(rplPeekData(1), CurrentDir, 0);
+        word_p *varprop = rplFindGlobalInDir(rplPeekData(1), CurrentDir, 0);
         if(varprop)
             rplOverwriteData(1, varprop[1]);
         else {
@@ -2489,10 +2489,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR *indir = 0;
+        word_p *indir = 0;
         // LIST IS A PATH WHEN USING DOUBLE LISTS {{ }}, OTHERWISE ENABLE LIST PROCESSING
         if(ISLIST(*rplPeekData(1))) {
-            WORDPTR firstelem = rplPeekData(1) + 1;
+            word_p firstelem = rplPeekData(1) + 1;
             if(!ISLIST(*firstelem)) {
                 rplListUnaryDoCmd();
                 return;
@@ -2502,7 +2502,7 @@ void LIB_HANDLER()
 
         }
         else if(ISIDENT(*rplPeekData(1))) {
-            WORDPTR *var = rplFindGlobal(rplPeekData(1), 1);
+            word_p *var = rplFindGlobal(rplPeekData(1), 1);
 
             if(!var) {
                 rplError(ERR_DIRECTORYNOTFOUND);
@@ -2529,7 +2529,7 @@ void LIB_HANDLER()
         // COMPUTE THE SIZE
         int32_t size = rplGetDirSize(indir);
 
-        WORDPTR newobj = rplAllocTempOb(size);
+        word_p newobj = rplAllocTempOb(size);
         if(!newobj)
             return;     // NOT ENOUGH MEMORY!!
         rplPackDirinPlace(indir, newobj);
@@ -2560,7 +2560,7 @@ void LIB_HANDLER()
 
         }
 
-        WORDPTR *dir = rplFindDirbyHandle(rplPeekData(1));
+        word_p *dir = rplFindDirbyHandle(rplPeekData(1));
 
         if(!dir) {
             rplError(ERR_DIRECTORYNOTFOUND);
@@ -2612,11 +2612,11 @@ void LIB_HANDLER()
     case OVR_ISTRUE:
         if(ISPACKEDDIR(*rplPeekData(1))) {
            if(OBJSIZE(*rplPeekData(1))==0) {
-               rplOverwriteData(1, (WORDPTR) zero_bint);
+               rplOverwriteData(1, (word_p) zero_bint);
                return;
            }
         }
-        rplOverwriteData(1, (WORDPTR) one_bint);
+        rplOverwriteData(1, (word_p) one_bint);
         return;
 
         // STANDARIZED OPCODES:
@@ -2668,7 +2668,7 @@ void LIB_HANDLER()
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object, prevobject;
+            word_p object, prevobject;
             int32_t notrack = 0;
             if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
@@ -2679,7 +2679,7 @@ void LIB_HANDLER()
                 ++object;       // AND SKIP THE PROLOG / ENTRY WORD
 
                 // CHECK FOR CONDITIONAL VARIABLE CREATION!
-                WORDPTR *construct = ValidateTop - 1;
+                word_p *construct = ValidateTop - 1;
                 while(construct >= ValidateBottom) {
                     if((**construct == CMD_THEN) || (**construct == CMD_ELSE)
                             || (**construct == CMD_THENERR)
@@ -2695,11 +2695,11 @@ void LIB_HANDLER()
                 // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
                 if(!notrack) {
 
-                    WORDPTR *env = nLAMBase;
+                    word_p *env = nLAMBase;
                     do {
                         if(env < LAMTopSaved)
                             break;
-                        if(env[1] == (WORDPTR) lameval_seco) {
+                        if(env[1] == (word_p) lameval_seco) {
                             // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
                             notrack = 1;
                             break;
@@ -2726,7 +2726,7 @@ void LIB_HANDLER()
 
                     // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
 
-                    WORDPTR *LAMptr = rplFindLAM(prevobject, 1);
+                    word_p *LAMptr = rplFindLAM(prevobject, 1);
 
                     if(LAMptr < LAMTopSaved) {
                         // THIS IS NOT A VALID LAM, LEAVE AS IDENT
@@ -2741,7 +2741,7 @@ void LIB_HANDLER()
                         // THIS IS A LAM FROM AN UPPER CONSTRUCT
                         // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
 
-                        WORDPTR *env = nLAMBase;
+                        word_p *env = nLAMBase;
                         WORD prolog;
                         do {
                             if(LAMptr > env)
@@ -2770,7 +2770,7 @@ void LIB_HANDLER()
                     // INSTEAD OF PUTLAMS
 
                     // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS WHEN USING STO, CREATE NEW ONE WHEN USING LSTO
-                    WORDPTR *scanenv = ValidateTop - 1;
+                    word_p *scanenv = ValidateTop - 1;
 
                     while(scanenv >= ValidateBottom) {
                         if(((LIBNUM(**scanenv) == DOCOL)
@@ -2821,7 +2821,7 @@ void LIB_HANDLER()
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object, prevobject;
+            word_p object, prevobject;
             if(ValidateTop <= ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object = TempObEnd;     // START OF COMPILATION
@@ -2845,7 +2845,7 @@ void LIB_HANDLER()
 
                     // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A GETLAM OPCODE IF POSSIBLE
 
-                    WORDPTR *LAMptr = rplFindLAM(prevobject, 1);
+                    word_p *LAMptr = rplFindLAM(prevobject, 1);
 
                     if(LAMptr < LAMTopSaved) {
                         // THIS IS NOT A VALID LAM, LEAVE AS IDENT
@@ -2859,7 +2859,7 @@ void LIB_HANDLER()
                         // THIS IS A LAM FROM AN UPPER CONSTRUCT
                         // WE CAN USE GETLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
 
-                        WORDPTR *env = nLAMBase;
+                        word_p *env = nLAMBase;
                         WORD prolog;
                         do {
                             if(LAMptr > env)
@@ -2888,7 +2888,7 @@ void LIB_HANDLER()
                     // INSTEAD OF GETLAMS
 
                     // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
-                    WORDPTR *scanenv = ValidateTop - 1;
+                    word_p *scanenv = ValidateTop - 1;
 
                     while(scanenv >= ValidateBottom) {
                         if((LIBNUM(**scanenv) == SECO) && (ISPROLOG(**scanenv))) {
@@ -2949,15 +2949,15 @@ void LIB_HANDLER()
             if(LIBNUM(*DecompileObject) == LIBRARY_NUMBER) {
                 // IT'S A DIRECTORY OBJECT
 
-                rplDecompAppendString((BYTEPTR) "DIR<");
+                rplDecompAppendString((byte_p) "DIR<");
 
-                WORDPTR *dir = rplFindDirbyHandle(DecompileObject);
+                word_p *dir = rplFindDirbyHandle(DecompileObject);
                 if(dir) {
-                    WORDPTR path[16];
+                    word_p path[16];
                     int32_t lvlcount = rplGetFullPath(dir, path, 16);
 
                     if(lvlcount == 16)
-                        rplDecompAppendString((BYTEPTR) "...");
+                        rplDecompAppendString((byte_p) "...");
 
                     while(lvlcount > 0) {
                         rplDecompAppendChar('/');
@@ -2966,16 +2966,16 @@ void LIB_HANDLER()
                     }
                 }
                 else
-                    rplDecompAppendString((BYTEPTR) "*unlinked*");
+                    rplDecompAppendString((byte_p) "*unlinked*");
 
-                rplDecompAppendString((BYTEPTR) ">");
+                rplDecompAppendString((byte_p) ">");
                 RetNum = OK_CONTINUE;
                 return;
             }
 
             // OTHERWISE IT'S A PACKED DIRECTORY OBJECT
 
-            rplDecompAppendString((BYTEPTR) "DIRECTORY");
+            rplDecompAppendString((byte_p) "DIRECTORY");
             int32_t depth = 0, needseparator;
 
             needseparator =
@@ -2990,7 +2990,7 @@ void LIB_HANDLER()
             while(offset <= endoffset) {
                 if(offset == innerendoffset) {
                     rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
-                    rplDecompAppendString((BYTEPTR) "ENDDIR");
+                    rplDecompAppendString((byte_p) "ENDDIR");
                     if(Exceptions) {
                         RetNum = ERR_INVALID;
                         return;
@@ -3030,7 +3030,7 @@ void LIB_HANDLER()
                 if(ISPACKEDDIR(DecompileObject[offset])) {
 
                     //rplDecompDoHintsWidth(HINT_NLAFTER);
-                    rplDecompAppendString((BYTEPTR) "DIRECTORY");
+                    rplDecompAppendString((byte_p) "DIRECTORY");
                     needseparator =
                             !rplDecompDoHintsWidth(HINT_NLAFTER |
                             HINT_ADDINDENTAFTER);
@@ -3146,7 +3146,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3154,7 +3154,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -3191,7 +3191,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) lib28_menu;
+        ObjectPTR = (word_p) lib28_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -3201,7 +3201,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -3210,12 +3210,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

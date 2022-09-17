@@ -73,10 +73,10 @@ INCLUDE_ROMOBJECT(lib96menu_main);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib96menu_main,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib96menu_main,
     0
 };
 
@@ -138,8 +138,8 @@ void LIB_HANDLER()
         }
 
         rplStripTagStack(3);
-        WORDPTR comp = rplPeekData(3);
-        WORDPTR *var = 0;
+        word_p comp = rplPeekData(3);
+        word_p *var = 0;
         if(ISIDENT(*comp)) {
             var = rplFindLAM(comp, 1);
             if(!var) {
@@ -157,8 +157,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*comp)) {
 
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj, listelem;
+            word_p *stksave = DSTop;
+            word_p posobj, listelem;
             int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
@@ -198,7 +198,7 @@ void LIB_HANDLER()
             // HERE k==ndims= LAST DIMENSION
             // listelem = LAST LIST
 
-            WORDPTR newobj = rplPeekData(1);    // OBJECT TO REPLACE
+            word_p newobj = rplPeekData(1);    // OBJECT TO REPLACE
             ScratchPointer3 = comp;
 
             for(; k >= 1; --k) {
@@ -282,8 +282,8 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj;
+            word_p *stksave = DSTop;
+            word_p posobj;
             int32_t rows, cols, ndims;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -379,17 +379,17 @@ void LIB_HANDLER()
             // HERE POSITION POINTS TO THE FIRST ELEMENT
             rplPushDataNoGrow(comp);
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             if(Exceptions) {
                 DSTop = stksave;
                 return;
             }
 
-            WORDPTR *elem = rplMatrixFastGetEx(first, cols, posrow, poscol);
+            word_p *elem = rplMatrixFastGetEx(first, cols, posrow, poscol);
 
             *elem = *(first - 2);       // REPLACE THE ELEMENT
 
-            WORDPTR newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
+            word_p newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
 
             if((!newmatrix) || Exceptions) {
                 DSTop = stksave;
@@ -420,8 +420,8 @@ void LIB_HANDLER()
         }
 
         rplStripTagStack(3);
-        WORDPTR comp = rplPeekData(3);
-        WORDPTR *var = 0;
+        word_p comp = rplPeekData(3);
+        word_p *var = 0;
         if(ISIDENT(*comp)) {
             var = rplFindLAM(comp, 1);
             if(!var) {
@@ -439,8 +439,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*comp)) {
 
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj, listelem;
+            word_p *stksave = DSTop;
+            word_p posobj, listelem;
             int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
@@ -480,7 +480,7 @@ void LIB_HANDLER()
             // HERE k==ndims= LAST DIMENSION
             // listelem = LAST LIST
 
-            WORDPTR newobj = rplPeekData(1);    // OBJECT TO REPLACE
+            word_p newobj = rplPeekData(1);    // OBJECT TO REPLACE
             ScratchPointer3 = comp;
 
             for(; k >= 1; --k) {
@@ -587,7 +587,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                WORDPTR newnum = rplNewint32_t(position, DECint32_t);
+                word_p newnum = rplNewint32_t(position, DECint32_t);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -617,8 +617,8 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj;
+            word_p *stksave = DSTop;
+            word_p posobj;
             int32_t rows, cols, ndims, nelem = 0;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -714,17 +714,17 @@ void LIB_HANDLER()
             // HERE POSITION POINTS TO THE FIRST ELEMENT
             rplPushDataNoGrow(comp);
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             if(Exceptions) {
                 DSTop = stksave;
                 return;
             }
 
-            WORDPTR *elem = rplMatrixFastGetEx(first, cols, posrow, poscol);
+            word_p *elem = rplMatrixFastGetEx(first, cols, posrow, poscol);
 
             *elem = *(first - 2);       // REPLACE THE ELEMENT
 
-            WORDPTR newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
+            word_p newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
 
             if((!newmatrix) || Exceptions) {
                 DSTop = stksave;
@@ -757,7 +757,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR newposlist;
+            word_p newposlist;
             if(nelem) {
                 newposlist = rplCreateListN(nelem, 1, 1);
                 if(!newposlist) {
@@ -797,8 +797,8 @@ void LIB_HANDLER()
         }
 
         rplStripTagStack(2);
-        WORDPTR comp = rplPeekData(2);
-        WORDPTR *var = 0;
+        word_p comp = rplPeekData(2);
+        word_p *var = 0;
         if(ISIDENT(*comp)) {
             var = rplFindLAM(comp, 1);
             if(!var) {
@@ -816,7 +816,7 @@ void LIB_HANDLER()
 
         if(ISLIST(*comp)) {
 
-            WORDPTR posobj, listelem;
+            word_p posobj, listelem;
             int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(1))) {
                 ndims = rplListLength(rplPeekData(1));
@@ -869,7 +869,7 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
-            WORDPTR posobj;
+            word_p posobj;
             int32_t rows, cols, ndims;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -955,7 +955,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR item = rplMatrixGet(comp, posrow, poscol);
+            word_p item = rplMatrixGet(comp, posrow, poscol);
             if(!item) {
                 rplError(ERR_INDEXOUTOFBOUNDS);
                 return;
@@ -987,8 +987,8 @@ void LIB_HANDLER()
         }
 
         rplStripTagStack(2);
-        WORDPTR comp = rplPeekData(2);
-        WORDPTR *var = 0;
+        word_p comp = rplPeekData(2);
+        word_p *var = 0;
         if(ISIDENT(*comp)) {
             var = rplFindLAM(comp, 1);
             if(!var) {
@@ -1006,8 +1006,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*comp)) {
 
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj, listelem;
+            word_p *stksave = DSTop;
+            word_p posobj, listelem;
             int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(1))) {
                 ndims = rplListLength(rplPeekData(1));
@@ -1050,7 +1050,7 @@ void LIB_HANDLER()
             // HERE k==ndims= LAST DIMENSION
             // listelem = OBJECT
 
-            WORDPTR newobj;
+            word_p newobj;
             ScratchPointer3 = comp;
 
             rplPushData(listelem);
@@ -1087,7 +1087,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                WORDPTR newnum = rplNewint32_t(position, DECint32_t);
+                word_p newnum = rplNewint32_t(position, DECint32_t);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -1120,8 +1120,8 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj;
+            word_p *stksave = DSTop;
+            word_p posobj;
             int32_t rows, cols, ndims, nelem = 0;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -1207,7 +1207,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR item = rplMatrixGet(comp, posrow, poscol);
+            word_p item = rplMatrixGet(comp, posrow, poscol);
             if(!item) {
                 rplError(ERR_INDEXOUTOFBOUNDS);
                 return;
@@ -1238,7 +1238,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR newposlist;
+            word_p newposlist;
             if(nelem) {
                 newposlist = rplCreateListN(nelem, 1, 1);
                 if(!newposlist) {
@@ -1271,7 +1271,7 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR comp;
+        word_p comp;
       head_recheck:
         comp = rplPeekData(1);
 
@@ -1286,14 +1286,14 @@ void LIB_HANDLER()
 
         if(ISSTRING(*comp)) {
 
-            BYTEPTR start = (BYTEPTR) (comp + 1);
-            BYTEPTR end = start + rplStrSize(comp);
-            BYTEPTR ptr = (BYTEPTR) utf8skipst((char *)start, (char *)end);
+            byte_p start = (byte_p) (comp + 1);
+            byte_p end = start + rplStrSize(comp);
+            byte_p ptr = (byte_p) utf8skipst((char *)start, (char *)end);
             if(ptr == start) {
                 rplError(ERR_EMPTYSTRING);
                 return;
             }
-            WORDPTR newstring = rplCreateString(start, ptr);
+            word_p newstring = rplCreateString(start, ptr);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -1316,18 +1316,18 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR comp;
+        word_p comp;
       tail_recheck:
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
             int32_t nitems = rplExplodeList2(comp);
-            WORDPTR newlist;
+            word_p newlist;
 
             if(Exceptions)
                 return;
             if(nitems < 2) {
-                newlist = (WORDPTR) empty_list;
+                newlist = (word_p) empty_list;
             }
             else {
                 newlist = rplCreateListN(nitems - 1, 1, 1);
@@ -1341,11 +1341,11 @@ void LIB_HANDLER()
         }
 
         if(ISSTRING(*comp)) {
-            BYTEPTR start = (BYTEPTR) (comp + 1);
-            BYTEPTR end = start + rplStrSize(comp);
-            BYTEPTR ptr = (BYTEPTR) utf8skipst((char *)start, (char *)end);
+            byte_p start = (byte_p) (comp + 1);
+            byte_p end = start + rplStrSize(comp);
+            byte_p ptr = (byte_p) utf8skipst((char *)start, (char *)end);
 
-            WORDPTR newstring = rplCreateString(ptr, end);
+            word_p newstring = rplCreateString(ptr, end);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -1369,7 +1369,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR comp = rplPeekData(1);
+        word_p comp = rplPeekData(1);
 
         if(ISCOMPLEX(*comp)) {
             rplCallOperator(CMD_CPLX2REAL);
@@ -1396,8 +1396,8 @@ void LIB_HANDLER()
 
             int32_t nitems = rplUnitExplode(comp);
             rplOverwriteData(nitems + 1, rplPeekData(nitems));  // REPLACE ORIGINAL UNIT WITH THE VALUE
-            rplOverwriteData(nitems, (WORDPTR) one_bint);       //  CHANGE VALUE TO 1
-            WORDPTR newunit = rplUnitAssemble(nitems);
+            rplOverwriteData(nitems, (word_p) one_bint);       //  CHANGE VALUE TO 1
+            word_p newunit = rplUnitAssemble(nitems);
             rplDropData(nitems);
             if(!newunit)
                 return;
@@ -1410,13 +1410,13 @@ void LIB_HANDLER()
             // ARG1 ... ARGN
             // N
             // OPERATOR (PUSHED IN THE STACK AS OBJECT)
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
             int32_t nitems = rplSymbExplodeOneLevel(comp);
             if(nitems > 1) {
 
                 if(*rplPeekData(1) == CMD_OVR_FUNCEVAL) {
                     --nitems;
-                    WORDPTR number = rplNewSINT(nitems - 2, DECint32_t);
+                    word_p number = rplNewSINT(nitems - 2, DECint32_t);
                     if(Exceptions || (!number)) {
                         DSTop = savestk;
                         return;
@@ -1456,8 +1456,8 @@ void LIB_HANDLER()
 
         rplStripTagStack(3);
 
-        WORDPTR comp = rplPeekData(3);
-        WORDPTR *var = 0;
+        word_p comp = rplPeekData(3);
+        word_p *var = 0;
         if(ISIDENT(*comp)) {
             var = rplFindLAM(comp, 1);
             if(!var) {
@@ -1475,8 +1475,8 @@ void LIB_HANDLER()
 
         if(ISLIST(*comp)) {
 
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj, listelem;
+            word_p *stksave = DSTop;
+            word_p posobj, listelem;
             int32_t ndims, k, position;
             if(ISLIST(*rplPeekData(2))) {
                 ndims = rplListLength(rplPeekData(2));
@@ -1516,7 +1516,7 @@ void LIB_HANDLER()
             // HERE k==ndims= LAST DIMENSION
             // listelem = LAST LIST
 
-            WORDPTR newobj = rplPeekData(1);    // OBJECT TO REPLACE
+            word_p newobj = rplPeekData(1);    // OBJECT TO REPLACE
             ScratchPointer3 = comp;
 
             for(; k >= 1; --k) {
@@ -1605,8 +1605,8 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*comp)) {
             // DO IT FOR VECTORS AND MATRICES
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj;
+            word_p *stksave = DSTop;
+            word_p posobj;
             int32_t rows, cols, ndims;
             int32_t posrow, poscol;
             rows = rplMatrixRows(comp);
@@ -1720,7 +1720,7 @@ void LIB_HANDLER()
             // HERE POSITION POINTS TO THE FIRST ELEMENT
             rplPushDataNoGrow(comp);
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1729,7 +1729,7 @@ void LIB_HANDLER()
 
             for(i = 1; i <= putnrows; ++i) {
                 for(j = 1; j <= putncols; ++j) {
-                    WORDPTR *elem =
+                    word_p *elem =
                             rplMatrixFastGetEx(first, cols, posrow + i - 1,
                             poscol + j - 1);
 
@@ -1738,7 +1738,7 @@ void LIB_HANDLER()
                 }
             }
 
-            WORDPTR newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
+            word_p newmatrix = rplMatrixCompose((ndims == 2) ? rows : 0, cols);
 
             if((!newmatrix) || Exceptions) {
                 DSTop = stksave;
@@ -1778,24 +1778,24 @@ void LIB_HANDLER()
             replen = rplStrLen(rplPeekData(1));
             int32_t posptr, posendptr;
             int32_t strend, repsize;
-            BYTEPTR strstart, newstart, repstart;
+            byte_p strstart, newstart, repstart;
 
-            strstart = (BYTEPTR) (comp + 1);
+            strstart = (byte_p) (comp + 1);
             strend = rplStrSize(comp);
             repsize = rplStrSize(rplPeekData(1));
-            posptr = (BYTEPTR) utf8nskipst((char *)strstart, (char *)strstart + strend, replpos - 1) - strstart;        // START REPLACING
-            posendptr = (BYTEPTR) utf8nskipst((char *)strstart + posptr, (char *)strstart + strend, replen) - strstart; // END REPLACING
+            posptr = (byte_p) utf8nskipst((char *)strstart, (char *)strstart + strend, replpos - 1) - strstart;        // START REPLACING
+            posendptr = (byte_p) utf8nskipst((char *)strstart + posptr, (char *)strstart + strend, replen) - strstart; // END REPLACING
 
             int32_t totalsize = (posptr) + repsize + (strend - posendptr);
 
-            WORDPTR newstring = rplCreateStringBySize(totalsize);
+            word_p newstring = rplCreateStringBySize(totalsize);
             if(!newstring)
                 return;
             // REREAD STRINGS FROM STACK, POSSIBLE GC
 
-            strstart = (BYTEPTR) (rplPeekData(3) + 1);
-            newstart = (BYTEPTR) (newstring + 1);
-            repstart = (BYTEPTR) (rplPeekData(1) + 1);
+            strstart = (byte_p) (rplPeekData(3) + 1);
+            newstart = (byte_p) (newstring + 1);
+            repstart = (byte_p) (rplPeekData(1) + 1);
 
             // COPY THE STRING TO FINAL DESTINATION
             memmoveb(newstart, strstart, posptr);
@@ -1831,7 +1831,7 @@ void LIB_HANDLER()
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
             int32_t pos = 1, llen;
             int32_t itemoff;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             llen = rplListLength(rplPeekData(2));
             itemoff = 1;
@@ -1854,7 +1854,7 @@ void LIB_HANDLER()
 
             // END OF LIST, NO ITEM FOUND
             rplDropData(2);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
 
             return;
         }
@@ -1873,10 +1873,10 @@ void LIB_HANDLER()
             }
 
             int32_t len1, len2, pos, maxpos;
-            BYTEPTR str1, str2, str1e, str2e;
+            byte_p str1, str2, str1e, str2e;
 
-            str2 = (BYTEPTR) (rplPeekData(1) + 1);
-            str1 = (BYTEPTR) (rplPeekData(2) + 1);
+            str2 = (byte_p) (rplPeekData(1) + 1);
+            str1 = (byte_p) (rplPeekData(2) + 1);
             str1e = str1 + rplStrSize(rplPeekData(2));
             str2e = str2 + rplStrSize(rplPeekData(1));
             len1 = rplStrLen(rplPeekData(2));
@@ -1886,7 +1886,7 @@ void LIB_HANDLER()
             if(maxpos > len1) {
                 // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
                 rplDropData(2);
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
@@ -1900,14 +1900,14 @@ void LIB_HANDLER()
                     rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
-                str1 = (BYTEPTR) utf8skipst((char *)str1, (char *)(str1e));
+                str1 = (byte_p) utf8skipst((char *)str1, (char *)(str1e));
 
             }
 
             // NOT FOUND
 
             rplDropData(2);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -1934,7 +1934,7 @@ void LIB_HANDLER()
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
             int32_t pos, llen;
             int32_t itemoff;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2))) {
                 rplError(ERR_INVALIDPOSITION);
@@ -1970,7 +1970,7 @@ void LIB_HANDLER()
 
             // END OF LIST, NO ITEM FOUND
             rplDropData(3);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
 
             return;
         }
@@ -1988,7 +1988,7 @@ void LIB_HANDLER()
             }
 
             int32_t len1, len2, pos, maxpos;
-            BYTEPTR str1, str2, str1e, str2e;
+            byte_p str1, str2, str1e, str2e;
 
             if(!ISNUMBER(*rplPeekData(2))) {
                 rplError(ERR_INVALIDPOSITION);
@@ -1997,8 +1997,8 @@ void LIB_HANDLER()
 
             pos = rplReadNumberAsInt64(rplPeekData(2));
 
-            str2 = (BYTEPTR) (rplPeekData(1) + 1);
-            str1 = (BYTEPTR) (rplPeekData(3) + 1);
+            str2 = (byte_p) (rplPeekData(1) + 1);
+            str1 = (byte_p) (rplPeekData(3) + 1);
             str1e = str1 + rplStrSize(rplPeekData(3));
             str2e = str2 + rplStrSize(rplPeekData(1));
             len1 = rplStrLen(rplPeekData(3));
@@ -2013,13 +2013,13 @@ void LIB_HANDLER()
             if(maxpos > len1) {
                 // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
                 rplDropData(3);
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
             maxpos = len1 - maxpos + 1;
 
-            str1 = (BYTEPTR) utf8nskipst((char *)str1,
+            str1 = (byte_p) utf8nskipst((char *)str1,
                     (char *)(str1 + rplStrSize(rplPeekData(3))), pos - 1);
 
             for(; pos <= maxpos; ++pos) {
@@ -2030,14 +2030,14 @@ void LIB_HANDLER()
                     rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
-                str1 = (BYTEPTR) utf8skipst((char *)str1, (char *)(str1 + 4));
+                str1 = (byte_p) utf8skipst((char *)str1, (char *)(str1 + 4));
 
             }
 
             // NOT FOUND
 
             rplDropData(3);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -2063,7 +2063,7 @@ void LIB_HANDLER()
         if(ISLIST(*rplPeekData(2))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
             int32_t pos, llen;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             llen = rplListLength(rplPeekData(2));
             pos = llen;
@@ -2085,7 +2085,7 @@ void LIB_HANDLER()
 
             // END OF LIST, NO ITEM FOUND
             rplDropData(2);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
 
             return;
         }
@@ -2103,10 +2103,10 @@ void LIB_HANDLER()
             }
 
             int32_t len1, len2, pos, maxpos;
-            BYTEPTR str1, str2, str1ptr, str1end;
+            byte_p str1, str2, str1ptr, str1end;
 
-            str2 = (BYTEPTR) (rplPeekData(1) + 1);
-            str1 = (BYTEPTR) (rplPeekData(2) + 1);
+            str2 = (byte_p) (rplPeekData(1) + 1);
+            str1 = (byte_p) (rplPeekData(2) + 1);
             len1 = rplStrLen(rplPeekData(2));
             maxpos = rplStrLen(rplPeekData(1));
             len2 = rplStrLenCp(rplPeekData(1));
@@ -2115,13 +2115,13 @@ void LIB_HANDLER()
             if(maxpos > len1) {
                 // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
                 rplDropData(2);
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
             maxpos = len1 - maxpos + 1;
             str1ptr =
-                    (BYTEPTR) utf8nskipst((char *)str1, (char *)str1end,
+                    (byte_p) utf8nskipst((char *)str1, (char *)str1end,
                     maxpos - 1);
 
             for(pos = maxpos; pos >= 1; --pos) {
@@ -2132,14 +2132,14 @@ void LIB_HANDLER()
                     rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
-                str1ptr = (BYTEPTR) utf8rskipst((char *)str1ptr, (char *)str1);
+                str1ptr = (byte_p) utf8rskipst((char *)str1ptr, (char *)str1);
 
             }
 
             // NOT FOUND
 
             rplDropData(2);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -2165,7 +2165,7 @@ void LIB_HANDLER()
         if(ISLIST(*rplPeekData(3))) {
             // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
             int32_t pos, llen;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2))) {
                 rplError(ERR_INVALIDPOSITION);
@@ -2199,7 +2199,7 @@ void LIB_HANDLER()
 
             // END OF LIST, NO ITEM FOUND
             rplDropData(3);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
 
             return;
         }
@@ -2216,7 +2216,7 @@ void LIB_HANDLER()
             }
 
             int32_t len1, len2, pos, maxpos;
-            BYTEPTR str1, str2, str1ptr, str1end;
+            byte_p str1, str2, str1ptr, str1end;
 
             if(!ISNUMBER(*rplPeekData(2))) {
                 rplError(ERR_INVALIDPOSITION);
@@ -2225,8 +2225,8 @@ void LIB_HANDLER()
 
             pos = rplReadNumberAsInt64(rplPeekData(2));
 
-            str2 = (BYTEPTR) (rplPeekData(1) + 1);
-            str1 = (BYTEPTR) (rplPeekData(3) + 1);
+            str2 = (byte_p) (rplPeekData(1) + 1);
+            str1 = (byte_p) (rplPeekData(3) + 1);
             len1 = rplStrLen(rplPeekData(3));
             maxpos = rplStrLen(rplPeekData(1));
             len2 = rplStrLenCp(rplPeekData(1));
@@ -2240,7 +2240,7 @@ void LIB_HANDLER()
             if(maxpos > len1) {
                 // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
                 rplDropData(3);
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 return;
             }
 
@@ -2249,7 +2249,7 @@ void LIB_HANDLER()
                 pos = maxpos;
 
             str1ptr =
-                    (BYTEPTR) utf8nskipst((char *)str1, (char *)str1end,
+                    (byte_p) utf8nskipst((char *)str1, (char *)str1end,
                     pos - 1);
 
             for(; pos >= 1; --pos) {
@@ -2260,14 +2260,14 @@ void LIB_HANDLER()
                     rplNewint32_tPush(pos, DECint32_t);
                     return;
                 }
-                str1ptr = (BYTEPTR) utf8rskipst((char *)str1ptr, (char *)str1);
+                str1ptr = (byte_p) utf8rskipst((char *)str1ptr, (char *)str1);
 
             }
 
             // NOT FOUND
 
             rplDropData(3);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -2294,7 +2294,7 @@ void LIB_HANDLER()
             // GET SUBLIST
             int32_t pos2;
             int32_t pos, llen;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             if(!ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_INVALIDPOSITION);
@@ -2308,7 +2308,7 @@ void LIB_HANDLER()
 
             if((pos2 < pos) || (pos > llen) || (pos2 < 1)) {
                 rplDropData(3);
-                rplPushData((WORDPTR) empty_list);
+                rplPushData((word_p) empty_list);
                 return;
             }
             if(pos < 1)
@@ -2328,7 +2328,7 @@ void LIB_HANDLER()
                 ScratchPointer1 = rplSkipOb(ScratchPointer1);
             }
 
-            WORDPTR newlist = rplCreateListN(llen, 1, 1);
+            word_p newlist = rplCreateListN(llen, 1, 1);
             if(!newlist) {
                 DSTop = savestk;
                 return;
@@ -2343,7 +2343,7 @@ void LIB_HANDLER()
         if(ISSTRING(*rplPeekData(3))) {
 
             int32_t len1, pos, pos2;
-            BYTEPTR str1, str2, end;
+            byte_p str1, str2, end;
 
             if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
                 rplListMultiArgDoCmd(3);
@@ -2358,13 +2358,13 @@ void LIB_HANDLER()
             pos = rplReadNumberAsInt64(rplPeekData(2));
             pos2 = rplReadNumberAsInt64(rplPeekData(1));
 
-            str1 = (BYTEPTR) (rplPeekData(3) + 1);
+            str1 = (byte_p) (rplPeekData(3) + 1);
             end = str1 + rplStrSize(rplPeekData(3));
             len1 = rplStrLen(rplPeekData(3));
 
             if((len1 == 0) || (pos2 < pos) || (pos > len1) || (pos2 < 1)) {
                 rplDropData(3);
-                rplPushData((WORDPTR) empty_string);
+                rplPushData((word_p) empty_string);
                 return;
             }
             if(pos < 1)
@@ -2374,10 +2374,10 @@ void LIB_HANDLER()
 
             len1 = pos2 - pos + 1;
 
-            str2 = (BYTEPTR) utf8nskipst((char *)str1, (char *)end, pos2);
-            str1 = (BYTEPTR) utf8nskipst((char *)str1, (char *)end, pos - 1);
+            str2 = (byte_p) utf8nskipst((char *)str1, (char *)end, pos2);
+            str1 = (byte_p) utf8nskipst((char *)str1, (char *)end, pos - 1);
 
-            WORDPTR newstring = rplCreateString(str1, str2);
+            word_p newstring = rplCreateString(str1, str2);
             if(!newstring)
                 return;
             rplDropData(2);
@@ -2387,9 +2387,9 @@ void LIB_HANDLER()
 
         if(ISMATRIX(*rplPeekData(3))) {
 
-            WORDPTR comp = rplPeekData(3);
-            WORDPTR *stksave = DSTop;
-            WORDPTR posobj;
+            word_p comp = rplPeekData(3);
+            word_p *stksave = DSTop;
+            word_p posobj;
             int32_t rows, cols, ndims;
             int32_t posrow, poscol;
             int32_t posrow2, poscol2;
@@ -2575,7 +2575,7 @@ void LIB_HANDLER()
                 }
             }
 
-            WORDPTR newmatrix =
+            word_p newmatrix =
                     rplMatrixCompose((ndims == 2) ? (posrow2 - posrow + 1) : 0,
                     poscol2 - poscol + 1);
 
@@ -2603,7 +2603,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR arg = rplStripTag(rplPeekData(1));
+        word_p arg = rplStripTag(rplPeekData(1));
 
         if(ISSTRING(*arg)) {
             int32_t size = rplStrSize(arg);
@@ -2631,7 +2631,7 @@ void LIB_HANDLER()
         }
 
         if(ISMATRIX(*arg)) {
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
             int32_t rows, cols, dims;
             rows = rplMatrixRows(arg);
             cols = rplMatrixCols(arg);
@@ -2652,7 +2652,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR newlist = rplCreateListN(dims, 1, 1);
+            word_p newlist = rplCreateListN(dims, 1, 1);
             if(!newlist) {
                 DSTop = stksave;
                 return;
@@ -2666,7 +2666,7 @@ void LIB_HANDLER()
 
         // ALL OTHER OBJECTS RETURN 1
 
-        rplOverwriteData(1, (WORDPTR) one_bint);
+        rplOverwriteData(1, (word_p) one_bint);
         return;
 
     }
@@ -2681,7 +2681,7 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR comp;
+        word_p comp;
 
       rhead_recheck:
         comp = rplPeekData(1);
@@ -2697,15 +2697,15 @@ void LIB_HANDLER()
 
         if(ISSTRING(*comp)) {
 
-            BYTEPTR start = (BYTEPTR) (comp + 1);
-            BYTEPTR end = start + rplStrSize(comp);
-            BYTEPTR ptr = (BYTEPTR) utf8rskipst((char *)end, (char *)start);
+            byte_p start = (byte_p) (comp + 1);
+            byte_p end = start + rplStrSize(comp);
+            byte_p ptr = (byte_p) utf8rskipst((char *)end, (char *)start);
 
             if(end == start) {
                 rplError(ERR_EMPTYSTRING);
                 return;
             }
-            WORDPTR newstring = rplCreateString(ptr, end);
+            word_p newstring = rplCreateString(ptr, end);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -2730,18 +2730,18 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR comp;
+        word_p comp;
       rtail_recheck:
         comp = rplPeekData(1);
 
         if(ISLIST(*comp)) {
             int32_t nitems = rplExplodeList2(comp);
-            WORDPTR newlist;
+            word_p newlist;
 
             if(Exceptions)
                 return;
             if(nitems < 2) {
-                newlist = (WORDPTR) empty_list;
+                newlist = (word_p) empty_list;
             }
             else {
                 newlist = rplCreateListN(nitems - 1, 2, 1);
@@ -2755,11 +2755,11 @@ void LIB_HANDLER()
         }
 
         if(ISSTRING(*comp)) {
-            BYTEPTR start = (BYTEPTR) (comp + 1);
-            BYTEPTR end = start + rplStrSize(comp);
-            BYTEPTR ptr = (BYTEPTR) utf8rskipst((char *)end, (char *)start);
+            byte_p start = (byte_p) (comp + 1);
+            byte_p end = start + rplStrSize(comp);
+            byte_p ptr = (byte_p) utf8rskipst((char *)end, (char *)start);
 
-            WORDPTR newstring = rplCreateString(start, ptr);
+            word_p newstring = rplCreateString(start, ptr);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -2876,7 +2876,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2884,7 +2884,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2925,7 +2925,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -2935,12 +2935,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

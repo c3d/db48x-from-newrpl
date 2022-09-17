@@ -158,34 +158,34 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) zero_bint,
-    (WORDPTR) one_bint,
-    (WORDPTR) two_bint,
-    (WORDPTR) three_bint,
-    (WORDPTR) minusone_bint,
-    (WORDPTR) ten_bint,
-    (WORDPTR) four_bint,
-    (WORDPTR) five_bint,
-    (WORDPTR) six_bint,
-    (WORDPTR) seven_bint,
-    (WORDPTR) eight_bint,
-    (WORDPTR) nine_bint,
-    (WORDPTR) eleven_bint,
-    (WORDPTR) twelve_bint,
-    (WORDPTR) thirteen_bint,
-    (WORDPTR) fourteen_bint,
-    (WORDPTR) fifteen_bint,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) zero_bint,
+    (word_p) one_bint,
+    (word_p) two_bint,
+    (word_p) three_bint,
+    (word_p) minusone_bint,
+    (word_p) ten_bint,
+    (word_p) four_bint,
+    (word_p) five_bint,
+    (word_p) six_bint,
+    (word_p) seven_bint,
+    (word_p) eight_bint,
+    (word_p) nine_bint,
+    (word_p) eleven_bint,
+    (word_p) twelve_bint,
+    (word_p) thirteen_bint,
+    (word_p) fourteen_bint,
+    (word_p) fifteen_bint,
 
     0
 };
 
 const char const alldigits[] = "0123456789ABCDEF";
 
-WORDPTR rplNewSINT(int num, int base)
+word_p rplNewSINT(int num, int base)
 {
-    WORDPTR obj;
+    word_p obj;
     obj = rplAllocTempOb(0);
     if(!obj)
         return NULL;
@@ -195,7 +195,7 @@ WORDPTR rplNewSINT(int num, int base)
 
 void rplNewSINTPush(int num, int base)
 {
-    WORDPTR obj;
+    word_p obj;
     obj = rplAllocTempOb(0);
     if(!obj)
         return;
@@ -204,9 +204,9 @@ void rplNewSINTPush(int num, int base)
 
 }
 
-WORDPTR rplNewint32_t(int64_t num, int base)
+word_p rplNewint32_t(int64_t num, int base)
 {
-    WORDPTR obj;
+    word_p obj;
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
         obj = rplAllocTempOb(0);
@@ -228,7 +228,7 @@ WORDPTR rplNewint32_t(int64_t num, int base)
 }
 
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
-WORDPTR rplWriteint32_t(int64_t num, int base, WORDPTR dest)
+word_p rplWriteint32_t(int64_t num, int base, word_p dest)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
@@ -260,7 +260,7 @@ void rplCompileint32_t(int64_t num, int base)
 
 void rplNewint32_tPush(int64_t num, int base)
 {
-    WORDPTR obj;
+    word_p obj;
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
         obj = rplAllocTempOb(0);
@@ -281,7 +281,7 @@ void rplNewint32_tPush(int64_t num, int base)
     rplPushData(obj);
 }
 
-int64_t rplReadint32_t(WORDPTR ptr)
+int64_t rplReadint32_t(word_p ptr)
 {
     int64_t result;
     if(ISPROLOG(*ptr))
@@ -299,16 +299,16 @@ int64_t rplReadint32_t(WORDPTR ptr)
 
 void rplPushFalse()
 {
-    rplPushDataNoGrow((WORDPTR) zero_bint);
+    rplPushDataNoGrow((word_p) zero_bint);
 }
 
 void rplPushTrue()
 {
-    rplPushDataNoGrow((WORDPTR) one_bint);
+    rplPushDataNoGrow((word_p) one_bint);
 
 }
 
-int32_t rplIsFalse(WORDPTR objptr)
+int32_t rplIsFalse(word_p objptr)
 {
     objptr = rplConstant2Number(objptr);
 
@@ -341,12 +341,12 @@ int32_t rplIsFalse(WORDPTR objptr)
     return 0;
 }
 
-int32_t rplIsTrue(WORDPTR objptr)
+int32_t rplIsTrue(word_p objptr)
 {
     return rplIsFalse(objptr) ^ 1;
 }
 
-int32_t rplIsNegative(WORDPTR objptr)
+int32_t rplIsNegative(word_p objptr)
 {
     objptr = rplConstant2Number(objptr);
     if(ISANGLE(*objptr))
@@ -379,7 +379,7 @@ int32_t rplIsNegative(WORDPTR objptr)
 }
 
 // READS A SINT, int32_t OR REAL INTO A REAL NUMBER REGISTER
-void rplNumberToRReg(int num, WORDPTR number)
+void rplNumberToRReg(int num, word_p number)
 {
     number = rplConstant2Number(number);
     if(ISREAL(*number))
@@ -395,7 +395,7 @@ void rplNumberToRReg(int num, WORDPTR number)
 // ROUNDING A REAL IS BY TRUNCATION
 // DOES CHECK FOR OVERFLOW!
 
-int64_t rplReadNumberAsInt64(WORDPTR number)
+int64_t rplReadNumberAsInt64(word_p number)
 {
     int64_t value;
   readnumberbint_recheck:
@@ -432,7 +432,7 @@ int64_t rplReadNumberAsInt64(WORDPTR number)
 // TEMPORARY DATA STORAGE FOR UP TO 4 NUMBERS
 // IF CALLED MORE THAN 4 TIMES IT MIGHT OVERWRITE THE PREVIOUS
 
-void rplReadNumberAsReal(WORDPTR number, REAL * dec)
+void rplReadNumberAsReal(word_p number, REAL * dec)
 {
   readnumber_recheck:
     number = rplConstant2Number(number);
@@ -492,7 +492,7 @@ static int rpl_log2(int64_t number, int bits)
 }
 
 // CONVERT TO STRING AND RETURN THE NUMBER OF BYTES OUTPUT
-int32_t rplIntToString(int64_t number, int32_t base, BYTEPTR buffer, BYTEPTR endbuffer)
+int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer, byte_p endbuffer)
 {
 
     base -= DOint32_t;
@@ -519,7 +519,7 @@ int32_t rplIntToString(int64_t number, int32_t base, BYTEPTR buffer, BYTEPTR end
 
         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-        BYTEPTR string;
+        byte_p string;
 
         int32_t len = formatlengthReal(&realnum, 0, fmt.Locale);
 
@@ -527,15 +527,15 @@ int32_t rplIntToString(int64_t number, int32_t base, BYTEPTR buffer, BYTEPTR end
             return 0;
 
         // NOW USE IT
-        string = (BYTEPTR) buffer;
-        return (BYTEPTR) formatReal(&realnum, (char *)string, 0,
+        string = (byte_p) buffer;
+        return (byte_p) formatReal(&realnum, (char *)string, 0,
                 fmt.Locale) - string;
 
     }
     else {
         // THIS IS A BINARY, OCTAL OR HEXA NUMBER
         // base HAS THE NUMBER OF BITS PER DIGIT
-        BYTEPTR ptr = buffer;
+        byte_p ptr = buffer;
         uint64_t unumber;
         int32_t digit, neg;
 
@@ -1199,9 +1199,9 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res)
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                     else
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                 }
 
                 if(op2type) {
@@ -1209,17 +1209,17 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res)
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                     else
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                 }
                 return;
             }
             // BOTH WERE INTEGERS
             if(op1 == op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -1231,9 +1231,9 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
 
                 }
 
@@ -1242,16 +1242,16 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
             if(op1 == op2)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
         case OVR_LT:
@@ -1261,25 +1261,25 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res < 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 if(op2type) {
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res < 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
 
             if(op1 < op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
         case OVR_GT:
@@ -1289,25 +1289,25 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res > 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 if(op2type) {
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res > 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
 
             if(op1 > op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -1318,25 +1318,25 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res <= 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 if(op2type) {
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res <= 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
 
             if(op1 <= op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
         case OVR_GTE:
@@ -1346,25 +1346,25 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res >= 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 if(op2type) {
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res >= 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
 
             if(op1 >= op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
         case OVR_SAME:
@@ -1373,36 +1373,36 @@ void LIB_HANDLER()
                 if(op1type) {
                     // IF IT'S NOT INTEGER, CAN'T BE EQUAL TO ONE
                     if(!isintegerReal(&rop1))
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                     else {
                         rplint32_tToRReg(0, op2);
                         int res = eqReal(&rop1, &RReg[0]);
                         if(res)
-                            rplPushData((WORDPTR) one_bint);
+                            rplPushData((word_p) one_bint);
                         else
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                     }
                 }
 
                 if(op2type) {
                     if(!isintegerReal(&rop2))
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                     else {
                         rplint32_tToRReg(0, op1);
                         int res = eqReal(&RReg[0], &rop2);
                         if(res)
-                            rplPushData((WORDPTR) one_bint);
+                            rplPushData((word_p) one_bint);
                         else
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                     }
                 }
                 return;
             }
             // BOTH WERE INTEGERS
             if(op1 == op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -1412,9 +1412,9 @@ void LIB_HANDLER()
             if(op2type)
                 op2 = !iszeroReal(&rop2);
             if(op1 && op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         case OVR_OR:
             if(op1type)
@@ -1422,9 +1422,9 @@ void LIB_HANDLER()
             if(op2type)
                 op2 = !iszeroReal(&rop2);
             if(op1 || op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
 
         case OVR_CMP:
@@ -1434,31 +1434,31 @@ void LIB_HANDLER()
                     rplint32_tToRReg(0, op2);
                     int res = cmpReal(&rop1, &RReg[0]);
                     if(res < 0)
-                        rplPushData((WORDPTR) minusone_bint);
+                        rplPushData((word_p) minusone_bint);
                     else if(res > 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 if(op2type) {
                     rplint32_tToRReg(0, op1);
                     int res = cmpReal(&RReg[0], &rop2);
                     if(res < 0)
-                        rplPushData((WORDPTR) minusone_bint);
+                        rplPushData((word_p) minusone_bint);
                     else if(res > 0)
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                     else
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                 }
                 return;
             }
 
             if(op1 > op2)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else if(op1 < op2)
-                rplPushData((WORDPTR) minusone_bint);
+                rplPushData((word_p) minusone_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -1504,15 +1504,15 @@ void LIB_HANDLER()
             return;
         case OVR_NOT:
             if(op1)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         case OVR_ISTRUE:
             if(op1)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
 
             // ADD MORE case's HERE
@@ -1528,7 +1528,7 @@ void LIB_HANDLER()
 
     int64_t result;
     uint64_t uresult;
-    BYTEPTR strptr, strend;
+    byte_p strptr, strend;
     int base, libbase, digit, count, neg, argnum1;
     char basechr;
 
@@ -1557,8 +1557,8 @@ void LIB_HANDLER()
             uint64_t Locale = rplGetSystemLocale();
             // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
-            strptr = (BYTEPTR) TokenStart;
-            strend = (BYTEPTR) BlankStart;
+            strptr = (byte_p) TokenStart;
+            strend = (byte_p) BlankStart;
             base = 10;
             libbase = DECint32_t;
             neg = 0;
@@ -1636,7 +1636,7 @@ void LIB_HANDLER()
 
             for(count = 0; count < argnum1; ++count) {
                 digit = utf82cp((char *)strptr, (char *)strend);
-                strptr = (BYTEPTR) utf8skipst((char *)strptr, (char *)strend);
+                strptr = (byte_p) utf8skipst((char *)strptr, (char *)strend);
                 if(digit < 0) {
                     RetNum = ERR_NOTMINE;
                     return;
@@ -1750,14 +1750,14 @@ void LIB_HANDLER()
 
                 // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-                BYTEPTR string;
+                byte_p string;
 
                 int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
                 // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
-                ScratchPointer1 = (WORDPTR) realnum.data;
-                ScratchPointer2 = (WORDPTR) fmt.SmallLimit.data;
-                ScratchPointer3 = (WORDPTR) fmt.BigLimit.data;
+                ScratchPointer1 = (word_p) realnum.data;
+                ScratchPointer2 = (word_p) fmt.SmallLimit.data;
+                ScratchPointer3 = (word_p) fmt.BigLimit.data;
 
                 // RESERVE THE MEMORY FIRST
                 rplDecompAppendString2(0, len);
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
                 fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
                 // NOW USE IT
-                string = (BYTEPTR) DecompStringEnd;
+                string = (byte_p) DecompStringEnd;
                 string -= len;
 
                 if(Exceptions) {
@@ -1776,7 +1776,7 @@ void LIB_HANDLER()
                 }
 
                 DecompStringEnd =
-                        (WORDPTR) formatReal(&realnum, (char *)string, Format,
+                        (word_p) formatReal(&realnum, (char *)string, Format,
                         fmt.Locale);
 
             }
@@ -1859,7 +1859,7 @@ void LIB_HANDLER()
 
             // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
-            strptr = (BYTEPTR) TokenStart;
+            strptr = (byte_p) TokenStart;
             base = 10;
             libbase = DECint32_t;
             neg = 0;
@@ -1981,14 +1981,14 @@ void LIB_HANDLER()
                             ++count;
                         // REPORT AS MANY VALID DIGITS AS POSSIBLE
                         RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + count) -
-                                (BYTEPTR) TokenStart, TITYPE_INTEGER, 0, 1);
+                                (byte_p) TokenStart, TITYPE_INTEGER, 0, 1);
                         return;
                     }
                 }
             }
             // ALL DIGITS WERE CORRECT
             RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + argnum1) -
-                    (BYTEPTR) TokenStart, TITYPE_INTEGER, 0, 1);
+                    (byte_p) TokenStart, TITYPE_INTEGER, 0, 1);
             return;
         }
         case OPCODE_GETINFO:
@@ -2018,7 +2018,7 @@ void LIB_HANDLER()
             // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
             // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-            libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+            libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
             return;
         case OPCODE_ROMID2PTR:
             // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2026,7 +2026,7 @@ void LIB_HANDLER()
             // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
             // OR RetNum= ERR_NOTMINE;
 
-            libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+            libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
             return;
 
         case OPCODE_CHECKOBJ:
@@ -2055,12 +2055,12 @@ void LIB_HANDLER()
             // AND RetNum=OK_CONTINUE;
         {
 
-            libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+            libFindMsg(LibError, (word_p) LIB_MSGTABLE);
             return;
         }
 
         case OPCODE_LIBINSTALL:
-            LibraryList = (WORDPTR) libnumberlist;
+            LibraryList = (word_p) libnumberlist;
             RetNum = OK_CONTINUE;
             return;
         case OPCODE_LIBREMOVE:

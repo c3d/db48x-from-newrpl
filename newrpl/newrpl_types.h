@@ -15,10 +15,10 @@ typedef void (*LIBHANDLER)(void);
 typedef uint32_t WORD;
 typedef uint8_t BYTE;
 typedef uint16_t *uint16_p;
-typedef WORD *WORDPTR;
-typedef BYTE *BYTEPTR;
+typedef WORD *word_p;
+typedef BYTE *byte_p;
 typedef const char *cstring;
-#define NUMBER2PTR(a)   ((WORDPTR)(intptr_t)(WORD)(a))
+#define NUMBER2PTR(a)   ((word_p)(intptr_t)(WORD)(a))
 
 // CONSTANTS THAT CONTROL THE MAIN RPL ENGINE
 

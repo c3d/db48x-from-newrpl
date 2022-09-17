@@ -96,16 +96,16 @@ ROMOBJECT theme_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib76menu_main,
-    (WORDPTR) lib76menu_clip,
-    (WORDPTR) lib76menu_keyb,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib76menu_main,
+    (word_p) lib76menu_clip,
+    (word_p) lib76menu_keyb,
 
-    (WORDPTR) clipbd_ident,
-    (WORDPTR) invalid_string,
-    (WORDPTR) theme_ident,
+    (word_p) clipbd_ident,
+    (word_p) invalid_string,
+    (word_p) theme_ident,
 
     0
 };
@@ -203,7 +203,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplStoreSettings((WORDPTR) clipbd_ident, rplPeekData(1));
+        rplStoreSettings((word_p) clipbd_ident, rplPeekData(1));
 
         return;
 
@@ -218,7 +218,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplStoreSettings((WORDPTR) clipbd_ident, rplPopData());
+        rplStoreSettings((word_p) clipbd_ident, rplPopData());
 
         return;
 
@@ -228,7 +228,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Insert the clipboard contents on the stack
         //@NEW
-        WORDPTR object = rplGetSettings((WORDPTR) clipbd_ident);
+        word_p object = rplGetSettings((word_p) clipbd_ident);
 
         if(!object)
             rplError(ERR_EMPTYCLIPBOARD);
@@ -238,7 +238,7 @@ void LIB_HANDLER()
                 rplExpandStack(nitems);
                 if(Exceptions)
                     return;
-                WORDPTR ptr = object + 1;
+                word_p ptr = object + 1;
 
                 while(nitems--) {
                     rplPushData(ptr);
@@ -295,13 +295,13 @@ void LIB_HANDLER()
             if(keymsg) {
                 // PUSH THE KEY MESSAGE
 
-                WORDPTR keyname = rplMsg2KeyName(keymsg);
+                word_p keyname = rplMsg2KeyName(keymsg);
                 if(!keyname)
                     return;
                 rplOverwriteData(1, keyname);
             }
             else
-                rplOverwriteData(1, (WORDPTR) empty_string);
+                rplOverwriteData(1, (word_p) empty_string);
         }
         return;
 
@@ -353,7 +353,7 @@ void LIB_HANDLER()
         keymatrix key = keyb_getmatrix();
 
         if(!key) {
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -361,7 +361,7 @@ void LIB_HANDLER()
         int k;
         for(k = 0; k < 63; ++k) {
             if(key & (1LL << k)) {
-                WORDPTR kn = rplMsg2KeyName(KEYMAP_CODEFROMBIT(k));
+                word_p kn = rplMsg2KeyName(KEYMAP_CODEFROMBIT(k));
 
                 if(!kn)
                     return;
@@ -394,7 +394,7 @@ void LIB_HANDLER()
         }
 
         // STORE THE FORM DATA
-        rplStoreSettings((WORDPTR) currentform_ident, rplPeekData(1));
+        rplStoreSettings((word_p) currentform_ident, rplPeekData(1));
 
         if(Exceptions)
             return;
@@ -424,9 +424,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR string = rplPeekData(1);
-        BYTEPTR start, end;
-        start = (BYTEPTR) (string + 1);
+        word_p string = rplPeekData(1);
+        byte_p start, end;
+        start = (byte_p) (string + 1);
         end = start + rplStrSize(string);
 
         uiOpenAndInsertTextN(start, end);
@@ -650,12 +650,12 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BYTEPTR start, end;
+        byte_p start, end;
 
         start = uiAutocompStringStart();
         end = uiAutocompStringTokEnd();
 
-        WORDPTR newstr = rplCreateString(start, end);
+        word_p newstr = rplCreateString(start, end);
 
         if(!newstr)
             return;
@@ -674,12 +674,12 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BYTEPTR start, end;
+        byte_p start, end;
 
         start = uiAutocompStringStart();
         end = uiAutocompStringEnd();
 
-        WORDPTR newstr = rplCreateString(start, end);
+        word_p newstr = rplCreateString(start, end);
 
         if(!newstr)
             return;
@@ -710,7 +710,7 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        BYTEPTR str = (BYTEPTR) (rplPeekData(1) + 1);
+        byte_p str = (byte_p) (rplPeekData(1) + 1);
         if(rplStrLen(rplPeekData(1)) >= 1) {
             switch (*str) {
             case 'L':
@@ -763,7 +763,7 @@ void LIB_HANDLER()
         }
 
         int k;
-        WORDPTR obj=rplPeekData(1)+1;
+        word_p obj=rplPeekData(1)+1;
         WORD palette[PALETTE_SIZE];
         uint64_t color;
 
@@ -781,7 +781,7 @@ void LIB_HANDLER()
 
         // Store the list in .Settings for future use on poweron
 
-        rplStoreSettings((WORDPTR) theme_ident, rplPeekData(1));
+        rplStoreSettings((word_p) theme_ident, rplPeekData(1));
 
         rplDropData(1);
 
@@ -892,7 +892,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -900,7 +900,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -941,7 +941,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -951,12 +951,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

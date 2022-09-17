@@ -28,7 +28,7 @@ void ram_doreset()
 void ram_receiveandflashfw(int32_t flashsize)
 {
     int pass = 1, fileid;
-    WORDPTR flash_address;
+    word_p flash_address;
     WORD flash_nwords, data;
     WORD receivedwords;
     FS_FILE *newrplrom;
@@ -77,7 +77,7 @@ void ram_receiveandflashfw(int32_t flashsize)
             } else break;
         } while(!receivedwords);
 
-        if(usb_fileread(fileid, (BYTEPTR) & data, 4) < 4) {
+        if(usb_fileread(fileid, (byte_p) & data, 4) < 4) {
             throw_dbgexception("Read less than 4 bytes-signature",EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
@@ -87,12 +87,12 @@ void ram_receiveandflashfw(int32_t flashsize)
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
-        if(usb_fileread(fileid, (BYTEPTR) & flash_address, 4) < 4) {
+        if(usb_fileread(fileid, (byte_p) & flash_address, 4) < 4) {
             throw_dbgexception("Read less than 4 bytes-address",EX_RESET);
             ram_doreset();      // NOTHING ELSE TO DO
         }
 
-        if(usb_fileread(fileid, (BYTEPTR) & flash_nwords, 4) < 4) {
+        if(usb_fileread(fileid, (byte_p) & flash_nwords, 4) < 4) {
             throw_dbgexception("Read less than 4 bytes-nwords",EX_RESET);
             ram_doreset();
         }

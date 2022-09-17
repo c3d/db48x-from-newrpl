@@ -162,13 +162,13 @@ void libProbeCmds(char *libnames[], int32_t tokeninfo[], int numcmds);
 void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
         int32_t tokeninfo[], int numcmds);
 void libGetInfo2(WORD opcode, char *libnames[], int32_t tokeninfo[], int numcmds);
-void libGetRomptrID(int32_t libnum, WORDPTR * table, WORDPTR ptr);
-void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash);
+void libGetRomptrID(int32_t libnum, word_p * table, word_p ptr);
+void libGetPTRFromID(word_p * table, WORD id, WORD hash);
 void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds);
 void libAutoCompletePrev(int32_t libnum, char *libnames[], int numcmds);
-void libFindMsg(int32_t message, WORDPTR table);
-WORD libComputeHash(WORDPTR object);
-WORD libComputeHash2(WORDPTR start, int32_t nwords);
+void libFindMsg(int32_t message, word_p table);
+WORD libComputeHash(word_p object);
+WORD libComputeHash2(word_p start, int32_t nwords);
 
 // BITS USED IN MOST OBJECTS
 #define APPROX_BIT    1
@@ -612,7 +612,7 @@ extern const WORD lib70_basecycle[];
 #define ARG2PTR(rstatus) ((int64_t *)&(rstatus[2+3*19]))
 
 #define RLIBPTR(rstatus) ((int64_t *)&(rstatus[2+3*20]))
-#define ROBJPTR(rstatus) ((WORDPTR)&(rstatus[1+3*21]))
-#define PERSISTPTR(rstatus) ((WORDPTR)rplSkipOb(ROBJPTR(rstatus)))
+#define ROBJPTR(rstatus) ((word_p)&(rstatus[1+3*21]))
+#define PERSISTPTR(rstatus) ((word_p)rplSkipOb(ROBJPTR(rstatus)))
 
 #endif // LIBRARIES_H

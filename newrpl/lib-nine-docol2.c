@@ -88,11 +88,11 @@ ROMOBJECT retrysemi_seco[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib9_menu,
-    (WORDPTR) retrysemi_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib9_menu,
+    (word_p) retrysemi_seco,
     0
 };
 
@@ -128,7 +128,7 @@ void LIB_HANDLER()
     }
     case OVR_ISTRUE:
     {
-        WORDPTR *stksave=DSTop;
+        word_p *stksave=DSTop;
 
         rplRunAtomic(CMD_OVR_XEQ);
 
@@ -181,12 +181,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+            rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
             return;
         }
         RSTop = rstopsave;
@@ -262,12 +262,12 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+            rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
             return;
         }
         RSTop = rstopsave;
@@ -353,13 +353,13 @@ void LIB_HANDLER()
 
         // FIND OUT THE DIRECTION OF THE LOOP
         // MAKE 2DUP
-        ScratchPointer3 = (WORDPTR) DSTop;
+        ScratchPointer3 = (word_p) DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_CMP);
 
         if(Exceptions) {
-            DSTop = (WORDPTR *) ScratchPointer3;
+            DSTop = (word_p *) ScratchPointer3;
             return;
         }
 
@@ -392,10 +392,10 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));
+        rplPushRet((word_p) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));
         rplCreateLAM(IPtr + 1, rplPeekData(3)); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
         // CLEAN THE STACK
@@ -429,13 +429,13 @@ void LIB_HANDLER()
         }
 
         // MAKE 2DUP
-        ScratchPointer3 = (WORDPTR) DSTop;
+        ScratchPointer3 = (word_p) DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_CMP);
 
         if(Exceptions) {
-            DSTop = (WORDPTR *) ScratchPointer3;
+            DSTop = (word_p *) ScratchPointer3;
             return;
         }
 
@@ -468,11 +468,11 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));  // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
+        rplPushRet((word_p) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));  // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
         // CLEAN THE STACK
         rplDropData(3);
 
@@ -495,7 +495,7 @@ void LIB_HANDLER()
             return;
         }
         rplPushData(*rplGetLAMn(4));    // COUNTER;
-        rplPushData((WORDPTR) one_bint);        // PUSH THE NUMBER ONE
+        rplPushData((word_p) one_bint);        // PUSH THE NUMBER ONE
 
         // CALL THE OVERLOADED OPERATOR '+'
 
@@ -504,7 +504,7 @@ void LIB_HANDLER()
         if(Exceptions)
             return;
 
-        WORDPTR *counter = rplGetLAMn(4);
+        word_p *counter = rplGetLAMn(4);
 
         *counter = rplPopData();        // STORE THE INCREMENTED COUNTER
 
@@ -517,7 +517,7 @@ void LIB_HANDLER()
 
         rplCallOvrOperator(OVR_LTE);
 
-        WORDPTR result = rplPopData();
+        word_p result = rplPopData();
 
         if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
@@ -575,7 +575,7 @@ void LIB_HANDLER()
         if(Exceptions)
             return;
 
-        WORDPTR *counter = rplGetLAMn(4);
+        word_p *counter = rplGetLAMn(4);
 
         *counter = rplPopData();        // STORE THE INCREMENTED COUNTER
 
@@ -598,7 +598,7 @@ void LIB_HANDLER()
             break;
         }
 
-        WORDPTR result = rplPopData();
+        word_p result = rplPopData();
 
         if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
@@ -643,7 +643,7 @@ void LIB_HANDLER()
 
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
         rplCreateLAMEnvironment(ScratchPointer3);
-        rplPushRet((WORDPTR) abnd_prog);
+        rplPushRet((word_p) abnd_prog);
 
         rplPushRet(IPtr);       // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
 
@@ -671,12 +671,12 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+            rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
             return;
         }
         RSTop = rstopsave;
@@ -686,7 +686,7 @@ void LIB_HANDLER()
         }
         // BY DEFINITION, int32_t 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
 
-        WORDPTR result = rplPopData();
+        word_p result = rplPopData();
 
         if(!rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
@@ -729,7 +729,7 @@ void LIB_HANDLER()
         rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
         rplCreateLAMEnvironment(ScratchPointer3);
-        rplPushRet((WORDPTR) abnd_prog);
+        rplPushRet((word_p) abnd_prog);
 
         rplPushRet(IPtr);       // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
 
@@ -752,12 +752,12 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
+            rstopsave[1] = (word_p) retrysemi_seco;    // REPLACE THE RETURN ADDRESS WITH A RETRY
             return;
         }
         RSTop = rstopsave;
@@ -766,7 +766,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR result = rplPopData();
+        word_p result = rplPopData();
 
         if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
@@ -800,7 +800,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
 
         // SETUP AN ERROR TRAP
-        WORDPTR errhandler = rplSkipOb(IPtr);   // START AFTER THE IFERR BYTECODE
+        word_p errhandler = rplSkipOb(IPtr);   // START AFTER THE IFERR BYTECODE
         // SKIP TO THE NEXT THENERR OPCODE, BUT TAKING INTO ACCOUNT POSSIBLY NESTED IFERR STATEMENTS
         {
             int count = 0;
@@ -860,7 +860,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
         //@NEW
 
-        if(ErrorHandler != (WORDPTR) error_reenter_seco) {
+        if(ErrorHandler != (word_p) error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, DO NOTHING
             return;
         }
@@ -896,7 +896,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
         //@NEW
 
-        if(ErrorHandler != (WORDPTR) error_reenter_seco) {
+        if(ErrorHandler != (word_p) error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, DO NOTHING
             return;
         }
@@ -933,14 +933,14 @@ void LIB_HANDLER()
 
         // FIND OUT THE DIRECTION OF THE LOOP
         // MAKE 2DUP
-        ScratchPointer3 = (WORDPTR) DSTop;
+        ScratchPointer3 = (word_p) DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_CMP);
 
 
         if(Exceptions) {
-            DSTop = (WORDPTR *) ScratchPointer3;
+            DSTop = (word_p *) ScratchPointer3;
             return;
         }
 
@@ -991,10 +991,10 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
-        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR)one_bint);   // FORCED LOOP DIRECTION UP
+        rplPushRet((word_p) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((word_p) nulllam_ident, (word_p)one_bint);   // FORCED LOOP DIRECTION UP
         rplCreateLAM(IPtr + 1, rplPeekData(3)); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
         // CLEAN THE STACK
@@ -1030,14 +1030,14 @@ void LIB_HANDLER()
 
         // FIND OUT THE DIRECTION OF THE LOOP
         // MAKE 2DUP
-        ScratchPointer3 = (WORDPTR) DSTop;
+        ScratchPointer3 = (word_p) DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_CMP);
 
 
         if(Exceptions) {
-            DSTop = (WORDPTR *) ScratchPointer3;
+            DSTop = (word_p *) ScratchPointer3;
             return;
         }
 
@@ -1088,10 +1088,10 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet((WORDPTR) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
-        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR)minusone_bint);   // FORCED LOOP DIRECTION DOWN
+        rplPushRet((word_p) abnd_prog);        // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));
+        rplCreateLAM((word_p) nulllam_ident, (word_p)minusone_bint);   // FORCED LOOP DIRECTION DOWN
         rplCreateLAM(IPtr + 1, rplPeekData(3)); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
         // CLEAN THE STACK
@@ -1471,10 +1471,10 @@ void LIB_HANDLER()
                         5))) {
             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, START));
             rplCreateLAMEnvironment(CompileEnd - 1);
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) nulllam_ident);     // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) nulllam_ident);     // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) nulllam_ident);     // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) nulllam_ident);     // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1580,7 +1580,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             if(CurrentConstruct != CMD_XEQSECO)
-                rplDecompAppendString((BYTEPTR) "«");
+                rplDecompAppendString((byte_p) "«");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1590,12 +1590,12 @@ void LIB_HANDLER()
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
             if(!(ISPROLOG(CurrentConstruct)
                         && (LIBNUM(CurrentConstruct) == LIBRARY_NUMBER))) {
-                rplDecompAppendString((BYTEPTR) "»");
+                rplDecompAppendString((byte_p) "»");
                 RetNum = OK_CONTINUE;
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplDecompAppendString((BYTEPTR) "»");
+            rplDecompAppendString((byte_p) "»");
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -1605,14 +1605,14 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FOR)) {
 
-            rplDecompAppendString((BYTEPTR) "FOR");
+            rplDecompAppendString((byte_p) "FOR");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM(rplSkipOb(DecompileObject), (WORDPTR) zero_bint);      // LAM COUNTER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject), (word_p) zero_bint);      // LAM COUNTER
 
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1620,14 +1620,14 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORUP)) {
 
-            rplDecompAppendString((BYTEPTR) "FORUP");
+            rplDecompAppendString((byte_p) "FORUP");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM(rplSkipOb(DecompileObject), (WORDPTR) zero_bint);      // LAM COUNTER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject), (word_p) zero_bint);      // LAM COUNTER
 
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1635,14 +1635,14 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORDN)) {
 
-            rplDecompAppendString((BYTEPTR) "FORDN");
+            rplDecompAppendString((byte_p) "FORDN");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM(rplSkipOb(DecompileObject), (WORDPTR) zero_bint);      // LAM COUNTER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject), (word_p) zero_bint);      // LAM COUNTER
 
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1650,14 +1650,14 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, START)) {
 
-            rplDecompAppendString((BYTEPTR) "START");
+            rplDecompAppendString((byte_p) "START");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // NULLLAM FOR THE COMPILER
-            rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint); // LAM COUNTER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // NULLLAM FOR THE COMPILER
+            rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint); // LAM COUNTER
 
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1670,11 +1670,11 @@ void LIB_HANDLER()
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((BYTEPTR) "NEXT");
+                rplDecompAppendString((byte_p) "NEXT");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((BYTEPTR) "NEXT");
+            rplDecompAppendString((byte_p) "NEXT");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1687,11 +1687,11 @@ void LIB_HANDLER()
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((BYTEPTR) "STEP");
+                rplDecompAppendString((byte_p) "STEP");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((BYTEPTR) "STEP");
+            rplDecompAppendString((byte_p) "STEP");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1701,7 +1701,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, DO)) {
 
-            rplDecompAppendString((BYTEPTR) "DO");
+            rplDecompAppendString((byte_p) "DO");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1714,11 +1714,11 @@ void LIB_HANDLER()
             // ENDDO
             if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, DO)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((BYTEPTR) "END");
+                rplDecompAppendString((byte_p) "END");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1728,7 +1728,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
 
-            rplDecompAppendString((BYTEPTR) "WHILE");
+            rplDecompAppendString((byte_p) "WHILE");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1742,11 +1742,11 @@ void LIB_HANDLER()
 
             if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((BYTEPTR) "END");
+                rplDecompAppendString((byte_p) "END");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1755,37 +1755,37 @@ void LIB_HANDLER()
         // TODO: ADD A FLAG TO CONTROL IF USER WANTS ENDIF INSTEAD OF END, ETC.
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENERR)) {
-            rplDecompAppendString((BYTEPTR) "THEN");
+            rplDecompAppendString((byte_p) "THEN");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENCASE)) {
-            rplDecompAppendString((BYTEPTR) "THEN");
+            rplDecompAppendString((byte_p) "THEN");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDIF)) {
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDERR)) {
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDTHEN)) {
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDCASE)) {
-            rplDecompAppendString((BYTEPTR) "END");
+            rplDecompAppendString((byte_p) "END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ELSEERR)) {
-            rplDecompAppendString((BYTEPTR) "ELSE");
+            rplDecompAppendString((byte_p) "ELSE");
             RetNum = OK_CONTINUE;
             return;
         }
@@ -1798,8 +1798,8 @@ void LIB_HANDLER()
     case OPCODE_COMPILECONT:
         // COMPILE THE IDENT IMMEDIATELY AFTER A FOR LOOP
     {
-        BYTEPTR tokst = (BYTEPTR) TokenStart;
-        BYTEPTR tokend = (BYTEPTR) BlankStart;
+        byte_p tokst = (byte_p) TokenStart;
+        byte_p tokend = (byte_p) BlankStart;
 
         if(*tokst == '\'') {
             // IT'S A QUOTED IDENT
@@ -1825,9 +1825,9 @@ void LIB_HANDLER()
         rplCompileIDENT(DOIDENT, tokst, tokend);
 
         rplCreateLAMEnvironment(ScratchPointer2 - 1);
-        rplCreateLAM((WORDPTR) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
-        rplCreateLAM((WORDPTR) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
-        rplCreateLAM((WORDPTR) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
+        rplCreateLAM((word_p) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
+        rplCreateLAM((word_p) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
+        rplCreateLAM((word_p) nulllam_ident, ScratchPointer2); // NULLLAM FOR THE COMPILER
         rplCreateLAM(ScratchPointer2, ScratchPointer2); // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
         RetNum = OK_CONTINUE;
@@ -1966,7 +1966,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
         if(ISPROLOG(*ObjectPTR)) {
             // BASIC CHECKS
-            WORDPTR ptr, objend;
+            word_p ptr, objend;
 
             objend = rplSkipOb(ObjectPTR);
             ptr = ObjectPTR + 1;
@@ -2029,7 +2029,7 @@ void LIB_HANDLER()
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = (WORDPTR) lib9_menu;
+        ObjectPTR = (word_p) lib9_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -2039,7 +2039,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2048,12 +2048,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

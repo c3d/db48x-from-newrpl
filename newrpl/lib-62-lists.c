@@ -227,32 +227,32 @@ ROMOBJECT empty_list[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) dolist_seco,
-    (WORDPTR) dosubs_seco,
-    (WORDPTR) map_seco,
-    (WORDPTR) stream_seco,
-    (WORDPTR) nsub_name,
-    (WORDPTR) endsub_name,
-    (WORDPTR) unary_seco,
-    (WORDPTR) binary_seco,
-    (WORDPTR) testop_seco,
-    (WORDPTR) oplist_seco,
-    (WORDPTR) deltalist_seco,
-    (WORDPTR) empty_list,
-    (WORDPTR) lib62_menu,
-    (WORDPTR) lib62_menu_2,
-    (WORDPTR) cmd_SEQ,
-    (WORDPTR) mapinnercomp_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) dolist_seco,
+    (word_p) dosubs_seco,
+    (word_p) map_seco,
+    (word_p) stream_seco,
+    (word_p) nsub_name,
+    (word_p) endsub_name,
+    (word_p) unary_seco,
+    (word_p) binary_seco,
+    (word_p) testop_seco,
+    (word_p) oplist_seco,
+    (word_p) deltalist_seco,
+    (word_p) empty_list,
+    (word_p) lib62_menu,
+    (word_p) lib62_menu_2,
+    (word_p) cmd_SEQ,
+    (word_p) mapinnercomp_seco,
     0
 };
 
 // COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
 // OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
 
-int32_t rplListItemCompare(WORDPTR a, WORDPTR b)
+int32_t rplListItemCompare(word_p a, word_p b)
 {
 
     rplPushData(a);
@@ -308,15 +308,15 @@ void LIB_HANDLER()
         if(OPCODE(CurOpcode) == OVR_FUNCEVAL) {
             // DO INDEXING ON LISTS JUST LIKE ON MATRICES
 
-            WORDPTR comp = rplPeekData(1);
-            WORDPTR posobj;
+            word_p comp = rplPeekData(1);
+            word_p posobj;
             int32_t ndims, length;
             int32_t pos;
 
             length = rplListLength(comp);
             ndims = rplDepthData() - 1;
             int32_t k;
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
 
             for(k = 1; k <= ndims; ++k) {
                 // CHECK IF WE HAVE THE RIGHT POSITION
@@ -395,7 +395,7 @@ void LIB_HANDLER()
 
         // NOW CREATE A PROGRAM TO 'MAP'
 
-        WORDPTR program = rplAllocTempOb(2);
+        word_p program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
@@ -409,19 +409,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -431,9 +431,9 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         if(OPCODE(CurOpcode) == OVR_EVAL)
-            IPtr = (WORDPTR) listeval_seco;
+            IPtr = (word_p) listeval_seco;
         else
-            IPtr = (WORDPTR) unary_seco;
+            IPtr = (word_p) unary_seco;
         CurOpcode = CMD_OVR_EVAL;       // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -502,7 +502,7 @@ void LIB_HANDLER()
                 return;
         }
 
-        WORDPTR program = rplAllocTempOb(2);
+        word_p program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
@@ -516,37 +516,37 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
         if(ISLIST(*rplPeekData(2)))
-            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);  // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
+            rplCreateLAM((word_p) nulllam_ident, rplPeekData(2) + 1);  // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
         else
-            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));
+            rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
         if(ISLIST(*rplPeekData(1)))
-            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);  // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
+            rplCreateLAM((word_p) nulllam_ident, rplPeekData(1) + 1);  // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
         else
-            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));
+            rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 4 = LIST1
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));  // LAM 4 = LIST1
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 5 = LIST2
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 5 = LIST2
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -557,9 +557,9 @@ void LIB_HANDLER()
         rplPushRet(IPtr);
 
         if(ISTESTOP(CurOpcode))
-            IPtr = (WORDPTR) testop_seco;
+            IPtr = (word_p) testop_seco;
         else
-            IPtr = (WORDPTR) binary_seco;
+            IPtr = (word_p) binary_seco;
         CurOpcode = CMD_OVR_ADD;        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -581,7 +581,7 @@ void LIB_HANDLER()
 
         rplStripTagStack(1);
 
-        WORDPTR list = rplPeekData(1);
+        word_p list = rplPeekData(1);
 
         if(!ISLIST(*list)) {
             rplError(ERR_LISTEXPECTED);
@@ -589,7 +589,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *stksave = DSTop;
+        word_p *stksave = DSTop;
 
         int32_t nitems = rplListLength(list);
 
@@ -604,8 +604,8 @@ void LIB_HANDLER()
 
         // PERFORM BINARY INSERTION SORT
 
-        WORDPTR *ptr, *ptr2, *endlimit, *startlimit, save;
-        WORDPTR *left, *right;
+        word_p *ptr, *ptr2, *endlimit, *startlimit, save;
+        word_p *left, *right;
 
         startlimit = DSTop - nitems;    // POINT TO SECOND ELEMENT IN THE LIST
         endlimit = DSTop - 1;   // POINT AFTER THE LAST ELEMENT
@@ -641,7 +641,7 @@ void LIB_HANDLER()
                 // INSERT THE POINTER RIGHT BEFORE right
                 for(ptr2 = ptr; ptr2 > right; ptr2 -= 1)
                     *ptr2 = *(ptr2 - 1);
-                //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
+                //memmoveb(right+1,right,(ptr-right)*sizeof(word_p));
                 *right = save;
             }
             if(Exceptions) {
@@ -673,7 +673,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR list = rplPeekData(1);
+        word_p list = rplPeekData(1);
 
         if(!ISLIST(*list)) {
             rplError(ERR_LISTEXPECTED);
@@ -695,7 +695,7 @@ void LIB_HANDLER()
 
         // REVERSE ALL ELEMENTS IN THE LIST
 
-        WORDPTR *endlimit, *startlimit, save;
+        word_p *endlimit, *startlimit, save;
 
         startlimit = DSTop - nitems - 1;        // POINT TO FIRST ELEMENT IN THE LIST
         endlimit = DSTop - 2;   // POINT TO THE LAST ELEMENT
@@ -784,9 +784,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplPeekData(1);
+        word_p program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var = rplFindLAM(program, 1);
+            word_p *var = rplFindLAM(program, 1);
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
@@ -834,15 +834,15 @@ void LIB_HANDLER()
         rplCreateLAMEnvironment(IPtr);
         // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb = rplNewint32_t(nlists, DECint32_t);
+        word_p newb = rplNewint32_t(nlists, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = int32_t WITH NUMBER OF LISTS
+        rplCreateLAM((word_p) nulllam_ident, newb);    // LAM 2 = int32_t WITH NUMBER OF LISTS
 
         if(Exceptions) {
             rplCleanupLAMs(0);
@@ -855,7 +855,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 3 = int32_t WITH NUMBER OF ITEMS PER LIST
+        rplCreateLAM((word_p) nulllam_ident, newb);    // LAM 3 = int32_t WITH NUMBER OF ITEMS PER LIST
 
         if(Exceptions) {
             rplCleanupLAMs(0);
@@ -868,10 +868,10 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 4 = 1, int32_t WITH CURRENT INDEX IN TEH LOOP
+        rplCreateLAM((word_p) nulllam_ident, newb);    // LAM 4 = 1, int32_t WITH CURRENT INDEX IN TEH LOOP
 
         for(f = 0; f < nlists; ++f) {
-            rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2 + nlists - f)); // LAM n+4 = LISTS IN REVERSE ORDER
+            rplCreateLAM((word_p) nulllam_ident, rplPeekData(2 + nlists - f)); // LAM n+4 = LISTS IN REVERSE ORDER
             if(Exceptions) {
                 rplCleanupLAMs(0);
                 return;
@@ -893,7 +893,7 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) dolist_seco;
+        IPtr = (word_p) dolist_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -944,7 +944,7 @@ void LIB_HANDLER()
         if(idx < length) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint = rplNewint32_t(idx, DECint32_t);
+            word_p newbint = rplNewint32_t(idx, DECint32_t);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                 if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -958,7 +958,7 @@ void LIB_HANDLER()
             }
             rplPutLAMn(4, newbint);     // STORE NEW INDEX
 
-            IPtr = (WORDPTR) dolist_seco;       // CONTINUE THE LOOP
+            IPtr = (word_p) dolist_seco;       // CONTINUE THE LOOP
             // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
             return;
         }
@@ -966,7 +966,7 @@ void LIB_HANDLER()
         // ALL ELEMENTS WERE PROCESSED
         // FORM A LIST WITH ALL THE NEW ELEMENTS
 
-        WORDPTR *prevDStk = rplUnprotectData();
+        word_p *prevDStk = rplUnprotectData();
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -996,7 +996,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *lstptr = DSTop - nlists - 3;
+        word_p *lstptr = DSTop - nlists - 3;
         int32_t k;
         for(k = 0; k < nlists; ++k, ++lstptr)
             if(ISAUTOEXPLIST(**lstptr)) {
@@ -1067,9 +1067,9 @@ void LIB_HANDLER()
 
         int64_t nvalues = rplReadNumberAsInt64(rplPeekData(2));
 
-        WORDPTR program = rplPeekData(1);
+        word_p program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var = rplFindLAM(program, 1);
+            word_p *var = rplFindLAM(program, 1);
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
@@ -1105,15 +1105,15 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        WORDPTR newb = rplNewint32_t(nvalues, DECint32_t);
+        word_p newb = rplNewint32_t(nvalues, DECint32_t);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, newb);    // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
+        rplCreateLAM((word_p) nulllam_ident, newb);    // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
 
         if(Exceptions) {
             rplCleanupLAMs(0);
@@ -1126,7 +1126,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM((WORDPTR) endsub_name, newb);      // LAM 3 = int32_t WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
+        rplCreateLAM((word_p) endsub_name, newb);      // LAM 3 = int32_t WITH NUMBER OF TIMES TO RUN THE LOOP = ENDSUB
 
         if(Exceptions) {
             rplCleanupLAMs(0);
@@ -1139,9 +1139,9 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM((WORDPTR) nsub_name, newb);        // LAM 4 = 1, int32_t WITH CURRENT INDEX IN THE LOOP
+        rplCreateLAM((word_p) nsub_name, newb);        // LAM 4 = 1, int32_t WITH CURRENT INDEX IN THE LOOP
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(3));  // LAM 5 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(3));  // LAM 5 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -1161,7 +1161,7 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) dosubs_seco;
+        IPtr = (word_p) dosubs_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -1211,7 +1211,7 @@ void LIB_HANDLER()
         if(idx < endsub) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            WORDPTR newbint = rplNewint32_t(idx, DECint32_t);
+            word_p newbint = rplNewint32_t(idx, DECint32_t);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
 
@@ -1222,7 +1222,7 @@ void LIB_HANDLER()
             }
             rplPutLAMn(4, newbint);     // STORE NEW INDEX
 
-            IPtr = (WORDPTR) dosubs_seco;       // CONTINUE THE LOOP
+            IPtr = (word_p) dosubs_seco;       // CONTINUE THE LOOP
             // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
             return;
         }
@@ -1230,7 +1230,7 @@ void LIB_HANDLER()
         // ALL ELEMENTS WERE PROCESSED
         // FORM A LIST WITH ALL THE NEW ELEMENTS
 
-        WORDPTR *prevDStk = rplUnprotectData();
+        word_p *prevDStk = rplUnprotectData();
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -1303,9 +1303,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplPeekData(1);
+        word_p program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var = rplFindLAM(program, 1);
+            word_p *var = rplFindLAM(program, 1);
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
@@ -1329,19 +1329,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -1361,7 +1361,7 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) map_seco;
+        IPtr = (word_p) map_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -1373,10 +1373,10 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj = *rplGetLAMn(2);
-        WORDPTR startobj;
+        word_p nextobj = *rplGetLAMn(2);
+        word_p startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
@@ -1386,17 +1386,17 @@ void LIB_HANDLER()
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR) map_seco);
+                rplPushData((word_p) map_seco);
             }
 
             while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+                    word_p *prevDStk = rplUnprotectData();
 
                     int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-                    WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
+                    word_p newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
                         DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -1423,7 +1423,7 @@ void LIB_HANDLER()
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr = DSTop - 1;
+                    word_p *stkptr = DSTop - 1;
 
                     while(*stkptr != map_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
@@ -1546,9 +1546,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplPeekData(1);
+        word_p program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var = rplFindLAM(program, 1);
+            word_p *var = rplFindLAM(program, 1);
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
@@ -1572,19 +1572,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -1604,7 +1604,7 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) mapinnercomp_seco;
+        IPtr = (word_p) mapinnercomp_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         // REMOVE THE PROGRAM FROM THE STACK IN ORDER TO REUSE listeval_seco
@@ -1621,10 +1621,10 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj = *rplGetLAMn(2);
-        WORDPTR startobj;
+        word_p nextobj = *rplGetLAMn(2);
+        word_p startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
@@ -1634,17 +1634,17 @@ void LIB_HANDLER()
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR) listeval_seco);
+                rplPushData((word_p) listeval_seco);
             }
 
             while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+                    word_p *prevDStk = rplUnprotectData();
 
                     int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-                    WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
+                    word_p newlist = rplCreateListN(newdepth, 1, 1);
                     if(Exceptions || !newlist) {
                         DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
@@ -1665,7 +1665,7 @@ void LIB_HANDLER()
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr = DSTop - 1;
+                    word_p *stkptr = DSTop - 1;
 
                     while(*stkptr != listeval_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
@@ -1784,9 +1784,9 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplPeekData(1);
+        word_p program = rplPeekData(1);
         if(ISIDENT(*program)) {
-            WORDPTR *var = rplFindLAM(program, 1);
+            word_p *var = rplFindLAM(program, 1);
             if(!var) {
                 var = rplFindGlobal(program, 1);
                 if(!var) {
@@ -1808,19 +1808,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(2));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -1829,7 +1829,7 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) stream_seco;
+        IPtr = (word_p) stream_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -1844,15 +1844,15 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj;
+        word_p nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         nextobj = rplSkipOb(*rplGetLAMn(2));
 
         if(nextobj == endmarker) {
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -1896,7 +1896,7 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        IPtr = (WORDPTR) stream_seco;   // CONTINUE THE LOOP
+        IPtr = (word_p) stream_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -1931,10 +1931,10 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj = *rplGetLAMn(2);
-        WORDPTR startobj;
+        word_p nextobj = *rplGetLAMn(2);
+        word_p startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
         WORD opcode = *((*rplGetLAMn(1)) + 1);
 
         do {
@@ -1950,7 +1950,7 @@ void LIB_HANDLER()
                     int32_t strtoff = startobj - nextobj;
                     int32_t endoff = endmarker - nextobj;
 
-                    rplPushData((WORDPTR) map_seco);
+                    rplPushData((word_p) map_seco);
 
                     nextobj = *rplGetLAMn(2) + nxtoff;  // RESTORE
                     startobj = nextobj + strtoff;
@@ -1961,7 +1961,7 @@ void LIB_HANDLER()
             while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+                    word_p *prevDStk = rplUnprotectData();
 
                     int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -1978,13 +1978,13 @@ void LIB_HANDLER()
 
                         rplDropData(newdepth);
                         if(istrue)
-                            rplOverwriteData(1, (WORDPTR) one_bint);
+                            rplOverwriteData(1, (word_p) one_bint);
                         else
-                            rplOverwriteData(1, (WORDPTR) zero_bint);
+                            rplOverwriteData(1, (word_p) zero_bint);
 
                     }
                     else {
-                        WORDPTR newlist = rplCreateListN(newdepth, 1, 1);
+                        word_p newlist = rplCreateListN(newdepth, 1, 1);
                         if(!newlist) {
                             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
                             rplCleanupLAMs(0);
@@ -2005,7 +2005,7 @@ void LIB_HANDLER()
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr = DSTop - 1;
+                    word_p *stkptr = DSTop - 1;
 
                     while(*stkptr != map_seco)
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
@@ -2024,9 +2024,9 @@ void LIB_HANDLER()
 
                         rplDropData(nelements);
                         if(istrue)
-                            rplOverwriteData(1, (WORDPTR) one_bint);
+                            rplOverwriteData(1, (word_p) one_bint);
                         else
-                            rplOverwriteData(1, (WORDPTR) zero_bint);
+                            rplOverwriteData(1, (word_p) zero_bint);
 
                     }
 
@@ -2035,7 +2035,7 @@ void LIB_HANDLER()
                         int32_t strtoff = startobj - nextobj;
                         int32_t endoff = endmarker - nextobj;
 
-                        WORDPTR newlist = rplCreateListN(nelements, 1, 1);
+                        word_p newlist = rplCreateListN(nelements, 1, 1);
                         if(!newlist) {
                             DSTop = rplUnprotectData(); // CLEANUP ALL INTERMEDIATE RESULTS
                             rplCleanupLAMs(0);
@@ -2095,7 +2095,7 @@ void LIB_HANDLER()
 
         rplPutLAMn(2, rplSkipOb(*rplGetLAMn(2)));       // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr = (WORDPTR) unary_seco;    // CONTINUE THE LOOP
+        IPtr = (word_p) unary_seco;    // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2125,8 +2125,8 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 and 3 = NEXT OBJECT ON EACH LIST, GETLAM 4 AND 5 = LISTS
 
-        WORDPTR nextobj1 = *rplGetLAMn(2);
-        WORDPTR nextobj2 = *rplGetLAMn(3);
+        word_p nextobj1 = *rplGetLAMn(2);
+        word_p nextobj2 = *rplGetLAMn(3);
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
@@ -2145,7 +2145,7 @@ void LIB_HANDLER()
             }
 
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2194,7 +2194,7 @@ void LIB_HANDLER()
             }
 
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2265,7 +2265,7 @@ void LIB_HANDLER()
         if(ISLIST(**rplGetLAMn(5)))
             rplPutLAMn(3, rplSkipOb(*rplGetLAMn(3)));   // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr = (WORDPTR) binary_seco;   // CONTINUE THE LOOP
+        IPtr = (word_p) binary_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2295,8 +2295,8 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 and 3 = NEXT OBJECT ON EACH LIST, GETLAM 4 AND 5 = LISTS
 
-        WORDPTR nextobj1 = *rplGetLAMn(2);
-        WORDPTR nextobj2 = *rplGetLAMn(3);
+        word_p nextobj1 = *rplGetLAMn(2);
+        word_p nextobj2 = *rplGetLAMn(3);
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
@@ -2315,7 +2315,7 @@ void LIB_HANDLER()
             }
 
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
             int32_t result = 1;
@@ -2349,9 +2349,9 @@ void LIB_HANDLER()
 
             rplDropData(2);     // REMOVE ORIGINAL ARGUMENTS
             if(result)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
 
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
@@ -2375,7 +2375,7 @@ void LIB_HANDLER()
             }
 
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
             int32_t result;
@@ -2426,9 +2426,9 @@ void LIB_HANDLER()
 
             rplDropData(2);     // REMOVE ORIGINAL ARGUMENTS
             if(result)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
 
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
@@ -2474,7 +2474,7 @@ void LIB_HANDLER()
         if(ISLIST(**rplGetLAMn(5)))
             rplPutLAMn(3, rplSkipOb(*rplGetLAMn(3)));   // MOVE TO THE NEXT OBJECT IN THE LIST
 
-        IPtr = (WORDPTR) testop_seco;   // CONTINUE THE LOOP
+        IPtr = (word_p) testop_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2535,7 +2535,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplAllocTempOb(2);
+        word_p program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
@@ -2552,19 +2552,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -2573,7 +2573,7 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) oplist_seco;
+        IPtr = (word_p) oplist_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -2588,15 +2588,15 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj;
+        word_p nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         nextobj = rplSkipOb(*rplGetLAMn(2));
 
         if(nextobj == endmarker) {
             // CLOSE THE MAIN LIST AND RETURN
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2639,7 +2639,7 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
-        IPtr = (WORDPTR) oplist_seco;   // CONTINUE THE LOOP
+        IPtr = (word_p) oplist_seco;   // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2689,7 +2689,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR program = rplAllocTempOb(2);
+        word_p program = rplAllocTempOb(2);
         if(!program) {
             return;
         }
@@ -2703,19 +2703,19 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM((WORDPTR) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((word_p) nulllam_ident, program); // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1) + 1);      // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
         }
 
-        rplCreateLAM((WORDPTR) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
+        rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 3 = LIST
         if(Exceptions) {
             rplCleanupLAMs(0);
             return;
@@ -2724,7 +2724,7 @@ void LIB_HANDLER()
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) deltalist_seco;
+        IPtr = (word_p) deltalist_seco;
         CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
@@ -2739,9 +2739,9 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj;
+        word_p nextobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         nextobj = rplSkipOb(*rplGetLAMn(2));
 
@@ -2751,7 +2751,7 @@ void LIB_HANDLER()
             // REMOVE THE PREVIOUS ARGUMENT
             rplPopData();
 
-            WORDPTR *prevDStk = rplUnprotectData();
+            word_p *prevDStk = rplUnprotectData();
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2816,7 +2816,7 @@ void LIB_HANDLER()
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
 
         rplPushData(*rplGetLAMn(2));    // PUSH LAST OBJECT AGAIN THE STACK FOR NEXT OPERATION
-        IPtr = (WORDPTR) deltalist_seco;        // CONTINUE THE LOOP
+        IPtr = (word_p) deltalist_seco;        // CONTINUE THE LOOP
         // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
         return;
     }
@@ -2850,7 +2850,7 @@ void LIB_HANDLER()
             return;
         }
         int32_t size1, size2;
-        WORDPTR obj1 = rplPeekData(2), obj2 = rplPeekData(1);
+        word_p obj1 = rplPeekData(2), obj2 = rplPeekData(1);
         if(ISPROLOG(*obj1))
             size1 = OBJSIZE(*obj1) + 1;
         else
@@ -2865,7 +2865,7 @@ void LIB_HANDLER()
         if(ISLIST(*obj2))
             size2 -= 2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
 
-        WORDPTR newlist = rplAllocTempOb(size1 + size2 + 1);
+        word_p newlist = rplAllocTempOb(size1 + size2 + 1);
         if(!newlist) {
             return;
         }
@@ -2922,7 +2922,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR newlist = rplListAddRot(rplPeekData(3), rplPeekData(2), nitems);
+        word_p newlist = rplListAddRot(rplPeekData(3), rplPeekData(2), nitems);
         if(!newlist)
             return;
         rplDropData(2);
@@ -2952,7 +2952,7 @@ void LIB_HANDLER()
         }
         // RUN THE RPL CODE IMPLEMENTING THE COMMAND
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) cmd_SEQ;
+        IPtr = (word_p) cmd_SEQ;
         return;
     }
 
@@ -2960,10 +2960,10 @@ void LIB_HANDLER()
     {
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
 
-        WORDPTR nextobj = *rplGetLAMn(2);
-        WORDPTR startobj;
+        word_p nextobj = *rplGetLAMn(2);
+        word_p startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
-        WORDPTR endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
+        word_p endmarker = rplSkipOb(*rplGetLAMn(3)) - 1;
 
         do {
 
@@ -2973,13 +2973,13 @@ void LIB_HANDLER()
                 // GET INSIDE THE LIST
                 ++nextobj;
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
-                rplPushData((WORDPTR) mapinnercomp_seco);
+                rplPushData((word_p) mapinnercomp_seco);
             }
 
             while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+                    word_p *prevDStk = rplUnprotectData();
 
                     int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
@@ -2994,7 +2994,7 @@ void LIB_HANDLER()
                 else {
                     // CLOSE AN INNER LIST AND CONTINUE
 
-                    WORDPTR *stkptr = DSTop - 1;
+                    word_p *stkptr = DSTop - 1;
 
                     while((*stkptr != mapinnercomp_seco)
                             && (stkptr > DStkBottom))
@@ -3083,7 +3083,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
             if(TokenLen > 1) {
-                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 1);
+                NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_STARTCONSTRUCT;
             }
             else
@@ -3096,7 +3096,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER + 1, 0));
             if(TokenLen > 2) {
-                NextTokenStart = (WORDPTR) (((char *)TokenStart) + 2);
+                NextTokenStart = (word_p) (((char *)TokenStart) + 2);
                 RetNum = OK_STARTCONSTRUCT;
             }
             else
@@ -3109,7 +3109,7 @@ void LIB_HANDLER()
         if(((char *)TokenStart)[TokenLen - 1] == '}') {
             if(TokenLen > 1) {
                 BlankStart = NextTokenStart =
-                        (WORDPTR) (((char *)TokenStart) + TokenLen - 1);
+                        (word_p) (((char *)TokenStart) + TokenLen - 1);
                 RetNum = ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
@@ -3142,9 +3142,9 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
 
             if(!ISAUTOEXPLIST(*DecompileObject))
-                rplDecompAppendString((BYTEPTR) "{");
+                rplDecompAppendString((byte_p) "{");
             else
-                rplDecompAppendString((BYTEPTR) "c{");
+                rplDecompAppendString((byte_p) "c{");
             int32_t islistoflist = rplListHasLists(DecompileObject) ? 1 : 0;
             int32_t depth = 0, needseparator;
 
@@ -3163,9 +3163,9 @@ void LIB_HANDLER()
                 if(ISLIST(DecompileObject[offset])) {
 
                     if(!ISAUTOEXPLIST(DecompileObject[offset]))
-                        rplDecompAppendString((BYTEPTR) "{");
+                        rplDecompAppendString((byte_p) "{");
                     else
-                        rplDecompAppendString((BYTEPTR) "c{");
+                        rplDecompAppendString((byte_p) "c{");
 
                     if(rplListHasLists(DecompileObject + offset)) {
                         islistoflist |= 1 << (depth + 1);
@@ -3189,7 +3189,7 @@ void LIB_HANDLER()
 
                 if(DecompileObject[offset] == CMD_ENDLIST) {
                     rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
-                    rplDecompAppendString((BYTEPTR) "}");
+                    rplDecompAppendString((byte_p) "}");
                     if(Exceptions) {
                         RetNum = ERR_INVALID;
                         return;
@@ -3231,7 +3231,7 @@ void LIB_HANDLER()
         }
 
         if(*DecompileObject == CMD_ENDLIST) {
-            rplDecompAppendString((BYTEPTR) "}");
+            rplDecompAppendString((byte_p) "}");
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -3312,7 +3312,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3320,7 +3320,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -3330,7 +3330,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
         if(ISPROLOG(*ObjectPTR)) {
             // BASIC CHECKS
-            WORDPTR ptr, objend;
+            word_p ptr, objend;
 
             objend = rplSkipOb(ObjectPTR);
             ptr = ObjectPTR + 1;
@@ -3374,7 +3374,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -3383,12 +3383,12 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

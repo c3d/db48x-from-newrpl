@@ -14,7 +14,7 @@
 extern "C" void rplShowRuntimeState(void);
 
 /*
-BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
+byte_p testprogram=(byte_p)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO << A 'A' LAMSTO >> A 'A' LAMSTO >> " // UNIT TEST: LAMS ACROSS SECONDARY BOUNDARIES ARE SEARCHED BY NAME, NOT GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO 1 A FOR i A i + 'A' LAMSTO NEXT A 'A' LAMSTO 'i' LAMSTO i >> " // UNIT TEST: LAMS ACROSS FOR LOOPS ARE OK AS GETLAM/PUTLAM, LOOP VARS DISSAPPEAR AFTER NEXT/STEP
                              "<< 1 'A' LAMSTO << 1 'B' LAMSTO A B C >> A B C >> " // UNIT TEST: LAMS AFTER SECONDARIES ARE CLEANED UP PROPERLY
@@ -22,29 +22,29 @@ BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: AL
                             ;
 */
 /*
-BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO DO A A 1 + 'A' LAMSTO UNTIL A 10 == END \"END!\" >> EVAL " // UNIT TEST: DO/UNTIL TEST WITH LAMS
+byte_p testprogram=(byte_p)"<< 1 'A' LAMSTO DO A A 1 + 'A' LAMSTO UNTIL A 10 == END \"END!\" >> EVAL " // UNIT TEST: DO/UNTIL TEST WITH LAMS
                             ;
 */
 /*
-BYTEPTR testprogram=(BYTEPTR)//"<< 1 'A' LAMSTO WHILE A 10 <= REPEAT A A 1 + 'A' LAMSTO END \"END!\" >> " // UNIT TEST: WHILE/REPEAT TEST WITH LAMS
+byte_p testprogram=(byte_p)//"<< 1 'A' LAMSTO WHILE A 10 <= REPEAT A A 1 + 'A' LAMSTO END \"END!\" >> " // UNIT TEST: WHILE/REPEAT TEST WITH LAMS
                              "<< 1 'A' LAMSTO WHILE A 'B' LAMSTO A 10 <= REPEAT B A A 1 + 'A' LAMSTO END B \"END!\" >> EVAL " // UNIT TEST: WHILE/REPEAT TEST WITH LAMS
                             ;
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL";
+byte_p testprogram=(byte_p) "<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL";
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG";
+byte_p testprogram=(byte_p) "DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG";
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG";
+byte_p testprogram=(byte_p) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG";
 */
 /*
- BYTEPTR testprogram=(BYTEPTR) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
+ byte_p testprogram=(byte_p) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
 */
 
 // N-QUEENS WITH ALL CONSTANT NUMBERS AS REALS
-BYTEPTR testprogram = (BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
+byte_p testprogram = (byte_p) "<< 8. 0. 0. 0. { } -> R S X Y A "
         "  << "
         " 1. R START 0. NEXT R ->LIST 'A' STO "
         " DO "
@@ -70,7 +70,7 @@ BYTEPTR testprogram = (BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
 
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
 /*
-BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
+byte_p testprogram=(byte_p) "<< 8 0 0 0 { } -> R S X Y A "
                 "  << "
                " 1 R START 0 NEXT R ->LIST 'A' STO "
                " DO "
@@ -99,7 +99,7 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
            ;
 */
 /*
-const BYTEPTR nq_stk=(const BYTEPTR) "<< 8. 0. 0. 0. -> R S X Y "
+const byte_p nq_stk=(const byte_p) "<< 8. 0. 0. 0. -> R S X Y "
   "<< 1. R "
     " START 0. "
     " NEXT DO R 'X' INCR UNPICK "
@@ -121,17 +121,17 @@ const BYTEPTR nq_stk=(const BYTEPTR) "<< 8. 0. 0. 0. -> R S X Y "
         " 'NQ.STK' STO 1 10 START NQ.STK NEXT"
 ;
 */
-const BYTEPTR nq_new = (const BYTEPTR)"<< 1 -> X RES << " " IF X 1 > THEN " " X PICK 1 X 1 - FOR I " " DUP I 2 + PICK - ABS X I - ABS " " IF == THEN " " 0 'RES' STO X 'I' STO " " END " " NEXT " " DROP RES " " ELSE " " 1 " " END " " >> " " >> " " 'CHECKQUEEN' STO " " <<  9 OVER - -> X LIMIT " " << " " 1 8 START LIMIT 8 + ROLLD NEXT " " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT " " DO 9 ROLL X UNPICK " " IF X CHECKQUEEN " " THEN X 1 + DUP " " IF 8 <= THEN " "IF DOLEVEL THEN " "0 9 ROLLD 0 'LIMIT' STO " " ELSE X PICK 17 X - ROLLD " " END " " ELSE 9 ROLLD 0 'LIMIT' STO END " " ELSE X PICK 17 X - ROLLD " " END 'LIMIT' DECR " " UNTIL 0 <= " " END " " 1 9 X - START 9 ROLL DROP NEXT " " IF LIMIT 0 == " " THEN 0 ELSE 1 END " " >> " " >> " " 'DOLEVEL' STO " " << " " 1 2 3 4 5 6 7 8 " " 0 0 0 0 0 0 0 0 " " 1 DOLEVEL DROP " " 1 8 START 9 ROLL DROP NEXT " " 8 ->LIST " " >> " " 'NEW.RUN' STO "     /*" 1 10 START NEW.RUN NEXT " */
+const byte_p nq_new = (const byte_p)"<< 1 -> X RES << " " IF X 1 > THEN " " X PICK 1 X 1 - FOR I " " DUP I 2 + PICK - ABS X I - ABS " " IF == THEN " " 0 'RES' STO X 'I' STO " " END " " NEXT " " DROP RES " " ELSE " " 1 " " END " " >> " " >> " " 'CHECKQUEEN' STO " " <<  9 OVER - -> X LIMIT " " << " " 1 8 START LIMIT 8 + ROLLD NEXT " " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT " " DO 9 ROLL X UNPICK " " IF X CHECKQUEEN " " THEN X 1 + DUP " " IF 8 <= THEN " "IF DOLEVEL THEN " "0 9 ROLLD 0 'LIMIT' STO " " ELSE X PICK 17 X - ROLLD " " END " " ELSE 9 ROLLD 0 'LIMIT' STO END " " ELSE X PICK 17 X - ROLLD " " END 'LIMIT' DECR " " UNTIL 0 <= " " END " " 1 9 X - START 9 ROLL DROP NEXT " " IF LIMIT 0 == " " THEN 0 ELSE 1 END " " >> " " >> " " 'DOLEVEL' STO " " << " " 1 2 3 4 5 6 7 8 " " 0 0 0 0 0 0 0 0 " " 1 DOLEVEL DROP " " 1 8 START 9 ROLL DROP NEXT " " 8 ->LIST " " >> " " 'NEW.RUN' STO "     /*" 1 10 START NEW.RUN NEXT " */
         ;
 
 /*
-BYTEPTR testprogram=(BYTEPTR) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
+byte_p testprogram=(byte_p) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
 */
 
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=1*10^-N
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -155,7 +155,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=2*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -168,7 +168,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=5*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -180,7 +180,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(COS(ALPHAi))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=0,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 "2.0 "
                                 "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 + * NEXT "
                                 "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 + DUP * * NEXT "
@@ -193,7 +193,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE WITH CONSTANTS 2*PI, PI, PI/2, PI/4 AT MAX. SYSTEM PRECISION
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 1 'SIGN' LAMSTO 0.0 1200 0 FOR k "
                                 " -32  4 k * 1 + / "
                                 "      4 k * 3 + INV - "
@@ -215,21 +215,21 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(1*10^-x)
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 'X' LAMSTO 0.0 1 2025 K / IP 2 + FOR I X I ^ I / + 2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
 */
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(2*10^-x)
 /*
- BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+ byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 2 * 'X' LAMSTO 0.0 4000 K 3 / - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
 */
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(5*10^-x)
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 5 * 'X' LAMSTO 0.0 8000 K - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
@@ -238,7 +238,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
- BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+ byte_p testprogram=(byte_p) "2025 SETPREC "
                                  "1.0 "
                                  "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 - * NEXT "
                                  "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 - DUP * * NEXT "
@@ -248,7 +248,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
+byte_p testprogram=(byte_p) "2016 SETPREC "
                               " 1.0 CEXP "
                             " 0.5 CEXP "
                             " 0.2 CEXP "
@@ -262,13 +262,13 @@ BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
 
 // GENERATE THE CONSTANT LN(10)
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << DUP 1 - SWAP / 'X' LAMSTO -1 'SIGN' LAMSTO 0.0 50000 1 FOR I X I ^ I / + -1 STEP >> 'MYLN' STO "
                                 " 10 MYLN DUP TRANSCENTABLE WRITETABLE "
                                 ;
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
                                 " << 1 CEXP DUP DUP * * / 'Z' LAMSTO -0.7 'X' LAMSTO DO X CEXP DUP Z - SWAP / X SWAP - X SWAP DUP 'X' STO UNTIL - ABS 1E-2016 < END X >> 'MYLN' STO "
                                 " 10 MYLN 3 + 2 / DUP TRANSCENTABLE WRITETABLE "
                                 ;
@@ -277,7 +277,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE CONSTANT Khyp = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
 
         " 1.0 "
         " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 - * "
@@ -290,7 +290,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1+alphai^2))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+byte_p testprogram=(byte_p) "2025 SETPREC "
 
         " 1.0 "
         " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 + * "
@@ -302,7 +302,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 */
 
 /*
-BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
+byte_p testprogram=(byte_p) "<< \"\" SWAP "
         "WHILE DUP 0 > REPEAT "
            "CASE "
               "DUP 1000 >= THEN 1000 \"M\"  END "
@@ -417,17 +417,17 @@ extern "C"
   {}
 }
 
-void PrintObj(WORDPTR obj)
+void PrintObj(word_p obj)
 {
-    WORDPTR string;
+    word_p string;
     int32_t nwords;
-    BYTEPTR charptr;
+    byte_p charptr;
     string = rplDecompile(obj, 0);
 
     if(string) {
         // NOW PRINT THE STRING OBJECT
         nwords = OBJSIZE(*string);
-        charptr = (BYTEPTR) (string + 1);
+        charptr = (byte_p) (string + 1);
         for(; nwords > 1; --nwords, charptr += 4) {
             printf("%c%c%c%c", charptr[0], charptr[1], charptr[2], charptr[3]);
         }
@@ -440,13 +440,13 @@ void PrintObj(WORDPTR obj)
 
 }
 
-void PrintSeco(WORDPTR obj)
+void PrintSeco(word_p obj)
 {
-    WORDPTR string;
+    word_p string;
     int32_t nwords;
-    BYTEPTR charptr;
+    byte_p charptr;
 
-    WORDPTR endobj = rplSkipOb(obj);
+    word_p endobj = rplSkipOb(obj);
 
     if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL) || (LIBNUM(*obj) == SECO))) {
 
@@ -471,7 +471,7 @@ void PrintSeco(WORDPTR obj)
             if(string) {
                 // NOW PRINT THE STRING OBJECT
                 nwords = OBJSIZE(*string);
-                charptr = (BYTEPTR) (string + 1);
+                charptr = (byte_p) (string + 1);
                 for(; nwords > 1; --nwords, charptr += 4) {
                     printf("%c%c%c%c", charptr[0], charptr[1], charptr[2],
                             charptr[3]);
@@ -499,14 +499,14 @@ void PrintSeco(WORDPTR obj)
 
 void DumpDirs()
 {
-    WORDPTR *scan = Directories;
+    word_p *scan = Directories;
 
     while(scan < DirsTop) {
 
         if(**scan == DIR_START_MARKER) {
             printf("*** START ");
-            WORDPTR *parent = scan;
-            WORDPTR name = rplGetDirName(scan);
+            word_p *parent = scan;
+            word_p name = rplGetDirName(scan);
             while(name) {
                 PrintObj(name);
                 printf(" ");
@@ -540,7 +540,7 @@ void DumpDirs()
 
 void DumpLAMs()
 {
-    WORDPTR *scan = LAMTop - 2;
+    word_p *scan = LAMTop - 2;
 
     while(scan >= LAMs) {
 
@@ -563,8 +563,8 @@ void DumpDStack()
 {
     int32_t count = 0;
     int32_t nwords;
-    WORDPTR string;
-    BYTEPTR charptr;
+    word_p string;
+    byte_p charptr;
     int32_t nlevels = 5;
 
     while(nlevels > rplDepthData() && nlevels > 0) {
@@ -574,12 +574,12 @@ void DumpDStack()
 
     while(count < (DSTop - DStkBottom)) {
         printf("%ld:\t", DSTop - DStkBottom - count);
-        string = rplDecompile((WORDPTR) DStkBottom[count], 0);
+        string = rplDecompile((word_p) DStkBottom[count], 0);
 
         if(string) {
             // NOW PRINT THE STRING OBJECT
             nwords = OBJSIZE(*string);
-            charptr = (BYTEPTR) (string + 1);
+            charptr = (byte_p) (string + 1);
             for(; nwords > 1; --nwords, charptr += 4) {
                 printf("%c%c%c%c", charptr[0], charptr[1], charptr[2],
                         charptr[3]);
@@ -673,7 +673,7 @@ int main()
     /*
        if(testprogram) {
 
-       WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
+       word_p ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
        if(ptr)   {
        PrintSeco(ptr);
        rplSetEntryPoint(ptr);
@@ -710,7 +710,7 @@ int main()
             continue;
         }
 
-        WORDPTR ptr = rplCompile((BYTEPTR) buffer, strlen(buffer), 1);
+        word_p ptr = rplCompile((byte_p) buffer, strlen(buffer), 1);
 
         if(!ptr) {
             printf("COMPILE ERROR\n");

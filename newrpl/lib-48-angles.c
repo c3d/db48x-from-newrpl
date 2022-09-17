@@ -85,20 +85,20 @@ ROMOBJECT angle_270[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib48_menu,
-    (WORDPTR) angle_180,
-    (WORDPTR) angle_0,
-    (WORDPTR) angle_90,
-    (WORDPTR) angle_270,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib48_menu,
+    (word_p) angle_180,
+    (word_p) angle_0,
+    (word_p) angle_90,
+    (word_p) angle_270,
 
     0
 };
 
 // HIGHER LEVEL API USING ANGLE OBJECTS DIRECTLY
-void rplConvertAngleObj(WORDPTR angleobj, int32_t newmode)
+void rplConvertAngleObj(word_p angleobj, int32_t newmode)
 {
     int32_t oldmode;
     REAL oldang;
@@ -114,7 +114,7 @@ void rplConvertAngleObj(WORDPTR angleobj, int32_t newmode)
     trig_convertangle(&oldang, oldmode, newmode);
 }
 
-WORDPTR rplNewAngleFromNumber(WORDPTR numobj, int32_t newmode)
+word_p rplNewAngleFromNumber(word_p numobj, int32_t newmode)
 {
     if(!ISNUMBER(*numobj)) {
         rplError(ERR_REALEXPECTED);
@@ -123,7 +123,7 @@ WORDPTR rplNewAngleFromNumber(WORDPTR numobj, int32_t newmode)
     ScratchPointer1 = numobj;
     int32_t size = rplObjSize(numobj);
 
-    WORDPTR newobj = rplAllocTempOb(size);
+    word_p newobj = rplAllocTempOb(size);
 
     if(!newobj)
         return 0;
@@ -135,16 +135,16 @@ WORDPTR rplNewAngleFromNumber(WORDPTR numobj, int32_t newmode)
 
 }
 
-WORDPTR rplNewAngleFromReal(REAL * number, int32_t newmode)
+word_p rplNewAngleFromReal(REAL * number, int32_t newmode)
 {
     int32_t size = number->len + 2;
 
-    WORDPTR newobj = rplAllocTempOb(size);
+    word_p newobj = rplAllocTempOb(size);
 
     if(!newobj)
         return 0;
 
-    WORDPTR endofobject = rplNewRealInPlace(number, newobj + 1);
+    word_p endofobject = rplNewRealInPlace(number, newobj + 1);
 
     *newobj = MKPROLOG(DOANGLE + (newmode & 3), endofobject - newobj - 1);
 
@@ -211,7 +211,7 @@ void LIB_HANDLER()
                 rplSetSystemFlag(FL_FORCED_RAD);
 
                 // NEW ANGLE IS IN RReg[0]
-                WORDPTR number = rplNewReal(&RReg[0]);
+                word_p number = rplNewReal(&RReg[0]);
                 if(Exceptions)
                     return;
 
@@ -231,7 +231,7 @@ void LIB_HANDLER()
                 rplPushData(rplPeekData(1) + 1);        // EXTRACT THE NUMBER
                 rplCallOvrOperator(CurOpcode);  // DO THE THING ON THE NUMBER
 
-                WORDPTR newangle =
+                word_p newangle =
                         rplNewAngleFromNumber(rplPeekData(1),
                         ANGLEMODE(*rplPeekData(2)));
                 rplDropData(1);
@@ -258,7 +258,7 @@ void LIB_HANDLER()
 
                    rplConvertAngleObj(rplPeekData(1),curmode);
                    // NEW ANGLE IS IN RReg[0]
-                   WORDPTR number=rplNewReal(&RReg[0]);
+                   word_p number=rplNewReal(&RReg[0]);
                    if(Exceptions) return;
 
                    rplOverwriteData(1,number);
@@ -347,7 +347,7 @@ void LIB_HANDLER()
 
                         rplConvertAngleObj(arg2, angmode);
                         addReal(&RReg[1], &arg1num, &RReg[0]);
-                        WORDPTR newang = rplNewAngleFromReal(&RReg[1], angmode);
+                        word_p newang = rplNewAngleFromReal(&RReg[1], angmode);
 
                         if(Exceptions)
                             return;
@@ -367,7 +367,7 @@ void LIB_HANDLER()
                     addReal(&RReg[6], &RReg[0], &RReg[7]);
                     trig_convertangle(&RReg[6], ANGLEDEG, ANGLEDMS);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], angmode);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], angmode);
 
                     if(Exceptions)
                         return;
@@ -390,7 +390,7 @@ void LIB_HANDLER()
                         rplReadNumberAsReal(arg1 + 1, &arg1num);
                         rplConvertAngleObj(arg2, angmode);
                         subReal(&RReg[1], &arg1num, &RReg[0]);
-                        WORDPTR newang = rplNewAngleFromReal(&RReg[1], angmode);
+                        word_p newang = rplNewAngleFromReal(&RReg[1], angmode);
 
                         if(Exceptions)
                             return;
@@ -410,7 +410,7 @@ void LIB_HANDLER()
                     subReal(&RReg[6], &RReg[0], &RReg[7]);
                     trig_convertangle(&RReg[6], ANGLEDEG, ANGLEDMS);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], angmode);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], angmode);
 
                     if(Exceptions)
                         return;
@@ -442,7 +442,7 @@ void LIB_HANDLER()
                     trig_convertangle(&arg2num, ANGLEMODE(*arg2), angmode);
                     divReal(&RReg[1], &arg1num, &RReg[0]);
 
-                    WORDPTR newang = rplNewReal(&RReg[1]);
+                    word_p newang = rplNewReal(&RReg[1]);
                     if(Exceptions)
                         return;
                     rplOverwriteData(2, newang);
@@ -482,7 +482,7 @@ void LIB_HANDLER()
                             if(angmode != ANGLEDMS) {
 
                                 mulReal(&RReg[1], &arg1num, &arg2num);
-                                WORDPTR newang =
+                                word_p newang =
                                         rplNewAngleFromReal(&RReg[1], angmode);
 
                                 if(Exceptions)
@@ -506,7 +506,7 @@ void LIB_HANDLER()
 
                             trig_convertangle(&RReg[6], ANGLEDEG, ANGLEDMS);
 
-                            WORDPTR newang =
+                            word_p newang =
                                     rplNewAngleFromReal(&RReg[0], angmode);
 
                             if(Exceptions)
@@ -537,7 +537,7 @@ void LIB_HANDLER()
                             if(angmode != ANGLEDMS) {
 
                                 divReal(&RReg[1], &arg1num, &arg2num);
-                                WORDPTR newang =
+                                word_p newang =
                                         rplNewAngleFromReal(&RReg[1], angmode);
 
                                 if(Exceptions)
@@ -556,7 +556,7 @@ void LIB_HANDLER()
 
                             trig_convertangle(&RReg[6], ANGLEDEG, ANGLEDMS);
 
-                            WORDPTR newang =
+                            word_p newang =
                                     rplNewAngleFromReal(&RReg[0], angmode);
 
                             if(Exceptions)
@@ -580,7 +580,7 @@ void LIB_HANDLER()
                             if(ISANGLE(*arg1)) {
                                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
 
-                                WORDPTR newobj =
+                                word_p newobj =
                                         rplNewAngleFromNumber(arg2, curmode);
                                 if(!newobj)
                                     return;
@@ -591,7 +591,7 @@ void LIB_HANDLER()
                             if(ISANGLE(*arg2)) {
                                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
 
-                                WORDPTR newobj =
+                                word_p newobj =
                                         rplNewAngleFromNumber(arg1, curmode);
                                 if(!newobj)
                                     return;
@@ -618,7 +618,7 @@ void LIB_HANDLER()
                 rplSetSystemFlag(FL_FORCED_RAD);
 
                 // NEW ANGLE IS IN RReg[0]
-                WORDPTR number = rplNewReal(&RReg[0]);
+                word_p number = rplNewReal(&RReg[0]);
                 if(Exceptions)
                     return;
 
@@ -633,7 +633,7 @@ void LIB_HANDLER()
                 rplSetSystemFlag(FL_FORCED_RAD);
 
                 // NEW ANGLE IS IN RReg[0]
-                WORDPTR number = rplNewReal(&RReg[0]);
+                word_p number = rplNewReal(&RReg[0]);
                 if(Exceptions)
                     return;
 
@@ -665,8 +665,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -689,7 +689,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBER(*rplPeekData(1))) {
-            WORDPTR newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEDEG);
+            word_p newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEDEG);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -714,8 +714,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -738,7 +738,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBER(*rplPeekData(1))) {
-            WORDPTR newang = rplNewAngleFromNumber(rplPeekData(1), ANGLERAD);
+            word_p newang = rplNewAngleFromNumber(rplPeekData(1), ANGLERAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -764,8 +764,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -788,7 +788,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBER(*rplPeekData(1))) {
-            WORDPTR newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEGRAD);
+            word_p newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEGRAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -814,8 +814,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -838,7 +838,7 @@ void LIB_HANDLER()
         }
 
         if(ISNUMBER(*rplPeekData(1))) {
-            WORDPTR newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEDMS);
+            word_p newang = rplNewAngleFromNumber(rplPeekData(1), ANGLEDMS);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -864,8 +864,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -895,7 +895,7 @@ void LIB_HANDLER()
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEDEG);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -904,7 +904,7 @@ void LIB_HANDLER()
         if(ISANGLE(*rplPeekData(1))) {
             rplConvertAngleObj(rplPeekData(1), ANGLEDEG);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -936,7 +936,7 @@ void LIB_HANDLER()
 
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
@@ -946,7 +946,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             int32_t f;
 
             for(f = 0; f < cols; ++f) {
@@ -954,7 +954,7 @@ void LIB_HANDLER()
                 if(ISANGLE(*first[f])) {
                     rplConvertAngleObj(first[f], ANGLEDEG);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDEG);
                     if(!newang) {
                         DSTop = first;
                         return;
@@ -977,7 +977,7 @@ void LIB_HANDLER()
 
                     trig_convertangle(&ip, angmode, ANGLEDEG);
 
-                    WORDPTR newobj = rplNewComplex(&rp, &RReg[0], ANGLEDEG);
+                    word_p newobj = rplNewComplex(&rp, &RReg[0], ANGLEDEG);
 
                     if(!newobj) {
                         DSTop = first;
@@ -991,7 +991,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1024,8 +1024,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -1055,7 +1055,7 @@ void LIB_HANDLER()
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLERAD);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1064,7 +1064,7 @@ void LIB_HANDLER()
         if(ISANGLE(*rplPeekData(1))) {
             rplConvertAngleObj(rplPeekData(1), ANGLERAD);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1096,7 +1096,7 @@ void LIB_HANDLER()
 
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
@@ -1106,7 +1106,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             int32_t f;
 
             for(f = 0; f < cols; ++f) {
@@ -1114,7 +1114,7 @@ void LIB_HANDLER()
                 if(ISANGLE(*first[f])) {
                     rplConvertAngleObj(first[f], ANGLERAD);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], ANGLERAD);
                     if(!newang) {
                         DSTop = first;
                         return;
@@ -1137,7 +1137,7 @@ void LIB_HANDLER()
 
                     trig_convertangle(&ip, angmode, ANGLERAD);
 
-                    WORDPTR newobj = rplNewComplex(&rp, &RReg[0], ANGLERAD);
+                    word_p newobj = rplNewComplex(&rp, &RReg[0], ANGLERAD);
 
                     if(!newobj) {
                         DSTop = first;
@@ -1151,7 +1151,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1184,8 +1184,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -1215,7 +1215,7 @@ void LIB_HANDLER()
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEGRAD);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1224,7 +1224,7 @@ void LIB_HANDLER()
         if(ISANGLE(*rplPeekData(1))) {
             rplConvertAngleObj(rplPeekData(1), ANGLEGRAD);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1256,7 +1256,7 @@ void LIB_HANDLER()
 
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
@@ -1266,7 +1266,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             int32_t f;
 
             for(f = 0; f < cols; ++f) {
@@ -1274,7 +1274,7 @@ void LIB_HANDLER()
                 if(ISANGLE(*first[f])) {
                     rplConvertAngleObj(first[f], ANGLEGRAD);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEGRAD);
                     if(!newang) {
                         DSTop = first;
                         return;
@@ -1297,7 +1297,7 @@ void LIB_HANDLER()
 
                     trig_convertangle(&ip, angmode, ANGLEGRAD);
 
-                    WORDPTR newobj = rplNewComplex(&rp, &RReg[0], ANGLEGRAD);
+                    word_p newobj = rplNewComplex(&rp, &RReg[0], ANGLEGRAD);
 
                     if(!newobj) {
                         DSTop = first;
@@ -1311,7 +1311,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1344,8 +1344,8 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk = DSTop;
-            WORDPTR newobj = rplAllocTempOb(2);
+            word_p *savestk = DSTop;
+            word_p newobj = rplAllocTempOb(2);
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -1375,7 +1375,7 @@ void LIB_HANDLER()
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
             trig_convertangle(&num, angmode, ANGLEDMS);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1384,7 +1384,7 @@ void LIB_HANDLER()
         if(ISANGLE(*rplPeekData(1))) {
             rplConvertAngleObj(rplPeekData(1), ANGLEDMS);
 
-            WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
+            word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1416,7 +1416,7 @@ void LIB_HANDLER()
 
             // CONVERT ALL ANGLES WITHIN A VECTOR
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
@@ -1426,7 +1426,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             int32_t f;
 
             for(f = 0; f < cols; ++f) {
@@ -1434,7 +1434,7 @@ void LIB_HANDLER()
                 if(ISANGLE(*first[f])) {
                     rplConvertAngleObj(first[f], ANGLEDMS);
 
-                    WORDPTR newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
+                    word_p newang = rplNewAngleFromReal(&RReg[0], ANGLEDMS);
                     if(!newang) {
                         DSTop = first;
                         return;
@@ -1457,7 +1457,7 @@ void LIB_HANDLER()
 
                     trig_convertangle(&ip, angmode, ANGLEDMS);
 
-                    WORDPTR newobj = rplNewComplex(&rp, &RReg[0], ANGLEDMS);
+                    word_p newobj = rplNewComplex(&rp, &RReg[0], ANGLEDMS);
 
                     if(!newobj) {
                         DSTop = first;
@@ -1471,7 +1471,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1531,7 +1531,7 @@ void LIB_HANDLER()
 
             // CONVERT TO RECTANGULAR
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
 
             if(rows) {
@@ -1544,7 +1544,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
 
             rplMatrixPolarToRectEx(first - 1, 1, cols);
             if(Exceptions) {
@@ -1554,7 +1554,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1621,7 +1621,7 @@ void LIB_HANDLER()
 
             // CONVERT TO POLAR (CYLINDRICAL)
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
             int32_t need_rect = 0;
             if(rows) {
@@ -1645,7 +1645,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
 
             if(need_rect)
                 rplMatrixPolarToRectEx(first - 1, 1, cols);
@@ -1657,7 +1657,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1699,7 +1699,7 @@ void LIB_HANDLER()
 
             // CONVERT TO SPHERICAL COORDINATES
 
-            WORDPTR matrix = rplPeekData(1);
+            word_p matrix = rplPeekData(1);
             int32_t rows = MATROWS(matrix[1]), cols = MATCOLS(matrix[1]);
             int32_t need_rect = 0;
 
@@ -1725,7 +1725,7 @@ void LIB_HANDLER()
 
             // EXPLODE ALL NUMBERS IN THE STACK
 
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
 
             if(need_rect)
                 rplMatrixPolarToRectEx(first - 1, 1, cols);
@@ -1737,7 +1737,7 @@ void LIB_HANDLER()
 
             // NOW RECREATE THE MATRIX
 
-            WORDPTR newmat = rplMatrixCompose(rows, cols);
+            word_p newmat = rplMatrixCompose(rows, cols);
             if(!newmat) {
                 DSTop = first;
                 return;
@@ -1784,14 +1784,14 @@ void LIB_HANDLER()
 
             // POINT TO THE LAST CHARACTER
             int32_t tlen = TokenLen - 1;
-            BYTEPTR ptr =
-                    (BYTEPTR) utf8nskip((char *)TokenStart, (char *)BlankStart,
+            byte_p ptr =
+                    (byte_p) utf8nskip((char *)TokenStart, (char *)BlankStart,
                     tlen);
             int32_t angmode =
                     rplTestSystemFlag(FL_ANGLEMODE1) |
                     (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
-            BYTEPTR strptr =
-                    (BYTEPTR) utf8skip((char *)TokenStart, (char *)BlankStart);
+            byte_p strptr =
+                    (byte_p) utf8skip((char *)TokenStart, (char *)BlankStart);
             int32_t isapprox = 0;
 
             if(!utf8ncmp2((char *)ptr, (char *)BlankStart, "°", 1)) {
@@ -1884,7 +1884,7 @@ void LIB_HANDLER()
         // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR) "∡");
+            rplDecompAppendString((byte_p) "∡");
 
             // THIS IS A BASE-10 NUMBER
             // CONVERT TO STRING
@@ -1919,14 +1919,14 @@ void LIB_HANDLER()
 
             // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-            BYTEPTR string;
+            byte_p string;
 
             int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
             // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
-            ScratchPointer1 = (WORDPTR) realnum.data;
-            ScratchPointer2 = (WORDPTR) fmt.SmallLimit.data;
-            ScratchPointer3 = (WORDPTR) fmt.BigLimit.data;
+            ScratchPointer1 = (word_p) realnum.data;
+            ScratchPointer2 = (word_p) fmt.SmallLimit.data;
+            ScratchPointer3 = (word_p) fmt.BigLimit.data;
 
             // RESERVE THE MEMORY FIRST
             rplDecompAppendString2(0, len);
@@ -1936,7 +1936,7 @@ void LIB_HANDLER()
             fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
             // NOW USE IT
-            string = (BYTEPTR) DecompStringEnd;
+            string = (byte_p) DecompStringEnd;
             string -= len;
 
             if(Exceptions) {
@@ -1944,7 +1944,7 @@ void LIB_HANDLER()
                 return;
             }
             DecompStringEnd =
-                    (WORDPTR) formatReal(&realnum, (char *)string, Format,
+                    (word_p) formatReal(&realnum, (char *)string, Format,
                     fmt.Locale);
 
             switch (ANGLEMODE(*DecompileObject)) {
@@ -1955,7 +1955,7 @@ void LIB_HANDLER()
                 rplDecompAppendChar('g');
                 break;
             case ANGLEDEG:
-                rplDecompAppendString((BYTEPTR) "°");
+                rplDecompAppendString((byte_p) "°");
                 break;
             case ANGLEDMS:
                 rplDecompAppendChar('d');
@@ -2018,10 +2018,10 @@ void LIB_HANDLER()
         int32_t mode = MODE_IP;
         WORD num;
         int f, exitfor = 0;
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         for(f = 0; f < (int)TokenLen;
-                ++f, ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)ptr + 4)) {
+                ++f, ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4)) {
             num = utf82cp((char *)ptr, (char *)ptr + 4);
             switch (mode) {
             case MODE_IP:
@@ -2163,7 +2163,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2171,7 +2171,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2230,7 +2230,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) lib48_menu;
+        ObjectPTR = (word_p) lib48_menu;
         RetNum = OK_CONTINUE;
         return;
     }
@@ -2240,7 +2240,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -2250,12 +2250,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

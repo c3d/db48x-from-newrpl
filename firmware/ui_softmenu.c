@@ -15,7 +15,7 @@
 
 // RETURN THE NUMBER OF ITEMS IN A MENU
 
-int32_t uiCountMenuItems(WORD MenuCode, WORDPTR menu)
+int32_t uiCountMenuItems(WORD MenuCode, word_p menu)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS
@@ -23,12 +23,12 @@ int32_t uiCountMenuItems(WORD MenuCode, WORDPTR menu)
     }
     if(MENUSPECIAL(MenuCode) == MENU_USERLIB) {
         // MENU IS LIBS
-        WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+        word_p libdir = rplGetSettings((word_p) library_dirname);
 
         if(!libdir)
             return 0;
 
-        WORDPTR *direntry = rplFindDirbyHandle(libdir);
+        word_p *direntry = rplFindDirbyHandle(libdir);
 
         if(!direntry)
             return 0;
@@ -43,7 +43,7 @@ int32_t uiCountMenuItems(WORD MenuCode, WORDPTR menu)
     return 1;
 }
 
-WORDPTR uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
+word_p uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
 {
     LIBHANDLER han = rplGetLibHandler(libnum);
     if(!han)
@@ -72,7 +72,7 @@ WORDPTR uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
 
 // GET A MENU OBJECT FROM A MENU CODE
 
-WORDPTR uiGetLibMenu(int64_t MenuCode)
+word_p uiGetLibMenu(int64_t MenuCode)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS, NO NEED FOR MENU OBJECT
@@ -87,20 +87,20 @@ WORDPTR uiGetLibMenu(int64_t MenuCode)
 
 }
 
-WORDPTR uiGetLibHelp(WORDPTR Object)
+word_p uiGetLibHelp(word_p Object)
 {
     WORD hash = (ISPROLOG(*Object)) ? libComputeHash(Object) : *Object;
     return uiGetLibObject(LIBNUM(*Object), 0, hash, OPCODE_LIBHELP);
 }
 
-WORDPTR uiGetLibPtrHelp(WORDPTR LibCommand)
+word_p uiGetLibPtrHelp(word_p LibCommand)
 {
 
     return uiGetLibObject(LIBNUM(*LibCommand), LibCommand[1], MKOPCODE(DOLIBPTR,
                 LibCommand[2]), OPCODE_LIBHELP);
 }
 
-WORDPTR uiGetLibMsg(WORD MsgCode)
+word_p uiGetLibMsg(WORD MsgCode)
 {
     return uiGetLibObject(LIBFROMMSG(MsgCode), 0, MsgCode, OPCODE_LIBMSG);
 }
@@ -108,13 +108,13 @@ WORDPTR uiGetLibMsg(WORD MsgCode)
 // RETURN A POINTER TO A MENU ITEM OBJECT
 // FIRST ITEM = NUMBER 0
 
-WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item)
+word_p uiGetMenuItem(int64_t MenuCode, word_p menu, int32_t item)
 {
     if(MENUSPECIAL(MenuCode) == MENU_VARS) {
 // MENU IS VARS
 // RETURN A POINTER TO THE VARIABLE NAME
 
-        WORDPTR *var = rplFindVisibleGlobalByIndex(item);
+        word_p *var = rplFindVisibleGlobalByIndex(item);
         if(!var)
             return 0;
         return var[0];
@@ -122,17 +122,17 @@ WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item)
     if(MENUSPECIAL(MenuCode) == MENU_USERLIB) {
 // MENU IS LIBS
 // RETURN A POINTER TO THE VARIABLE NAME
-        WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+        word_p libdir = rplGetSettings((word_p) library_dirname);
 
         if(!libdir)
             return 0;
 
-        WORDPTR *direntry = rplFindDirbyHandle(libdir);
+        word_p *direntry = rplFindDirbyHandle(libdir);
 
         if(!direntry)
             return 0;
 
-        WORDPTR *var = rplFindVisibleGlobalByIndexInDir(item, direntry);
+        word_p *var = rplFindVisibleGlobalByIndexInDir(item, direntry);
         if(!var)
             return 0;
         return var[1];
@@ -147,7 +147,7 @@ WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item)
         return menu;
     }
 
-    WORDPTR ptr = menu + 1, end = rplSkipOb(menu);
+    word_p ptr = menu + 1, end = rplSkipOb(menu);
 
     while(ptr < end - 1) {
         if(!item)
@@ -160,7 +160,7 @@ WORDPTR uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item)
 
 // GET THE ACTION OBJECT OF A MENU ITEM
 
-WORDPTR uiGetMenuItemAction(WORDPTR item, int32_t shift)
+word_p uiGetMenuItemAction(word_p item, int32_t shift)
 {
 
     if(!item)
@@ -238,7 +238,7 @@ WORDPTR uiGetMenuItemAction(WORDPTR item, int32_t shift)
         index = 5;
     }
 
-    WORDPTR ptr = item + 1, end = rplSkipOb(item);
+    word_p ptr = item + 1, end = rplSkipOb(item);
 
     while(ptr < end - 1) {
         if(!index)
@@ -254,7 +254,7 @@ WORDPTR uiGetMenuItemAction(WORDPTR item, int32_t shift)
 // GET THE HELP OBJECT OF A MENU ITEM
 // RETURN 0 IF THE HELP IS NOT A STRING OR THERE WAS NO HELP IN THE MENU DEFINITION
 
-WORDPTR uiGetMenuItemHelp(WORDPTR item)
+word_p uiGetMenuItemHelp(word_p item)
 {
 
     if(!item)
@@ -292,9 +292,9 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
 // DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
 // DOES NOT CLEAR BACKGROUND
 
-void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor, gglsurface * scr)
+void uiDrawMenuItem(word_p item, int32_t palette_color, int32_t palette_bkcolor, gglsurface * scr)
 {
-    WORDPTR ptr;
+    word_p ptr;
     int32_t flags = 0;
     if(!item)
         return;
@@ -319,7 +319,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
                 if(nresults == 1)
                     ptr = rplPopData();
                 else
-                    ptr = (WORDPTR) empty_string;       // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
+                    ptr = (word_p) empty_string;       // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
                 item = rplPopData();    // RESTORE THE item POINTER IN CASE OF GC
                 halUpdateFonts();
                 // CONTINUE HERE WITH THE NEW ptr
@@ -338,7 +338,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
                 if(*ptr == CMD_ENDLIST)
                     ptr = item;
                 else {
-                    WORDPTR next = rplSkipOb(ptr);
+                    word_p next = rplSkipOb(ptr);
                     if(ISint32_t(*next))
                         flags = rplReadint32_t(next);
                 }
@@ -452,7 +452,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
     if(ISIDENT(*ptr)) {
 
         // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
-        WORDPTR *var = rplFindGlobal(ptr, 1);
+        word_p *var = rplFindGlobal(ptr, 1);
 
         int32_t w = StringWidthN((char *)(ptr + 1),
                 (char *)(ptr + 1) + rplGetIdentLength(ptr),
@@ -562,7 +562,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
     // ALL OTHER OBJECTS NEED TO BE DECOMPILED, EXCEPT THE STRING AND GROBS
 
     int32_t totaln;
-    BYTEPTR string, endstring;
+    byte_p string, endstring;
 
     // TODO: ADD GROBS HERE
 
@@ -585,7 +585,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
 
         Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
         // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-        WORDPTR opname = rplDecompile(ptr, DECOMP_NOHINTS);
+        word_p opname = rplDecompile(ptr, DECOMP_NOHINTS);
         Exceptions = SavedException;
         ErrorCode = SavedErrorCode;
 
@@ -594,10 +594,10 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
 
         // HERE WE HAVE A STRING, DO SOME MORE POST-PROCESSING DEPENDING ON OBJECT
 
-        string = (BYTEPTR) (opname + 1);
+        string = (byte_p) (opname + 1);
         totaln = rplStrLenCp(opname);
         endstring =
-                (BYTEPTR) utf8nskip((char *)string, (char *)rplSkipOb(opname),
+                (byte_p) utf8nskip((char *)string, (char *)rplSkipOb(opname),
                 totaln);
 
         if(removevalue) {
@@ -605,7 +605,7 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
             int32_t k, offset;
             for(k = 0, offset = 0; k < totaln;
                     ++k, offset =
-                    (BYTEPTR) utf8skip((char *)string + offset,
+                    (byte_p) utf8skip((char *)string + offset,
                         (char *)endstring) - string)
                 if(utf82cp((char *)string + offset, (char *)endstring) == '_') {
                     totaln -= k + 1;
@@ -618,10 +618,10 @@ void uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor
 
     }
     else {
-        string = (BYTEPTR) (ptr + 1);
+        string = (byte_p) (ptr + 1);
         totaln = rplStrLenCp(ptr);
         endstring =
-                (BYTEPTR) utf8nskip((char *)string, (char *)rplSkipOb(ptr),
+                (byte_p) utf8nskip((char *)string, (char *)rplSkipOb(ptr),
                 totaln);
     }
 

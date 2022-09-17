@@ -72,9 +72,9 @@
 // OR ZERO IF AN ATOMIC OBJECT
 // ABLE TO DIG THROUGH MULTIPLE LAYERS OF DOSYMB WRAPPING
 
-WORD rplSymbMainOperator(WORDPTR symbolic)
+WORD rplSymbMainOperator(word_p symbolic)
 {
-    WORDPTR endptr = rplSkipOb(symbolic);
+    word_p endptr = rplSkipOb(symbolic);
     while(((symbolic + 1) < endptr) && (ISSYMBOLIC(*(symbolic + 1))))
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
@@ -87,9 +87,9 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
 
 // SAME AS ABOVE, BUT RETURN A POINTER TO THE OPCODE WITHIN THE SYMBOLIC
 // BETTER TO PUSH ON STACK OR LAMS
-WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
+word_p rplSymbMainOperatorPTR(word_p symbolic)
 {
-    WORDPTR endptr = rplSkipOb(symbolic);
+    word_p endptr = rplSkipOb(symbolic);
     while((ISSYMBOLIC(*(symbolic + 1))) && ((symbolic + 1) < endptr))
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
@@ -103,9 +103,9 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
 // PEEL OFF USELESS LAYERS OF DOSYMB WRAPPING
 // DO NOT CALL FOR ANY OBJECTS OTHER THAN A SYMBOLIC
 // NO ARGUMENT CHECKS
-WORDPTR rplSymbUnwrap(WORDPTR symbolic)
+word_p rplSymbUnwrap(word_p symbolic)
 {
-    WORDPTR endptr = rplSkipOb(symbolic);
+    word_p endptr = rplSkipOb(symbolic);
     while(((symbolic + 1) < endptr) && (ISSYMBOLIC(*(symbolic + 1))))
         ++symbolic;
     return symbolic;
@@ -113,7 +113,7 @@ WORDPTR rplSymbUnwrap(WORDPTR symbolic)
 
 // RETURN 1 IF THE OBJECT IS ALLOWED WITHIN A SYMBOLIC, OTHERWISE 0
 
-int32_t rplIsAllowedInSymb(WORDPTR object)
+int32_t rplIsAllowedInSymb(word_p object)
 {
     // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
     LIBHANDLER handler = rplGetLibHandler(LIBNUM(*object));
@@ -134,7 +134,7 @@ int32_t rplIsAllowedInSymb(WORDPTR object)
         if(TI_TYPE(RetNum) == TITYPE_LIST) {
             // RECURSIVELY VERIFY THAT ALL ELEMENTS IN THE LIST ARE ALLOWED IN A SYMBOLIC!
             int32_t nitems = rplListLengthFlat(object);
-            WORDPTR objflat = rplGetListElementFlat(object, 1);
+            word_p objflat = rplGetListElementFlat(object, 1);
             while(nitems--) {
                 CurOpcode = MKOPCODE(LIBNUM(*objflat), OPCODE_GETINFO);
                 DecompileObject = objflat;
@@ -163,7 +163,7 @@ int32_t rplIsAllowedInSymb(WORDPTR object)
 
 // OBTAIN INFORMATION ABOUT A COMMAND/OPERATOR
 
-int32_t rplSymbGetTokenInfo(WORDPTR object)
+int32_t rplSymbGetTokenInfo(word_p object)
 {
     // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
     LIBHANDLER handler = rplGetLibHandler(LIBNUM(*object));
@@ -189,7 +189,7 @@ int32_t rplSymbGetTokenInfo(WORDPTR object)
 void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
 {
     int32_t f;
-    WORDPTR obj, ptr;
+    word_p obj, ptr;
     int32_t size = 0;
     for(f = 1; f <= nargs; ++f) {
         obj = rplPeekData(f);
@@ -202,7 +202,7 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
     }
     size += 1;
 
-    WORDPTR newobject = rplAllocTempOb(size);
+    word_p newobject = rplAllocTempOb(size);
     if(!newobject)
         return;
 
@@ -242,7 +242,7 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
 }
 
 // CONVERT A COMPLEX NUMBER TO A SYMBOLIC OBJECT REPRESENTATION
-WORDPTR rplComplexToSymb(WORDPTR complex)
+word_p rplComplexToSymb(word_p complex)
 {
     if(!ISCOMPLEX(*complex))
             return complex;
@@ -254,7 +254,7 @@ WORDPTR rplComplexToSymb(WORDPTR complex)
     int32_t ispolar = ISANGLE(*rplSkipOb(complex +1));
     if(ispolar)
         size += 4;      // DOSYMB * RE() DOSYMB ^ e DOSYMB * i IM()
-    WORDPTR newobj = rplAllocTempOb(size);
+    word_p newobj = rplAllocTempOb(size);
     if(!newobj)
         return 0;
     if(ispolar) {
@@ -293,14 +293,14 @@ WORDPTR rplComplexToSymb(WORDPTR complex)
 }
 
 // ADD SYMBOLIC WRAP TO AN OBJECT (NO CHECKS, EXCEPT IT WILL PROCESS LISTS AND MATRICES
-WORDPTR rplSymbWrap(WORDPTR obj)
+word_p rplSymbWrap(word_p obj)
 {
     if(ISSYMBOLIC(*obj))
         return obj;
     if(!ISPROLOG(*obj) && !ISint32_t(*obj) && !ISCONSTANT(*obj))
         return obj;
 
-    WORDPTR firstobj, endobj, ptr, destptr;
+    word_p firstobj, endobj, ptr, destptr;
     int32_t wrapcount;
 
     if(ISMATRIX(*obj)) {
@@ -318,7 +318,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
         }
 
         ScratchPointer1 = obj;
-        WORDPTR newobj = rplAllocTempOb(rplObjSize(obj) + wrapcount - 1);
+        word_p newobj = rplAllocTempOb(rplObjSize(obj) + wrapcount - 1);
         if(!newobj)
             return obj;
 
@@ -340,7 +340,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 
                 // PATCH ALL HASH TABLE OFFSETS
                 int32_t tablesize = firstobj - obj - 2;
-                WORDPTR tableptr = newobj + 2;
+                word_p tableptr = newobj + 2;
                 int32_t k;
                 for(k = 0; k < tablesize; ++k) {
                     if(tableptr[k] >= destptr - newobj)
@@ -384,7 +384,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
         }
 
         ScratchPointer1 = obj;
-        WORDPTR newobj = rplAllocTempOb(rplObjSize(obj) + wrapcount - 1);
+        word_p newobj = rplAllocTempOb(rplObjSize(obj) + wrapcount - 1);
         if(!newobj)
             return obj;
 
@@ -428,7 +428,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
     }
 
     if(ISCOMPLEX(*obj)) {
-        WORDPTR newsymb = rplComplexToSymb(obj);
+        word_p newsymb = rplComplexToSymb(obj);
         if(!newsymb)
             return obj;
         return newsymb;
@@ -439,7 +439,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
     int32_t size = rplObjSize(obj);
 
     ScratchPointer1 = obj;
-    WORDPTR newobject = rplAllocTempOb(size);
+    word_p newobject = rplAllocTempOb(size);
     obj = ScratchPointer1;
     if(!newobject)
         return obj;
@@ -461,7 +461,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 void rplSymbWrapN(int32_t level, int32_t nargs)
 {
     int32_t f;
-    WORDPTR obj;
+    word_p obj;
     for(f = 0; f < nargs; ++f) {
         obj = rplPeekData(f + level);
         rplOverwriteData(f + level, rplSymbWrap(obj));
@@ -473,12 +473,12 @@ void rplSymbWrapN(int32_t level, int32_t nargs)
 // USES ScratchPointer1 FOR GC PROTECTION
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 
-int32_t rplSymbExplode(WORDPTR object)
+int32_t rplSymbExplode(word_p object)
 {
     int32_t count = 0, countops = 0, nargs = 0;
 
-    WORDPTR ptr, end, numbers;
-    WORDPTR *sptr;
+    word_p ptr, end, numbers;
+    word_p *sptr;
 
     ptr = object;
     end = rplSkipOb(object);
@@ -510,7 +510,7 @@ int32_t rplSymbExplode(WORDPTR object)
     while(object != end) {
         if(ISSYMBOLIC(*object)) {
             nargs = 0;
-            WORDPTR tmp = object + 1, tmpend = rplSkipOb(object);
+            word_p tmp = object + 1, tmpend = rplSkipOb(object);
             while(tmp != tmpend) {
                 ++nargs;
                 tmp = rplSkipOb(tmp);
@@ -542,7 +542,7 @@ int32_t rplSymbExplode(WORDPTR object)
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 // LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
 
-int32_t rplSymbExplodeOneLevel(WORDPTR object)
+int32_t rplSymbExplodeOneLevel(word_p object)
 {
     int32_t count = 0, countops = 0;
 
@@ -574,10 +574,10 @@ int32_t rplSymbExplodeOneLevel(WORDPTR object)
 // REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
 // DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
 
-WORDPTR rplSymbImplode(WORDPTR * exprstart)
+word_p rplSymbImplode(word_p * exprstart)
 {
 
-    WORDPTR *stkptr = exprstart;
+    word_p *stkptr = exprstart;
     int32_t numobjects = 1, addcount = 0;
     int32_t size = 0, narg;
 
@@ -599,7 +599,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
 
     // HERE size HAS THE TOTAL SIZE WE NEED TO ALLOCATE
 
-    WORDPTR newobject = rplAllocTempOb(size), newptr, object;
+    word_p newobject = rplAllocTempOb(size), newptr, object;
 
     if(!newobject)
         return 0;
@@ -624,7 +624,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
                 else
                     *newptr++ = CMD_LISTOPENBRACKET;
                 // NOW COPY THE OBJECTS IN THE LIST
-                WORDPTR endobj = rplSkipOb(object) - 1; // STOP AT THE CMD_ENDLIST OBJECT
+                word_p endobj = rplSkipOb(object) - 1; // STOP AT THE CMD_ENDLIST OBJECT
                 int32_t k;
                 object++;
                 while(object != endobj) {
@@ -652,8 +652,8 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
                     *newptr++ = MKPROLOG(DOSYMB, rplObjSize(object));
                 }
                 // COPY THE OBJECT
-                WORDPTR endobj = rplSkipOb(object);
-                WORDPTR prolog = newptr;
+                word_p endobj = rplSkipOb(object);
+                word_p prolog = newptr;
                 while(object != endobj)
                     *newptr++ = *object++;
                 if(ISQUOTEDIDENT(*prolog))
@@ -677,7 +677,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
             narg = OPCODE(**(stkptr - 1));
 
             // PATCH THE LAST SYMBOLIC WITH ZERO FOR SIZE IN THE OBJECT
-            WORDPTR scan = newobject, lastone = 0;
+            word_p scan = newobject, lastone = 0;
             while(scan < newptr) {
                 if(*scan == MKPROLOG(DOSYMB, 0)) {
                     lastone = scan;
@@ -708,7 +708,7 @@ WORDPTR rplSymbImplode(WORDPTR * exprstart)
 // THE ARGUMENT IS A POINTER TO THE STACK, NOT THE OBJECT
 // RETURS THE POINTER TO THE STACK ELEMENT THAT HAS THE NEXT OBEJCT
 
-WORDPTR *rplSymbSkipInStack(WORDPTR * stkptr)
+word_p *rplSymbSkipInStack(word_p * stkptr)
 {
     if(ISPROLOG(**stkptr))
         return --stkptr;
@@ -774,10 +774,10 @@ ROMOBJECT mul_opcode[] = {
     (CMD_OVR_MUL)
 };
 
-WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
+word_p *rplSymbExplodeCanonicalForm(word_p object, int32_t for_display)
 {
     int32_t numitems = rplSymbExplode(object);
-    WORDPTR *stkptr, sobj, *endofstk;
+    word_p *stkptr, sobj, *endofstk;
 
     stkptr = DSTop - 1;
     endofstk = stkptr - numitems;
@@ -791,7 +791,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
         sobj = *stkptr;
 
         if(ISCOMPLEX(*sobj)) {
-            WORDPTR newobj = rplComplexToSymb(sobj);
+            word_p newobj = rplComplexToSymb(sobj);
             if(!newobj) {
                 DSTop = endofstk + 1;
                 return 0;
@@ -805,9 +805,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             // INSERT THE NEW EXPLODED COMPLEX INTO THE SYMBOLIC
             memmovew(stkptr + numnew, stkptr + 1,
                     ((endofstk + numitems -
-                            stkptr) * sizeof(WORDPTR)) / sizeof(WORD));
+                            stkptr) * sizeof(word_p)) / sizeof(WORD));
             memmovew(stkptr, DSTop - numnew,
-                    (numnew * sizeof(WORDPTR)) / sizeof(WORD));
+                    (numnew * sizeof(word_p)) / sizeof(WORD));
             DSTop--;
             stkptr += numnew;
             numitems += numnew - 1;
@@ -824,9 +824,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     DSTop = endofstk + 1;
                     return 0;
                 }
-                WORDPTR newobj = rplPeekData(1);
+                word_p newobj = rplPeekData(1);
 
-                WORDPTR *ptr = DSTop - 2;
+                word_p *ptr = DSTop - 2;
 
                 // MAKE A HOLE IN THE STACK TO ADD NEGATION
                 while(ptr != stkptr) {
@@ -836,8 +836,8 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                 DSTop++;        // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
                 rplExpandStack(1);
                 stkptr[0] = newobj;
-                stkptr[1] = (WORDPTR) two_bint;
-                stkptr[2] = (WORDPTR) uminus_opcode;
+                stkptr[1] = (word_p) two_bint;
+                stkptr[2] = (word_p) uminus_opcode;
             }
         }
 
@@ -853,9 +853,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     DSTop = endofstk + 1;
                     return 0;
                 }
-                WORDPTR newobj = rplPeekData(1);
+                word_p newobj = rplPeekData(1);
 
-                WORDPTR *ptr = DSTop - 2;
+                word_p *ptr = DSTop - 2;
 
                 // MAKE A HOLE IN THE STACK TO ADD NEGATION
                 while(ptr != stkptr) {
@@ -865,8 +865,8 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                 DSTop++;        // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
                 rplExpandStack(1);
                 stkptr[0] = newobj;
-                stkptr[1] = (WORDPTR) two_bint;
-                stkptr[2] = (WORDPTR) uminus_opcode;
+                stkptr[1] = (word_p) two_bint;
+                stkptr[2] = (word_p) uminus_opcode;
             }
         }
 
@@ -884,9 +884,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
         if(*sobj == (CMD_OVR_SUB)) {
 
-            WORDPTR *secondarg = rplSymbSkipInStack(stkptr - 2);
+            word_p *secondarg = rplSymbSkipInStack(stkptr - 2);
 
-            WORDPTR *ptr = DSTop - 1;
+            word_p *ptr = DSTop - 1;
 
             // MAKE A HOLE IN THE STACK TO ADD NEGATION
             while(ptr != secondarg) {
@@ -895,9 +895,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             }
             DSTop += 2; // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
             stkptr += 2;
-            secondarg[1] = (WORDPTR) two_bint;
-            secondarg[2] = (WORDPTR) uminus_opcode;
-            *stkptr = (WORDPTR) add_opcode;
+            secondarg[1] = (word_p) two_bint;
+            secondarg[2] = (word_p) uminus_opcode;
+            *stkptr = (word_p) add_opcode;
             stkptr--;
             rplExpandStack(2);  // NOW GROW THE STACK
             if(Exceptions) {
@@ -918,7 +918,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_UMINUS)) {
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             if(**nextarg == (CMD_OVR_ADD)) {
                 // A SUM NEGATED? DISTRIBUTE THE OPERATOR OVER THE ARGUMENTS
@@ -931,7 +931,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                     if(**nextarg == (CMD_OVR_UMINUS)) {
                         // NEG/NEG = REMOVE THE NEGATION
-                        WORDPTR *ptr = nextarg - 1;
+                        word_p *ptr = nextarg - 1;
                         // AND REMOVE THE GAP
                         while(ptr != DSTop - 2) {
                             *ptr = *(ptr + 2);
@@ -943,7 +943,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     }
                     else {
                         // NEGATE THIS TERM
-                        WORDPTR *ptr = DSTop - 1;
+                        word_p *ptr = DSTop - 1;
                         // AND REMOVE THE GAP
                         while(ptr != nextarg) {
                             *(ptr + 2) = *ptr;
@@ -952,8 +952,8 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                         DSTop += 2;
                         stkptr += 2;
-                        nextarg[1] = (WORDPTR) two_bint;
-                        nextarg[2] = (WORDPTR) uminus_opcode;
+                        nextarg[1] = (word_p) two_bint;
+                        nextarg[2] = (word_p) uminus_opcode;
                         nextarg += 2;
                     }
 
@@ -961,7 +961,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                 }
                 // REMOVE THE ORIGINAL NEGATION
-                WORDPTR *ptr = stkptr - 1;
+                word_p *ptr = stkptr - 1;
                 // AND REMOVE THE GAP
                 while(ptr != DSTop - 2) {
                     *ptr = *(ptr + 2);
@@ -990,13 +990,13 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
             int32_t c, orignargs = nargs;
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             for(c = 0; c < nargs; ++c) {
 
                 if(**nextarg == (CMD_OVR_ADD)) {
                     // FLATTEN BY REMOVING THE ADDITION
-                    WORDPTR *ptr = nextarg - 1;
+                    word_p *ptr = nextarg - 1;
                     nargs += OPCODE(**(nextarg - 1)) - 2;       // ADD THE ARGUMENTS TO THE BASE LOOP
                     // AND REMOVE THE GAP
                     while(ptr != DSTop - 2) {
@@ -1016,7 +1016,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             // HERE stkptr IS POINTING TO THE ORIGINAL SUM COMMAND
             // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
             if(orignargs != nargs) {
-                WORDPTR newnumber = rplNewSINT(nargs + 1, DECint32_t);
+                word_p newnumber = rplNewSINT(nargs + 1, DECint32_t);
                 if(!newnumber) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -1041,23 +1041,23 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
         if(*sobj == (CMD_OVR_POW)) {
 
-            WORDPTR *arg1 = stkptr - 2;
-            WORDPTR *arg2 = rplSymbSkipInStack(arg1);
+            word_p *arg1 = stkptr - 2;
+            word_p *arg2 = rplSymbSkipInStack(arg1);
 
             if(**arg2 == (CMD_OVR_UMINUS)) {
                 // NEGATIVE POWER DETECTED WE JUST NEED TO REPLACE THE UMINUS
                 // WITH AN INV()
 
                 // MOVE EVERYTHING TWO LEVELS UP
-                WORDPTR *ptr = arg2 - 1;
+                word_p *ptr = arg2 - 1;
                 while(ptr != stkptr + 1) {
                     *ptr = *(ptr + 2);
                     ++ptr;
                 }
 
-                *stkptr = (WORDPTR) inverse_opcode;
+                *stkptr = (word_p) inverse_opcode;
                 --stkptr;
-                *stkptr = (WORDPTR) two_bint;
+                *stkptr = (word_p) two_bint;
             }
         }
 
@@ -1075,9 +1075,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
         if(*sobj == (CMD_OVR_DIV)) {
 
-            WORDPTR *secondarg = rplSymbSkipInStack(stkptr - 2);
+            word_p *secondarg = rplSymbSkipInStack(stkptr - 2);
 
-            WORDPTR *ptr = DSTop - 1;
+            word_p *ptr = DSTop - 1;
 
             // MAKE A HOLE IN THE STACK TO ADD INVERSE
             while(ptr != secondarg) {
@@ -1086,9 +1086,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             }
             DSTop += 2; // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
             stkptr += 2;
-            secondarg[1] = (WORDPTR) two_bint;
-            secondarg[2] = (WORDPTR) inverse_opcode;
-            *stkptr = (WORDPTR) mul_opcode;
+            secondarg[1] = (word_p) two_bint;
+            secondarg[2] = (word_p) inverse_opcode;
+            *stkptr = (word_p) mul_opcode;
             stkptr--;
             rplExpandStack(2);  // NOW GROW THE STACK
             if(Exceptions) {
@@ -1109,7 +1109,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_INV)) {
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             if(**nextarg == (CMD_OVR_MUL)) {
 
@@ -1121,7 +1121,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                     if(**nextarg == (CMD_OVR_INV)) {
                         // INV/INV = REMOVE THE OPERATOR
-                        WORDPTR *ptr = nextarg - 1;
+                        word_p *ptr = nextarg - 1;
                         // AND REMOVE THE GAP
                         while(ptr != DSTop - 2) {
                             *ptr = *(ptr + 2);
@@ -1133,7 +1133,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     }
                     else {
                         // INVERT THIS TERM
-                        WORDPTR *ptr = DSTop - 1;
+                        word_p *ptr = DSTop - 1;
                         // AND REMOVE THE GAP
                         while(ptr != nextarg) {
                             *(ptr + 2) = *ptr;
@@ -1142,8 +1142,8 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                         DSTop += 2;
                         stkptr += 2;
-                        nextarg[1] = (WORDPTR) two_bint;
-                        nextarg[2] = (WORDPTR) inverse_opcode;
+                        nextarg[1] = (word_p) two_bint;
+                        nextarg[2] = (word_p) inverse_opcode;
                         nextarg += 2;
                         rplExpandStack(2);
                         if(Exceptions) {
@@ -1160,9 +1160,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                 // INVERT THE ORDER OF TERMS
                 for(c = 1; c <= nargs / 2; ++c) {
 
-                    WORDPTR *ptr = nextarg;
-                    WORDPTR *nextptr = rplSymbSkipInStack(ptr);
-                    WORDPTR *otherarg = nextptr, *endofotherarg;
+                    word_p *ptr = nextarg;
+                    word_p *nextptr = rplSymbSkipInStack(ptr);
+                    word_p *otherarg = nextptr, *endofotherarg;
                     int32_t k;
                     for(k = 0; k < nargs - 2 * c; ++k)
                         otherarg = rplSymbSkipInStack(otherarg);        // FIND THE ARGUMENT TO SWAP PLACES WITH
@@ -1178,7 +1178,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                             DSTop = endofstk + 1;
                             return 0;
                         }
-                        memmovew(DSTop, nextptr + 1, (ptr - nextptr) * sizeof(WORDPTR) / sizeof(WORD)); // COPY FIRST ARGUMENT OUT OF THE WAY
+                        memmovew(DSTop, nextptr + 1, (ptr - nextptr) * sizeof(word_p) / sizeof(WORD)); // COPY FIRST ARGUMENT OUT OF THE WAY
                         // COPY ARGUMENT FROM THE END
                         nextptr = otherarg + offset;
                         while(otherarg != endofotherarg) {
@@ -1209,7 +1209,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                             DSTop = endofstk + 1;
                             return 0;
                         }
-                        memmovew(DSTop, endofotherarg + 1, (otherarg - endofotherarg) * sizeof(WORDPTR) / sizeof(WORD));        // COPY LAST ARGUMENT OUT OF THE WAY
+                        memmovew(DSTop, endofotherarg + 1, (otherarg - endofotherarg) * sizeof(word_p) / sizeof(WORD));        // COPY LAST ARGUMENT OUT OF THE WAY
                         // COPY ARGUMENT FROM THE END
                         otherarg = nextptr - offset;
                         while(nextptr < ptr) {
@@ -1237,7 +1237,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                 }
 
                 // REMOVE THE ORIGINAL INVERSION
-                WORDPTR *ptr = stkptr - 1;
+                word_p *ptr = stkptr - 1;
                 // AND REMOVE THE GAP
                 while(ptr != DSTop - 2) {
                     *ptr = *(ptr + 2);
@@ -1263,11 +1263,11 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_UMINUS)) {
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             if(**nextarg == (CMD_OVR_MUL)) {
 
-                WORDPTR tmp;
+                word_p tmp;
 
                 // SWAP THE MUL WITH THE NEG
                 tmp = *stkptr;
@@ -1291,11 +1291,11 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
         sobj = *stkptr;
 
         if(*sobj == (CMD_OVR_UMINUS)) {
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             if(**nextarg == (CMD_OVR_UMINUS)) {
                 // NEG/NEG = REMOVE THE NEGATION
-                WORDPTR *ptr = nextarg - 1;
+                word_p *ptr = nextarg - 1;
                 // AND REMOVE THE GAP
                 while(ptr != DSTop - 4) {
                     *ptr = *(ptr + 4);
@@ -1323,13 +1323,13 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
             int32_t c, orignargs = nargs;
-            WORDPTR *nextarg = stkptr - 2;
+            word_p *nextarg = stkptr - 2;
 
             for(c = 0; c < nargs; ++c) {
 
                 if(**nextarg == (CMD_OVR_MUL)) {
                     // FLATTEN BY REMOVING THE ADDITION
-                    WORDPTR *ptr = nextarg - 1;
+                    word_p *ptr = nextarg - 1;
                     nargs += OPCODE(**(nextarg - 1)) - 2;       // ADD THE ARGUMENTS TO THE BASE LOOP
                     // AND REMOVE THE GAP
                     while(ptr != DSTop - 2) {
@@ -1349,7 +1349,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
             // HERE stkptr IS POINTING TO THE ORIGINAL MUL COMMAND
             // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
             if(orignargs != nargs) {
-                WORDPTR newnumber = rplNewSINT(nargs + 1, DECint32_t);
+                word_p newnumber = rplNewSINT(nargs + 1, DECint32_t);
                 if(!newnumber) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -1377,9 +1377,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                 int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
                 int32_t c;
-                WORDPTR *nextarg = stkptr - 2;
-                WORDPTR *firstarg = nextarg;
-                WORDPTR *firstinv = 0;
+                word_p *nextarg = stkptr - 2;
+                word_p *firstarg = nextarg;
+                word_p *firstinv = 0;
 
                 for(c = 0; c < nargs; ++c) {
 
@@ -1396,7 +1396,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                                 return 0;
                             }
                             // MOVE nextarg TO THE END OF STACK
-                            WORDPTR *ptr = DSTop;
+                            word_p *ptr = DSTop;
                             int32_t f;
                             for(f = 0; f < nterms; ++f)
                                 ptr[f] = nextarg[-(nterms - 1) + f];
@@ -1429,7 +1429,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     // ALL FACTORS ARE INVERTED
 
                     // ADD A int32_t 1 TO CREATE 1/X
-                    WORDPTR *ptr = DSTop - 1;
+                    word_p *ptr = DSTop - 1;
 
                     // MAKE A HOLE IN THE STACK TO ADD int32_t ONE
                     while(ptr != firstarg) {
@@ -1438,11 +1438,11 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                     }
                     DSTop++;    // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                     stkptr++;
-                    firstarg[1] = (WORDPTR) one_bint;
+                    firstarg[1] = (word_p) one_bint;
                     // INCREASE THE COUNT OF OBJECTS
                     int64_t numargs = OPCODE(*firstarg[2]);
                     ++numargs;
-                    WORDPTR nnum = rplNewSINT(numargs, DECint32_t);
+                    word_p nnum = rplNewSINT(numargs, DECint32_t);
                     if(Exceptions) {
                         DSTop = endofstk + 1;
                         return 0;
@@ -1472,9 +1472,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
             DSTop += 3; // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
             stkptr += 3;
-            stkptr[0] = (WORDPTR) mul_opcode;
-            stkptr[-1] = (WORDPTR) three_bint;
-            stkptr[-2] = (WORDPTR) one_bint;
+            stkptr[0] = (word_p) mul_opcode;
+            stkptr[-1] = (word_p) three_bint;
+            stkptr[-2] = (word_p) one_bint;
             rplExpandStack(3);  // NOW GROW THE STACK
             if(Exceptions) {
                 DSTop = endofstk + 1;
@@ -1498,13 +1498,13 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 
                 int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
 
-                WORDPTR *argptr = stkptr - 2;
+                word_p *argptr = stkptr - 2;
 
                 while(nargs) {
                     if(**argptr == (CMD_OVR_INV)) {
                         // IN ANY OTHER CASE, NEED TO ADD 1*INV()
 
-                        WORDPTR *ptr = DSTop - 1;
+                        word_p *ptr = DSTop - 1;
 
                         // MAKE A HOLE IN THE STACK TO ADD int32_t ONE
                         while(ptr != argptr) {
@@ -1514,9 +1514,9 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
                         DSTop += 3;     // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                         stkptr += 3;
                         argptr += 3;
-                        argptr[0] = (WORDPTR) mul_opcode;
-                        argptr[-1] = (WORDPTR) three_bint;
-                        argptr[-2] = (WORDPTR) one_bint;
+                        argptr[0] = (word_p) mul_opcode;
+                        argptr[-1] = (word_p) three_bint;
+                        argptr[-2] = (word_p) one_bint;
                         rplExpandStack(3);      // NOW GROW THE STACK
                         if(Exceptions) {
                             DSTop = endofstk + 1;
@@ -1543,14 +1543,14 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object, int32_t for_display)
 }
 
 // CONVERT A SYMBOLIC OBJECT TO CANONICAL FORM
-WORDPTR rplSymbCanonicalForm(WORDPTR object, int32_t fordisplay)
+word_p rplSymbCanonicalForm(word_p object, int32_t fordisplay)
 {
-    WORDPTR *result = rplSymbExplodeCanonicalForm(object, fordisplay);
+    word_p *result = rplSymbExplodeCanonicalForm(object, fordisplay);
 
     if(!result)
         return 0;
 
-    WORDPTR finalsymb = rplSymbImplode(result);
+    word_p finalsymb = rplSymbImplode(result);
 
     DSTop = rplSymbSkipInStack(result) + 1;
     if(Exceptions)
@@ -1762,7 +1762,7 @@ int32_t rplFractionSimplify()
 // CHECK IF ARGUMENT IN THE STACK IS A NUMERIC FRACTION
 // RETURNS TRUE/FALSE
 
-int32_t rplSymbIsFractionInStack(WORDPTR * stkptr)
+int32_t rplSymbIsFractionInStack(word_p * stkptr)
 {
 
     if(**stkptr == (CMD_OVR_UMINUS)) {
@@ -1779,7 +1779,7 @@ int32_t rplSymbIsFractionInStack(WORDPTR * stkptr)
             return 0;
         --stkptr;
 
-        WORDPTR *argptr = stkptr;
+        word_p *argptr = stkptr;
 
 // CHECK THE NUMERATOR
 
@@ -1818,10 +1818,10 @@ int32_t rplSymbIsFractionInStack(WORDPTR * stkptr)
 // DEAL WITH NEGATIVE NUMBERS
 // DOES NOT CHECK FOR ARGUMENTS! CALLER TO USE rplSymbIsFractionInStack() TO VERIFY
 
-void rplSymbFractionExtractNumDen(WORDPTR * stkptr)
+void rplSymbFractionExtractNumDen(word_p * stkptr)
 {
     int32_t negnum = 0, negden = 0;
-    WORDPTR *savedstop = DSTop;
+    word_p *savedstop = DSTop;
 
     if(**stkptr == (CMD_OVR_UMINUS)) {
 // COULD BE A NEGATIVE FRACTION -(1/2)
@@ -1833,7 +1833,7 @@ void rplSymbFractionExtractNumDen(WORDPTR * stkptr)
 
         stkptr -= 2;
 
-        WORDPTR *argptr = stkptr;
+        word_p *argptr = stkptr;
 
         // CHECK THE NUMERATOR
 
@@ -1893,7 +1893,7 @@ void rplSymbFractionExtractNumDen(WORDPTR * stkptr)
         }
 
         // DENOMINATOR IS ONE
-        rplPushData((WORDPTR) one_bint);
+        rplPushData((word_p) one_bint);
 
     }
 
@@ -1940,11 +1940,11 @@ int32_t rplFractionAdd()
 
     // CHECK SIGN OF THE NUMERATOR
     rplPushData(rplPeekData(2));
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
-    WORDPTR numsign = rplPeekData(1);
+    word_p numsign = rplPeekData(1);
     rplDropData(1);
     if(ISint32_t(*numsign)) {
         if(*numsign != MAKESINT(0)) {
@@ -1958,11 +1958,11 @@ int32_t rplFractionAdd()
 
     // CHECK SIGN OF THE DENOMINATOR JUST IN CASE
     rplPushData(rplPeekData(1));
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
-    WORDPTR densign = rplPeekData(1);
+    word_p densign = rplPeekData(1);
     rplDropData(1);
     if(ISint32_t(*densign)) {
         if(*densign != MAKESINT(0)) {
@@ -1983,9 +1983,9 @@ int32_t rplFractionAdd()
 // RETURNS THE SIZE OF THE OBJECT IN WORDS, CALLER HAS TO UPDATE
 // ANY POINTERS INTO THE STACK THAT ARE > obj
 
-int32_t rplSymbRemoveInStack(WORDPTR * obj)
+int32_t rplSymbRemoveInStack(word_p * obj)
 {
-    WORDPTR *end = rplSymbSkipInStack(obj);
+    word_p *end = rplSymbSkipInStack(obj);
     int32_t offset = obj - end;
     ++end;
     ++obj;
@@ -2000,13 +2000,13 @@ int32_t rplSymbRemoveInStack(WORDPTR * obj)
 
 // MAKE ROOM IN STACK TO INSERT nwords IMMEDIATELY BEFORE here
 // RETURNS nwords
-int32_t rplSymbInsertInStack(WORDPTR * here, int32_t nwords)
+int32_t rplSymbInsertInStack(word_p * here, int32_t nwords)
 {
     rplExpandStack(nwords);
     if(Exceptions)
         return 0;
 
-    WORDPTR *ptr = DSTop - 1;
+    word_p *ptr = DSTop - 1;
 
     while(ptr != here) {
         ptr[nwords] = *ptr;
@@ -2018,7 +2018,7 @@ int32_t rplSymbInsertInStack(WORDPTR * here, int32_t nwords)
 
 // REMOVE nwords IMMEDIATELY AFTER here (INCLUDED)
 // RETURNS nwords
-int32_t rplSymbDeleteInStack(WORDPTR * here, int32_t nwords)
+int32_t rplSymbDeleteInStack(word_p * here, int32_t nwords)
 {
     here++;
 
@@ -2038,11 +2038,11 @@ int32_t rplSymbDeleteInStack(WORDPTR * here, int32_t nwords)
 // D) IN ADD, IF TWO TERMS ARE NUMERIC EXPRESSIONS, PERFORM A FRACTION ADDITION (N1/D1+N2/D2=(N1*D2+N2*D1)/(D1*D2)
 // DONE! E) IN MUL, ALL NUMERATOR AND DENOMINATOR NUMERICS ARE DIVIDED BY THEIR GCD (FRACTION SIMPLIFICATION)
 
-WORDPTR rplSymbNumericReduce(WORDPTR object)
+word_p rplSymbNumericReduce(word_p object)
 {
     int32_t numitems = rplSymbExplode(object);
     int32_t f, changed, origprec;
-    WORDPTR *stkptr, sobj, *endofstk;
+    word_p *stkptr, sobj, *endofstk;
 
     origprec = Context.precdigits;
 
@@ -2069,7 +2069,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
 
                 int32_t nargs = OPCODE(**(stkptr - 1)) - 1, redargs = 0;
-                WORDPTR *argptr = stkptr - 2;
+                word_p *argptr = stkptr - 2;
                 int32_t simplified = 0, den_is_one = 0, num_is_one = 0, neg =
                         0, approx = 0;
 
@@ -2092,7 +2092,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                                 // REMOVE THE ARGUMENT FROM THE LIST
 
-                                WORDPTR *ptr, *endofobj = rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                                word_p *ptr, *endofobj = rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
                                 ptr = endofobj + 1;
                                 ++argptr;
                                 stkptr -= (argptr - ptr);
@@ -2130,7 +2130,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         // REMOVE THE ARGUMENT FROM THE LIST
 
-                        WORDPTR *ptr, *endofobj = rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                        word_p *ptr, *endofobj = rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
                         ptr = endofobj + 1;
                         ++argptr;
                         stkptr -= (argptr - ptr);
@@ -2169,7 +2169,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     Context.precdigits = origprec;
                 }
                 else
-                    rplPushData((WORDPTR) one_bint);    //  IF NO NUMERATOR, THEN MAKE IT = 1
+                    rplPushData((word_p) one_bint);    //  IF NO NUMERATOR, THEN MAKE IT = 1
 
                 // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
 
@@ -2202,7 +2202,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                                     // REMOVE THE ARGUMENT FROM THE LIST
 
-                                    WORDPTR *ptr, *endofobj = rplSymbSkipInStack(argptr);       // POINT TO THE NEXT OBJECT
+                                    word_p *ptr, *endofobj = rplSymbSkipInStack(argptr);       // POINT TO THE NEXT OBJECT
                                     ptr = endofobj + 1;
                                     ++argptr;
                                     stkptr -= (argptr - ptr);
@@ -2239,7 +2239,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                             // REMOVE THE ARGUMENT FROM THE LIST
 
-                            WORDPTR *ptr, *endofobj = rplSymbSkipInStack(argptr);       // POINT TO THE NEXT OBJECT
+                            word_p *ptr, *endofobj = rplSymbSkipInStack(argptr);       // POINT TO THE NEXT OBJECT
                             ptr = endofobj + 1;
                             ++argptr;
                             stkptr -= (argptr - ptr);
@@ -2297,7 +2297,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             return 0;
                         }
                         // AND PUSH A DENOMINATOR OF 1
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                         simplified = 1;
                     }
                 }
@@ -2316,7 +2316,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             if(nnum < 0) {
                                 neg ^= 1;
                                 // KEEP THE NUMERATOR POSITIVE
-                                WORDPTR newnum = rplNewint32_t(-nnum, DECint32_t);
+                                word_p newnum = rplNewint32_t(-nnum, DECint32_t);
                                 if(!newnum) {
                                     DSTop = endofstk + 1;
                                     return 0;
@@ -2334,7 +2334,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                                 if(number.flags & F_NEGATIVE) {
                                     number.flags ^= F_NEGATIVE;
                                     neg ^= 1;
-                                    WORDPTR newnum = rplNewReal(&number);
+                                    word_p newnum = rplNewReal(&number);
                                     if(!newnum) {
                                         DSTop = endofstk + 1;
                                         return 0;
@@ -2351,7 +2351,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             // ONLY ADD THE NUMERATOR ONE WHEN THERE'S NO OTHER (NON-NUMERIC) FACTORS
 
                             // IF THERE WERE ANY FACTORS IN THE NUMERATOR, REPLACE WITH THE NEW RESULT
-                            WORDPTR *ptr = DSTop - 1;
+                            word_p *ptr = DSTop - 1;
 
                             // MAKE ROOM
                             while(ptr != stkptr - 2) {
@@ -2397,10 +2397,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                                         0) ? 1 : 0);
                             if(num_is_one && (reddenom + redargs < nargs))
                                 --actualargs;
-                            WORDPTR *endofobj = stkptr - 2;
+                            word_p *endofobj = stkptr - 2;
                             for(f = 0; f < actualargs; ++f)
                                 endofobj = rplSymbSkipInStack(endofobj);
-                            WORDPTR *ptr = stkptr - 2;
+                            word_p *ptr = stkptr - 2;
                             // FIND THE FIRST FACTOR IN THE DENOMINATOR
                             while(ptr != endofobj) {
                                 if(**ptr == (CMD_OVR_INV))
@@ -2419,8 +2419,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             stkptr += 3;
                             DSTop += 3;
                             ptr[1] = rplPeekData(1);    // STORE THE DENOMINATOR
-                            ptr[2] = (WORDPTR) two_bint;
-                            ptr[3] = (WORDPTR) inverse_opcode;
+                            ptr[2] = (word_p) two_bint;
+                            ptr[3] = (word_p) inverse_opcode;
                             ++addfactors;
 
                         }
@@ -2433,8 +2433,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     if(neg) {
                         // HERE stkptr IS POINTING TO THE MULTIPLICATION
                         rplSymbInsertInStack(stkptr - 2, 2);
-                        *stkptr = (WORDPTR) uminus_opcode;
-                        *(stkptr - 1) = (WORDPTR) two_bint;
+                        *stkptr = (word_p) uminus_opcode;
+                        *(stkptr - 1) = (word_p) two_bint;
                         stkptr += 2;
                         DSTop += 2;
                     }
@@ -2445,7 +2445,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         if(newcount < 2) {
                             // SINGLE ARGUMENT, SO REMOVE THE MULTIPLICATION
-                            WORDPTR *ptr = stkptr - 1;
+                            word_p *ptr = stkptr - 1;
                             while(ptr != DSTop) {
                                 *ptr = *(ptr + 2);
                                 ++ptr;
@@ -2455,7 +2455,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         }
                         else {
-                            WORDPTR newnumber =
+                            word_p newnumber =
                                     rplNewSINT(newcount + 1, DECint32_t);
                             if(!newnumber) {
                                 DSTop = endofstk + 1;
@@ -2477,9 +2477,9 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // SCAN ALL NUMERIC FACTORS AND ADD TOGETHER (INCLUDING FRACTIONS)
 
                 int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
-                WORDPTR *argptr = stkptr - 2;
+                word_p *argptr = stkptr - 2;
 
-                WORDPTR *firstnum = 0, *secondnum = 0;
+                word_p *firstnum = 0, *secondnum = 0;
 
                 for(f = 0; f < nargs; ++f) {
                     if(rplSymbIsFractionInStack(argptr)) {
@@ -2557,18 +2557,18 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // HERE FIRSTNUM POINTS TO THE START OF THE HOLE WE JUST OPENED
                 if(isnegative) {
                     if(den_is_one) {
-                        firstnum[0] = (WORDPTR) uminus_opcode;
-                        firstnum[-1] = (WORDPTR) two_bint;
+                        firstnum[0] = (word_p) uminus_opcode;
+                        firstnum[-1] = (word_p) two_bint;
                         firstnum[-2] = rplPeekData(2);
                     }
                     else {
-                        firstnum[0] = (WORDPTR) uminus_opcode;
-                        firstnum[-1] = (WORDPTR) two_bint;
-                        firstnum[-2] = (WORDPTR) mul_opcode;
-                        firstnum[-3] = (WORDPTR) three_bint;
+                        firstnum[0] = (word_p) uminus_opcode;
+                        firstnum[-1] = (word_p) two_bint;
+                        firstnum[-2] = (word_p) mul_opcode;
+                        firstnum[-3] = (word_p) three_bint;
                         firstnum[-4] = rplPeekData(2);
-                        firstnum[-5] = (WORDPTR) inverse_opcode;
-                        firstnum[-6] = (WORDPTR) two_bint;
+                        firstnum[-5] = (word_p) inverse_opcode;
+                        firstnum[-6] = (word_p) two_bint;
                         firstnum[-7] = rplPeekData(1);
                     }
 
@@ -2578,11 +2578,11 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         *firstnum = rplPeekData(2);
                     }
                     else {
-                        firstnum[0] = (WORDPTR) mul_opcode;
-                        firstnum[-1] = (WORDPTR) three_bint;
+                        firstnum[0] = (word_p) mul_opcode;
+                        firstnum[-1] = (word_p) three_bint;
                         firstnum[-2] = rplPeekData(2);
-                        firstnum[-3] = (WORDPTR) inverse_opcode;
-                        firstnum[-4] = (WORDPTR) two_bint;
+                        firstnum[-3] = (word_p) inverse_opcode;
+                        firstnum[-4] = (word_p) two_bint;
                         firstnum[-5] = rplPeekData(1);
                     }
                 }
@@ -2598,7 +2598,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     stkptr -= offset;
                 }
                 else {
-                    WORDPTR newobj = rplNewSINT(nargs, DECint32_t);
+                    word_p newobj = rplNewSINT(nargs, DECint32_t);
                     if(!newobj)
                         return 0;
                     *(stkptr - 1) = newobj;
@@ -2615,7 +2615,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
 
                 int32_t nargs = OPCODE(**(stkptr - 1)) - 1;
-                WORDPTR *argptr = stkptr - 2, *savedstop;
+                word_p *argptr = stkptr - 2, *savedstop;
                 int32_t notanumber = 0, approxnumber = 0;
                 for(f = 0; f < nargs; ++f) {
                     if(!ISNUMBERORUNIT(**argptr)) {
@@ -2705,7 +2705,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                     // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
 
-                    WORDPTR *ptr, *endofobj = rplSymbSkipInStack(stkptr);       // POINT TO THE NEXT OBJECT
+                    word_p *ptr, *endofobj = rplSymbSkipInStack(stkptr);       // POINT TO THE NEXT OBJECT
                     ptr = endofobj + 1;
                     *ptr = rplPeekData(1);
                     --DSTop;
@@ -2732,7 +2732,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     else {
                         // REPLACE A SINGLE ARGUMENT
 
-                        WORDPTR *ptr, *endofobj = rplSymbSkipInStack(stkptr);   // POINT TO THE NEXT OBJECT
+                        word_p *ptr, *endofobj = rplSymbSkipInStack(stkptr);   // POINT TO THE NEXT OBJECT
                         ptr = endofobj + 1;
                         *ptr = rplPeekData(1);
                         --DSTop;
@@ -2766,7 +2766,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
         return 0;
     }
 
-    WORDPTR finalsymb = rplSymbImplode(DSTop - 1);
+    word_p finalsymb = rplSymbImplode(DSTop - 1);
 
     DSTop = endofstk + 1;
     if(Exceptions)
@@ -2786,7 +2786,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 void rplSymbAutoSimplify()
 {
 
-    WORDPTR newobj = rplSymbCanonicalForm(rplPeekData(1), 0);
+    word_p newobj = rplSymbCanonicalForm(rplPeekData(1), 0);
     if(newobj)
         rplOverwriteData(1, newobj);
     else
@@ -2801,7 +2801,7 @@ void rplSymbAutoSimplify()
 
 // RETURN TRUE/FALSE IF THE GIVEN SYMBOLIC IS A RULE
 
-int32_t rplSymbIsRule(WORDPTR ptr)
+int32_t rplSymbIsRule(word_p ptr)
 {
     if(!ISSYMBOLIC(*ptr))
         return 0;
@@ -2812,9 +2812,9 @@ int32_t rplSymbIsRule(WORDPTR ptr)
 
 // RETURN 1 IF THE GIVEN SYMBOLIC IS ONLY NUMERIC
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
-int32_t rplSymbIsNumeric(WORDPTR ptr)
+int32_t rplSymbIsNumeric(word_p ptr)
 {
-    WORDPTR endofobj = rplSkipOb(ptr);
+    word_p endofobj = rplSkipOb(ptr);
 
     if(ISNUMBERCPLX(*ptr))
         return 1;
@@ -2839,9 +2839,9 @@ int32_t rplSymbIsNumeric(WORDPTR ptr)
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES, CALLS A CUSTOM USER FUNCTION OR HAS ANY NON-ATOMIC OPERATION
 // IF THE OBJECT IS NUMERIC, ALSO CHECK FOR ZERO
 
-int32_t rplSymbIsZero(WORDPTR ptr)
+int32_t rplSymbIsZero(word_p ptr)
 {
-    WORDPTR obj = ptr, end = rplSkipOb(obj);
+    word_p obj = ptr, end = rplSkipOb(obj);
     int32_t onezero = 0, allzeros = 1, optype = 0;
     if(ISSYMBOLIC(*obj))
         ++obj;
@@ -2905,8 +2905,8 @@ int32_t rplSymbIsZero(WORDPTR ptr)
 
 void rplSymbNumericCompute()
 {
-    WORDPTR *stksave = DSTop;
-    WORDPTR *ptr = DSTop - 1;
+    word_p *stksave = DSTop;
+    word_p *ptr = DSTop - 1;
     int32_t endoffset = rplObjSize(*ptr), partialoff = endoffset;
     WORD opcode = 0;
     int32_t offset = 0;
@@ -2974,7 +2974,7 @@ void rplSymbNumericCompute()
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
 // LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
 
-int32_t rplSymbExplodeOneLevel2(WORDPTR object)
+int32_t rplSymbExplodeOneLevel2(word_p object)
 {
     int32_t count = 0, countops = 0;
 
@@ -3008,7 +3008,7 @@ int32_t rplSymbExplodeOneLevel2(WORDPTR object)
 
 // RETURN 1 IF THE GIVEN SYMBOLIC IS A SINGLE NUMBER
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
-int32_t rplSymbIsANumber(WORDPTR ptr)
+int32_t rplSymbIsANumber(word_p ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
@@ -3020,7 +3020,7 @@ int32_t rplSymbIsANumber(WORDPTR ptr)
 
 }
 
-int32_t rplSymbIsIntegerNumber(WORDPTR ptr)
+int32_t rplSymbIsIntegerNumber(word_p ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
@@ -3038,7 +3038,7 @@ int32_t rplSymbIsIntegerNumber(WORDPTR ptr)
 
 }
 
-int32_t rplSymbIsOddNumber(WORDPTR ptr)
+int32_t rplSymbIsOddNumber(word_p ptr)
 {
     if(ISSYMBOLIC(*ptr))
         ptr = rplSymbUnwrap(ptr) + 1;
@@ -3076,7 +3076,7 @@ enum
 
 typedef struct
 {
-    WORDPTR *left, *right;
+    word_p *left, *right;
     int32_t leftnargs, rightnargs;
     int32_t leftidx, rightidx, leftrot, lrotbase;
     int32_t leftdepth, rightdepth;
@@ -3089,7 +3089,7 @@ typedef struct
 // LARGN ... LARG1 LNARGS LOP RARGN ... RARG1 RNARGS ROP LIDX RIDX LROT LAMN_VALUE LAMN_NAME ... LAM1_VALUE LAM1_NAME NLAMS
 // INPUT/OUTPUT:     left->|                   right->|                                                               stkbase->|
 
-static void reloadPointers(WORDPTR * stkbase, TRACK_STATE * ptr)
+static void reloadPointers(word_p * stkbase, TRACK_STATE * ptr)
 {
     ptr->nlams = rplReadint32_t(*(stkbase - 1));
     ptr->right = stkbase - 2 * ptr->nlams - 5;  // POINT TO THE RIGHT OPERATOR
@@ -3127,23 +3127,23 @@ static void reloadPointers(WORDPTR * stkbase, TRACK_STATE * ptr)
 }
 
 // REPLACE ALL LAMS IN CURRENT ENVIRONMENT WITH THE ONES FROM THE STACK
-static void reloadLAMs(WORDPTR * orgrule, TRACK_STATE * ptr)
+static void reloadLAMs(word_p * orgrule, TRACK_STATE * ptr)
 {
     rplCleanupLAMs(0);
     rplCreateLAMEnvironment(*orgrule);
     if(Exceptions)
         return;
-    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
+    rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);
     int32_t oldnlams = rplLAMCount(0) - 1;
     while(oldnlams < ptr->nlams) {
-        rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
+        rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);
         if(Exceptions)
             return;
         ++oldnlams;
     }
     // COPY ALL LAM DEFINITIONS
     memmovew(nLAMBase + 4, ptr->right + 4,
-            ptr->nlams * 2 * sizeof(WORDPTR) / sizeof(WORD));
+            ptr->nlams * 2 * sizeof(word_p) / sizeof(WORD));
     LAMTop = nLAMBase + 4 + 2 * ptr->nlams;
 }
 
@@ -3182,13 +3182,13 @@ static void updateLAMs(TRACK_STATE * ptr)
         // MAKE A HOLE IN THE STACK
         memmovew(ptr->right + 5 + newnlams, ptr->right + 5 + 2 * ptr->nlams,
                 (DSTop - (ptr->right + 5 +
-                        2 * ptr->nlams)) * sizeof(WORDPTR) / sizeof(WORD));
+                        2 * ptr->nlams)) * sizeof(word_p) / sizeof(WORD));
     }
 
     if(newnlams >= 0) {
         // STORE ALL LAMS
         memmovew(ptr->right + 4, nLAMBase + 4,
-                newnlams * 2 * sizeof(WORDPTR) / sizeof(WORD));
+                newnlams * 2 * sizeof(word_p) / sizeof(WORD));
         ptr->right[4 + 2 * newnlams] = rplNewSINT(newnlams, DECint32_t);
         if(Exceptions)
             return;
@@ -3201,26 +3201,26 @@ static void updateLAMs(TRACK_STATE * ptr)
 // REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
 // ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
 
-void rplSymbReplaceMatchHere(WORDPTR * rule, int32_t startleftarg)
+void rplSymbReplaceMatchHere(word_p * rule, int32_t startleftarg)
 {
-    WORDPTR ruleleft = rplSymbMainOperatorPTR(*rule);
+    word_p ruleleft = rplSymbMainOperatorPTR(*rule);
     if(*ruleleft == CMD_RULESEPARATOR)
         ++ruleleft;     // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
     else
         return; // NOTHING TO REPLACE IF NOT A RULE
-    WORDPTR ruleright = rplSkipOb(ruleleft);
-    WORDPTR *stksave = DSTop;
+    word_p ruleright = rplSkipOb(ruleleft);
+    word_p *stksave = DSTop;
     TRACK_STATE s;
 
     reloadPointers(DSTop, &s);
 
     // GET EXPRESSION TO REPLACE WITH
-    WORDPTR *expstart = rplSymbExplodeCanonicalForm(ruleright, 0);
+    word_p *expstart = rplSymbExplodeCanonicalForm(ruleright, 0);
     if(Exceptions) {
         DSTop = stksave;
         return;
     }
-    WORDPTR *lamenv = rplGetNextLAMEnv(LAMTop);
+    word_p *lamenv = rplGetNextLAMEnv(LAMTop);
     if(!lamenv) {
         DSTop = stksave;
         return;
@@ -3240,7 +3240,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, int32_t startleftarg)
         --expstart;
     }
 
-    WORDPTR newsymb = rplSymbImplode(DSTop - 1);
+    word_p newsymb = rplSymbImplode(DSTop - 1);
     if(!newsymb) {
         DSTop = stksave;
         return;
@@ -3279,7 +3279,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, int32_t startleftarg)
 
     // REPLACEMENT WAS PERFORMED AT THIS LEVEL, NOW PROPAGATE UPSTREAM
 
-    WORDPTR *DSBase = DSTop;
+    word_p *DSBase = DSTop;
 
     while(s.leftidx >= 0) {
         if(s.lrotbase) {
@@ -3368,7 +3368,7 @@ void rplSymbReplaceMatchHere(WORDPTR * rule, int32_t startleftarg)
 int32_t rplSymbRuleMatch()
 {
     // MAKE SURE BOTH EXPRESSION AND RULE ARE IN CANONIC FORM
-    WORDPTR newexp = rplSymbCanonicalForm(rplPeekData(2), 0);
+    word_p newexp = rplSymbCanonicalForm(rplPeekData(2), 0);
     if(!newexp || Exceptions) {
         return 0;
     }
@@ -3385,17 +3385,17 @@ int32_t rplSymbRuleMatch()
 #ifdef RULEDEBUG
     printf("START RULE MATCH 3: ");
 
-    WORDPTR string = rplDecompile(DSTop[-2], DECOMP_EDIT | DECOMP_NOHINTS);
+    word_p string = rplDecompile(DSTop[-2], DECOMP_EDIT | DECOMP_NOHINTS);
     if(string) {
         BYTE strbyte[1024];
-        memmoveb(strbyte, (BYTEPTR) (string + 1), rplStrSize(string));
+        memmoveb(strbyte, (byte_p) (string + 1), rplStrSize(string));
         strbyte[rplStrSize(string)] = 0;
         printf("exp=%s", strbyte);
     }
     string = rplDecompile(DSTop[-1], DECOMP_EDIT | DECOMP_NOHINTS);
     if(string) {
         BYTE strbyte[1024];
-        memmoveb(strbyte, (BYTEPTR) (string + 1), rplStrSize(string));
+        memmoveb(strbyte, (byte_p) (string + 1), rplStrSize(string));
         strbyte[rplStrSize(string)] = 0;
         printf("  rule=%s", strbyte);
     }
@@ -3403,14 +3403,14 @@ int32_t rplSymbRuleMatch()
     fflush(stdout);
 #endif
 
-    WORDPTR *expression = DSTop - 2;
-    WORDPTR *rule = DSTop - 1;
-    WORDPTR *orgrule = DSTop - 3;
-    WORDPTR *marker;
-    WORDPTR *lamsave = LAMTop, *lamcurrent = nLAMBase, *stkbottom =
+    word_p *expression = DSTop - 2;
+    word_p *rule = DSTop - 1;
+    word_p *orgrule = DSTop - 3;
+    word_p *marker;
+    word_p *lamsave = LAMTop, *lamcurrent = nLAMBase, *stkbottom =
             DStkBottom, *basestkbottom;
 
-    WORDPTR ruleleft = rplSymbMainOperatorPTR(*rule);
+    word_p ruleleft = rplSymbMainOperatorPTR(*rule);
     if(*ruleleft == CMD_RULESEPARATOR)
         ++ruleleft;     // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
     int32_t ruleleftoffset = ruleleft - *rule;
@@ -3431,7 +3431,7 @@ int32_t rplSymbRuleMatch()
     basestkbottom = DStkBottom;
 
 // PUSH LOOP STOPPERS
-    rplPushData((WORDPTR) minusone_bint);
+    rplPushData((word_p) minusone_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3439,7 +3439,7 @@ int32_t rplSymbRuleMatch()
         nLAMBase = lamcurrent;
         return 0;
     }
-    rplPushData((WORDPTR) minusone_bint);
+    rplPushData((word_p) minusone_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3447,7 +3447,7 @@ int32_t rplSymbRuleMatch()
         nLAMBase = lamcurrent;
         return 0;
     }
-    rplPushData((WORDPTR) minusone_bint);
+    rplPushData((word_p) minusone_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3455,7 +3455,7 @@ int32_t rplSymbRuleMatch()
         nLAMBase = lamcurrent;
         return 0;
     }
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3488,7 +3488,7 @@ int32_t rplSymbRuleMatch()
     s.right = DSTop - 1;
 
 // LEFTIDX AND RIGHTIDX PLUS LEFTDEPTH AND RIGHTDEPTH
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3496,7 +3496,7 @@ int32_t rplSymbRuleMatch()
         nLAMBase = lamcurrent;
         return 0;
     }
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3505,7 +3505,7 @@ int32_t rplSymbRuleMatch()
         return 0;
     }
 // LROTBASE AND LEFTROT
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3514,7 +3514,7 @@ int32_t rplSymbRuleMatch()
         return 0;
     }
 // NLAMS
-    rplPushData((WORDPTR) zero_bint);
+    rplPushData((word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3536,7 +3536,7 @@ int32_t rplSymbRuleMatch()
         nLAMBase = lamcurrent;
         return 0;
     }
-    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
+    rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);
     if(Exceptions) {
         rplCleanupSnapshots(stkbottom);
         DSTop = expression;
@@ -3559,18 +3559,18 @@ int32_t rplSymbRuleMatch()
 #ifdef RULEDEBUG
             printf("OPMATCH: [%d,%d] ", s.leftdepth, s.rightdepth);
 
-            WORDPTR string =
+            word_p string =
                     rplDecompile(*s.left, DECOMP_EDIT | DECOMP_NOHINTS);
             if(string) {
                 BYTE strbyte[1024];
-                memmoveb(strbyte, (BYTEPTR) (string + 1), rplStrSize(string));
+                memmoveb(strbyte, (byte_p) (string + 1), rplStrSize(string));
                 strbyte[rplStrSize(string)] = 0;
                 printf("left=%s", strbyte);
             }
             string = rplDecompile(*s.right, DECOMP_EDIT | DECOMP_NOHINTS);
             if(string) {
                 BYTE strbyte[1024];
-                memmoveb(strbyte, (BYTEPTR) (string + 1), rplStrSize(string));
+                memmoveb(strbyte, (byte_p) (string + 1), rplStrSize(string));
                 strbyte[rplStrSize(string)] = 0;
                 printf("  right=%s", strbyte);
             }
@@ -3607,7 +3607,7 @@ int32_t rplSymbRuleMatch()
                         }
 
                         // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
-                        WORDPTR *topoflevel =
+                        word_p *topoflevel =
                                 s.left - ((s.leftnargs) ? (1 +
                                     s.leftnargs) : 0);
                         rplExpandStack(DSTop - topoflevel);
@@ -3701,7 +3701,7 @@ int32_t rplSymbRuleMatch()
                         s.leftidx = s.rightidx = 0;
                         s.lrotbase = s.leftrot = 0;
                         // LEFTARG AND RIGHTARG
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         if(Exceptions) {
                             rplCleanupSnapshots(stkbottom);
                             DSTop = expression;
@@ -3709,7 +3709,7 @@ int32_t rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         if(Exceptions) {
                             rplCleanupSnapshots(stkbottom);
                             DSTop = expression;
@@ -3717,7 +3717,7 @@ int32_t rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         if(Exceptions) {
                             rplCleanupSnapshots(stkbottom);
                             DSTop = expression;
@@ -3725,7 +3725,7 @@ int32_t rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) zero_bint);
                         if(Exceptions) {
                             rplCleanupSnapshots(stkbottom);
                             DSTop = expression;
@@ -3756,7 +3756,7 @@ int32_t rplSymbRuleMatch()
                 // RIGHT PART DOESN'T HAVE AN OPERATOR, CHECK FOR SPECIAL IDENTS
                 if(ISIDENT(**s.right)) {
                     // IF THE RIGHT EXPRESSION IS A SINGLE IDENTIFIER
-                    WORDPTR *lamname = rplFindLAM(*s.right, 0);
+                    word_p *lamname = rplFindLAM(*s.right, 0);
                     if(lamname) {
                         WORD firstchars = (*s.right)[1];
                         firstchars &= 0xffff;
@@ -3815,7 +3815,7 @@ int32_t rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
                                 DSTop = expression;
@@ -3823,7 +3823,7 @@ int32_t rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplPushData((WORDPTR) zero_bint);
+                            rplPushData((word_p) zero_bint);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
                                 DSTop = expression;
@@ -3965,7 +3965,7 @@ int32_t rplSymbRuleMatch()
 
                                if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
-                               WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
+                               word_p tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
 
                                if(ISIDENT(*tmp)) {
                                // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
@@ -4017,9 +4017,9 @@ int32_t rplSymbRuleMatch()
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                rplNewSINTPush(s.rightidx,DECint32_t);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                               rplPushData((WORDPTR)zero_bint);
+                               rplPushData((word_p)zero_bint);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                               rplPushData((WORDPTR)zero_bint);
+                               rplPushData((word_p)zero_bint);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                s.nlams=0;
                                updateLAMs(&s);
@@ -4510,7 +4510,7 @@ int32_t rplSymbRuleMatch()
 
                                if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
-                               WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
+                               word_p tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
 
                                if(ISIDENT(*tmp)) {
                                // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
@@ -4566,7 +4566,7 @@ int32_t rplSymbRuleMatch()
                                DSTop+=3;
                                updateCounters(&s);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                               *DSTop++=(WORDPTR)zero_bint;
+                               *DSTop++=(word_p)zero_bint;
 
                                updateLAMs(&s);
                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4915,7 +4915,7 @@ int32_t rplSymbRuleMatch()
                                     for(k = p.leftidx, taken = 0;
                                             k <= p.leftnargs - otherright;
                                             ++k) {
-                                        WORDPTR object =
+                                        word_p object =
                                                 FINDARGUMENT(p.left,
                                                 p.leftnargs, k);
                                         if(rplSymbIsNumeric(object)) {
@@ -5064,7 +5064,7 @@ int32_t rplSymbRuleMatch()
                                 }
 
                                 // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
-                                WORDPTR expression = 0;
+                                word_p expression = 0;
 
                                 if(p.leftidx >= 1 && p.leftidx <= p.leftnargs)
                                     expression =
@@ -5281,24 +5281,24 @@ int32_t rplSymbRuleMatch()
             printf("ARGMATCH: %d/%d,%d/%d [%d,%d]", s.leftidx, s.leftnargs,
                     s.rightidx, s.rightnargs, s.leftdepth, s.rightdepth);
             if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                             s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  left=%s", strbyte);
                 }
             }
             if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                             s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  right=%s", strbyte);
@@ -5357,7 +5357,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5365,7 +5365,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5402,24 +5402,24 @@ int32_t rplSymbRuleMatch()
             printf("RESTARTMATCH: %d/%d,%d/%d [%d,%d]", s.leftidx, s.leftnargs,
                     s.rightidx, s.rightnargs, s.leftdepth, s.rightdepth);
             if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                             s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  left=%s", strbyte);
                 }
             }
             if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                             s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  right=%s", strbyte);
@@ -5469,7 +5469,7 @@ int32_t rplSymbRuleMatch()
                 s.right = DSTop - 1;
 
                 // LEFTARG AND RIGHTARG
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     rplCleanupSnapshots(stkbottom);
                     DSTop = expression;
@@ -5477,7 +5477,7 @@ int32_t rplSymbRuleMatch()
                     nLAMBase = lamcurrent;
                     return 0;
                 }
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     rplCleanupSnapshots(stkbottom);
                     DSTop = expression;
@@ -5485,7 +5485,7 @@ int32_t rplSymbRuleMatch()
                     nLAMBase = lamcurrent;
                     return 0;
                 }
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     rplCleanupSnapshots(stkbottom);
                     DSTop = expression;
@@ -5493,7 +5493,7 @@ int32_t rplSymbRuleMatch()
                     nLAMBase = lamcurrent;
                     return 0;
                 }
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 if(Exceptions) {
                     rplCleanupSnapshots(stkbottom);
                     DSTop = expression;
@@ -5513,24 +5513,24 @@ int32_t rplSymbRuleMatch()
                 printf("RESTARTED: %d/%d,%d/%d", s.leftidx, s.leftnargs,
                         s.rightidx, s.rightnargs);
                 if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                    WORDPTR string =
+                    word_p string =
                             rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                                 s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                     if(string) {
                         BYTE strbyte[1024];
-                        memmoveb(strbyte, (BYTEPTR) (string + 1),
+                        memmoveb(strbyte, (byte_p) (string + 1),
                                 rplStrSize(string));
                         strbyte[rplStrSize(string)] = 0;
                         printf("  left=%s", strbyte);
                     }
                 }
                 if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                    WORDPTR string =
+                    word_p string =
                             rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                                 s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                     if(string) {
                         BYTE strbyte[1024];
-                        memmoveb(strbyte, (BYTEPTR) (string + 1),
+                        memmoveb(strbyte, (byte_p) (string + 1),
                                 rplStrSize(string));
                         strbyte[rplStrSize(string)] = 0;
                         printf("  right=%s", strbyte);
@@ -5553,7 +5553,7 @@ int32_t rplSymbRuleMatch()
                     nLAMBase = lamcurrent;
                     return 0;
                 }
-                rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
+                rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);
                 if(Exceptions) {
                     rplCleanupSnapshots(stkbottom);
                     DSTop = expression;
@@ -5596,24 +5596,24 @@ int32_t rplSymbRuleMatch()
             printf("BACKTRACK: %d/%d,%d/%d [%d,%d]", s.leftidx, s.leftnargs,
                     s.rightidx, s.rightnargs, s.leftdepth, s.rightdepth);
             if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                             s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  left=%s", strbyte);
                 }
             }
             if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                             s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  right=%s", strbyte);
@@ -5692,7 +5692,7 @@ int32_t rplSymbRuleMatch()
                             }
 
                             // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
-                            WORDPTR tmp =
+                            word_p tmp =
                                     FINDARGUMENT(s.left, s.leftnargs,
                                     s.leftidx);
                             int32_t k;
@@ -5768,26 +5768,26 @@ int32_t rplSymbRuleMatch()
                         printf("ERROR IN BACKTRACK: %d/%d,%d/%d", s.leftidx,
                                 s.leftnargs, s.rightidx, s.rightnargs);
                         if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                            WORDPTR string =
+                            word_p string =
                                     rplDecompile(FINDARGUMENT(s.left,
                                         s.leftnargs, s.leftidx),
                                     DECOMP_EDIT | DECOMP_NOHINTS);
                             if(string) {
                                 BYTE strbyte[1024];
-                                memmoveb(strbyte, (BYTEPTR) (string + 1),
+                                memmoveb(strbyte, (byte_p) (string + 1),
                                         rplStrSize(string));
                                 strbyte[rplStrSize(string)] = 0;
                                 printf("  left=%s", strbyte);
                             }
                         }
                         if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                            WORDPTR string =
+                            word_p string =
                                     rplDecompile(FINDARGUMENT(s.right,
                                         s.rightnargs, s.rightidx),
                                     DECOMP_EDIT | DECOMP_NOHINTS);
                             if(string) {
                                 BYTE strbyte[1024];
-                                memmoveb(strbyte, (BYTEPTR) (string + 1),
+                                memmoveb(strbyte, (byte_p) (string + 1),
                                         rplStrSize(string));
                                 strbyte[rplStrSize(string)] = 0;
                                 printf("  right=%s", strbyte);
@@ -5851,7 +5851,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5859,7 +5859,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5867,7 +5867,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplPushData((WORDPTR) zero_bint);
+                    rplPushData((word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5888,24 +5888,24 @@ int32_t rplSymbRuleMatch()
                     printf("BACKTRACKED: %d/%d,%d/%d", s.leftidx, s.leftnargs,
                             s.rightidx, s.rightnargs);
                     if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                        WORDPTR string =
+                        word_p string =
                                 rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                                     s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                         if(string) {
                             BYTE strbyte[1024];
-                            memmoveb(strbyte, (BYTEPTR) (string + 1),
+                            memmoveb(strbyte, (byte_p) (string + 1),
                                     rplStrSize(string));
                             strbyte[rplStrSize(string)] = 0;
                             printf("  left=%s", strbyte);
                         }
                     }
                     if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                        WORDPTR string =
+                        word_p string =
                                 rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                                     s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                         if(string) {
                             BYTE strbyte[1024];
-                            memmoveb(strbyte, (BYTEPTR) (string + 1),
+                            memmoveb(strbyte, (byte_p) (string + 1),
                                     rplStrSize(string));
                             strbyte[rplStrSize(string)] = 0;
                             printf("  right=%s", strbyte);
@@ -5930,7 +5930,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplCreateLAM((WORDPTR) nulllam_ident, (WORDPTR) zero_bint);
+                    rplCreateLAM((word_p) nulllam_ident, (word_p) zero_bint);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5972,24 +5972,24 @@ int32_t rplSymbRuleMatch()
             printf("ARGDONE: %d/%d,%d/%d [%d,%d]", s.leftidx, s.leftnargs,
                     s.rightidx, s.rightnargs, s.leftdepth, s.rightdepth);
             if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                             s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  left=%s", strbyte);
                 }
             }
             if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                             s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  right=%s", strbyte);
@@ -6027,12 +6027,12 @@ int32_t rplSymbRuleMatch()
                             // ******************************************************
 #ifdef RULEDEBUG
                             printf("REPLACED (EXTRA LEFT): ");
-                            WORDPTR string =
+                            word_p string =
                                     rplDecompile(*DStkBottom,
                                     DECOMP_EDIT | DECOMP_NOHINTS);
                             if(string) {
                                 BYTE strbyte[1024];
-                                memmoveb(strbyte, (BYTEPTR) (string + 1),
+                                memmoveb(strbyte, (byte_p) (string + 1),
                                         rplStrSize(string));
                                 strbyte[rplStrSize(string)] = 0;
                                 printf("  expression=%s", strbyte);
@@ -6070,8 +6070,8 @@ int32_t rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplCreateLAM((WORDPTR) nulllam_ident,
-                                    (WORDPTR) zero_bint);
+                            rplCreateLAM((word_p) nulllam_ident,
+                                    (word_p) zero_bint);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
                                 DSTop = expression;
@@ -6170,7 +6170,7 @@ int32_t rplSymbRuleMatch()
                         }
 
                         // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
-                        WORDPTR *topoflevel =
+                        word_p *topoflevel =
                                 s.left - ((s.leftnargs) ? (1 +
                                     s.leftnargs) : 0);
                         rplExpandStack(DSTop - topoflevel);
@@ -6261,12 +6261,12 @@ int32_t rplSymbRuleMatch()
                         // ******************************************************
 #ifdef RULEDEBUG
                         printf("REPLACED (EXACT): ");
-                        WORDPTR string =
+                        word_p string =
                                 rplDecompile(*DStkBottom,
                                 DECOMP_EDIT | DECOMP_NOHINTS);
                         if(string) {
                             BYTE strbyte[1024];
-                            memmoveb(strbyte, (BYTEPTR) (string + 1),
+                            memmoveb(strbyte, (byte_p) (string + 1),
                                     rplStrSize(string));
                             strbyte[rplStrSize(string)] = 0;
                             printf("  expression=%s", strbyte);
@@ -6291,8 +6291,8 @@ int32_t rplSymbRuleMatch()
                             nLAMBase = lamcurrent;
                             return 0;
                         }
-                        rplCreateLAM((WORDPTR) nulllam_ident,
-                                (WORDPTR) zero_bint);
+                        rplCreateLAM((word_p) nulllam_ident,
+                                (word_p) zero_bint);
                         if(Exceptions) {
                             rplCleanupSnapshots(stkbottom);
                             DSTop = expression;
@@ -6383,24 +6383,24 @@ int32_t rplSymbRuleMatch()
             printf("ARGDONEEXTRA: %d/%d,%d/%d [%d,%d]", s.leftidx, s.leftnargs,
                     s.rightidx, s.rightnargs, s.leftdepth, s.rightdepth);
             if((s.leftidx > 0) && (s.leftidx <= s.leftnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.left, s.leftnargs,
                             s.leftidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  left=%s", strbyte);
                 }
             }
             if((s.rightidx > 0) && (s.rightidx <= s.rightnargs)) {
-                WORDPTR string =
+                word_p string =
                         rplDecompile(FINDARGUMENT(s.right, s.rightnargs,
                             s.rightidx), DECOMP_EDIT | DECOMP_NOHINTS);
                 if(string) {
                     BYTE strbyte[1024];
-                    memmoveb(strbyte, (BYTEPTR) (string + 1),
+                    memmoveb(strbyte, (byte_p) (string + 1),
                             rplStrSize(string));
                     strbyte[rplStrSize(string)] = 0;
                     printf("  right=%s", strbyte);
@@ -6435,7 +6435,7 @@ int32_t rplSymbRuleMatch()
 
 // COUNT HOW MANY RESULTS WERE FOUND
     int32_t found = 0;
-    WORDPTR *lamenv = LAMTop;
+    word_p *lamenv = LAMTop;
     while(lamenv > lamsave) {
         lamenv = rplGetNextLAMEnv(lamenv);
         if(lamenv)
@@ -6976,12 +6976,12 @@ int32_t rplSymbCombineAttr(WORD operator, int32_t rattr, int32_t attr)
     return rattr;
 }
 
-int32_t rplSymbGetAttr(WORDPTR object)
+int32_t rplSymbGetAttr(word_p object)
 {
     int32_t rattr = -1, attr;
-    WORDPTR ptr, endofobj, finishedobject;
+    word_p ptr, endofobj, finishedobject;
     WORD operator;
-    WORDPTR *stksave = DSTop;
+    word_p *stksave = DSTop;
 
     rplPushDataNoGrow(object);
     rplPushDataNoGrow(object);
@@ -7159,9 +7159,9 @@ int32_t rplSymbGetAttr(WORDPTR object)
 // REPLACE ALL OCCURRENCES OF A VARIABLE NAME WITH ANOTHER VARIABLE NAME
 // Uses ScratchPointer1,2 and 3
 
-WORDPTR rplSymbReplaceVar(WORDPTR symb, WORDPTR findvar, WORDPTR newvar)
+word_p rplSymbReplaceVar(word_p symb, word_p findvar, word_p newvar)
 {
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
     ScratchPointer2 = findvar;
     ScratchPointer3 = newvar;
 
@@ -7171,7 +7171,7 @@ WORDPTR rplSymbReplaceVar(WORDPTR symb, WORDPTR findvar, WORDPTR newvar)
         return 0;
     }
 
-    WORDPTR *stkptr = DSTop - 1;
+    word_p *stkptr = DSTop - 1;
     findvar = ScratchPointer2;
     newvar = ScratchPointer3;
 

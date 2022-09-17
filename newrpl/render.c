@@ -80,7 +80,7 @@ void rndEvalCurve2(FPINT t, CURVEPT * bezier, CURVEPT * result, CURVEPT * deriv)
 // WRITE A VALUE IN THE BUFFER, RESIZE THE BUFFER AS NEEDED TO MAKE ROOM
 // RETURN 0 IF NOT ENOUGH MEMORY, MAY TRIGGER GC SO IT ALWAYS RETURNS A NEW (OR SAME) buffer
 
-WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, int32_t scanline,
+word_p rndWriteScanvalue(word_p buffer, FPINT value, int32_t scanline,
         int32_t nscans)
 {
     if(buffer[scanline + 2 * nscans] == buffer[scanline + nscans]) {
@@ -145,13 +145,13 @@ WORDPTR rndWriteScanvalue(WORDPTR buffer, FPINT value, int32_t scanline,
 
 // EACH SCANLINE = ARRAY OF FPINT NUMBERS, X COORD. OF INTERSECTION OF POLYGON WITH THE SCAN
 
-WORDPTR rndScanPolygon(int32_t npoints, CURVEPT * poly, FPINT starty, FPINT endy)
+word_p rndScanPolygon(int32_t npoints, CURVEPT * poly, FPINT starty, FPINT endy)
 {
     int32_t k;
     int32_t nscans = endy - starty + 1;
 // INTERMEDIATE BUFFER
 
-    WORDPTR buffer =
+    word_p buffer =
             rplAllocTempOb((INITIAL_SCANLINE_INTERS * sizeof(FPINT) /
                 sizeof(WORD) + 3) * nscans);
     if(!buffer) {

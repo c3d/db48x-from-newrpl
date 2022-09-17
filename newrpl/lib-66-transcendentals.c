@@ -80,14 +80,14 @@ INCLUDE_ROMOBJECT(lib66_log);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
 
-    (WORDPTR) lib66_main,
-    (WORDPTR) lib66_trig,
-    (WORDPTR) lib66_hyp,
-    (WORDPTR) lib66_log
+    (word_p) lib66_main,
+    (word_p) lib66_trig,
+    (word_p) lib66_hyp,
+    (word_p) lib66_log
 };
 
 void LIB_HANDLER()
@@ -178,7 +178,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -278,7 +278,7 @@ void LIB_HANDLER()
 
                 rplRect2Polar(&RReg[3], &RReg[4], angmode);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -293,7 +293,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
+            word_p newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -348,7 +348,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -453,7 +453,7 @@ void LIB_HANDLER()
 
                 rplRect2Polar(&RReg[3], &RReg[4], angmode);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -468,7 +468,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
+            word_p newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -521,7 +521,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -634,7 +634,7 @@ void LIB_HANDLER()
 
                 rplRect2Polar(&RReg[3], &RReg[4], angmode);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -649,7 +649,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
+            word_p newcmplx = rplNewComplex(&RReg[3], &RReg[4], angmode);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -702,7 +702,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -873,7 +873,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -888,7 +888,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -952,7 +952,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[1], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[1], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -973,7 +973,7 @@ void LIB_HANDLER()
 
         finalize(&RReg[0]);
 
-        WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+        word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
         if(!newangle)
             return;
 
@@ -994,7 +994,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -1167,7 +1167,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -1182,7 +1182,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -1251,7 +1251,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -1272,7 +1272,7 @@ void LIB_HANDLER()
 
         finalize(&RReg[0]);
 
-        WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+        word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
         if(!newangle)
             return;
 
@@ -1294,7 +1294,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -1338,7 +1338,7 @@ void LIB_HANDLER()
 
             pi2.flags |= (re.flags & F_NEGATIVE);
 
-            WORDPTR newang = rplNewAngleFromReal(&pi2, angmode);
+            word_p newang = rplNewAngleFromReal(&pi2, angmode);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1371,7 +1371,7 @@ void LIB_HANDLER()
 
             pi2.flags |= (im.flags & F_NEGATIVE);
 
-            WORDPTR newang = rplNewAngleFromReal(&pi2, angmode);
+            word_p newang = rplNewAngleFromReal(&pi2, angmode);
             if(!newang)
                 return;
             rplOverwriteData(1, newang);
@@ -1514,7 +1514,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -1529,7 +1529,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -1557,7 +1557,7 @@ void LIB_HANDLER()
         trig_atan2(&y, &RReg[7], angmode);
         finalize(&RReg[0]);
 
-        WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+        word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
         if(!newangle)
             return;
 
@@ -1580,7 +1580,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1), arg2 = rplPeekData(2);
+        word_p arg = rplPeekData(1), arg2 = rplPeekData(2);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)
                 || ISSYMBOLIC(*arg2) || ISIDENT(*arg2) || ISCONSTANT(*arg2)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1611,7 +1611,7 @@ void LIB_HANDLER()
 
         finalize(&RReg[0]);
 
-        WORDPTR newangle = rplNewAngleFromReal(&RReg[0], angmode);
+        word_p newangle = rplNewAngleFromReal(&RReg[0], angmode);
         if(!newangle)
             return;
 
@@ -1634,7 +1634,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -1725,7 +1725,7 @@ void LIB_HANDLER()
 
                 // SINCE LN() MAPS FROM POLAR TO CARTESIAN PLANE, ALWAYS RETURN CARTESIAN COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -1754,7 +1754,7 @@ void LIB_HANDLER()
             trig_atan2(&im, &re, ANGLERAD);
             finalize(&RReg[0]);
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -1789,7 +1789,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[1]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -1824,7 +1824,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -1848,7 +1848,7 @@ void LIB_HANDLER()
             rplReadCNumber(arg, &re, &im, &angmode);
 
             if(re.flags & F_NEGATIVE) {
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
             }
             else {
                 rplDropData(1);
@@ -1883,7 +1883,7 @@ void LIB_HANDLER()
 
             switch (cmpReal(&im, &pi2)) {
             case 1:    // ARG(Z)> PI/2
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
                 return;
             case -1:
                 rplDropData(1);
@@ -1964,7 +1964,7 @@ void LIB_HANDLER()
 
                 // AND RETURN THE POLAR COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -1979,7 +1979,7 @@ void LIB_HANDLER()
 
             // AND RETURN THE POLAR COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLERAD);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLERAD);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -2016,7 +2016,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -2239,7 +2239,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -2254,7 +2254,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[6], &RReg[7], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[6], &RReg[7], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -2292,7 +2292,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -2509,7 +2509,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -2524,7 +2524,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[6], &RReg[7], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[6], &RReg[7], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -2561,7 +2561,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -2589,7 +2589,7 @@ void LIB_HANDLER()
             if(re.flags & F_NEGATIVE)
                 rplNewint32_tPush(-1, DECint32_t);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
 
@@ -2622,7 +2622,7 @@ void LIB_HANDLER()
                 rplNewint32_tPush(-1, DECint32_t);
                 return;
             case -1:
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
                 return;
             default:
             case 0:    // ARG(Z)== PI/2
@@ -2749,7 +2749,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -2764,7 +2764,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -2802,7 +2802,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -3031,7 +3031,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -3046,7 +3046,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -3087,7 +3087,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -3269,7 +3269,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -3284,7 +3284,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[0], &RReg[9], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -3360,7 +3360,7 @@ void LIB_HANDLER()
 
                 // RETURN THE CARTESIAN COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -3397,7 +3397,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -3610,7 +3610,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[0]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[8], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -3625,7 +3625,7 @@ void LIB_HANDLER()
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -3692,7 +3692,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[1]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[1], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[1], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -3744,7 +3744,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -3963,7 +3963,7 @@ void LIB_HANDLER()
         case CPLX_ZERO:
         {
             rplDropData(1);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
         case CPLX_NORMAL:
@@ -4139,7 +4139,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -4220,7 +4220,7 @@ void LIB_HANDLER()
 
                 // SINCE LN() MAPS FROM POLAR TO CARTESIAN PLANE, ALWAYS RETURN CARTESIAN COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[9], &RReg[0], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -4252,7 +4252,7 @@ void LIB_HANDLER()
             decconst_ln10(&ln10);
             divReal(&RReg[9], &RReg[0], &ln10);
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -4286,7 +4286,7 @@ void LIB_HANDLER()
 
                 divReal(&RReg[1], &pi, &ln10);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -4321,7 +4321,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -4345,7 +4345,7 @@ void LIB_HANDLER()
             rplReadCNumber(arg, &re, &im, &angmode);
 
             if(re.flags & F_NEGATIVE) {
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
             }
             else {
                 rplDropData(1);
@@ -4430,7 +4430,7 @@ void LIB_HANDLER()
 
                 // AND RETURN THE POLAR COMPLEX
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
+                word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], angmode);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -4445,7 +4445,7 @@ void LIB_HANDLER()
 
             // AND RETURN THE POLAR COMPLEX
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLERAD);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[9], ANGLERAD);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -4488,7 +4488,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -4512,7 +4512,7 @@ void LIB_HANDLER()
             rplReadCNumber(arg, &re, &im, &angmode);
 
             if(re.flags & F_NEGATIVE) {
-                rplOverwriteData(1, (WORDPTR) minusone_bint);
+                rplOverwriteData(1, (word_p) minusone_bint);
             }
             else {
                 rplDropData(1);
@@ -4547,7 +4547,7 @@ void LIB_HANDLER()
 
             switch (cmpReal(&im, &pi2)) {
             case 1:    // ARG(Z)> PI/2
-                rplOverwriteData(1, (WORDPTR) minusone_bint);
+                rplOverwriteData(1, (word_p) minusone_bint);
                 return;
             case -1:
                 rplDropData(1);
@@ -4639,7 +4639,7 @@ void LIB_HANDLER()
             decconst_One(&one);
             subReal(&RReg[2], &RReg[0], &one);
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[2], &RReg[1], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[2], &RReg[1], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -4677,7 +4677,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode, 1);
@@ -4788,7 +4788,7 @@ void LIB_HANDLER()
             trig_atan2(&RReg[9], &RReg[0], ANGLERAD);
             finalize(&RReg[0]);
 
-            WORDPTR newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
+            word_p newcmplx = rplNewComplex(&RReg[8], &RReg[0], ANGLENONE);
             if((!newcmplx) || Exceptions)
                 return;
 
@@ -4836,7 +4836,7 @@ void LIB_HANDLER()
 
                 finalize(&RReg[1]);
 
-                WORDPTR newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
+                word_p newcmplx = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                 if((!newcmplx) || Exceptions)
                     return;
 
@@ -5002,7 +5002,7 @@ void LIB_HANDLER()
         if((MENUNUMBER(MenuCodeArg) <= 3))
             ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         else
-            ObjectPTR = (WORDPTR) empty_list;
+            ObjectPTR = (word_p) empty_list;
 
         RetNum = OK_CONTINUE;
         return;
@@ -5013,7 +5013,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -5022,12 +5022,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

@@ -268,10 +268,10 @@
 
 // COMMAND LINE
 
-WORDPTR     halSaveCmdLine();
-int32_t        halRestoreCmdLine(WORDPTR data);
+word_p     halSaveCmdLine();
+int32_t        halRestoreCmdLine(word_p data);
 // INSERT TEXT, OPEN NEW CMD LINE IF NEEDED
-void        uiOpenAndInsertTextN(BYTEPTR start, BYTEPTR end);
+void        uiOpenAndInsertTextN(byte_p start, byte_p end);
 
 extern int32_t ui_visibleline, ui_nlines;
 extern int32_t ui_currentline, ui_prevline;
@@ -285,14 +285,14 @@ int32_t        uiGetCmdLineState();
 void        uiEnsureCursorVisible();
 void        uiModifyLine(int dontaddnewline);
 void        uiExtractLine(int32_t line);
-BYTEPTR     uiFindNumberStart(BYTEPTR *endofnum, int32_t *flagsptr);
-WORDPTR     uiGetCmdLineText();
-int32_t        uiSetCmdLineText(WORDPTR text);
+byte_p     uiFindNumberStart(byte_p *endofnum, int32_t *flagsptr);
+word_p     uiGetCmdLineText();
+int32_t        uiSetCmdLineText(word_p text);
 void        uiOpenCmdLine(int32_t mode);
 void        uiCloseCmdLine();
 void        uiSetCurrentLine(int32_t line);
-int32_t        uiInsertCharacters(BYTEPTR string);
-int32_t        uiInsertCharactersN(BYTEPTR string, BYTEPTR end);
+int32_t        uiInsertCharacters(byte_p string);
+int32_t        uiInsertCharactersN(byte_p string, byte_p end);
 void        uiRemoveCharacters(int32_t length);
 
 void        uiStretchCmdLine(int32_t addition);
@@ -301,13 +301,13 @@ void        uiAutocompNext();
 void        uiAutocompPrev();
 void        uiAutocompInsert();
 
-BYTEPTR     uiAutocompStringStart();
-BYTEPTR     uiAutocompStringEnd();
-BYTEPTR     uiAutocompStringTokEnd();
+byte_p     uiAutocompStringStart();
+byte_p     uiAutocompStringEnd();
+byte_p     uiAutocompStringTokEnd();
 
 void        uiSetSelectionStart();
 void        uiSetSelectionEnd();
-WORDPTR     uiExtractSelection();
+word_p     uiExtractSelection();
 int32_t        uiDeleteSelection();
 
 int32_t        uiGetIndentLevel(int32_t *isemptyline);
@@ -330,22 +330,22 @@ void        uiCursorPageRight();
 
 // SOFT MENUS
 
-int32_t        uiCountMenuItems(WORD MenuCode, WORDPTR menu);
-WORDPTR     uiGetLibMenu(int64_t MenuCode);
-WORDPTR     uiGetMenuItem(int64_t MenuCode, WORDPTR menu, int32_t item);
-WORDPTR     uiGetMenuItemAction(WORDPTR item, int32_t shift);
-WORDPTR     uiGetMenuItemHelp(WORDPTR item);
-void        uiDrawMenuItem(WORDPTR item, int32_t palette_color, int32_t palette_bkcolor, gglsurface *scr);
+int32_t        uiCountMenuItems(WORD MenuCode, word_p menu);
+word_p     uiGetLibMenu(int64_t MenuCode);
+word_p     uiGetMenuItem(int64_t MenuCode, word_p menu, int32_t item);
+word_p     uiGetMenuItemAction(word_p item, int32_t shift);
+word_p     uiGetMenuItemHelp(word_p item);
+void        uiDrawMenuItem(word_p item, int32_t palette_color, int32_t palette_bkcolor, gglsurface *scr);
 
-WORDPTR     uiGetLibHelp(WORDPTR Object);
+word_p     uiGetLibHelp(word_p Object);
 
-WORDPTR     uiGetLibMsg(WORD MsgCode);
+word_p     uiGetLibMsg(WORD MsgCode);
 
 // RPL CODE EXECUTION FROM UI
 void        uiCmdRun(WORD Opcode);
 int32_t        uiCmdRunTransparent(WORD Opcode, int32_t nargs, int32_t nresults);
 
 // FORMS
-void        uiUpdateForm(WORDPTR form);
+void        uiUpdateForm(word_p form);
 
 #endif // UI_H

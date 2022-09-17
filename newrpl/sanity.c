@@ -19,7 +19,7 @@
 
 // DOES NOT CHECK FOR VALIDITY OF THE OBJECT POINTER
 
-int32_t rplVerifyObject(WORDPTR obj)
+int32_t rplVerifyObject(word_p obj)
 {
     int libnum = LIBNUM(*obj);
     LIBHANDLER han = rplGetLibHandler(libnum);
@@ -43,7 +43,7 @@ int32_t rplVerifyObject(WORDPTR obj)
     return 1;
 }
 
-int32_t rplIsTempObPointer(WORDPTR ptr)
+int32_t rplIsTempObPointer(word_p ptr)
 {
 // CHECK IF POINTER IS WITHIN TEMPOB
     if((ptr >= TempOb) && (ptr < TempObEnd))
@@ -56,7 +56,7 @@ int32_t rplIsTempObPointer(WORDPTR ptr)
 // A) POINT WITHIN TEMPOB
 // B) POINT TO AN OBJECT IN ROM
 
-int32_t rplVerifyObjPointer(WORDPTR ptr)
+int32_t rplVerifyObjPointer(word_p ptr)
 {
 // CHECK IF POINTER IS WITHIN TEMPOB
     if((ptr >= TempOb) && (ptr < TempObEnd))
@@ -102,8 +102,8 @@ int32_t rplVerifyObjPointer(WORDPTR ptr)
 int32_t rplVerifyDStack(int32_t fix)
 {
     int32_t errors = 0;
-    WORDPTR *stkptr = DSTop - 1;
-    WORDPTR *bottom = DStkBottom;
+    word_p *stkptr = DSTop - 1;
+    word_p *bottom = DStkBottom;
 
     do {
 
@@ -112,7 +112,7 @@ int32_t rplVerifyDStack(int32_t fix)
                 if(!fix)
                     return 0;
                 // FIX THE BAD POINTER
-                *stkptr = (WORDPTR) zero_bint;
+                *stkptr = (word_p) zero_bint;
                 ++errors;
             }
             else {
@@ -120,7 +120,7 @@ int32_t rplVerifyDStack(int32_t fix)
                 if(!rplVerifyObject(*stkptr)) {
                     if(!fix)
                         return 0;
-                    *stkptr = (WORDPTR) zero_bint;
+                    *stkptr = (word_p) zero_bint;
                     ++errors;
                 }
             }
@@ -136,7 +136,7 @@ int32_t rplVerifyDStack(int32_t fix)
                 // INVALID SNAPSHOT!!
                 if(!fix)
                     return 0;
-                *bottom = (WORDPTR) (bottom - DStk);
+                *bottom = (word_p) (bottom - DStk);
                 ++errors;
             }
         }
@@ -163,7 +163,7 @@ int32_t rplVerifyDStack(int32_t fix)
 
 int32_t rplVerifyRStack()
 {
-    WORDPTR *stkptr = RSTop - 1;
+    word_p *stkptr = RSTop - 1;
 
     while(stkptr >= RStk) {
         if((stkptr >= DStk) && (stkptr < DSTop)) {
@@ -196,8 +196,8 @@ int32_t rplVerifyRStack()
 int32_t rplVerifyTempOb(int32_t fix)
 {
     int32_t errors = 0;
-    WORDPTR *tbptr = TempBlocks;
-    WORDPTR prevptr = 0;
+    word_p *tbptr = TempBlocks;
+    word_p prevptr = 0;
 
     while(tbptr < TempBlocksEnd) {
         if((*tbptr < TempOb) || (*tbptr >= TempObEnd) || (*tbptr <= prevptr)) {
@@ -224,7 +224,7 @@ int32_t rplVerifyTempOb(int32_t fix)
 // CREATES AN IDENT IN TEMPOB (ALLOCATING MEMORY= POSSIBLE GC)
 // USING THE GIVEN NUMBER, MAXIMUM 8 LETTERS
 
-WORDPTR rplCreateHashIdent(int32_t number)
+word_p rplCreateHashIdent(int32_t number)
 {
     int64_t bignumber =
             ((int64_t) number << 32) ^ ((int64_t) number << 24) ^ ((int64_t) number
@@ -232,7 +232,7 @@ WORDPTR rplCreateHashIdent(int32_t number)
     bignumber &= 0x0f0f0f0f0f0f0f00LL;
     bignumber += 0x414141414141412ELL;
 
-    WORDPTR obj = rplAllocTempOb(2);
+    word_p obj = rplAllocTempOb(2);
     if(!obj)
         return 0;
     obj[0] = MKPROLOG(DOIDENT, 2);
@@ -258,8 +258,8 @@ extern const WORD const root_dir_handle[];
 int32_t rplVerifyDirectories(int32_t fix)
 {
     int32_t errors = 0;
-    WORDPTR *dirptr = Directories, *dirptr2, *dirend;
-    WORDPTR handle, parent, name;
+    word_p *dirptr = Directories, *dirptr2, *dirend;
+    word_p handle, parent, name;
     int32_t nitems, dirstate;
 
 // PASS 1 - SCAN DIRECTORY STRUCTURE ONLY
@@ -270,7 +270,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(!fix)
                 return 0;
             // FORCE A START MARKER HERE
-            dirptr[0] = (WORDPTR) dir_start_bint;
+            dirptr[0] = (word_p) dir_start_bint;
             ++errors;
         }
         if(dirptr[2] != dir_parent_bint) {
@@ -278,7 +278,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(!fix)
                 return 0;
             // FORCE A PARENT MARKER HERE
-            dirptr[2] = (WORDPTR) dir_parent_bint;
+            dirptr[2] = (word_p) dir_parent_bint;
             ++errors;
         }
 
@@ -291,7 +291,7 @@ int32_t rplVerifyDirectories(int32_t fix)
                     // WE FOUND THE END OF THIS DIR, REPAIR IT
                     if(!fix)
                         return 0;
-                    dirend[0] = (WORDPTR) dir_end_bint;
+                    dirend[0] = (word_p) dir_end_bint;
                     break;
                 }
             }
@@ -306,7 +306,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             // THERE'S NO END IN SIGHT!
             if(!fix)
                 return 0;
-            dirend[0] = (WORDPTR) dir_end_bint;
+            dirend[0] = (word_p) dir_end_bint;
             dirend[1] = dirptr[1];
             DirsTop = dirend + 2;
             if(DirSize <= DirsTop - Directories + DIRSLACK)
@@ -405,8 +405,8 @@ int32_t rplVerifyDirectories(int32_t fix)
                 if(!fix)
                     return 0;
                 // SCAN FOR A POSSIBLE PARENT DIR ENTRY WITH OUR HANDLE
-                parent = (WORDPTR) root_dir_handle;
-                WORDPTR *scan = Directories + 1;
+                parent = (word_p) root_dir_handle;
+                word_p *scan = Directories + 1;
                 while(scan < DirsTop) {
                     if((scan >= dirptr) && (scan < dirend)) {
                         scan = dirend + 3;
@@ -445,10 +445,10 @@ int32_t rplVerifyDirectories(int32_t fix)
         }
         else {
             // PARENT IS AN OBJECT IN TEMPOB
-            WORDPTR pcandidate;
+            word_p pcandidate;
             // SCAN FOR A POSSIBLE PARENT DIR ENTRY WITH OUR HANDLE
-            pcandidate = (WORDPTR) root_dir_handle;
-            WORDPTR *scan = Directories + 1;
+            pcandidate = (word_p) root_dir_handle;
+            word_p *scan = Directories + 1;
             while(scan < DirsTop) {
                 if((scan >= dirptr) && (scan < dirend)) {
                     scan = dirend + 3;
@@ -492,7 +492,7 @@ int32_t rplVerifyDirectories(int32_t fix)
                 if(!fix)
                     return 0;
                 // MAKE THE PARENT ROOT, EVEN THOUGH IT'S NOT LINKED FROM THERE
-                dirptr[3] = (WORDPTR) root_dir_handle;
+                dirptr[3] = (word_p) root_dir_handle;
             }
 
         }
@@ -516,7 +516,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(dirstate != 0) {
                 // SPURIOUS DIRECTORY START, REMOVE
                 if(fix) {
-                    dirptr[1] = (WORDPTR) zero_bint;
+                    dirptr[1] = (word_p) zero_bint;
                     rplPurgeForced(dirptr);
                     dirptr -= 2;
                 }
@@ -530,7 +530,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(dirstate != 1) {
                 // SPURIOUS PARENT DIR RELATIONSHIP - REMOVE
                 if(fix) {
-                    dirptr[1] = (WORDPTR) zero_bint;
+                    dirptr[1] = (word_p) zero_bint;
                     rplPurgeForced(dirptr);
                     dirptr -= 2;
                 }
@@ -545,7 +545,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(dirstate != 2) {
                 // SPURIOUS DIRECTORY END??
                 if(fix) {
-                    dirptr[1] = (WORDPTR) zero_bint;
+                    dirptr[1] = (word_p) zero_bint;
                     rplPurgeForced(dirptr);
                     dirptr -= 2;
                 }
@@ -580,7 +580,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             if(!fix)
                 return 0;
             // PURGE BAD VARIABLES
-            dirptr[1] = (WORDPTR) zero_bint;
+            dirptr[1] = (word_p) zero_bint;
             rplPurgeForced(dirptr);
             continue;
 
@@ -590,7 +590,7 @@ int32_t rplVerifyDirectories(int32_t fix)
                 if(!fix)
                     return 0;
                 // PURGE BAD VARIABLES
-                dirptr[1] = (WORDPTR) zero_bint;
+                dirptr[1] = (word_p) zero_bint;
                 rplPurgeForced(dirptr);
                 continue;
             }
@@ -615,7 +615,7 @@ int32_t rplVerifyDirectories(int32_t fix)
                 // JUST PURGE IT
                 if(!fix)
                     return 0;
-                dirptr[1] = (WORDPTR) zero_bint;        // CHANGE TO A int32_t SO IT CAN BE PURGED
+                dirptr[1] = (word_p) zero_bint;        // CHANGE TO A int32_t SO IT CAN BE PURGED
                 rplPurgeForced(dirptr);
                 continue;
             }

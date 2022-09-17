@@ -18,7 +18,7 @@
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyEvalEx(WORDPTR * first, int32_t degree, WORDPTR * value)
+word_p rplPolyEvalEx(word_p * first, int32_t degree, word_p * value)
 {
     int32_t k;
 
@@ -50,8 +50,8 @@ WORDPTR rplPolyEvalEx(WORDPTR * first, int32_t degree, WORDPTR * value)
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyEvalDerivEx(int32_t deriv, WORDPTR * first, int32_t degree,
-        WORDPTR * value)
+word_p rplPolyEvalDerivEx(int32_t deriv, word_p * first, int32_t degree,
+        word_p * value)
 {
     int32_t k, j, c;
 
@@ -97,7 +97,7 @@ WORDPTR rplPolyEvalDerivEx(int32_t deriv, WORDPTR * first, int32_t degree,
 // USES LAGUERRE METHOD, IT FINDS COMPLEX ROOTS
 // CALLER NEEDS TO SET FLAGS: COMPLEX MODE AND DON'T ERROR ON INFINITE RESULT TO AVOID PREMATURE EXIT
 
-WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
+word_p rplPolyRootEx(word_p * first, int32_t degree)
 {
     int32_t k;
 
@@ -110,7 +110,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
     }
     // UPPER BOUND= 1+1/|an|*max(a0...a(n-1)) [THIS IS THE CAUCHY BOUND]
 
-    WORDPTR *firstabs = DSTop - (degree + 1);
+    word_p *firstabs = DSTop - (degree + 1);
 
     // GET THE MAXIMUM VALUE
     for(k = 1; k <= degree; ++k) {
@@ -125,7 +125,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
     rplCallOvrOperator(CMD_OVR_DIV);
     if(Exceptions)
         return 0;
-    rplPushData((WORDPTR) one_bint);
+    rplPushData((word_p) one_bint);
     rplCallOvrOperator(CMD_OVR_ADD);
     if(Exceptions)
         return 0;
@@ -136,14 +136,14 @@ WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
     if(Exceptions)
         return 0;
     rplCallOvrOperator(CMD_OVR_MUL);
-    firstabs[0] = (WORDPTR) one_bint;
+    firstabs[0] = (word_p) one_bint;
     firstabs[1] = rplPeekData(1);
     DSTop = firstabs + 2;       //    DROP ALL OTHER INTERMEDIATE VALUES
 
     // HERE WE HAVE THE POLYNOMIAL EXPLODED AND AN INITIAL GUESS
 
     int32_t oldprec = Context.precdigits;
-    WORDPTR pk;
+    word_p pk;
     REAL err;
     // TEMPORARILY INCREASE PRECISION
     if(Context.precdigits <= REAL_PRECISION_MAX - 8)
@@ -375,7 +375,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
     if(ISCOMPLEX(*pk)) {
         int32_t cclass = rplComplexClass(pk);
         if(cclass == CPLX_ZERO)
-            rplOverwriteData(1, (WORDPTR) zero_bint);
+            rplOverwriteData(1, (word_p) zero_bint);
         else if(cclass == CPLX_NORMAL) {
             REAL re, im;
 
@@ -532,7 +532,7 @@ WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree)
 
 // LOW-LEVEL - NO CHECKS DONE HERE
 
-WORDPTR rplPolyDeflateEx(WORDPTR * first, int32_t degree, WORDPTR * value)
+word_p rplPolyDeflateEx(word_p * first, int32_t degree, word_p * value)
 {
     int32_t k;
 
@@ -562,9 +562,9 @@ WORDPTR rplPolyDeflateEx(WORDPTR * first, int32_t degree, WORDPTR * value)
 // IT WILL TAKE n ARGUMENTS FROM THE STACK, PUT IT IN LOCAL VARIABLES (X,Y,Z), THEN EVALUATE THE EXPRESSION WITH THE GIVEN OPCODE (->NUM OR EVAL)
 // IF IT'S A PROGRAM, IT WILL XEQ THE PROGRAM, THEN RUN THE OPCODE ON THE RESULT
 
-void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode)
+void rplEvalUserFunc(word_p arg_userfunc, WORD Opcode)
 {
-    WORDPTR *dstksave = DSTop;
+    word_p *dstksave = DSTop;
     if(ISSYMBOLIC(*arg_userfunc))
         arg_userfunc = rplSymbUnwrap(arg_userfunc);
     if(ISSYMBOLIC(*arg_userfunc) && (OBJSIZE(*arg_userfunc) > 3)
@@ -657,10 +657,10 @@ void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode)
 // FOR ALL EXPRESSIONS OR EQUALITIES: '(LEFT-RIGHT)^2'
 // FOR ALL TRUTH EXPRESSIONS (INEQUALITIES): +Inf IF FALSE, 0 IF TRUE
 
-void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvars,
+void rplEvalMultiUserFunc(word_p * listofeq, word_p * listofvars, int32_t nvars,
         int32_t minimizer)
 {
-    WORDPTR *dstksave = DSTop;
+    word_p *dstksave = DSTop;
 
     if(ISPROGRAM(**listofeq)) {
         // IT'S A PROGRAM
@@ -718,7 +718,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvar
 
     // EVALUATE ALL FUNCTIONS
     WORD eqtype;
-    WORDPTR *tmp;
+    word_p *tmp;
     int32_t nresults = 0;
     REAL result;
     while(woffset < endoffset) {
@@ -789,7 +789,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvar
             }
             }
 
-            WORDPTR newreal = rplNewRealFromRReg(0);
+            word_p newreal = rplNewRealFromRReg(0);
             if(!newreal) {
                 rplCleanupLAMs(*listofeq);
                 DSTop = dstksave;
@@ -822,7 +822,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvar
         }
         rplDropData(nresults - 1);
 
-        WORDPTR newreal = rplNewRealFromRReg(0);
+        word_p newreal = rplNewRealFromRReg(0);
         if(!newreal) {
             DSTop = dstksave;
             return;
@@ -831,7 +831,7 @@ void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars, int32_t nvar
     }
     else {
         // PROVIDE A LIST OF RESULTS
-        WORDPTR newlist = rplCreateListN(nresults, 1, 0);
+        word_p newlist = rplCreateListN(nresults, 1, 0);
         if(!newlist) {
             DSTop = dstksave;
             return;

@@ -27,7 +27,7 @@ uint32_t *getrplstackobject(int level, int *size)
 
 int getrplobjsize(uint32_t *object)
 {
- return (int)rplObjSize((WORDPTR) object);
+ return (int)rplObjSize((word_p) object);
 }
 
 void removestackobject(int level, int nitems)
@@ -49,7 +49,7 @@ char *getdecompiledrplobject(int level, int *strsize)
     if(level < 1)
         return 0;
 
-    WORDPTR newobj = rplDecompile(rplPeekData(level), DECOMP_MAXWIDTH(60));
+    word_p newobj = rplDecompile(rplPeekData(level), DECOMP_MAXWIDTH(60));
     if(!newobj)
         return 0;
     if(strsize)
@@ -64,7 +64,7 @@ void pushobject(char *data, int sizebytes)
     if(sizebytes & 3)
         return; // SIZE MUST BE MULTIPLE OF 4, OTHERWISE IT'S AN INVALID OBJECT
 
-    WORDPTR newobj = rplAllocTempOb((sizebytes - 1) / 4);
+    word_p newobj = rplAllocTempOb((sizebytes - 1) / 4);
     if(!newobj)
         return;
     memmoveb((char *)newobj, data, sizebytes);
@@ -77,7 +77,7 @@ void pushobject(char *data, int sizebytes)
 // PUSH A TEXT OBJECT IN THE STACK
 void pushtext(char *data, int sizebytes)
 {
-    WORDPTR newobj = rplCreateStringBySize(sizebytes);
+    word_p newobj = rplCreateStringBySize(sizebytes);
     if(!newobj)
         return;
 
@@ -94,17 +94,17 @@ void pushtext(char *data, int sizebytes)
 int compileobject()
 {
     int strsize;
-    BYTEPTR strdata;
+    byte_p strdata;
     if(rplDepthData() < 1)
         return 0;
     if(!ISSTRING(*rplPeekData(1)))
         return 0;
 
-    strdata = (BYTEPTR) rplPeekData(1);
+    strdata = (byte_p) rplPeekData(1);
     strdata += 4;
     strsize = rplStrSize(rplPeekData(1));
 
-    WORDPTR newobj = rplCompile(strdata, strsize, 0);
+    word_p newobj = rplCompile(strdata, strsize, 0);
     if(!newobj) {
         rplBlameError(0);
         return 0;
@@ -117,12 +117,12 @@ int compileobject()
 extern int32_t usb_longoffset;
 extern int32_t usb_longactbuffer;        // WHICH BUFFER IS BEING WRITTEN
 extern int32_t usb_longlastsize; // LAST BLOCK SIZE IN A LONG TRANSMISSION
-extern BYTEPTR usb_rcvbuffer;
+extern byte_p usb_rcvbuffer;
 extern WORD usb_rcvtotal SYSTEM_GLOBAL;
 extern WORD usb_rcvpartial SYSTEM_GLOBAL;
 extern WORD usb_rcvcrc SYSTEM_GLOBAL;
 extern int32_t usb_rcvblkmark SYSTEM_GLOBAL; // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
-extern BYTEPTR usb_longbuffer[2];     // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+extern byte_p usb_longbuffer[2];     // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
 extern BYTE usb_rxtmpbuffer[RAWHID_TX_SIZE + 1] SYSTEM_GLOBAL;    // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
 extern int32_t usb_localbigoffset SYSTEM_GLOBAL;
@@ -131,7 +131,7 @@ extern volatile int usb_paused;
 extern void usb_irqservice();
 extern int usb_remoteready();
 
-int usb_transmitdata(BYTEPTR data, int nbytes)
+int usb_transmitdata(byte_p data, int nbytes)
 {
     int fileid = usb_txfileopen('O');
     if(!fileid)
@@ -148,7 +148,7 @@ int usb_transmitdata(BYTEPTR data, int nbytes)
 
 int usbsendtoremote(uint32_t * data, int nwords)
 {
-    return usb_transmitdata((BYTEPTR) data, nwords * sizeof(WORD));
+    return usb_transmitdata((byte_p) data, nwords * sizeof(WORD));
 }
 
 int usbremotearchivestart()
@@ -159,7 +159,7 @@ int usbremotearchivestart()
         CMD_QSEMI,
     };
 
-    return usb_transmitdata((BYTEPTR) & program, 3 * sizeof(WORD));
+    return usb_transmitdata((byte_p) & program, 3 * sizeof(WORD));
 }
 
 int usbremoterestorestart()
@@ -171,7 +171,7 @@ int usbremoterestorestart()
         CMD_QSEMI,
     };
 
-    return usb_transmitdata((BYTEPTR) & program, 4 * sizeof(WORD));
+    return usb_transmitdata((byte_p) & program, 4 * sizeof(WORD));
 }
 
 int usbremotefwupdatestart()
@@ -183,7 +183,7 @@ int usbremotefwupdatestart()
         CMD_QSEMI,
     };
 
-    return usb_transmitdata((BYTEPTR) & program, 3 * sizeof(WORD));
+    return usb_transmitdata((byte_p) & program, 3 * sizeof(WORD));
 }
 
 // RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
@@ -193,7 +193,7 @@ int usbreceivearchive(uint32_t * buffer, int bufsize)
     int count, bytesread;
     int totalfilelen;
     int fileid;
-    BYTEPTR bufptr;
+    byte_p bufptr;
 
     if(!usb_waitfordata(4))
         return 0;
@@ -208,7 +208,7 @@ int usbreceivearchive(uint32_t * buffer, int bufsize)
     count = 0;
     totalfilelen=-1;
 
-    bufptr = (BYTEPTR) buffer;
+    bufptr = (byte_p) buffer;
     while(!usb_eof(fileid)) {
 
         bytesread = usb_fileread(fileid, bufptr, 4);
@@ -262,7 +262,7 @@ int usbsendarchive(uint32_t * buffer, int bufsize)
         return -1;
     }
 
-    if(!usb_filewrite(fileid, (BYTEPTR) buffer, bufsize * sizeof(WORD))) {
+    if(!usb_filewrite(fileid, (byte_p) buffer, bufsize * sizeof(WORD))) {
         rplError(ERR_USBCOMMERROR);
         bufsize = -1;
     }
@@ -325,7 +325,7 @@ void palette2list(uint32_t *list,int *size)
 void list2palette(uint32_t *list)
 {
     int k;
-    WORDPTR ptr=list+1;
+    word_p ptr=list+1;
     for(k=0;k<PALETTE_SIZE;++k)
     {
         if(*ptr==CMD_ENDLIST) break;

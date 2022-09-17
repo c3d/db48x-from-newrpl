@@ -57,10 +57,10 @@ INCLUDE_ROMOBJECT(lib4081_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib4081_menu,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib4081_menu,
 
     0
 };
@@ -82,7 +82,7 @@ int32_t rplStripTagStack(int32_t nlevels)
     return changed;
 }
 
-WORDPTR rplStripTag(WORDPTR object)
+word_p rplStripTag(word_p object)
 {
     if(ISTAG(*object))
         return object + 2 + ((ISPROLOG(object[1])) ? OBJSIZE(object[1]) : 0);
@@ -153,7 +153,7 @@ void LIB_HANDLER()
         // CHECK IF THE TAG IS VALID: IT MAY CONTAIN NO SPACES AND NO COLONS
 
         int32_t len = rplStrLen(rplPeekData(2));
-        //BYTEPTR ptr=(BYTEPTR)(rplPeekData(2)+1);
+        //byte_p ptr=(byte_p)(rplPeekData(2)+1);
 
         if(len < 1) {
             rplError(ERR_INVALIDTAG);
@@ -168,14 +168,14 @@ void LIB_HANDLER()
            rplError(ERR_INVALIDTAG);
            return;
            }
-           ptr=(BYTEPTR)utf8skipst((char *)ptr,(char *)ptr+4);
+           ptr=(byte_p)utf8skipst((char *)ptr,(char *)ptr+4);
            --len;
            }
          */
 
         // IF WE GOT HERE WE HAVE A VALID STRING
         int32_t newsize = rplObjSize(rplPeekData(1)) + rplObjSize(rplPeekData(2));
-        WORDPTR newobj = rplAllocTempOb(newsize);
+        word_p newobj = rplAllocTempOb(newsize);
         if(!newobj)
             return;
         newobj[0] = MKPROLOG(DOTAG, newsize);
@@ -216,7 +216,7 @@ void LIB_HANDLER()
         // RetNum =  enum CompileErrors
     {
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart, endcolon;
+        byte_p ptr = (byte_p) TokenStart, endcolon;
 
         if(*ptr != ':') {
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
@@ -229,7 +229,7 @@ void LIB_HANDLER()
         // IF WE'VE BEEN HERE BEFORE, THEN WE ARE INSIDE THE TAG ITSELF
         if(CurrentConstruct == (uint32_t) MKPROLOG(LIBRARY_NUMBER, 0)) {
             // NEED TO MANUALLY COMPILE THE STRING
-            int32_t nbytes = (BYTEPTR) BlankStart - (BYTEPTR) TokenStart - 1;
+            int32_t nbytes = (byte_p) BlankStart - (byte_p) TokenStart - 1;
             int32_t lastword = nbytes & 3;
             if(lastword)
                 lastword = 4 - lastword;
@@ -255,17 +255,17 @@ void LIB_HANDLER()
 
         // WE FOUND A COLON, SEE IF THERE'S TWO
         endcolon = ptr + 1;
-        while((endcolon < (BYTEPTR) BlankStart) && (*endcolon != ':'))
+        while((endcolon < (byte_p) BlankStart) && (*endcolon != ':'))
             ++endcolon;
-        if((endcolon > ((BYTEPTR) BlankStart) - 1) || (endcolon == ptr + 1)) {
+        if((endcolon > ((byte_p) BlankStart) - 1) || (endcolon == ptr + 1)) {
             RetNum = ERR_NOTMINE;       // WE MUST HAVE 2 COLONS AT LEAST, AND SOMETHING ELSE AFTER THE LAST COLON
             return;
         }
 
         rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
-        if(endcolon < ((BYTEPTR) BlankStart) - 1)
-            NextTokenStart = (WORDPTR) (endcolon + 1);
-        BlankStart = (WORDPTR) endcolon;
+        if(endcolon < ((byte_p) BlankStart) - 1)
+            NextTokenStart = (word_p) (endcolon + 1);
+        BlankStart = (word_p) endcolon;
         RetNum = OK_STARTCONSTRUCT_SPLITTOKEN;
         return;
 
@@ -284,7 +284,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
 
             rplDecompAppendChar(':');
-            rplDecompAppendString2((BYTEPTR) (DecompileObject + 2),
+            rplDecompAppendString2((byte_p) (DecompileObject + 2),
                     rplStrSize(DecompileObject + 1));
             rplDecompAppendChar(':');
             DecompileObject++;  // POINT TO THE STRING, IT WILL SKIP IT
@@ -372,7 +372,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -380,7 +380,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -417,7 +417,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -426,12 +426,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

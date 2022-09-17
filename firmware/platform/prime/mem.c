@@ -28,7 +28,7 @@ int halGetTotalPages()
 // RETURN SAME base OR A NEW LOCATION OF base
 // RETURN NULL IF NOT ENOUGH MEMORY
 
-WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
+word_p *halGrowMemory(int32_t zone, word_p * base, int32_t newsize)
 {
     int *mmubase;
     int maxpages;
@@ -36,32 +36,32 @@ WORDPTR *halGrowMemory(int32_t zone, WORDPTR * base, int32_t newsize)
 
     case MEM_AREA_RSTK:
         mmubase = (int *)MEM_RSTKMMU;
-        base = (WORDPTR *) MEM_RSTK;
+        base = (word_p *) MEM_RSTK;
         maxpages = 4096;
         break;
     case MEM_AREA_DSTK:
         mmubase = (int *)MEM_DSTKMMU;
-        base = (WORDPTR *) MEM_DSTK;
+        base = (word_p *) MEM_DSTK;
         maxpages = 4096;
         break;
     case MEM_AREA_DIR:
         mmubase = (int *)MEM_DIRMMU;
-        base = (WORDPTR *) MEM_DIRS;
+        base = (word_p *) MEM_DIRS;
         maxpages = 4096;
         break;
     case MEM_AREA_LAM:
         mmubase = (int *)MEM_LAMMMU;
-        base = (WORDPTR *) MEM_LAM;
+        base = (word_p *) MEM_LAM;
         maxpages = 4096;
         break;
     case MEM_AREA_TEMPOB:
         mmubase = (int *)MEM_TEMPOBMMU;
-        base = (WORDPTR *) MEM_TEMPOB;
+        base = (word_p *) MEM_TEMPOB;
         maxpages = 4096;
         break;
     case MEM_AREA_TEMPBLOCKS:
         mmubase = (int *)MEM_TEMPBLKMMU;
-        base = (WORDPTR *) MEM_TEMPBLOCKS;
+        base = (word_p *) MEM_TEMPBLOCKS;
         maxpages = 4096;
         break;
     default:

@@ -336,7 +336,7 @@ int32_t rplRun(void)
                         int trigger = 0;
                         if(GET_BKPOINTFLAG(0) & BKPT_ENABLED) {
                             if(GET_BKPOINTFLAG(0) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -368,7 +368,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt1Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -396,7 +396,7 @@ int32_t rplRun(void)
 
                         if(!trigger && (GET_BKPOINTFLAG(1) & BKPT_ENABLED)) {
                             if(GET_BKPOINTFLAG(1) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -428,7 +428,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt2Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -454,7 +454,7 @@ int32_t rplRun(void)
 
                         if(!trigger && (GET_BKPOINTFLAG(2) & BKPT_ENABLED)) {
                             if(GET_BKPOINTFLAG(2) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -491,7 +491,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt3Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -598,7 +598,7 @@ int32_t rplRun(void)
     }
     else {
         if(!LastRegisterT)
-            LastRegisterT = (WORDPTR) zero_bint;
+            LastRegisterT = (word_p) zero_bint;
         if(DStkProtect!=DStkBottom) {
             // STACK IS NOT SETUP FOR RPN, NEEDS TO BE FILLED
             // PROVIDE RPN-MODE STACK BEHAVIOR
@@ -634,7 +634,7 @@ int32_t rplRun(void)
                         int trigger = 0;
                         if(GET_BKPOINTFLAG(0) & BKPT_ENABLED) {
                             if(GET_BKPOINTFLAG(0) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -666,7 +666,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt1Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -694,7 +694,7 @@ int32_t rplRun(void)
 
                         if(!trigger && (GET_BKPOINTFLAG(1) & BKPT_ENABLED)) {
                             if(GET_BKPOINTFLAG(1) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -726,7 +726,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt2Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -752,7 +752,7 @@ int32_t rplRun(void)
 
                         if(!trigger && (GET_BKPOINTFLAG(2) & BKPT_ENABLED)) {
                             if(GET_BKPOINTFLAG(2) & BKPT_LOCATION) {
-                                WORDPTR nextopcode =
+                                word_p nextopcode =
                                         IPtr + 1 +
                                         ((ISPROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
@@ -789,7 +789,7 @@ int32_t rplRun(void)
                                     // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
 
                                     rplPushDataNoGrow(BreakPt3Arg);
-                                    IPtr = (WORDPTR) bkpoint_seco;
+                                    IPtr = (word_p) bkpoint_seco;
                                     CurOpcode = 0;
                                     Exceptions = 0;     //    CLEAR ERRORS AND GO...
 
@@ -926,7 +926,7 @@ int32_t rplRun(void)
 int32_t rplRunAtomic(WORD opcode)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
-    WORDPTR obj = rplAllocTempObLowMem(2);
+    word_p obj = rplAllocTempObLowMem(2);
     if(obj) {
         obj[0] = opcode;
         obj[1] = CMD_ENDOFCODE;
@@ -1072,14 +1072,14 @@ void rplCleanup()
 }
 
 // CHANGE THE CURRENT RUNSTREAM POINTER
-void rplSetEntryPoint(WORDPTR ip)
+void rplSetEntryPoint(word_p ip)
 {
     IPtr = ip;
 }
 
 // SKIPS THE GIVEN OBJECT
 
-inline WORDPTR rplSkipOb(WORDPTR ip)
+inline word_p rplSkipOb(word_p ip)
 {
     return ip + 1 + ((ISPROLOG(*ip)) ? OBJSIZE(*ip) : 0);
 }
@@ -1091,7 +1091,7 @@ inline void rplSkipNext()
 }
 
 // GET THE OBJECT SIZE IN WORDS, INCLUDING THE PROLOG
-inline WORD rplObjSize(WORDPTR ip)
+inline WORD rplObjSize(word_p ip)
 {
     return 1 + ((ISPROLOG(*ip)) ? OBJSIZE(*ip) : 0);
 }
@@ -1099,7 +1099,7 @@ inline WORD rplObjSize(WORDPTR ip)
 // ALLOCATES MEMORY AND MAKES AN EXACT DUPLICATE OF object
 // USES ONE SCRATCH POINTER
 // RETURNS NULL IF ERROR
-WORDPTR rplMakeNewCopy(WORDPTR object)
+word_p rplMakeNewCopy(word_p object)
 {
     WORD prolog = *object;
     int32_t size = 0;
@@ -1107,7 +1107,7 @@ WORDPTR rplMakeNewCopy(WORDPTR object)
         size = OBJSIZE(prolog);
     ScratchPointer1 = object;
 
-    WORDPTR newobj = rplAllocTempOb(size);
+    word_p newobj = rplAllocTempOb(size);
 
     if(!newobj)
         return 0;
@@ -1118,7 +1118,7 @@ WORDPTR rplMakeNewCopy(WORDPTR object)
 
 // COPIES AN OBJECT FROM src TO dest
 // SAFE EVEN IF OBJECTS OVERLAP
-void rplCopyObject(WORDPTR dest, WORDPTR src)
+void rplCopyObject(word_p dest, word_p src)
 {
     WORD prolog = *src;
     int32_t size;
@@ -1227,14 +1227,14 @@ void rplInit(void)
     ErrorHandler = 0;   // INITIALLY THERE'S NO ERROR HANDLER, AN EXCEPTION WILL EXIT THE RPL LOOP
 
     // INITIALIZE THE HOME DIRECTORY
-    WORDPTR *HomeDir = rplMakeNewDir();
+    word_p *HomeDir = rplMakeNewDir();
     // INITIALIZE THE SETTINGS DIRECTORY
     SettingsDir =
-            (WORDPTR) rplCreateNewDir((WORDPTR) dotsettings_ident, HomeDir);
+            (word_p) rplCreateNewDir((word_p) dotsettings_ident, HomeDir);
 
     rplResetSystemFlags();
 
-    rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
+    rplStoreSettings((word_p) flags_ident, SystemFlags);
 
     // INITIALIZE THE FLOATING POINT CONTEXT
     initContext(32);
@@ -1247,7 +1247,7 @@ void rplInit(void)
     // RESET ALL USER REGISTERS TO zero_bint
 
     for(k = GC_UserRegisters - GC_PTRUpdate; k < MAX_GC_PTRUPDATE; ++k)
-        GC_PTRUpdate[k] = (WORDPTR) zero_bint;
+        GC_PTRUpdate[k] = (word_p) zero_bint;
 
 }
 
@@ -1288,18 +1288,18 @@ void rplWarmInit(void)
 
     // VERIFY IF SETTINGS AND ROOT DIRECTORY ARE PROPERLY SET
 
-    WORDPTR *settings = rplFindGlobal((WORDPTR) dotsettings_ident, 0);
-    WORDPTR *flags;
+    word_p *settings = rplFindGlobal((word_p) dotsettings_ident, 0);
+    word_p *flags;
     if(settings)
         SettingsDir = settings[1];
     else {
         // CREATE A NEW SETTINGS DIRECTORY
         SettingsDir =
-                (WORDPTR) rplCreateNewDir((WORDPTR) dotsettings_ident,
+                (word_p) rplCreateNewDir((word_p) dotsettings_ident,
                 CurrentDir);
     }
 
-    flags = rplFindGlobalInDir((WORDPTR) flags_ident,
+    flags = rplFindGlobalInDir((word_p) flags_ident,
             rplFindDirbyHandle(SettingsDir), 0);
     if(flags && ISBINDATA(*flags[1]) && (OBJSIZE(*flags[1]) >= 8))
         SystemFlags = flags[1];
@@ -1315,8 +1315,8 @@ void rplWarmInit(void)
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
                 uint64_t value;
-                WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
-                WORDPTR numptr;
+                word_p nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
+                word_p numptr;
                 uint64_t *uptr;
                 int32_t k;
                 for(k = 1; k <= 4; ++k) {
@@ -1333,7 +1333,7 @@ void rplWarmInit(void)
             }
         }
 
-        rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
+        rplStoreSettings((word_p) flags_ident, SystemFlags);
 
     }
 
@@ -1341,7 +1341,7 @@ void rplWarmInit(void)
 
     int32_t k;
     for(k = GC_UserRegisters - GC_PTRUpdate; k < MAX_GC_PTRUPDATE; ++k)
-        GC_PTRUpdate[k] = (WORDPTR) zero_bint;
+        GC_PTRUpdate[k] = (word_p) zero_bint;
 
 }
 
@@ -1382,19 +1382,19 @@ void rplHotInit()
 
     // VERIFY IF SETTINGS AND ROOT DIRECTORY ARE PROPERLY SET
 
-    WORDPTR *settings =
-            rplFindGlobalInDir((WORDPTR) dotsettings_ident, Directories, 0);
-    WORDPTR *flags;
+    word_p *settings =
+            rplFindGlobalInDir((word_p) dotsettings_ident, Directories, 0);
+    word_p *flags;
     if(settings)
         SettingsDir = settings[1];
     else {
         // CREATE A NEW SETTINGS DIRECTORY
         SettingsDir =
-                (WORDPTR) rplCreateNewDir((WORDPTR) dotsettings_ident,
+                (word_p) rplCreateNewDir((word_p) dotsettings_ident,
                 Directories);
     }
 
-    flags = rplFindGlobalInDir((WORDPTR) flags_ident,
+    flags = rplFindGlobalInDir((word_p) flags_ident,
             rplFindDirbyHandle(SettingsDir), 0);
     if(flags && ISBINDATA(*flags[1]) && (OBJSIZE(*flags[1]) >= 8))
         SystemFlags = flags[1];
@@ -1410,8 +1410,8 @@ void rplHotInit()
                 // IT ALL CHECKS OUT, DO THE MAGIC:
 
                 uint64_t value;
-                WORDPTR nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
-                WORDPTR numptr;
+                word_p nptr = SystemFlags + 1; // DATA OF THE FIRST 64-BIT INTEGER
+                word_p numptr;
                 uint64_t *uptr;
                 int32_t k;
                 for(k = 1; k <= 4; ++k) {
@@ -1428,7 +1428,7 @@ void rplHotInit()
             }
         }
 
-        rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
+        rplStoreSettings((word_p) flags_ident, SystemFlags);
 
     }
 

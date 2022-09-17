@@ -15,14 +15,14 @@
 #include <sysvars.h>
 #include <ui.h>
 
-static inline WORDPTR rplDecompileAnyway(WORDPTR object, int32_t flags)
+static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
 {
     int32_t SavedException = Exceptions;
     int32_t SavedErrorCode = ErrorCode;
 
     Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    WORDPTR opname = rplDecompile(object, flags);
+    word_p opname = rplDecompile(object, flags);
 
     Exceptions = SavedException;
     ErrorCode = SavedErrorCode;
@@ -31,20 +31,20 @@ static inline WORDPTR rplDecompileAnyway(WORDPTR object, int32_t flags)
 }
 
 // Sets pointers to string. Returns string length in code points
-static int32_t rplGetStringPointers(WORDPTR object, BYTEPTR *start, BYTEPTR *end)
+static int32_t rplGetStringPointers(word_p object, byte_p *start, byte_p *end)
 {
-    *start = (BYTEPTR) (object + 1);
+    *start = (byte_p) (object + 1);
     int32_t totaln = rplStrLenCp(object);
-    *end = (BYTEPTR) utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
+    *end = (byte_p) utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
     return totaln;
 }
 
 // Decompiles object and sets pointers to resulting string
 // Returns 0 on error with target pointers set to null
 // Returns string length in code points if ok with target pointers set
-static int32_t rplGetDecompiledString(WORDPTR object, int32_t flags, BYTEPTR *start, BYTEPTR *end)
+static int32_t rplGetDecompiledString(word_p object, int32_t flags, byte_p *start, byte_p *end)
 {
-    WORDPTR opname = rplDecompileAnyway(object, flags);
+    word_p opname = rplDecompileAnyway(object, flags);
     if (!opname) {
         *start = NULL;
         *end = NULL;
@@ -57,7 +57,7 @@ static int32_t rplGetDecompiledString(WORDPTR object, int32_t flags, BYTEPTR *st
 // Decompiles object and sets pointers to resulting string with tickmarks removed
 // returns 0 on error with target pointers set to null
 // returns 1 if ok with target pointers set
-static int rplGetDecompiledStringWithoutTickmarks(WORDPTR object, int32_t flags, BYTEPTR *start, BYTEPTR *end)
+static int rplGetDecompiledStringWithoutTickmarks(word_p object, int32_t flags, byte_p *start, byte_p *end)
 {
     int32_t totaln = rplGetDecompiledString(object, flags, start, end);
     if (!totaln)
@@ -270,16 +270,16 @@ void dummyKeyhandler(WORD keymsg)
 // WHEN 0, THE COMMAND LINE IS STILL OPEN, WITH THE ERROR HIGHLIGHTED
 int32_t endCmdLineAndCompile()
 {
-    WORDPTR text = uiGetCmdLineText();
+    word_p text = uiGetCmdLineText();
     if(!text) {
         throw_dbgexception("No memory for command line",
                 EX_CONT | EX_WARM | EX_RESET);
         return 0;
     }
     int32_t len = rplStrSize(text);
-    WORDPTR newobject;
+    word_p newobject;
     if(len) {
-        newobject = rplCompile((BYTEPTR) (text + 1), len, 1);
+        newobject = rplCompile((byte_p) (text + 1), len, 1);
         if(Exceptions || (!newobject)) {
             // HIGHLIGHT THE WORD THAT CAUSED THE ERROR
 
@@ -573,14 +573,14 @@ void numberKeyHandler(WORD keymsg)
         number = '0';
         break;
     }
-    uiInsertCharactersN((BYTEPTR) & number, ((BYTEPTR) & number) + 1);
+    uiInsertCharactersN((byte_p) & number, ((byte_p) & number) + 1);
     uiAutocompleteUpdate();
 
 }
 
 void uiCmdRun(WORD Opcode)
 {
-    WORDPTR obj = rplAllocTempObLowMem(2);
+    word_p obj = rplAllocTempObLowMem(2);
     if(obj) {
 
         // ENABLE UNDO
@@ -747,7 +747,7 @@ void uiCmdRun(WORD Opcode)
 
 void uiCmdRunHide(WORD Opcode, int32_t narguments)
 {
-    WORDPTR obj = rplAllocTempObLowMem(2);
+    word_p obj = rplAllocTempObLowMem(2);
     if(obj) {
 
         ScratchPointer1 = obj;
@@ -917,7 +917,7 @@ void uiCmdRunHide(WORD Opcode, int32_t narguments)
 
 int32_t uiCmdRunTransparent(WORD Opcode, int32_t nargs, int32_t nresults)
 {
-    WORDPTR obj = rplAllocTempObLowMem(2);
+    word_p obj = rplAllocTempObLowMem(2);
     if(obj) {
         obj[0] = Opcode;
         obj[1] = CMD_ENDOFCODE;
@@ -1054,7 +1054,7 @@ void uiStackRedo()
 //    IsFunc == 2 --> IN ALG MODE, RUN THE OPCODE DIRECTLY, AS IN 'D' MODE
 //    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
 
-void cmdKeyHandler(WORD Opcode, BYTEPTR Progmode, int32_t IsFunc)
+void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -1126,7 +1126,7 @@ void cmdKeyHandler(WORD Opcode, BYTEPTR Progmode, int32_t IsFunc)
                 if(IsFunc < 2) {
                     uiInsertCharacters(Progmode);
                     if(IsFunc == 1) {
-                        uiInsertCharacters((BYTEPTR) "()");
+                        uiInsertCharacters((byte_p) "()");
                         uiCursorLeft(1);
                     }
                     uiAutocompleteUpdate();
@@ -1202,7 +1202,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         CONTEXT_PLOT))) {
             // ACTION WHEN IN THE STACK
             int64_t mcode = rplGetMenuCode(menunum);
-            WORDPTR menu = uiGetLibMenu(mcode);
+            word_p menu = uiGetLibMenu(mcode);
             int32_t nitems = uiCountMenuItems(mcode, menu);
             int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
 
@@ -1231,9 +1231,9 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
             }
             // THIS IS A REGULAR VAR KEY
 
-            WORDPTR item = uiGetMenuItem(mcode, menu, idx);
+            word_p item = uiGetMenuItem(mcode, menu, idx);
 
-            WORDPTR action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
+            word_p action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
             WORD Opcode = 0;
             int32_t hideargument = 1;
 
@@ -1264,7 +1264,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1309,7 +1309,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1352,7 +1352,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1393,7 +1393,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
     else {
         // ACTION INSIDE THE EDITOR
         int64_t mcode = rplGetMenuCode(menunum);
-        WORDPTR menu = uiGetLibMenu(mcode);
+        word_p menu = uiGetLibMenu(mcode);
         int32_t nitems = uiCountMenuItems(mcode, menu);
         int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
 
@@ -1422,9 +1422,9 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
         }
         // THIS IS A REGULAR VAR KEY
 
-        WORDPTR item = uiGetMenuItem(mcode, menu, idx);
+        word_p item = uiGetMenuItem(mcode, menu, idx);
 
-        WORDPTR action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
+        word_p action = uiGetMenuItemAction(item, KM_SHIFTPLANE(keymsg));
         WORD Opcode = 0;
         int32_t hideargument = 1;
 
@@ -1457,10 +1457,10 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 case 'P':
                     // USER IS TRYING TO 'STO' INTO THE VARIABLE
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "'");
-                    uiInsertCharactersN((BYTEPTR) (action + 1),
-                            (BYTEPTR) (action + 1) + rplGetIdentLength(action));
-                    uiInsertCharacters((BYTEPTR) "' STO");
+                    uiInsertCharacters((byte_p) "'");
+                    uiInsertCharactersN((byte_p) (action + 1),
+                            (byte_p) (action + 1) + rplGetIdentLength(action));
+                    uiInsertCharacters((byte_p) "' STO");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
                     break;
@@ -1488,14 +1488,14 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 case 'P':
                 {
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "CONVERT");
+                    uiInsertCharacters((byte_p) "CONVERT");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -1512,7 +1512,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                 if(!numobject || Exceptions)
                     return;
@@ -1565,15 +1565,15 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     if(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD) {
                         //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
-                        WORDPTR *var = rplFindGlobal(action, 1);
-                        BYTEPTR string = 0, endstring;
+                        word_p *var = rplFindGlobal(action, 1);
+                        byte_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (BYTEPTR) (action + 1);
+                                string = (byte_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
@@ -1616,15 +1616,15 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     if(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD) {
                         //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
-                        WORDPTR *var = rplFindGlobal(action, 1);
-                        BYTEPTR string = 0, endstring;
+                        word_p *var = rplFindGlobal(action, 1);
+                        byte_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (BYTEPTR) (action + 1);
+                                string = (byte_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
@@ -1646,8 +1646,8 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                     // JUST INSERT THE NAME IN ALGEBRAIC MODE
 
-                    uiInsertCharactersN((BYTEPTR) (action + 1),
-                            (BYTEPTR) (action + 1) + rplGetIdentLength(action));
+                    uiInsertCharactersN((byte_p) (action + 1),
+                            (byte_p) (action + 1) + rplGetIdentLength(action));
                     break;
 
                 case 'P':
@@ -1656,16 +1656,16 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     if(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD) {
                         //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
-                        WORDPTR *var = rplFindGlobal(action, 1);
+                        word_p *var = rplFindGlobal(action, 1);
 
-                        BYTEPTR string = 0, endstring;
+                        byte_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (BYTEPTR) (action + 1);
+                                string = (byte_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
@@ -1686,10 +1686,10 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                     }
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "'");
-                    uiInsertCharactersN((BYTEPTR) (action + 1),
-                            (BYTEPTR) (action + 1) + rplGetIdentLength(action));
-                    uiInsertCharacters((BYTEPTR) "' RCL");
+                    uiInsertCharacters((byte_p) "'");
+                    uiInsertCharactersN((byte_p) (action + 1),
+                            (byte_p) (action + 1) + rplGetIdentLength(action));
+                    uiInsertCharacters((byte_p) "' RCL");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
                     break;
@@ -1717,14 +1717,14 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 case 'P':
                 {
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "/");
+                    uiInsertCharacters((byte_p) "/");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -1744,7 +1744,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1763,8 +1763,8 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 {
                     // INSERT THE LIBRARY IDENTIFIER
-                    BYTEPTR string, endstring;
-                    string = (BYTEPTR) (action + 2);
+                    byte_p string, endstring;
+                    string = (byte_p) (action + 2);
                     endstring = string + rplGetIdentLength(action + 1);
                     int32_t nlines = uiInsertCharactersN(string, endstring);
                     if(nlines)
@@ -1807,7 +1807,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 case 'D':
                 {
                     // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
-                    WORDPTR *var = rplFindGlobal(action, 1);
+                    word_p *var = rplFindGlobal(action, 1);
                     if(var) {
                         if(ISDIR(*(var[1]))) {
                             // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -1833,7 +1833,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 }
                 case 'A':
                 {
-                    WORDPTR *var = rplFindGlobal(action, 1);
+                    word_p *var = rplFindGlobal(action, 1);
                     if(var) {
                         if(ISDIR(*(var[1]))) {
                             // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -1842,7 +1842,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                             break;
                         }
                     }
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -1854,7 +1854,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                 case 'P':
                 {
-                    WORDPTR *var = rplFindGlobal(action, 1);
+                    word_p *var = rplFindGlobal(action, 1);
                     if(var) {
                         if(ISDIR(*(var[1]))) {
                             // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -1864,7 +1864,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         }
                     }
 
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -1915,14 +1915,14 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                     Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname = rplDecompile(action, DECOMP_EDIT);
+                    word_p opname = rplDecompile(action, DECOMP_EDIT);
                     Exceptions = SavedException;
                     ErrorCode = SavedErrorCode;
 
                     if(!opname)
                         break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     int32_t totaln = rplGetStringPointers(opname, &string, &endstring);
 
                     if(removevalue) {
@@ -1930,7 +1930,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         int32_t k, offset;
                         for(k = 0, offset = 0; k < totaln;
                                 ++k, offset =
-                                (BYTEPTR) utf8skip((char *)string + offset,
+                                (byte_p) utf8skip((char *)string + offset,
                                     (char *)endstring) - string)
                             if(utf82cp((char *)string + offset,
                                         (char *)endstring) == '_') {
@@ -1948,14 +1948,14 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                 case 'P':
                 {
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "*");
+                    uiInsertCharacters((byte_p) "*");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -2002,7 +2002,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         CurOpcode = savecurOpcode;
                     }
 
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -2011,7 +2011,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         uiStretchCmdLine(nlines);
 
                     if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                        uiInsertCharacters((BYTEPTR) "()");
+                        uiInsertCharacters((byte_p) "()");
                         uiCursorLeft(1);
                     }
                     uiAutocompleteUpdate();
@@ -2045,7 +2045,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
                     }
 
-                    BYTEPTR string, endstring;
+                    byte_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -2063,7 +2063,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                             // IF THE LINE IS EMPTY DON'T ADD A NEW LINE
                             if(isempty) {
                                 if(dhints & HINT_ADDINDENTBEFORE)
-                                    uiInsertCharacters((BYTEPTR) "  ");
+                                    uiInsertCharacters((byte_p) "  ");
                                 if(dhints & HINT_SUBINDENTBEFORE) {
                                     if(nlvl > 2)
                                         nlvl = 2;
@@ -2072,13 +2072,13 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                                 }
                             }
                             else {
-                                uiInsertCharacters((BYTEPTR) "\n");
+                                uiInsertCharacters((byte_p) "\n");
 
                                 ++nlines;
                                 int k;
                                 for(k = 0; k < nlvl + halScreen.CmdLineIndent;
                                         ++k)
-                                    uiInsertCharacters((BYTEPTR) " ");  // APPLY INDENT
+                                    uiInsertCharacters((byte_p) " ");  // APPLY INDENT
                                 halScreen.CmdLineIndent = 0;
                             }
                         }
@@ -2095,12 +2095,12 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                         if(dhints & HINT_NLAFTER) {
                             int32_t nlvl = uiGetIndentLevel(0);
 
-                            uiInsertCharacters((BYTEPTR) "\n");
+                            uiInsertCharacters((byte_p) "\n");
 
                             ++nlines;
                             int k;
                             for(k = 0; k < nlvl + halScreen.CmdLineIndent; ++k)
-                                uiInsertCharacters((BYTEPTR) " ");      // APPLY INDENT
+                                uiInsertCharacters((byte_p) " ");      // APPLY INDENT
                             halScreen.CmdLineIndent = 0;
                         }
                     }
@@ -2124,7 +2124,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                WORDPTR numobject = rplNewint32_t(libmcode, HEXint32_t);
+                word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
                 if(!numobject || Exceptions)
                     return;
@@ -2200,13 +2200,13 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
                     CurOpcode = savecurOpcode;
                 }
 
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                    uiInsertCharacters((BYTEPTR) "()");
+                    uiInsertCharacters((byte_p) "()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -2216,7 +2216,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
             case 'P':
             {
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -2252,7 +2252,7 @@ void varsKeyHandler(WORD keymsg, int32_t menunum, int32_t varnum)
 
 }
 
-void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, int32_t separate)
+void symbolKeyHandler(WORD keymsg, byte_p symbol, int32_t separate)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2278,7 +2278,7 @@ void symbolKeyHandler(WORD keymsg, BYTEPTR symbol, int32_t separate)
 
 }
 
-void alphasymbolKeyHandler(WORD keymsg, BYTEPTR Lsymbol, BYTEPTR Csymbol)
+void alphasymbolKeyHandler(WORD keymsg, byte_p Lsymbol, byte_p Csymbol)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2337,10 +2337,10 @@ void newlineKeyHandler(WORD keymsg)
     int32_t ilvl = uiGetIndentLevel(0);
 
     // ADD A NEW LINE
-    uiInsertCharacters((BYTEPTR) "\n");
+    uiInsertCharacters((byte_p) "\n");
     int k;
     for(k = 0; k < ilvl + halScreen.CmdLineIndent; ++k)
-        uiInsertCharacters((BYTEPTR) " ");
+        uiInsertCharacters((byte_p) " ");
     halScreen.CmdLineIndent = 0;
 
     uiAutocompleteUpdate();
@@ -2369,9 +2369,9 @@ void decimaldotKeyHandler(WORD keymsg)
 
     WORD ucode = cp2utf8(DECIMAL_DOT(Locale));
     if(ucode & 0xff000000)
-        uiInsertCharactersN((BYTEPTR) & ucode, ((BYTEPTR) & ucode) + 4);
+        uiInsertCharactersN((byte_p) & ucode, ((byte_p) & ucode) + 4);
     else
-        uiInsertCharacters((BYTEPTR) & ucode);
+        uiInsertCharacters((byte_p) & ucode);
 
     uiAutocompleteUpdate();
 
@@ -2516,7 +2516,7 @@ void cutclipKeyHandler(WORD keymsg)
 
             }
 
-            WORDPTR newlist = rplCreateListN(selend - selst + 1, selst, 0);
+            word_p newlist = rplCreateListN(selend - selst + 1, selst, 0);
             if((!newlist) || Exceptions)
                 return;
             rplListAutoExpand(newlist);
@@ -2561,7 +2561,7 @@ void cutclipKeyHandler(WORD keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        WORDPTR string = uiExtractSelection();
+        word_p string = uiExtractSelection();
 
         if(string) {
             rplPushData(string);
@@ -2647,7 +2647,7 @@ void copyclipKeyHandler(WORD keymsg)
 
             }
 
-            WORDPTR newlist = rplCreateListN(selend - selst + 1, selst, 0);
+            word_p newlist = rplCreateListN(selend - selst + 1, selst, 0);
             if((!newlist) || Exceptions)
                 return;
 
@@ -2674,7 +2674,7 @@ void copyclipKeyHandler(WORD keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        WORDPTR string = uiExtractSelection();
+        word_p string = uiExtractSelection();
 
         if(string) {
             rplPushData(string);
@@ -2738,10 +2738,10 @@ void pasteclipKeyHandler(WORD keymsg)
 
             // MAKE ROOM
             memmovew(DSTop - clevel, DSTop - clevel - nitems,
-                    (clevel + nitems) * sizeof(WORDPTR) / sizeof(WORD));
+                    (clevel + nitems) * sizeof(word_p) / sizeof(WORD));
             // MOVE THE OBJECTS
             memmovew(DSTop - clevel - nitems, DSTop,
-                    nitems * sizeof(WORDPTR) / sizeof(WORD));
+                    nitems * sizeof(word_p) / sizeof(WORD));
 
             if(halScreen.StkSelStatus) {
                 if(halScreen.StkSelStart > clevel)
@@ -2762,7 +2762,7 @@ void pasteclipKeyHandler(WORD keymsg)
         uiCmdRun(CMD_PASTECLIP);
         int32_t nitems = rplDepthData() - depth;
         while(nitems >= 1) {
-            WORDPTR object = rplPeekData(nitems);
+            word_p object = rplPeekData(nitems);
             if(!ISSTRING(*object)) {
                 object = rplDecompile(object, DECOMP_EDIT);
                 if(!object || Exceptions) {
@@ -2776,8 +2776,8 @@ void pasteclipKeyHandler(WORD keymsg)
             }
 
             rplRemoveAtData(nitems, 1);
-            uiInsertCharactersN((BYTEPTR) (object + 1),
-                    (BYTEPTR) (object + 1) + rplStrSize(object));
+            uiInsertCharactersN((byte_p) (object + 1),
+                    (byte_p) (object + 1) + rplStrSize(object));
             --nitems;
         }
 
@@ -2979,8 +2979,8 @@ void leftKeyHandler(WORD keymsg)
             case 0:
                 // NO ITEM SELECTED, ROT WITH LEVEL 1
                 if(rplDepthData() >= halScreen.StkPointer) {
-                    WORDPTR *stptr, *endptr, *cptr;
-                    WORDPTR item;
+                    word_p *stptr, *endptr, *cptr;
+                    word_p item;
                     stptr = DSTop - halScreen.StkPointer;
                     endptr = DSTop - 1;
 
@@ -2999,7 +2999,7 @@ void leftKeyHandler(WORD keymsg)
             case 1:
             {
                 // ONE ITEM SELECTED, ROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
-                WORDPTR *stptr, *endptr;
+                word_p *stptr, *endptr;
 
                 if(halScreen.StkPointer > halScreen.StkSelStart) {
                     endptr = DSTop - halScreen.StkSelStart;
@@ -3013,8 +3013,8 @@ void leftKeyHandler(WORD keymsg)
                 }
 
                 // NOW ROT BETWEEN THEM
-                WORDPTR *cptr = stptr;
-                WORDPTR item = *stptr;
+                word_p *cptr = stptr;
+                word_p item = *stptr;
                 while(cptr < endptr) {
                     cptr[0] = cptr[1];
                     ++cptr;
@@ -3027,8 +3027,8 @@ void leftKeyHandler(WORD keymsg)
                 // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
             {
                 if(halScreen.StkPointer > halScreen.StkSelEnd) {
-                    WORDPTR *stptr, *endptr, *cptr;
-                    WORDPTR item;
+                    word_p *stptr, *endptr, *cptr;
+                    word_p item;
                     stptr = DSTop - halScreen.StkSelStart;
                     endptr = DSTop - ((halScreen.StkPointer >
                                 rplDepthData())? rplDepthData() : halScreen.
@@ -3062,8 +3062,8 @@ void leftKeyHandler(WORD keymsg)
                 }
                 if(halScreen.StkPointer < halScreen.StkSelStart) {
 
-                    WORDPTR *stptr, *endptr, *cptr;
-                    WORDPTR item;
+                    word_p *stptr, *endptr, *cptr;
+                    word_p item;
                     stptr = DSTop - halScreen.StkSelEnd;
                     endptr = DSTop - halScreen.StkPointer - 1;
 
@@ -3092,8 +3092,8 @@ void leftKeyHandler(WORD keymsg)
                 }
 
                 // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
-                WORDPTR *stptr, *endptr, *cptr;
-                WORDPTR item;
+                word_p *stptr, *endptr, *cptr;
+                word_p item;
                 stptr = DSTop - halScreen.StkSelStart;
                 endptr = DSTop - halScreen.StkSelEnd;
 
@@ -3204,15 +3204,15 @@ void rightKeyHandler(WORD keymsg)
                 if(rplDepthData() >= halScreen.StkPointer) {
 
                     // NO ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND LEVEL 1
-                    WORDPTR *stptr, *endptr;
+                    word_p *stptr, *endptr;
 
                     stptr = DSTop - 1;
                     endptr = DSTop -
                             (halScreen.StkPointer ? halScreen.StkPointer : 1);
 
                     // NOW UNROT BETWEEN THEM
-                    WORDPTR *cptr = stptr;
-                    WORDPTR item = *stptr;
+                    word_p *cptr = stptr;
+                    word_p item = *stptr;
                     while(cptr > endptr) {
                         cptr[0] = cptr[-1];
                         --cptr;
@@ -3224,7 +3224,7 @@ void rightKeyHandler(WORD keymsg)
             case 1:
             {
                 // ONE ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
-                WORDPTR *stptr, *endptr;
+                word_p *stptr, *endptr;
 
                 if(halScreen.StkPointer > halScreen.StkSelStart) {
                     stptr = DSTop - halScreen.StkSelStart;
@@ -3239,8 +3239,8 @@ void rightKeyHandler(WORD keymsg)
                 }
 
                 // NOW UNROT BETWEEN THEM
-                WORDPTR *cptr = stptr;
-                WORDPTR item = *stptr;
+                word_p *cptr = stptr;
+                word_p item = *stptr;
                 while(cptr > endptr) {
                     cptr[0] = cptr[-1];
                     --cptr;
@@ -3265,12 +3265,12 @@ void rightKeyHandler(WORD keymsg)
                         return;
 
                     memmovew(DSTop - stkptr + count, DSTop - stkptr,
-                            stkptr * sizeof(WORDPTR) / sizeof(WORD));
+                            stkptr * sizeof(word_p) / sizeof(WORD));
 
                     // AND COPY THE SELECTION
                     memmovew(DSTop - stkptr,
                             DSTop - halScreen.StkSelEnd + count,
-                            count * sizeof(WORDPTR) / sizeof(WORD));
+                            count * sizeof(word_p) / sizeof(WORD));
 
                     DSTop += count;
                     halScreen.StkPointer += count;
@@ -3291,13 +3291,13 @@ void rightKeyHandler(WORD keymsg)
 
                     memmovew(DSTop - halScreen.StkPointer + count,
                             DSTop - halScreen.StkPointer,
-                            halScreen.StkPointer * sizeof(WORDPTR) /
+                            halScreen.StkPointer * sizeof(word_p) /
                             sizeof(WORD));
 
                     // AND COPY THE SELECTION
                     memmovew(DSTop - halScreen.StkPointer,
                             DSTop - halScreen.StkSelEnd,
-                            count * sizeof(WORDPTR) / sizeof(WORD));
+                            count * sizeof(word_p) / sizeof(WORD));
 
                     DSTop += count;
                     halScreen.StkPointer += count;
@@ -3309,8 +3309,8 @@ void rightKeyHandler(WORD keymsg)
                 }
 
                 // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
-                WORDPTR *stptr, *endptr, *cptr;
-                WORDPTR item;
+                word_p *stptr, *endptr, *cptr;
+                word_p item;
                 endptr = DSTop - halScreen.StkSelStart;
                 stptr = DSTop - halScreen.StkSelEnd;
 
@@ -3423,7 +3423,7 @@ void downKeyHandler(WORD keymsg)
         if(halGetContext() & CONTEXT_STACK) {
 
             if(rplDepthData() >= 1) {
-                WORDPTR prefwidth = rplGetSettings((WORDPTR) editwidth_ident);
+                word_p prefwidth = rplGetSettings((word_p) editwidth_ident);
                 int32_t width;
                 if(!prefwidth)
                     width = 0;
@@ -3433,8 +3433,8 @@ void downKeyHandler(WORD keymsg)
                     width = 0;
                     Exceptions = 0;
                 }
-                WORDPTR ptr = rplPeekData(1);
-                WORDPTR text =
+                word_p ptr = rplPeekData(1);
+                word_p text =
                         rplDecompile(ptr, DECOMP_EDIT | DECOMP_MAXWIDTH(width));
                 if(Exceptions) {
                     halShowErrorMsg();
@@ -3757,21 +3757,21 @@ void chsKeyHandler(WORD keymsg)
     else {
         // ACTION INSIDE THE EDITOR
 
-        BYTEPTR startnum;
-        BYTEPTR endnum;
+        byte_p startnum;
+        byte_p endnum;
         int32_t flags;
-        BYTEPTR line;
+        byte_p line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
         startnum = uiFindNumberStart(&endnum, &flags);
-        line = (BYTEPTR) (CmdLineCurrentLine + 1);
+        line = (byte_p) (CmdLineCurrentLine + 1);
         if(!startnum) {
             startnum = line + halScreen.CursorPosition;
             if(startnum > line) {
                 if(startnum[-1] == '+') {
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((BYTEPTR) "-");
+                    uiInsertCharacters((byte_p) "-");
                     halScreen.DirtyFlag |=
                             CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
                     return;
@@ -3779,7 +3779,7 @@ void chsKeyHandler(WORD keymsg)
                 if(startnum[-1] == '-') {
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((BYTEPTR) "+");
+                    uiInsertCharacters((byte_p) "+");
                     halScreen.DirtyFlag |=
                             CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
                     return;
@@ -3787,18 +3787,18 @@ void chsKeyHandler(WORD keymsg)
                 if((startnum[-1] == 'E') || (startnum[-1] == 'e')) {
                     if(startnum[0] == '+') {
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((BYTEPTR) "-");
+                        uiInsertCharacters((byte_p) "-");
                         uiAutocompleteUpdate();
                         return;
                     }
                     else if(startnum[0] == '-') {
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((BYTEPTR) "+");
+                        uiInsertCharacters((byte_p) "+");
                         uiAutocompleteUpdate();
                         return;
                     }
                     else {
-                        uiInsertCharacters((BYTEPTR) "+");
+                        uiInsertCharacters((byte_p) "+");
                         uiAutocompleteUpdate();
                         return;
                     }
@@ -3825,7 +3825,7 @@ void chsKeyHandler(WORD keymsg)
 
             if((halScreen.CursorState & 0xff) == 'P') {
                 uiSeparateToken();
-                uiInsertCharacters((BYTEPTR) "NEG");
+                uiInsertCharacters((byte_p) "NEG");
                 uiSeparateToken();
                 uiAutocompleteUpdate();
                 return;
@@ -3836,29 +3836,29 @@ void chsKeyHandler(WORD keymsg)
 
                 startnum = line + halScreen.CursorPosition;
                 int moveleft = 0;
-                BYTEPTR prevstnum = startnum;
+                byte_p prevstnum = startnum;
                 startnum =
-                        (BYTEPTR) utf8rskipst((char *)startnum, (char *)line);
+                        (byte_p) utf8rskipst((char *)startnum, (char *)line);
                 if(startnum != prevstnum)
                     ++moveleft;
                 int32_t char1, char2;
                 extern const char const forbiddenChars[];
                 while(startnum >= line) {
-                    BYTEPTR ptr = (BYTEPTR) forbiddenChars;
+                    byte_p ptr = (byte_p) forbiddenChars;
                     char1 = utf82cp((char *)startnum, (char *)prevstnum);
                     do {
                         char2 = utf82cp((char *)ptr, (char *)ptr + 4);
                         if(char1 == char2)
                             break;
-                        ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)ptr + 4);
+                        ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
                     }
                     while(*ptr);
                     if(*ptr)
                         break;
                     if(*startnum == '\'')
                         break;
-                    BYTEPTR newptr =
-                            (BYTEPTR) utf8rskipst((char *)startnum,
+                    byte_p newptr =
+                            (byte_p) utf8rskipst((char *)startnum,
                             (char *)line);
                     if(newptr == startnum)
                         break;  // COULDN'T SKIP ANYMORE
@@ -3870,7 +3870,7 @@ void chsKeyHandler(WORD keymsg)
                     if(moveleft > 0)
                         uiCursorLeft(moveleft);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((BYTEPTR) "-");
+                    uiInsertCharacters((byte_p) "-");
                     if(moveleft > 0)
                         uiCursorRight(moveleft - 1);
                 }
@@ -3879,7 +3879,7 @@ void chsKeyHandler(WORD keymsg)
                         if(moveleft > 0)
                             uiCursorLeft(moveleft);
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((BYTEPTR) "+");
+                        uiInsertCharacters((byte_p) "+");
                         if(moveleft > 0)
                             uiCursorRight(moveleft - 1);
                     }
@@ -3890,18 +3890,18 @@ void chsKeyHandler(WORD keymsg)
                         else
                             uiCursorRight(1);
                         startnum =
-                                (BYTEPTR) utf8skipst((char *)startnum,
+                                (byte_p) utf8skipst((char *)startnum,
                                 (char *)(startnum + 4));
                         if(*startnum == '+') {
                             uiRemoveCharacters(1);
-                            uiInsertCharacters((BYTEPTR) "-");
+                            uiInsertCharacters((byte_p) "-");
                         }
                         else if(*startnum == '-') {
                             uiRemoveCharacters(1);
-                            uiInsertCharacters((BYTEPTR) "+");
+                            uiInsertCharacters((byte_p) "+");
                         }
                         else
-                            uiInsertCharacters((BYTEPTR) "-");
+                            uiInsertCharacters((byte_p) "-");
 
                         if(moveleft > 0)
                             uiCursorRight(moveleft - 1);
@@ -3931,7 +3931,7 @@ void chsKeyHandler(WORD keymsg)
                     ++startnum;
             }
             uiMoveCursor(startnum - line);
-            BYTEPTR plusminus = (BYTEPTR) "-";
+            byte_p plusminus = (byte_p) "-";
 
             if(startnum > line) {
                 if(startnum[-1] == '+') {
@@ -3942,7 +3942,7 @@ void chsKeyHandler(WORD keymsg)
                 if(startnum[-1] == '-') {
                     uiMoveCursor(startnum - line - 1);
                     uiRemoveCharacters(1);
-                    plusminus = (BYTEPTR) "+";
+                    plusminus = (byte_p) "+";
                     --oldposition;
                 }
             }
@@ -3976,9 +3976,9 @@ void eexKeyHandler(WORD keymsg)
             rplGetSystemNumberFormat(&config);
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((BYTEPTR) "1E");
+                uiInsertCharacters((byte_p) "1E");
             else
-                uiInsertCharacters((BYTEPTR) "1e");
+                uiInsertCharacters((byte_p) "1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -3988,7 +3988,7 @@ void eexKeyHandler(WORD keymsg)
         // ACTION INSIDE THE EDITOR
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
-        BYTEPTR startnum, endnum;
+        byte_p startnum, endnum;
         int32_t flags;
         NUMFORMAT config;
 
@@ -3996,7 +3996,7 @@ void eexKeyHandler(WORD keymsg)
 
         startnum = uiFindNumberStart(&endnum, &flags);
 
-        BYTEPTR line = (BYTEPTR) (CmdLineCurrentLine + 1);
+        byte_p line = (byte_p) (CmdLineCurrentLine + 1);
 
         if(!startnum) {
             startnum = line + halScreen.CursorPosition;
@@ -4008,9 +4008,9 @@ void eexKeyHandler(WORD keymsg)
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((BYTEPTR) "1E");
+                uiInsertCharacters((byte_p) "1E");
             else
-                uiInsertCharacters((BYTEPTR) "1e");
+                uiInsertCharacters((byte_p) "1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -4044,9 +4044,9 @@ void eexKeyHandler(WORD keymsg)
                 else {
                     if((config.MiddleFmt | config.BigFmt | config.
                                 SmallFmt) & FMT_USECAPITALS)
-                        uiInsertCharacters((BYTEPTR) "E");
+                        uiInsertCharacters((byte_p) "E");
                     else
-                        uiInsertCharacters((BYTEPTR) "e");
+                        uiInsertCharacters((byte_p) "e");
                     uiMoveCursor(oldposition + 1);
                 }
                 uiEnsureCursorVisible();
@@ -4057,9 +4057,9 @@ void eexKeyHandler(WORD keymsg)
             // THE CURSOR WAS PAST THE END OF THE NUMBER
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((BYTEPTR) "1E");
+                uiInsertCharacters((byte_p) "1E");
             else
-                uiInsertCharacters((BYTEPTR) "1e");
+                uiInsertCharacters((byte_p) "1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -4068,7 +4068,7 @@ void eexKeyHandler(WORD keymsg)
 }
 
 // COMMON FUNCTION FOR AL "BRACKET TYPES"
-void bracketKeyHandler(WORD keymsg, BYTEPTR string)
+void bracketKeyHandler(WORD keymsg, byte_p string)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_INTSTACK)
@@ -4085,7 +4085,7 @@ void bracketKeyHandler(WORD keymsg, BYTEPTR string)
             || ((halScreen.CursorState & 0xff) == 'P'))
         uiSeparateToken();
 
-    BYTEPTR end = string + stringlen((char *)string);
+    byte_p end = string + stringlen((char *)string);
     uiInsertCharactersN(string, end);
     uiCursorLeft(utf8nlenst((char *)string, (char *)end) >> 1);
     uiAutocompleteUpdate();
@@ -4096,9 +4096,9 @@ void curlyBracketKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
-        bracketKeyHandler(keymsg, (BYTEPTR) "{}");
+        bracketKeyHandler(keymsg, (byte_p) "{}");
     else {
-        bracketKeyHandler(keymsg, (BYTEPTR) "{  }");
+        bracketKeyHandler(keymsg, (byte_p) "{  }");
         halSetCmdLineMode('P');
     }
 
@@ -4108,15 +4108,15 @@ void squareBracketKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
-        bracketKeyHandler(keymsg, (BYTEPTR) "[]");
+        bracketKeyHandler(keymsg, (byte_p) "[]");
     else
-        bracketKeyHandler(keymsg, (BYTEPTR) "[  ]");
+        bracketKeyHandler(keymsg, (byte_p) "[  ]");
 
 }
 
 void secoBracketKeyHandler(WORD keymsg)
 {
-    bracketKeyHandler(keymsg, (BYTEPTR) "«  »");
+    bracketKeyHandler(keymsg, (byte_p) "«  »");
 
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C'))
         halSetCmdLineMode('P');
@@ -4125,13 +4125,13 @@ void secoBracketKeyHandler(WORD keymsg)
 
 void parenBracketKeyHandler(WORD keymsg)
 {
-    bracketKeyHandler(keymsg, (BYTEPTR) "()");
+    bracketKeyHandler(keymsg, (byte_p) "()");
 
 }
 
 void textBracketKeyHandler(WORD keymsg)
 {
-    bracketKeyHandler(keymsg, (BYTEPTR) "\"\"");
+    bracketKeyHandler(keymsg, (byte_p) "\"\"");
 
     //  LOCK ALPHA MODE
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C'))
@@ -4142,22 +4142,22 @@ void textBracketKeyHandler(WORD keymsg)
 void ticksKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        bracketKeyHandler(keymsg, (BYTEPTR) "''");
+        bracketKeyHandler(keymsg, (byte_p) "''");
         halSetCmdLineMode('A');
     }
     else
-        symbolKeyHandler(keymsg, (BYTEPTR) "'", 0);
+        symbolKeyHandler(keymsg, (byte_p) "'", 0);
 }
 
 void tagKeyHandler(WORD keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        bracketKeyHandler(keymsg, (BYTEPTR) "::");
+        bracketKeyHandler(keymsg, (byte_p) "::");
         //  LOCK ALPHA MODE
         keyb_setshiftplane(0, 0, 1, 1);
     }
     else
-        symbolKeyHandler(keymsg, (BYTEPTR) ":", 0);
+        symbolKeyHandler(keymsg, (byte_p) ":", 0);
 
 }
 
@@ -4208,9 +4208,9 @@ void onPlusKeyHandler(WORD keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(lcd_contrast, DECint32_t);
+    word_p contrast = rplNewSINT(lcd_contrast, DECint32_t);
     if(contrast)
-        rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
+        rplStoreSettings((word_p) screenconfig_ident, contrast);
     Exceptions = savedex;
 }
 
@@ -4260,9 +4260,9 @@ void onMinusKeyHandler(WORD keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    WORDPTR contrast = rplNewSINT(lcd_contrast, DECint32_t);
+    word_p contrast = rplNewSINT(lcd_contrast, DECint32_t);
     if(contrast)
-        rplStoreSettings((WORDPTR) screenconfig_ident, contrast);
+        rplStoreSettings((word_p) screenconfig_ident, contrast);
     Exceptions = savedex;
 }
 
@@ -4853,7 +4853,7 @@ void changemenuKeyHandler(WORD keymsg, int64_t menucode)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    WORDPTR numobject = rplNewint32_t(menucode, HEXint32_t);
+    word_p numobject = rplNewint32_t(menucode, HEXint32_t);
 
     if(!numobject || Exceptions)
         return;
@@ -4877,7 +4877,7 @@ void backmenuKeyHandler(WORD keymsg, WORD menu)
     if(menu < 1 || menu > 2)
         return;
 
-    WORDPTR oldmenu = rplPopMenuHistory(menu);
+    word_p oldmenu = rplPopMenuHistory(menu);
     if(oldmenu) {
         rplChangeMenu(menu, oldmenu);
 
@@ -4900,7 +4900,7 @@ void backmenu2KeyHandler(WORD keymsg)
 }
 
 // CUSTOM KEY DEFINITIONS - LOWER LEVEL HANDLER
-void customKeyHandler(WORD keymsg, WORDPTR action)
+void customKeyHandler(WORD keymsg, word_p action)
 {
     if(!action)
         return;
@@ -4944,8 +4944,8 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                 uiOpenCmdLine('D');
 
             int32_t nlines =
-                    uiInsertCharactersN((BYTEPTR) (action + 1),
-                    (BYTEPTR) (action + 1) + rplStrSize(action));
+                    uiInsertCharactersN((byte_p) (action + 1),
+                    (byte_p) (action + 1) + rplStrSize(action));
             if(nlines)
                 uiStretchCmdLine(nlines);
 
@@ -4985,7 +4985,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             case 'D':
             {
                 // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
-                WORDPTR *var = rplFindGlobal(action, 1);
+                word_p *var = rplFindGlobal(action, 1);
                 if(var) {
                     if(ISDIR(*(var[1]))) {
                         // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -5006,7 +5006,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             }
             case 'A':
             {
-                WORDPTR *var = rplFindGlobal(action, 1);
+                word_p *var = rplFindGlobal(action, 1);
                 if(var) {
                     if(ISDIR(*(var[1]))) {
                         // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -5016,7 +5016,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                     }
                 }
 
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5028,7 +5028,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
             case 'P':
             {
-                WORDPTR *var = rplFindGlobal(action, 1);
+                word_p *var = rplFindGlobal(action, 1);
                 if(var) {
                     if(ISDIR(*(var[1]))) {
                         // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
@@ -5038,7 +5038,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                     }
                 }
 
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5068,7 +5068,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             }
             case 'A':
             {
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 int32_t totaln = rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring);
                 if (!totaln)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
@@ -5085,14 +5085,14 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
             case 'P':
             {
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 uiInsertCharactersN(string, endstring);
                 uiSeparateToken();
-                uiInsertCharacters((BYTEPTR) "*");
+                uiInsertCharacters((byte_p) "*");
                 uiSeparateToken();
                 uiAutocompleteUpdate();
 
@@ -5133,13 +5133,13 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
                     CurOpcode = savecurOpcode;
                 }
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                    uiInsertCharacters((BYTEPTR) "()");
+                    uiInsertCharacters((byte_p) "()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -5149,7 +5149,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
             case 'P':
             {
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5184,7 +5184,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
             }
         }
         else if(ISSTRING(*action)) {
-            BYTEPTR string, endstring;
+            byte_p string, endstring;
             rplGetStringPointers(action, &string, &endstring);
 
             if(!inlist) {
@@ -5192,13 +5192,13 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
                 if(((halScreen.CursorState & 0xff) == 'P')
                         || ((halScreen.CursorState & 0xff) == 'D')) {
                     uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR) "\"");
+                    uiInsertCharacters((byte_p) "\"");
                 }
             }
             uiInsertCharactersN(string, endstring);
             if(!inlist && (((halScreen.CursorState & 0xff) == 'P')
                         || ((halScreen.CursorState & 0xff) == 'D'))) {
-                uiInsertCharacters((BYTEPTR) "\"");
+                uiInsertCharacters((byte_p) "\"");
                 uiSeparateToken();
             }
             uiAutocompleteUpdate();
@@ -5241,13 +5241,13 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
                     CurOpcode = savecurOpcode;
                 }
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                    uiInsertCharacters((BYTEPTR) "()");
+                    uiInsertCharacters((byte_p) "()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -5257,7 +5257,7 @@ void customKeyHandler(WORD keymsg, WORDPTR action)
 
             case 'P':
             {
-                BYTEPTR string, endstring;
+                byte_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5329,7 +5329,7 @@ void basecycleKeyHandler(WORD keymsg)
         if(halGetContext() & CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK, CYCLE THROUGH DIFFERENT BASES
 
-            rplPushDataNoGrow((WORDPTR) lib70_basecycle);
+            rplPushDataNoGrow((word_p) lib70_basecycle);
             uiCmdRunHide(CMD_OVR_XEQ, 1);
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
@@ -5347,13 +5347,13 @@ void basecycleKeyHandler(WORD keymsg)
 
         // ACTION INSIDE THE EDITOR
 
-        BYTEPTR startnum, endnum;
-        BYTEPTR line;
+        byte_p startnum, endnum;
+        byte_p line;
         int32_t numflags;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE BASE OF THE NUMBER IN THE TEXT
         startnum = uiFindNumberStart(&endnum, &numflags);
-        line = (BYTEPTR) (CmdLineCurrentLine + 1);
+        line = (byte_p) (CmdLineCurrentLine + 1);
         if(!startnum) {
 
             return;
@@ -5413,7 +5413,7 @@ void basecycleKeyHandler(WORD keymsg)
             else {
                 // ADD NUMERAL SIGN IF NOT THERE YET AND IF THERE'S NO EXPONENT WITH A SIGN
                 if(!(numflags & 8) && (startnum[0] != '#')) {
-                    uiInsertCharacters((BYTEPTR) str);
+                    uiInsertCharacters((byte_p) str);
                     if(oldposition > startnum - line)
                         ++oldposition;
                     ++endnum;
@@ -5439,7 +5439,7 @@ void basecycleKeyHandler(WORD keymsg)
             {
 
                 str[0] = endchar;
-                uiInsertCharacters((BYTEPTR) str);
+                uiInsertCharacters((byte_p) str);
                 if(oldposition >= endnum - line)
                     ++oldposition;
             }
@@ -5464,7 +5464,7 @@ void basecycleKeyHandler(WORD keymsg)
 #define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(WORD keymsg) \
 { \
     UNUSED_ARGUMENT(keymsg); \
-    cmdKeyHandler(opcode,(BYTEPTR)string,issymbfunc); \
+    cmdKeyHandler(opcode,(byte_p)string,issymbfunc); \
     }
 
 #define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(WORD keymsg) \
@@ -5479,12 +5479,12 @@ void basecycleKeyHandler(WORD keymsg)
 
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(WORD keymsg) \
 { \
-    alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
+    alphasymbolKeyHandler(keymsg,(byte_p)(lsymbol),(byte_p)(csymbol)); \
     }
 
 #define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(WORD keymsg) \
 { \
-    symbolKeyHandler(keymsg,(BYTEPTR)(symbol),(sep)); \
+    symbolKeyHandler(keymsg,(byte_p)(symbol),(sep)); \
     }
 
 #define KEYHANDLER_NAME(name)  &(name##KeyHandler)
@@ -5581,10 +5581,10 @@ DECLARE_KEYHANDLER(a, "a", "A")
         DECLARE_VARKEYHANDLER(var6, 2, 5)
      void underscoreKeyHandler(WORD keymsg)
 {
-    symbolKeyHandler(keymsg, (BYTEPTR) "_", 0);
+    symbolKeyHandler(keymsg, (byte_p) "_", 0);
 
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        uiInsertCharacters((BYTEPTR) "[]");
+        uiInsertCharacters((byte_p) "[]");
         uiCursorLeft(1);
         halSetCmdLineMode('A');
     }
@@ -5633,7 +5633,7 @@ void spcKeyHandler(WORD keymsg)
 
     }
 
-    symbolKeyHandler(keymsg, (BYTEPTR) " ", 0);
+    symbolKeyHandler(keymsg, (byte_p) " ", 0);
 
 }
 
@@ -5648,7 +5648,7 @@ void tolistKeyHandler(WORD keymsg)
         if((rplDepthData() >= halScreen.StkPointer)
                 && (halScreen.StkPointer > 0)) {
 
-            WORDPTR newlist = rplCreateListN(1, halScreen.StkPointer, 0);
+            word_p newlist = rplCreateListN(1, halScreen.StkPointer, 0);
             if(!newlist || Exceptions) {
                 rplBlameError(0);
                 return;
@@ -5674,7 +5674,7 @@ void tolistKeyHandler(WORD keymsg)
         }
 
         // MAKE A LIST
-        WORDPTR newlist = rplCreateListN(endlvl - stlvl + 1, stlvl, 0);
+        word_p newlist = rplCreateListN(endlvl - stlvl + 1, stlvl, 0);
         if(!newlist || Exceptions) {
             rplBlameError(0);
             return;
@@ -5699,7 +5699,7 @@ void tolistKeyHandler(WORD keymsg)
         stlvl = halScreen.StkSelStart;
 
         // MAKE A LIST
-        WORDPTR newlist = rplCreateListN(endlvl - stlvl + 1, stlvl, 0);
+        word_p newlist = rplCreateListN(endlvl - stlvl + 1, stlvl, 0);
         if(!newlist || Exceptions) {
             rplBlameError(0);
             return;
@@ -5711,7 +5711,7 @@ void tolistKeyHandler(WORD keymsg)
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
             memmovew(DSTop - lstlvl + 1, DSTop - lstlvl,
-                    (lstlvl - endlvl) * sizeof(WORDPTR) / sizeof(WORD));
+                    (lstlvl - endlvl) * sizeof(word_p) / sizeof(WORD));
             // INSERT THE LIST
             rplOverwriteData(lstlvl, newlist);
             // REMOVE THE ORIGINAL ITEMS
@@ -5726,7 +5726,7 @@ void tolistKeyHandler(WORD keymsg)
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
                 memmovew(DSTop, DSTop - 1,
-                        lstlvl * sizeof(WORDPTR) / sizeof(WORD));
+                        lstlvl * sizeof(word_p) / sizeof(WORD));
                 // INSERT THE LIST
                 rplOverwriteData(lstlvl, newlist);
 
@@ -5773,7 +5773,7 @@ void tomatKeyHandler(WORD keymsg)
         if((rplDepthData() >= halScreen.StkPointer)
                 && (halScreen.StkPointer > 0)) {
 
-            WORDPTR newmat = rplMatrixFlexComposeN(halScreen.StkPointer, 1);    // MAKE A SINGLE ELEMENT VECTOR
+            word_p newmat = rplMatrixFlexComposeN(halScreen.StkPointer, 1);    // MAKE A SINGLE ELEMENT VECTOR
             if(!newmat || Exceptions) {
                 rplBlameError(0);
                 return;
@@ -5799,7 +5799,7 @@ void tomatKeyHandler(WORD keymsg)
         }
 
         // MAKE A LIST
-        WORDPTR newmat = rplMatrixFlexComposeN(stlvl, endlvl - stlvl + 1);
+        word_p newmat = rplMatrixFlexComposeN(stlvl, endlvl - stlvl + 1);
         if(!newmat || Exceptions) {
             rplBlameError(0);
             return;
@@ -5824,7 +5824,7 @@ void tomatKeyHandler(WORD keymsg)
         stlvl = halScreen.StkSelStart;
 
         // MAKE A LIST
-        WORDPTR newmat = rplMatrixFlexComposeN(stlvl, endlvl - stlvl + 1);
+        word_p newmat = rplMatrixFlexComposeN(stlvl, endlvl - stlvl + 1);
         if(!newmat || Exceptions) {
             rplBlameError(0);
             return;
@@ -5836,7 +5836,7 @@ void tomatKeyHandler(WORD keymsg)
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
             memmovew(DSTop - lstlvl + 1, DSTop - lstlvl,
-                    (lstlvl - endlvl) * sizeof(WORDPTR) / sizeof(WORD));
+                    (lstlvl - endlvl) * sizeof(word_p) / sizeof(WORD));
             // INSERT THE LIST
             rplOverwriteData(lstlvl, newmat);
             // REMOVE THE ORIGINAL ITEMS
@@ -5851,7 +5851,7 @@ void tomatKeyHandler(WORD keymsg)
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
                 memmovew(DSTop, DSTop - 1,
-                        lstlvl * sizeof(WORDPTR) / sizeof(WORD));
+                        lstlvl * sizeof(word_p) / sizeof(WORD));
                 // INSERT THE LIST
                 rplOverwriteData(lstlvl, newmat);
 
@@ -5916,7 +5916,7 @@ void tocplxKeyHandler(WORD keymsg)
         if(endlvl - stlvl != 1)
             break;      // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
 
-        WORDPTR real, imag;
+        word_p real, imag;
         int32_t angmode;
         real = rplPeekData(endlvl);
         imag = rplPeekData(stlvl);
@@ -5937,7 +5937,7 @@ void tocplxKeyHandler(WORD keymsg)
         rplReadNumberAsReal(real, &re);
         rplReadNumberAsReal(imag, &im);
 
-        WORDPTR newcplx = rplNewComplex(&re, &im, angmode);
+        word_p newcplx = rplNewComplex(&re, &im, angmode);
 
         // MAKE THE COMPLEX NUMBER
         if(!newcplx || Exceptions) {
@@ -5967,7 +5967,7 @@ void tocplxKeyHandler(WORD keymsg)
         if(endlvl - stlvl != 1)
             break;      // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
 
-        WORDPTR real, imag;
+        word_p real, imag;
         int32_t angmode;
         real = rplPeekData(endlvl);
         imag = rplPeekData(stlvl);
@@ -5988,7 +5988,7 @@ void tocplxKeyHandler(WORD keymsg)
         rplReadNumberAsReal(real, &re);
         rplReadNumberAsReal(imag, &im);
 
-        WORDPTR newcplx = rplNewComplex(&re, &im, angmode);
+        word_p newcplx = rplNewComplex(&re, &im, angmode);
 
         // MAKE THE COMPLEX NUMBER
         if(!newcplx || Exceptions) {
@@ -6002,7 +6002,7 @@ void tocplxKeyHandler(WORD keymsg)
                     rplDepthData())? rplDepthData() : halScreen.StkPointer;
             // MAKE ROOM
             memmovew(DSTop - lstlvl + 1, DSTop - lstlvl,
-                    (lstlvl - endlvl) * sizeof(WORDPTR) / sizeof(WORD));
+                    (lstlvl - endlvl) * sizeof(word_p) / sizeof(WORD));
             // INSERT THE LIST
             rplOverwriteData(lstlvl, newcplx);
             // REMOVE THE ORIGINAL ITEMS
@@ -6017,7 +6017,7 @@ void tocplxKeyHandler(WORD keymsg)
                 lstlvl = halScreen.StkPointer;
                 // MAKE ROOM, USE STACK SLACK TEMPORARILY
                 memmovew(DSTop, DSTop - 1,
-                        lstlvl * sizeof(WORDPTR) / sizeof(WORD));
+                        lstlvl * sizeof(word_p) / sizeof(WORD));
                 // INSERT THE LIST
                 rplOverwriteData(lstlvl, newcplx);
 
@@ -6068,7 +6068,7 @@ void explodeKeyHandler(WORD keymsg)
         if((rplDepthData() >= halScreen.StkPointer)
                 && (halScreen.StkPointer > 0)) {
 
-            WORDPTR obj = rplPeekData(halScreen.StkPointer);
+            word_p obj = rplPeekData(halScreen.StkPointer);
 
             if(ISMATRIX(*obj) || ISLIST(*obj) || ISCOMPLEX(*obj))
                 stlvl = endlvl = halScreen.StkPointer;
@@ -6100,7 +6100,7 @@ void explodeKeyHandler(WORD keymsg)
     for(c = endlvl; c >= stlvl; --c) {
 
         // EXPLODE ALL SELECTED ITEMS
-        WORDPTR obj = rplPeekData(c);
+        word_p obj = rplPeekData(c);
         int32_t nelem;
 
         if(ISMATRIX(*obj)) {
@@ -6129,10 +6129,10 @@ void explodeKeyHandler(WORD keymsg)
 
         // MAKE ROOM IN THE STACK TO START EXPLODING
         memmovew(DSTop - c + nelem, DSTop - c + 1,
-                (c - 1) * sizeof(WORDPTR) / sizeof(WORD));
+                (c - 1) * sizeof(word_p) / sizeof(WORD));
 
         // NOW EXPLODE THE MAIN OBJECT IN-PLACE
-        WORDPTR *ptr = DSTop - c;
+        word_p *ptr = DSTop - c;
 
         obj = *ptr;     // READ AGAIN AS THERE MIGHT'VE BEEN A GC DURING EXPANDSTACK
 
@@ -6167,18 +6167,18 @@ void explodeKeyHandler(WORD keymsg)
                 // HERE WE HAVE TOTAL SIZE OF ALL ROWS TO BE EXPANDED
                 // ALLOCATE ONE BIG BLOCK OF MEMORY FOR ALL ROWS
 
-                WORDPTR newrows = rplAllocTempOb(totalsize - 1);
+                word_p newrows = rplAllocTempOb(totalsize - 1);
                 if(!newrows) {
                     // CLOSE THE STACK BACK BEFORE RETURNING
                     memmovew(DSTop - c + 1, DSTop - c + nelem,
-                            (c - 1) * sizeof(WORDPTR) / sizeof(WORD));
+                            (c - 1) * sizeof(word_p) / sizeof(WORD));
                     rplBlameError(0);
                     return;
                 }
 
                 obj = *ptr;     // READ AGAIN AS THERE MIGHT'VE BEEN A GC DURING ALLOCATION
 
-                WORDPTR rptr = newrows, objptr;
+                word_p rptr = newrows, objptr;
 
                 for(i = 1; i <= rows; ++i) {
                     rptr[1] = MATMKSIZE(0, cols);
@@ -6214,7 +6214,7 @@ void explodeKeyHandler(WORD keymsg)
         }
         else if(ISLIST(*obj)) {
             int32_t k;
-            WORDPTR item = obj + 1;
+            word_p item = obj + 1;
             for(k = 0; k < nelem; ++k) {
                 *ptr++ = item;
                 item = rplSkipOb(item);
@@ -6238,8 +6238,8 @@ void explodeKeyHandler(WORD keymsg)
     // SPECIAL CASE: WHEN BLOCK IS SELECTED AND POINTER IS OUTSIDE THE BLOCK, MOVE EXPLODED ITEMS TO THE NEW LOCATION
     if(halScreen.StkSelStatus == 2) {
         if(halScreen.StkPointer > halScreen.StkSelEnd) {
-            WORDPTR *stptr, *endptr, *cptr;
-            WORDPTR item;
+            word_p *stptr, *endptr, *cptr;
+            word_p item;
             stptr = DSTop - halScreen.StkSelStart;
             endptr = DSTop - ((halScreen.StkPointer >
                         rplDepthData())? rplDepthData() : halScreen.StkPointer);
@@ -6268,8 +6268,8 @@ void explodeKeyHandler(WORD keymsg)
         }
         else if(halScreen.StkPointer < halScreen.StkSelStart) {
 
-            WORDPTR *stptr, *endptr, *cptr;
-            WORDPTR item;
+            word_p *stptr, *endptr, *cptr;
+            word_p item;
             stptr = DSTop - halScreen.StkSelEnd;
             endptr = DSTop - halScreen.StkPointer - 1;
 
@@ -7613,9 +7613,9 @@ int halDoCustomKey(WORD keymsg)
         return 0;       // DON'T USE CUSTOM KEYS IF DISABLED PER FLAG
 
     // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
-    WORDPTR keytable;
+    word_p keytable;
 
-    keytable = rplGetSettings((WORDPTR) customkey_ident);
+    keytable = rplGetSettings((word_p) customkey_ident);
 
     if(!keytable)
         return 0;       // NO CUSTOM KEY DEFINED
@@ -7623,7 +7623,7 @@ int halDoCustomKey(WORD keymsg)
     if(!ISLIST(*keytable))
         return 0;       // INVALID KEY DEFINITION
 
-    WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
+    word_p ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
     int32_t ctx, keepgoing, hanoffset;
     WORD msg;
 
@@ -7689,7 +7689,7 @@ int halDoCustomKey(WORD keymsg)
 
                 // RESTORE ALL POINTERS, SINCE EXECUTION COULD'VE CHANGED EVERYTHING
 
-                keytable = rplGetSettings((WORDPTR) customkey_ident);
+                keytable = rplGetSettings((word_p) customkey_ident);
 
                 if(!keytable)
                     return 1;   // NO MORE KEYS, KEYTABLE VANISHED?
@@ -7734,9 +7734,9 @@ int halDoCustomKey(WORD keymsg)
 // RETURN TRUE/FALSE IF A CUSTOM HANDLER EXISTS
 int halCustomKeyExists(WORD keymsg)
 {
-    WORDPTR keytable;
+    word_p keytable;
 
-    keytable = rplGetSettings((WORDPTR) customkey_ident);
+    keytable = rplGetSettings((word_p) customkey_ident);
 
     if(!keytable)
         return 0;       // NO CUSTOM KEY DEFINED
@@ -7744,7 +7744,7 @@ int halCustomKeyExists(WORD keymsg)
     if(!ISLIST(*keytable))
         return 0;       // INVALID KEY DEFINITION
 
-    WORDPTR ptr = keytable + 1, endoftable = rplSkipOb(keytable);
+    word_p ptr = keytable + 1, endoftable = rplSkipOb(keytable);
     int32_t ctx;
     WORD msg;
 
@@ -7847,7 +7847,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
 #ifdef TARGET_PRIME1
     if(KM_MESSAGE(keymsg) == KM_TOUCH) {
         // TODO: Convert touch events into keys or gestures
-        WORDPTR keyname=rplMsg2KeyName(keymsg);
+        word_p keyname=rplMsg2KeyName(keymsg);
         if(keyname)
             rplPushData(keyname);
         else

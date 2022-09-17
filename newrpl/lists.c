@@ -16,7 +16,7 @@
 // EXPAND A COMPOSITE IN THE STACK AND STORES THE NUMBER OF ELEMENTS AT THE END
 // USES 2 SCRATCH POINTERS
 
-int32_t rplExplodeList(WORDPTR composite)
+int32_t rplExplodeList(word_p composite)
 {
     int32_t count = 0;
     ScratchPointer1 = composite + 1;
@@ -34,7 +34,7 @@ int32_t rplExplodeList(WORDPTR composite)
 // DOESN'T PUSH THE NUMBER OF ELEMENTS, JUST RETURNS IT
 // USES 2 SCRATCH POINTERS
 
-int32_t rplExplodeList2(WORDPTR composite)
+int32_t rplExplodeList2(word_p composite)
 {
     int32_t count = 0;
     ScratchPointer1 = composite + 1;
@@ -47,11 +47,11 @@ int32_t rplExplodeList2(WORDPTR composite)
     return count;
 }
 
-int32_t rplListLength(WORDPTR composite)
+int32_t rplListLength(word_p composite)
 {
     int32_t count = 0;
-    WORDPTR ptr = composite + 1;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = composite + 1;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end) {
         ptr = rplSkipOb(ptr);
         ++count;
@@ -60,11 +60,11 @@ int32_t rplListLength(WORDPTR composite)
 }
 
 // RETURN THE LENGTH OF A "FLAT" LIST, AS IF LISTS INSIDE THE LIST WERE EXPLODED
-int32_t rplListLengthFlat(WORDPTR composite)
+int32_t rplListLengthFlat(word_p composite)
 {
     int32_t count = 0, depth = 0;
-    WORDPTR ptr = composite + 1;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = composite + 1;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end) {
         if(ISLIST(*ptr)) {
             ++depth;
@@ -85,11 +85,11 @@ int32_t rplListLengthFlat(WORDPTR composite)
 
 // GET AN ELEMENT FROM A "FLAT" VIEW OF THE LIST
 
-WORDPTR rplGetListElementFlat(WORDPTR composite, int32_t pos)
+word_p rplGetListElementFlat(word_p composite, int32_t pos)
 {
     int32_t count = 1;
-    WORDPTR ptr = composite + 1;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = composite + 1;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count <= pos) {
         if(ISLIST(*ptr)) {
             ++ptr;
@@ -109,13 +109,13 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, int32_t pos)
     return ptr;
 }
 
-WORDPTR rplGetListElement(WORDPTR composite, int32_t pos)
+word_p rplGetListElement(word_p composite, int32_t pos)
 {
     if(pos < 1)
         return 0;
     int32_t count = 1;
-    WORDPTR ptr = composite + 1;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = composite + 1;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count < pos) {
         ptr = rplSkipOb(ptr);
         ++count;
@@ -127,10 +127,10 @@ WORDPTR rplGetListElement(WORDPTR composite, int32_t pos)
 
 // GET NEXT ELEMENT FROM A "FLAT" VIEW OF THE LIST
 
-WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem)
+word_p rplGetNextListElementFlat(word_p composite, word_p elem)
 {
-    WORDPTR ptr = elem;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = elem;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end) {
         ptr = rplSkipOb(ptr);
         if(ISLIST(*ptr))
@@ -146,11 +146,11 @@ WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem)
 // RETURNS FALSE (0) IF THE ELEMENT IS NOT AT THE END OF A SUBLIST IN A "FLAT" LIST
 // OTHERWISE RETURNS THE POSITION OF THE FIRST ELEMENT IN THE LIST THAT CONTAINS THE OBJECT
 
-int32_t rplIsLastElementFlat(WORDPTR composite, int32_t pos)
+int32_t rplIsLastElementFlat(word_p composite, int32_t pos)
 {
     int32_t count = 1, depth = 0, startpos = 1;
-    WORDPTR ptr = composite + 1;
-    WORDPTR end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
+    word_p ptr = composite + 1;
+    word_p end = composite + OBJSIZE(*composite);      // POINT TO THE END MARKER
     while(ptr < end && count < pos) {
         if(ISLIST(*ptr)) {
             ++depth;
@@ -192,13 +192,13 @@ void rplCreateList()
     }
 
     // ALLOCATE MEMORY
-    WORDPTR list = rplAllocTempOb(size);
+    word_p list = rplAllocTempOb(size);
     if(!list) {
         return;
     }
 
     // CONSTRUCT THE OBJECT
-    WORDPTR objptr = list + 1;
+    word_p objptr = list + 1;
     *list = MKPROLOG(DOLIST, size);
     for(count = num; count > 0; --count) {
         rplCopyObject(objptr, rplPeekData(count + 1));
@@ -211,7 +211,7 @@ void rplCreateList()
 }
 
 // CREATE A NEW LIST. STACK LEVEL A.. N+A = OBJECTS
-WORDPTR rplCreateListN(int32_t num, int32_t level, int32_t remove)
+word_p rplCreateListN(int32_t num, int32_t level, int32_t remove)
 {
     // NO ARGUMENT CHECKING
     int32_t size = 1;      // 1 WORD FOR THE END MARKER
@@ -221,13 +221,13 @@ WORDPTR rplCreateListN(int32_t num, int32_t level, int32_t remove)
     }
 
     // ALLOCATE MEMORY
-    WORDPTR list = rplAllocTempOb(size);
+    word_p list = rplAllocTempOb(size);
     if(!list) {
         return 0;
     }
 
     // CONSTRUCT THE OBJECT
-    WORDPTR objptr = list + 1;
+    word_p objptr = list + 1;
     *list = MKPROLOG(DOLIST, size);
     for(count = num; count > 0; --count) {
         rplCopyObject(objptr, rplPeekData(level + count - 1));
@@ -242,7 +242,7 @@ WORDPTR rplCreateListN(int32_t num, int32_t level, int32_t remove)
 }
 
 // SET THE AUTO EXPAND BIT ON A LIST
-void rplListAutoExpand(WORDPTR list)
+void rplListAutoExpand(word_p list)
 {
     if(!ISLIST(*list))
         return;
@@ -258,8 +258,8 @@ void rplListBinaryDoCmd()
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
-        WORDPTR *savestk = DSTop;
-        WORDPTR newobj = rplAllocTempOb(2);
+        word_p *savestk = DSTop;
+        word_p newobj = rplAllocTempOb(2);
         if(!newobj)
             return;
         // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
@@ -267,7 +267,7 @@ void rplListBinaryDoCmd()
         newobj[1] = CurOpcode;
         newobj[2] = CMD_SEMI;
 
-        rplPushDataNoGrow((WORDPTR) two_bint);
+        rplPushDataNoGrow((word_p) two_bint);
         rplPushData(newobj);
 
         rplSetSystemFlag(FL_LISTCMDCLEANUP);
@@ -286,9 +286,9 @@ void rplListBinaryDoCmd()
     else if(ISLIST(*rplPeekData(2)) && !ISLIST(*rplPeekData(1))) {
 
         int32_t size1 = rplObjSize(rplPeekData(1));
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR newobj = rplAllocTempOb(2 + size1);
+        word_p newobj = rplAllocTempOb(2 + size1);
         if(!newobj)
             return;
 
@@ -318,9 +318,9 @@ void rplListBinaryDoCmd()
     else if(!ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))) {
 
         int32_t size1 = rplObjSize(rplPeekData(2));
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR newobj = rplAllocTempOb(3 + size1);
+        word_p newobj = rplAllocTempOb(3 + size1);
         if(!newobj)
             return;
 
@@ -360,7 +360,7 @@ void rplListBinaryNoResultDoCmd()
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
-        WORDPTR newobj = rplAllocTempOb(5);
+        word_p newobj = rplAllocTempOb(5);
         if(!newobj)
             return;
         // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
@@ -371,7 +371,7 @@ void rplListBinaryNoResultDoCmd()
         newobj[4] = CMD_DROP;
         newobj[5] = CMD_SEMI;
 
-        rplPushDataNoGrow((WORDPTR) two_bint);
+        rplPushDataNoGrow((word_p) two_bint);
         rplPushDataNoGrow(newobj);
 
         rplSetSystemFlag(FL_LISTCMDCLEANUP);
@@ -387,9 +387,9 @@ void rplListBinaryNoResultDoCmd()
     else if(ISLIST(*rplPeekData(2)) && !ISLIST(*rplPeekData(1))) {
 
         int32_t size1 = rplObjSize(rplPeekData(1));
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR newobj = rplAllocTempOb(2 + size1);
+        word_p newobj = rplAllocTempOb(2 + size1);
         if(!newobj)
             return;
 
@@ -419,9 +419,9 @@ void rplListBinaryNoResultDoCmd()
     else if(!ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))) {
 
         int32_t size1 = rplObjSize(rplPeekData(2));
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR newobj = rplAllocTempOb(3 + size1);
+        word_p newobj = rplAllocTempOb(3 + size1);
         if(!newobj)
             return;
 
@@ -456,8 +456,8 @@ void rplListBinaryNoResultDoCmd()
 void rplListUnaryDoCmd()
 {
 
-    WORDPTR *savestk = DSTop;
-    WORDPTR newobj = rplAllocTempOb(2);
+    word_p *savestk = DSTop;
+    word_p newobj = rplAllocTempOb(2);
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -485,8 +485,8 @@ void rplListUnaryDoCmd()
 void rplListUnaryNonRecursiveDoCmd()
 {
 
-    WORDPTR *savestk = DSTop;
-    WORDPTR newobj = rplAllocTempOb(2);
+    word_p *savestk = DSTop;
+    word_p newobj = rplAllocTempOb(2);
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -494,7 +494,7 @@ void rplListUnaryNonRecursiveDoCmd()
     newobj[1] = CurOpcode;
     newobj[2] = CMD_SEMI;
 
-    rplPushDataNoGrow((WORDPTR) one_bint);
+    rplPushDataNoGrow((word_p) one_bint);
     rplPushData(newobj);
     rplSetSystemFlag(FL_LISTCMDCLEANUP);
 
@@ -514,8 +514,8 @@ void rplListUnaryNonRecursiveDoCmd()
 void rplListUnaryNoResultDoCmd()
 {
 
-    WORDPTR *savestk = DSTop;
-    WORDPTR newobj = rplAllocTempOb(2);
+    word_p *savestk = DSTop;
+    word_p newobj = rplAllocTempOb(2);
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
@@ -541,10 +541,10 @@ void rplListUnaryNoResultDoCmd()
 // APPEND AN ITEM TO THE END OF THE LIST, DROP THE FIRST
 // ELEMENT IF NEEDED TO KEEP THE LIST AT N ELEMENTS MAX.
 // USES ScratchPointers 1 THRU 3
-WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, int32_t nmax)
+word_p rplListAddRot(word_p list, word_p object, int32_t nmax)
 {
     int32_t nitems;
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     ScratchPointer3 = object;
     nitems = rplExplodeList2(list);
@@ -561,7 +561,7 @@ WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, int32_t nmax)
         rplDropData(offset);
     }
     rplPushData(ScratchPointer3);
-    WORDPTR newlist =
+    word_p newlist =
             rplCreateListN(((offset > 0) ? nmax : (nitems + 1)), 1, 1);
     if(Exceptions) {
         DSTop = savestk;
@@ -573,10 +573,10 @@ WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, int32_t nmax)
 // CREATE A NEW LIST REPLACING THE OBJECT AT position WITH THE GIVEN object
 // RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
 // USES SCRATCHPOINTERS 1 AND 2
-WORDPTR rplListReplace(WORDPTR list, int32_t position, WORDPTR object)
+word_p rplListReplace(word_p list, int32_t position, word_p object)
 {
     int32_t newobjsize = rplObjSize(object);
-    WORDPTR oldobject = rplGetListElement(list, position);
+    word_p oldobject = rplGetListElement(list, position);
     if(!oldobject)
         return 0;       // INVALID INDEX?
     int32_t oldobjsize = rplObjSize(oldobject);
@@ -584,7 +584,7 @@ WORDPTR rplListReplace(WORDPTR list, int32_t position, WORDPTR object)
     int32_t newsize = OBJSIZE(*list) + newobjsize - oldobjsize;
     ScratchPointer1 = list;
     ScratchPointer2 = object;
-    WORDPTR newlist = rplAllocTempOb(newsize);
+    word_p newlist = rplAllocTempOb(newsize);
     if(!newlist)
         return 0;
     *newlist = MKPROLOG(DOLIST, newsize);
@@ -599,11 +599,11 @@ WORDPTR rplListReplace(WORDPTR list, int32_t position, WORDPTR object)
 // CREATE A NEW LIST REPLACING MULTIPLE OBJECTS AT position WITH THE GIVEN object (IF A LIST, IT'S EXPLODED ON REPLACEMENT)
 // RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
 // USES SCRATCHPOINTERS 1 AND 2
-WORDPTR rplListReplaceMulti(WORDPTR list, int32_t position, WORDPTR object)
+word_p rplListReplaceMulti(word_p list, int32_t position, word_p object)
 {
     int32_t numnewobj, llen, endpos;
     int32_t newobjsize, oldobjsize, oldobjoffset;
-    WORDPTR oldobject;
+    word_p oldobject;
 
     newobjsize = rplObjSize(object);
 
@@ -630,7 +630,7 @@ WORDPTR rplListReplaceMulti(WORDPTR list, int32_t position, WORDPTR object)
     oldobjoffset = oldobject - list;
     ScratchPointer1 = list;
     ScratchPointer2 = object;
-    WORDPTR newlist = rplAllocTempOb(OBJSIZE(*list) + newobjsize - oldobjsize);
+    word_p newlist = rplAllocTempOb(OBJSIZE(*list) + newobjsize - oldobjsize);
     if(!newlist)
         return 0;
     *newlist = MKPROLOG(DOLIST, OBJSIZE(*list) + newobjsize - oldobjsize);
@@ -660,9 +660,9 @@ void rplListMultiArgDoCmd(int32_t nargs)
                     size1 += rplObjSize(rplPeekData(j));
             }
 
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
-            WORDPTR newobj = rplAllocTempOb(7 + 6 + size1), newcmd;
+            word_p newobj = rplAllocTempOb(7 + 6 + size1), newcmd;
 
             if(!newobj)
                 return;
@@ -744,8 +744,8 @@ void rplListMultiArgDoCmd(int32_t nargs)
 
 int32_t rplListSame()
 {
-    WORDPTR *a = DSTop - 2;
-    WORDPTR *b = DSTop - 1;
+    word_p *a = DSTop - 2;
+    word_p *b = DSTop - 1;
     int32_t aend, bend;
     int32_t aptr, bptr;
 
@@ -780,7 +780,7 @@ int32_t rplListSame()
 void rplListExpandCases()
 {
     int32_t nelem1, nelem2, size1, size2;
-    WORDPTR list1, list2;
+    word_p list1, list2;
 
     list1 = rplPeekData(2);
     list2 = rplPeekData(1);
@@ -801,12 +801,12 @@ void rplListExpandCases()
     // FIRST LIST WILL HAVE nelem1*nelem2 ITEMS, WITH EACH INDIVIDUAL ITEM REPEATED nelem2 CONSECUTIVE TIMES
     // SECOND LIST WIL HAVE nelem1*nelem2 ITEMS, WITH THE ENTIRE LIST REPEATED nelem1 TIMES
 
-    WORDPTR newlist1 = rplAllocTempOb(size1 * nelem2 + 1);
+    word_p newlist1 = rplAllocTempOb(size1 * nelem2 + 1);
     if(!newlist1)
         return;
     rplPushDataNoGrow(newlist1);
 
-    WORDPTR newlist2 = rplAllocTempOb(size2 * nelem1 + 1);
+    word_p newlist2 = rplAllocTempOb(size2 * nelem1 + 1);
     if(!newlist2) {
         rplDropData(1);
         return;
@@ -822,7 +822,7 @@ void rplListExpandCases()
     newlist1[0] = MKPROLOG(DOCASELIST, size1 * nelem2);
     newlist1[size1 * nelem2 + 1] = CMD_ENDLIST;
 
-    WORDPTR src, srcptr, dest, srcend;
+    word_p src, srcptr, dest, srcend;
     int32_t k;
 
     src = list1;
@@ -859,9 +859,9 @@ void rplListExpandCases()
 }
 
 // RETURN TRUE IF ANY OF THE OBJECTS WITHIN A LIST IS A LIST
-int32_t rplListHasLists(WORDPTR list)
+int32_t rplListHasLists(word_p list)
 {
-    WORDPTR endlist = rplSkipOb(list);
+    word_p endlist = rplSkipOb(list);
     ++list;
     while(list < endlist) {
         if(ISLIST(*list))

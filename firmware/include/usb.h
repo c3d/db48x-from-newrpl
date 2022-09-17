@@ -141,7 +141,7 @@ extern volatile int32_t usb_rxtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DO
 extern int32_t          usb_txtotalbytes; // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 extern int32_t          usb_txseq;        // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
-extern BYTEPTR       usb_ctlbufptr;  // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
+extern byte_p       usb_ctlbufptr;  // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
 extern int32_t          usb_ctlcount;   // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 extern int32_t          usb_ctlpadding; // COUNT OF DATA DURING CONTROL CHANNEL TRANSFERS
 

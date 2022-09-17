@@ -217,39 +217,39 @@ ROMOBJECT screenconfig_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
 
-    (WORDPTR) sysmenu_2_main,
-    (WORDPTR) sysmenu_3_prog,
-    (WORDPTR) sysmenu_4_math,
-    (WORDPTR) sysmenu_5_symb,
-    (WORDPTR) sysmenu_6_system,
-    (WORDPTR) sysmenu_7_flags,
-    (WORDPTR) sysmenu_8_menu,
-    (WORDPTR) sysmenu_9_clipboard,
-    (WORDPTR) sysmenu_10_settings,
-    (WORDPTR) sysmenu_11_namedflags,
-    (WORDPTR) sysmenu_12_keys,
+    (word_p) sysmenu_2_main,
+    (word_p) sysmenu_3_prog,
+    (word_p) sysmenu_4_math,
+    (word_p) sysmenu_5_symb,
+    (word_p) sysmenu_6_system,
+    (word_p) sysmenu_7_flags,
+    (word_p) sysmenu_8_menu,
+    (word_p) sysmenu_9_clipboard,
+    (word_p) sysmenu_10_settings,
+    (word_p) sysmenu_11_namedflags,
+    (word_p) sysmenu_12_keys,
 
-    (WORDPTR) dotsettings_ident,
-    (WORDPTR) flags_ident,
-    (WORDPTR) locale_ident,
-    (WORDPTR) numfmt_ident,
-    (WORDPTR) menu1_ident,
-    (WORDPTR) menu2_ident,
-    (WORDPTR) menu1hist_ident,
-    (WORDPTR) menu2hist_ident,
-    (WORDPTR) menuhistory_ident,
-    (WORDPTR) savedcmdline_ident,
-    (WORDPTR) customkey_ident,
-    (WORDPTR) savedflags_ident,
-    (WORDPTR) userflags_ident,
-    (WORDPTR) stksave_ident,
-    (WORDPTR) editwidth_ident,
-    (WORDPTR) currentform_ident,
-    (WORDPTR) screenconfig_ident,
+    (word_p) dotsettings_ident,
+    (word_p) flags_ident,
+    (word_p) locale_ident,
+    (word_p) numfmt_ident,
+    (word_p) menu1_ident,
+    (word_p) menu2_ident,
+    (word_p) menu1hist_ident,
+    (word_p) menu2hist_ident,
+    (word_p) menuhistory_ident,
+    (word_p) savedcmdline_ident,
+    (word_p) customkey_ident,
+    (word_p) savedflags_ident,
+    (word_p) userflags_ident,
+    (word_p) stksave_ident,
+    (word_p) editwidth_ident,
+    (word_p) currentform_ident,
+    (word_p) screenconfig_ident,
     0
 };
 
@@ -299,7 +299,7 @@ int32_t rplSetUserFlag(int32_t flag)
     if(flag < 1 || flag > 128)
         return -1;
 
-    WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
+    word_p UserFlags = rplGetSettings((word_p) userflags_ident);
     uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
@@ -325,7 +325,7 @@ int32_t rplSetUserFlag(int32_t flag)
     UserFlags[3] = (WORD) hi64;
     UserFlags[4] = (WORD) (hi64 >> 32);
 
-    rplStoreSettings((WORDPTR) userflags_ident, UserFlags);
+    rplStoreSettings((word_p) userflags_ident, UserFlags);
 
     return 0;
 }
@@ -335,7 +335,7 @@ int32_t rplClrUserFlag(int32_t flag)
     if(flag < 1 || flag > 128)
         return -1;
 
-    WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
+    word_p UserFlags = rplGetSettings((word_p) userflags_ident);
     uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
@@ -361,7 +361,7 @@ int32_t rplClrUserFlag(int32_t flag)
     UserFlags[3] = (WORD) hi64;
     UserFlags[4] = (WORD) (hi64 >> 32);
 
-    rplStoreSettings((WORDPTR) userflags_ident, UserFlags);
+    rplStoreSettings((word_p) userflags_ident, UserFlags);
     return 0;
 }
 
@@ -374,7 +374,7 @@ int32_t rplTestUserFlag(int32_t flag)
     if(flag < 1 || flag > 128)
         return -1;
 
-    WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
+    word_p UserFlags = rplGetSettings((word_p) userflags_ident);
     uint64_t low64, hi64;
 
     if(!UserFlags || (!ISBINDATA(*UserFlags)))
@@ -392,7 +392,7 @@ int32_t rplTestUserFlag(int32_t flag)
 
 uint64_t *rplGetUserFlagsLow()
 {
-    WORDPTR UserFlags = rplGetSettings((WORDPTR) userflags_ident);
+    word_p UserFlags = rplGetSettings((word_p) userflags_ident);
     if(!UserFlags)
         return NULL;
     if(!ISBINDATA(*UserFlags))
@@ -406,7 +406,7 @@ int32_t rplSetSystemFlag(int32_t flag)
         return -1;
     if(!ISBINDATA(*SystemFlags))
         return -2;
-    WORDPTR low64 = SystemFlags + 1;
+    word_p low64 = SystemFlags + 1;
     flag = -flag - 1;
     low64[flag >> 5] |= 1 << (flag & 31);
 
@@ -421,7 +421,7 @@ int32_t rplClrSystemFlag(int32_t flag)
     if(!ISBINDATA(*SystemFlags))
         return -2;
 
-    WORDPTR low64 = SystemFlags + 1;
+    word_p low64 = SystemFlags + 1;
 
     flag = -flag - 1;
     low64[flag >> 5] &= ~(1 << (flag & 31));
@@ -429,7 +429,7 @@ int32_t rplClrSystemFlag(int32_t flag)
     return 0;
 }
 
-int32_t rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplSetSystemFlagByName(byte_p name, byte_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -449,7 +449,7 @@ int32_t rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
                     int32_t flag = flags_names[idx].flags[count] & 0x7f;
                     int32_t value = flags_names[idx].flags[count] >> 7;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                    WORDPTR low64 = SystemFlags + 1;
+                    word_p low64 = SystemFlags + 1;
                     flag = flag - 1;
                     if(value) {
                         low64[flag >> 5] |= 1 << (flag & 31);
@@ -469,7 +469,7 @@ int32_t rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
     return -1;
 }
 
-int32_t rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplClrSystemFlagByName(byte_p name, byte_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -488,7 +488,7 @@ int32_t rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
                 if(flags_names[idx].flags[count]) {
                     int32_t flag = flags_names[idx].flags[count] & 0x7f;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                    WORDPTR low64 = SystemFlags + 1;
+                    word_p low64 = SystemFlags + 1;
                     flag = flag - 1;
                     low64[flag >> 5] &= ~(1 << (flag & 31));
 
@@ -517,7 +517,7 @@ int32_t rplTestSystemFlag(int32_t flag)
         return -2;
 
     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-    WORDPTR low64 = SystemFlags + 1;
+    word_p low64 = SystemFlags + 1;
     int32_t result;
     flag = -flag - 1;
     result = low64[flag >> 5] & (1 << (flag & 31));
@@ -531,7 +531,7 @@ int32_t rplTestSystemFlag(int32_t flag)
 // RETURN -1 IF THE NAME IS NOT VALID
 // RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
 
-int32_t rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
+int32_t rplTestSystemFlagByName(byte_p name, byte_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -550,7 +550,7 @@ int32_t rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
                     int32_t flag = flags_names[idx].flags[count] & 0x7f;
                     int32_t value = flags_names[idx].flags[count] >> 7;
 
-                    WORDPTR low64 = SystemFlags + 1;
+                    word_p low64 = SystemFlags + 1;
                     int32_t res;
                     flag--;
 
@@ -570,50 +570,50 @@ int32_t rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 
 }
 
-int32_t rplSetSystemFlagByIdent(WORDPTR ident)
+int32_t rplSetSystemFlagByIdent(word_p ident)
 {
-    BYTEPTR text = (BYTEPTR) (ident + 1);
+    byte_p text = (byte_p) (ident + 1);
     return rplSetSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
-int32_t rplClrSystemFlagByIdent(WORDPTR ident)
+int32_t rplClrSystemFlagByIdent(word_p ident)
 {
-    BYTEPTR text = (BYTEPTR) (ident + 1);
+    byte_p text = (byte_p) (ident + 1);
     return rplClrSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
-int32_t rplTestSystemFlagByIdent(WORDPTR ident)
+int32_t rplTestSystemFlagByIdent(word_p ident)
 {
-    BYTEPTR text = (BYTEPTR) (ident + 1);
+    byte_p text = (byte_p) (ident + 1);
     return rplTestSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
 // RETURN THE SYSTEM LOCALE WORD, CONTAINING THE CHARACTERS TO BE USED FOR NUMBERS
 uint64_t rplGetSystemLocale()
 {
-    WORDPTR systemlist = rplGetSettings((WORDPTR) numfmt_ident);
+    word_p systemlist = rplGetSettings((word_p) numfmt_ident);
     if(systemlist) {
         if(ISLIST(*systemlist)) {
-            WORDPTR localestring = rplGetListElement(systemlist, 1);
+            word_p localestring = rplGetListElement(systemlist, 1);
             // EXPAND THE STRING INTO FOUR UNICODE CODEPOINTS
             if(localestring && (ISSTRING(*localestring))) {
                 uint64_t result;
-                BYTEPTR locptr = (BYTEPTR) (localestring + 1), locend =
-                        (BYTEPTR) rplSkipOb(localestring);
+                byte_p locptr = (byte_p) (localestring + 1), locend =
+                        (byte_p) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
 
                 return result;
             }
@@ -631,34 +631,34 @@ uint64_t rplGetSystemLocale()
 
 void rplGetSystemNumberFormat(NUMFORMAT * fmt)
 {
-    WORDPTR systemlist = rplGetSettings((WORDPTR) numfmt_ident);
+    word_p systemlist = rplGetSettings((word_p) numfmt_ident);
     if(systemlist) {
         if(ISLIST(*systemlist)) {
-            WORDPTR localestring = rplGetListElement(systemlist, 1);
+            word_p localestring = rplGetListElement(systemlist, 1);
             if(localestring && (ISSTRING(*localestring))) {
                 uint64_t result;
-                BYTEPTR locptr = (BYTEPTR) (localestring + 1), locend =
-                        (BYTEPTR) rplSkipOb(localestring);
+                byte_p locptr = (byte_p) (localestring + 1), locend =
+                        (byte_p) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
-                locptr = (BYTEPTR) utf8skip((char *)locptr, (char *)locend);
+                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
 
                 fmt->Locale = result;
             }
             else
                 fmt->Locale = SYSTEM_DEFAULT_LOCALE;
-            WORDPTR nfmt = rplGetListElement(systemlist, 2);
+            word_p nfmt = rplGetListElement(systemlist, 2);
             if(nfmt && (ISint32_t(*nfmt)))
                 fmt->SmallFmt = (int32_t) rplReadint32_t(nfmt);
             else
@@ -677,14 +677,14 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
             if(nfmt && (ISNUMBER(*nfmt)))
                 rplReadNumberAsReal(nfmt, &(fmt->SmallLimit));
             else {
-                rplReadNumberAsReal((WORDPTR) one_bint, &(fmt->SmallLimit));
+                rplReadNumberAsReal((word_p) one_bint, &(fmt->SmallLimit));
                 fmt->SmallLimit.exp = -12;
             }
             nfmt = rplGetListElement(systemlist, 6);
             if(nfmt && (ISNUMBER(*nfmt)))
                 rplReadNumberAsReal(nfmt, &(fmt->BigLimit));
             else {
-                rplReadNumberAsReal((WORDPTR) one_bint, &(fmt->BigLimit));
+                rplReadNumberAsReal((word_p) one_bint, &(fmt->BigLimit));
                 fmt->BigLimit.exp = 12;
             }
 
@@ -734,12 +734,12 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
 void rplSetSystemNumberFormat(NUMFORMAT * fmt)
 {
     // CREATE THE LIST WITH THE NUMFORMAT
-    WORDPTR *savestk = DSTop;
+    word_p *savestk = DSTop;
 
     // MAKE THE LOCALE STRING
 
     BYTE locbase[16];   // 4 BYTES PER UNICODE CHARACTER MAXIMUM
-    BYTEPTR locstr = locbase;
+    byte_p locstr = locbase;
 
     WORD uchar;
 
@@ -767,7 +767,7 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         uchar >>= 8;
     }
 
-    WORDPTR item = rplCreateString(locbase, locstr);
+    word_p item = rplCreateString(locbase, locstr);
     if(!item)
         return;
 
@@ -797,13 +797,13 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         DSTop = savestk;
         return;
     }
-    WORDPTR newlist = rplCreateListN(6, 1, 1);
+    word_p newlist = rplCreateListN(6, 1, 1);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
 
-    rplStoreSettings((WORDPTR) numfmt_ident, newlist);
+    rplStoreSettings((word_p) numfmt_ident, newlist);
 
     DSTop = savestk;
     return;
@@ -814,7 +814,7 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
 
 // CREATE A STRING OBJECT REPRESENTING ALL POSSIBLE OPTIONS IN fmtbits
 // RETURNS NULL ON NOT ENOUGH MEMORY ONLY
-WORDPTR rplNumFormat2String(int32_t fmtbits)
+word_p rplNumFormat2String(int32_t fmtbits)
 {
     // STRING FORMAT:
 
@@ -958,10 +958,10 @@ WORDPTR rplNumFormat2String(int32_t fmtbits)
 // CONVERT A STRING BACK INTO NUMBER FORMAT
 // RETURN -1 IF INVALID STRING, DOESN'T THROW ANY ERRORS
 
-int32_t rplNumFormatFromString(WORDPTR string)
+int32_t rplNumFormatFromString(word_p string)
 {
-    BYTEPTR str = (BYTEPTR) (string + 1);
-    BYTEPTR end = str + rplStrSize(string);
+    byte_p str = (byte_p) (string + 1);
+    byte_p end = str + rplStrSize(string);
 
     int32_t fmt = FMT_NOTRAILDOT | FMT_USECAPITALS;
 
@@ -1307,19 +1307,19 @@ void rplSaveMenuHistory(int32_t menu)
     int64_t oldmcode = rplGetMenuCode(menu);
 
     // STORE THE OLD MENU IN THE HISTORY
-    WORDPTR msetting;
+    word_p msetting;
 
     if((MENULIBRARY(oldmcode) == LIBRARY_NUMBER) && (MENUNUMBER(oldmcode) < 2)) {
         // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
         if(menu == 1)
-            msetting = rplGetSettings((WORDPTR) menu1_ident);
+            msetting = rplGetSettings((word_p) menu1_ident);
         else if(menu == 2)
-            msetting = rplGetSettings((WORDPTR) menu2_ident);
+            msetting = rplGetSettings((word_p) menu2_ident);
         else
             msetting = 0;
 
         if(!msetting)
-            msetting = (WORDPTR) empty_list;    // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
+            msetting = (word_p) empty_list;    // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
     }
     else {
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
@@ -1332,25 +1332,25 @@ void rplSaveMenuHistory(int32_t menu)
 
     // HERE msetting HAS EITHER THE OBJECT OR CODE TO STORE IN THE HISTORY
 
-    WORDPTR oldlist =
+    word_p oldlist =
             rplGetSettings((menu ==
-                1) ? (WORDPTR) menu1hist_ident : (WORDPTR) menu2hist_ident);
+                1) ? (word_p) menu1hist_ident : (word_p) menu2hist_ident);
     if(!oldlist)
-        oldlist = (WORDPTR) empty_list;
-    WORDPTR levels = rplGetSettings((WORDPTR) menuhistory_ident);
+        oldlist = (word_p) empty_list;
+    word_p levels = rplGetSettings((word_p) menuhistory_ident);
     if(!levels)
-        levels = (WORDPTR) ten_bint;
+        levels = (word_p) ten_bint;
 
     int64_t nlevels = rplReadNumberAsInt64(levels);
 
     // THIS CAN TRIGGER A GC!
-    WORDPTR newlist = rplListAddRot(oldlist, msetting, nlevels);
+    word_p newlist = rplListAddRot(oldlist, msetting, nlevels);
 
     if(!newlist)
         return;
 
     rplStoreSettings((menu ==
-                1) ? (WORDPTR) menu1hist_ident : (WORDPTR) menu2hist_ident,
+                1) ? (word_p) menu1hist_ident : (word_p) menu2hist_ident,
             newlist);
 
     return;
@@ -1358,11 +1358,11 @@ void rplSaveMenuHistory(int32_t menu)
 
 // RCL AND REMOVE FROM HISTORY THE LAST ITEM IN THE LIST
 
-WORDPTR rplPopMenuHistory(int32_t menu)
+word_p rplPopMenuHistory(int32_t menu)
 {
-    WORDPTR list =
+    word_p list =
             rplGetSettings((menu ==
-                1) ? (WORDPTR) menu1hist_ident : (WORDPTR) menu2hist_ident);
+                1) ? (word_p) menu1hist_ident : (word_p) menu2hist_ident);
     if(!list)
         return 0;
 
@@ -1374,10 +1374,10 @@ WORDPTR rplPopMenuHistory(int32_t menu)
 
     list = rplCreateListN(nelem - 1, 1, 1);
     if(!list)
-        list = (WORDPTR) empty_list;
+        list = (word_p) empty_list;
 
     rplStoreSettings((menu ==
-                1) ? (WORDPTR) menu1hist_ident : (WORDPTR) menu2hist_ident,
+                1) ? (word_p) menu1hist_ident : (word_p) menu2hist_ident,
             list);
 
     return ScratchPointer1;
@@ -1388,7 +1388,7 @@ WORDPTR rplPopMenuHistory(int32_t menu)
 // THIS DOES THE SAME JOB AS TMENU, BUT CAN BE CALLED
 // FROM OTHER LIBRARIES. MAY TRIGGER GC WHEN STORING
 // IN SETTINGS DIRECTORY
-void rplChangeMenu(int32_t menu, WORDPTR newmenu)
+void rplChangeMenu(int32_t menu, word_p newmenu)
 {
 
     if(ISLIST(*newmenu) || ISIDENT(*newmenu)) {
@@ -1400,9 +1400,9 @@ void rplChangeMenu(int32_t menu, WORDPTR newmenu)
 
         // STORE THE LIST IN .Settings AS CURRENT MENU
         if(menu == 2)
-            rplStoreSettings((WORDPTR) menu2_ident, newmenu);
+            rplStoreSettings((word_p) menu2_ident, newmenu);
         else
-            rplStoreSettings((WORDPTR) menu1_ident, newmenu);
+            rplStoreSettings((word_p) menu1_ident, newmenu);
 
         return;
     }
@@ -1416,9 +1416,9 @@ void rplChangeMenu(int32_t menu, WORDPTR newmenu)
             rplSetMenuCode(menu, 0);
             // STORE THE LIST IN .Settings AS CURRENT MENU
             if(menu == 2)
-                rplStoreSettings((WORDPTR) menu2_ident, (WORDPTR) zero_bint);
+                rplStoreSettings((word_p) menu2_ident, (word_p) zero_bint);
             else
-                rplStoreSettings((WORDPTR) menu1_ident, (WORDPTR) zero_bint);
+                rplStoreSettings((word_p) menu1_ident, (word_p) zero_bint);
 
         }
         else {
@@ -1427,9 +1427,9 @@ void rplChangeMenu(int32_t menu, WORDPTR newmenu)
             rplSetMenuCode(menu, num);
             // STORE THE LIST IN .Settings AS CURRENT MENU
             if(menu == 2)
-                rplStoreSettings((WORDPTR) menu2_ident, newmenu);
+                rplStoreSettings((word_p) menu2_ident, newmenu);
             else
-                rplStoreSettings((WORDPTR) menu1_ident, newmenu);
+                rplStoreSettings((word_p) menu1_ident, newmenu);
 
         }
 
@@ -1544,15 +1544,15 @@ const BYTE const modiftable[] = {
     0, 0, 0, 0
 };
 
-WORD rplKeyName2Msg(WORDPTR keyname)
+WORD rplKeyName2Msg(word_p keyname)
 {
-    BYTEPTR ptr, tblptr;
+    byte_p ptr, tblptr;
     int32_t key, shifts, msg, len;
 
     if(!ISSTRING(*keyname))
         return 0;
 
-    ptr = (BYTEPTR) (keyname + 1);
+    ptr = (byte_p) (keyname + 1);
     len = rplStrSize(keyname);
 
     // IDENTIFY KEY NAME FIRST
@@ -1585,7 +1585,7 @@ WORD rplKeyName2Msg(WORDPTR keyname)
         }
     }
 
-    tblptr = (BYTEPTR) keytable;
+    tblptr = (byte_p) keytable;
 
     while(*tblptr) {
         if((tblptr[0] == (key & 0xff)) && (tblptr[1] == ((key >> 8) & 0xff))) {
@@ -1652,7 +1652,7 @@ WORD rplKeyName2Msg(WORDPTR keyname)
 
         if(shifts) {
 
-            tblptr = (BYTEPTR) modiftable;
+            tblptr = (byte_p) modiftable;
 
             while(*tblptr) {
                 if((tblptr[0] == (shifts & 0xff))
@@ -1708,10 +1708,10 @@ WORD rplKeyName2Msg(WORDPTR keyname)
 
 // CREATE A STRING OBJECT FROM A KEYBOARD MESSAGE
 
-WORDPTR rplMsg2KeyName(WORD keymsg)
+word_p rplMsg2KeyName(WORD keymsg)
 {
 
-    BYTEPTR tblptr = (BYTEPTR) keytable, keyptr;
+    byte_p tblptr = (byte_p) keytable, keyptr;
     BYTE keytext[16];
 
     keyptr = keytext;
@@ -1777,7 +1777,7 @@ WORDPTR rplMsg2KeyName(WORD keymsg)
     if(KEYSHIFT(keymsg)) {
         *keyptr++ = '.';
 
-        tblptr = (BYTEPTR) modiftable;
+        tblptr = (byte_p) modiftable;
 
         while(*tblptr) {
             if(tblptr[3] == (KEYSHIFT(keymsg) >> 4)) {
@@ -1905,9 +1905,9 @@ void LIB_HANDLER()
         rplGetSystemNumberFormat(&fmt);
 
         // EXTRACT ALL 4 CODE POINTS
-        BYTEPTR locstring, strend;
-        strend = (BYTEPTR) (rplPeekData(1) + 1) + rplStrSize(rplPeekData(1));
-        locstring = (BYTEPTR) (rplPeekData(1) + 1);
+        byte_p locstring, strend;
+        strend = (byte_p) (rplPeekData(1) + 1) + rplStrSize(rplPeekData(1));
+        locstring = (byte_p) (rplPeekData(1) + 1);
         uint64_t newlocale;
 
         int32_t cp = utf82cp((char *)locstring, (char *)strend);
@@ -1919,7 +1919,7 @@ void LIB_HANDLER()
 
         newlocale = cp;
 
-        locstring = (BYTEPTR) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1930,7 +1930,7 @@ void LIB_HANDLER()
 
         newlocale |= (((uint64_t) cp) << 16);
 
-        locstring = (BYTEPTR) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1941,7 +1941,7 @@ void LIB_HANDLER()
 
         newlocale |= (((uint64_t) cp) << 32);
 
-        locstring = (BYTEPTR) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1982,7 +1982,7 @@ void LIB_HANDLER()
         NUMFORMAT f;
         rplGetSystemNumberFormat(&f);   // GET CURRENT NUMBER FORMAT, TO OVERWRITE
 
-        WORDPTR item;
+        word_p item;
         int32_t nitems;
         int32_t format;
         REAL num;
@@ -2100,7 +2100,7 @@ void LIB_HANDLER()
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (rplClrSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2156,7 +2156,7 @@ void LIB_HANDLER()
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (rplSetSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2208,15 +2208,15 @@ void LIB_HANDLER()
                 }
             }
             if(test)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (test = rplTestSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2228,9 +2228,9 @@ void LIB_HANDLER()
                 rplDropData(1);
             }
             if(test)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
 
@@ -2274,15 +2274,15 @@ void LIB_HANDLER()
             }
 
             if(test)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (test = rplTestSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2294,9 +2294,9 @@ void LIB_HANDLER()
                 rplDropData(1);
             }
             if(test)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -2343,15 +2343,15 @@ void LIB_HANDLER()
             }
 
             if(test)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (test = rplTestSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2364,9 +2364,9 @@ void LIB_HANDLER()
             }
             rplClrSystemFlagByIdent(id);
             if(test)
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             else
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             return;
         }
 
@@ -2414,15 +2414,15 @@ void LIB_HANDLER()
             }
 
             if(test)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
             // FLAG GIVEN BY NAME
-            WORDPTR id = rplPeekData(1);
+            word_p id = rplPeekData(1);
             switch (test = rplTestSystemFlagByIdent(id)) {
             case -1:
                 rplError(ERR_INVALIDFLAGNAME);
@@ -2435,9 +2435,9 @@ void LIB_HANDLER()
             }
             rplClrSystemFlagByIdent(id);
             if(test)
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
             else
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -2529,16 +2529,16 @@ void LIB_HANDLER()
 
         if((MENULIBRARY(mcode) == LIBRARY_NUMBER) && (MENUNUMBER(mcode) < 2)) {
             // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
-            WORDPTR msetting;
+            word_p msetting;
             if(menu == 1)
-                msetting = rplGetSettings((WORDPTR) menu1_ident);
+                msetting = rplGetSettings((word_p) menu1_ident);
             else if(menu == 2)
-                msetting = rplGetSettings((WORDPTR) menu2_ident);
+                msetting = rplGetSettings((word_p) menu2_ident);
             else
                 msetting = 0;
 
             if(!msetting)
-                msetting = (WORDPTR) empty_list;        // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
+                msetting = (word_p) empty_list;        // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
 
             rplPushData(msetting);
             return;
@@ -2567,23 +2567,23 @@ void LIB_HANDLER()
         rplSetMenuCode(1, m2code);
         rplSetMenuCode(2, m1code);
 
-        WORDPTR m1setting, m2setting;
+        word_p m1setting, m2setting;
 
-        m1setting = rplGetSettings((WORDPTR) menu1_ident);
-        m2setting = rplGetSettings((WORDPTR) menu2_ident);
-
-        if(m1setting)
-            rplStoreSettings((WORDPTR) menu2_ident, m1setting);
-        if(m2setting)
-            rplStoreSettings((WORDPTR) menu1_ident, m2setting);
-
-        m1setting = rplGetSettings((WORDPTR) menu1hist_ident);
-        m2setting = rplGetSettings((WORDPTR) menu2hist_ident);
+        m1setting = rplGetSettings((word_p) menu1_ident);
+        m2setting = rplGetSettings((word_p) menu2_ident);
 
         if(m1setting)
-            rplStoreSettings((WORDPTR) menu2hist_ident, m1setting);
+            rplStoreSettings((word_p) menu2_ident, m1setting);
         if(m2setting)
-            rplStoreSettings((WORDPTR) menu1hist_ident, m2setting);
+            rplStoreSettings((word_p) menu1_ident, m2setting);
+
+        m1setting = rplGetSettings((word_p) menu1hist_ident);
+        m2setting = rplGetSettings((word_p) menu2hist_ident);
+
+        if(m1setting)
+            rplStoreSettings((word_p) menu2hist_ident, m1setting);
+        if(m2setting)
+            rplStoreSettings((word_p) menu1hist_ident, m2setting);
 
         return;
     }
@@ -2613,7 +2613,7 @@ void LIB_HANDLER()
         else
             menu = rplGetActiveMenu();
 
-        WORDPTR menuobj = rplPopMenuHistory(menu);
+        word_p menuobj = rplPopMenuHistory(menu);
 
         if(menuobj)
             rplChangeMenu(menu, menuobj);
@@ -2683,7 +2683,7 @@ void LIB_HANDLER()
 
         rplPushData(rplPeekData(3));    // STACK HAS NOW PROPER ORDER: { KEYCODE CONTEXT ACTION }
 
-        WORDPTR keylist = rplGetSettings((WORDPTR) customkey_ident);
+        word_p keylist = rplGetSettings((word_p) customkey_ident);
 
         if(!keylist) {
             // NEED TO CREATE A LIST FROM SCRATCH
@@ -2701,7 +2701,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplStoreSettings((WORDPTR) customkey_ident, keylist);
+        rplStoreSettings((word_p) customkey_ident, keylist);
         return;
 
     }
@@ -2731,15 +2731,15 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR keylist = rplGetSettings((WORDPTR) customkey_ident);
+        word_p keylist = rplGetSettings((word_p) customkey_ident);
 
         if(!keylist)
             return;
 
         // SCAN THE LIST
 
-        WORDPTR ptr = keylist + 1;
-        WORDPTR endlist = rplSkipOb(keylist);
+        word_p ptr = keylist + 1;
+        word_p endlist = rplSkipOb(keylist);
 
         while(ptr < endlist) {
             if(ISNUMBER(*ptr)) {
@@ -2759,7 +2759,7 @@ void LIB_HANDLER()
         // HERE WE HAVE THE PTR INTO THE LIST
         if(ptr < endlist) {
             // COMPUTE SIZE OF NEW LIST
-            WORDPTR endptr = rplSkipOb(ptr);
+            word_p endptr = rplSkipOb(ptr);
             if(endptr < endlist)
                 endptr = rplSkipOb(endptr);
             if(endptr < endlist)
@@ -2770,7 +2770,7 @@ void LIB_HANDLER()
             int32_t offstart = ptr - keylist, offend = endptr - keylist;
 
             rplPushData(keylist);       // PROTECT FROM GC
-            WORDPTR newlist =
+            word_p newlist =
                     rplAllocTempOb(OBJSIZE(*keylist) - (offend - offstart));
             if(!newlist)
                 return;
@@ -2782,7 +2782,7 @@ void LIB_HANDLER()
             *newlist =
                     MKPROLOG(DOLIST, OBJSIZE(*keylist) - (offend - offstart));
             // AND STORE THE NEW LIST
-            rplStoreSettings((WORDPTR) customkey_ident, newlist);
+            rplStoreSettings((word_p) customkey_ident, newlist);
 
         }
 
@@ -2795,10 +2795,10 @@ void LIB_HANDLER()
         //@SHORT_DESC=Recall the list of all custom key definitions
         //@INCOMPAT
         // GET THE ENTIRE LIST OF KEY ASSIGNMENTS
-        WORDPTR keylist = rplGetSettings((WORDPTR) customkey_ident);
+        word_p keylist = rplGetSettings((word_p) customkey_ident);
 
         if(!keylist)
-            keylist = (WORDPTR) empty_list;
+            keylist = (word_p) empty_list;
 
         rplPushData(keylist);
         return;
@@ -2823,8 +2823,8 @@ void LIB_HANDLER()
 
         // VERIFY THAT THE LIST IS VALID
         // OTHERWISE IT CAN HAVE CATASTROPHIC CONSEQUENCES
-        WORDPTR ptr = rplPeekData(1) + 1;
-        WORDPTR endlist = rplSkipOb(ptr - 1);
+        word_p ptr = rplPeekData(1) + 1;
+        word_p endlist = rplSkipOb(ptr - 1);
         while(ptr < endlist) {
             if(*ptr == CMD_ENDLIST)
                 break;
@@ -2851,7 +2851,7 @@ void LIB_HANDLER()
 
         // HERE THE LIST IS VALID
         // AND STORE THE NEW LIST
-        rplStoreSettings((WORDPTR) customkey_ident, rplPeekData(1));
+        rplStoreSettings((word_p) customkey_ident, rplPeekData(1));
         rplDropData(1);
         return;
 
@@ -2885,7 +2885,7 @@ void LIB_HANDLER()
                 return;
             }
         }
-        rplOverwriteData(1, (WORDPTR) zero_bint);
+        rplOverwriteData(1, (word_p) zero_bint);
 
         return;
     }
@@ -2925,7 +2925,7 @@ void LIB_HANDLER()
                 return;
             }
         }
-        rplOverwriteData(1, (WORDPTR) zero_bint);
+        rplOverwriteData(1, (word_p) zero_bint);
 
         return;
     }
@@ -2943,7 +2943,7 @@ void LIB_HANDLER()
         // MAKE THE LOCALE STRING
 
         BYTE locbase[16];       // 4 BYTES PER UNICODE CHARACTER MAXIMUM
-        BYTEPTR locstr = locbase;
+        byte_p locstr = locbase;
 
         WORD uchar;
 
@@ -2971,7 +2971,7 @@ void LIB_HANDLER()
             uchar >>= 8;
         }
 
-        WORDPTR item = rplCreateString(locbase, locstr);
+        word_p item = rplCreateString(locbase, locstr);
         if(!item)
             return;
 
@@ -2992,9 +2992,9 @@ void LIB_HANDLER()
         copyReal(&RReg[0], &f.SmallLimit);
         copyReal(&RReg[1], &f.BigLimit);
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
-        WORDPTR obj;
+        word_p obj;
 
         obj = rplNumFormat2String(f.MiddleFmt);
         if(!obj) {
@@ -3047,7 +3047,7 @@ void LIB_HANDLER()
             return;
         }
         // MAKE A NON-SELF-MODIFYING COPY OF THE SYSTEM FLAGS
-        WORDPTR newflags = rplMakeNewCopy(SystemFlags);
+        word_p newflags = rplMakeNewCopy(SystemFlags);
         if(!newflags)
             return;
         rplPushData(newflags);
@@ -3074,7 +3074,7 @@ void LIB_HANDLER()
                     rplError(ERR_SYSTEMFLAGSINVALID);
                     return;
                 }
-                rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
+                rplStoreSettings((word_p) flags_ident, SystemFlags);
             }
 
             int32_t nitems = rplListLength(rplPeekData(1));
@@ -3095,7 +3095,7 @@ void LIB_HANDLER()
             // IT ALL CHECKS OUT, DO THE MAGIC:
 
             uint64_t value;
-            WORDPTR nptr = SystemFlags + 1;     // DATA OF THE FIRST 64-BIT INTEGER
+            word_p nptr = SystemFlags + 1;     // DATA OF THE FIRST 64-BIT INTEGER
             uint64_t *uptr;
             for(k = 1; k <= 4; ++k) {
                 value = rplReadint32_t(rplGetListElement(rplPeekData(1), k));
@@ -3115,7 +3115,7 @@ void LIB_HANDLER()
                     rplError(ERR_SYSTEMFLAGSINVALID);
                     return;
                 }
-                rplStoreSettings((WORDPTR) flags_ident, SystemFlags);
+                rplStoreSettings((word_p) flags_ident, SystemFlags);
             }
 
             // WE RECEIVED A PROPER BINDATA OBJECT, JUST COPY IT OVER
@@ -3151,7 +3151,7 @@ void LIB_HANDLER()
         }
 
         // FIND THE VARIABLE
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var) {
             // NO LAM, TRY A GLOBAL
             var = rplFindGlobal(rplPeekData(1), 1);
@@ -3161,7 +3161,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR obj = rplStripTag(var[1]);
+        word_p obj = rplStripTag(var[1]);
         LIBHANDLER han = rplGetLibHandler(LIBNUM(*obj));
 
         // GET THE SYMBOLIC TOKEN INFORMATION
@@ -3180,7 +3180,7 @@ void LIB_HANDLER()
                 return;
             }
         }
-        rplOverwriteData(1, (WORDPTR) zero_bint);
+        rplOverwriteData(1, (word_p) zero_bint);
 
         return;
     }
@@ -3206,7 +3206,7 @@ void LIB_HANDLER()
         }
 
         // FIND THE VARIABLE
-        WORDPTR *var = rplFindLAM(rplPeekData(1), 1);
+        word_p *var = rplFindLAM(rplPeekData(1), 1);
         if(!var) {
             // NO LAM, TRY A GLOBAL
             var = rplFindGlobal(rplPeekData(1), 1);
@@ -3216,7 +3216,7 @@ void LIB_HANDLER()
             }
         }
 
-        WORDPTR obj = rplStripTag(var[1]);
+        word_p obj = rplStripTag(var[1]);
         LIBHANDLER han = rplGetLibHandler(LIBNUM(*obj));
 
         // GET THE SYMBOLIC TOKEN INFORMATION
@@ -3243,7 +3243,7 @@ void LIB_HANDLER()
                 return;
             }
         }
-        rplOverwriteData(1, (WORDPTR) zero_bint);
+        rplOverwriteData(1, (word_p) zero_bint);
 
         return;
     }
@@ -3362,7 +3362,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -3370,7 +3370,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
     case OPCODE_CHECKOBJ:
         // THIS OPCODE RECEIVES A POINTER TO AN OBJECT FROM THIS LIBRARY AND MUST
@@ -3395,13 +3395,13 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        WORDPTR menuobj;
+        word_p menuobj;
         switch (MENUNUMBER(MenuCodeArg)) {
         case 0:
-            menuobj = rplGetSettings((WORDPTR) menu1_ident);
+            menuobj = rplGetSettings((word_p) menu1_ident);
             break;
         case 1:
-            menuobj = rplGetSettings((WORDPTR) menu2_ident);
+            menuobj = rplGetSettings((word_p) menu2_ident);
             break;
 
         default:
@@ -3411,16 +3411,16 @@ void LIB_HANDLER()
                 menuobj = 0;
         }
         if(!menuobj)
-            ObjectPTR = (WORDPTR) empty_list;
+            ObjectPTR = (word_p) empty_list;
         else
             ObjectPTR = menuobj;
 
         if(ISIDENT(*ObjectPTR)) {
             // RCL THE VARIABLE
 
-            WORDPTR *var = rplFindGlobal(ObjectPTR, 1);
+            word_p *var = rplFindGlobal(ObjectPTR, 1);
             if(!var)
-                ObjectPTR = (WORDPTR) empty_list;
+                ObjectPTR = (word_p) empty_list;
             else
                 ObjectPTR = var[1];
         }
@@ -3434,7 +3434,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -3444,12 +3444,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

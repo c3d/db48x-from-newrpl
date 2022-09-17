@@ -150,7 +150,7 @@ struct date
     {
         int64_t time;    // alarm time (elapsed seconds since 10/15/1582)
         uint32_t rpt;      // repeat interval (seconds)
-        WORDPTR obj;
+        word_p obj;
         union
         {
             BYTE flags; // Represents all alarm flags.
@@ -172,7 +172,7 @@ struct date
 
 // ERROR MANAGEMENT FUNCTIONS
     void decTrapHandler(int32_t error);
-    void rplSetExceptionHandler(WORDPTR Handler);
+    void rplSetExceptionHandler(word_p Handler);
     void rplRemoveExceptionHandler();
     void rplCatchException();
 
@@ -181,7 +181,7 @@ struct date
     void rplException(WORD exception);
     void rplClearErrors();
     void rplBlameUserCommand();
-    void rplBlameError(WORDPTR command);
+    void rplBlameError(word_p command);
 
 #define CLEAN_RUN       0
 #define NEEDS_CLEANUP   1
@@ -192,7 +192,7 @@ struct date
     void rplInitMemoryAllocator();
     void rplWarmInit();
     void rplHotInit();
-    void rplSetEntryPoint(WORDPTR ip);
+    void rplSetEntryPoint(word_p ip);
     int32_t rplRun();
     int32_t rplRunAtomic(WORD opcode);
     void rplCleanup();
@@ -209,20 +209,20 @@ struct date
     int32_t rplGetNextLib(int32_t libnum);
 
 // BASIC GENERIC OBJECT FUNCTIONS
-    WORDPTR rplSkipOb(WORDPTR ip);
+    word_p rplSkipOb(word_p ip);
     void rplSkipNext();
-    WORD rplObjSize(WORDPTR ip);
+    WORD rplObjSize(word_p ip);
 
 // LOW-LEVEL MEMORY MANAGEMENT
 
     int32_t rplGetFreeMemory();
-    WORDPTR rplAllocTempOb(WORD size);
-    WORDPTR rplAllocTempObLowMem(WORD size);
-    void rplTruncateLastObject(WORDPTR newend);
+    word_p rplAllocTempOb(WORD size);
+    word_p rplAllocTempObLowMem(WORD size);
+    void rplTruncateLastObject(word_p newend);
     void rplResizeLastObject(WORD additionalsize);
     void growTempOb(WORD newtotalsize);
     void shrinkTempOb(WORD newtotalsize);
-    void rplAddTempBlock(WORDPTR block);
+    void rplAddTempBlock(word_p block);
     void growTempBlocks(WORD newtotalsize);
     void shrinkTempBlocks(WORD newtotalsize);
     void growDirs(WORD newtotalsize);
@@ -236,10 +236,10 @@ struct date
 
 // COMPILER FUNCTIONS IN COMPILER.C
 
-    WORDPTR rplCompile(BYTEPTR string, int32_t len, int32_t addwrapper);
+    word_p rplCompile(byte_p string, int32_t len, int32_t addwrapper);
     void rplCompileAppend(WORD word);
-    void rplCompileInsert(WORDPTR position, WORD word);
-    WORDPTR rplCompileAppendWords(int32_t nwords);
+    void rplCompileInsert(word_p position, WORD word);
+    word_p rplCompileAppendWords(int32_t nwords);
     void rplCompileRemoveWords(int32_t nwords);
 
 #define DECOMP_EMBEDDED     1
@@ -251,28 +251,28 @@ struct date
 #define DEFAULT_DECOMP_WIDTH 20
 
 // DECOMPILER FUNCTIONS
-    WORDPTR rplDecompile(WORDPTR object, int32_t flags);
+    word_p rplDecompile(word_p object, int32_t flags);
     void rplDecompAppendChar(BYTE c);
     void rplDecompAppendUTF8(WORD utf8bytes);
-    void rplDecompAppendString(BYTEPTR str);
-    void rplDecompAppendString2(BYTEPTR str, int32_t len);
+    void rplDecompAppendString(byte_p str);
+    void rplDecompAppendString2(byte_p str, int32_t len);
     int32_t rplDecompDoHintsWidth(int32_t dhints);
 
 // DATA STACK FUNCTIONS IN DATASTACK.C
 
-    void rplPushData(WORDPTR p);
-    void rplPushDataNoGrow(WORDPTR p);
-    WORDPTR rplPopData();
-    WORDPTR rplPeekData(int level);
-    void rplOverwriteData(int level, WORDPTR ptr);
+    void rplPushData(word_p p);
+    void rplPushDataNoGrow(word_p p);
+    word_p rplPopData();
+    word_p rplPeekData(int level);
+    void rplOverwriteData(int level, word_p ptr);
     int32_t rplDepthData();
     void rplClearData();
     void rplDropData(int n);
     void rplRemoveAtData(int32_t level, int32_t num);
     void rplExpandStack(int32_t numobjects);
     void growDStk(WORD newsize);
-    WORDPTR *rplProtectData();
-    WORDPTR *rplUnprotectData();
+    word_p *rplProtectData();
+    word_p *rplUnprotectData();
 
 // SNAPSHOT FUNCTIONS THAT SAVE/RESTORE THE STACK
     int32_t rplCountSnapshots();
@@ -284,31 +284,31 @@ struct date
     void rplTakeSnapshotHide(int32_t nargs);
     void rplTakeSnapshotAndClear();
     int32_t rplDepthSnapshot(int32_t numsnap);
-    WORDPTR rplPeekSnapshot(int32_t numsnap, int32_t level);
+    word_p rplPeekSnapshot(int32_t numsnap, int32_t level);
     void rplDropCurrentStack();
-    void rplCleanupSnapshots(WORDPTR * newstkbottom);
+    void rplCleanupSnapshots(word_p * newstkbottom);
 
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 
-    void rplPushRet(WORDPTR p);
-    void rplPushRetNoGrow(WORDPTR p);
-    WORDPTR rplPopRet();
+    void rplPushRet(word_p p);
+    void rplPushRetNoGrow(word_p p);
+    word_p rplPopRet();
     void rplDropRet(int nlevels);
     void growRStk(WORD newsize);
-    WORDPTR rplPeekRet(int level);
+    word_p rplPeekRet(int level);
     void rplClearRStk();
     int32_t rplDepthRet();
 
 // SYSTEM FLAGS
     int32_t rplSetSystemFlag(int32_t flag);
-    int32_t rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
-    int32_t rplSetSystemFlagByIdent(WORDPTR ident);
+    int32_t rplSetSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplSetSystemFlagByIdent(word_p ident);
     int32_t rplClrSystemFlag(int32_t flag);
-    int32_t rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
-    int32_t rplClrSystemFlagByIdent(WORDPTR ident);
+    int32_t rplClrSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplClrSystemFlagByIdent(word_p ident);
     int32_t rplTestSystemFlag(int32_t flag);
-    int32_t rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
-    int32_t rplTestSystemFlagByIdent(WORDPTR ident);
+    int32_t rplTestSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplTestSystemFlagByIdent(word_p ident);
 
 // USER FLAGS
     int32_t rplSetUserFlag(int32_t flag);
@@ -325,19 +325,19 @@ struct date
     int64_t rplGetMenuCode(int32_t menunumber);
     void rplSetActiveMenu(int32_t menunumber);
     int32_t rplGetActiveMenu();
-    void rplChangeMenu(int32_t menu, WORDPTR newmenu);
+    void rplChangeMenu(int32_t menu, word_p newmenu);
     void rplSetLastMenu(int32_t menunumber);
     int32_t rplGetLastMenu();
-    WORDPTR rplPopMenuHistory(int32_t menu);
+    word_p rplPopMenuHistory(int32_t menu);
     void rplSaveMenuHistory(int32_t menu);
 
 // SYSTEM AUTOCOMPLETE
-    WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject,
-            BYTEPTR start, BYTEPTR end);
-    WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject,
-            BYTEPTR start, BYTEPTR end);
-    WORD rplUpdateSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start,
-            BYTEPTR end);
+    WORD rplGetNextSuggestion(WORD suggestion, word_p suggobject,
+            byte_p start, byte_p end);
+    WORD rplGetPrevSuggestion(WORD suggestion, word_p suggobject,
+            byte_p start, byte_p end);
+    WORD rplUpdateSuggestion(WORD suggestion, word_p suggobject, byte_p start,
+            byte_p end);
 
 // GARBAGE COLLECTION
     void rplGCollect();
@@ -348,144 +348,144 @@ struct date
             void *Opaque);
 
 // SYSTEM SANITY CHECKS
-    int32_t rplVerifyObject(WORDPTR obj);
-    int32_t rplIsTempObPointer(WORDPTR ptr);
-    int32_t rplVerifyObjPointer(WORDPTR ptr);
+    int32_t rplVerifyObject(word_p obj);
+    int32_t rplIsTempObPointer(word_p ptr);
+    int32_t rplVerifyObjPointer(word_p ptr);
     int32_t rplVerifyDStack(int32_t fix);
     int32_t rplVerifyRStack();
     int32_t rplVerifyTempOb(int32_t fix);
     int32_t rplVerifyDirectories(int32_t fix);
 
 //IDENTIFIER FUNCTIONS
-    int32_t rplGetIdentLength(WORDPTR ident);
-    void rplCompileIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend);
-    WORDPTR rplCreateIDENT(int32_t libnum, BYTEPTR tok, BYTEPTR tokend);
-    int32_t rplIsValidIdent(BYTEPTR tok, BYTEPTR tokend);
-    WORD rplGetIdentAttr(WORDPTR name);
-    WORDPTR rplSetIdentAttr(WORDPTR name, WORD attr, WORD attrmask);
-    WORD rplGetIdentProp(WORDPTR ident);
-    int32_t rplDecodeAttrib(BYTEPTR st, BYTEPTR end);
+    int32_t rplGetIdentLength(word_p ident);
+    void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend);
+    word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend);
+    int32_t rplIsValidIdent(byte_p tok, byte_p tokend);
+    WORD rplGetIdentAttr(word_p name);
+    word_p rplSetIdentAttr(word_p name, WORD attr, WORD attrmask);
+    WORD rplGetIdentProp(word_p ident);
+    int32_t rplDecodeAttrib(byte_p st, byte_p end);
 
 // LAM FUNCTIONS
     void growLAMs(WORD newtotalsize);
-    void rplCreateLAMEnvironment(WORDPTR owner);
+    void rplCreateLAMEnvironment(word_p owner);
     void rplDupLAMEnv();
-    int32_t rplCreateLAM(WORDPTR nameobj, WORDPTR value);
-    int32_t rplCompareIDENT(WORDPTR id1, WORDPTR id2);
-    int32_t rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend);
-    int32_t rplCompareObjects(WORDPTR id1, WORDPTR id2);
-    WORDPTR rplGetLAM(WORDPTR nameobj);
-    WORDPTR *rplGetLAMn(int32_t idx);
-    WORDPTR *rplGetLAMnName(int32_t idx);
-    WORDPTR *rplGetLAMnEnv(WORDPTR * LAMEnv, int32_t idx);
-    WORDPTR *rplGetLAMnNameEnv(WORDPTR * LAMEnv, int32_t idx);
-    void rplPutLAMn(int32_t idx, WORDPTR object);
-    void rplCleanupLAMs(WORDPTR currentseco);
+    int32_t rplCreateLAM(word_p nameobj, word_p value);
+    int32_t rplCompareIDENT(word_p id1, word_p id2);
+    int32_t rplCompareIDENTByName(word_p id1, byte_p name, byte_p nameend);
+    int32_t rplCompareObjects(word_p id1, word_p id2);
+    word_p rplGetLAM(word_p nameobj);
+    word_p *rplGetLAMn(int32_t idx);
+    word_p *rplGetLAMnName(int32_t idx);
+    word_p *rplGetLAMnEnv(word_p * LAMEnv, int32_t idx);
+    word_p *rplGetLAMnNameEnv(word_p * LAMEnv, int32_t idx);
+    void rplPutLAMn(int32_t idx, word_p object);
+    void rplCleanupLAMs(word_p currentseco);
     void rplClearLAMs();
-    WORDPTR *rplFindLAM(WORDPTR nameobj, int32_t scanparents);
-    WORDPTR *rplFindLAMbyName(BYTEPTR name, int32_t len, int32_t scanparents);
-    WORDPTR *rplGetNextLAMEnv(WORDPTR * startpoint);
+    word_p *rplFindLAM(word_p nameobj, int32_t scanparents);
+    word_p *rplFindLAMbyName(byte_p name, int32_t len, int32_t scanparents);
+    word_p *rplGetNextLAMEnv(word_p * startpoint);
     int32_t rplNeedNewLAMEnv();
     int32_t rplNeedNewLAMEnvCompiler();
-    int32_t rplLAMCount(WORDPTR * LAMEnvironment);
+    int32_t rplLAMCount(word_p * LAMEnvironment);
 
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
     void growDirs(WORD newtotalsize);
-    WORDPTR rplMakeIdentQuoted(WORDPTR ident);
-    WORDPTR rplMakeIdentUnquoted(WORDPTR ident);
-    WORDPTR rplMakeIdentHidden(WORDPTR ident);
-    WORDPTR rplMakeIdentVisible(WORDPTR ident);
-    WORDPTR rplMakeIdentReadOnly(WORDPTR ident);
-    WORDPTR rplMakeIdentWriteable(WORDPTR ident);
-    WORDPTR rplMakeIdentNoProps(WORDPTR ident);
+    word_p rplMakeIdentQuoted(word_p ident);
+    word_p rplMakeIdentUnquoted(word_p ident);
+    word_p rplMakeIdentHidden(word_p ident);
+    word_p rplMakeIdentVisible(word_p ident);
+    word_p rplMakeIdentReadOnly(word_p ident);
+    word_p rplMakeIdentWriteable(word_p ident);
+    word_p rplMakeIdentNoProps(word_p ident);
 
-    void rplCreateGlobalInDir(WORDPTR nameobj, WORDPTR value,
-            WORDPTR * parentdir);
-    WORDPTR *rplCreateNGlobalsInDir(int32_t n, WORDPTR * parentdir);
-    void rplCreateGlobal(WORDPTR nameobj, WORDPTR value);
-    void rplPurgeGlobal(WORDPTR nameobj);
-    WORDPTR *rplFindDirbyHandle(WORDPTR handle);
-    WORDPTR *rplFindDirFromPath(WORDPTR pathlist, int32_t uselastname);
-    WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR * parentdir);
-    void rplPurgeDir(WORDPTR nameobj);
-    void rplPurgeDirByHandle(WORDPTR handle);
-    WORDPTR *rplGetParentDir(WORDPTR * directory);
-    int32_t rplGetDirSize(WORDPTR * directory);
-    void rplPackDirinPlace(WORDPTR * directory, WORDPTR where);
+    void rplCreateGlobalInDir(word_p nameobj, word_p value,
+            word_p * parentdir);
+    word_p *rplCreateNGlobalsInDir(int32_t n, word_p * parentdir);
+    void rplCreateGlobal(word_p nameobj, word_p value);
+    void rplPurgeGlobal(word_p nameobj);
+    word_p *rplFindDirbyHandle(word_p handle);
+    word_p *rplFindDirFromPath(word_p pathlist, int32_t uselastname);
+    word_p rplCreateNewDir(word_p nameobj, word_p * parentdir);
+    void rplPurgeDir(word_p nameobj);
+    void rplPurgeDirByHandle(word_p handle);
+    word_p *rplGetParentDir(word_p * directory);
+    int32_t rplGetDirSize(word_p * directory);
+    void rplPackDirinPlace(word_p * directory, word_p where);
 // VARIOUS WAYS TO RCL GLOBAL VARIABLES
-    WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend,
-            WORDPTR * parent, int32_t scanparents);
-    WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend,
+    word_p *rplFindGlobalbyNameInDir(byte_p name, byte_p nameend,
+            word_p * parent, int32_t scanparents);
+    word_p *rplFindGlobalbyName(byte_p name, byte_p nameend,
             int32_t scanparents);
-    WORDPTR *rplFindGlobalByIndexInDir(int32_t idx, WORDPTR * directory);
-    WORDPTR *rplFindGlobalByIndex(int32_t idx);
-    WORDPTR *rplFindGlobalInDir(WORDPTR nameobj, WORDPTR * parentdir,
+    word_p *rplFindGlobalByIndexInDir(int32_t idx, word_p * directory);
+    word_p *rplFindGlobalByIndex(int32_t idx);
+    word_p *rplFindGlobalInDir(word_p nameobj, word_p * parentdir,
             int32_t scanparents);
-    WORDPTR *rplFindGlobal(WORDPTR nameobj, int32_t scanparents);
-    WORDPTR *rplFindVisibleGlobalByIndexInDir(int32_t idx, WORDPTR * directory);
-    WORDPTR *rplFindVisibleGlobalByIndex(int32_t idx);
-    WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj, WORD propname,
-            WORDPTR * parent, int32_t scanparents);
+    word_p *rplFindGlobal(word_p nameobj, int32_t scanparents);
+    word_p *rplFindVisibleGlobalByIndexInDir(int32_t idx, word_p * directory);
+    word_p *rplFindVisibleGlobalByIndex(int32_t idx);
+    word_p *rplFindGlobalPropInDir(word_p nameobj, WORD propname,
+            word_p * parent, int32_t scanparents);
 // DIRECTORY SCANNING AND LOWER-LEVEL ACCESS
-    WORDPTR *rplFindFirstInDir(WORDPTR * directory);
-    WORDPTR *rplFindFirstByHandle(WORDPTR dirhandle);
-    WORDPTR *rplFindNext(WORDPTR * direntry);
-    int32_t rplGetVarCountInDir(WORDPTR * directory);
+    word_p *rplFindFirstInDir(word_p * directory);
+    word_p *rplFindFirstByHandle(word_p dirhandle);
+    word_p *rplFindNext(word_p * direntry);
+    int32_t rplGetVarCountInDir(word_p * directory);
     int32_t rplGetVarCount();
-    int32_t rplGetVisibleVarCountInDir(WORDPTR * directory);
+    int32_t rplGetVisibleVarCountInDir(word_p * directory);
     int32_t rplGetVisibleVarCount();
-    int32_t rplIsVarVisible(WORDPTR * var);
-    int32_t rplIsVarReadOnly(WORDPTR * var);
-    int32_t rplIsVarDirectory(WORDPTR * var);
-    int32_t rplIsVarEmptyDir(WORDPTR * var);
+    int32_t rplIsVarVisible(word_p * var);
+    int32_t rplIsVarReadOnly(word_p * var);
+    int32_t rplIsVarDirectory(word_p * var);
+    int32_t rplIsVarEmptyDir(word_p * var);
 
-    WORDPTR rplGetGlobal(WORDPTR nameobj);
-    WORDPTR *rplMakeNewDir();
-    WORDPTR rplGetDirName(WORDPTR * dir);
-    int32_t rplGetFullPath(WORDPTR * dir, WORDPTR * buffer, int32_t maxdepth);
-    WORDPTR *rplGetDirfromGlobal(WORDPTR * var);
-    WORDPTR *rplDeepCopyDir(WORDPTR * sourcedir);
-    void rplWipeDir(WORDPTR * directory);
-    void rplPurgeForced(WORDPTR * var);
+    word_p rplGetGlobal(word_p nameobj);
+    word_p *rplMakeNewDir();
+    word_p rplGetDirName(word_p * dir);
+    int32_t rplGetFullPath(word_p * dir, word_p * buffer, int32_t maxdepth);
+    word_p *rplGetDirfromGlobal(word_p * var);
+    word_p *rplDeepCopyDir(word_p * sourcedir);
+    void rplWipeDir(word_p * directory);
+    void rplPurgeForced(word_p * var);
 
 // FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY
-    void rplPurgeSettings(WORDPTR nameobj);
-    void rplStoreSettings(WORDPTR nameobject, WORDPTR object);
-    void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
-    WORDPTR rplGetSettings(WORDPTR nameobject);
-    WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
+    void rplPurgeSettings(word_p nameobj);
+    void rplStoreSettings(word_p nameobject, word_p object);
+    void rplStoreSettingsbyName(byte_p name, byte_p nameend, word_p object);
+    word_p rplGetSettings(word_p nameobject);
+    word_p rplGetSettingsbyName(byte_p name, byte_p nameend);
 
 // AUTOMATIC EVALUATION
-    void rplDoAutoEval(WORDPTR varname, WORDPTR * indir);
-    void rplUpdateDependencyTree(WORDPTR varname, WORDPTR * dir,
-            WORDPTR olddefn, WORDPTR newdefn);
+    void rplDoAutoEval(word_p varname, word_p * indir);
+    void rplUpdateDependencyTree(word_p varname, word_p * dir,
+            word_p olddefn, word_p newdefn);
 
 // SOLVERS AUXILIARY FUNCTIONS
-    void rplEvalUserFunc(WORDPTR arg_userfunc, WORD Opcode);
-    void rplEvalMultiUserFunc(WORDPTR * listofeq, WORDPTR * listofvars,
+    void rplEvalUserFunc(word_p arg_userfunc, WORD Opcode);
+    void rplEvalMultiUserFunc(word_p * listofeq, word_p * listofvars,
             int32_t nvars, int32_t minimizer);
 
 // GENERIC OBJECT FUNCTIONS
     void rplCallOvrOperator(WORD op);
     void rplCallOperator(WORD op);
-    void rplCopyObject(WORDPTR dest, WORDPTR src);
-    WORDPTR rplMakeNewCopy(WORDPTR object);
-    int64_t rplObjChecksum(WORDPTR object);
+    void rplCopyObject(word_p dest, word_p src);
+    word_p rplMakeNewCopy(word_p object);
+    int64_t rplObjChecksum(word_p object);
 
 // int32_t FUNCTIONS
-    WORDPTR rplNewSINT(int num, int base);
-    WORDPTR rplNewint32_t(int64_t num, int base);
+    word_p rplNewSINT(int num, int base);
+    word_p rplNewint32_t(int64_t num, int base);
     void rplNewSINTPush(int num, int base);
     void rplNewint32_tPush(int64_t num, int base);
-    int64_t rplReadint32_t(WORDPTR ptr);
-    WORDPTR rplWriteint32_t(int64_t num, int base, WORDPTR dest);
+    int64_t rplReadint32_t(word_p ptr);
+    word_p rplWriteint32_t(int64_t num, int base, word_p dest);
     void rplCompileint32_t(int64_t num, int base);
 
 // TRUE/FALSE FUNCTIONS
     void rplPushFalse();
     void rplPushTrue();
-    int32_t rplIsFalse(WORDPTR objptr);
-    int32_t rplIsTrue(WORDPTR objptr);
+    int32_t rplIsFalse(word_p objptr);
+    int32_t rplIsTrue(word_p objptr);
 
 // REAL FUNCTIONS
     void rplOneToRReg(int num);
@@ -494,33 +494,33 @@ struct date
     void rplUndInfinityToRReg(int num);
     void rplNANToRReg(int num);
     void rplint32_tToRReg(int num, int64_t value);
-    void rplReadReal(WORDPTR real, REAL * dec);
-    int32_t rplReadRealFlags(WORDPTR object);
-    int32_t rplIsNumberZero(WORDPTR obj);
-    void rplCopyRealToRReg(int num, WORDPTR real);
-    WORDPTR rplNewReal(REAL * num);
-    WORDPTR rplNewRealInPlace(REAL * num, WORDPTR addr);
-    WORDPTR rplNewRealFromRReg(int num);
+    void rplReadReal(word_p real, REAL * dec);
+    int32_t rplReadRealFlags(word_p object);
+    int32_t rplIsNumberZero(word_p obj);
+    void rplCopyRealToRReg(int num, word_p real);
+    word_p rplNewReal(REAL * num);
+    word_p rplNewRealInPlace(REAL * num, word_p addr);
+    word_p rplNewRealFromRReg(int num);
     void rplNewRealPush(REAL * num);
     void rplNewRealFromRRegPush(int num);
     void rplNewApproxRealFromRRegPush(int num);
-    WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
+    word_p rplRRegToRealInPlace(int num, word_p dest);
     void rplCheckResultAndError(REAL * real);
     void rplCompileReal(REAL * num);
 
 // COMPLEX FUNCTIONS
-    void rplRealPart(WORDPTR complex, REAL * real);
-    void rplImaginaryPart(WORDPTR complex, REAL * imag);
-    int32_t rplPolarComplexMode(WORDPTR complex);
-    int32_t rplComplexClass(WORDPTR complex);
-    void rplReadCNumber(WORDPTR complex, REAL * real, REAL * imag,
+    void rplRealPart(word_p complex, REAL * real);
+    void rplImaginaryPart(word_p complex, REAL * imag);
+    int32_t rplPolarComplexMode(word_p complex);
+    int32_t rplComplexClass(word_p complex);
+    void rplReadCNumber(word_p complex, REAL * real, REAL * imag,
             int32_t * angmode);
-    void rplReadCNumberAsReal(WORDPTR complex, REAL * real);
-    void rplReadCNumberAsImag(WORDPTR complex, REAL * imag);
-    WORDPTR rplNewComplex(REAL * real, REAL * imag, int32_t angmode);
+    void rplReadCNumberAsReal(word_p complex, REAL * real);
+    void rplReadCNumberAsImag(word_p complex, REAL * imag);
+    word_p rplNewComplex(REAL * real, REAL * imag, int32_t angmode);
     void rplNewComplexPush(REAL * real, REAL * imag, int32_t angmode);
     void rplRRegToComplexPush(int32_t real, int32_t imag, int32_t angmode);
-    WORDPTR rplRRegToComplexInPlace(int32_t real, int32_t imag, WORDPTR dest,
+    word_p rplRRegToComplexInPlace(int32_t real, int32_t imag, word_p dest,
             int32_t angmode);
     void rplRect2Polar(REAL * re, REAL * im, int32_t angmode);
     void rplPolar2Rect(REAL * r, REAL * theta, int32_t angmode);
@@ -528,26 +528,26 @@ struct date
     int rplNormalizeComplex(REAL * real, REAL * imag, int32_t angmode);
 
 // GENERIC FUNCTIONS FOR int32_tS AND REALS
-    void rplNumberToRReg(int num, WORDPTR number);
-    int64_t rplReadNumberAsInt64(WORDPTR number);
-    void rplReadNumberAsReal(WORDPTR number, REAL * dec);
+    void rplNumberToRReg(int num, word_p number);
+    int64_t rplReadNumberAsInt64(word_p number);
+    void rplReadNumberAsReal(word_p number, REAL * dec);
     void rplLoadInt64AsReal(int64_t number, REAL * dec);
-    int32_t rplIsNegative(WORDPTR objptr);
-    int32_t rplIntToString(int64_t number, int32_t base, BYTEPTR buffer,
-            BYTEPTR endbuffer);
+    int32_t rplIsNegative(word_p objptr);
+    int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer,
+            byte_p endbuffer);
 
 // CONSTANTS
-    WORDPTR rplConstant2Number(WORDPTR object);
-    int32_t rplConstant2NumberDirect(WORDPTR object);
+    word_p rplConstant2Number(word_p object);
+    int32_t rplConstant2NumberDirect(word_p object);
 
 // ANGLE FUNCTIONS
-    WORDPTR rplNewAngleFromReal(REAL * number, int32_t newmode);
-    WORDPTR rplNewAngleFromNumber(WORDPTR numobj, int32_t newmode);
-    void rplConvertAngleObj(WORDPTR angleobj, int32_t newmode);
+    word_p rplNewAngleFromReal(REAL * number, int32_t newmode);
+    word_p rplNewAngleFromNumber(word_p numobj, int32_t newmode);
+    void rplConvertAngleObj(word_p angleobj, int32_t newmode);
 
 // UNIT FUNCTIONS
-    int32_t rplUnitExplode(WORDPTR unitobj);
-    WORDPTR rplUnitAssemble(int32_t nlevels);
+    int32_t rplUnitExplode(word_p unitobj);
+    word_p rplUnitAssemble(int32_t nlevels);
     int32_t rplUnitPopItem(int32_t level);
     void rplUnitPickItem(int32_t level);
     int32_t rplUnitMulItem(int32_t level1, int32_t level2);
@@ -562,29 +562,29 @@ struct date
     int32_t rplUnitIsConsistent(int32_t nlevels, int32_t reflevel);
     int32_t rplUnitPow(int32_t lvlexp, int32_t nlevels);
 
-    int32_t rplUnitIsSpecial(WORDPTR unitobj);
+    int32_t rplUnitIsSpecial(word_p unitobj);
     void rplUnitReplaceSpecial(int32_t nlevels);
     void rplUnitReverseReplaceSpecial(int32_t nlevels);
     void rplUnitReverseReplaceSpecial2(int32_t isspec_idx);
     void rplUnitSpecialToDelta(int32_t nlevels);
-    WORDPTR *rplUnitFindCustom(WORDPTR ident, int32_t * siindex);
+    word_p *rplUnitFindCustom(word_p ident, int32_t * siindex);
     void rplUnitUnaryDoCmd();
-    int32_t rplUnitIsNonDimensional(WORDPTR uobject);
+    int32_t rplUnitIsNonDimensional(word_p uobject);
     void rplUnitUnaryDoCmdNonDimensional();
-    WORDPTR rplUnitApply(WORDPTR value, WORDPTR unitobj);
+    word_p rplUnitApply(word_p value, word_p unitobj);
 
 // LIST FUNCTIONS
-    int32_t rplListLength(WORDPTR composite);
-    int32_t rplListLengthFlat(WORDPTR composite);
+    int32_t rplListLength(word_p composite);
+    int32_t rplListLengthFlat(word_p composite);
     void rplCreateList();
-    WORDPTR rplCreateListN(int32_t num, int32_t level, int32_t remove);
-    void rplListAutoExpand(WORDPTR list);
-    int32_t rplExplodeList(WORDPTR composite);
-    int32_t rplExplodeList2(WORDPTR composite);
-    WORDPTR rplGetListElement(WORDPTR composite, int32_t pos);
-    WORDPTR rplGetListElementFlat(WORDPTR composite, int32_t pos);
-    WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
-    int32_t rplIsLastElementFlat(WORDPTR composite, int32_t pos);
+    word_p rplCreateListN(int32_t num, int32_t level, int32_t remove);
+    void rplListAutoExpand(word_p list);
+    int32_t rplExplodeList(word_p composite);
+    int32_t rplExplodeList2(word_p composite);
+    word_p rplGetListElement(word_p composite, int32_t pos);
+    word_p rplGetListElementFlat(word_p composite, int32_t pos);
+    word_p rplGetNextListElementFlat(word_p composite, word_p elem);
+    int32_t rplIsLastElementFlat(word_p composite, int32_t pos);
     int32_t rplListSame();
     void rplListUnaryDoCmd();
     void rplListUnaryNoResultDoCmd();
@@ -592,77 +592,77 @@ struct date
     void rplListBinaryDoCmd();
     void rplListBinaryNoResultDoCmd();
     void rplListMultiArgDoCmd(int32_t nargs);
-    WORDPTR rplListAddRot(WORDPTR list, WORDPTR object, int32_t nmax);
-    WORDPTR rplListReplace(WORDPTR list, int32_t position, WORDPTR object);
-    WORDPTR rplListReplaceMulti(WORDPTR list, int32_t position, WORDPTR object);
+    word_p rplListAddRot(word_p list, word_p object, int32_t nmax);
+    word_p rplListReplace(word_p list, int32_t position, word_p object);
+    word_p rplListReplaceMulti(word_p list, int32_t position, word_p object);
     void rplListExpandCases();
-    int32_t rplListHasLists(WORDPTR list);
+    int32_t rplListHasLists(word_p list);
 
 // SYMBOLIC FUNCTIONS
-    WORDPTR rplSymbUnwrap(WORDPTR symbolic);
-    WORDPTR rplSymbWrap(WORDPTR obj);
+    word_p rplSymbUnwrap(word_p symbolic);
+    word_p rplSymbWrap(word_p obj);
     void rplSymbWrapN(int32_t level, int32_t nargs);
-    WORD rplSymbMainOperator(WORDPTR symbolic);
-    WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
-    int32_t rplIsAllowedInSymb(WORDPTR object);
-    int32_t rplSymbGetTokenInfo(WORDPTR object);
+    WORD rplSymbMainOperator(word_p symbolic);
+    word_p rplSymbMainOperatorPTR(word_p symbolic);
+    int32_t rplIsAllowedInSymb(word_p object);
+    int32_t rplSymbGetTokenInfo(word_p object);
     void rplSymbApplyOperator(WORD Opcode, int32_t nargs);
     int32_t rplSymbRuleMatch();
-    int32_t rplSymbGetAttr(WORDPTR object);
-    WORDPTR rplComplexToSymb(WORDPTR complex);
+    int32_t rplSymbGetAttr(word_p object);
+    word_p rplComplexToSymb(word_p complex);
 
     void rplSymbRuleApply();
-    int32_t rplSymbIsRule(WORDPTR ptr);
+    int32_t rplSymbIsRule(word_p ptr);
     void rplSymbAutoSimplify();
-    WORDPTR rplSymbNumericReduce(WORDPTR object);
-    int32_t rplSymbIsNumeric(WORDPTR ptr);
-    int32_t rplSymbIsZero(WORDPTR ptr);
+    word_p rplSymbNumericReduce(word_p object);
+    int32_t rplSymbIsNumeric(word_p ptr);
+    int32_t rplSymbIsZero(word_p ptr);
     void rplSymbNumericCompute();
 
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
-    int32_t rplCheckCircularReference(WORDPTR env_owner, WORDPTR object,
+    int32_t rplCheckCircularReference(word_p env_owner, word_p object,
             int32_t lamnum);
     int32_t rplFractionSimplify();
     int32_t rplFractionAdd();
-    int32_t rplSymbExplode(WORDPTR object);
-    WORDPTR rplSymbImplode(WORDPTR * exprstart);
-    WORDPTR rplSymbCanonicalForm(WORDPTR object, int32_t fordisplay);
-    int32_t rplSymbExplodeOneLevel(WORDPTR object);
-    WORDPTR rplSymbReplaceVar(WORDPTR symb, WORDPTR findvar, WORDPTR newvar);
+    int32_t rplSymbExplode(word_p object);
+    word_p rplSymbImplode(word_p * exprstart);
+    word_p rplSymbCanonicalForm(word_p object, int32_t fordisplay);
+    int32_t rplSymbExplodeOneLevel(word_p object);
+    word_p rplSymbReplaceVar(word_p symb, word_p findvar, word_p newvar);
 
 // STRINGS
 // RPL STRING OBJECT
-    void rplSetStringLength(WORDPTR string, int32_t length);
-    int32_t rplStrLen(WORDPTR string);
-    int32_t rplStrLenCp(WORDPTR string);
-    int32_t rplStrSize(WORDPTR string);
-    int32_t rplStringGetLinePtr(WORDPTR str, int32_t line);
-    int32_t rplStringGetNextLine(WORDPTR str, int32_t prevlineoff);
+    void rplSetStringLength(word_p string, int32_t length);
+    int32_t rplStrLen(word_p string);
+    int32_t rplStrLenCp(word_p string);
+    int32_t rplStrSize(word_p string);
+    int32_t rplStringGetLinePtr(word_p str, int32_t line);
+    int32_t rplStringGetNextLine(word_p str, int32_t prevlineoff);
 
-    int32_t rplStringCountLines(WORDPTR str);
-    int32_t rplStringCompare(WORDPTR str1, WORDPTR str2);
-    WORDPTR rplCreateString(BYTEPTR text, BYTEPTR textend);
-    WORDPTR rplCreateStringBySize(int32_t lenbytes);
+    int32_t rplStringCountLines(word_p str);
+    int32_t rplStringCompare(word_p str1, word_p str2);
+    word_p rplCreateString(byte_p text, byte_p textend);
+    word_p rplCreateStringBySize(int32_t lenbytes);
 
 // MATRIX
-    WORDPTR rplMatrixCompose(int32_t rows, int32_t cols);
-    WORDPTR rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols);
-    WORDPTR rplMatrixFlexComposeN(int32_t level, int32_t totalelements);
-    WORDPTR rplMatrixFill(int32_t rows, int32_t cols, WORDPTR obj);
-    WORDPTR rplMatrixIdent(int32_t rows);
+    word_p rplMatrixCompose(int32_t rows, int32_t cols);
+    word_p rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols);
+    word_p rplMatrixFlexComposeN(int32_t level, int32_t totalelements);
+    word_p rplMatrixFill(int32_t rows, int32_t cols, word_p obj);
+    word_p rplMatrixIdent(int32_t rows);
 
-    int32_t rplMatrixIsAllowed(WORDPTR object);
+    int32_t rplMatrixIsAllowed(word_p object);
 
-    WORDPTR *rplMatrixExplode();
-    WORDPTR *rplMatrixExplodeByCols();
-    WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
-    int32_t rplMatrixCols(WORDPTR matrix);
-    int32_t rplMatrixRows(WORDPTR matrix);
-    WORDPTR rplMatrixGet(WORDPTR matrix, int32_t row, int32_t col);
-    WORDPTR rplMatrixFastGet(WORDPTR matrix, int32_t row, int32_t col);
-    WORDPTR *rplMatrixFastGetEx(WORDPTR * first, int32_t cols, int32_t i, int32_t j);
-    WORDPTR rplMatrixFastGetFlat(WORDPTR matrix, int32_t index);
-    WORDPTR *rplMatrixNewEx(int32_t rows, int32_t cols);
+    word_p *rplMatrixExplode();
+    word_p *rplMatrixExplodeByCols();
+    word_p rplMatrixGetFirstObj(word_p matrix);
+    int32_t rplMatrixCols(word_p matrix);
+    int32_t rplMatrixRows(word_p matrix);
+    word_p rplMatrixGet(word_p matrix, int32_t row, int32_t col);
+    word_p rplMatrixFastGet(word_p matrix, int32_t row, int32_t col);
+    word_p *rplMatrixFastGetEx(word_p * first, int32_t cols, int32_t i, int32_t j);
+    word_p rplMatrixFastGetFlat(word_p matrix, int32_t index);
+    word_p *rplMatrixNewEx(int32_t rows, int32_t cols);
     void rplMatrixNorm();
     void rplMatrixNeg();
     void rplMatrixNegPolar();
@@ -681,39 +681,39 @@ struct date
     void rplMatrixTranspose();
     void rplMatrixHadamard();
     void rplMatrixReduce();
-    WORDPTR rplMatrixInitIdx(int32_t nrows);
-    int32_t rplMatrixBareissEx(WORDPTR * a, WORDPTR * index, int32_t rowsa,
+    word_p rplMatrixInitIdx(int32_t nrows);
+    int32_t rplMatrixBareissEx(word_p * a, word_p * index, int32_t rowsa,
             int32_t colsa, int32_t upperonly);
     void rplMatrixInvert();
-    void rplMatrixBackSubstEx(WORDPTR * a, int32_t rowsa, int32_t colsa);
-    int32_t rplMatrixIsPolar(WORDPTR matobj);
-    WORD rplMatrixPolarGetTemplate(WORDPTR matrix);
-    int32_t rplIsZeroMatrix(WORDPTR object);
-    void rplMatrixPolarToRectEx(WORDPTR * a, int32_t rowsa, int32_t colsa);
-    void rplMatrixRectToPolarEx(WORDPTR * a, int32_t rowsa, int32_t colsa,
+    void rplMatrixBackSubstEx(word_p * a, int32_t rowsa, int32_t colsa);
+    int32_t rplMatrixIsPolar(word_p matobj);
+    WORD rplMatrixPolarGetTemplate(word_p matrix);
+    int32_t rplIsZeroMatrix(word_p object);
+    void rplMatrixPolarToRectEx(word_p * a, int32_t rowsa, int32_t colsa);
+    void rplMatrixRectToPolarEx(word_p * a, int32_t rowsa, int32_t colsa,
             WORD angtemplate, int32_t angmode);
-    void rplMatrixQREx(WORDPTR * a, int32_t rowsa, int32_t colsa);
-    WORDPTR rplMatrixQRGetQ(WORDPTR * a, int32_t rowsa, int32_t colsa,
-            WORDPTR * diagv);
-    WORDPTR rplMatrixQRGetR(WORDPTR * a, int32_t rowsa, int32_t colsa,
-            WORDPTR * diagv);
-    WORDPTR rplMatrixQRDoRQ(WORDPTR * a, int32_t n, WORDPTR * diagv);
+    void rplMatrixQREx(word_p * a, int32_t rowsa, int32_t colsa);
+    word_p rplMatrixQRGetQ(word_p * a, int32_t rowsa, int32_t colsa,
+            word_p * diagv);
+    word_p rplMatrixQRGetR(word_p * a, int32_t rowsa, int32_t colsa,
+            word_p * diagv);
+    word_p rplMatrixQRDoRQ(word_p * a, int32_t n, word_p * diagv);
 
     void rplMatrixUnary(WORD Opcode);
 
 // USER LIBRARIES
-    WORDPTR rplGetLibPtr(WORDPTR libptr);
-    WORDPTR rplGetLibPtr2(WORD libid, WORD libcmd);
-    WORDPTR rplGetLibPtrName(WORDPTR libptr);
-    WORDPTR rplGetLibPtrInfo(WORDPTR libptr);
+    word_p rplGetLibPtr(word_p libptr);
+    word_p rplGetLibPtr2(WORD libid, WORD libcmd);
+    word_p rplGetLibPtrName(word_p libptr);
+    word_p rplGetLibPtrInfo(word_p libptr);
 
 // NUMERIC SOLVERS
 
-    WORDPTR rplPolyEvalEx(WORDPTR * first, int32_t degree, WORDPTR * value);
-    WORDPTR rplPolyEvalDerivEx(int32_t deriv, WORDPTR * first, int32_t degree,
-            WORDPTR * value);
-    WORDPTR rplPolyRootEx(WORDPTR * first, int32_t degree);
-    WORDPTR rplPolyDeflateEx(WORDPTR * first, int32_t degree, WORDPTR * value);
+    word_p rplPolyEvalEx(word_p * first, int32_t degree, word_p * value);
+    word_p rplPolyEvalDerivEx(int32_t deriv, word_p * first, int32_t degree,
+            word_p * value);
+    word_p rplPolyRootEx(word_p * first, int32_t degree);
+    word_p rplPolyDeflateEx(word_p * first, int32_t degree, word_p * value);
 
 // RANDOM NUMBER GENERATOR
     void rplRandomSeed(uint64_t seed);
@@ -737,7 +737,7 @@ struct date
     void rplHMSToDecimal(REAL * hms, REAL * dec);
 
 // ALARM FUNCTIONS
-    int32_t rplReadAlarm(WORDPTR obj, struct alarm *alrm);
+    int32_t rplReadAlarm(word_p obj, struct alarm *alrm);
     void rplPushAlarm(struct alarm *alrm);
     int32_t rplAddAlarm(struct alarm *alrm);
     int32_t rplGetAlarm(int32_t id, struct alarm *alrm);
@@ -748,27 +748,27 @@ struct date
     void rplSkipNextAlarm();
 
 // KEYBOARD FUNCTIONS
-    WORDPTR rplMsg2KeyName(WORD keymsg);
-    WORD rplKeyName2Msg(WORDPTR keyname);
+    word_p rplMsg2KeyName(WORD keymsg);
+    WORD rplKeyName2Msg(word_p keyname);
 
 // FONT FUNCTIONS
     #define FONT_IDENTS_ROMPTR_INDEX 4
     #define START_ROMPTR_INDEX 16    // START OF THE ROM FONTS TABLE
-    WORDPTR const *rplGetFontRomPtrTableAddress(void);
-    WORDPTR rplGetCurrentFont(int32_t area);
-    void rplSetCurrentFont(int32_t area, WORDPTR ident);
-    void rplAddSystemFont(WORDPTR ident, WORDPTR font);
-    void rplPurgeSystemFont(WORDPTR ident);
-    WORDPTR rplGetSystemFont(WORDPTR ident);
-    WORDPTR rplGetSystemFontName(WORDPTR font);
+    word_p const *rplGetFontRomPtrTableAddress(void);
+    word_p rplGetCurrentFont(int32_t area);
+    void rplSetCurrentFont(int32_t area, word_p ident);
+    void rplAddSystemFont(word_p ident, word_p font);
+    void rplPurgeSystemFont(word_p ident);
+    word_p rplGetSystemFont(word_p ident);
+    word_p rplGetSystemFontName(word_p font);
 
 // BITMAP FUNCTIONS
-    WORDPTR rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear);
-    WORDPTR rplBmpToDisplay(WORDPTR bitmap);
+    word_p rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear);
+    word_p rplBmpToDisplay(word_p bitmap);
 
 // TAG FUNCTIONS
     int32_t rplStripTagStack(int32_t nlevels);
-    WORDPTR rplStripTag(WORDPTR object);
+    word_p rplStripTag(word_p object);
 
 // ANGULAR MODES
 #define ANGLENONE    -1

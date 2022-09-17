@@ -121,19 +121,19 @@ INCLUDE_ROMOBJECT(lib102_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib102_menu,
-    (WORDPTR) library_dirname,
-    (WORDPTR) libdata_dirname,
-    (WORDPTR) libid_ident,
-    (WORDPTR) title_ident,
-    (WORDPTR) libmenu_ident,
-    (WORDPTR) visible_ident,
-    (WORDPTR) ignore_ident,
-    (WORDPTR) handler_ident,
-    (WORDPTR) defhandler_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib102_menu,
+    (word_p) library_dirname,
+    (word_p) libdata_dirname,
+    (word_p) libid_ident,
+    (word_p) title_ident,
+    (word_p) libmenu_ident,
+    (word_p) visible_ident,
+    (word_p) ignore_ident,
+    (word_p) handler_ident,
+    (word_p) defhandler_seco,
     0
 };
 
@@ -155,17 +155,17 @@ const WORDPTR const ROMPTR_TABLE[] = {
 // FIND THE OBJECT WITHIN THE LIBRARY, CORRESPONDING TO A libptr OBJECT BEING EXECUTED
 // NO ARGUMENT CHECKS FOR SPEED
 
-WORDPTR rplGetLibPtr(WORDPTR libptr)
+word_p rplGetLibPtr(word_p libptr)
 {
     WORD libid = libptr[1];
     WORD libcmd = libptr[2];
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return 0;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return 0;
@@ -192,15 +192,15 @@ WORDPTR rplGetLibPtr(WORDPTR libptr)
 
 // SAME AS GETLIBPTR, BUT THE LIBID AND COMMAND NUMBER ARE GIVEN SEPARATELY INSTEAD OF BY OBJECT
 
-WORDPTR rplGetLibPtr2(WORD libid, WORD libcmd)
+word_p rplGetLibPtr2(WORD libid, WORD libcmd)
 {
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return 0;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return 0;
@@ -228,15 +228,15 @@ WORDPTR rplGetLibPtr2(WORD libid, WORD libcmd)
 // FIND THE LIBRARY THAT CONTAINS THE GIVEN POINTER
 // NO ARGUMENT CHECKS FOR SPEED
 
-WORDPTR rplGetLibFromPointer(WORDPTR libptr)
+word_p rplGetLibFromPointer(word_p libptr)
 {
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return 0;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return 0;
@@ -260,15 +260,15 @@ WORDPTR rplGetLibFromPointer(WORDPTR libptr)
 
 // GET THE NAME OF A LIBPTR
 
-WORDPTR rplGetLibPtrName2(WORD libid, WORD libcmd)
+word_p rplGetLibPtrName2(WORD libid, WORD libcmd)
 {
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return 0;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return 0;
@@ -281,7 +281,7 @@ WORDPTR rplGetLibPtrName2(WORD libid, WORD libcmd)
                 // FOUND THE LIBRARY - GET THE NAME
                 if(libcmd > direntry[1][3])
                     return 0;
-                WORDPTR nobj;
+                word_p nobj;
                 if(libcmd == 0)
                     nobj = direntry[1] + OPCODE(direntry[1][3]) + 4;
                 else
@@ -299,7 +299,7 @@ WORDPTR rplGetLibPtrName2(WORD libid, WORD libcmd)
     return 0;
 }
 
-WORDPTR rplGetLibPtrName(WORDPTR libptr)
+word_p rplGetLibPtrName(word_p libptr)
 {
     WORD libid = libptr[1];
     WORD libcmd = libptr[2];
@@ -309,17 +309,17 @@ WORDPTR rplGetLibPtrName(WORDPTR libptr)
 
 // GET THE TOKEN INFO OF A LIBPTR
 
-WORDPTR rplGetLibPtrInfo(WORDPTR libptr)
+word_p rplGetLibPtrInfo(word_p libptr)
 {
-    WORDPTR result = rplGetLibPtrName(libptr);
+    word_p result = rplGetLibPtrName(libptr);
     if(result)
         return rplSkipOb(result);
     return 0;
 }
 
-WORDPTR rplGetLibPtrHelp(WORD libid, WORD libcmd)
+word_p rplGetLibPtrHelp(WORD libid, WORD libcmd)
 {
-    WORDPTR result = rplGetLibPtrName2(libid, libcmd);
+    word_p result = rplGetLibPtrName2(libid, libcmd);
     if(result)
         return rplSkipOb(rplSkipOb(result));
     return 0;
@@ -328,20 +328,20 @@ WORDPTR rplGetLibPtrHelp(WORD libid, WORD libcmd)
 // FIND A COMMAND BY NAME WITHIN A LIBRARY, RETURN ITS INDEX IN THE HIGH WORD, LIBRARY NAME IN ITS LOW WORD
 // OR -1 IF NOT FOUND
 
-int64_t rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
+int64_t rplFindLibPtrIndex(byte_p start, byte_p end)
 {
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return -1;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return -1;
 
-    WORDPTR cmd, libend;
+    word_p cmd, libend;
     int32_t idx;   //,ncommands;
 
     do {
@@ -385,24 +385,24 @@ int64_t rplFindLibPtrIndex(BYTEPTR start, BYTEPTR end)
 // AT THE BEGINNING OF THE TOKEN (USED FOR PROBING)
 // ALSO SETS *cmdinfo TO THE COMMAND INFORMATION LIST (NAME / TOKENINFO / HELPINFO / OBJECT)
 
-int64_t rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
+int64_t rplProbeLibPtrIndex(byte_p start, byte_p end, word_p * cmdinfo)
 {
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return -1;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return -1;
 
-    WORDPTR cmd, libend;
+    word_p cmd, libend;
     int32_t idx;   //,ncommands;
     int32_t len, maxlen, chosenidx;
     WORD chosenlib;
-    WORDPTR chosencmd;
+    word_p chosencmd;
 
     maxlen = 0;
 
@@ -458,18 +458,18 @@ int64_t rplProbeLibPtrIndex(BYTEPTR start, BYTEPTR end, WORDPTR * cmdinfo)
     return -1;
 }
 
-WORDPTR *rplFindAttachedLibrary(WORDPTR ident)
+word_p *rplFindAttachedLibrary(word_p ident)
 {
 
     if(OBJSIZE(*ident) != 1)
         return 0;
 
-    WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+    word_p libdir = rplGetSettings((word_p) library_dirname);
 
     if(!libdir)
         return 0;
 
-    WORDPTR *direntry = rplFindFirstByHandle(libdir);
+    word_p *direntry = rplFindFirstByHandle(libdir);
 
     if(!direntry)
         return 0;
@@ -494,7 +494,7 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         if(ISLIBPTR(CurOpcode)) {
-            WORDPTR libobject = rplGetLibPtr(IPtr);
+            word_p libobject = rplGetLibPtr(IPtr);
             if(!libobject) {
                 rplError(ERR_MISSINGLIBRARY);
                 return;
@@ -557,20 +557,20 @@ void LIB_HANDLER()
 
         WORD libid = 0;
         int32_t nvisible, nhidden, nsizeextra, datasize;
-        WORDPTR *object;
-        WORDPTR *stksave = DSTop;
+        word_p *object;
+        word_p *stksave = DSTop;
 
         nvisible = nhidden = 0;
         nsizeextra = datasize = 0;
 
-        object = rplFindGlobal((WORDPTR) libid_ident, 0);
+        object = rplFindGlobal((word_p) libid_ident, 0);
 
         if(object) {
             if(ISIDENT(*object[1]) && (OBJSIZE(*object[1]) == 1)) {
                 libid = object[1][1];
 
-                BYTEPTR ptr = (BYTEPTR) (object[1] + 1);
-                while(ptr < (BYTEPTR) (object[1] + 2)) {
+                byte_p ptr = (byte_p) (object[1] + 1);
+                while(ptr < (byte_p) (object[1] + 2)) {
                     if(((*ptr >= 'A') && (*ptr <= 'Z')) || ((*ptr >= 'a')
                                 && (*ptr <= 'z')) || ((*ptr >= '0')
                                 && (*ptr <= '9')))
@@ -578,7 +578,7 @@ void LIB_HANDLER()
                     else
                         break;
                 }
-                while(ptr < (BYTEPTR) (object[1] + 2)) {
+                while(ptr < (byte_p) (object[1] + 2)) {
                     if(*ptr) {
                         libid = 0;
                         break;
@@ -597,17 +597,17 @@ void LIB_HANDLER()
 
         // CHECK FOR VALID $HANDLER
         // HANDLER USES ENTRY #0, IT TAKES A NULL-NAME (1 WORD), INFO=1 WORD, NULLHELP=1 WORD AND SIZE OF HANDLER
-        object = rplFindGlobal((WORDPTR) handler_ident, 0);
+        object = rplFindGlobal((word_p) handler_ident, 0);
 
         if(object) {
             datasize += 3 + rplObjSize(object[1]);
-            rplPushData((WORDPTR) handler_ident);
+            rplPushData((word_p) handler_ident);
             rplPushData(object[1]);
         }
         else {
-            datasize += 3 + rplObjSize((WORDPTR) defhandler_seco);
-            rplPushData((WORDPTR) handler_ident);
-            rplPushData((WORDPTR) defhandler_seco);
+            datasize += 3 + rplObjSize((word_p) defhandler_seco);
+            rplPushData((word_p) handler_ident);
+            rplPushData((word_p) defhandler_seco);
         }
         if(Exceptions) {
             DSTop = stksave;
@@ -616,19 +616,19 @@ void LIB_HANDLER()
 
         // CHECK FOR VALID $TITLE
 
-        object = rplFindGlobal((WORDPTR) title_ident, 0);
+        object = rplFindGlobal((word_p) title_ident, 0);
 
         // TITLE USES ENTRY #1, SO IT TAKES A NULL-NAME (A SINT=1 WORD), INFO=1 WORD, AND THE SIZE OF THE STRING
         if(object) {
             datasize += 3 + rplObjSize(object[1]);
-            rplPushData((WORDPTR) title_ident);
+            rplPushData((word_p) title_ident);
             rplPushData(object[1]);
         }
         else {
-            datasize += 3 + rplObjSize((WORDPTR) empty_string);
+            datasize += 3 + rplObjSize((word_p) empty_string);
 
-            rplPushData((WORDPTR) title_ident);
-            rplPushData((WORDPTR) empty_string);
+            rplPushData((word_p) title_ident);
+            rplPushData((word_p) empty_string);
         }
         if(Exceptions) {
             DSTop = stksave;
@@ -637,18 +637,18 @@ void LIB_HANDLER()
 
         // CHECK FOR VALID $MENU
 
-        object = rplFindGlobal((WORDPTR) libmenu_ident, 0);
+        object = rplFindGlobal((word_p) libmenu_ident, 0);
 
         // TITLE USES ENTRY #2, SO IT TAKES A NULL-NAME (A SINT=1 WORD), INFO=1 WORD, AND THE SIZE OF THE LIST
         if(object) {
             datasize += 3 + rplObjSize(object[1]);
-            rplPushData((WORDPTR) libmenu_ident);
+            rplPushData((word_p) libmenu_ident);
             rplPushData(object[1]);
         }
         else {
-            datasize += 3 + rplObjSize((WORDPTR) empty_list);
-            rplPushData((WORDPTR) libmenu_ident);
-            rplPushData((WORDPTR) empty_list);
+            datasize += 3 + rplObjSize((word_p) empty_list);
+            rplPushData((word_p) libmenu_ident);
+            rplPushData((word_p) empty_list);
         }
         if(Exceptions) {
             DSTop = stksave;
@@ -656,8 +656,8 @@ void LIB_HANDLER()
         }
 
         // RESERVED FOR FUTURE USE, TAKES 1-WORD NULL NAME, 1-WORD INFO, 1-WORD NULL HELP, 1-WORD FOR THE ZERO_int32_t
-        rplPushData((WORDPTR) nulllam_ident);
-        rplPushData((WORDPTR) zero_bint);
+        rplPushData((word_p) nulllam_ident);
+        rplPushData((word_p) zero_bint);
         if(Exceptions) {
             DSTop = stksave;
             return;
@@ -666,19 +666,19 @@ void LIB_HANDLER()
 
         // CHECK FOR VALID $VISIBLE
 
-        object = rplFindGlobal((WORDPTR) visible_ident, 0);
+        object = rplFindGlobal((word_p) visible_ident, 0);
 
         if(object) {
             if(ISLIST(*object[1])) {
                 nvisible = rplListLength(object[1]);
                 int k;
-                WORDPTR item = object[1] + 1;
+                word_p item = object[1] + 1;
                 for(k = 0; k < nvisible; ++k) {
                     if(ISLIST(*item) && (rplListLength(item) == 4)) {
-                        WORDPTR var = item + 1;
+                        word_p var = item + 1;
                         if(ISIDENT(*var)) {
                             // CHECK FOR REFERENCES
-                            WORDPTR *prog = rplFindGlobal(var, 0);
+                            word_p *prog = rplFindGlobal(var, 0);
 
                             if(prog) {
                                 rplPushData(var);
@@ -718,12 +718,12 @@ void LIB_HANDLER()
 
         //  CREATE A DEFAULT MENU FROM THE VISIBLE LIST
         //  BUT ONLY IF A CUSTOM MENU WASN'T GIVEN IN A $MENU VARIABLE
-        if(stksave[5] == (WORDPTR) empty_list) {
+        if(stksave[5] == (word_p) empty_list) {
 
             int k;
             int32_t listsize = 1 + 3 * nvisible;   // ENDLIST + LIBPTR FOR EACH VISIBLE VARIABLE
 
-            WORDPTR defmenu = rplAllocTempOb(listsize);
+            word_p defmenu = rplAllocTempOb(listsize);
             // COMPUTE THE SIZE OF A MENU
             if(!defmenu) {
                 DSTop = stksave;
@@ -742,7 +742,7 @@ void LIB_HANDLER()
             stksave[5] = defmenu;
 
             // UPDATE THE SIZE COMPUTATION
-            datasize -= rplObjSize((WORDPTR) empty_list);
+            datasize -= rplObjSize((word_p) empty_list);
             datasize += listsize + 1;
 
         }
@@ -754,23 +754,23 @@ void LIB_HANDLER()
 
         // SCAN ALL VISIBLE VARIABLES FOR REFERENCES TO HIDDEN ONES
 
-        WORDPTR *stkptr = stksave;
+        word_p *stkptr = stksave;
 
-        WORDPTR *ignore = rplFindGlobal((WORDPTR) ignore_ident, 0);
+        word_p *ignore = rplFindGlobal((word_p) ignore_ident, 0);
 
         while(stkptr < DSTop) {
-            WORDPTR prog = stkptr[1];
-            WORDPTR endprog = rplSkipOb(prog);
+            word_p prog = stkptr[1];
+            word_p endprog = rplSkipOb(prog);
 
             while(prog != endprog) {
                 if(ISUNQUOTEDIDENT(*prog)) {
-                    WORDPTR *direntry = rplFindGlobal(prog, 0);
+                    word_p *direntry = rplFindGlobal(prog, 0);
                     if(direntry) {
                         // MAKE SURE IS NOT IN THE IGNORE LIST
 
                         if(ignore) {
-                            WORDPTR ignitem = ignore[1];
-                            WORDPTR endign = rplSkipOb(ignitem);
+                            word_p ignitem = ignore[1];
+                            word_p endign = rplSkipOb(ignitem);
                             if(ISLIST(*ignitem))
                                 ++ignitem;
                             while(ignitem < endign) {
@@ -789,7 +789,7 @@ void LIB_HANDLER()
                         }
 
                         // VARIABLE EXISTS - CHECK IF WE ALREADY HAVE IT IN THE LIST
-                        WORDPTR *stkscan = stksave;
+                        word_p *stkscan = stksave;
 
                         while(stkscan < DSTop) {
                             if(rplCompareIDENT(prog, *stkscan))
@@ -841,7 +841,7 @@ void LIB_HANDLER()
 
         int32_t totalsize = 3 + (nvisible + nhidden) + datasize + nsizeextra;
 
-        WORDPTR newobj = rplAllocTempOb(totalsize);
+        word_p newobj = rplAllocTempOb(totalsize);
 
         if(!newobj) {
             DSTop = stksave;
@@ -860,13 +860,13 @@ void LIB_HANDLER()
         for(k = 0; k < totaln; ++k) {
             // ADD COMMAND NAME
             rplCopyObject(newobj + offset,
-                    (k >= 4) ? stksave[2 * k] : (WORDPTR) nulllam_ident);
+                    (k >= 4) ? stksave[2 * k] : (word_p) nulllam_ident);
 
             offset += rplObjSize(newobj + offset);
 
             // ADD INFO
             if((k >= 4) && (k < nvisible + 4)) {
-                WORDPTR info = rplSkipOb(stksave[2 * k]);
+                word_p info = rplSkipOb(stksave[2 * k]);
 
                 if(object && (info > object[1])
                         && (info < rplSkipOb(object[1]))) {
@@ -886,8 +886,8 @@ void LIB_HANDLER()
 
             // ADD HELP STRING
             {
-                WORDPTR helpstring;
-                helpstring = (WORDPTR) empty_string;
+                word_p helpstring;
+                helpstring = (word_p) empty_string;
                 if((k >= 4) && (k < nvisible + 4)) {
                     helpstring = rplSkipOb(stksave[2 * k]);
 
@@ -895,7 +895,7 @@ void LIB_HANDLER()
                             && (helpstring < rplSkipOb(object[1])))
                         helpstring = rplSkipOb(rplSkipOb(helpstring));
                     else
-                        helpstring = (WORDPTR) empty_string;
+                        helpstring = (word_p) empty_string;
                 }
                 rplCopyObject(newobj + offset, helpstring);
                 offset += rplObjSize(helpstring);
@@ -905,12 +905,12 @@ void LIB_HANDLER()
             newobj[4 + k] = offset;
 
             // AND FINALLY ADD THE OBJECT ITSELF
-            WORDPTR prog;
+            word_p prog;
 
             prog = stksave[2 * k + 1];
 
-            WORDPTR endprog = rplSkipOb(prog);
-            WORDPTR *stktop = DSTop;
+            word_p endprog = rplSkipOb(prog);
+            word_p *stktop = DSTop;
 
             while(prog != endprog) {
                 if(ISUNQUOTEDIDENT(*prog)) {
@@ -918,8 +918,8 @@ void LIB_HANDLER()
                     // MAKE SURE IS NOT IN THE IGNORE LIST
 
                     if(ignore) {
-                        WORDPTR ignitem = ignore[1];
-                        WORDPTR endign = rplSkipOb(ignitem);
+                        word_p ignitem = ignore[1];
+                        word_p endign = rplSkipOb(ignitem);
                         if(ISLIST(*ignitem))
                             ++ignitem;
                         while(ignitem < endign) {
@@ -942,7 +942,7 @@ void LIB_HANDLER()
                     }
 
                     // CHECK IF WE ALREADY HAVE IT IN THE LIST
-                    WORDPTR *stkscan = stksave;
+                    word_p *stkscan = stksave;
 
                     while(stkscan < DSTop) {
                         if(rplCompareIDENT(prog, *stkscan))
@@ -957,7 +957,7 @@ void LIB_HANDLER()
 
                         int32_t sizedelta = 3 - rplObjSize(prog);
 
-                        WORDPTR *sptr = DSTop;
+                        word_p *sptr = DSTop;
                         while(sptr < stktop) {
                             if((offset >= (*sptr - newobj))
                                     && (offset <
@@ -980,7 +980,7 @@ void LIB_HANDLER()
                 else {
                     // ANY OTHER OBJECT, JUST COPY VERBATIM
                     if(ISPROGRAM(*prog) || ISLIST(*prog)) {
-                        WORDPTR *tmp = DSTop;
+                        word_p *tmp = DSTop;
                         DSTop = stktop;
                         // CREATE A STACK OF OBJECTS TO PATCH SIZE
                         ScratchPointer1 = newobj;
@@ -1042,17 +1042,17 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+        word_p libdir = rplGetSettings((word_p) library_dirname);
 
         if(!libdir) {
             // CREATE THE DIRECTORY!
-            WORDPTR *sethan = rplFindDirbyHandle(SettingsDir);
+            word_p *sethan = rplFindDirbyHandle(SettingsDir);
             if(!sethan) {
                 rplError(ERR_DIRECTORYNOTFOUND);
                 return;
             }
 
-            libdir = rplCreateNewDir((WORDPTR) library_dirname, sethan);
+            libdir = rplCreateNewDir((word_p) library_dirname, sethan);
 
             if(!libdir)
                 return;
@@ -1060,10 +1060,10 @@ void LIB_HANDLER()
         }
 
         // STORE THE LIBRARY IN THE DIRECTORY
-        WORDPTR lib = rplPeekData(1);
-        WORDPTR *libdirentry = rplFindDirbyHandle(libdir);
+        word_p lib = rplPeekData(1);
+        word_p *libdirentry = rplFindDirbyHandle(libdir);
 
-        WORDPTR *var = rplFindGlobalInDir(lib + 1, libdirentry, 0);
+        word_p *var = rplFindGlobalInDir(lib + 1, libdirentry, 0);
         if(var) {
             // LIBRARY IS ALREADY INSTALLED, REPLACE
             var[0] = lib + 1;
@@ -1095,7 +1095,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *var = rplFindAttachedLibrary(rplPeekData(1));
+        word_p *var = rplFindAttachedLibrary(rplPeekData(1));
 
         if(var)
             rplPurgeForced(var);
@@ -1119,7 +1119,7 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        rplOverwriteData(1, (WORDPTR) one_bint);
+        rplOverwriteData(1, (word_p) one_bint);
         return;
     }
 
@@ -1140,7 +1140,7 @@ void LIB_HANDLER()
 
         if(ISLIBPTR(*rplPeekData(1)))   // THIS IS A LIBPTR - NEEDS TO BE EXECUTED
         {
-            WORDPTR libobj = rplGetLibPtr(rplPeekData(1));
+            word_p libobj = rplGetLibPtr(rplPeekData(1));
 
             if(!libobj) {
                 rplError(ERR_MISSINGLIBRARY);
@@ -1181,7 +1181,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        WORDPTR newmenu = rplNewint32_t(mcode, HEXint32_t);
+        word_p newmenu = rplNewint32_t(mcode, HEXint32_t);
         if(!newmenu)
             return;
 
@@ -1225,7 +1225,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        WORDPTR newmenu = rplNewint32_t(mcode, HEXint32_t);
+        word_p newmenu = rplNewint32_t(mcode, HEXint32_t);
         if(!newmenu)
             return;
 
@@ -1266,7 +1266,7 @@ void LIB_HANDLER()
         }
 
         // FIND CURRENTLY EXECUTING LIBRARY
-        WORDPTR library = rplGetLibFromPointer(IPtr);
+        word_p library = rplGetLibFromPointer(IPtr);
         if(!library) {
             // STORE IT IN THE CURRENT DIRECTORY
             rplCallOperator(CMD_STO);
@@ -1274,11 +1274,11 @@ void LIB_HANDLER()
         }
 
         // FIND LIBDATA DIRECTORY, CREATE IF DOESN'T EXIST
-        WORDPTR dirhandle = rplGetSettings((WORDPTR) libdata_dirname);
+        word_p dirhandle = rplGetSettings((word_p) libdata_dirname);
         if(!dirhandle) {
             rplPushDataNoGrow(library);
             dirhandle =
-                    rplCreateNewDir((WORDPTR) libdata_dirname,
+                    rplCreateNewDir((word_p) libdata_dirname,
                     rplFindDirbyHandle(SettingsDir));
             library = rplPopData();
             if(!dirhandle || Exceptions)
@@ -1287,8 +1287,8 @@ void LIB_HANDLER()
         }
 
         // FIND LIBRARY DIRECTORY WITHIN LIBDATA, CREATE IF DOESN'T EXIST
-        WORDPTR *dirptr = rplFindDirbyHandle(dirhandle);
-        WORDPTR *var = rplFindGlobalInDir(library + 1, dirptr, 0);
+        word_p *dirptr = rplFindDirbyHandle(dirhandle);
+        word_p *var = rplFindGlobalInDir(library + 1, dirptr, 0);
 
         if(!var)
             dirhandle = rplCreateNewDir(library + 1, dirptr);
@@ -1331,7 +1331,7 @@ void LIB_HANDLER()
         }
 
         // FIND CURRENTLY EXECUTING LIBRARY
-        WORDPTR library = rplGetLibFromPointer(IPtr);
+        word_p library = rplGetLibFromPointer(IPtr);
         if(!library) {
             // GET IT FROM THE CURRENT DIRECTORY
             rplCallOperator(CMD_RCL);
@@ -1339,15 +1339,15 @@ void LIB_HANDLER()
         }
 
         // FIND LIBDATA DIRECTORY
-        WORDPTR dirhandle = rplGetSettings((WORDPTR) libdata_dirname);
+        word_p dirhandle = rplGetSettings((word_p) libdata_dirname);
         if(!dirhandle) {
             rplError(ERR_UNDEFINEDVARIABLE);
             return;
         }
 
         // FIND LIBRARY DIRECTORY WITHIN LIBDATA
-        WORDPTR *dirptr = rplFindDirbyHandle(dirhandle);
-        WORDPTR *var = rplFindGlobalInDir(library + 1, dirptr, 0);
+        word_p *dirptr = rplFindDirbyHandle(dirhandle);
+        word_p *var = rplFindGlobalInDir(library + 1, dirptr, 0);
 
         if(!var) {
             rplError(ERR_UNDEFINEDVARIABLE);
@@ -1387,7 +1387,7 @@ void LIB_HANDLER()
         }
 
         // FIND CURRENTLY EXECUTING LIBRARY
-        WORDPTR library = rplGetLibFromPointer(IPtr);
+        word_p library = rplGetLibFromPointer(IPtr);
         if(!library) {
             // GET IT FROM THE CURRENT DIRECTORY
             rplCallOperator(CMD_RCL);
@@ -1409,15 +1409,15 @@ void LIB_HANDLER()
         }
 
         // FIND LIBDATA DIRECTORY
-        WORDPTR dirhandle = rplGetSettings((WORDPTR) libdata_dirname);
+        word_p dirhandle = rplGetSettings((word_p) libdata_dirname);
         if(!dirhandle) {
             rplDropData(1);
             return;
         }
 
         // FIND LIBRARY DIRECTORY WITHIN LIBDATA
-        WORDPTR *dirptr = rplFindDirbyHandle(dirhandle);
-        WORDPTR *var = rplFindGlobalInDir(library + 1, dirptr, 0);
+        word_p *dirptr = rplFindDirbyHandle(dirhandle);
+        word_p *var = rplFindGlobalInDir(library + 1, dirptr, 0);
 
         if(!var) {
             rplDropData(1);
@@ -1460,7 +1460,7 @@ void LIB_HANDLER()
         }
 
         // FIND LIBDATA DIRECTORY
-        WORDPTR dirhandle = rplGetSettings((WORDPTR) libdata_dirname);
+        word_p dirhandle = rplGetSettings((word_p) libdata_dirname);
         if(!dirhandle) {
             // DO NOTHING IF THE LIBRARY HAS NO DATA
             rplDropData(1);
@@ -1468,8 +1468,8 @@ void LIB_HANDLER()
         }
 
         // FIND LIBRARY DIRECTORY WITHIN LIBDATA
-        WORDPTR *dirptr = rplFindDirbyHandle(dirhandle);
-        WORDPTR *var2 = rplFindGlobalInDir(rplPeekData(1), dirptr, 0);
+        word_p *dirptr = rplFindDirbyHandle(dirhandle);
+        word_p *var2 = rplFindGlobalInDir(rplPeekData(1), dirptr, 0);
 
         if(!var2) {
             // DO NOTHING IF THE LIBRARY HAS NO DATA
@@ -1525,7 +1525,7 @@ void LIB_HANDLER()
         // COMPILE COMMANDS FOR ALL OTHER REGISTERED LIBRARIES
 
         int64_t libidx =
-                rplFindLibPtrIndex((BYTEPTR) TokenStart, (BYTEPTR) BlankStart);
+                rplFindLibPtrIndex((byte_p) TokenStart, (byte_p) BlankStart);
 
         if(libidx >= 0) {
             // FOUND A MATCH
@@ -1547,11 +1547,11 @@ void LIB_HANDLER()
     {
         if(LIBNUM(*ScratchPointer4) == DOLIBPTR) {
             // COMPILE A ROMPOINTER WITH A MISSING LIBRARY
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             int rot = 0;
             WORD libid = 0, libcmd;
             int32_t cp;
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if(*ptr == '.')
                     break;
                 cp = utf82cp((char *)ptr, (char *)BlankStart);
@@ -1560,7 +1560,7 @@ void LIB_HANDLER()
                     libid |= cp << rot;
                     rot += 8;
                     if(rot >= 32) {
-                        ptr = (BYTEPTR) utf8skip((char *)ptr,
+                        ptr = (byte_p) utf8skip((char *)ptr,
                                 (char *)BlankStart);
                         break;
                     }
@@ -1570,11 +1570,11 @@ void LIB_HANDLER()
                     return;
                 }
 
-                ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
             }
 
             libcmd = 0;
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if(*ptr == '.') {
                     ++ptr;
                     continue;
@@ -1586,7 +1586,7 @@ void LIB_HANDLER()
                 }
                 libcmd *= 10;
                 libcmd += cp;
-                ptr = (BYTEPTR) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
             }
 
             rplCompileAppend(libid);
@@ -1599,16 +1599,16 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((int32_t) TokenLen != (BYTEPTR) BlankStart - (BYTEPTR) TokenStart) {
+            if((int32_t) TokenLen != (byte_p) BlankStart - (byte_p) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
             }
 
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             WORD value = 0;
             int32_t digit;
-            while(ptr < (BYTEPTR) BlankStart) {
+            while(ptr < (byte_p) BlankStart) {
                 if((*ptr >= '0') && (*ptr <= '9'))
                     digit = *ptr - '0';
                 else if((*ptr >= 'A') && (*ptr <= 'F'))
@@ -1639,7 +1639,7 @@ void LIB_HANDLER()
         // WE HAVE A SIZE
         // DO WE NEED ANY MORE DATA?
 
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
 
         WORD value = 0;
         WORD checksum = 0;
@@ -1699,7 +1699,7 @@ void LIB_HANDLER()
                 }
                 ++ptr;
             }
-            while(ptr != (BYTEPTR) BlankStart);
+            while(ptr != (byte_p) BlankStart);
             if(ndigits
                     || (((CompileEnd - ScratchPointer4 - 1) <
                             (int32_t) OBJSIZE(*ScratchPointer4)))) {
@@ -1732,13 +1732,13 @@ void LIB_HANDLER()
             if(ISLIBPTR(*DecompileObject)) {
                 // DECOMPILE A LIBPTR
 
-                WORDPTR name = rplGetLibPtrName(DecompileObject);
+                word_p name = rplGetLibPtrName(DecompileObject);
 
                 if(!name || (*name == CMD_NULLLAM)) {
                     // LIBPTRS WITHOUT A PROPER LIBRARY INSTALLED
-                    rplDecompAppendString((BYTEPTR) "LIBPTR ");
+                    rplDecompAppendString((byte_p) "LIBPTR ");
 
-                    BYTEPTR ptr = (BYTEPTR) (DecompileObject + 1);
+                    byte_p ptr = (byte_p) (DecompileObject + 1);
                     if(*ptr != 0)
                         rplDecompAppendChar(*ptr);
                     ++ptr;
@@ -1764,7 +1764,7 @@ void LIB_HANDLER()
                 }
                 else {
                     // NAMED COMMAND
-                    rplDecompAppendString2((BYTEPTR) (name + 1),
+                    rplDecompAppendString2((byte_p) (name + 1),
                             rplGetIdentLength(name));
                 }
 
@@ -1775,7 +1775,7 @@ void LIB_HANDLER()
 
             // DECOMPILE LIBRARY
 
-            rplDecompAppendString((BYTEPTR) "LIBRARY ");
+            rplDecompAppendString((byte_p) "LIBRARY ");
             int32_t size = OBJSIZE(*DecompileObject);
             int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
@@ -1802,7 +1802,7 @@ void LIB_HANDLER()
 
             encoder[6] = 0;
 
-            WORDPTR ptr = DecompileObject + 1;
+            word_p ptr = DecompileObject + 1;
             int32_t nwords = 0;
 
             while(size) {
@@ -1893,9 +1893,9 @@ void LIB_HANDLER()
     {
 
         // PROBE LIBRARY COMMANDS FIRST
-        WORDPTR cmdinfo;
+        word_p cmdinfo;
         int64_t libptr =
-                rplProbeLibPtrIndex((BYTEPTR) TokenStart, (BYTEPTR) BlankStart,
+                rplProbeLibPtrIndex((byte_p) TokenStart, (byte_p) BlankStart,
                 &cmdinfo);
 
         if(libptr >= 0) {
@@ -1942,7 +1942,7 @@ void LIB_HANDLER()
             if(ISLIBPTR(*ObjectPTR)) {
 
                 // FOUND A MATCH!
-                WORDPTR cmdinfo = rplGetLibPtrName(ObjectPTR);
+                word_p cmdinfo = rplGetLibPtrName(ObjectPTR);
                 if(cmdinfo) {
                     int32_t nargs = OPCODE(*rplSkipOb(cmdinfo));
                     int32_t allow = nargs & 1;
@@ -1985,7 +1985,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1993,7 +1993,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2016,7 +2016,7 @@ void LIB_HANDLER()
 
         // AUTOMCOMPLETE FIRST COMMANDS OF INSTALLED LIBRARIES
 
-        WORDPTR libdir = rplGetSettings((WORDPTR) library_dirname);
+        word_p libdir = rplGetSettings((word_p) library_dirname);
 
         if(libdir) {
 
@@ -2028,7 +2028,7 @@ void LIB_HANDLER()
                     previdx = SuggestedObject[2];
                 }
             }
-            WORDPTR *direntry = rplFindFirstByHandle(libdir);
+            word_p *direntry = rplFindFirstByHandle(libdir);
 
             if(direntry) {
 
@@ -2052,7 +2052,7 @@ void LIB_HANDLER()
 
                         if(previdx > nentries)
                             previdx = nentries;
-                        WORDPTR nameptr;
+                        word_p nameptr;
                         do {
                             --previdx;
                             nameptr =
@@ -2069,7 +2069,7 @@ void LIB_HANDLER()
                                                 TokenLen))) {
                                     // WE HAVE A MATCH!
                                     // CREATE A NEW LIBPTR AND RETURN IT
-                                    WORDPTR newobj = rplAllocTempOb(2);
+                                    word_p newobj = rplAllocTempOb(2);
                                     if(!newobj) {
                                         RetNum = ERR_NOTMINE;
                                         return;
@@ -2104,7 +2104,7 @@ void LIB_HANDLER()
                                                         4), TokenLen))) {
                                         // WE HAVE A MATCH!
                                         // CREATE A NEW LIBPTR AND RETURN IT
-                                        WORDPTR newobj = rplAllocTempOb(2);
+                                        word_p newobj = rplAllocTempOb(2);
                                         if(!newobj) {
                                             RetNum = ERR_NOTMINE;
                                             return;
@@ -2151,11 +2151,11 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
         if(LIBNUM(MenuCodeArg) == DOLIBRARY) {
-            ObjectPTR = (WORDPTR) lib102_menu;
+            ObjectPTR = (word_p) lib102_menu;
             RetNum = OK_CONTINUE;
             return;
         }
-        WORDPTR libmenu = rplGetLibPtr2(ArgNum2, 2);
+        word_p libmenu = rplGetLibPtr2(ArgNum2, 2);
 
         if(!libmenu) {
             RetNum = ERR_NOTMINE;
@@ -2175,7 +2175,7 @@ void LIB_HANDLER()
     {
         if(LIBNUM(CmdHelp) == DOLIBPTR) {
             // RETURN THE HELP FOR THAT COMMAND
-            WORDPTR help = rplGetLibPtrHelp(ArgNum2, OPCODE(CmdHelp));
+            word_p help = rplGetLibPtrHelp(ArgNum2, OPCODE(CmdHelp));
             if(!help)
                 RetNum = ERR_NOTMINE;
             else {
@@ -2184,7 +2184,7 @@ void LIB_HANDLER()
             }
             return;
         }
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2193,12 +2193,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

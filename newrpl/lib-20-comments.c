@@ -55,14 +55,14 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_HELPTABLE,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_HELPTABLE,
     0
 };
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
 // LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
-void rplSetCommentLength(WORDPTR string, int32_t length)
+void rplSetCommentLength(word_p string, int32_t length)
 {
     int32_t padding = (4 - ((length) & 3)) & 3;
 
@@ -104,7 +104,7 @@ void LIB_HANDLER()
             return;
         }
         if(OPCODE(CurOpcode) == OVR_ISTRUE) {
-            rplOverwriteData(1, (WORDPTR) one_bint);
+            rplOverwriteData(1, (word_p) one_bint);
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
@@ -146,8 +146,8 @@ void LIB_HANDLER()
         // SCAN THE EXECUTABLE TO DETERMINE SIZE WITHOUT COMMENTS
         int32_t newsize = 1;
 
-        WORDPTR ptr, end;
-        WORDPTR *Stacksave = DSTop;
+        word_p ptr, end;
+        word_p *Stacksave = DSTop;
 
         ptr = rplPeekData(1);
         end = rplSkipOb(ptr);
@@ -324,7 +324,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if(*((BYTEPTR) TokenStart) == '@') {
+        if(*((byte_p) TokenStart) == '@') {
             // START A STRING
 
             ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
@@ -338,7 +338,7 @@ void LIB_HANDLER()
             } temp;
 
             int32_t count = 0, mode = 1, endmark = 0;
-            BYTEPTR ptr = (BYTEPTR) TokenStart;
+            byte_p ptr = (byte_p) TokenStart;
             ++ptr;      // SKIP THE INITIAL AT
 
             // mode==1 MEANS JUST A STANDARD COMMENT
@@ -347,7 +347,7 @@ void LIB_HANDLER()
 
             do {
                 while(count < 4) {
-                    if(ptr == (BYTEPTR) NextTokenStart) {
+                    if(ptr == (byte_p) NextTokenStart) {
                         // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                         // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -384,9 +384,9 @@ void LIB_HANDLER()
                                 MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
 
-                        if(ptr < (BYTEPTR) BlankStart) {
+                        if(ptr < (byte_p) BlankStart) {
                             //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                            TokenStart = (WORDPTR) ptr;
+                            TokenStart = (word_p) ptr;
                             RetNum = OK_SPLITTOKEN;
                         }
                         else
@@ -406,9 +406,9 @@ void LIB_HANDLER()
                     ++ptr;
                 }
                 //  WE HAVE A COMPLETE WORD HERE
-                ScratchPointer1 = (WORDPTR) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                 rplCompileAppend(temp.word);
-                ptr = (BYTEPTR) ScratchPointer1;
+                ptr = (byte_p) ScratchPointer1;
 
                 count = 0;
 
@@ -454,10 +454,10 @@ void LIB_HANDLER()
         }
         else
             temp.word = 0;
-        BYTEPTR ptr = (BYTEPTR) TokenStart;
+        byte_p ptr = (byte_p) TokenStart;
         do {
             while(count < 4) {
-                if(ptr == (BYTEPTR) NextTokenStart) {
+                if(ptr == (byte_p) NextTokenStart) {
                     // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                     // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -494,9 +494,9 @@ void LIB_HANDLER()
                             MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
 
-                    if(ptr < (BYTEPTR) BlankStart) {
+                    if(ptr < (byte_p) BlankStart) {
                         //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                        TokenStart = (WORDPTR) ptr;
+                        TokenStart = (word_p) ptr;
                         RetNum = OK_SPLITTOKEN;
                     }
                     else
@@ -517,9 +517,9 @@ void LIB_HANDLER()
 
             }
             //  WE HAVE A COMPLETE WORD HERE
-            ScratchPointer1 = (WORDPTR) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+            ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
             rplCompileAppend(temp.word);
-            ptr = (BYTEPTR) ScratchPointer1;
+            ptr = (byte_p) ScratchPointer1;
 
             count = 0;
 
@@ -541,7 +541,7 @@ void LIB_HANDLER()
             int32_t len =
                     (OBJSIZE(*DecompileObject) << 2) -
                     (LIBNUM(*DecompileObject) & 3);
-            BYTEPTR string = (BYTEPTR) (DecompileObject + 1);
+            byte_p string = (byte_p) (DecompileObject + 1);
             /*
                if(string[len-1]=='\n') {
                // COMMENT ENDS IN NEWLINE
@@ -633,7 +633,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        //libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
+        //libGetRomptrID(LIBRARY_NUMBER,(word_p *)ROMPTR_TABLE,ObjectPTR);
         RetNum = ERR_NOTMINE;
         return;
     case OPCODE_ROMID2PTR:
@@ -642,7 +642,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        //libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
+        //libGetPTRFromID((word_p *)ROMPTR_TABLE,ObjectID,ObjectIDHash);
         RetNum = ERR_NOTMINE;
         return;
 
@@ -675,7 +675,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -686,7 +686,7 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

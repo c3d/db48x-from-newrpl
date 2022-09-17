@@ -55,7 +55,7 @@ void libDecompileCmds(char *libnames[], WORD libopcodes[], int numcmds)
         return;
     }
 
-    rplDecompAppendString((BYTEPTR) libnames[idx]);
+    rplDecompAppendString((byte_p) libnames[idx]);
     RetNum = OK_CONTINUE;
 }
 
@@ -141,7 +141,7 @@ void libGetInfo2(WORD opcode, char *libnames[], int32_t tokeninfo[], int numcmds
     RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 0);
 }
 
-void libGetRomptrID(int32_t libnum, WORDPTR * table, WORDPTR ptr)
+void libGetRomptrID(int32_t libnum, word_p * table, word_p ptr)
 {
     int32_t idx = 0;
     while(table[idx]) {
@@ -165,7 +165,7 @@ void libGetRomptrID(int32_t libnum, WORDPTR * table, WORDPTR ptr)
     return;
 }
 
-void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash)
+void libGetPTRFromID(word_p * table, WORD id, WORD hash)
 {
     int32_t idx = 0;
     while(table[idx])
@@ -178,8 +178,8 @@ void libGetPTRFromID(WORDPTR * table, WORD id, WORD hash)
         ObjectPTR = table[ROMPTRID_IDX(id)] + ROMPTRID_OFF(id);
     else {
         // SCAN THE OBJECT TO FIND A MATCHING HASH
-        WORDPTR scan = table[ROMPTRID_IDX(id)], ptr;
-        WORDPTR end = rplSkipOb(scan);
+        word_p scan = table[ROMPTRID_IDX(id)], ptr;
+        word_p end = rplSkipOb(scan);
         WORD exhash;
         scan += 31;     // MINIMUM OFFSET FOR A SEARCH
         while(scan < end) {
@@ -308,9 +308,9 @@ void libAutoCompletePrev(int32_t libnum,char *libnames[],int numcmds)
 */
 
 // LOOSELY BASED ON JDB2, CHANGES INITIAL PRIME NUMBER AND USES MERSENNE PRIME 2^13-1 AS MULTIPLIER
-WORD libComputeHash(WORDPTR object)
+WORD libComputeHash(word_p object)
 {
-    WORDPTR end = rplSkipOb(object);
+    word_p end = rplSkipOb(object);
     WORD hash = 115127;
     while(object != end) {
         hash = ((hash << 13) - hash) + *object;
@@ -319,9 +319,9 @@ WORD libComputeHash(WORDPTR object)
     return hash;
 }
 
-WORD libComputeHash2(WORDPTR start, int32_t nwords)
+WORD libComputeHash2(word_p start, int32_t nwords)
 {
-    WORDPTR end = start + nwords;
+    word_p end = start + nwords;
     WORD hash = 115127;
     while(start != end) {
         hash = ((hash << 13) - hash) + *start;
@@ -335,7 +335,7 @@ WORD libComputeHash2(WORDPTR start, int32_t nwords)
 // SET ObjectPTR TO THE TEXT MESSAGE AND RETURN IF THE MESSAGE IS FOUND
 // THE KEY CAN BE EITHER #MSGNUMBER OR A COMMAND, OR THE HASH OF AN OBJECT
 
-void libFindMsg(int32_t message, WORDPTR table)
+void libFindMsg(int32_t message, word_p table)
 {
 
     WORD key;

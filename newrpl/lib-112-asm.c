@@ -55,30 +55,30 @@
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-//    (WORDPTR)LIB_MSGTABLE,
-//    (WORDPTR)LIB_HELPTABLE,
-//    (WORDPTR)lib100_menu,
+const word_p const ROMPTR_TABLE[] = {
+//    (word_p)LIB_MSGTABLE,
+//    (word_p)LIB_HELPTABLE,
+//    (word_p)lib100_menu,
     0
 };
 
-const WORDPTR const numbers_table[] = {
-    (WORDPTR) zero_bint,
-    (WORDPTR) one_bint,
-    (WORDPTR) two_bint,
-    (WORDPTR) three_bint,
-    (WORDPTR) four_bint,
-    (WORDPTR) five_bint,
-    (WORDPTR) six_bint,
-    (WORDPTR) seven_bint,
-    (WORDPTR) eight_bint,
-    (WORDPTR) nine_bint,
-    (WORDPTR) ten_bint,
-    (WORDPTR) eleven_bint,
-    (WORDPTR) twelve_bint,
-    (WORDPTR) thirteen_bint,
-    (WORDPTR) fourteen_bint,
-    (WORDPTR) fifteen_bint
+const word_p const numbers_table[] = {
+    (word_p) zero_bint,
+    (word_p) one_bint,
+    (word_p) two_bint,
+    (word_p) three_bint,
+    (word_p) four_bint,
+    (word_p) five_bint,
+    (word_p) six_bint,
+    (word_p) seven_bint,
+    (word_p) eight_bint,
+    (word_p) nine_bint,
+    (word_p) ten_bint,
+    (word_p) eleven_bint,
+    (word_p) twelve_bint,
+    (word_p) thirteen_bint,
+    (word_p) fourteen_bint,
+    (word_p) fifteen_bint
 };
 
 #define ASM_NOOP 0
@@ -190,7 +190,7 @@ const WORD const math2cmd_table[] = {
 
 // FIND THE END OF THE CURRENT TOKEN
 
-BYTEPTR rplAsmEndOfToken(BYTEPTR start, BYTEPTR end)
+byte_p rplAsmEndOfToken(byte_p start, byte_p end)
 {
     if(*start == '.')
         ++start;
@@ -202,7 +202,7 @@ BYTEPTR rplAsmEndOfToken(BYTEPTR start, BYTEPTR end)
             if((*start != '+') && (*start != '-') && (*start != '*')
                     && (*start != '/') && (*start != '^') && (*start != '='))
                 break;
-            start = (BYTEPTR) utf8skipst((char *)start, (char *)end);
+            start = (byte_p) utf8skipst((char *)start, (char *)end);
         }
 
     }
@@ -213,7 +213,7 @@ BYTEPTR rplAsmEndOfToken(BYTEPTR start, BYTEPTR end)
                     || (*start == '*') || (*start == '/') || (*start == '^')
                     || (*start == '='))
                 break;
-            start = (BYTEPTR) utf8skipst((char *)start, (char *)end);
+            start = (byte_p) utf8skipst((char *)start, (char *)end);
         }
     }
     return start;
@@ -395,7 +395,7 @@ const struct optables const longopcodes[] = {
     {0, 0}
 };
 
-int32_t rplAsmDecodeToken(BYTEPTR start, BYTEPTR end, int32_t * opcode_arg)
+int32_t rplAsmDecodeToken(byte_p start, byte_p end, int32_t * opcode_arg)
 {
 
     if(*start == '.')
@@ -528,7 +528,7 @@ void LIB_HANDLER()
 
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
-        WORDPTR argY;
+        word_p argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
@@ -554,11 +554,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
             }
             else {
@@ -640,7 +640,7 @@ void LIB_HANDLER()
 
             // GET THE ARGUMENT Y
             int32_t skipnext = 0;
-            WORDPTR argY;
+            word_p argY;
             if(ISLITERALY(CurOpcode))
                 argY = numbers_table[GETY(CurOpcode)];
             else {
@@ -665,7 +665,7 @@ void LIB_HANDLER()
             }
 
             // GET ARGUMENT Z
-            WORDPTR argZ;
+            word_p argZ;
             if(ISLITERALZ(CurOpcode))
                 argZ = numbers_table[GETZ(CurOpcode)];
             else {
@@ -691,11 +691,11 @@ void LIB_HANDLER()
 
             // GET ARGUMENT D
             int32_t d = GETD(CurOpcode);
-            WORDPTR *destD;
+            word_p *destD;
             if(d & 0x8) {
                 d &= 7;
                 if(d == 0) {
-                    rplPushDataNoGrow((WORDPTR) zero_bint);
+                    rplPushDataNoGrow((word_p) zero_bint);
                     destD = DSTop - 1;
                 }
                 else {
@@ -866,7 +866,7 @@ void LIB_HANDLER()
         nitemsdrop = nitems;
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             rplError(ERR_INVALIDASMCODE);
             return;
@@ -976,7 +976,7 @@ void LIB_HANDLER()
         nitemsdrop = nitems;
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             rplError(ERR_INVALIDASMCODE);
             return;
@@ -1020,7 +1020,7 @@ void LIB_HANDLER()
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
         int32_t nitems;
-        WORDPTR *reg = 0;
+        word_p *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
@@ -1090,7 +1090,7 @@ void LIB_HANDLER()
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
         int32_t nitems;
-        WORDPTR *reg = 0;
+        word_p *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
@@ -1160,7 +1160,7 @@ void LIB_HANDLER()
 
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
-        WORDPTR argY;
+        word_p argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
@@ -1185,7 +1185,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT Z
-        WORDPTR argZ;
+        word_p argZ;
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
@@ -1211,11 +1211,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
             }
             else {
@@ -1305,7 +1305,7 @@ void LIB_HANDLER()
 
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
-        WORDPTR argY;
+        word_p argY;
         if(ISLITERALY(CurOpcode))
             argY = numbers_table[GETY(CurOpcode)];
         else {
@@ -1330,7 +1330,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT Z
-        WORDPTR argZ;
+        word_p argZ;
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
@@ -1356,7 +1356,7 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
@@ -1413,7 +1413,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT Z
-        WORDPTR argZ;
+        word_p argZ;
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
@@ -1439,11 +1439,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
             }
             else {
@@ -1540,7 +1540,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT Z
-        WORDPTR argZ;
+        word_p argZ;
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
@@ -1566,11 +1566,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
             }
             else {
@@ -1776,60 +1776,60 @@ void LIB_HANDLER()
         }
         int32_t isneg = rplTestSystemFlag(FL_ASMNEG);
         int32_t iszero = rplTestSystemFlag(FL_ASMZERO);
-        WORDPTR result;
+        word_p result;
         switch (yflags) {
         default:
         case ASMF_AL:  // (always)
-            result = (WORDPTR) one_bint;
+            result = (word_p) one_bint;
             break;
         case ASMF_LT:  // (NEG flag)
             if(isneg)
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         case ASMF_EQ:  // (ZERO flag)
             if(iszero)
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         case ASMF_LTE: // (NEG || ZERO)
             if(isneg || iszero)
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         case ASMF_NA:  // (NOT ALWAYS = NEVER)
-            result = (WORDPTR) zero_bint;
+            result = (word_p) zero_bint;
             break;
         case ASMF_GTE: // (NOT LT)
             if(!isneg)
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         case ASMF_NE:  // (NOT EQ)
             if(!iszero)
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         case ASMF_GT:  // (NOT LTE)
             if(!(isneg || iszero))
-                result = (WORDPTR) one_bint;
+                result = (word_p) one_bint;
             else
-                result = (WORDPTR) zero_bint;
+                result = (word_p) zero_bint;
             break;
         }
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
             }
             else {
@@ -1926,7 +1926,7 @@ void LIB_HANDLER()
         // GET THE ARGUMENT Y
         int32_t skipnext = 0;
         int32_t nitems, instack = 0;
-        WORDPTR *reg = 0;
+        word_p *reg = 0;
         if(ISLITERALY(CurOpcode)) {
             rplError(ERR_INVALIDASMCODE);
             return;
@@ -1975,7 +1975,7 @@ void LIB_HANDLER()
             // CLEAR THE REGISTERS
             int32_t k;
             for(k = 0; k < nitems; ++k)
-                reg[k] = (WORDPTR) zero_bint;
+                reg[k] = (word_p) zero_bint;
         }
         else {
             if((nitems < 0) || ((reg - DStkProtect + 1) < nitems)) {
@@ -1985,7 +1985,7 @@ void LIB_HANDLER()
             // CLEAR THE STACK
             int32_t k;
             for(k = 0; k < nitems; ++k)
-                reg[-k] = (WORDPTR) zero_bint;
+                reg[-k] = (word_p) zero_bint;
         }
 
         if(skipnext) {
@@ -2046,11 +2046,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
                 ++ylevel;
             }
@@ -2177,7 +2177,7 @@ void LIB_HANDLER()
         }
 
         // GET ARGUMENT Z
-        WORDPTR argZ;
+        word_p argZ;
         if(ISLITERALZ(CurOpcode))
             argZ = numbers_table[GETZ(CurOpcode)];
         else {
@@ -2203,11 +2203,11 @@ void LIB_HANDLER()
 
         // GET ARGUMENT D
         int32_t d = GETD(CurOpcode);
-        WORDPTR *destD;
+        word_p *destD;
         if(d & 0x8) {
             d &= 7;
             if(d == 0) {
-                rplPushDataNoGrow((WORDPTR) zero_bint);
+                rplPushDataNoGrow((word_p) zero_bint);
                 destD = DSTop - 1;
                 ++ylevel;
             }
@@ -2306,7 +2306,7 @@ void LIB_HANDLER()
         {
             if(LIBNUM(CurOpcode) != LIBRARY_NUMBER)
                 return; // IGNORE ALL OTHER ASSOCIATED LIBRARY NUMBERS
-            BYTEPTR str = (BYTEPTR) TokenStart, endtoken;
+            byte_p str = (byte_p) TokenStart, endtoken;
 
             if(*str != ':') {
                 RetNum = ERR_NOTMINE;   // MUST START WITH A COLON
@@ -2315,22 +2315,22 @@ void LIB_HANDLER()
 
             ++str;
 
-            while((*str != ':') && (str < (BYTEPTR) BlankStart))
+            while((*str != ':') && (str < (byte_p) BlankStart))
                 ++str;  // MUST NOT CONTAIN ANY OTHER COLON
 
-            if(str != (BYTEPTR) BlankStart) {
+            if(str != (byte_p) BlankStart) {
                 RetNum = ERR_NOTMINE;
                 return;
             }
 
-            str = (BYTEPTR) TokenStart;
+            str = (byte_p) TokenStart;
 
             ++str;
 
             int32_t storemode = 0, d = 0x20, y = 0x20, z = 0x20, operator= 0;
             // FIND END OF FIRST TOKEN
             int32_t opcode_arg;
-            endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+            endtoken = rplAsmEndOfToken(str, (byte_p) BlankStart);
             if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
                 RetNum = ERR_SYNTAX;
                 return;
@@ -2361,10 +2361,10 @@ void LIB_HANDLER()
 
             // MOVE ON TO THE SECOND TOKEN
             str = endtoken;
-            endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+            endtoken = rplAsmEndOfToken(str, (byte_p) BlankStart);
 
             if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
-                if(str != (BYTEPTR) BlankStart) {
+                if(str != (byte_p) BlankStart) {
                     RetNum = ERR_SYNTAX;
                     return;
                 }
@@ -2400,10 +2400,10 @@ void LIB_HANDLER()
                     }
                     // MOVE ON TO THE THIRD TOKEN
                     str = endtoken;
-                    endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+                    endtoken = rplAsmEndOfToken(str, (byte_p) BlankStart);
 
                     if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
-                        if(str != (BYTEPTR) BlankStart) {
+                        if(str != (byte_p) BlankStart) {
                             RetNum = ERR_SYNTAX;
                             return;
                         }
@@ -2417,7 +2417,7 @@ void LIB_HANDLER()
                         }
                         z = opcode_arg & 0xff;
 
-                        if(endtoken != (BYTEPTR) BlankStart) {
+                        if(endtoken != (byte_p) BlankStart) {
                             RetNum = ERR_SYNTAX;        // AND IT NEEDS TO BE THE LAST TOKEN
                             return;
                         }
@@ -2439,7 +2439,7 @@ void LIB_HANDLER()
 
                     // MOVE ON TO THE NEXT OPCODE
                     str = endtoken;
-                    endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+                    endtoken = rplAsmEndOfToken(str, (byte_p) BlankStart);
 
                     if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
                         RetNum = ERR_SYNTAX;
@@ -2462,10 +2462,10 @@ void LIB_HANDLER()
 
                     // MOVE ON TO THE NEXT TOKEN
                     str = endtoken;
-                    endtoken = rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+                    endtoken = rplAsmEndOfToken(str, (byte_p) BlankStart);
 
                     if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
-                        if(str != (BYTEPTR) BlankStart) {
+                        if(str != (byte_p) BlankStart) {
                             RetNum = ERR_SYNTAX;
                             return;
                         }
@@ -2489,10 +2489,10 @@ void LIB_HANDLER()
                             // MOVE ON TO THE NEXT ARGUMENT
                             str = endtoken;
                             endtoken =
-                                    rplAsmEndOfToken(str, (BYTEPTR) BlankStart);
+                                    rplAsmEndOfToken(str, (byte_p) BlankStart);
 
                             if(!rplAsmDecodeToken(str, endtoken, &opcode_arg)) {
-                                if(str != (BYTEPTR) BlankStart) {
+                                if(str != (byte_p) BlankStart) {
                                     RetNum = ERR_SYNTAX;
                                     return;
                                 }
@@ -2505,7 +2505,7 @@ void LIB_HANDLER()
                                 // [D]?=[CMD].[Y].[Z]
                                 z = opcode_arg & 0xff;
 
-                                if(endtoken != (BYTEPTR) BlankStart) {
+                                if(endtoken != (byte_p) BlankStart) {
                                     RetNum = ERR_SYNTAX;        // SHOULD BE THE LAST ARGUMENT
                                     return;
                                 }
@@ -2519,7 +2519,7 @@ void LIB_HANDLER()
                                     RetNum = ERR_SYNTAX;        // CANNOT BE AN OPERATOR OR STORAGE, MUST BE AN ARGUMENT
                                     return;
                                 }
-                                if(endtoken != (BYTEPTR) BlankStart) {
+                                if(endtoken != (byte_p) BlankStart) {
                                     RetNum = ERR_SYNTAX;        // SHOULD BE THE LAST ARGUMENT
                                     return;
                                 }
@@ -2529,11 +2529,11 @@ void LIB_HANDLER()
                                 str = endtoken;
                                 endtoken =
                                         rplAsmEndOfToken(str,
-                                        (BYTEPTR) BlankStart);
+                                        (byte_p) BlankStart);
 
                                 if(!rplAsmDecodeToken(str, endtoken,
                                             &opcode_arg)) {
-                                    if(str != (BYTEPTR) BlankStart) {
+                                    if(str != (byte_p) BlankStart) {
                                         RetNum = ERR_SYNTAX;
                                         return;
                                     }
@@ -2546,7 +2546,7 @@ void LIB_HANDLER()
                                     // [D]?=[CMD].[Y].[Z]
                                     z = opcode_arg & 0xff;
 
-                                    if(endtoken != (BYTEPTR) BlankStart) {
+                                    if(endtoken != (byte_p) BlankStart) {
                                         RetNum = ERR_SYNTAX;    // SHOULD BE THE LAST ARGUMENT
                                         return;
                                     }
@@ -2678,28 +2678,28 @@ void LIB_HANDLER()
             if(operator> ASM_POW) {
                 switch (operator) {
                 case ASM_CMP:
-                    rplDecompAppendString((BYTEPTR) "CMP.");
+                    rplDecompAppendString((byte_p) "CMP.");
                     break;
                 case ASM_POP:
-                    rplDecompAppendString((BYTEPTR) "POP.");
+                    rplDecompAppendString((byte_p) "POP.");
                     break;
 
                 case ASM_RPOP:
-                    rplDecompAppendString((BYTEPTR) "RPOP.");
+                    rplDecompAppendString((byte_p) "RPOP.");
                     break;
 
                 case ASM_PUSH:
-                    rplDecompAppendString((BYTEPTR) "PUSH.");
+                    rplDecompAppendString((byte_p) "PUSH.");
                     break;
                 case ASM_RPUSH:
-                    rplDecompAppendString((BYTEPTR) "RPUSH.");
+                    rplDecompAppendString((byte_p) "RPUSH.");
                     break;
 
                 case ASM_GET:
-                    rplDecompAppendString((BYTEPTR) "GET.");
+                    rplDecompAppendString((byte_p) "GET.");
                     break;
                 case ASM_PUT:
-                    rplDecompAppendString((BYTEPTR) "PUT.");
+                    rplDecompAppendString((byte_p) "PUT.");
                     break;
                 case ASM_MATH:
                 {
@@ -2708,65 +2708,65 @@ void LIB_HANDLER()
                     int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH_IP:
-                        rplDecompAppendString((BYTEPTR) "IP");
+                        rplDecompAppendString((byte_p) "IP");
                         break;
                     case ASM_MATH_LN:
-                        rplDecompAppendString((BYTEPTR) "LN");
+                        rplDecompAppendString((byte_p) "LN");
                         break;
                     case ASM_MATH_EXP:
-                        rplDecompAppendString((BYTEPTR) "EXP");
+                        rplDecompAppendString((byte_p) "EXP");
                         break;
 
                     case ASM_MATH_SQRT:
-                        rplDecompAppendString((BYTEPTR) "SQRT");
+                        rplDecompAppendString((byte_p) "SQRT");
                         break;
 
                     case ASM_MATH_SIN:
-                        rplDecompAppendString((BYTEPTR) "SIN");
+                        rplDecompAppendString((byte_p) "SIN");
                         break;
 
                     case ASM_MATH_COS:
-                        rplDecompAppendString((BYTEPTR) "COS");
+                        rplDecompAppendString((byte_p) "COS");
                         break;
 
                     case ASM_MATH_TAN:
-                        rplDecompAppendString((BYTEPTR) "TAN");
+                        rplDecompAppendString((byte_p) "TAN");
                         break;
 
                     case ASM_MATH_ASIN:
-                        rplDecompAppendString((BYTEPTR) "ASIN");
+                        rplDecompAppendString((byte_p) "ASIN");
                         break;
 
                     case ASM_MATH_ACOS:
-                        rplDecompAppendString((BYTEPTR) "ACOS");
+                        rplDecompAppendString((byte_p) "ACOS");
                         break;
 
                     case ASM_MATH_ATAN:
-                        rplDecompAppendString((BYTEPTR) "ATAN");
+                        rplDecompAppendString((byte_p) "ATAN");
                         break;
 
                     case ASM_MATH_SINH:
-                        rplDecompAppendString((BYTEPTR) "SINH");
+                        rplDecompAppendString((byte_p) "SINH");
                         break;
 
                     case ASM_MATH_COSH:
-                        rplDecompAppendString((BYTEPTR) "COSH");
+                        rplDecompAppendString((byte_p) "COSH");
                         break;
 
                     case ASM_MATH_TANH:
-                        rplDecompAppendString((BYTEPTR) "TANH");
+                        rplDecompAppendString((byte_p) "TANH");
                         break;
 
                     case ASM_MATH_ASINH:
-                        rplDecompAppendString((BYTEPTR) "ASINH");
+                        rplDecompAppendString((byte_p) "ASINH");
                         break;
 
                     case ASM_MATH_ACOSH:
-                        rplDecompAppendString((BYTEPTR) "ACOSH");
+                        rplDecompAppendString((byte_p) "ACOSH");
                         break;
 
                     case ASM_MATH_ATANH:
-                        rplDecompAppendString((BYTEPTR) "ATANH");
+                        rplDecompAppendString((byte_p) "ATANH");
                         break;
 
                     }
@@ -2780,19 +2780,19 @@ void LIB_HANDLER()
                     int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH2_FP:
-                        rplDecompAppendString((BYTEPTR) "FP");
+                        rplDecompAppendString((byte_p) "FP");
                         break;
                     case ASM_MATH2_ABS:
-                        rplDecompAppendString((BYTEPTR) "ABS");
+                        rplDecompAppendString((byte_p) "ABS");
                         break;
                     case ASM_MATH2_ARG:
-                        rplDecompAppendString((BYTEPTR) "ARG");
+                        rplDecompAppendString((byte_p) "ARG");
                         break;
                     case ASM_MATH2_RE:
-                        rplDecompAppendString((BYTEPTR) "RE");
+                        rplDecompAppendString((byte_p) "RE");
                         break;
                     case ASM_MATH2_IM:
-                        rplDecompAppendString((BYTEPTR) "IM");
+                        rplDecompAppendString((byte_p) "IM");
                         break;
 
                     }
@@ -2802,47 +2802,47 @@ void LIB_HANDLER()
                 case ASM_LOOP:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((BYTEPTR) "LOOP.");
+                    rplDecompAppendString((byte_p) "LOOP.");
                     break;
 
                 case ASM_SKIP:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((BYTEPTR) "SKIP.");
+                    rplDecompAppendString((byte_p) "SKIP.");
                     break;
 
                 case ASM_CHK:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((BYTEPTR) "CHK.");
+                    rplDecompAppendString((byte_p) "CHK.");
                     break;
                 case ASM_MIN:
-                    rplDecompAppendString((BYTEPTR) "MIN.");
+                    rplDecompAppendString((byte_p) "MIN.");
                     break;
                 case ASM_MAX:
-                    rplDecompAppendString((BYTEPTR) "MAX.");
+                    rplDecompAppendString((byte_p) "MAX.");
                     break;
                 case ASM_RND:
-                    rplDecompAppendString((BYTEPTR) "RND.");
+                    rplDecompAppendString((byte_p) "RND.");
                     break;
                 case ASM_AND:
-                    rplDecompAppendString((BYTEPTR) "AND.");
+                    rplDecompAppendString((byte_p) "AND.");
                     break;
                 case ASM_OR:
-                    rplDecompAppendString((BYTEPTR) "OR.");
+                    rplDecompAppendString((byte_p) "OR.");
                     break;
                 case ASM_XOR:
-                    rplDecompAppendString((BYTEPTR) "XOR.");
+                    rplDecompAppendString((byte_p) "XOR.");
                     break;
                 case ASM_CLR:
-                    rplDecompAppendString((BYTEPTR) "CLR.");
+                    rplDecompAppendString((byte_p) "CLR.");
                     break;
                 case ASM_SGET:
                     noz = 1;
-                    rplDecompAppendString((BYTEPTR) "SGET.");
+                    rplDecompAppendString((byte_p) "SGET.");
                     break;
                 case ASM_SPUT:
-                    rplDecompAppendString((BYTEPTR) "SPUT.");
+                    rplDecompAppendString((byte_p) "SPUT.");
                     break;
 
                 }
@@ -2855,28 +2855,28 @@ void LIB_HANDLER()
                     if(yflags) {
                         switch (y & 7) {
                         case ASMF_AL:  // (always)
-                            rplDecompAppendString((BYTEPTR) "AL");
+                            rplDecompAppendString((byte_p) "AL");
                             break;
                         case ASMF_LT:  // (NEG flag)
-                            rplDecompAppendString((BYTEPTR) "LT");
+                            rplDecompAppendString((byte_p) "LT");
                             break;
                         case ASMF_EQ:  // (ZERO flag)
-                            rplDecompAppendString((BYTEPTR) "EQ");
+                            rplDecompAppendString((byte_p) "EQ");
                             break;
                         case ASMF_LTE: // (NEG || ZERO)
-                            rplDecompAppendString((BYTEPTR) "LTE");
+                            rplDecompAppendString((byte_p) "LTE");
                             break;
                         case ASMF_NA:  // (NOT ALWAYS = NEVER)
-                            rplDecompAppendString((BYTEPTR) "NV");
+                            rplDecompAppendString((byte_p) "NV");
                             break;
                         case ASMF_GTE: // (NOT LT)
-                            rplDecompAppendString((BYTEPTR) "GTE");
+                            rplDecompAppendString((byte_p) "GTE");
                             break;
                         case ASMF_NE:  // (NOT EQ)
-                            rplDecompAppendString((BYTEPTR) "NE");
+                            rplDecompAppendString((byte_p) "NE");
                             break;
                         case ASMF_GT:  // (NOT LTE)
-                            rplDecompAppendString((BYTEPTR) "GT");
+                            rplDecompAppendString((byte_p) "GT");
                             break;
 
                         }
@@ -3080,7 +3080,7 @@ void LIB_HANDLER()
         }
 
         case OPCODE_LIBINSTALL:
-            LibraryList = (WORDPTR) libnumberlist;
+            LibraryList = (word_p) libnumberlist;
             RetNum = OK_CONTINUE;
             return;
         case OPCODE_LIBREMOVE:

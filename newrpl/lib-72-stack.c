@@ -118,13 +118,13 @@ ROMOBJECT ifte_seco[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib72menu_main,
-    (WORDPTR) unprotect_seco,
-    (WORDPTR) ift_seco,
-    (WORDPTR) ifte_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib72menu_main,
+    (word_p) unprotect_seco,
+    (word_p) ift_seco,
+    (word_p) ifte_seco,
     0
 };
 
@@ -370,8 +370,8 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR objn = rplPeekData(level);
-        WORDPTR *stkptr = DSTop - level;
+        word_p objn = rplPeekData(level);
+        word_p *stkptr = DSTop - level;
 
         int64_t count;
         for(count = 1; count < level; ++count, ++stkptr)
@@ -402,8 +402,8 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR objn = rplPeekData(1);
-        WORDPTR *stkptr = DSTop - 1;
+        word_p objn = rplPeekData(1);
+        word_p *stkptr = DSTop - 1;
 
         int64_t count;
         for(count = 1; count < level; ++count, --stkptr)
@@ -421,7 +421,7 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR obj1 = rplPeekData(1);
+        word_p obj1 = rplPeekData(1);
         rplOverwriteData(1, rplPeekData(3));
         rplOverwriteData(3, rplPeekData(2));
         rplOverwriteData(2, obj1);
@@ -436,7 +436,7 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR obj = rplPeekData(1);
+        word_p obj = rplPeekData(1);
         rplOverwriteData(1, rplPeekData(2));
         rplOverwriteData(2, obj);
         return;
@@ -461,7 +461,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR obj = rplPeekData(2);
+        word_p obj = rplPeekData(2);
         rplDropData(2);
 
         rplOverwriteData(level, obj);
@@ -477,7 +477,7 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR obj1 = rplPeekData(1);
+        word_p obj1 = rplPeekData(1);
         rplOverwriteData(1, rplPeekData(2));
         rplOverwriteData(2, rplPeekData(3));
         rplOverwriteData(3, obj1);
@@ -489,7 +489,7 @@ void LIB_HANDLER()
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
-        int32_t protlevel = (int32_t) ((WORDPTR *) rplPopRet() - DStk);
+        int32_t protlevel = (int32_t) ((word_p *) rplPopRet() - DStk);
         if((DStkBottom + protlevel >= DStkBottom)
                 && (DStkBottom + protlevel < DSTop))
             DStkProtect = DStkBottom + protlevel;
@@ -506,7 +506,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
         rplPushData(rplPeekData(2));
         if(Exceptions) {
@@ -514,7 +514,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(Exceptions) {
@@ -524,7 +524,7 @@ void LIB_HANDLER()
         }
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) ift_seco + 1;      // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
+            rstopsave[1] = (word_p) ift_seco + 1;      // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
             return;
         }
         RSTop = rstopsave;
@@ -551,7 +551,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
 
         rplPushData(rplPeekData(3));
         if(Exceptions) {
@@ -559,7 +559,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *rstopsave = RSTop;
+        word_p *rstopsave = RSTop;
         rplPushRet(IPtr);
         rplCallOvrOperator(CMD_OVR_ISTRUE);
         if(Exceptions) {
@@ -569,7 +569,7 @@ void LIB_HANDLER()
         }
         if(IPtr != *rstopsave) {
             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
-            rstopsave[1] = (WORDPTR) ifte_seco + 1;     // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
+            rstopsave[1] = (word_p) ifte_seco + 1;     // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
             return;
         }
         RSTop = rstopsave;
@@ -667,7 +667,7 @@ void LIB_HANDLER()
 
         int32_t depth = rplDepthSnapshot(snap);
 
-        WORDPTR newbint = rplNewint32_t(depth, DECint32_t);
+        word_p newbint = rplNewint32_t(depth, DECint32_t);
         if(!newbint)
             return;
         rplOverwriteData(1, newbint);
@@ -788,7 +788,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -796,7 +796,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -837,7 +837,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -847,12 +847,12 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

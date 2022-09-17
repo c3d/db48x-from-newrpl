@@ -133,17 +133,17 @@ ROMOBJECT fpsymbolic_seco[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib64_menu_0_main,
-    (WORDPTR) lib64_menu_1_real,
-    (WORDPTR) lib64_menu_2_integer,
-    (WORDPTR) lib64_menu_3_module,
-    (WORDPTR) lib64_menu_4_polynomial,
-    (WORDPTR) lib64_menu_5_poly_fcn,
-    (WORDPTR) ipsymbolic_seco,
-    (WORDPTR) fpsymbolic_seco,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib64_menu_0_main,
+    (word_p) lib64_menu_1_real,
+    (word_p) lib64_menu_2_integer,
+    (word_p) lib64_menu_3_module,
+    (word_p) lib64_menu_4_polynomial,
+    (word_p) lib64_menu_5_poly_fcn,
+    (word_p) ipsymbolic_seco,
+    (word_p) fpsymbolic_seco,
     0
 };
 
@@ -325,7 +325,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
             return;
@@ -373,7 +373,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -422,7 +422,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -437,7 +437,7 @@ void LIB_HANDLER()
             if(rplSymbIsNumeric(arg)) {
                 // COMPUTE THE EXPRESSION AND TAKE THE INTEGER PART, BUT DO IT IN RPL
                 rplPushRet(IPtr);
-                IPtr = (WORDPTR) ipsymbolic_seco;
+                IPtr = (word_p) ipsymbolic_seco;
                 CurOpcode = (CMD_OVR_NUM);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
                 return;
             }
@@ -476,7 +476,7 @@ void LIB_HANDLER()
             return;
 
         ipReal(&RReg[0], &num, 1);
-        WORDPTR newnum;
+        word_p newnum;
         if(inint64_tRange(&RReg[0]))
             newnum = rplNewint32_t(getint64_tReal(&RReg[0]), DECint32_t);
         else
@@ -498,7 +498,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -510,7 +510,7 @@ void LIB_HANDLER()
             if(rplSymbIsNumeric(arg)) {
                 // COMPUTE THE EXPRESSION AND TAKE THE FRACTION PART, BUT DO IT IN RPL
                 rplPushRet(IPtr);
-                IPtr = (WORDPTR) fpsymbolic_seco;
+                IPtr = (word_p) fpsymbolic_seco;
                 CurOpcode = (CMD_OVR_NUM);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
                 return;
             }
@@ -525,7 +525,7 @@ void LIB_HANDLER()
 
         if(ISint32_t(*arg)) {
             rplDropData(1);
-            rplPushData((WORDPTR) zero_bint);
+            rplPushData((word_p) zero_bint);
             return;
         }
 
@@ -548,7 +548,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -612,7 +612,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -635,9 +635,9 @@ void LIB_HANDLER()
             int64_t n = rplReadint32_t(arg);
 
             if(isprimeint32_t(n))
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
             else
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
 
         }
         else {
@@ -651,9 +651,9 @@ void LIB_HANDLER()
             }
 
             if(isprimeReal(&num))
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
             else
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
 
         }
         return;
@@ -669,7 +669,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -696,7 +696,7 @@ void LIB_HANDLER()
                 rplNewint32_tPush(next, DECint32_t);
                 if(Exceptions)
                     return;
-                WORDPTR ptr = rplPopData();
+                word_p ptr = rplPopData();
                 rplOverwriteData(1, ptr);
                 return;
             }
@@ -728,7 +728,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -762,7 +762,7 @@ void LIB_HANDLER()
                     rplNewint32_tPush(prev, DECint32_t);
                     if(Exceptions)
                         return;
-                    WORDPTR ptr = rplPopData();
+                    word_p ptr = rplPopData();
                     rplOverwriteData(1, ptr);
                     return;
                 }
@@ -835,7 +835,7 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(1);
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(!ISNUMBER(*arg)) {
             rplError(ERR_BADARGTYPE);
@@ -848,8 +848,8 @@ void LIB_HANDLER()
                     m = -m;
                 if(m < 2)
                     m = 2;
-                rplStoreSettingsbyName((BYTEPTR) modulo_name,
-                        (BYTEPTR) (modulo_name + 3), rplNewint32_t(m, DECint32_t));
+                rplStoreSettingsbyName((byte_p) modulo_name,
+                        (byte_p) (modulo_name + 3), rplNewint32_t(m, DECint32_t));
                 rplDropData(1);
 
                 return;
@@ -869,8 +869,8 @@ void LIB_HANDLER()
                 if(ltReal(&num, &RReg[0])) {
                     newRealFromint32_t(&num, 2, 0);
                 }
-                rplStoreSettingsbyName((BYTEPTR) modulo_name,
-                        (BYTEPTR) (modulo_name + 3), rplNewReal(&num));
+                rplStoreSettingsbyName((byte_p) modulo_name,
+                        (byte_p) (modulo_name + 3), rplNewReal(&num));
                 rplDropData(1);
                 return;
             }
@@ -883,11 +883,11 @@ void LIB_HANDLER()
     case MODRCL:
     {
         //@SHORT_DESC=Get the current system modulo
-        WORDPTR mod =
-                rplGetSettingsbyName((BYTEPTR) modulo_name,
-                (BYTEPTR) modulo_name + 3);
+        word_p mod =
+                rplGetSettingsbyName((byte_p) modulo_name,
+                (byte_p) modulo_name + 3);
         if(!mod)
-            mod = (WORDPTR) zero_bint;
+            mod = (word_p) zero_bint;
         if(!ISNUMBER(*mod)) {
             rplError(ERR_BADARGTYPE);
             return;
@@ -918,8 +918,8 @@ void LIB_HANDLER()
             return;
         }
         rplStripTagStack(2);
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
         if(ISLIST(*arg1) || ISLIST(*arg2)) {
             rplListBinaryDoCmd();
@@ -931,11 +931,11 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR mod =
-                rplGetSettingsbyName((BYTEPTR) modulo_name,
-                (BYTEPTR) modulo_name + 3);
+        word_p mod =
+                rplGetSettingsbyName((byte_p) modulo_name,
+                (byte_p) modulo_name + 3);
         if(!mod)
-            mod = (WORDPTR) two_bint;
+            mod = (word_p) two_bint;
         if(!ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
             rplError(ERR_BADARGTYPE);
             return;
@@ -1074,8 +1074,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR arg = rplPeekData(2);
-        WORDPTR mod = rplPeekData(1);
+        word_p arg = rplPeekData(2);
+        word_p mod = rplPeekData(1);
         int32_t isunit = 0;
 
         if(ISLIST(*arg) || ISLIST(*mod)) {
@@ -1127,8 +1127,8 @@ void LIB_HANDLER()
                 }
                 else {
                     // APPLY UNITS TO THE NEW RESULTS
-                    WORDPTR newvalue;
-                    WORDPTR *stksave = DSTop;
+                    word_p newvalue;
+                    word_p *stksave = DSTop;
                     switch (OPCODE(CurOpcode)) {
                     default:
                     case IDIV2:
@@ -1139,7 +1139,7 @@ void LIB_HANDLER()
                         if(!newvalue)
                             return;
                         rplPushDataNoGrow(newvalue);
-                        newvalue = rplUnitApply((WORDPTR) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
+                        newvalue = rplUnitApply((word_p) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
                         if(!newvalue) {
                             DSTop = stksave;
                             return;
@@ -1170,7 +1170,7 @@ void LIB_HANDLER()
                         if(!newvalue)
                             return;
                         rplPushDataNoGrow(newvalue);
-                        newvalue = rplUnitApply((WORDPTR) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
+                        newvalue = rplUnitApply((word_p) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
                         if(!newvalue) {
                             DSTop = stksave;
                             return;
@@ -1260,8 +1260,8 @@ void LIB_HANDLER()
             // APPLY UNITS TO THE NEW RESULTS
             // HERE RReg[7]=QUOTIENT, RReg[6]=REMAINDER
 
-            WORDPTR newvalue;
-            WORDPTR *stksave = DSTop;
+            word_p newvalue;
+            word_p *stksave = DSTop;
             switch (OPCODE(CurOpcode)) {
             default:
             case IDIV2:
@@ -1272,7 +1272,7 @@ void LIB_HANDLER()
                 if(!newvalue)
                     return;
                 rplPushDataNoGrow(newvalue);
-                newvalue = rplUnitApply((WORDPTR) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
+                newvalue = rplUnitApply((word_p) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
                 if(!newvalue) {
                     DSTop = stksave;
                     return;
@@ -1309,7 +1309,7 @@ void LIB_HANDLER()
                 if(!newvalue)
                     return;
                 rplPushDataNoGrow(newvalue);
-                newvalue = rplUnitApply((WORDPTR) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
+                newvalue = rplUnitApply((word_p) one_bint, rplPeekData(2));    // GET THE UNITS OF THE MODULO
                 if(!newvalue) {
                     DSTop = stksave;
                     return;
@@ -1352,7 +1352,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1386,7 +1386,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1433,7 +1433,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1480,7 +1480,7 @@ void LIB_HANDLER()
 
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1504,12 +1504,12 @@ void LIB_HANDLER()
         if(ISint32_t(*arg)) {
             int64_t r = rplReadint32_t(arg);
             if(r > 0)
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
             else {
                 if(r < 0)
-                    rplOverwriteData(1, (WORDPTR) minusone_bint);
+                    rplOverwriteData(1, (word_p) minusone_bint);
                 else
-                    rplOverwriteData(1, (WORDPTR) zero_bint);
+                    rplOverwriteData(1, (word_p) zero_bint);
             }
             return;
         }
@@ -1519,12 +1519,12 @@ void LIB_HANDLER()
             rplReadNumberAsReal(arg, &rnum);
 
             if(iszeroReal(&rnum))
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
             else {
                 if(rnum.flags & F_NOTANUMBER)   // THIS INCLUDES BOTH NAN AND UNDIRECTED INFINITY
                 {
                     rplNANToRReg(0);
-                    WORDPTR newobj = rplNewRealFromRReg(0);
+                    word_p newobj = rplNewRealFromRReg(0);
                     if(!newobj)
                         return;
                     rplOverwriteData(1, newobj);
@@ -1532,9 +1532,9 @@ void LIB_HANDLER()
                     return;
                 }
                 if(rnum.flags & F_NEGATIVE)
-                    rplOverwriteData(1, (WORDPTR) minusone_bint);
+                    rplOverwriteData(1, (word_p) minusone_bint);
                 else
-                    rplOverwriteData(1, (WORDPTR) one_bint);
+                    rplOverwriteData(1, (word_p) one_bint);
             }
             return;
         }
@@ -1548,7 +1548,7 @@ void LIB_HANDLER()
             case CPLX_ZERO:
                 // UNDEFINED OR ZERO?
             {
-                rplOverwriteData(1, (WORDPTR) zero_bint);
+                rplOverwriteData(1, (word_p) zero_bint);
                 return;
             }
             case CPLX_NORMAL:
@@ -1571,7 +1571,7 @@ void LIB_HANDLER()
                 divReal(&RReg[1], &Rarg, &RReg[0]);
                 divReal(&RReg[2], &Iarg, &RReg[0]);
 
-                WORDPTR newobj = rplNewComplex(&RReg[1], &RReg[2], ANGLENONE);
+                word_p newobj = rplNewComplex(&RReg[1], &RReg[2], ANGLENONE);
                 if(!newobj)
                     return;
                 rplOverwriteData(1, newobj);
@@ -1597,7 +1597,7 @@ void LIB_HANDLER()
                 // RETURN AN ANGLE IN THE CURRENT SYSTEM
                 rplOneToRReg(4);
 
-                WORDPTR newobj = rplNewComplex(&RReg[4], &imag, angmode);
+                word_p newobj = rplNewComplex(&RReg[4], &imag, angmode);
                 if(!newobj)
                     return;
                 rplOverwriteData(1, newobj);
@@ -1610,7 +1610,7 @@ void LIB_HANDLER()
             case CPLX_INF | CPLX_MALFORMED:
             {
                 int32_t angmode;
-                WORDPTR result;
+                word_p result;
                 REAL real, imag;
 
                 rplReadCNumber(arg, &real, &imag, &angmode);
@@ -1621,14 +1621,14 @@ void LIB_HANDLER()
                     if(!isinfiniteReal(&imag))  // CHECK IF THE IMAGINARY AXIS IS FINITE
                     {
                         if(real.flags & F_NEGATIVE)
-                            result = (WORDPTR) minusone_bint;
+                            result = (word_p) minusone_bint;
                         else
-                            result = (WORDPTR) one_bint;
+                            result = (word_p) one_bint;
                     }
                     else {
                         // SIGN OF UNDEFINED/MALFORMED INFINITY IS UNKNOWN
                         rplNANToRReg(0);
-                        WORDPTR newobj = rplNewRealFromRReg(0);
+                        word_p newobj = rplNewRealFromRReg(0);
                         if(!newobj)
                             return;
                         rplOverwriteData(1, newobj);
@@ -1645,7 +1645,7 @@ void LIB_HANDLER()
                 if(imag.flags & F_NEGATIVE)
                     RReg[1].flags |= F_NEGATIVE;
 
-                WORDPTR newobj = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
+                word_p newobj = rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                 if(!newobj)
                     return;
                 rplOverwriteData(1, newobj);
@@ -1657,7 +1657,7 @@ void LIB_HANDLER()
             default:
             {
                 rplNANToRReg(0);
-                WORDPTR newobj = rplNewRealFromRReg(0);
+                word_p newobj = rplNewRealFromRReg(0);
                 if(!newobj)
                     return;
                 rplOverwriteData(1, newobj);
@@ -1684,8 +1684,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR pct = rplPeekData(1);
-        WORDPTR arg1 = rplPeekData(2);
+        word_p pct = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
 
         if(ISUNIT(*arg1))
             ++arg1;
@@ -1704,7 +1704,7 @@ void LIB_HANDLER()
             rplReadNumberAsReal(pct, &x);
             x.exp -= 2; // divide by 100
             // replace level 1 value
-            WORDPTR newnumber = rplNewReal(&x);
+            word_p newnumber = rplNewReal(&x);
             if(!newnumber)
                 return;
             rplOverwriteData(1, newnumber);
@@ -1727,8 +1727,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR old_val = rplPeekData(2);
-        WORDPTR new_val = rplPeekData(1);
+        word_p old_val = rplPeekData(2);
+        word_p new_val = rplPeekData(1);
 
         if(ISLIST(*old_val) || ISLIST(*new_val)) {
             rplListBinaryDoCmd();
@@ -1752,7 +1752,7 @@ void LIB_HANDLER()
             RReg[1].exp += 2;   // multiply delta by 100
             divReal(&RReg[0], &RReg[1], &x);
 
-            WORDPTR newnumber = rplNewReal(&RReg[0]);
+            word_p newnumber = rplNewReal(&RReg[0]);
             if(!newnumber)
                 return;
             // drop one value and replace level 1 value
@@ -1762,7 +1762,7 @@ void LIB_HANDLER()
             return;
         }
         else if(ISUNIT(*new_val) || ISUNIT(*old_val)) {
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
 
             rplPushDataNoGrow(new_val);
             rplPushDataNoGrow(old_val);
@@ -1809,8 +1809,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR old_val = rplPeekData(2);
-        WORDPTR new_val = rplPeekData(1);
+        word_p old_val = rplPeekData(2);
+        word_p new_val = rplPeekData(1);
 
         if(ISLIST(*old_val) || ISLIST(*new_val)) {
             rplListBinaryDoCmd();
@@ -1833,7 +1833,7 @@ void LIB_HANDLER()
             y.exp += 2; // multiply by 100
             divReal(&RReg[0], &y, &x);
 
-            WORDPTR newnumber = rplNewReal(&RReg[0]);
+            word_p newnumber = rplNewReal(&RReg[0]);
             if(!newnumber)
                 return;
             // drop one value and replace level 1 value
@@ -1844,7 +1844,7 @@ void LIB_HANDLER()
 
         }
         else if(ISUNIT(*new_val) || ISUNIT(*old_val)) {
-            WORDPTR *stksave = DSTop;
+            word_p *stksave = DSTop;
 
             rplPushDataNoGrow(new_val);
             rplNewint32_tPush(100, DECint32_t);
@@ -1889,9 +1889,9 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
-        WORDPTR *cleanup = 0;
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
+        word_p *cleanup = 0;
 
         if(ISLIST(*arg1) || ISLIST(*arg2)) {
             rplListBinaryDoCmd();
@@ -2313,8 +2313,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR vect_val = rplPeekData(2);
-        WORDPTR real_val = rplPeekData(1);
+        word_p vect_val = rplPeekData(2);
+        word_p real_val = rplPeekData(1);
 
         if(ISLIST(*real_val)) {
             rplListBinaryDoCmd();
@@ -2334,20 +2334,20 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             rplPushData(rplPeekData(2));
             if(Exceptions) {
                 DSTop = savestk;
                 return;
             }
-            WORDPTR *first = rplMatrixExplode();
+            word_p *first = rplMatrixExplode();
             if(!first || Exceptions) {
                 DSTop = savestk;
                 return;
             }
 
-            WORDPTR result = rplPolyEvalEx(first, cols - 1, savestk - 1);
+            word_p result = rplPolyEvalEx(first, cols - 1, savestk - 1);
             if(!result || Exceptions) {
                 DSTop = savestk;
                 return;
@@ -2384,7 +2384,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR vect_val = rplPeekData(1);
+        word_p vect_val = rplPeekData(1);
 
         if(ISMATRIX(*vect_val)) {
 
@@ -2397,7 +2397,7 @@ void LIB_HANDLER()
             int32_t f, icoef, j;
 
             for(f = 1; f <= cols; ++f) {
-                WORDPTR entry = rplMatrixFastGet(vect_val, 1, f);
+                word_p entry = rplMatrixFastGet(vect_val, 1, f);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
@@ -2420,9 +2420,9 @@ void LIB_HANDLER()
 
             Context.precdigits = argdigits;
 
-            WORDPTR *Firstelem = DSTop;
+            word_p *Firstelem = DSTop;
 
-            rplPushData((WORDPTR) one_bint);
+            rplPushData((word_p) one_bint);
             if(Exceptions) {
                 DSTop = Firstelem;
                 Context.precdigits = saveprec;
@@ -2430,10 +2430,10 @@ void LIB_HANDLER()
             }
 
             for(icoef = 1; icoef <= cols; ++icoef) {
-                WORDPTR ai = rplMatrixFastGet(vect_val, 1, icoef);
+                word_p ai = rplMatrixFastGet(vect_val, 1, icoef);
                 rplNumberToRReg(0, ai);
                 RReg[0].flags ^= F_NEGATIVE;
-                rplPushData((WORDPTR) zero_bint);
+                rplPushData((word_p) zero_bint);
                 for(j = 1; j <= icoef; ++j) {
                     if(j == 1) {
                         rplNumberToRReg(1, *(Firstelem + j - 1));
@@ -2445,7 +2445,7 @@ void LIB_HANDLER()
 
                     mulReal(&RReg[3], &RReg[0], &RReg[1]);
                     addReal(&RReg[4], &RReg[3], &RReg[2]);
-                    WORDPTR newnumber = rplNewReal(&RReg[4]);
+                    word_p newnumber = rplNewReal(&RReg[4]);
                     if(!newnumber) {
                         DSTop = Firstelem;
                         Context.precdigits = saveprec;
@@ -2461,7 +2461,7 @@ void LIB_HANDLER()
             }
 
             Context.precdigits = saveprec;
-            WORDPTR pcoefs = rplMatrixCompose(0, cols + 1);
+            word_p pcoefs = rplMatrixCompose(0, cols + 1);
             if(!pcoefs)
                 return;
             rplDropData(cols + 1);
@@ -2487,9 +2487,9 @@ void LIB_HANDLER()
         }
         rplStripTagStack(3);
 
-        WORDPTR arg0 = rplPeekData(3);
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg0 = rplPeekData(3);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
 //        if(ISLIST(*arg1) || ISLIST(*arg2)){
 //            rplListBinaryDoCmd();
@@ -2508,7 +2508,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;       // Drop arguments in case of error
+        word_p *savestk = DSTop;       // Drop arguments in case of error
 
         // Stack: A B C
         rplPushData(rplPeekData(3));
@@ -2526,10 +2526,10 @@ void LIB_HANDLER()
         //        6 5 4   3      2 1
 
         // check for Solution Condition: C MOD GCD(A,B) = 0
-        WORDPTR wp_c = rplPeekData(4);
-        WORDPTR wp_gcd_ab = rplPeekData(3);
-        WORDPTR wp_s = rplPeekData(2);
-        WORDPTR wp_t = rplPeekData(1);
+        word_p wp_c = rplPeekData(4);
+        word_p wp_gcd_ab = rplPeekData(3);
+        word_p wp_s = rplPeekData(2);
+        word_p wp_t = rplPeekData(1);
         if(ISint32_t(*wp_s) && ISint32_t(*wp_t) && ISint32_t(*wp_c)
                 && ISint32_t(*wp_gcd_ab)) {
 
@@ -2614,7 +2614,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR arg = rplPeekData(1);
+        word_p arg = rplPeekData(1);
 
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -2662,12 +2662,12 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        WORDPTR *savestk = DSTop;       // Drop arguments in case of error
+        word_p *savestk = DSTop;       // Drop arguments in case of error
 
         if(n == 0) {
-            rplPushData((WORDPTR) (one_bint));
+            rplPushData((word_p) (one_bint));
             int elements = 1;
-            WORDPTR newmat = rplMatrixCompose(0, elements);
+            word_p newmat = rplMatrixCompose(0, elements);
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
@@ -2683,17 +2683,17 @@ void LIB_HANDLER()
             case PTCHEBYCHEFF:
             case PLEGENDRE:
             case PHERMITE2:
-                rplPushData((WORDPTR) (one_bint));
-                rplPushData((WORDPTR) (zero_bint));
+                rplPushData((word_p) (one_bint));
+                rplPushData((word_p) (zero_bint));
                 break;
             case PHERMITE:
             case PTCHEBYCHEFF2:
-                rplPushData((WORDPTR) (two_bint));
-                rplPushData((WORDPTR) (zero_bint));
+                rplPushData((word_p) (two_bint));
+                rplPushData((word_p) (zero_bint));
                 break;
             }
             int elements = 2;
-            WORDPTR newmat = rplMatrixCompose(0, elements);
+            word_p newmat = rplMatrixCompose(0, elements);
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
@@ -2732,7 +2732,7 @@ void LIB_HANDLER()
             for(i = 0; i < 2; ++i) {
                 // polynomial has n+1 elements
                 for(j = 0; j <= n; ++j) {
-                    rplPushData((WORDPTR) (zero_bint)); // fill with ZERO
+                    rplPushData((word_p) (zero_bint)); // fill with ZERO
                 }
             }
 
@@ -2747,18 +2747,18 @@ void LIB_HANDLER()
             case PTCHEBYCHEFF:
             case PLEGENDRE:
             case PHERMITE2:
-                rplOverwriteData(cur * (n + 1) + 1, (WORDPTR) (one_bint));      //n=0
-                rplOverwriteData(oth * (n + 1) + 2, (WORDPTR) (one_bint));      //n=1
+                rplOverwriteData(cur * (n + 1) + 1, (word_p) (one_bint));      //n=0
+                rplOverwriteData(oth * (n + 1) + 2, (word_p) (one_bint));      //n=1
                 break;
             case PHERMITE:
             case PTCHEBYCHEFF2:
-                rplOverwriteData(cur * (n + 1) + 1, (WORDPTR) (one_bint));      //n=0
-                rplOverwriteData(oth * (n + 1) + 2, (WORDPTR) (two_bint));      //n=1
+                rplOverwriteData(cur * (n + 1) + 1, (word_p) (one_bint));      //n=0
+                rplOverwriteData(oth * (n + 1) + 2, (word_p) (two_bint));      //n=1
                 break;
             }
 
             // recrsive formula
-            rplNumberToRReg(2, (WORDPTR) (two_bint));
+            rplNumberToRReg(2, (word_p) (two_bint));
             for(i = 2; i < n + 1; ++i)  // i=n+1
             {
                 rplLoadInt64AsReal(i - 1, &RReg[5]);     // n
@@ -2776,7 +2776,7 @@ void LIB_HANDLER()
                         rplNumberToRReg(1, rplPeekData(oth * (n + 1) + j));     // x*current (=shift left)
                     }
                     else {
-                        rplNumberToRReg(1, (WORDPTR) (zero_bint));      // the last is zero
+                        rplNumberToRReg(1, (word_p) (zero_bint));      // the last is zero
                     }
                     switch (OPCODE(CurOpcode)) {
                     case PTCHEBYCHEFF:
@@ -2802,7 +2802,7 @@ void LIB_HANDLER()
                     }
 
                     rplCheckResultAndError(&RReg[4]);   // next
-                    WORDPTR newnumber = rplNewReal(&RReg[4]);
+                    word_p newnumber = rplNewReal(&RReg[4]);
                     if(!newnumber || Exceptions) {
                         if(DSTop > savestk)
                             DSTop = savestk;
@@ -2817,7 +2817,7 @@ void LIB_HANDLER()
             int elements = n + 1;
             rplDropData(elements);      // drop the 2nd exploded vector from n=previous
             Context.precdigits = saveprec;
-            WORDPTR newmat = rplMatrixCompose(0, elements);     //create vector from stack
+            word_p newmat = rplMatrixCompose(0, elements);     //create vector from stack
 
             if(newmat) {
                 rplDropData(elements);
@@ -2846,10 +2846,10 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR *savestk = DSTop;       // Drop arguments in case of error
+        word_p *savestk = DSTop;       // Drop arguments in case of error
 
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
         // POLYNOMIAL DIVISION arg1/arg2 = quot , remainder
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
@@ -2866,7 +2866,7 @@ void LIB_HANDLER()
             // only numbers allowed
             int32_t f;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     if(DSTop > savestk)
                         DSTop = savestk;
@@ -2875,7 +2875,7 @@ void LIB_HANDLER()
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     if(DSTop > savestk)
                         DSTop = savestk;
@@ -2887,7 +2887,7 @@ void LIB_HANDLER()
             // Eliminate leading zeros to get the real order
             int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg1;
@@ -2897,7 +2897,7 @@ void LIB_HANDLER()
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg2;
@@ -2915,9 +2915,9 @@ void LIB_HANDLER()
 
             // now we know all leading zeroes
             if((cols1 - leading_zeroes_arg1) < (cols2 - leading_zeroes_arg2)) {
-                rplPushData((WORDPTR) (zero_bint));
+                rplPushData((word_p) (zero_bint));
                 int32_t elements = 1;
-                WORDPTR newmat = rplMatrixCompose(0, elements);
+                word_p newmat = rplMatrixCompose(0, elements);
                 if(newmat) {
                     rplDropData(elements);
                     rplOverwriteData(1, rplPeekData(2));
@@ -2938,10 +2938,10 @@ void LIB_HANDLER()
 
                 // copy dividend
                 for(f = leading_zeroes_arg1; f < cols1; ++f) {
-                    WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                    word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                     rplPushData(entry);
                 }
-                WORDPTR normalizer = rplMatrixFastGet(arg2, 1, leading_zeroes_arg2 + 1);        // divisor[0]
+                word_p normalizer = rplMatrixFastGet(arg2, 1, leading_zeroes_arg2 + 1);        // divisor[0]
                 rplNumberToRReg(0, normalizer);
                 for(f = 0;
                         f <
@@ -2949,7 +2949,7 @@ void LIB_HANDLER()
                             leading_zeroes_arg2) + 1; ++f) {
                     rplNumberToRReg(1, rplPeekData((cols1 - leading_zeroes_arg1) - f)); // out[i]
                     divReal(&RReg[2], &RReg[1], &RReg[0]);
-                    WORDPTR newnumber = rplNewReal(&RReg[2]);
+                    word_p newnumber = rplNewReal(&RReg[2]);
                     if(!newnumber || Exceptions) {
                         if(DSTop > savestk)
                             DSTop = savestk;
@@ -2961,12 +2961,12 @@ void LIB_HANDLER()
                     {
                         int32_t j;
                         for(j = leading_zeroes_arg2 + 1; j < cols2; ++j) {
-                            WORDPTR divj = rplMatrixFastGet(arg2, 1, j + 1);    // divisor[j]
+                            word_p divj = rplMatrixFastGet(arg2, 1, j + 1);    // divisor[j]
                             rplNumberToRReg(1, divj);
                             mulReal(&RReg[1], &RReg[1], &RReg[2]);
                             rplNumberToRReg(3, rplPeekData((cols1 - leading_zeroes_arg1) - f - (j - leading_zeroes_arg2)));     // out[i]
                             subReal(&RReg[3], &RReg[3], &RReg[1]);
-                            WORDPTR newnumber = rplNewReal(&RReg[3]);
+                            word_p newnumber = rplNewReal(&RReg[3]);
                             if(!newnumber || Exceptions) {
                                 if(DSTop > savestk)
                                     DSTop = savestk;
@@ -2981,7 +2981,7 @@ void LIB_HANDLER()
                 int32_t elements_remainder = (cols2 - leading_zeroes_arg2) - 1;
                 int32_t leading_zeroes_remainder = 0;
                 for(f = 0; f < elements_remainder; ++f) {
-                    WORDPTR entry = rplPeekData(elements_remainder - f);
+                    word_p entry = rplPeekData(elements_remainder - f);
                     rplNumberToRReg(0, entry);
                     if(iszeroReal(&RReg[0])) {
                         ++leading_zeroes_remainder;
@@ -2994,13 +2994,13 @@ void LIB_HANDLER()
                 if(nrem < 1) {
                     nrem = 1;
                 }
-                WORDPTR remainder = rplMatrixCompose(0, nrem);
+                word_p remainder = rplMatrixCompose(0, nrem);
                 if(remainder) {
                     rplDropData(elements_remainder);
                     int32_t elements_quotient =
                             (cols1 - leading_zeroes_arg1) - (cols2 -
                             leading_zeroes_arg2) + 1;
-                    WORDPTR quotient = rplMatrixCompose(0, elements_quotient);
+                    word_p quotient = rplMatrixCompose(0, elements_quotient);
                     if(quotient) {
                         rplDropData(elements_quotient);
                         rplOverwriteData(2, quotient);
@@ -3043,7 +3043,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR poly = rplPeekData(1);
+        word_p poly = rplPeekData(1);
 
         if(ISMATRIX(*poly)) {
 
@@ -3056,18 +3056,18 @@ void LIB_HANDLER()
             int32_t f;
 
             for(f = 1; f <= cols; ++f) {
-                WORDPTR entry = rplMatrixFastGet(poly, 1, f);
+                word_p entry = rplMatrixFastGet(poly, 1, f);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
             }
             // DO IT ALL WITH REALS
-            WORDPTR *savestk = DSTop;   // Drop arguments in case of error
+            word_p *savestk = DSTop;   // Drop arguments in case of error
 
             int32_t leading_zeroes_arg = 0;
             for(f = 0; f < cols; ++f) {
-                WORDPTR entry = rplMatrixFastGet(poly, 1, f + 1);
+                word_p entry = rplMatrixFastGet(poly, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg;
@@ -3091,7 +3091,7 @@ void LIB_HANDLER()
                 nout = degree + 2;
             }
             for(f = leading_zeroes_arg; f < endcol; ++f, --idegree) {
-                WORDPTR entry = rplMatrixFastGet(poly, 1, f + 1);
+                word_p entry = rplMatrixFastGet(poly, 1, f + 1);
                 rplNumberToRReg(1, entry);
                 rplint32_tToRReg(0, idegree);
                 if(OPCODE(CurOpcode) == PDER) {
@@ -3100,7 +3100,7 @@ void LIB_HANDLER()
                 else {
                     divReal(&RReg[2], &RReg[1], &RReg[0]);
                 }
-                WORDPTR newnumber = rplNewReal(&RReg[2]);
+                word_p newnumber = rplNewReal(&RReg[2]);
                 if(!newnumber || Exceptions) {
                     if(DSTop > savestk)
                         DSTop = savestk;
@@ -3109,9 +3109,9 @@ void LIB_HANDLER()
                 rplPushData(newnumber);
             }
             if(OPCODE(CurOpcode) == PINT) {
-                rplPushData((WORDPTR) (zero_bint));
+                rplPushData((word_p) (zero_bint));
             }
-            WORDPTR pout = rplMatrixCompose(0, nout);
+            word_p pout = rplMatrixCompose(0, nout);
             if(!pout || Exceptions) {
                 if(DSTop > savestk)
                     DSTop = savestk;
@@ -3139,8 +3139,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
         // POLYNOMIAL DIVISION
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
@@ -3155,14 +3155,14 @@ void LIB_HANDLER()
             // only numbers allowed
             int32_t f;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
@@ -3172,7 +3172,7 @@ void LIB_HANDLER()
             // Eliminate leading zeros to get the real degree
             int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg1;
@@ -3182,7 +3182,7 @@ void LIB_HANDLER()
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg2;
@@ -3201,7 +3201,7 @@ void LIB_HANDLER()
 
             int32_t nelem3 = nelem1 > nelem2 ? nelem1 : nelem2;    // degree = max(degree1, degree2)
 
-            WORDPTR *savestk = DSTop;   // Drop arguments in case of error
+            word_p *savestk = DSTop;   // Drop arguments in case of error
 
             for(f = 0; f < nelem3; ++f) {
                 int32_t i1 = cols1 - nelem3 + f;
@@ -3210,14 +3210,14 @@ void LIB_HANDLER()
                     rplint32_tToRReg(1, 0);
                 }
                 else {
-                    WORDPTR entry = rplMatrixFastGet(arg1, 1, i1 + 1);
+                    word_p entry = rplMatrixFastGet(arg1, 1, i1 + 1);
                     rplNumberToRReg(1, entry);
                 }
                 if(i2 < leading_zeroes_arg2) {
                     rplint32_tToRReg(2, 0);
                 }
                 else {
-                    WORDPTR entry = rplMatrixFastGet(arg2, 1, i2 + 1);
+                    word_p entry = rplMatrixFastGet(arg2, 1, i2 + 1);
                     rplNumberToRReg(2, entry);
                 }
                 if(OPCODE(CurOpcode) == PADD) {
@@ -3226,7 +3226,7 @@ void LIB_HANDLER()
                 else {
                     subReal(&RReg[0], &RReg[1], &RReg[2]);
                 }
-                WORDPTR newnumber = rplNewReal(&RReg[0]);
+                word_p newnumber = rplNewReal(&RReg[0]);
                 if(!newnumber || Exceptions) {
                     if(DSTop > savestk)
                         DSTop = savestk;
@@ -3236,7 +3236,7 @@ void LIB_HANDLER()
             }
             int32_t leading_zeroes_pout = 0;
             for(f = 0; f < nelem3; ++f) {
-                WORDPTR entry = rplPeekData(nelem3 - f);
+                word_p entry = rplPeekData(nelem3 - f);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_pout;
@@ -3249,7 +3249,7 @@ void LIB_HANDLER()
             if(nout < 1) {
                 nout = 1;
             }
-            WORDPTR poly = rplMatrixCompose(0, nout);
+            word_p poly = rplMatrixCompose(0, nout);
             if(!poly || Exceptions) {
                 if(DSTop > savestk)
                     DSTop = savestk;
@@ -3275,8 +3275,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR arg1 = rplPeekData(2);
-        WORDPTR arg2 = rplPeekData(1);
+        word_p arg1 = rplPeekData(2);
+        word_p arg2 = rplPeekData(1);
 
         // POLYNOMIAL DIVISION
         if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
@@ -3291,14 +3291,14 @@ void LIB_HANDLER()
             // only numbers allowed
             int32_t f;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 if(!ISNUMBER(*entry)) {
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
@@ -3308,7 +3308,7 @@ void LIB_HANDLER()
             // Eliminate leading zeros to get the real degree
             int32_t leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
             for(f = 0; f < cols1; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg1;
@@ -3318,7 +3318,7 @@ void LIB_HANDLER()
                 }
             }
             for(f = 0; f < cols2; ++f) {
-                WORDPTR entry = rplMatrixFastGet(arg2, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg2, 1, f + 1);
                 rplNumberToRReg(0, entry);
                 if(iszeroReal(&RReg[0])) {
                     ++leading_zeroes_arg2;
@@ -3337,27 +3337,27 @@ void LIB_HANDLER()
 
             int32_t nout = nelem1 + nelem2 - 1;    // nout = degree+1 = degree1+degree2+1
 
-            WORDPTR *savestk = DSTop;   // Drop arguments in case of error
+            word_p *savestk = DSTop;   // Drop arguments in case of error
 
             int32_t i1, i2, iout, g;
 
             for(f = 0; f < nout; ++f) {
-                rplPushData((WORDPTR) (zero_bint));
+                rplPushData((word_p) (zero_bint));
             }
 
             for(f = leading_zeroes_arg1, i1 = 0; f < cols1; ++f, ++i1) {
-                WORDPTR entry = rplMatrixFastGet(arg1, 1, f + 1);
+                word_p entry = rplMatrixFastGet(arg1, 1, f + 1);
                 rplNumberToRReg(1, entry);
                 if(!iszeroReal(&RReg[1])) {
                     for(g = leading_zeroes_arg2, i2 = 0; g < cols2; ++g, ++i2) {
-                        WORDPTR entry = rplMatrixFastGet(arg2, 1, g + 1);
+                        word_p entry = rplMatrixFastGet(arg2, 1, g + 1);
                         rplNumberToRReg(2, entry);
                         if(!iszeroReal(&RReg[2])) {
                             mulReal(&RReg[0], &RReg[1], &RReg[2]);
                             iout = i1 + i2;
                             rplNumberToRReg(3, rplPeekData(nout - iout));
                             addReal(&RReg[2], &RReg[0], &RReg[3]);
-                            WORDPTR newnumber = rplNewReal(&RReg[2]);
+                            word_p newnumber = rplNewReal(&RReg[2]);
                             if(!newnumber || Exceptions) {
                                 if(DSTop > savestk)
                                     DSTop = savestk;
@@ -3368,7 +3368,7 @@ void LIB_HANDLER()
                     }
                 }
             }
-            WORDPTR poly = rplMatrixCompose(0, nout);
+            word_p poly = rplMatrixCompose(0, nout);
             if(!poly || Exceptions) {
                 if(DSTop > savestk)
                     DSTop = savestk;
@@ -3408,7 +3408,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *saveStk = DSTop;
+        word_p *saveStk = DSTop;
 
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
@@ -3454,7 +3454,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *saveStk = DSTop;
+        word_p *saveStk = DSTop;
 
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
@@ -3488,8 +3488,8 @@ void LIB_HANDLER()
         }
         rplStripTagStack(2);
 
-        WORDPTR arg = rplPeekData(2);
-        WORDPTR ndig = rplPeekData(1);
+        word_p arg = rplPeekData(2);
+        word_p ndig = rplPeekData(1);
 
         if(ISLIST(*arg) || ISLIST(*ndig)) {
             rplListBinaryDoCmd();
@@ -3507,7 +3507,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *savestk = DSTop;
+        word_p *savestk = DSTop;
         int64_t nd = rplReadNumberAsInt64(ndig), isunit = 0, unitlevels = 0;
         if(Exceptions)
             return;
@@ -3535,7 +3535,7 @@ void LIB_HANDLER()
             else
                 truncReal(&RReg[0], &r, nd);
 
-            WORDPTR newresult;
+            word_p newresult;
 
             if(isintegerReal(&RReg[0])) {
                 if(inint64_tRange(&RReg[0])) {
@@ -3573,7 +3573,7 @@ void LIB_HANDLER()
                     truncReal(&RReg[0], &Rarg, nd);
                     truncReal(&RReg[1], &Iarg, nd);
                 }
-                WORDPTR newresult =
+                word_p newresult =
                         rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                 if(!newresult)
                     return;
@@ -3591,7 +3591,7 @@ void LIB_HANDLER()
                 else {
                     truncReal(&RReg[0], &Rarg, nd);
                 }
-                WORDPTR newresult =
+                word_p newresult =
                         rplNewComplex(&RReg[0], &Iarg,
                         rplPolarComplexMode(arg));
                 if(!newresult)
@@ -3615,7 +3615,7 @@ void LIB_HANDLER()
         }
         else if(ISMATRIX(*arg)) {
             // ROUND EVERY ELEMENT IN THE MATRIX, AND APPLY THE OPERATOR TO EVERY SYMBOLIC ELEMENT IN THE MATRIX
-            WORDPTR *a;
+            word_p *a;
             // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
             // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
             a = DSTop - 2;
@@ -3634,7 +3634,7 @@ void LIB_HANDLER()
 
             for(j = 1; j <= totalelements; ++j) {
                 rplPushData(rplMatrixFastGet(*a, 1, j));
-                WORDPTR arg = rplPeekData(1);
+                word_p arg = rplPeekData(1);
                 if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig)
                         || ISSYMBOLIC(*ndig) || ISCONSTANT(*arg)
                         || ISCONSTANT(*ndig)) {
@@ -3660,7 +3660,7 @@ void LIB_HANDLER()
                     else
                         truncReal(&RReg[0], &r, nd);
 
-                    WORDPTR newresult;
+                    word_p newresult;
 
                     if(isintegerReal(&RReg[0])) {
                         if(inint64_tRange(&RReg[0])) {
@@ -3700,7 +3700,7 @@ void LIB_HANDLER()
                             truncReal(&RReg[0], &Rarg, nd);
                             truncReal(&RReg[1], &Iarg, nd);
                         }
-                        WORDPTR newresult =
+                        word_p newresult =
                                 rplNewComplex(&RReg[0], &RReg[1], ANGLENONE);
                         if(!newresult) {
                             DSTop = savestk;
@@ -3719,7 +3719,7 @@ void LIB_HANDLER()
                         else {
                             truncReal(&RReg[0], &Rarg, nd);
                         }
-                        WORDPTR newresult =
+                        word_p newresult =
                                 rplNewComplex(&RReg[0], &Iarg,
                                 rplPolarComplexMode(arg));
                         if(!newresult) {
@@ -3746,7 +3746,7 @@ void LIB_HANDLER()
 
             }
 
-            WORDPTR newmat = rplMatrixCompose(rowsa, colsa);
+            word_p newmat = rplMatrixCompose(rowsa, colsa);
             DSTop = a + 2;
             if(!newmat)
                 return;
@@ -3761,7 +3761,7 @@ void LIB_HANDLER()
         if(isunit) {
             rplOverwriteData(unitlevels + 1, rplPeekData(1));
             rplDropData(1);
-            WORDPTR newunit = rplUnitAssemble(unitlevels);
+            word_p newunit = rplUnitAssemble(unitlevels);
             if(!newunit) {
                 DSTop = savestk;
                 return;
@@ -3845,7 +3845,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR vect_val = rplPeekData(1);
+        word_p vect_val = rplPeekData(1);
 
         if(ISLIST(*vect_val)) {
             rplListUnaryDoCmd();
@@ -3865,10 +3865,10 @@ void LIB_HANDLER()
                 return;
             }
             int32_t f;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             for(f = 0; f < cols; ++f) {
-                WORDPTR entry = rplMatrixFastGet(vect_val, 1, f + 1);
+                word_p entry = rplMatrixFastGet(vect_val, 1, f + 1);
                 if(!ISNUMBERCPLX(*entry)) {
                     if(!cplxmode)
                         rplClrSystemFlag(FL_COMPLEXMODE);
@@ -3879,7 +3879,7 @@ void LIB_HANDLER()
                 rplPushData(entry);
             }
 
-            WORDPTR solution;
+            word_p solution;
             REAL re;
             for(f = 1; f < cols - 1; ++f) {
 
@@ -4030,7 +4030,7 @@ void LIB_HANDLER()
         }
         rplStripTagStack(1);
 
-        WORDPTR vect_val = rplPeekData(1);
+        word_p vect_val = rplPeekData(1);
 
         if(ISLIST(*vect_val)) {
             rplListUnaryDoCmd();
@@ -4050,10 +4050,10 @@ void LIB_HANDLER()
                 return;
             }
             int32_t f, nroots;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             for(f = 0; f < cols; ++f) {
-                WORDPTR entry = rplMatrixFastGet(vect_val, 1, f + 1);
+                word_p entry = rplMatrixFastGet(vect_val, 1, f + 1);
                 if(!ISNUMBERCPLX(*entry)) {
                     if(!cplxmode)
                         rplClrSystemFlag(FL_COMPLEXMODE);
@@ -4064,7 +4064,7 @@ void LIB_HANDLER()
                 rplPushData(entry);
             }
 
-            WORDPTR solution;
+            word_p solution;
             REAL re;
 
             for(nroots = 0, f = 1; f < cols - 1; ++f) {
@@ -4099,7 +4099,7 @@ void LIB_HANDLER()
                     if(iszeroReal(&re)
                             || (intdigitsReal(&re) < -Context.precdigits)) {
                         // THE CURRENT ROOT HAS MULTIPLICITY
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                         rplCallOvrOperator(CMD_OVR_ADD);
 
                         // DEFLATE THE POLYNOMIAL
@@ -4125,7 +4125,7 @@ void LIB_HANDLER()
 
                 // WE HAVE ONE SOLUTION!
                 rplPushData(solution);
-                rplPushData((WORDPTR) one_bint);        // MULTIPLICITY
+                rplPushData((word_p) one_bint);        // MULTIPLICITY
                 ++nroots;
                 if(Exceptions) {
                     if(!cplxmode)
@@ -4179,7 +4179,7 @@ void LIB_HANDLER()
                 if(iszeroReal(&re)
                         || (intdigitsReal(&re) < -Context.precdigits)) {
                     // THE CURRENT ROOT HAS MULTIPLICITY
-                    rplPushData((WORDPTR) one_bint);
+                    rplPushData((word_p) one_bint);
                     rplCallOvrOperator(CMD_OVR_ADD);
                     ++f;
                 }
@@ -4216,7 +4216,7 @@ void LIB_HANDLER()
                     DSTop = savestk;
                     return;
                 }
-                rplPushData((WORDPTR) one_bint);
+                rplPushData((word_p) one_bint);
                 ++nroots;
             }
 
@@ -4239,7 +4239,7 @@ void LIB_HANDLER()
 
             // PRESENT THE SOLUTION IN A BETTER FORMAT
 
-            WORDPTR *stksol = DSTop;
+            word_p *stksol = DSTop;
             for(f = 0; f < nroots; ++f) {
                 rplPushData(stksol[-2 - 2 * f]);        // MAKE A COPY OF ALL FACTORS
                 if(Exceptions) {
@@ -4298,7 +4298,7 @@ void LIB_HANDLER()
             REAL num, mult;
             int32_t prec = Context.precdigits, isneg, exponent;
             int64_t onefactor, inum;
-            WORDPTR *savestk = DSTop;
+            word_p *savestk = DSTop;
 
             rplReadNumberAsReal(vect_val, &num);
             if(num.flags & F_NEGATIVE) {
@@ -4411,7 +4411,7 @@ void LIB_HANDLER()
 
                     rplNewRealFromRRegPush(7);
                     if(eqReal(&RReg[7], &RReg[6])) {
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                         break;
                     }
                 }
@@ -4420,16 +4420,16 @@ void LIB_HANDLER()
                     //if(tmp*tmp==onefactor) onefactor=tmp;
                     if(onefactor == 1) {
                         rplNewRealFromRRegPush(6);
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
 
                         // AD A FACTOR (-1)^0 = 1 TO INDICATE WE GAVE UP
-                        rplPushData((WORDPTR) minusone_bint);
-                        rplPushData((WORDPTR) zero_bint);
+                        rplPushData((word_p) minusone_bint);
+                        rplPushData((word_p) zero_bint);
                         break;  // TERMINATE, WE GAVE UP
                     }
                     rplNewint32_tPush(onefactor, DECint32_t);
                     if(onefactor == inum) {
-                        rplPushData((WORDPTR) one_bint);
+                        rplPushData((word_p) one_bint);
                         break;
                     }
                 }
@@ -4494,8 +4494,8 @@ void LIB_HANDLER()
             if(nfactors == 0) {
                 // SPECIAL CASES 0, 1 ,-1
                 DSTop = savestk;
-                rplPushData((WORDPTR) one_bint);
-                WORDPTR list = rplCreateListN(1, 1, 1);
+                rplPushData((word_p) one_bint);
+                word_p list = rplCreateListN(1, 1, 1);
                 if(!list)
                     return;
                 rplPushDataNoGrow(list);
@@ -4568,9 +4568,9 @@ void LIB_HANDLER()
                         return;
                     }
                     memmovew(DSTop - nfactors + 1, DSTop - nfactors,
-                            nfactors * sizeof(WORDPTR) / sizeof(WORD));
+                            nfactors * sizeof(word_p) / sizeof(WORD));
                     ++DSTop;
-                    rplOverwriteData(nfactors + 1, (WORDPTR) two_bint); // ADD FACTOR 2
+                    rplOverwriteData(nfactors + 1, (word_p) two_bint); // ADD FACTOR 2
                     rplNewint32_tPush(exponent, DECint32_t);
                     ++nfactors;
                 }
@@ -4583,9 +4583,9 @@ void LIB_HANDLER()
                         return;
                     }
                     memmovew(DSTop - nfactors + 1, DSTop - nfactors,
-                            nfactors * sizeof(WORDPTR) / sizeof(WORD));
+                            nfactors * sizeof(word_p) / sizeof(WORD));
                     ++DSTop;
-                    rplOverwriteData(nfactors + 1, (WORDPTR) five_bint);        // ADD FACTOR 5
+                    rplOverwriteData(nfactors + 1, (word_p) five_bint);        // ADD FACTOR 5
                     rplNewint32_tPush(exponent, DECint32_t);
                     ++nfactors;
                 }
@@ -4601,13 +4601,13 @@ void LIB_HANDLER()
 
             }
 
-            WORDPTR newlist = rplCreateListN(nfactors, 1 + nfactors, 0);
+            word_p newlist = rplCreateListN(nfactors, 1 + nfactors, 0);
             if(Exceptions) {
                 DSTop = savestk;
                 return;
             }
             rplPushData(newlist);       // PUSH THE LIST TO PRESERVE IT
-            WORDPTR mnewlist = rplCreateListN(nfactors, 2, 0);
+            word_p mnewlist = rplCreateListN(nfactors, 2, 0);
             if(Exceptions) {
                 DSTop = savestk;
                 return;
@@ -4615,9 +4615,9 @@ void LIB_HANDLER()
             newlist = rplPopData();     // RESTORE FROM STACK
             DSTop = savestk;
             if(isneg)
-                rplOverwriteData(1, (WORDPTR) minusone_bint);
+                rplOverwriteData(1, (word_p) minusone_bint);
             else
-                rplOverwriteData(1, (WORDPTR) one_bint);
+                rplOverwriteData(1, (word_p) one_bint);
 
             rplPushDataNoGrow(newlist);
             rplPushData(mnewlist);
@@ -4690,7 +4690,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -4698,7 +4698,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -4773,7 +4773,7 @@ void LIB_HANDLER()
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = (WORDPTR) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = (word_p) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }
@@ -4783,7 +4783,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
@@ -4792,12 +4792,12 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

@@ -99,16 +99,16 @@ INCLUDE_ROMOBJECT(cmd_TEVAL);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    (WORDPTR) LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib65_menu_0_time,
-    (WORDPTR) lib65_menu_1_memory,
-    (WORDPTR) lib65_menu_2_alarms,
-    (WORDPTR) lib65_menu_3_others,
-    (WORDPTR) newrpl_version,
-    (WORDPTR) alarms_ident,
-    (WORDPTR) cmd_TEVAL,
+const word_p const ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib65_menu_0_time,
+    (word_p) lib65_menu_1_memory,
+    (word_p) lib65_menu_2_alarms,
+    (word_p) lib65_menu_3_others,
+    (word_p) newrpl_version,
+    (word_p) alarms_ident,
+    (word_p) cmd_TEVAL,
     0
 };
 
@@ -499,13 +499,13 @@ static int64_t GetSysTime()
 
 // RETURN A POINTER TO THE ALARMS LIST
 // RETURN 0 ON ERROR
-static WORDPTR InitAlarms()
+static word_p InitAlarms()
 {
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
 
-    rplPushData((WORDPTR) zero_bint);
-    rplPushData((WORDPTR) zero_bint);
-    rplPushData((WORDPTR) two_bint);
+    rplPushData((word_p) zero_bint);
+    rplPushData((word_p) zero_bint);
+    rplPushData((word_p) two_bint);
     if(Exceptions) {
         DSTop = Stacksave;
         return 0;
@@ -517,12 +517,12 @@ static WORDPTR InitAlarms()
     }
     alarms = rplPeekData(1);
     rplDropData(1);
-    rplStoreSettings((WORDPTR) alarms_ident, alarms);
+    rplStoreSettings((word_p) alarms_ident, alarms);
 
     return alarms;
 }
 
-static WORDPTR ResetAlarms()
+static word_p ResetAlarms()
 {
     alarms = InitAlarms();
 
@@ -533,9 +533,9 @@ static WORDPTR ResetAlarms()
 }
 
 // RETURN NULL ON ERROR
-static WORDPTR GetAlarms()
+static word_p GetAlarms()
 {
-    alarms = rplGetSettings((WORDPTR) alarms_ident);
+    alarms = rplGetSettings((word_p) alarms_ident);
 
     if(!alarms) {
         alarms = InitAlarms();
@@ -554,9 +554,9 @@ static WORDPTR GetAlarms()
 
 // RETURN 1 ON SUCCESS
 // RETURN 0 IF list ISN'T AN ALARM
-static int32_t ReadSysAlarm(WORDPTR list, struct alarm *alrm)
+static int32_t ReadSysAlarm(word_p list, struct alarm *alrm)
 {
-    WORDPTR obj;
+    word_p obj;
 
     if(!ISLIST(*list))
         return 0;
@@ -585,7 +585,7 @@ static int32_t ReadSysAlarm(WORDPTR list, struct alarm *alrm)
 
 static void PushSysAlarm(struct alarm *alrm)
 {
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
 
     alrm_obj = alrm->obj;
     rplNewint32_tPush(alrm->time, DECint32_t);
@@ -616,7 +616,7 @@ static void PushSysAlarm(struct alarm *alrm)
 static int32_t AddSysAlarm(struct alarm *new_alrm)
 {
     int32_t id, nalarms, first_due_id, past_due_id;
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
     struct alarm cur_alrm;
 
     alrm_obj = new_alrm->obj;
@@ -660,7 +660,7 @@ static int32_t AddSysAlarm(struct alarm *new_alrm)
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
-    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
+    rplStoreSettings((word_p) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     goto rtn;
@@ -703,7 +703,7 @@ static int32_t GetSysAlarm(int32_t id, struct alarm *alrm)
 // CALLER MUST CALL ScanAlarms
 static int32_t DelSysAlarm(int32_t id)
 {
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
     int32_t nalarms, first_due_id, past_due_id;
 
     if(id < 1)
@@ -744,7 +744,7 @@ static int32_t DelSysAlarm(int32_t id)
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
-    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
+    rplStoreSettings((word_p) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     return 1;
@@ -790,7 +790,7 @@ static int32_t UpdateSysAlarm(int32_t id, struct alarm *alrm)
 // RETURN 0 IF NONEXISTENT ALARM OR ON ERROR
 static int32_t ReplaceSysAlarm(int32_t id, struct alarm *alrm)
 {
-    WORDPTR *Stacksave = DSTop;;
+    word_p *Stacksave = DSTop;;
     int32_t nalarms;
 
     if(id < 1)
@@ -816,7 +816,7 @@ static int32_t ReplaceSysAlarm(int32_t id, struct alarm *alrm)
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
-    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
+    rplStoreSettings((word_p) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     alrm->obj = alrm_obj;
@@ -830,7 +830,7 @@ static int32_t ReplaceSysAlarm(int32_t id, struct alarm *alrm)
 
 static int32_t GetFirstAlarmId(int32_t type)
 {
-    WORDPTR bint;
+    word_p bint;
 
     if(type < DUE_ALM || type > PASTDUE_ALM)
         return 0;
@@ -850,7 +850,7 @@ static int32_t GetFirstAlarmId(int32_t type)
 
 static void SetFirstAlarmId(int32_t type, int32_t id)
 {
-    WORDPTR *Stacksave = DSTop;;
+    word_p *Stacksave = DSTop;;
     int32_t nitems;
 
     if(type < DUE_ALM || type > PASTDUE_ALM)
@@ -868,7 +868,7 @@ static void SetFirstAlarmId(int32_t type, int32_t id)
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
-    rplStoreSettings((WORDPTR) alarms_ident, rplPeekData(1));
+    rplStoreSettings((word_p) alarms_ident, rplPeekData(1));
     rplDropData(1);
 
     return;
@@ -975,7 +975,7 @@ static void ScanAlarms()
 
 static void WarnAlarm()
 {
-    WORDPTR msg;
+    word_p msg;
     char *msg_start, *msg_end;
 
     msg = uiGetLibMsg(ERR_PASTDUEALRM);
@@ -1021,7 +1021,7 @@ int32_t rplTriggerAlarm()
 {
     struct alarm alrm;
     int32_t id, new_id;
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
 
     id = GetFirstAlarm(DUE_ALM, &alrm);
     if(!id)
@@ -1132,7 +1132,7 @@ void rplSkipNextAlarm()
 {
     struct alarm first_due;
     int32_t id;
-    WORDPTR msg;
+    word_p msg;
     char *msg_start, *msg_end;
 
     id = GetFirstAlarm(DUE_ALM, &first_due);
@@ -1199,11 +1199,11 @@ int32_t rplDelAlarm(int32_t id)
 // READ OBJECT AS ALARM
 // RETURN 1 ON SUCCESS
 // RETURN 0 ON ERROR AND SET ERROR NUMBER
-int32_t rplReadAlarm(WORDPTR obj, struct alarm *alrm)
+int32_t rplReadAlarm(word_p obj, struct alarm *alrm)
 {
     struct date dt, sys_dt;
     struct time tm;
-    WORDPTR alarm_dt = NULL,
+    word_p alarm_dt = NULL,
             alarm_tm = NULL, alarm_obj = NULL, alarm_rpt = NULL;
     int32_t lst_sz;
     int64_t b_alarm_rpt;
@@ -1319,7 +1319,7 @@ int32_t rplReadAlarm(WORDPTR obj, struct alarm *alrm)
 // USES RREG 0
 void rplPushAlarm(struct alarm *alrm)
 {
-    WORDPTR *Stacksave = DSTop;
+    word_p *Stacksave = DSTop;
     struct date dt;
     struct time tm;
 
@@ -1354,10 +1354,10 @@ void rplPushAlarm(struct alarm *alrm)
 }
 
 // COMPUTE STANDARD CRC-32 OF THE OBJECT
-int64_t rplObjChecksum(WORDPTR object)
+int64_t rplObjChecksum(word_p object)
 {
-    BYTEPTR ptr = (BYTEPTR) object;
-    BYTEPTR end = (BYTEPTR) rplSkipOb(object);
+    byte_p ptr = (byte_p) object;
+    byte_p end = (byte_p) rplSkipOb(object);
     int k;
 
     uint32_t crc = 0xffffffff, tmpcrc;
@@ -1454,7 +1454,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Set current system date in MM.DDYYYY
         struct date dt, sys_dt;
-        WORDPTR arg_date;
+        word_p arg_date;
         REAL r_date;
 
         if(rplDepthData() < 1) {
@@ -1505,7 +1505,7 @@ void LIB_HANDLER()
     case DATEADD:
     {
         //@SHORT_DESC=Add days to a date in MM.DDYYYY
-        WORDPTR arg_date, arg_days;
+        word_p arg_date, arg_days;
         struct date dt;
         int32_t days, day_num;
         REAL r_date, r_days;
@@ -1560,7 +1560,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Number of days between dates in MM.DDYYYY
         struct date dt;
-        WORDPTR arg_date1, arg_date2;
+        word_p arg_date1, arg_date2;
         int32_t ddays;
         REAL r_date;
 
@@ -1621,7 +1621,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Set current time as HH.MMSS
         struct time tm;
-        WORDPTR arg_time;
+        word_p arg_time;
         REAL r_time;
 
         if(rplDepthData() < 1) {
@@ -1650,7 +1650,7 @@ void LIB_HANDLER()
     case TOHMS:
     {
         //@SHORT_DESC=Convert decimal time to HH.MMSS
-        WORDPTR arg_dec;
+        word_p arg_dec;
         REAL r_dec;
 
         if(rplDepthData() < 1) {
@@ -1696,7 +1696,7 @@ void LIB_HANDLER()
     case FROMHMS:
     {
         //@SHORT_DESC=Convert time in HH.MMSS to decimal
-        WORDPTR arg_hms;
+        word_p arg_hms;
         REAL r_hms;
 
         if(rplDepthData() < 1) {
@@ -1742,7 +1742,7 @@ void LIB_HANDLER()
     case HMSADD:
     {
         //@SHORT_DESC=Add time in HH.MMSS format
-        WORDPTR arg_hms1, arg_hms2;
+        word_p arg_hms1, arg_hms2;
         REAL r_hms1, r_hms2;
 
         if(rplDepthData() < 2) {
@@ -1789,7 +1789,7 @@ void LIB_HANDLER()
     case HMSSUB:
     {
         //@SHORT_DESC=Subtract time in HH.MMSS format
-        WORDPTR arg_hms1, arg_hms2;
+        word_p arg_hms1, arg_hms2;
         REAL r_hms1, r_hms2;
 
         if(rplDepthData() < 2) {
@@ -1872,7 +1872,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall specified alarm
         struct alarm alrm;
-        WORDPTR arg_id;
+        word_p arg_id;
         int32_t id;
 
         if(rplDepthData() < 1) {
@@ -1902,7 +1902,7 @@ void LIB_HANDLER()
     case STOALARM:
     {
         //@SHORT_DESC=Create a new alarm
-        WORDPTR arg_alarm;
+        word_p arg_alarm;
         int32_t alarm_id;
         struct alarm alrm;
 
@@ -1926,7 +1926,7 @@ void LIB_HANDLER()
     case DELALARM:
     {
         //@SHORT_DESC=Delete an existing alarm
-        WORDPTR arg_id;
+        word_p arg_id;
         int32_t id;
 
         if(rplDepthData() < 1) {
@@ -1959,7 +1959,7 @@ void LIB_HANDLER()
         struct time tm;
         struct alarm alrm;
         REAL r_dt, r_tm;
-        WORDPTR arg, arg_tm, arg_dt;
+        word_p arg, arg_tm, arg_dt;
         int64_t sec;
 
         if(rplDepthData() < 1) {
@@ -2118,11 +2118,11 @@ void LIB_HANDLER()
         rplDropData(1);
 
         if(addr & 3) {
-            BYTEPTR data = (BYTEPTR) NUMBER2PTR(addr & 0xffffffff);
+            byte_p data = (byte_p) NUMBER2PTR(addr & 0xffffffff);
             addr = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
         }
         else {
-            WORDPTR data = NUMBER2PTR(addr & 0xffffffff);
+            word_p data = NUMBER2PTR(addr & 0xffffffff);
             addr = data[0];
         }
         rplNewint32_tPush(addr, HEXint32_t);
@@ -2160,7 +2160,7 @@ void LIB_HANDLER()
 
         if(addr & 3) {
             // MISALIGNED POKE
-            BYTEPTR ptr = (BYTEPTR) NUMBER2PTR(addr & 0xffffffff);
+            byte_p ptr = (byte_p) NUMBER2PTR(addr & 0xffffffff);
 
             ptr[0] = value & 0xff;
             ptr[1] = (value >> 8) & 0xff;
@@ -2169,7 +2169,7 @@ void LIB_HANDLER()
 
         }
         else {
-            WORDPTR ptr = NUMBER2PTR(addr & 0xffffffff);
+            word_p ptr = NUMBER2PTR(addr & 0xffffffff);
             *ptr = (WORD) (value & 0xffffffffLL);
         }
 
@@ -2184,7 +2184,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR newobj = rplMakeNewCopy(rplPeekData(1));
+        word_p newobj = rplMakeNewCopy(rplPeekData(1));
         if(!newobj)
             return;
         rplOverwriteData(1, newobj);
@@ -2194,7 +2194,7 @@ void LIB_HANDLER()
     case VERSION:
     {
         //@SHORT_DESC=Get newRPL version string
-        rplPushData((WORDPTR) newrpl_version);
+        rplPushData((word_p) newrpl_version);
         rplCallOvrOperator(CMD_OVR_EVAL);
 
         return;
@@ -2209,21 +2209,21 @@ void LIB_HANDLER()
         // SYSTEM SANITY CHECK
         //@SHORT_DESC=@HIDE
         if(rplVerifyDStack(0))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyRStack())
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyTempOb(0))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyDirectories(0))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
 
         return;
 
@@ -2232,21 +2232,21 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=@HIDE
         if(rplVerifyDStack(0))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyRStack())
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyTempOb(1))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         if(rplVerifyDirectories(0))
-            rplPushDataNoGrow((WORDPTR) one_bint);
+            rplPushDataNoGrow((word_p) one_bint);
         else
-            rplPushDataNoGrow((WORDPTR) zero_bint);
+            rplPushDataNoGrow((word_p) zero_bint);
         return;
     }
     case USBFWUPDATE:
@@ -2278,7 +2278,7 @@ void LIB_HANDLER()
 
         // RUN THE RPL CODE IMPLEMENTING THE COMMAND
         rplPushRet(IPtr);
-        IPtr = (WORDPTR) cmd_TEVAL;
+        IPtr = (word_p) cmd_TEVAL;
         return;
     }
 
@@ -2411,7 +2411,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, ObjectIDHash=hash, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        libGetRomptrID(LIBRARY_NUMBER, (WORDPTR *) ROMPTR_TABLE, ObjectPTR);
+        libGetRomptrID(LIBRARY_NUMBER, (word_p *) ROMPTR_TABLE, ObjectPTR);
 
         return;
     case OPCODE_ROMID2PTR:
@@ -2420,7 +2420,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        libGetPTRFromID((WORDPTR *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
+        libGetPTRFromID((word_p *) ROMPTR_TABLE, ObjectID, ObjectIDHash);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -2468,7 +2468,7 @@ void LIB_HANDLER()
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = (WORDPTR) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = (word_p) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }
@@ -2478,7 +2478,7 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
     case OPCODE_LIBMSG:
@@ -2487,11 +2487,11 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
 
-        libFindMsg(LibError, (WORDPTR) LIB_MSGTABLE);
+        libFindMsg(LibError, (word_p) LIB_MSGTABLE);
         return;
     }
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:

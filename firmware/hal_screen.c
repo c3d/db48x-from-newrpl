@@ -257,7 +257,7 @@ void halSetCmdLineHeight(int h)
 
 // COMPUTE HEIGHT AND WIDTH OF OBJECT TO DISPLAY ON STACK
 
-int32_t halGetDispObjectHeight(WORDPTR object, UNIFONT *font)
+int32_t halGetDispObjectHeight(word_p object, UNIFONT *font)
 {
     UNUSED_ARGUMENT(object);
     // TODO: ADD MULTILINE OBJECTS, ETC.
@@ -329,9 +329,9 @@ void halRedrawForm(gglsurface *scr)
     oldright = scr->right;
     oldbottom = scr->bottom;
 
-    WORDPTR form, bmp;
+    word_p form, bmp;
 
-    form = rplGetSettings((WORDPTR) currentform_ident);
+    form = rplGetSettings((word_p) currentform_ident);
 
     if (!form)
     {
@@ -408,7 +408,7 @@ void halRedrawStack(gglsurface *scr)
     int32_t           width, height;
     char           num[16];
     const UNIFONT *levelfnt;
-    WORDPTR        object;
+    word_p        object;
 
     oldleft  = scr->left;
     oldtop  = scr->top;
@@ -508,11 +508,11 @@ void halRedrawStack(gglsurface *scr)
             {
                 // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
 
-                WORDPTR string  = (WORDPTR) invalid_string;
+                word_p string  = (word_p) invalid_string;
 
                 // NOW SIZE THE STRING OBJECT
                 int32_t    nchars  = rplStrSize(string);
-                BYTEPTR charptr = (BYTEPTR) (string + 1);
+                byte_p charptr = (byte_p) (string + 1);
 
                 width           = StringWidthN((char *) charptr, (char *) charptr + nchars, levelfnt);
                 height          = levelfnt->BitmapHeight;
@@ -641,7 +641,7 @@ UNIFONT const *halGetSystemFontbyHeight(int height)
     int                  howclose = height;
     const UNIFONT       *ptr;
     const UNIFONT       *selection = NULL;
-    const WORDPTR const *romtable  = rplGetFontRomPtrTableAddress();
+    const word_p const *romtable  = rplGetFontRomPtrTableAddress();
 
     for (k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2)
     {
@@ -673,8 +673,8 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
     if (!ISDIR(*SettingsDir))
         return;
 
-    WORDPTR       *var;
-    WORDPTR const *romtable = rplGetFontRomPtrTableAddress();
+    word_p       *var;
+    word_p const *romtable = rplGetFontRomPtrTableAddress();
     var                     = rplFindFirstByHandle(SettingsDir);
 
     while (var)
@@ -706,7 +706,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
 
 // CHANGE SYSTEM PALETTE TO A NEW THEME
 // IF palette IS NULL, USE DEFAULT THEME
-void halSetupTheme(WORDPTR palette)
+void halSetupTheme(word_p palette)
 {
     if (!palette)
     {
@@ -800,7 +800,7 @@ void halSetupTheme(WORDPTR palette)
 void halInitScreen()
 {
     // RESTORE THE SCREEN
-    WORDPTR saved = rplGetSettings((WORDPTR) screenconfig_ident);
+    word_p saved = rplGetSettings((word_p) screenconfig_ident);
     if (saved)
     {
         // JUST THE CONTRAST SETTINGS FOR NOW
@@ -855,12 +855,12 @@ void halRedrawHelp(gglsurface *scr)
 
     halScreenUpdated();
 
-    WORDPTR helptext;
+    word_p helptext;
     int64_t  m1code  = rplGetMenuCode(halScreen.HelpMode >> 16);
-    WORDPTR MenuObj = uiGetLibMenu(m1code);
+    word_p MenuObj = uiGetLibMenu(m1code);
     int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
     int32_t    k;
-    WORDPTR item;
+    word_p item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
@@ -893,7 +893,7 @@ void halRedrawHelp(gglsurface *scr)
         // THE HELP TEXT SHOULD BE THE OBJECT DECOMPILED
 
         // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
-        WORDPTR *var = rplFindGlobal(helptext, 1);
+        word_p *var = rplFindGlobal(helptext, 1);
 
         if (!var)
         {
@@ -907,12 +907,12 @@ void halRedrawHelp(gglsurface *scr)
 
         Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
         // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-        WORDPTR objdecomp   = rplDecompile(var[1], DECOMP_NOHINTS);
+        word_p objdecomp   = rplDecompile(var[1], DECOMP_NOHINTS);
         Exceptions          = SavedException;
         ErrorCode           = SavedErrorCode;
 
         if (!objdecomp)
-            helptext = (WORDPTR) empty_string;
+            helptext = (word_p) empty_string;
         else
             helptext = objdecomp;
 
@@ -941,18 +941,18 @@ void halRedrawHelp(gglsurface *scr)
         namew += 3 + StringWidth(": ", FONT_HLPTITLE);
 
         int     xend;
-        BYTEPTR basetext  = (BYTEPTR) (helptext + 1);
-        BYTEPTR endoftext = basetext + rplStrSize(helptext);
-        BYTEPTR nextline, endofline;
+        byte_p basetext  = (byte_p) (helptext + 1);
+        byte_p endoftext = basetext + rplStrSize(helptext);
+        byte_p nextline, endofline;
 
         for (k = 0; k < 3; ++k)
         {
             xend      = LCD_W - 1 - namew;
-            endofline = (BYTEPTR) StringCoordToPointer((char *) basetext, (char *) endoftext, FONT_HLPTEXT, &xend);
+            endofline = (byte_p) StringCoordToPointer((char *) basetext, (char *) endoftext, FONT_HLPTEXT, &xend);
             if (endofline < endoftext)
             {
                 // BACK UP TO THE NEXT WHITE CHARACTER
-                BYTEPTR whitesp = endofline;
+                byte_p whitesp = endofline;
                 while ((whitesp > basetext) && (*whitesp != ' '))
                     --whitesp;
                 if (whitesp >= basetext)
@@ -991,7 +991,7 @@ void halRedrawHelp(gglsurface *scr)
 
         // SHOW MESSAGE'S FIRST 3 LINES ONLY
         int32_t    currentline = 0, nextline;
-        BYTEPTR basetext    = (BYTEPTR) (helptext + 1);
+        byte_p basetext    = (byte_p) (helptext + 1);
         for (k = 0; k < 3; ++k)
         {
             nextline = rplStringGetLinePtr(helptext, 2 + k);
@@ -1080,10 +1080,10 @@ void halRedrawMenu1(gglsurface *scr)
 
 #ifndef TARGET_PRIME1
     int64_t  m1code  = rplGetMenuCode(1);
-    WORDPTR MenuObj = uiGetLibMenu(m1code);
+    word_p MenuObj = uiGetLibMenu(m1code);
     int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
     int32_t    k;
-    WORDPTR item;
+    word_p item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
@@ -1128,10 +1128,10 @@ void halRedrawMenu1(gglsurface *scr)
         ggl_cliphline(scr, ybottom, 0, LCD_W - 1, ggl_mkcolor(PAL_MENU_HLINE));
 
         int64_t  m1code  = rplGetMenuCode(1);
-        WORDPTR MenuObj = uiGetLibMenu(m1code);
+        word_p MenuObj = uiGetLibMenu(m1code);
         int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
         int32_t    k;
-        WORDPTR item;
+        word_p item;
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
         // FOR EXAMPLE BY PURGING VARIABLES
@@ -1185,10 +1185,10 @@ void halRedrawMenu1(gglsurface *scr)
         // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
         int64_t  m1code  = rplGetMenuCode(1);
-        WORDPTR MenuObj = uiGetLibMenu(m1code);
+        word_p MenuObj = uiGetLibMenu(m1code);
         int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
         int32_t    k;
-        WORDPTR item;
+        word_p item;
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
         // FOR EXAMPLE BY PURGING VARIABLES
@@ -1343,10 +1343,10 @@ void halRedrawMenu2(gglsurface *scr)
 #endif /* TARGET_PRIME1 */
 
     int64_t  m2code  = rplGetMenuCode(2);
-    WORDPTR MenuObj = uiGetLibMenu(m2code);
+    word_p MenuObj = uiGetLibMenu(m2code);
     int32_t    nitems  = uiCountMenuItems(m2code, MenuObj);
     int32_t    k;
-    WORDPTR item;
+    word_p item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
@@ -1473,8 +1473,8 @@ void halRedrawStatus(gglsurface *scr)
         // AUTOCOMPLETE
         if (halScreen.CmdLineState & CMDSTATE_ACACTIVE)
         {
-            BYTEPTR namest;
-            BYTEPTR nameend;
+            byte_p namest;
+            byte_p nameend;
             if (halScreen.ACSuggestion != 0)
             {
                 // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
@@ -1485,7 +1485,7 @@ void halRedrawStatus(gglsurface *scr)
                     int32_t    y       = ytop + 1 + FONT_STATUS->BitmapHeight;
 
                     // FOR NOW JUST DISPLAY THE SELECTED TOKEN
-                    WORDPTR cmdname = rplDecompile(((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
+                    word_p cmdname = rplDecompile(((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
                                                         ? SuggestedObject
                                                         : (&halScreen.ACSuggestion)),
                                                    DECOMP_NOHINTS);
@@ -1497,7 +1497,7 @@ void halRedrawStatus(gglsurface *scr)
                         return;
                     }
 
-                    namest  = (BYTEPTR) (cmdname + 1);
+                    namest  = (byte_p) (cmdname + 1);
                     nameend = namest + rplStrSize(cmdname);
                     DrawTextBkN(STATUS_AREA_X + 2,
                                 y,
@@ -1514,8 +1514,8 @@ void halRedrawStatus(gglsurface *scr)
         {
             // SHOW CURRENT PATH ON SECOND LINE
             int32_t    nnames, j, width, xst;
-            WORDPTR pathnames[8], lastword;
-            BYTEPTR start, end;
+            word_p pathnames[8], lastword;
+            byte_p start, end;
             int32_t    y = ytop + 1 + FONT_HEIGHT(FONT_STATUS);
 
             nnames    = rplGetFullPath(CurrentDir, pathnames, 8);
@@ -1526,11 +1526,11 @@ void halRedrawStatus(gglsurface *scr)
             {
                 if (ISIDENT(*pathnames[j]))
                 {
-                    start    = (BYTEPTR) (pathnames[j] + 1);
+                    start    = (byte_p) (pathnames[j] + 1);
                     lastword = rplSkipOb(pathnames[j]) - 1;
                     if (*lastword & 0xff000000)
                     {
-                        end = (BYTEPTR) (lastword + 1);
+                        end = (byte_p) (lastword + 1);
                         width += StringWidthN((char *) start, (char *) end, FONT_STATUS);
                     }
                     else
@@ -1549,13 +1549,13 @@ void halRedrawStatus(gglsurface *scr)
             {
                 if (ISIDENT(*pathnames[j]))
                 {
-                    start    = (BYTEPTR) (pathnames[j] + 1);
+                    start    = (byte_p) (pathnames[j] + 1);
                     lastword = rplSkipOb(pathnames[j]) - 1;
                     DrawTextBk(xst, y, "/", FONT_STATUS, ggl_mkcolor(PAL_STA_TEXT), ggl_mkcolor(PAL_STA_BG), scr);
                     xst = scr->x;
                     if (*lastword & 0xff000000)
                     {
-                        end = (BYTEPTR) (lastword + 1);
+                        end = (byte_p) (lastword + 1);
                         DrawTextBkN(xst,
                                     y,
                                     (char *) start,
@@ -1972,7 +1972,7 @@ void halRedrawCmdLine(gglsurface *scr)
         }
 
         int32_t    y       = (halScreen.LineCurrent - halScreen.LineVisible) * FONT_HEIGHT(FONT_CMDLINE);
-        BYTEPTR cmdline = (BYTEPTR) (CmdLineCurrentLine + 1);
+        byte_p cmdline = (byte_p) (CmdLineCurrentLine + 1);
         int32_t    nchars  = rplStrSize(CmdLineCurrentLine);
 
         if (halScreen.DirtyFlag & CMDLINE_DIRTY)
@@ -2015,14 +2015,14 @@ void halRedrawCmdLine(gglsurface *scr)
 
                 if ((startoff >= 0) || (endoff >= 0))
                 {
-                    BYTEPTR string = (BYTEPTR) (CmdLineText + 1) + startoff;
-                    BYTEPTR selst, selend;
-                    BYTEPTR strend;
+                    byte_p string = (byte_p) (CmdLineText + 1) + startoff;
+                    byte_p selst, selend;
+                    byte_p strend;
 
                     if ((startoff >= 0) && (endoff < 0))
-                        strend = (BYTEPTR) (CmdLineText + 1) + rplStrSize(CmdLineText);
+                        strend = (byte_p) (CmdLineText + 1) + rplStrSize(CmdLineText);
                     else
-                        strend = (BYTEPTR) (CmdLineText + 1) + endoff;
+                        strend = (byte_p) (CmdLineText + 1) + endoff;
 
                     selst = selend = strend;
                     tail           = 0;
@@ -2116,9 +2116,9 @@ void halRedrawCmdLine(gglsurface *scr)
         if (halScreen.DirtyFlag & CMDLINE_LINEDIRTY)
         {
             // UPDATE THE CURRENT LINE
-            BYTEPTR string = cmdline;
-            BYTEPTR selst, selend;
-            BYTEPTR strend = cmdline + nchars;
+            byte_p string = cmdline;
+            byte_p selst, selend;
+            byte_p strend = cmdline + nchars;
             int32_t    xcoord, tail;
 
             selst = selend = strend;
@@ -2233,9 +2233,9 @@ void halRedrawCmdLine(gglsurface *scr)
                 {
                     // UPDATE THE CURRENT LINE
                     // UPDATE THE CURRENT LINE
-                    BYTEPTR string = cmdline;
-                    BYTEPTR selst, selend;
-                    BYTEPTR strend = cmdline + nchars;
+                    byte_p string = cmdline;
+                    byte_p selst, selend;
+                    byte_p strend = cmdline + nchars;
                     int32_t    xcoord, tail;
 
                     selst = selend = strend;
@@ -2561,15 +2561,15 @@ const WORD const text_editor_string[] = { MAKESTRING(12),
                                           TEXT2WORD('a', 'n', 'd', ' '),
                                           TEXT2WORD('L', 'i', 'n', 'e') };
 
-WORDPTR          halGetCommandName(WORDPTR NameObject)
+word_p          halGetCommandName(word_p NameObject)
 {
     WORD Opcode = NameObject ? *NameObject : 0;
 
     if (Opcode == 0)
-        return (WORDPTR) text_editor_string;
+        return (word_p) text_editor_string;
     if (ISSYMBOLIC(Opcode))
     {
-        WORDPTR OpObject = rplSymbMainOperatorPTR(NameObject);
+        word_p OpObject = rplSymbMainOperatorPTR(NameObject);
         if (OpObject)
         {
             Opcode     = *OpObject;
@@ -2591,7 +2591,7 @@ WORDPTR          halGetCommandName(WORDPTR NameObject)
 
     Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    WORDPTR opname      = rplDecompile(NameObject, DECOMP_NOHINTS);
+    word_p opname      = rplDecompile(NameObject, DECOMP_NOHINTS);
     Exceptions          = SavedException;
     ErrorCode           = SavedErrorCode;
 
@@ -2639,11 +2639,11 @@ void halShowErrorMsg()
         int32_t xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
-            WORDPTR cmdname = halGetCommandName(ExceptionPointer);
+            word_p cmdname = halGetCommandName(ExceptionPointer);
             if (cmdname)
             {
-                BYTEPTR start = (BYTEPTR) (cmdname + 1);
-                BYTEPTR end   = start + rplStrSize(cmdname);
+                byte_p start = (byte_p) (cmdname + 1);
+                byte_p end   = start + rplStrSize(cmdname);
 
                 xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
                 DrawTextN(scr.left + 6,
@@ -2664,13 +2664,13 @@ void halShowErrorMsg()
             if (Exceptions & (1 << errbit))
             {
                 ecode           = MAKEMSG(0, errbit);
-                WORDPTR message = uiGetLibMsg(ecode);
+                word_p message = uiGetLibMsg(ecode);
                 if (!message)
                     message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
                 if (message)
                 {
-                    BYTEPTR msgstart = (BYTEPTR) (message + 1);
-                    BYTEPTR msgend   = msgstart + rplStrSize(message);
+                    byte_p msgstart = (byte_p) (message + 1);
+                    byte_p msgend   = msgstart + rplStrSize(message);
 
                     DrawTextN(scr.left + 6,
                               scr.top + 3 + FONT_HEIGHT(FONT_HLPTEXT),
@@ -2690,11 +2690,11 @@ void halShowErrorMsg()
         int32_t xstart = scr.left + 6;
         if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
         {
-            WORDPTR cmdname = halGetCommandName(ExceptionPointer);
+            word_p cmdname = halGetCommandName(ExceptionPointer);
             if (cmdname)
             {
-                BYTEPTR start = (BYTEPTR) (cmdname + 1);
-                BYTEPTR end   = start + rplStrSize(cmdname);
+                byte_p start = (byte_p) (cmdname + 1);
+                byte_p end   = start + rplStrSize(cmdname);
 
                 xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
                 DrawTextN(scr.left + 6,
@@ -2710,13 +2710,13 @@ void halShowErrorMsg()
         DrawText(xstart, scr.top + 1, "Error:", FONT_HLPTITLE, ggl_mkcolor(PAL_HLP_TEXT), &scr);
         // GET NEW TRANSLATABLE MESSAGES
 
-        WORDPTR message = uiGetLibMsg(ErrorCode);
+        word_p message = uiGetLibMsg(ErrorCode);
         if (!message)
             message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
         if (message)
         {
-            BYTEPTR msgstart = (BYTEPTR) (message + 1);
-            BYTEPTR msgend   = msgstart + rplStrSize(message);
+            byte_p msgstart = (byte_p) (message + 1);
+            byte_p msgend   = msgstart + rplStrSize(message);
 
             DrawTextN(scr.left + 6,
                       scr.top + 3 + FONT_HEIGHT(FONT_HLPTITLE),

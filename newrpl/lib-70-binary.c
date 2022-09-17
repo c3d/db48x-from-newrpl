@@ -70,11 +70,11 @@ INCLUDE_ROMOBJECT(lib70_basecycle);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[] = {
-    //(WORDPTR)LIB_MSGTABLE,
-    (WORDPTR) LIB_HELPTABLE,
-    (WORDPTR) lib70menu_main,
-    (WORDPTR) lib70_basecycle,
+const word_p const ROMPTR_TABLE[] = {
+    //(word_p)LIB_MSGTABLE,
+    (word_p) LIB_HELPTABLE,
+    (word_p) lib70menu_main,
+    (word_p) lib70_basecycle,
     0
 };
 
@@ -150,7 +150,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         low64[0] = (low64[0] & ~(0x3f << 4)) | (wsize << 4);
 
         rplDropData(1);
@@ -166,8 +166,8 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
-        //WORDPTR hi64=SystemFlags+5;
+        word_p low64 = SystemFlags + 1;
+        //word_p hi64=SystemFlags+5;
 
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
@@ -221,7 +221,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 |= num2;
@@ -284,7 +284,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 &= num2;
@@ -347,7 +347,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 ^= num2;
@@ -410,7 +410,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if((num2 > wsize) || (num2 < -wsize))
@@ -477,7 +477,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
         uint64_t wmask = (1ULL << wsize) - 1;
 
@@ -548,7 +548,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if(num2 > 0)
@@ -614,7 +614,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 += num2;
@@ -677,7 +677,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 -= num2;
@@ -740,7 +740,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 *= num2;
@@ -803,7 +803,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         if(num2 == 0) {
@@ -884,7 +884,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num2 %= wsize + 1;
@@ -956,7 +956,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num2 = -num2;
@@ -1019,7 +1019,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 = ~num1;
@@ -1067,7 +1067,7 @@ void LIB_HANDLER()
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64 = SystemFlags + 1;
+        word_p low64 = SystemFlags + 1;
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
         num1 = -num1;
@@ -1238,12 +1238,12 @@ void LIB_HANDLER()
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        libFindMsg(CmdHelp, (WORDPTR) LIB_HELPTABLE);
+        libFindMsg(CmdHelp, (word_p) LIB_HELPTABLE);
         return;
     }
 
     case OPCODE_LIBINSTALL:
-        LibraryList = (WORDPTR) libnumberlist;
+        LibraryList = (word_p) libnumberlist;
         RetNum = OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
