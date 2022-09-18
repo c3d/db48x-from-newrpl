@@ -28,5 +28,24 @@ void ggl_initscr(gglsurface *srf)
 #endif
 }
 
+
+gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height)
+{
+    gglsurface result = {
+        .pixels = bits,
+        .width  = width,
+        .height = height,
+        .bpp    = 1,
+        .x      = 0,
+        .y      = 0,
+        .left   = 0,
+        .top    = 0,
+        .right  = width - 1,
+        .bottom = height - 1,
+    };
+    return result;
+}
+
+
 // Global palette, can be used for grayscale conversion or for themes
 color_t ggl_palette[PALETTE_SIZE] SYSTEM_GLOBAL;

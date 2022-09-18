@@ -8,7 +8,152 @@
 // BASIC GRAPHICS ROUTINES
 #include <ui.h>
 
-int StringWidthN(utf8_p Text, utf8_p End, UNIFONT const * Font)
+
+typedef const unsigned *offset_p;
+
+
+static inline coord DrawTextInternal(gglsurface    *surface,
+                                     coord          x,
+                                     coord          y,
+                                     utf8_p         Text,
+                                     utf8_p         End,
+                                     UNIFONT const *Font,
+                                     gglop          fgop,
+                                     pattern_t      foreground,
+                                     gglop          bgop,
+                                     pattern_t      background)
+// ----------------------------------------------------------------------------
+//   Draw a UTF-8 text applying the given graphic operations
+// ----------------------------------------------------------------------------
+{
+    // If clipping conditions are such that we won't draw anything, quick exit
+    if (surface->right < 0)
+        return x;
+    if (y > surface->bottom)
+        return x;
+    if (y + (int) Font->BitmapHeight <= surface->top)
+        return x;
+
+    unsigned  *fbase    = (unsigned *) Font;
+    offset_p   offtable = (offset_p) (fbase + Font->OffsetTable);
+    pixword   *fontbits = (pixword *) (fbase + Font->OffsetBitmap);
+
+    size       fwidth   = Font->BitmapWidth << 3;
+    size       fheight  = Font->BitmapHeight;
+    gglsurface fontsrf  = ggl_monochrome_bitmap(fontbits, fwidth, fheight);
+
+    coord      x0       = x;
+    size       width    = 0;
+    size       height   = fheight;
+
+    while (Text < End)
+    {
+        int cp = utf82cp(Text, End);
+        if (cp == -1)
+        {
+            // Skip invalid code points
+            ++Text;
+            continue;
+        }
+        if (cp == '\n' || cp == '\r')
+        {
+            // CR or LF:
+            Text++;
+            if (Text != End)
+            {
+                x = x0;
+                y += height;
+            }
+            continue;
+        }
+
+        if (cp > 0x7f)
+        {
+            int cpinfo = getCPInfo(cp);
+
+            // Check combining marks
+            switch (cp)
+            {
+            case 0x0305:
+                // Combining overline
+                // We use the width from previous character to draw overline
+                // REVISIT: How does this work with background?
+                ggl_cliphline(surface, y, x - width, x, foreground);
+                break;
+            }
+
+            if (CCLASS(cpinfo) != 0)
+            {
+                // TODO: Add support for combiners
+                Text = utf8skip(Text, End);
+                continue;
+            }
+        }
+
+        // Get the information from the font
+        int      rangeend = 0;
+        int      startcp  = 0;
+        offset_p mapptr   = Font->MapTable - 1;
+        do
+        {
+            ++mapptr;
+            startcp  = rangeend;
+            rangeend = startcp + RANGE_LEN(*mapptr);
+        } while (cp >= rangeend);
+
+        int offset = FONT_OFFSET(*mapptr);
+        if (offset == 0xfff)
+            width = offtable[0];
+        else
+            width = offtable[offset + cp - startcp];
+
+        int xf = width & 0xffff;
+        width >>= 16;
+
+        if (width)
+        {
+            ggl_mixblit(surface,        // Target surface
+                        &fontsrf,       // Font we get the bits from
+                        x,              // Left position on screen
+                        x + width - 1,  // Right position on screen
+                        y,              // Top position on screen
+                        y + height - 1, // Bottom position on screen
+                        xf,             // Horizontal position in the font
+                        0,              // Vertical position in the font
+                        fgop,           // Set the pixels
+                        foreground,     // Colors to use
+                        surface->bpp,   // Bits per pixel of target surface
+                        1,              // Bits per pixel of font
+                        surface->bpp,   // Bits per pixel for colors
+                        CLIP_ALL);      // Perform clipping
+            if (bgop)
+                ggl_mixblit(surface,
+                            &fontsrf,
+                            x,
+                            x + width - 1,
+                            y,
+                            y + height - 1,
+                            xf,
+                            0,
+                            bgop,
+                            background,
+                            surface->bpp,
+                            1,
+                            surface->bpp,
+                            CLIP_ALL);
+
+            x += width;
+        }
+        Text = utf8skip(Text, End);
+    }
+    return x;
+}
+
+
+size StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font)
+// ----------------------------------------------------------------------------
+//   Compute the width of a text given as an extent
+// ----------------------------------------------------------------------------
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
@@ -150,463 +295,115 @@ utf8_p StringCoordToPointer(utf8_p        Text,
 
 }
 
-int StringWidth(utf8_p Text, UNIFONT const * Font)
+size StringWidth(utf8_p Text, UNIFONT const * Font)
+// ----------------------------------------------------------------------------
+//   Compute the width of a zero-terminated UTF-8 text
+// ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
     return StringWidthN(Text, End, Font);
 }
 
-// DRAW TEXT WITH TRANSPARENT BACKGROUND
-// UTF8 STRING
 
-void DrawTextN(gglsurface    *drawsurf,
+void DrawTextN(gglsurface    *surface,
                coord          x,
                coord          y,
                utf8_p         Text,
                utf8_p         End,
                UNIFONT const *Font,
-               pattern_t      colors)
+               pattern_t      foreground)
+// ----------------------------------------------------------------------------
+//   Draw a range of text
+// ----------------------------------------------------------------------------
 {
-    int cp, startcp, rangeend, offset, cpinfo;
-    unsigned int *offtable;
-    const unsigned int *mapptr;
-    char *fontbitmap;
-
-    // If clipping conditions are such that we won't draw anything, quick exit
-    if(drawsurf->right < 0)
-        return;
-    if(y > drawsurf->bottom)
-        return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->top)
-        return;
-
-    fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
-
-    unsigned int w = 0;
-    int clipped = 0, h;
-    gglsurface srf;
-    srf.pixels = (pixword *)fontbitmap;
-    srf.width = Font->BitmapWidth << 3;
-    srf.y = 0;
-
-    h = Font->BitmapHeight;
-
-    if(y < drawsurf->top) {
-        h -= drawsurf->top - y;
-        srf.y = drawsurf->top - y;
-        y = drawsurf->top;
-    }
-    if(y + h - 1 > drawsurf->bottom)
-        h = drawsurf->bottom - y + 1;
-
-    drawsurf->y = y;
-    drawsurf->x = x;
-
-    while(Text < End) {
-
-        cp = utf82cp(Text, End);
-
-        if(cp == -1) {
-            ++Text;
-            continue;
-        }
-        if(cp == '\n' || cp == '\r')
-            return;
-
-        if(cp > 0x7f) {
-            cpinfo = getCPInfo(cp);
-            // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
-            switch (cp) {
-            case 0x0305:       // COMBINING OVERLINE
-                // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER (POSSIBLY CLIPPED)
-                // clipped&0xff = NUMBER OF PIXELS CROPPED ON THE RIGHT OF THE CHARACTER
-                // clipped>>8 = NUMBER OF PIXELS CROPPED ON THE LEFT OF THE CHARACTER
-
-                // w+(clipped&0xff)+(clipped>>8) = ORIGINAL WIDTH OF THE CHARACTER
-                // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
-
-                ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
-                              drawsurf->x - 2 + (clipped & 0xff), colors);
-                break;
-            }
-
-            if(CCLASS(cpinfo) != 0) {
-                // ADD SUPPORT FOR COMBINERS
-                Text = utf8skip(Text, End);
-                continue;
-            }
-        }
-
-        // GET THE INFORMATION FROM THE FONT
-        rangeend = 0;
-        mapptr = Font->MapTable - 1;
-        do {
-            ++mapptr;
-            startcp = rangeend;
-            rangeend = startcp + RANGE_LEN(*mapptr);
-        }
-        while(cp >= rangeend);
-
-        offset = FONT_OFFSET(*mapptr);
-        if(offset == 0xfff)
-            w = offtable[0];
-        else {
-            w = offtable[offset + cp - startcp];
-        }
-
-        srf.x = w & 0xffff;
-        w >>= 16;
-        clipped = 0;
-        if(w) {
-            if(drawsurf->x > drawsurf->right)
-                return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->left) {
-                drawsurf->x += w;
-                Text = utf8skip(Text, End);
-                continue;
-            }
-            if(drawsurf->x < drawsurf->left) {
-                srf.x += drawsurf->left - drawsurf->x;
-                w -= drawsurf->left - drawsurf->x;
-                clipped |= (drawsurf->left - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
-                drawsurf->x = drawsurf->left;
-            }
-            if(drawsurf->x + (int)w - 1 > drawsurf->right) {
-                clipped |= w - (drawsurf->right - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
-                w = drawsurf->right - drawsurf->x + 1;
-            }
-
-            // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
-            //if((color & 0xf) == 0xf)
-//                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
-//            else
-            ggl_monobitbltoper(drawsurf,
-                               &srf,
-                               w,
-                               h,
-                               colors.bits,
-                               ggl_opmaskcol);
-            drawsurf->x += w;
-        }
-        Text = utf8skip(Text, End);
-    }
-    return;
+    DrawTextInternal(surface,
+                     x,
+                     y,
+                     Text,
+                     End,
+                     Font,
+                     ggl_mono_fg,
+                     foreground,
+                     NULL,
+                     foreground);
 }
 
-// DRAW TEXT WITH SOLID BACKGROUND
-// UTF8 STRING
-void DrawTextBkN(gglsurface    *drawsurf,
-                 coord          x,
-                 coord          y,
-                 utf8_p        Text,
-                 utf8_p        End,
-                 UNIFONT const *Font,
-                 pattern_t      color,
-                 pattern_t      bkcolor)
-{
-    int cp, startcp, rangeend, offset, cpinfo;
-    unsigned int *offtable;
-    const unsigned int *mapptr;
-    char *fontbitmap;
 
-    if(drawsurf->left < 0)
-        return;
-
-    if(y > drawsurf->bottom)
-        return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->top)
-        return;
-
-    fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
-
-    unsigned int w = 0;
-    int clipped = 0, h;
-    gglsurface srf;
-    srf.pixels = (pixword *)fontbitmap;
-    srf.width = Font->BitmapWidth << 3;
-    srf.y = 0;
-
-    h = Font->BitmapHeight;
-
-    if(y < drawsurf->top) {
-        h -= drawsurf->top - y;
-        srf.y = drawsurf->top - y;
-        y = drawsurf->top;
-    }
-    if(y + h - 1 > drawsurf->bottom)
-        h = drawsurf->bottom - y + 1;
-
-    drawsurf->y = y;
-    drawsurf->x = x;
-
-    while(Text < End) {
-
-        cp = utf82cp(Text, End);
-
-        if(cp == -1) {
-            ++Text;
-            continue;
-        }
-
-        if(cp == '\n' || cp == '\r')
-            return;
-
-        if(cp > 0x7f) {
-            cpinfo = getCPInfo(cp);
-
-            // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
-            switch (cp) {
-            case 0x0305:       // COMBINING OVERLINE
-                // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER (POSSIBLY CLIPPED)
-                // clipped&0xff = NUMBER OF PIXELS CROPPED ON THE RIGHT OF THE CHARACTER
-                // clipped>>8 = NUMBER OF PIXELS CROPPED ON THE LEFT OF THE CHARACTER
-
-                // w+(clipped&0xff)+(clipped>>8) = ORIGINAL WIDTH OF THE CHARACTER
-                // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
-
-                ggl_cliphline(drawsurf, drawsurf->y, drawsurf->x - w,
-                              drawsurf->x - 2 + (clipped & 0xff), color);
-                break;
-            }
-
-            if(CCLASS(cpinfo) != 0) {
-                // ADD SUPPORT FOR COMBINERS
-                Text = utf8skip(Text, End);
-                continue;
-            }
-        }
-
-        // GET THE INFORMATION FROM THE FONT
-        rangeend = 0;
-        mapptr = Font->MapTable - 1;
-        do {
-            ++mapptr;
-            startcp = rangeend;
-            rangeend = startcp + RANGE_LEN(*mapptr);
-        }
-        while(cp >= rangeend);
-
-        offset = FONT_OFFSET(*mapptr);
-        if(offset == 0xfff)
-            w = offtable[0];
-        else {
-            w = offtable[offset + cp - startcp];
-        }
-
-        srf.x = w & 0xffff;
-        w >>= 16;
-        clipped = 0;
-        if(w) {
-
-            if(drawsurf->x > drawsurf->right)
-                return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->left) {
-                drawsurf->x += w;
-                Text = utf8skip(Text, End);
-                continue;
-            }
-            if(drawsurf->x < drawsurf->left) {
-                srf.x += drawsurf->left - drawsurf->x;
-                w -= drawsurf->left - drawsurf->x;
-                clipped |= (drawsurf->left - drawsurf->x) << 8;        // CLIPPED ON THE LEFT
-                drawsurf->x = drawsurf->left;
-            }
-            if(drawsurf->x + (int)w - 1 > drawsurf->right) {
-                clipped |= w - (drawsurf->right - drawsurf->x + 1);    // CLIPPED ON THE RIGHT
-                w = drawsurf->right - drawsurf->x + 1;
-            }
-
-            ggl_rect(drawsurf, drawsurf->x, drawsurf->y, drawsurf->x + w - 1,
-                    drawsurf->y + h - 1, bkcolor);
-            // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
-            //if((color & 0xf) == 0xf)
-//                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
-//            else
-                ggl_monobitbltoper(drawsurf, &srf, w, h, color.bits,
-                        ggl_opmaskcol);
-            drawsurf->x += w;
-        }
-        Text = utf8skip(Text, End);
-    }
-    return;
-
-}
-
-void DrawTextBk(gglsurface    *drawsurf,
-                coord          x,
-                coord          y,
-                utf8_p        Text,
-                UNIFONT const *Font,
-                pattern_t      color,
-                pattern_t      bkcolor)
-{
-    utf8_p End = StringEnd(Text);
-    DrawTextBkN(drawsurf, x, y, Text, End, Font, color, bkcolor);
-}
-
-void DrawText(gglsurface    *drawsurf,
+void DrawText(gglsurface    *surface,
               coord          x,
               coord          y,
               utf8_p        Text,
               UNIFONT const *Font,
               pattern_t      color)
+// ----------------------------------------------------------------------------
+//   Draw a null-terminated transparent text
+// ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
-    DrawTextN( drawsurf, x, y, Text, End, Font, color);
+    DrawTextN(surface, x, y, Text, End, Font, color);
 }
 
-// DRAWS TEXT TO A 1-BIT MONOCHROME SURFACE
-// TRANSPARENT BACKGROUND
-void DrawTextMono(gglsurface    *drawsurf,
+
+
+void DrawTextBkN(gglsurface    *surface,
+                 coord          x,
+                 coord          y,
+                 utf8_p         Text,
+                 utf8_p         End,
+                 UNIFONT const *Font,
+                 pattern_t      foreground,
+                 pattern_t      background)
+// ----------------------------------------------------------------------------
+//   Draw a text range with a background color
+// ----------------------------------------------------------------------------
+{
+    DrawTextInternal(surface,
+                     x,
+                     y,
+                     Text,
+                     End,
+                     Font,
+                     ggl_mono_fg,
+                     foreground,
+                     ggl_mono_bg,
+                     background);
+}
+
+void DrawTextBk(gglsurface    *surface,
+                coord          x,
+                coord          y,
+                utf8_p        Text,
+                UNIFONT const *Font,
+                pattern_t      foreground,
+                pattern_t      background)
+// ----------------------------------------------------------------------------
+//   Draw a nul-terminated text with a foreground and background color
+// ----------------------------------------------------------------------------
+{
+    utf8_p End = StringEnd(Text);
+    DrawTextBkN(surface, x, y, Text, End, Font, foreground, background);
+}
+
+
+void DrawTextMono(gglsurface    *surface,
                   coord          x,
                   coord          y,
                   utf8_p        Text,
                   UNIFONT const *Font,
                   pattern_t      color)
+// ----------------------------------------------------------------------------
+//   Draw a text to a monochrome target surface
+// ----------------------------------------------------------------------------
 {
-    int cp, startcp, rangeend, offset, cpinfo;
-    unsigned int *offtable;
-    const unsigned int *mapptr;
-    char *fontbitmap;
-
-    // FIND END OF STRING
     utf8_p End = StringEnd(Text);
-
-    if(drawsurf->left < 0)
-        return;
-
-    if(y > drawsurf->bottom)
-        return;
-    if(y + (int)Font->BitmapHeight <= drawsurf->top)
-        return;
-
-    fontbitmap = (char *)(((unsigned int *)Font) + Font->OffsetBitmap);
-    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
-
-    unsigned int w;
-    int h;
-    gglsurface srf;
-    srf.pixels = (pixword *)fontbitmap;
-    srf.width = Font->BitmapWidth << 3;
-    srf.y = 0;
-
-    h = Font->BitmapHeight;
-
-    if(y < drawsurf->top) {
-        h -= drawsurf->top - y;
-        srf.y = drawsurf->top - y;
-        y = drawsurf->top;
-    }
-    if(y + h - 1 > drawsurf->bottom)
-        h = drawsurf->bottom - y + 1;
-
-    drawsurf->y = y;
-    drawsurf->x = x;
-
-    while(Text < End) {
-
-        cp = utf82cp(Text, End);
-
-        if(cp == -1) {
-            ++Text;
-            continue;
-        }
-        if(cp == '\n' || cp == '\r')
-            return;
-
-        if(cp > 0x7f) {
-            cpinfo = getCPInfo(cp);
-
-            if(CCLASS(cpinfo) != 0) {
-                // ADD SUPPORT FOR COMBINERS
-                Text = utf8skip(Text, End);
-                continue;
-            }
-        }
-
-        // GET THE INFORMATION FROM THE FONT
-        rangeend = 0;
-        mapptr = Font->MapTable - 1;
-        do {
-            ++mapptr;
-            startcp = rangeend;
-            rangeend = startcp + RANGE_LEN(*mapptr);
-        }
-        while(cp >= rangeend);
-
-        offset = FONT_OFFSET(*mapptr);
-        if(offset == 0xfff)
-            w = offtable[0];
-        else {
-            w = offtable[offset + cp - startcp];
-        }
-
-        srf.x = w & 0xffff;
-        w >>= 16;
-
-        if(w) {
-
-            if(drawsurf->x > drawsurf->right)
-                return;
-            if(drawsurf->x + (int)w - 1 < drawsurf->left)
-                return;
-            if(drawsurf->x < drawsurf->left) {
-                srf.x += drawsurf->left - drawsurf->x;
-                w -= drawsurf->left - drawsurf->x;
-                drawsurf->x = drawsurf->left;
-            }
-            if(drawsurf->x + (int)w - 1 > drawsurf->right)
-                w = drawsurf->right - drawsurf->x + 1;
-
-            int address, f, k;
-            unsigned int destword;
-            // OFFSET TO THE FIRST SCAN IN PIXELS
-            for(k = 0; k < h; ++k) {
-                address = srf.x + (srf.y + k) * srf.width;
-                destword = 0;
-                for(f = 0; f < (int)w; ++f) {
-                    if(ggl_getmonopix((byte_p) srf.pixels, address)) {
-                        // PLOT A PIXEL ON DESTINATION
-                        destword |= 1 << f;
-                    }
-                    ++address;
-                }
-
-                unsigned char *cptr = (unsigned char *)drawsurf->pixels;
-                int offset = drawsurf->x + (drawsurf->y + k) * drawsurf->width;
-                cptr += offset >> 3;
-                offset &= 7;
-
-                // NOW ROTATE DESTINATION
-                destword <<= offset;
-                // THIS ONLY WORKS FOR FONTS WITH UP TO 8 PIXELS WIDE CHARACTERS
-                if(color.bits) {
-                    // BLACK LETTERS ON TRANSPARENT BACKGROUND
-                    *cptr |= destword;
-                    if(destword >> 8) {
-                        cptr[1] |= (destword >> 8);
-                    }
-                }
-                else {
-                    // WHITE LETTERS ON TRANSPARENT BACKGROUND
-                    destword = ~destword;
-                    *cptr &= destword;
-                    if(destword >> 8) {
-                        cptr[1] &= destword >> 8;
-                    }
-
-                }
-            }
-
-            drawsurf->x += w;
-
-        }
-
-        Text = utf8skip(Text, End);
-
-    }
-    return;
-
+    DrawTextInternal(surface,
+                     x,
+                     y,
+                     Text,
+                     End,
+                     Font,
+                     ggl_mono_fg_1bpp,
+                     color,
+                     NULL,
+                     color);
 }

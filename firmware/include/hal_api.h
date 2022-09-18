@@ -1039,14 +1039,16 @@ void        DrawTextMono(gglsurface    *drawsurf,
                          utf8_p         Text,
                          UNIFONT const *Font,
                          pattern_t      colors);
+
 static inline utf8_p StringEnd(utf8_p str)
 {
     while (*str)
         str++;
     return str;
 }
-int         StringWidth(utf8_p Text, UNIFONT const *Font);
-int         StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font);
+
+size        StringWidth(utf8_p Text, UNIFONT const *Font);
+size        StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font);
 utf8_p      StringCoordToPointer(utf8_p         Text,
                                  utf8_p         End,
                                  UNIFONT const *Font,
