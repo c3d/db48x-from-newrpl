@@ -523,6 +523,11 @@ static inline void ggl_blit(gglsurface *dst,
             result = op(dword, sword, aword);
             *dp    = (result & dmsk2) | (dword & ~dmsk2);
             data   = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
+
+            dp1 += dyoff;
+            dp2 += dyoff;
+            sp1 += syoff;
+            data = ggl_rotate_pattern_bits(data, ydir * BITS_PER_PIXEL);
         }
     }
 }
