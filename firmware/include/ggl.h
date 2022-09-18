@@ -317,7 +317,7 @@ typedef pixword (*ggloperator_fn)(pixword dest, pixword source, pixword param);
 
 static inline offset ggl_pixel_offset(gglsurface *s, coord x, coord y)
 {
-    return (s->width * y + x) * BITS_PER_PIXEL / BITS_PER_WORD;
+    return ((offset) s->width * y + x) * BITS_PER_PIXEL / BITS_PER_WORD;
 }
 
 static inline pixword *ggl_pixel_address(gglsurface *s, coord x, coord y)
