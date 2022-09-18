@@ -51,6 +51,7 @@
 #define COLORS_PER_PATTERN_ROW (BYTES_PER_PATTERN_ROW / sizeof(color_t))
 #define BITS_PER_PATTERN       (8 * sizeof(pattern_t))
 #define BITS_PER_WORD          (8 * sizeof(pixword))
+#define BITS_FROM_TOP          (BITS_PER_WORD - BITS_PER_PIXEL)
 
 
 typedef int      coord;
@@ -474,8 +475,8 @@ static inline void ggl_blit(gglsurface *dst,
 
     // Left and right masks
     pixword  ones   = ~0U;
-    pixword  dmsk1  = xback ? ones >> (BITS_PER_WORD - dsh1) : ones << dsh1;
-    pixword  dmsk2  = xback ? ones << dsh2 : ones >> (BITS_PER_WORD - dsh2);
+    pixword  dmsk1  = xback ? ones >> (BITS_FROM_TOP - dsh1) : ones << dsh1;
+    pixword  dmsk2  = xback ? ones << dsh2 : ones >> (BITS_FROM_TOP - dsh2);
 
     // Adjust the color pattern based on starting point
     uint64_t data   = colors.bits;
