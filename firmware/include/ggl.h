@@ -125,7 +125,7 @@ static inline pattern_t ggl_solid_pattern(color_t color)
 {
     uint64_t bits = 0;
     for (unsigned shift = 0; shift < 64; shift += BITS_PER_PIXEL)
-        bits |= color.value << shift;
+        bits |= (uint64_t) color.value << shift;
     pattern_t pat = { .bits = bits };
     return pat;
 }
@@ -134,7 +134,10 @@ static inline pattern_t ggl_pattern_2_colors_array(color_t colors[2])
 {
     uint64_t bits = 0;
     for (unsigned shift = 0; shift < 64 / BITS_PER_PIXEL; shift++)
-        bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 2)) % 2)].value;
+    {
+        unsigned index = (shift + ((shift / PATTERN_WIDTH) % 2)) % 2;
+        bits |= (uint64_t) colors[index].value << shift;
+    }
     pattern_t pat = { .bits = bits };
     return pat;
 }
@@ -149,7 +152,10 @@ static inline pattern_t ggl_pattern_4_colors_array(color_t colors[4])
 {
     uint64_t bits = 0;
     for (unsigned shift = 0; shift < 64 / BITS_PER_PIXEL; shift++)
-        bits |= colors[((shift + ((shift / PATTERN_WIDTH) % 4)) % 4)].value;
+    {
+        unsigned index  = (shift + ((shift / PATTERN_WIDTH) % 4)) % 4;
+        bits |= (uint64_t) colors[index].value << shift;
+    }
     pattern_t pat = { .bits = bits };
     return pat;
 }
