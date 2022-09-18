@@ -943,9 +943,9 @@ void halRedrawHelp(gglsurface *scr)
         namew += 3 + StringWidth(": ", FONT_HLPTITLE);
 
         int     xend;
-        cstring basetext  = (cstring) (helptext + 1);
-        cstring endoftext = basetext + rplStrSize(helptext);
-        cstring nextline, endofline;
+        utf8_p basetext  = (utf8_p) (helptext + 1);
+        utf8_p endoftext = basetext + rplStrSize(helptext);
+        utf8_p nextline, endofline;
 
         for (k = 0; k < 3; ++k)
         {
@@ -954,7 +954,7 @@ void halRedrawHelp(gglsurface *scr)
             if (endofline < endoftext)
             {
                 // BACK UP TO THE NEXT WHITE CHARACTER
-                cstring whitesp = endofline;
+                utf8_p whitesp = endofline;
                 while ((whitesp > basetext) && (*whitesp != ' '))
                     --whitesp;
                 if (whitesp >= basetext)
@@ -2699,7 +2699,7 @@ void halShowErrorMsg()
     }
 }
 
-void halShowMsgN(cstring Text, cstring End)
+void halShowMsgN(utf8_p Text, utf8_p End)
 {
     halErrorPopup();
 
@@ -2729,9 +2729,9 @@ void halShowMsgN(cstring Text, cstring End)
     DrawTextN(&scr, 3, ytop + 3, Text, End, FONT_HLPTEXT, ggl_solid(PAL_HLP_TEXT));
 }
 
-void halShowMsg(cstring Text)
+void halShowMsg(utf8_p Text)
 {
-    cstring End = StringEnd(Text);
+    utf8_p End = StringEnd(Text);
     halShowMsgN(Text, End);
 }
 

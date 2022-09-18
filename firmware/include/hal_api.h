@@ -1008,47 +1008,47 @@ extern WORD battery;
 void        DrawText(gglsurface    *drawsurf,
                      coord          x,
                      coord          y,
-                     cstring        Text,
+                     utf8_p         Text,
                      UNIFONT const *Font,
                      pattern_t      color);
 void        DrawTextN(gglsurface    *drawsurf,
                       coord          x,
                       coord          y,
-                      cstring        Text,
-                      cstring        End,
+                      utf8_p         Text,
+                      utf8_p         End,
                       UNIFONT const *Font,
                       pattern_t      color);
 void        DrawTextBk(gglsurface    *drawsurf,
                        coord          x,
                        coord          y,
-                       cstring        Text,
+                       utf8_p         Text,
                        UNIFONT const *Font,
                        pattern_t      color,
                        pattern_t      bkcolor);
 void        DrawTextBkN(gglsurface    *drawsurf,
                         coord          x,
                         coord          y,
-                        cstring        Text,
-                        cstring        End,
+                        utf8_p         Text,
+                        utf8_p         End,
                         UNIFONT const *Font,
                         pattern_t      color,
                         pattern_t      bkcolor);
 void        DrawTextMono(gglsurface    *drawsurf,
                          coord          x,
                          coord          y,
-                         cstring        Text,
+                         utf8_p         Text,
                          UNIFONT const *Font,
                          pattern_t      colors);
-static inline cstring StringEnd(cstring str)
+static inline utf8_p StringEnd(utf8_p str)
 {
-    while(*str)
+    while (*str)
         str++;
     return str;
 }
-int         StringWidth(cstring Text, UNIFONT const *Font);
-int         StringWidthN(cstring Text, cstring End, UNIFONT const *Font);
-cstring     StringCoordToPointer(cstring        Text,
-                                 cstring        End,
+int         StringWidth(utf8_p Text, UNIFONT const *Font);
+int         StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font);
+utf8_p      StringCoordToPointer(utf8_p         Text,
+                                 utf8_p         End,
                                  UNIFONT const *Font,
                                  int           *xcoord);
 
@@ -1204,8 +1204,8 @@ void          halSetupTheme(color16_t *palette);
 void          halSetNotification(enum halNotification type, unsigned color);
 unsigned      halGetNotification(enum halNotification type);
 void          halShowErrorMsg();
-void          halShowMsg(cstring Text);
-void          halShowMsgN(cstring Text, cstring End);
+void          halShowMsg(utf8_p Text);
+void          halShowMsgN(utf8_p Text, utf8_p End);
 void          halSetCmdLineHeight(int h);
 void          halStatusAreaPopup();
 void          halCancelPopup();

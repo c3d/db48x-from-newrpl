@@ -8,7 +8,7 @@
 // BASIC GRAPHICS ROUTINES
 #include <ui.h>
 
-int StringWidthN(cstring Text, cstring End, UNIFONT const * Font)
+int StringWidthN(utf8_p Text, utf8_p End, UNIFONT const * Font)
 {
     int cp, startcp, rangeend, offset, cpinfo;
     unsigned int *offtable;
@@ -74,8 +74,8 @@ int StringWidthN(cstring Text, cstring End, UNIFONT const * Font)
 
 // WARNING: DO NOT PASS xcoord=NULL, NO ARGUMENT CHECKS
 
-cstring StringCoordToPointer(cstring        Text,
-                             cstring        End,
+utf8_p StringCoordToPointer(utf8_p        Text,
+                             utf8_p        End,
                              UNIFONT const *Font,
                              int           *xcoord)
 {
@@ -150,9 +150,9 @@ cstring StringCoordToPointer(cstring        Text,
 
 }
 
-int StringWidth(cstring Text, UNIFONT const * Font)
+int StringWidth(utf8_p Text, UNIFONT const * Font)
 {
-    cstring End = StringEnd(Text);
+    utf8_p End = StringEnd(Text);
     return StringWidthN(Text, End, Font);
 }
 
@@ -162,8 +162,8 @@ int StringWidth(cstring Text, UNIFONT const * Font)
 void DrawTextN(gglsurface    *drawsurf,
                coord          x,
                coord          y,
-               cstring        Text,
-               cstring        End,
+               utf8_p         Text,
+               utf8_p         End,
                UNIFONT const *Font,
                pattern_t      colors)
 {
@@ -172,9 +172,9 @@ void DrawTextN(gglsurface    *drawsurf,
     const unsigned int *mapptr;
     char *fontbitmap;
 
-    if(drawsurf->left < 0)
+    // If clipping conditions are such that we won't draw anything, quick exit
+    if(drawsurf->right < 0)
         return;
-
     if(y > drawsurf->bottom)
         return;
     if(y + (int)Font->BitmapHeight <= drawsurf->top)
@@ -299,8 +299,8 @@ void DrawTextN(gglsurface    *drawsurf,
 void DrawTextBkN(gglsurface    *drawsurf,
                  coord          x,
                  coord          y,
-                 cstring        Text,
-                 cstring        End,
+                 utf8_p        Text,
+                 utf8_p        End,
                  UNIFONT const *Font,
                  pattern_t      color,
                  pattern_t      bkcolor)
@@ -437,23 +437,23 @@ void DrawTextBkN(gglsurface    *drawsurf,
 void DrawTextBk(gglsurface    *drawsurf,
                 coord          x,
                 coord          y,
-                cstring        Text,
+                utf8_p        Text,
                 UNIFONT const *Font,
                 pattern_t      color,
                 pattern_t      bkcolor)
 {
-    cstring End = StringEnd(Text);
+    utf8_p End = StringEnd(Text);
     DrawTextBkN(drawsurf, x, y, Text, End, Font, color, bkcolor);
 }
 
 void DrawText(gglsurface    *drawsurf,
               coord          x,
               coord          y,
-              cstring        Text,
+              utf8_p        Text,
               UNIFONT const *Font,
               pattern_t      color)
 {
-    cstring End = StringEnd(Text);
+    utf8_p End = StringEnd(Text);
     DrawTextN( drawsurf, x, y, Text, End, Font, color);
 }
 
@@ -462,7 +462,7 @@ void DrawText(gglsurface    *drawsurf,
 void DrawTextMono(gglsurface    *drawsurf,
                   coord          x,
                   coord          y,
-                  cstring        Text,
+                  utf8_p        Text,
                   UNIFONT const *Font,
                   pattern_t      color)
 {
@@ -472,7 +472,7 @@ void DrawTextMono(gglsurface    *drawsurf,
     char *fontbitmap;
 
     // FIND END OF STRING
-    cstring End = StringEnd(Text);
+    utf8_p End = StringEnd(Text);
 
     if(drawsurf->left < 0)
         return;
