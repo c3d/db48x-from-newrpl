@@ -27,10 +27,6 @@ SOURCES += \
     ../firmware/ggl/ggl/ggl_rect.c \
     ../firmware/ggl/ggl/ggl_rectp.c \
     ../firmware/ggl/ggl/ggl_revblt.c \
-    ../firmware/ggl/ggl/ggl_scrolldn.c \
-    ../firmware/ggl/ggl/ggl_scrolllf.c \
-    ../firmware/ggl/ggl/ggl_scrollrt.c \
-    ../firmware/ggl/ggl/ggl_scrollup.c \
     ../firmware/ggl/ggl/ggl_vline.c \
     ../firmware/hal_battery.c \
     ../firmware/hal_keyboard.c \

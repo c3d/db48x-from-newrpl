@@ -171,10 +171,6 @@ SOURCES += \
         firmware/ggl/ggl_ovlblt.c \
         firmware/ggl/ggl_rect.c \
         firmware/ggl/ggl_revblt.c \
-        firmware/ggl/ggl_scrolldn.c \
-        firmware/ggl/ggl_scrolllf.c \
-        firmware/ggl/ggl_scrollrt.c \
-        firmware/ggl/ggl_scrollup.c \
         firmware/ggl/ggl_vline.c \
 
 
