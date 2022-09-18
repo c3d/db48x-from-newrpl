@@ -7,15 +7,18 @@
 
 #include <ggl.h>
 
-pixword ggl_optransp(pixword dest, pixword src, pixword weight)
+pixword ggl_optransp(pixword dst, pixword src, pixword arg)
 {
-    // APPLY 100% TRANSPARENCY MASK
-    // tcol = TRANSPARENT COLOR IN src
-    pixword res = 0;
-    for (int f = 0; f < 8; ++f, src >>= 4, dest >>= 4)
+    // Weighted proportionality, where 'arg' is the weight.
+    // Brighter colors in 'arg' make the source more transparent.
+    pixword result = 0;
+    pixword max = (1U << BITS_PER_PIXEL) - 1;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += BITS_PER_PIXEL)
     {
-        res |= (src * (16 - weight) + dest * weight) >> 4;
-        res = (res >> 4) | (res << 28);
+        // In all cases, a N x N multiplication uses 2N bits, so when
+        // we shift by BITS_PER_PIXEL, we get back the original resolution.
+        pixword accum = (src * (max - arg) + dst * arg) >> BITS_PER_PIXEL;
+        result |= accum << shift;
     }
-    return res;
+    return result;
 }
