@@ -642,15 +642,25 @@ void     ggl_hbltoper(pixword *dest, int destoff, pixword *src, int srcoff, size
 // low-level row operator routine for monochrome bitmaps
 void      ggl_monohbltoper(pixword       *dest,
                            int            destoff,
-                           unsigned char *src,
+                           byte_p         src,
                            int            srcoff,
                            int            npixels,
                            int            param,
                            ggloperator_fn foperator);
 // bitblt operator routine
-void     ggl_bitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop);
+void      ggl_bitbltoper(gglsurface    *dest,
+                         gglsurface    *src,
+                         size           width,
+                         size           height,
+                         pixword        param,
+                         ggloperator_fn fop);
 // bitblt operator routine for monochrome bitmaps
-void     ggl_monobitbltoper(gglsurface *dest, gglsurface *src, size width, size height, int param, ggloperator_fn fop);
+void      ggl_monobitbltoper(gglsurface    *dest,
+                             gglsurface    *src,
+                             size           width,
+                             size           height,
+                             pixword        param,
+                             ggloperator_fn fop);
 
 // predefined filters and operators
 
