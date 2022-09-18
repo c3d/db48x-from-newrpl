@@ -110,16 +110,10 @@ typedef union pattern
 } pattern_t;
 
 
-static inline uint64_t ggl_rotate_pattern_bits(uint64_t bits, unsigned shift)
+static inline uint64_t ggl_rotate_pattern(uint64_t bits, unsigned shift)
 {
     return (bits << (shift % BITS_PER_PATTERN)) |
            (bits >> (BITS_PER_PATTERN - (shift % BITS_PER_PATTERN)));
-}
-
-static inline pattern_t ggl_rotate_pattern(pattern_t pat, unsigned pixels)
-{
-    pat.bits = ggl_rotate_pattern_bits(pat.bits, pixels * BITS_PER_PIXEL);
-    return pat;
 }
 
 static inline pattern_t ggl_solid_pattern(color_t color)
@@ -472,7 +466,7 @@ static inline void ggl_blit(gglsurface *dst,
     unsigned dsh1   = dx1 * BITS_PER_PIXEL % BITS_PER_WORD;
     unsigned dsh2   = dx2 * BITS_PER_PIXEL % BITS_PER_WORD;
     unsigned ssh1   = (sx1 - dx1) * BITS_PER_PIXEL % BITS_PER_WORD;
-    unsigned srt1   = BITS_PER_WORD - ssh1;
+    unsigned srt1   = BITS_FROM_TOP - ssh1;
 
     // Left and right masks
     pixword  ones   = ~0U;
@@ -481,7 +475,7 @@ static inline void ggl_blit(gglsurface *dst,
 
     // Adjust the color pattern based on starting point
     uint64_t data   = colors.bits;
-    data = ggl_rotate_pattern_bits(data, (dx1 + dy1) * BITS_PER_PIXEL);
+    data = ggl_rotate_pattern(data, (dx1 + dy1) * BITS_PER_PIXEL);
 
     // Check if we are writing a single word and need to combine masks
     if (dp1 == dp2)
@@ -496,7 +490,7 @@ static inline void ggl_blit(gglsurface *dst,
             *dp1           = (result & dmsk) | (dword & ~dmsk);
             dp1 += dyoff;
             sp1 += syoff;
-            data = ggl_rotate_pattern_bits(data, ydir * BITS_PER_PIXEL);
+            data = ggl_rotate_pattern(data, ydir * BITS_PER_PIXEL);
         }
     }
     else
@@ -513,7 +507,7 @@ static inline void ggl_blit(gglsurface *dst,
             *dp             = (result & dmsk1) | (dword & ~dmsk1);
             dp += xdir;
             sp += xdir;
-            data = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
+            data = ggl_rotate_pattern(data, BITS_PER_WORD);
             while (dp != dp2)
             {
                 dword  = *dp;
@@ -523,19 +517,19 @@ static inline void ggl_blit(gglsurface *dst,
                 *dp    = result;
                 dp += xdir;
                 sp += xdir;
-                data = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
+                data = ggl_rotate_pattern(data, BITS_PER_WORD);
             }
             dword  = *dp;
             sword  = *sp;
             aword  = data;
             result = op(dword, sword, aword);
             *dp    = (result & dmsk2) | (dword & ~dmsk2);
-            data   = ggl_rotate_pattern_bits(data, BITS_PER_WORD);
+            data   = ggl_rotate_pattern(data, BITS_PER_WORD);
 
             dp1 += dyoff;
             dp2 += dyoff;
             sp1 += syoff;
-            data = ggl_rotate_pattern_bits(data, ydir * BITS_PER_PIXEL);
+            data = ggl_rotate_pattern(data, ydir * BITS_PER_PIXEL);
         }
     }
 }
