@@ -305,6 +305,7 @@ typedef struct
     pixword *pixels;        //! Word-aligned address of the surface buffer
     size     width;         //! Width (in pixels) of the buffer
     size     height;        //! Height (in pixels) of the buffer
+    size     bpp;           //! Bits per pixel
     coord    x, y;          //! Offset coordinates within the buffer
     coord    left, right;   //! Horizontal clip area
     coord    top, bottom;   //! Vertical clip area

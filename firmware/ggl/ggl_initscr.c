@@ -12,6 +12,7 @@ void ggl_initscr(gglsurface *srf)
     srf->pixels = (pixword *) MEM_PHYS_SCREEN;
     srf->width  = LCD_SCANLINE;
     srf->height = LCD_H;
+    srf->bpp    = BITS_PER_PIXEL;
     srf->x      = 0;
     srf->y      = 0;
     srf->left   = 0;
