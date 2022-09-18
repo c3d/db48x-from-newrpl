@@ -116,12 +116,24 @@ static inline uint64_t ggl_rotate_pattern(uint64_t bits, unsigned shift)
            (bits >> (BITS_PER_PATTERN - (shift % BITS_PER_PATTERN)));
 }
 
+static inline uint64_t ggl_bpp_pattern_multiplier(size bpp)
+{
+    if (bpp == 1)
+        return 0xFFFFFFFFFFFFFFFFull;
+    if (bpp == 4)
+        return 0x1111111111111111ull;
+    if (bpp == 16)
+        return 0x0001000100010001ull;
+    uint64_t result = 0;
+    for (unsigned shift = 0; shift < 64; shift += bpp)
+        result |= 1ull << shift;
+    return result;
+}
+
 static inline pattern_t ggl_solid_pattern(color_t color)
 {
-    uint64_t bits = 0;
-    for (unsigned shift = 0; shift < 64; shift += BITS_PER_PIXEL)
-        bits |= (uint64_t) color.value << shift;
-    pattern_t pat = { .bits = bits };
+    uint64_t multiplier = ggl_bpp_pattern_multiplier(BITS_PER_PIXEL);
+    pattern_t pat = { .bits = color.value * multiplier };
     return pat;
 }
 
