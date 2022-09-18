@@ -333,6 +333,50 @@ static inline pixword ggl_set(pixword dst, pixword src, pixword arg)
     return arg;
 }
 
+#if 0 // Seems to be unused at the moment
+// transparency blend:
+// weight is 0 for opaque, 1 bits for transparent
+static inline pixword ggl_transparency(pixword dst, pixword src, pixword arg)
+{
+    // Weighted proportionality, where 'arg' is the weight.
+    // Brighter colors in 'arg' make the source more transparent.
+    pixword result = 0;
+    pixword max = (1U << BITS_PER_PIXEL) - 1;
+    pixword mask = max;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += BITS_PER_PIXEL)
+    {
+        pixword srcpix = (src >> shift) & mask;
+        pixword dstpix = (dst >> shift) & mask;
+        // In all cases, a N x N multiplication uses 2N bits, so when
+        // we shift by BITS_PER_PIXEL, we get back the original resolution.
+        pixword pix = (srcpix * (max - arg) + dstpix * arg) >> BITS_PER_PIXEL;
+        result |= (pix & mask) << shift;
+    }
+    return result;
+}
+#endif
+
+// Color mask:
+// Parts that contain zero in the source are transparent, replaced with arg
+static inline pixword ggl_opmaskcol(pixword dst, pixword src, pixword arg)
+{
+    pixword result = 0;
+    pixword mask = (1U << BITS_PER_PIXEL) - 1;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += BITS_PER_PIXEL)
+    {
+        pixword srcpix = (src >> shift) & mask;
+        pixword dstpix = (dst >> shift) & mask;
+        pixword argpix = (arg >> shift) & mask;
+        if (srcpix)
+            result |= srcpix << shift;
+        else if (dstpix)
+            result |= dstpix << shift;
+        else
+            result |= argpix << shift;
+    }
+    return result;
+}
+
 typedef enum clip
 {
     CLIP_NONE = 0,
@@ -559,10 +603,6 @@ void ggl_revblt(gglsurface *dest, gglsurface *src, size width, size height); // 
 // use it when the direcction of movement is unknown
 void ggl_ovlblt(gglsurface *dest, gglsurface *src, size width, size height); // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
-#define ggl_bitbltmask(dest, src, width, height, tcol) \
-  ggl_bitbltoper(dest, src, width, height, tcol, (ggloperator_fn) &ggl_opmask)
-#define ggl_monobitbltmask(dest, src, width, height, tcol) \
-  ggl_monobitbltoper(dest, src, width, height, tcol, (ggloperator_fn) &ggl_opmask)
 
 void     ggl_bitbltclip(gglsurface *dest,
                         gglsurface *src,
@@ -611,13 +651,7 @@ pixword ggl_fltinvert(pixword color, pixword param);
 // replace a color with another
 pixword ggl_fltreplace(pixword color, pixword param);
 
-// operators (between two surfaces)
-// standard mask, tcolor in src is considered transparent
-pixword ggl_opmask(pixword dest, pixword src, pixword tcolor);
-// transparency blend, weight is 0 = src is opaque, 16 = src is fully transparent
-pixword ggl_optransp(pixword dest, pixword src, pixword weight);
-// standard mask, tcolor in src is considered transparent, white color in src is replaced with newcolor
-pixword ggl_opmaskcol(pixword dest, pixword src, pixword tcolor, pixword newcolor);
+
 
 // ggl_color repeats the same color on every nibble
 // ggl_color(2) will return 0x22222222

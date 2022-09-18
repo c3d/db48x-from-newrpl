@@ -168,8 +168,6 @@ SOURCES += \
         firmware/ggl/ggl_hbltoper.c \
         firmware/ggl/ggl_hline.c \
         firmware/ggl/ggl_initscr.c \
-        firmware/ggl/ggl_opmask.c \
-        firmware/ggl/ggl_optransp.c \
         firmware/ggl/ggl_ovlblt.c \
         firmware/ggl/ggl_rect.c \
         firmware/ggl/ggl_revblt.c \

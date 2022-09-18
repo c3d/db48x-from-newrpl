@@ -8,11 +8,6 @@
 // BASIC GRAPHICS ROUTINES
 #include <ui.h>
 
-static pixword gui_chgcolorfilter(pixword dest, pixword src, pixword param)
-{
-    return ggl_opmaskcol(dest, src, 0, param);
-}
-
 int StringWidthN(cstring Text, cstring End, UNIFONT const * Font)
 {
     int cp, startcp, rangeend, offset, cpinfo;
@@ -291,7 +286,7 @@ void DrawTextN(gglsurface    *drawsurf,
                                w,
                                h,
                                colors.bits,
-                               &gui_chgcolorfilter);
+                               ggl_opmaskcol);
             drawsurf->x += w;
         }
         Text = utf8skip(Text, End);
@@ -430,7 +425,7 @@ void DrawTextBkN(gglsurface    *drawsurf,
 //                ggl_monobitbltmask(drawsurf, &srf, w, h, 0);
 //            else
                 ggl_monobitbltoper(drawsurf, &srf, w, h, color.bits,
-                        &gui_chgcolorfilter);
+                        ggl_opmaskcol);
             drawsurf->x += w;
         }
         Text = utf8skip(Text, End);
