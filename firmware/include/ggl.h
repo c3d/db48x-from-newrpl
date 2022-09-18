@@ -190,7 +190,8 @@ static inline color_t ggl_rgb16_to_color(color16_t c16)
 #if BITS_PER_PIXEL == 1
     uint8_t value = c16.value ? 1 : 0;
 #elif BITS_PER_PIXEL == 4
-    uint8_t value = (c16.rgb16.red + c16.rgb16.green + c16.rgb16.blue) / 8;
+    // On the HP48, 0xF is black, not white
+    uint8_t value = 0xF - (c16.rgb16.red+c16.rgb16.green+c16.rgb16.blue) / 8;
 #elif BITS_PER_PIXEL == 16
     uint16_t value = c16.value;
 #else
