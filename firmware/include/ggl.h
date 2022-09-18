@@ -499,7 +499,7 @@ static inline void ggl_blit(gglsurface *dst,
             pixword *dp     = dp1;
             pixword *sp     = sp1;
             pixword  dword  = *dp;
-            pixword  sword  = *sp;
+            pixword  sword  = (sp[0] << ssh1) | (sp[xdir] >> srt1);
             pixword  aword  = data;
             pixword  result = op(dword, sword, aword);
             *dp             = (result & dmsk1) | (dword & ~dmsk1);
