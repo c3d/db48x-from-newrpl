@@ -324,18 +324,10 @@ void halRedrawForm(gglsurface *scr)
     halScreenUpdated();
 
     // REDRAW THE CONTENTS OF THE CURRENT FORM
-    int oldleft, oldright, oldtop, oldbottom;
-    int ystart = 0, yend = ystart + halScreen.Form;
+    coord ystart = 0;
+    coord yend = ystart + halScreen.Form;
 
-    oldleft  = scr->left;
-    oldtop  = scr->top;
-    oldright = scr->right;
-    oldbottom = scr->bottom;
-
-    word_p form, bmp;
-
-    form = rplGetSettings((word_p) currentform_ident);
-
+    word_p form = rplGetSettings((word_p) currentform_ident);
     if (!form)
     {
         ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, ggl_solid(PAL_FORM_BG)); // CLEAR RECTANGLE
@@ -343,8 +335,7 @@ void halRedrawForm(gglsurface *scr)
         return;
     }
 
-    bmp = uiFindCacheEntry(form, FONT_FORMS);
-
+    word_p bmp = uiFindCacheEntry(form, FONT_FORMS);
     if (!bmp)
     {
         ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, ggl_solid(PAL_FORM_BG)); // CLEAR RECTANGLE
@@ -353,17 +344,6 @@ void halRedrawForm(gglsurface *scr)
     }
 
     gglsurface viewport = ggl_grob(bmp);
-
-    // POSITION THE VIEWPORT ON THE SCREEN
-
-    scr->x          = 0;
-    scr->y          = 0;
-
-    scr->left      = 0;
-    scr->right     = LCD_W - 1;
-    scr->top      = 0;
-    scr->bottom     = yend;
-
     if (yend > viewport.bottom + 1)
     {
         // CLEAR THE BACKGROUND
@@ -376,13 +356,8 @@ void halRedrawForm(gglsurface *scr)
     }
 
     // DRAW THE VIEWPORT
-    ggl_bitbltclip(scr, &viewport, viewport.width, viewport.bottom + 1);
+    ggl_copy(scr, &viewport, LCD_W, yend);
     halScreen.DirtyFlag &= ~FORM_DIRTY;
-
-    scr->left  = oldleft;
-    scr->right = oldright;
-    scr->top  = oldtop;
-    scr->bottom = oldbottom;
 }
 
 void halRedrawStack(gglsurface *scr)
@@ -2369,7 +2344,7 @@ void halPrepareBuffer(gglsurface *scr)
     scr->x          = 0;
     scr->y          = 0;
     // Copy current screen data to the new buffer
-    // ggl_bitblt(&altbuffer,scr,LCD_W,LCD_H);
+    // ggl_copy(&altbuffer,scr,LCD_W,LCD_H);
 
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;

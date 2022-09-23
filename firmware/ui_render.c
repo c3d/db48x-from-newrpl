@@ -124,7 +124,7 @@ void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
     if(bmp) {
         // COPY IT TO DESTINATION
         gglsurface tsurf = ggl_grob(bmp);
-        ggl_bitbltclip(scr, &tsurf, tsurf.width, tsurf.height);
+        ggl_copy(scr, &tsurf, tsurf.width, tsurf.height);
         return;
     }
 
@@ -223,7 +223,7 @@ void uiDrawBitmap(word_p bmp, gglsurface * scr)
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION
         gglsurface tsurf = ggl_grob(bmp);
-        ggl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
+        ggl_copy(scr, &tsurf, bmp[1], bmp[2]);
     }
     else {
         // DRAW DIRECTLY, SOMETHING WE COULDN'T RENDER

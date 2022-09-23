@@ -213,8 +213,10 @@ void uiUpdateForm(word_p form)
                 copy.left = backgnd.x;
                 backgnd.x = (backgnd.width - backgnd.x) / 2;
                 // CENTER THE TEXT
-                ggl_bitblt(&backgnd, &copy, copy.left,
-                        backgnd.bottom - backgnd.top + 1);
+                ggl_copy(&backgnd,
+                         &copy,
+                         copy.left,
+                         backgnd.bottom - backgnd.top + 1);
                 ggl_cliprect(&backgnd,
                              backgnd.x + copy.left,
                              backgnd.top,

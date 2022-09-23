@@ -794,8 +794,16 @@ static inline void ggl_blit(gglsurface *d, // Destination surface
                             clip_t      clip)
 {
     const size bpp = BITS_PER_PIXEL;
-    return ggl_mixblit(d, s, l, r, t, b, x, y, o, c, bpp, bpp, bpp, clip);
+    ggl_mixblit(d, s, l, r, t, b, x, y, o, c, bpp, bpp, bpp, clip);
 }
+
+
+static inline void ggl_copy(gglsurface *dst, gglsurface *src, size width, size height)
+{
+    pattern_t clear = { .bits = 0 };
+    ggl_blit(dst, src, 0, width-1, 0, height-1, 0, 0, ggl_source, clear, CLIP_ALL);
+}
+
 
 // inline routines
 
@@ -860,22 +868,6 @@ void ggl_hblt(pixword *dest, int destoff, pixword *src, int srcoff, size npixels
 // every pixel in *src with the transparent color will not affect the
 // corresponding pixel in *dest
 void ggl_hbltmask(pixword *dest, int destoff, pixword *src, int srcoff, size npixels, int tcol); // copy a row of pixels w/mask
-
-// rectangle blt
-// note: see gglsurface above for complete understanding of the behavior of these routines
-// ggl_bitblt loops from top to bottom
-void ggl_bitblt(gglsurface *dest, gglsurface *src, size width, size height); // copy a rectangular region
-// ggl_revblt loops from bottom to top, for overlapping zones
-void ggl_revblt(gglsurface *dest, gglsurface *src, size width, size height); // copy a rectangular region, reverse loop
-// ggl_ovlblt chooses to use normal/reverse loop based on the addresses
-// use it when the direcction of movement is unknown
-void ggl_ovlblt(gglsurface *dest, gglsurface *src, size width, size height); // copy overlapped regions
-// ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
-
-void     ggl_bitbltclip(gglsurface *dest,
-                        gglsurface *src,
-                        size        width,
-                        size        height); // copy a rectangular region, clipped within dest
 
 // rectangle scrolling routines
 // dest contains the surface to scroll, and width and height define the rectangle

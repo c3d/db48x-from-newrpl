@@ -7,7 +7,6 @@ CONFIG -= qt
 DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += \
-    ../firmware/ggl/ggl/ggl_bitblt.c \
     ../firmware/ggl/ggl/ggl_filter.c \
     ../firmware/ggl/ggl/ggl_fltdarken.c \
     ../firmware/ggl/ggl/ggl_fltlighten.c \
@@ -20,11 +19,9 @@ SOURCES += \
     ../firmware/ggl/ggl/ggl_color32.c \
     ../firmware/ggl/ggl/ggl_opmask.c \
     ../firmware/ggl/ggl/ggl_optransp.c \
-    ../firmware/ggl/ggl/ggl_ovlblt.c \
     ../firmware/ggl/ggl/ggl_pltnib.c \
     ../firmware/ggl/ggl/ggl_rect.c \
     ../firmware/ggl/ggl/ggl_rectp.c \
-    ../firmware/ggl/ggl/ggl_revblt.c \
     ../firmware/ggl/ggl/ggl_vline.c \
     ../firmware/hal_battery.c \
     ../firmware/hal_keyboard.c \
