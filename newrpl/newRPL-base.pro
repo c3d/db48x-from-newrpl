@@ -14,7 +14,6 @@ SOURCES += \
     ../firmware/ggl/ggl/ggl_getnib.c \
     ../firmware/ggl/ggl/ggl_hblt.c \
     ../firmware/ggl/ggl/ggl_hbltfilter.c \
-    ../firmware/ggl/ggl/ggl_hbltoper.c \
     ../firmware/ggl/ggl/ggl_hline.c \
     ../firmware/ggl/ggl/ggl_initscr.c \
     ../firmware/ggl/ggl/ggl_color.c \
