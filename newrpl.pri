@@ -157,7 +157,6 @@ newrpl_color:DEFINES += NEWRPL_COLOR
 
 SOURCES += \
         firmware/ggl/ggl_bitblt.c \
-        firmware/ggl/ggl_bitbltoper.c \
         firmware/ggl/ggl_filter.c \
         firmware/ggl/ggl_fltdarken.c \
         firmware/ggl/ggl_fltinvert.c \

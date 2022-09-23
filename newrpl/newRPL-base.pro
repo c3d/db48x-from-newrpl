@@ -8,7 +8,6 @@ DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += \
     ../firmware/ggl/ggl/ggl_bitblt.c \
-    ../firmware/ggl/ggl/ggl_bitbltoper.c \
     ../firmware/ggl/ggl/ggl_filter.c \
     ../firmware/ggl/ggl/ggl_fltdarken.c \
     ../firmware/ggl/ggl/ggl_fltlighten.c \
