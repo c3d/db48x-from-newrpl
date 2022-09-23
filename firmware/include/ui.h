@@ -134,7 +134,7 @@
 #  define THEME_STK_CURSOR        THEME_GRAY15
 
 // Theme colors for command line
-#  define THEME_CMD_BG            THEME_GRAY0
+#  define THEME_CMD_BG            THEME_GRAY2
 #  define THEME_CMD_TEXT          THEME_GRAY15
 #  define THEME_CMD_SEL_BG        THEME_GRAY6
 #  define THEME_CMD_SELTEXT       THEME_GRAY15
