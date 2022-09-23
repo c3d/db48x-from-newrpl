@@ -338,6 +338,7 @@ typedef struct
 
 void ggl_initscr(gglsurface *surface);
 gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height);
+gglsurface ggl_grob(word_p bmp);
 
 
 typedef pixword (*gglop)(pixword dst, pixword src, pixword arg);

@@ -28,7 +28,6 @@ void ggl_initscr(gglsurface *srf)
 #endif
 }
 
-
 gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height)
 {
     gglsurface result = {
@@ -46,6 +45,36 @@ gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height)
     return result;
 }
 
+gglsurface ggl_grob(word_p bmp)
+{
+    // REVISIT: Check if (!ISBITMAP(*bmp))
+    size width = bmp[1];
+    size height = bmp[2];
+    static const size bpps[8] = {
+        [BITMAP_RAWMONO]  =  1,
+        [BITMAP_RAW16G]   =  4,
+        [BITMAP_RAW256G]  =  8,
+        [BITMAP_RAW64KC]  = 16,
+        [BITMAP_RAWARGB]  = 32,
+        [BITMAP_EXTERNAL] = 32,
+    };
+    unsigned bppindex = LIBNUM(*bmp) & 7;
+    size bpp = bpps[bppindex];
+    gglsurface result = {
+        .pixels        = (pixword *) (bmp + 3),
+        .width         = width,
+        .height        = height,
+        .bpp           = bpp,
+        .x             = 0,
+        .y             = 0,
+        .left          = 0,
+        .right         = width - 1,
+        .top           = 0,
+        .bottom        = height - 1,
+        .active_buffer = 0,
+        };
+    return result;
+}
 
 // Global palette, can be used for grayscale conversion or for themes
 color_t ggl_palette[PALETTE_SIZE] SYSTEM_GLOBAL;

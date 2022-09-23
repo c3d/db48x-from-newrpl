@@ -123,19 +123,8 @@ void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
     word_p bmp = uiRenderObject(object, font);
     if(bmp) {
         // COPY IT TO DESTINATION
-        gglsurface tsurf;
-
-        tsurf.pixels = (pixword *)(bmp + 3);
-        tsurf.width = bmp[1];
-        tsurf.left = 0;
-        tsurf.right = bmp[1] - 1;
-        tsurf.top = 0;
-        tsurf.bottom = bmp[2] - 1;
-        tsurf.x = 0;
-        tsurf.y = 0;
-
-        ggl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
-
+        gglsurface tsurf = ggl_grob(bmp);
+        ggl_bitbltclip(scr, &tsurf, tsurf.width, tsurf.height);
         return;
     }
 
@@ -197,22 +186,15 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
 
 
         // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
-        gglsurface tsurf;
-
-        tsurf.pixels = (pixword *)(newbmp + 3);
-        tsurf.width = numwidth;
-        tsurf.left = 0;
-        tsurf.right = numwidth - 1;
-        tsurf.top = 0;
-        tsurf.bottom = font->BitmapHeight - 1;
-        tsurf.x = 0;
-        tsurf.y = 0;
+        gglsurface tsurf = ggl_grob(newbmp);
 
         // CLEAR THE BITMAP FIRST
-        ggl_rect(&tsurf,0,0,numwidth,font->BitmapHeight - 1,ggl_solid(PAL_STK_BG));
-        //memsetw(newbmp + 3, 0, OBJSIZE(*newbmp) - 2);
-
-
+        ggl_rect(&tsurf,
+                 0,
+                 0,
+                 numwidth,
+                 font->BitmapHeight - 1,
+                 ggl_solid(PAL_STK_BG));
         DrawTextN(&tsurf,
                   0,
                   0,
@@ -240,17 +222,7 @@ void uiDrawBitmap(word_p bmp, gglsurface * scr)
 {
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION
-        gglsurface tsurf;
-
-        tsurf.pixels = (pixword *)(bmp + 3);
-        tsurf.width = bmp[1];
-        tsurf.left = 0;
-        tsurf.right = bmp[1] - 1;
-        tsurf.top = 0;
-        tsurf.bottom = bmp[2] - 1;
-        tsurf.x = 0;
-        tsurf.y = 0;
-
+        gglsurface tsurf = ggl_grob(bmp);
         ggl_bitbltclip(scr, &tsurf, bmp[1], bmp[2]);
     }
     else {

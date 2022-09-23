@@ -119,12 +119,7 @@ void uiUpdateForm(word_p form)
 
     // PASS 2: REDRAW EACH ELEMENT ONTO THE NEW BITMAP
 
-    gglsurface backgnd;
-
-    backgnd.pixels = (pixword *)(newbmp + 3);
-    backgnd.width = formw;
-    backgnd.x = 0;
-    backgnd.y = 0;
+    gglsurface backgnd = ggl_grob(newbmp);
 
     int32_t ycoord = 0;
 
