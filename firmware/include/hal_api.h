@@ -1273,10 +1273,10 @@ extern WORD    halCacheEntry;
 void           uiClearRenderCache();
 void           uiAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
 void           uiUpdateOrAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
-word_p        uiFindCacheEntry(word_p object, const UNIFONT *font);
+word_p         uiFindCacheEntry(word_p object, const UNIFONT *font);
 void           uiDrawObject(word_p object, gglsurface *scr, const UNIFONT *font);
-word_p        uiRenderObject(word_p object, const UNIFONT *font);
-void           uiDrawBitmap(word_p bmp, gglsurface *scr);
+word_p         uiRenderObject(word_p object, const UNIFONT *font);
+void           uiDrawBitmap(gglsurface *scr, word_p bmp, coord x, coord y);
 
 
 RECORDER_DECLARE(hal_api);

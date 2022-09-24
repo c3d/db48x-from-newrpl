@@ -218,12 +218,12 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
 }
 
 // DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
-void uiDrawBitmap(word_p bmp, gglsurface * scr)
+void uiDrawBitmap(gglsurface * scr, word_p bmp, coord x, coord y)
 {
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION
         gglsurface tsurf = ggl_grob(bmp);
-        ggl_copy(scr, &tsurf, bmp[1], bmp[2]);
+        ggl_copy_at(scr, &tsurf, x, y, bmp[1], bmp[2]);
     }
     else {
         // DRAW DIRECTLY, SOMETHING WE COULDN'T RENDER
@@ -234,8 +234,7 @@ void uiDrawBitmap(word_p bmp, gglsurface * scr)
         int32_t nchars = rplStrSize(string);
         cstring charptr = (cstring) (string + 1);
         DrawTextN(scr,
-                  scr->x,
-                  scr->y,
+                  x, y,
                   charptr,
                   charptr + nchars,
                   FONT_STACK,

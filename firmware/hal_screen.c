@@ -579,10 +579,7 @@ void halRedrawStack(gglsurface *scr)
 
             scr->left = xright + 1;
 
-            scr->x     = x;
-            scr->y     = ytop;
-
-            uiDrawBitmap(object, scr);
+            uiDrawBitmap(scr, object, x, ytop);
         }
 
         y = ytop;
