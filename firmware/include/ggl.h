@@ -110,8 +110,9 @@ typedef union pattern
 
 static inline uint64_t ggl_rotate_pattern(uint64_t bits, unsigned shift)
 {
-    return (bits << (shift % BITS_PER_PATTERN)) |
-           (bits >> (BITS_PER_PATTERN - (shift % BITS_PER_PATTERN)));
+    shift %= BITS_PER_PATTERN;
+    return ((bits >> shift) |
+            (bits << (BITS_PER_PATTERN - shift)));
 }
 
 static inline uint64_t ggl_bpp_pattern_multiplier(size bpp)
@@ -671,11 +672,13 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     unsigned   srs    = ggl_pixel_shift(src, sbpp, sr, sy1);
     unsigned   sws    = xback ? srs : sls;
     const size bpw    = BITS_PER_WORD;
-    unsigned   cds    = cbpp * bpw / dbpp;
+    unsigned   cshift = (cbpp == 16 ? 32 : cbpp == 4 ? 16 : cbpp == 1 ? 8 : 0);
+    unsigned   cys    = ydir * (int) cshift;
+    unsigned   cxs    = xdir * bpw * cbpp / dbpp;
 
     // Shift adjustment from source to destinaation
     unsigned   sadj   = (int) (sws * dbpp - dws * sbpp) / (int) dbpp;
-    unsigned   bpadj  = xdir * (int) (sbpp * bpw / dbpp);
+    unsigned   sxadj  = xdir * (int) (sbpp * bpw / dbpp);
 
     // Left and right masks
     pixword    ones   = ~0U;
@@ -687,7 +690,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     // Adjust the color pattern based on starting point
     uint64_t   cdata64 = colors.bits;
     if (!skip_col)
-        cdata64 = ggl_rotate_pattern(cdata64, (dx1 + dy1) * cbpp);
+        cdata64 = ggl_rotate_pattern(cdata64, dx1 * cbpp + dy1 * cshift - dws);
 
 
     while (ycount-- >= 0)
@@ -713,7 +716,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
 
             if (!skip_src)
             {
-                unsigned nextsadj = sadj + bpadj;
+                unsigned nextsadj = sadj + sxadj;
 
                 // Check if we change source word
                 int      skip     = xback ? sadj >= bpw : nextsadj - 1 >= bpw;
@@ -744,7 +747,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
             if (!skip_col)
             {
                 cdata = cdata64;
-                cdata64 = ggl_rotate_pattern(cdata64, cds);
+                cdata64 = ggl_rotate_pattern(cdata64, cxs);
             }
 
             pixword ddata = dp[0];
@@ -765,11 +768,19 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
             dls = ggl_pixel_shift(dst, dbpp, left, dy1);
             drs = ggl_pixel_shift(dst, dbpp, right, dy1);
             dws = xback ? drs : dls;
+            lmask  = ones << dls;
+            rmask  = shrc(ones, drs + dbpp);
+            dmask1 = xback ? rmask : lmask;
+            dmask2 = xback ? lmask : rmask;
+            cdata64 = colors.bits;
+            cdata64 = ggl_rotate_pattern(cdata64, dx1 * cbpp + dy1 * cshift - dws);
         }
         else
         {
             dp1 += dyoff;
             dp2 += dyoff;
+            if (!skip_col)
+                cdata64 = ggl_rotate_pattern(csave, cys);
         }
 
         // Check if we can directly move to next line
@@ -789,9 +800,6 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
             sls = slssave;
             srs = srssave;
         }
-
-        if (!skip_col)
-            cdata64 = ggl_rotate_pattern(csave, ydir * cbpp);
     }
 }
 
