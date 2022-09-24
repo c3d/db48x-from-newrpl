@@ -654,7 +654,9 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     offset     dyoff  = ggl_pixel_offset(dst, dbpp, 0, ydir);
     offset     syoff  = skip_src ? 0 : ggl_pixel_offset(src, sbpp, 0, ydir);
     size       swidth = src->width;
-    unsigned   slant  = skip_src ? 0 : ggl_pixel_shift(src, sbpp, swidth, 0);
+    unsigned   sslant = skip_src ? 0 : ggl_pixel_shift(src, sbpp, swidth, 0);
+    size       dwidth = dst->width;
+    unsigned   dslant = ggl_pixel_shift(dst, dbpp, dwidth, 0);
 
     // Pointers to word containing start and end pixel
     pixword   *dp1    = ggl_pixel_address(dst, dbpp, dx1, dy1);
@@ -755,11 +757,23 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
         } while (!xdone);
 
         // Move to next line
-        dp1 += dyoff;
-        dp2 += dyoff;
+        if (dslant)
+        {
+            dy1 += ydir;
+            dp1 = ggl_pixel_address(dst, dbpp, dx1, dy1);
+            dp2 = ggl_pixel_address(dst, dbpp, dx2, dy1);
+            dls = ggl_pixel_shift(dst, dbpp, left, dy1);
+            drs = ggl_pixel_shift(dst, dbpp, right, dy1);
+            dws = xback ? drs : dls;
+        }
+        else
+        {
+            dp1 += dyoff;
+            dp2 += dyoff;
+        }
 
         // Check if we can directly move to next line
-        if (slant)
+        if (sslant)
         {
             sy1 += ydir;
             sp   = ggl_pixel_address(src, sbpp, sx1, sy1);
