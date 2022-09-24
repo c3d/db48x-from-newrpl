@@ -812,11 +812,23 @@ static inline void ggl_blit(gglsurface *d, // Destination surface
 }
 
 
-static inline void ggl_copy(gglsurface *dst, gglsurface *src, size width, size height)
+static inline void ggl_copy_at(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
 {
     pattern_t clear = { .bits = 0 };
-    ggl_blit(dst, src, 0, width-1, 0, height-1, 0, 0, ggl_source, clear, CLIP_ALL);
+    ggl_blit(dst, src, x, x+width-1, y, y+height-1, 0, 0, ggl_source, clear, CLIP_ALL);
 }
+
+static inline void ggl_copy(gglsurface *dst, gglsurface *src, size width, size height)
+{
+    ggl_copy_at(dst, src, 0, 0, width, height);
+}
+
+static inline void ggl_copy_from(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
+{
+    pattern_t clear = { .bits = 0 };
+    ggl_blit(dst, src, 0, width-1, 0, height-1, x, y, ggl_source, clear, CLIP_ALL);
+}
+
 
 
 // inline routines
