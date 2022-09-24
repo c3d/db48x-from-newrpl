@@ -568,13 +568,10 @@ void halRedrawStack(gglsurface *scr)
             numwidth = StringWidth(num, FONT_STACK);
 
             DrawText(scr, xright - numwidth, ytop, num, FONT_STACK, ggl_solid(PAL_STK_INDEX));
-        }
 
-        if (level <= depth)
-        {
             // DO PROPER LAYOUT
 
-            int32_t x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
+            coord x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
             if (x < xright + 1)
                 x = xright + 1; // UNLESS IT DOESN'T FIT, THEN LEFT JUSTIFY
 
