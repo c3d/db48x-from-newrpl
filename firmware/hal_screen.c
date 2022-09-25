@@ -2329,24 +2329,16 @@ void halPrepareBuffer(gglsurface *scr)
 #ifndef TARGET_PRIME1
     UNUSED(scr);
 #else  // TARGET_PRIME1
-    gglsurface altbuffer;
-    if (scr->active_buffer)
-        altbuffer.pixels = scr->pixels - (LCD_W * LCD_H) / PIXELS_PER_WORD;
-    else
-        altbuffer.pixels = scr->pixels + (LCD_W * LCD_H) / PIXELS_PER_WORD;
-    altbuffer.x     = 0;
-    altbuffer.y     = 0;
-    altbuffer.width = scr->width;
-
-    scr->x          = 0;
-    scr->y          = 0;
-    // Copy current screen data to the new buffer
-    // ggl_copy(&altbuffer,scr,LCD_W,LCD_H);
+    size_t offset = LCD_W * LCD_H / PIXELS_PER_WORD;
+    pixword *base = (pixword *) MEM_PHYS_SCREEN;
+    if (scr->pixels == base)
+        base += offset;
 
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
-    memmovew(altbuffer.pixels, scr->pixels, (LCD_W * LCD_H) / PIXELS_PER_WORD);
+    // Copy data between buffers (no overlap)
+    memcpy(base, scr->pixels, offset * sizeof(pixword));
 
     // Let background processes know to use the alternative buffer
     halScreen.DirtyFlag |= BUFFER_ALT;
@@ -2354,8 +2346,7 @@ void halPrepareBuffer(gglsurface *scr)
     // Remove the lock
     halScreen.DirtyFlag &= ~BUFFER_LOCK;
 
-    scr->pixels = altbuffer.pixels;
-    scr->active_buffer ^= 1;
+    scr->pixels = base;
 #endif /* TARGET_PRIME1 */
 }
 
@@ -2368,7 +2359,8 @@ void halSwapBuffer(gglsurface *scr)
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
-    lcd_setactivebuffer(scr->active_buffer);
+    pixword *base = (pixword *) MEM_PHYS_SCREEN;
+    lcd_setactivebuffer(scr->pixels != base);
     halScreen.DirtyFlag &= ~BUFFER_ALT;
 
     // Remove the lock

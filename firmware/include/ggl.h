@@ -157,7 +157,6 @@ typedef struct gglsurface
     coord    x, y;          //! Offset coordinates within the buffer
     coord    left, right;   //! Horizontal clip area
     coord    top, bottom;   //! Vertical clip area
-    int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 
 

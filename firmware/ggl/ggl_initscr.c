@@ -9,7 +9,13 @@
 
 void ggl_init_screen(gglsurface *srf)
 {
+#if SCREEN_BUFFERS > 1
+    int active = lcd_getactivebuffer();
+    size_t offset = LCD_W * LCD_H / PIXELS_PER_WORD * active;
+    srf->pixels = (pixword *) MEM_PHYS_SCREEN + offset;
+#else
     srf->pixels = (pixword *) MEM_PHYS_SCREEN;
+#endif
     srf->width  = LCD_SCANLINE;
     srf->height = LCD_H;
     srf->bpp    = BITS_PER_PIXEL;
@@ -19,13 +25,6 @@ void ggl_init_screen(gglsurface *srf)
     srf->top    = 0;
     srf->right  = LCD_W - 1;
     srf->bottom = LCD_H - 1;
-
-#if SCREEN_BUFFERS > 1
-    srf->active_buffer = lcd_getactivebuffer();
-    srf->pixels += LCD_W * LCD_H / PIXELS_PER_WORD * srf->active_buffer;
-#else
-    srf->active_buffer = 0;
-#endif
 }
 
 gglsurface ggl_bitmap(pixword *bits, size width, size height)
@@ -71,7 +70,6 @@ gglsurface ggl_grob(word_p bmp)
         .right         = width - 1,
         .top           = 0,
         .bottom        = height - 1,
-        .active_buffer = 0,
         };
     return result;
 }
