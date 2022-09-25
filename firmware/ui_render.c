@@ -192,7 +192,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
         ggl_rect(&tsurf,
                  0,
                  0,
-                 numwidth,
+                 numwidth - 1,
                  font->BitmapHeight - 1,
                  ggl_solid(PAL_STK_BG));
         DrawTextN(&tsurf,
