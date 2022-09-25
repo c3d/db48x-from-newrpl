@@ -7,18 +7,9 @@ CONFIG -= qt
 DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += \
-    ../firmware/ggl/ggl/ggl_filter.c \
-    ../firmware/ggl/ggl/ggl_fltdarken.c \
-    ../firmware/ggl/ggl/ggl_fltlighten.c \
-    ../firmware/ggl/ggl/ggl_getnib.c \
     ../firmware/ggl/ggl/ggl_hblt.c \
     ../firmware/ggl/ggl/ggl_hbltfilter.c \
     ../firmware/ggl/ggl/ggl_initscr.c \
-    ../firmware/ggl/ggl/ggl_color.c \
-    ../firmware/ggl/ggl/ggl_color32.c \
-    ../firmware/ggl/ggl/ggl_opmask.c \
-    ../firmware/ggl/ggl/ggl_optransp.c \
-    ../firmware/ggl/ggl/ggl_pltnib.c \
         ../firmware/hal_battery.c \
     ../firmware/hal_keyboard.c \
     ../firmware/hal_screen.c \
@@ -166,7 +157,6 @@ SOURCES += \
     lib-20-comments.c \
     ../firmware/sys/target_pc/flash.c \
     ../firmware/ui_softmenu.c \
-    ../firmware/ggl/ggl/ggl_fltinvert.c \
     lib-4079-rpl2c.c \
     lib-48-angles.c \
     lib-74-sdcard.c \
@@ -179,7 +169,6 @@ SOURCES += \
     ../firmware/sys/target_pc/rtc.c \
     ../firmware/hal_clock.c \
     ../firmware/hal_alarm.c \
-    ../firmware/ggl/ggl/ggl_fltreplace.c \
     lib-76-ui.c \
     lib-77-libdata.c \
     lib-zero-messages.c \

@@ -344,10 +344,6 @@ gglsurface ggl_grob(word_p bmp);
 
 typedef pixword (*gglop)(pixword dst, pixword src, pixword arg);
 
-typedef pixword (*gglfilter_fn)(pixword color, pixword param);
-
-typedef pixword (*ggloperator_fn)(pixword dest, pixword source, pixword param);
-
 static inline offset ggl_pixel_offset(gglsurface *s,
                                       size        sbpp,
                                       coord       x,
@@ -404,6 +400,16 @@ static inline pixword rol(pixword value, unsigned shift)
 static inline pixword ror(pixword value, unsigned shift)
 {
     return shr(value, shift) | shlc(value, shift);
+}
+
+static inline pixword min(pixword a, pixword b)
+{
+    return a < b ? a : b;
+}
+
+static inline pixword max(pixword a, pixword b)
+{
+    return a > b ? a : b;
 }
 
 
@@ -517,26 +523,138 @@ static inline pixword ggl_op_mono_bg(pixword dst, pixword src, pixword arg)
 }
 
 
-// Color mask:
-// Parts that contain zero in the source are transparent, replaced with arg
-static inline pixword ggl_opmaskcol(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_flt_lighten_1bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Lighten the destination - Monochrome version (0 = white, 1 = black)
+// ----------------------------------------------------------------------------
 {
-    pixword result = 0;
-    pixword mask = (1U << BITS_PER_PIXEL) - 1;
-    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += BITS_PER_PIXEL)
-    {
-        pixword srcpix = (src >> shift) & mask;
-        pixword dstpix = (dst >> shift) & mask;
-        pixword argpix = (arg >> shift) & mask;
-        if (srcpix)
-            result |= srcpix << shift;
-        else if (dstpix)
-            result |= dstpix << shift;
-        else
-            result |= argpix << shift;
-    }
-    return result;
+    dst = src & arg;
+    return dst;
 }
+
+
+static inline pixword ggl_flt_lighten_4bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Lighten the destination - Grayscale version (0xF = black, 0x0 = white)
+// ----------------------------------------------------------------------------
+{
+    dst = 0;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += 4)
+    {
+        int data = ((src >> shift) & 0xF) - ((arg >> shift) & 0xF);
+        if (data < 0)
+            data = 0;
+        dst |= data << shift;
+    }
+    return dst;
+}
+
+
+static inline pixword ggl_flt_lighten_16bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Lighten - 16bpp version - Lighter value are higher
+// ----------------------------------------------------------------------------
+{
+    dst = 0;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += 16)
+    {
+        color16_t acol = { .value = (uint16_t) (arg >> shift) };
+        color16_t scol = { .value = (uint16_t) (src >> shift) };
+        color16_t dcol = {
+            .rgb16 = {
+                .blue  = (uint8_t) min(acol.rgb16.blue + scol.rgb16.blue, 31),
+                .green = (uint8_t) min(acol.rgb16.green + scol.rgb16.green, 63),
+                .red   = (uint8_t) min(acol.rgb16.red + scol.rgb16.red, 31),
+            }
+        };
+        dst |= dcol.value << shift;
+    }
+    return dst;
+}
+
+static inline pixword ggl_flt_lighten(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Lighten for default bits per pixel
+// ----------------------------------------------------------------------------
+{
+    return CAT(CAT(ggl_flt_lighten_,BITS_PER_PIXEL),bpp) (dst, src, arg);
+}
+
+
+static inline pixword ggl_flt_darken_1bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Darken the destination - Monochrome version (0 = white, 1 = black)
+// ----------------------------------------------------------------------------
+{
+    dst = src | arg;
+    return dst;
+}
+
+
+static inline pixword ggl_flt_darken_4bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Darken the destination - Grayscale version (0xF = black, 0x0 = white)
+// ----------------------------------------------------------------------------
+{
+    dst = 0;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += 4)
+    {
+        int data = ((src >> shift) & 0xF) + ((arg >> shift) & 0xF);
+        if (data > 0xF)
+            data = 0xF;
+        dst |= data << shift;
+    }
+    return dst;
+}
+
+
+static inline pixword ggl_flt_darken_16bpp(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Darken - 16bpp version
+// ----------------------------------------------------------------------------
+{
+    dst = 0;
+    for (unsigned shift = 0; shift < BITS_PER_WORD; shift += 16)
+    {
+        color16_t acol = { .value = (uint16_t) (arg >> shift) };
+        color16_t scol = { .value = (uint16_t) (src >> shift) };
+        color16_t dcol = {
+            .rgb16 = {
+                .blue  = (uint8_t) max(acol.rgb16.blue  - scol.rgb16.blue, 0),
+                .green = (uint8_t) max(acol.rgb16.green - scol.rgb16.green, 0),
+                .red   = (uint8_t) max(acol.rgb16.red   - scol.rgb16.red, 0),
+            }
+        };
+        dst |= dcol.value << shift;
+    }
+    return dst;
+}
+
+static inline pixword ggl_flt_darken(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Darken for default bits per pixel
+// ----------------------------------------------------------------------------
+{
+    return CAT(CAT(ggl_flt_darken_,BITS_PER_PIXEL),bpp) (dst, src, arg);
+}
+
+
+static inline pixword ggl_flt_invert(pixword dst, pixword src, pixword arg)
+// ----------------------------------------------------------------------------
+//   Inverting colors can always be achieved with a simple xor
+// ----------------------------------------------------------------------------
+{
+    dst = src ^ arg;
+    return dst;
+}
+
+
+
+// ============================================================================
+//
+//    Core blitting routine
+//
+// ============================================================================
 
 typedef enum clip
 {
@@ -850,6 +968,11 @@ static inline void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern
     ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, CLIP_DST);
 }
 
+static inline void ggl_filter(gglsurface *dst, size width, size height, gglop filter, pattern_t param)
+{
+    ggl_blit(dst, dst, 0, width-1, 0, height-1, 0, 0, filter, param, CLIP_DST);
+}
+
 static inline void ggl_copy_at(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
 {
     pattern_t clear = { .bits = 0 };
@@ -916,26 +1039,6 @@ void ggl_hbltmask(pixword *dest, int destoff, pixword *src, int srcoff, size npi
 // the area that needs to be redrawn after the scroll is not erased or modified by these routines
 void     ggl_scrolllf(gglsurface *dest, size width, size height, size npixels); // scroll npixels left
 void     ggl_scrollrt(gglsurface *dest, size width, size height, size npixels); // scroll npixels right
-
-// custom filters and operators
-
-// low-level row filtering routine
-void     ggl_hbltfilter(pixword *dest, int destoff, size npixels, int param, gglfilter_fn filterfunc);
-// bitmap filtering routine
-void     ggl_filter(gglsurface *dest, size width, size height, int param, gglfilter_fn filterfunc);
-
-// predefined filters and operators
-
-// filters (unary operators)
-// ligthens an image by subtracting param from all pixels
-pixword ggl_fltlighten(pixword color, pixword param);
-// darkens an image by adding param to all pixels
-pixword ggl_fltdarken(pixword color, pixword param);
-// invert the colors on all pixels
-pixword ggl_fltinvert(pixword color, pixword param);
-// replace a color with another
-pixword ggl_fltreplace(pixword color, pixword param);
-
 
 
 // ggl_color repeats the same color on every nibble

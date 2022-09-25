@@ -156,13 +156,6 @@ SOURCES += \
 newrpl_color:DEFINES += NEWRPL_COLOR
 
 SOURCES += \
-        firmware/ggl/ggl_filter.c \
-        firmware/ggl/ggl_fltdarken.c \
-        firmware/ggl/ggl_fltinvert.c \
-        firmware/ggl/ggl_fltlighten.c \
-        firmware/ggl/ggl_fltreplace.c \
-        firmware/ggl/ggl_hblt.c \
-        firmware/ggl/ggl_hbltfilter.c \
         firmware/ggl/ggl_initscr.c \
 
 # System

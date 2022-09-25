@@ -1546,7 +1546,6 @@ void halRedrawStatus(gglsurface *scr)
                 ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0x4, &ggl_fltlighten);
 
             }
-#endif /* Disabled code */
 
             if (width > LCD_W - STATUS_AREA_X)
             {
@@ -1585,6 +1584,7 @@ void halRedrawStatus(gglsurface *scr)
                                (ggl_color(PAL_STA_TEXT).value << 16),
                            &ggl_fltreplace);
             }
+#endif /* Disabled code */
         }
 
         int xctracker = 0; // TRACK THE WIDTH OF THE INDICATORS TO MAKE SURE THEY ALL FIT
