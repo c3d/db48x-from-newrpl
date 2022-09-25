@@ -192,6 +192,12 @@ ROMOBJECT fontcmdline_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fontcursor_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('C', 'u', 'r', 's'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
 ROMOBJECT fontstarea_ident[] = {
     MKPROLOG(DOIDENT, 2),
     TEXT2WORD('S', 't', 'a', 't'),
@@ -234,13 +240,13 @@ const word_p const ROMPTR_TABLE[] = {
     (word_p) fontstack_ident,
     (word_p) fontstack1_ident,
     (word_p) fontcmdline_ident,
+    (word_p) fontcursor_ident,
     (word_p) fontmenu_ident,
     (word_p) fontstarea_ident,
     (word_p) fontplot_ident,
     (word_p) fontform_ident,
     (word_p) fonthelp_ident,
     (word_p) fonthelptitle_ident,
-    (word_p) zero_bint,
     (word_p) zero_bint,
     (word_p) zero_bint,
 
@@ -361,6 +367,7 @@ void rplFontsNewList(word_p oldlist, word_p newlist)
             (word_p) fontstack_ident,
             (word_p) fontstack1_ident,
             (word_p) fontcmdline_ident,
+            (word_p) fontcursor_ident,
             (word_p) fontmenu_ident,
             (word_p) fontstarea_ident,
             (word_p) fontplot_ident,
@@ -613,6 +620,9 @@ void rplSetCurrentFont(int32_t area, word_p ident)
     case FONT_INDEX_CMDLINE:
         fntid = (word_p) fontcmdline_ident;
         break;
+    case FONT_INDEX_CURSOR:
+        fntid = (word_p) fontcursor_ident;
+        break;
     case FONT_INDEX_MENU:
         fntid = (word_p) fontmenu_ident;
         break;
@@ -653,6 +663,9 @@ word_p rplGetCurrentFont(int32_t area)
     case FONT_INDEX_CMDLINE:
         fntid = (word_p) fontcmdline_ident;
         break;
+    case FONT_INDEX_CURSOR:
+        fntid = (word_p) fontcursor_ident;
+        break;
     case FONT_INDEX_MENU:
         fntid = (word_p) fontmenu_ident;
         break;
@@ -686,6 +699,8 @@ word_p rplGetCurrentFont(int32_t area)
             return (word_p) fnt8c_ident;
         case FONT_INDEX_CMDLINE:
             return (word_p) fnt8c_ident;
+        case FONT_INDEX_CURSOR:
+            return (word_p) fnt6a_ident;
         case FONT_INDEX_MENU:
             return (word_p) fnt6a_ident;
         case FONT_INDEX_STATUS:

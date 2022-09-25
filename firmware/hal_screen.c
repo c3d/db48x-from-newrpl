@@ -656,9 +656,12 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
     }
 
     // UNCONFIGURED FONTS GET DEFAULTS
-    static const unsigned defaultHeight[FONTS_NUM] = { DEF_FNT_STK_HEIGHT,  DEF_FNT_1STK_HEIGHT, DEF_FNT_CMDL_HEIGHT,
-                                                       DEF_FNT_MENU_HEIGHT, DEF_FNT_STAT_HEIGHT, DEF_FNT_PLOT_HEIGHT,
-                                                       DEF_FNT_FORM_HEIGHT, DEF_FNT_HLPT_HEIGHT, DEF_FNT_HELP_HEIGHT };
+    static const unsigned defaultHeight[FONTS_NUM] = {
+        DEF_FNT_STK_HEIGHT,  DEF_FNT_1STK_HEIGHT, DEF_FNT_CMDL_HEIGHT,
+        DEF_FNT_CURS_HEIGHT, DEF_FNT_MENU_HEIGHT, DEF_FNT_STAT_HEIGHT,
+        DEF_FNT_PLOT_HEIGHT, DEF_FNT_FORM_HEIGHT, DEF_FNT_HLPT_HEIGHT,
+        DEF_FNT_HELP_HEIGHT,
+    };
 
     unsigned              index;
     for (index = 0; index < FONTS_NUM; index++)
@@ -1915,23 +1918,22 @@ void halRedrawCmdLine(gglsurface *scr)
             ggl_cliphline(scr, ytop + 1, 0, LCD_W - 1, ggl_solid(PAL_CMD_BG));
         }
 
-        int32_t    y       = (halScreen.LineCurrent - halScreen.LineVisible) * FONT_HEIGHT(FONT_CMDLINE);
+        size   rows    = halScreen.LineCurrent - halScreen.LineVisible;
+        coord  y       = rows * FONT_HEIGHT(FONT_CMDLINE);
         byte_p cmdline = (byte_p) (CmdLineCurrentLine + 1);
-        int32_t    nchars  = rplStrSize(CmdLineCurrentLine);
+        size_t nchars  = rplStrSize(CmdLineCurrentLine);
 
         if (halScreen.DirtyFlag & CMDLINE_DIRTY)
         {
-            // SHOW OTHER LINES HERE EXCEPT THE CURRENT EDITED LINE
-            int32_t k;
-            int32_t startoff = -1;
-            int32_t endoff;
+            // Show other lines here except the current edited line
+            coord startoff = -1;
+            coord endoff;
 
-            for (k = 0; k < halScreen.NumLinesVisible; ++k)
+            for (int k = 0; k < halScreen.NumLinesVisible; ++k)
             {
-                // UPDATE THE LINE
+                // Update the line
                 if (halScreen.LineVisible + k < 1)
                     continue;
-                // if(halScreen.LineVisible+k>totallines) break;
 
                 if (halScreen.LineVisible + k == halScreen.LineCurrent)
                 {
@@ -2154,7 +2156,7 @@ void halRedrawCmdLine(gglsurface *scr)
                             ytop + 2 + y,
                             (char *) &halScreen.CursorState,
                             ((char *) &halScreen.CursorState) + 1,
-                            FONT_CMDLINE,
+                            FONT_CURSOR,
                             ggl_solid(PAL_CMD_CURSOR),
                             ggl_solid(PAL_CMD_CURSOR_BG));
 
@@ -2295,6 +2297,7 @@ void halUpdateFonts()
                 halScreen.DirtyFlag |= STACK_DIRTY;
                 break;
             case FONT_INDEX_CMDLINE:
+            case FONT_INDEX_CURSOR:
                 if (halScreen.CmdLine)
                 {
                     halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;

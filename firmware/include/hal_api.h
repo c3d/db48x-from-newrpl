@@ -104,6 +104,7 @@ enum halFonts
     FONT_INDEX_STACK = 0,
     FONT_INDEX_STACKLVL1,
     FONT_INDEX_CMDLINE,
+    FONT_INDEX_CURSOR,
     FONT_INDEX_MENU,
     FONT_INDEX_STATUS,
     FONT_INDEX_PLOT,
@@ -117,6 +118,7 @@ enum halFonts
 #define FONT_STACK              FONT(STACK)
 #define FONT_STACKLVL1          FONT(STACKLVL1)
 #define FONT_CMDLINE            FONT(CMDLINE)
+#define FONT_CURSOR             FONT(CURSOR)
 #define FONT_MENU               FONT(MENU)
 #define FONT_STATUS             FONT(STATUS)
 #define FONT_PLOT               FONT(PLOT)
