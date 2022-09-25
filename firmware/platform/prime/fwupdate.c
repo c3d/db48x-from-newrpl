@@ -41,7 +41,7 @@ void ram_receiveandflashfw(int32_t flashsize)
     int fw_size = 0;
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
 
     ggl_hline(&scr,10,0,LCD_W-1,ggl_solid(PAL_GRAY15));
     ggl_hline(&scr,21,0,LCD_W-1,ggl_solid(PAL_GRAY15));

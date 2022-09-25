@@ -9,10 +9,10 @@
 
 void ggl_hline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
 {
-    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_set, color, CLIP_NONE);
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_NONE);
 }
 
 void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
 {
-    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_set, color, CLIP_DST);
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_DST);
 }

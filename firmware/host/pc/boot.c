@@ -37,7 +37,7 @@ void main_virtual()
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
 
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid(PAL_STK_BG));

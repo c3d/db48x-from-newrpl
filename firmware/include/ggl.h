@@ -280,12 +280,12 @@ static inline color_t ggl_color(palette_index index)
     return ggl_palette[index & PALETTE_MASK];
 }
 
-static inline void ggl_set_color(palette_index index, color_t color)
+static inline void ggl_color_set(palette_index index, color_t color)
 {
     ggl_palette[index & PALETTE_MASK] = color;
 }
 
-static inline void ggl_set_color16(palette_index index, color16_t color)
+static inline void ggl_color_set16(palette_index index, color16_t color)
 {
     ggl_palette[index & PALETTE_MASK] = ggl_rgb16_to_color(color);
 }
@@ -337,8 +337,8 @@ typedef struct
     int      active_buffer; //! Active buffer: 0 or 1
 } gglsurface;
 
-void ggl_initscr(gglsurface *surface);
-gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height);
+void ggl_init_screen(gglsurface *surface);
+gglsurface ggl_bitmap(pixword *bits, size width, size height);
 gglsurface ggl_grob(word_p bmp);
 
 
@@ -414,7 +414,7 @@ static inline pixword ror(pixword value, unsigned shift)
 //
 // ============================================================================
 
-static inline pixword ggl_set(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_set(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   This simly sets the color passed in arg
 // ----------------------------------------------------------------------------
@@ -424,7 +424,7 @@ static inline pixword ggl_set(pixword dst, pixword src, pixword arg)
     return arg;
 }
 
-static inline pixword ggl_source(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_source(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   This simly sets the color from the source
 // ----------------------------------------------------------------------------
@@ -434,7 +434,7 @@ static inline pixword ggl_source(pixword dst, pixword src, pixword arg)
     return src;
 }
 
-static inline pixword ggl_mono_fg_1bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_fg_1bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap foreground colorization (1bpp destination)
 // ----------------------------------------------------------------------------
@@ -444,16 +444,16 @@ static inline pixword ggl_mono_fg_1bpp(pixword dst, pixword src, pixword arg)
 }
 
 
-static inline pixword ggl_mono_bg_1bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_bg_1bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap baground colorization (1bpp destination)
 // ----------------------------------------------------------------------------
 {
-    return ggl_mono_fg_1bpp(dst, ~src, arg);
+    return ggl_op_mono_fg_1bpp(dst, ~src, arg);
 }
 
 
-static inline pixword ggl_mono_fg_4bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_fg_4bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap foreground colorization (4bpp destination)
 // ----------------------------------------------------------------------------
@@ -467,16 +467,16 @@ static inline pixword ggl_mono_fg_4bpp(pixword dst, pixword src, pixword arg)
 }
 
 
-static inline pixword ggl_mono_bg_4bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_bg_4bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap background colorization (4bpp destination)
 // ----------------------------------------------------------------------------
 {
-    return ggl_mono_fg_4bpp(dst, ~src, arg);
+    return ggl_op_mono_fg_4bpp(dst, ~src, arg);
 }
 
 
-static inline pixword ggl_mono_fg_16bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_fg_16bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap foreground colorization (16bpp destination)
 // ----------------------------------------------------------------------------
@@ -490,30 +490,30 @@ static inline pixword ggl_mono_fg_16bpp(pixword dst, pixword src, pixword arg)
 }
 
 
-static inline pixword ggl_mono_bg_16bpp(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_bg_16bpp(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   Bitmap background colorization (16bpp destination)
 // ----------------------------------------------------------------------------
 {
-    return ggl_mono_fg_16bpp(dst, ~src, arg);
+    return ggl_op_mono_fg_16bpp(dst, ~src, arg);
 }
 
 
-static inline pixword ggl_mono_fg(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_fg(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   The foreground variant that is appropriate for the hardware display
 // ----------------------------------------------------------------------------
 {
-    return CAT(CAT(ggl_mono_fg_,BITS_PER_PIXEL),bpp) (dst, src, arg);
+    return CAT(CAT(ggl_op_mono_fg_,BITS_PER_PIXEL),bpp) (dst, src, arg);
 }
 
 
-static inline pixword ggl_mono_bg(pixword dst, pixword src, pixword arg)
+static inline pixword ggl_op_mono_bg(pixword dst, pixword src, pixword arg)
 // ----------------------------------------------------------------------------
 //   The background variant that is appropriate for the hardware display
 // ----------------------------------------------------------------------------
 {
-    return CAT(CAT(ggl_mono_bg_,BITS_PER_PIXEL),bpp) (dst, src, arg);
+    return CAT(CAT(ggl_op_mono_bg_,BITS_PER_PIXEL),bpp) (dst, src, arg);
 }
 
 
@@ -823,7 +823,7 @@ static inline void ggl_blit(gglsurface *d, // Destination surface
 static inline void ggl_copy_at(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
 {
     pattern_t clear = { .bits = 0 };
-    ggl_blit(dst, src, x, x+width-1, y, y+height-1, 0, 0, ggl_source, clear, CLIP_ALL);
+    ggl_blit(dst, src, x, x+width-1, y, y+height-1, 0, 0, ggl_op_source, clear, CLIP_ALL);
 }
 
 static inline void ggl_copy(gglsurface *dst, gglsurface *src, size width, size height)
@@ -834,7 +834,7 @@ static inline void ggl_copy(gglsurface *dst, gglsurface *src, size width, size h
 static inline void ggl_copy_from(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
 {
     pattern_t clear = { .bits = 0 };
-    ggl_blit(dst, src, 0, width-1, 0, height-1, x, y, ggl_source, clear, CLIP_ALL);
+    ggl_blit(dst, src, 0, width-1, 0, height-1, x, y, ggl_op_source, clear, CLIP_ALL);
 }
 
 

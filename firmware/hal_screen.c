@@ -674,74 +674,74 @@ void halSetupTheme(color16_t *palette)
     if (!palette)
     {
         // Setup Default color palette
-        ggl_set_color16(PAL_GRAY0, THEME_GRAY0);
-        ggl_set_color16(PAL_GRAY1, THEME_GRAY1);
-        ggl_set_color16(PAL_GRAY2, THEME_GRAY2);
-        ggl_set_color16(PAL_GRAY3, THEME_GRAY3);
-        ggl_set_color16(PAL_GRAY4, THEME_GRAY4);
-        ggl_set_color16(PAL_GRAY5, THEME_GRAY5);
-        ggl_set_color16(PAL_GRAY6, THEME_GRAY6);
-        ggl_set_color16(PAL_GRAY7, THEME_GRAY7);
-        ggl_set_color16(PAL_GRAY8, THEME_GRAY8);
-        ggl_set_color16(PAL_GRAY9, THEME_GRAY9);
-        ggl_set_color16(PAL_GRAY10, THEME_GRAY10);
-        ggl_set_color16(PAL_GRAY11, THEME_GRAY11);
-        ggl_set_color16(PAL_GRAY12, THEME_GRAY12);
-        ggl_set_color16(PAL_GRAY13, THEME_GRAY13);
-        ggl_set_color16(PAL_GRAY14, THEME_GRAY14);
-        ggl_set_color16(PAL_GRAY15, THEME_GRAY15);
+        ggl_color_set16(PAL_GRAY0, THEME_GRAY0);
+        ggl_color_set16(PAL_GRAY1, THEME_GRAY1);
+        ggl_color_set16(PAL_GRAY2, THEME_GRAY2);
+        ggl_color_set16(PAL_GRAY3, THEME_GRAY3);
+        ggl_color_set16(PAL_GRAY4, THEME_GRAY4);
+        ggl_color_set16(PAL_GRAY5, THEME_GRAY5);
+        ggl_color_set16(PAL_GRAY6, THEME_GRAY6);
+        ggl_color_set16(PAL_GRAY7, THEME_GRAY7);
+        ggl_color_set16(PAL_GRAY8, THEME_GRAY8);
+        ggl_color_set16(PAL_GRAY9, THEME_GRAY9);
+        ggl_color_set16(PAL_GRAY10, THEME_GRAY10);
+        ggl_color_set16(PAL_GRAY11, THEME_GRAY11);
+        ggl_color_set16(PAL_GRAY12, THEME_GRAY12);
+        ggl_color_set16(PAL_GRAY13, THEME_GRAY13);
+        ggl_color_set16(PAL_GRAY14, THEME_GRAY14);
+        ggl_color_set16(PAL_GRAY15, THEME_GRAY15);
 
         // Theme colors for the stack
-        ggl_set_color16(PAL_STK_BG, THEME_STK_BG);
-        ggl_set_color16(PAL_STK_INDEX, THEME_STK_INDEX);
-        ggl_set_color16(PAL_STK_VLINE, THEME_STK_VLINE);
-        ggl_set_color16(PAL_STK_IDX_BG, THEME_STK_IDX_BG);
-        ggl_set_color16(PAL_STK_ITEMS, THEME_STK_ITEMS);
-        ggl_set_color16(PAL_STK_SEL_BG, THEME_STK_SEL_BG);
-        ggl_set_color16(PAL_STK_SEL_ITEM, THEME_STK_SEL_ITEM);
-        ggl_set_color16(PAL_STK_CURSOR, THEME_STK_CURSOR);
+        ggl_color_set16(PAL_STK_BG, THEME_STK_BG);
+        ggl_color_set16(PAL_STK_INDEX, THEME_STK_INDEX);
+        ggl_color_set16(PAL_STK_VLINE, THEME_STK_VLINE);
+        ggl_color_set16(PAL_STK_IDX_BG, THEME_STK_IDX_BG);
+        ggl_color_set16(PAL_STK_ITEMS, THEME_STK_ITEMS);
+        ggl_color_set16(PAL_STK_SEL_BG, THEME_STK_SEL_BG);
+        ggl_color_set16(PAL_STK_SEL_ITEM, THEME_STK_SEL_ITEM);
+        ggl_color_set16(PAL_STK_CURSOR, THEME_STK_CURSOR);
 
         // Theme colors for the command line
-        ggl_set_color16(PAL_CMD_BG, THEME_CMD_BG);
-        ggl_set_color16(PAL_CMD_TEXT, THEME_CMD_TEXT);
-        ggl_set_color16(PAL_CMD_SEL_BG, THEME_CMD_SEL_BG);
-        ggl_set_color16(PAL_CMD_SELTEXT, THEME_CMD_SELTEXT);
-        ggl_set_color16(PAL_CMD_CURSOR_BG, THEME_CMD_CURSOR_BG);
-        ggl_set_color16(PAL_CMD_CURSOR, THEME_CMD_CURSOR);
-        ggl_set_color16(PAL_DIV_LINE, THEME_DIV_LINE);
+        ggl_color_set16(PAL_CMD_BG, THEME_CMD_BG);
+        ggl_color_set16(PAL_CMD_TEXT, THEME_CMD_TEXT);
+        ggl_color_set16(PAL_CMD_SEL_BG, THEME_CMD_SEL_BG);
+        ggl_color_set16(PAL_CMD_SELTEXT, THEME_CMD_SELTEXT);
+        ggl_color_set16(PAL_CMD_CURSOR_BG, THEME_CMD_CURSOR_BG);
+        ggl_color_set16(PAL_CMD_CURSOR, THEME_CMD_CURSOR);
+        ggl_color_set16(PAL_DIV_LINE, THEME_DIV_LINE);
 
         // Theme colors for menu
-        ggl_set_color16(PAL_MENU_BG, THEME_MENU_BG);
-        ggl_set_color16(PAL_MENU_INV_BG, THEME_MENU_INV_BG);
-        ggl_set_color16(PAL_MENU_TEXT, THEME_MENU_TEXT);
-        ggl_set_color16(PAL_MENU_INV_TEXT, THEME_MENU_INV_TEXT);
-        ggl_set_color16(PAL_MENU_DIR_MARK, THEME_MENU_DIR_MARK);
-        ggl_set_color16(PAL_MENU_INV_DIR_MARK, THEME_MENU_INV_DIR_MARK);
-        ggl_set_color16(PAL_MENU_HLINE, THEME_MENU_HLINE);
-        ggl_set_color16(PAL_MENU_FOCUS_HLINE, THEME_MENU_FOCUS_HLINE);
-        ggl_set_color16(PAL_MENU_PRESS_BG, THEME_MENU_PRESS_BG);
-        ggl_set_color16(PAL_MENU_PRESS_INV_BG, THEME_MENU_PRESS_INV_BG);
+        ggl_color_set16(PAL_MENU_BG, THEME_MENU_BG);
+        ggl_color_set16(PAL_MENU_INV_BG, THEME_MENU_INV_BG);
+        ggl_color_set16(PAL_MENU_TEXT, THEME_MENU_TEXT);
+        ggl_color_set16(PAL_MENU_INV_TEXT, THEME_MENU_INV_TEXT);
+        ggl_color_set16(PAL_MENU_DIR_MARK, THEME_MENU_DIR_MARK);
+        ggl_color_set16(PAL_MENU_INV_DIR_MARK, THEME_MENU_INV_DIR_MARK);
+        ggl_color_set16(PAL_MENU_HLINE, THEME_MENU_HLINE);
+        ggl_color_set16(PAL_MENU_FOCUS_HLINE, THEME_MENU_FOCUS_HLINE);
+        ggl_color_set16(PAL_MENU_PRESS_BG, THEME_MENU_PRESS_BG);
+        ggl_color_set16(PAL_MENU_PRESS_INV_BG, THEME_MENU_PRESS_INV_BG);
 
         // Theme colors for status area
-        ggl_set_color16(PAL_STA_BG, THEME_STA_BG);
-        ggl_set_color16(PAL_STA_TEXT, THEME_STA_TEXT);
-        ggl_set_color16(PAL_STA_ANNPRESS, THEME_STA_ANNPRESS);
-        ggl_set_color16(PAL_STA_ANN, THEME_STA_ANN);
-        ggl_set_color16(PAL_STA_BAT, THEME_STA_BAT);
-        ggl_set_color16(PAL_STA_UFLAG0, THEME_STA_UFLAG0);
-        ggl_set_color16(PAL_STA_UFLAG1, THEME_STA_UFLAG1);
+        ggl_color_set16(PAL_STA_BG, THEME_STA_BG);
+        ggl_color_set16(PAL_STA_TEXT, THEME_STA_TEXT);
+        ggl_color_set16(PAL_STA_ANNPRESS, THEME_STA_ANNPRESS);
+        ggl_color_set16(PAL_STA_ANN, THEME_STA_ANN);
+        ggl_color_set16(PAL_STA_BAT, THEME_STA_BAT);
+        ggl_color_set16(PAL_STA_UFLAG0, THEME_STA_UFLAG0);
+        ggl_color_set16(PAL_STA_UFLAG1, THEME_STA_UFLAG1);
 
         // Theme colors for help and popup messages
-        ggl_set_color16(PAL_HLP_BG, THEME_HLP_BG);
-        ggl_set_color16(PAL_HLP_TEXT, THEME_HLP_TEXT);
-        ggl_set_color16(PAL_HLP_LINES, THEME_HLP_LINES);
+        ggl_color_set16(PAL_HLP_BG, THEME_HLP_BG);
+        ggl_color_set16(PAL_HLP_TEXT, THEME_HLP_TEXT);
+        ggl_color_set16(PAL_HLP_LINES, THEME_HLP_LINES);
 
         // Theme colors for Forms
-        ggl_set_color16(PAL_FORM_BG, THEME_FORMBACKGROUND);
-        ggl_set_color16(PAL_FORM_TEXT, THEME_FORMTEXT);
-        ggl_set_color16(PAL_FORM_SELTEXT, THEME_FORMSELTEXT);
-        ggl_set_color16(PAL_FORM_SEL_BG, THEME_FORMSEL_BG);
-        ggl_set_color16(PAL_FORM_CURSOR, THEME_FORMCURSOR);
+        ggl_color_set16(PAL_FORM_BG, THEME_FORMBACKGROUND);
+        ggl_color_set16(PAL_FORM_TEXT, THEME_FORMTEXT);
+        ggl_color_set16(PAL_FORM_SELTEXT, THEME_FORMSELTEXT);
+        ggl_color_set16(PAL_FORM_SEL_BG, THEME_FORMSEL_BG);
+        ggl_color_set16(PAL_FORM_CURSOR, THEME_FORMCURSOR);
 
         // More default colors here
         return;
@@ -751,7 +751,7 @@ void halSetupTheme(color16_t *palette)
     // Replace the palette completely
 
     for (int k = 0; k < PALETTE_SIZE; ++k)
-        ggl_set_color16(k, palette[k]);
+        ggl_color_set16(k, palette[k]);
 
     // Make sure all items are rendered again using the new colors
 
@@ -2437,7 +2437,7 @@ void status_popup_handler()
         halScreen.DirtyFlag |= STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 #else  // !TARGET_PRIME1
         gglsurface scr;
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
         halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
@@ -2543,7 +2543,7 @@ void halShowErrorMsg()
     halErrorPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
 
     if (!halScreen.Menu2)
     {
@@ -2664,7 +2664,7 @@ void halShowMsgN(utf8_p Text, utf8_p End)
     halErrorPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
 
     if (!halScreen.Menu2)
     {

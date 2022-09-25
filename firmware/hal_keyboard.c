@@ -4169,7 +4169,7 @@ void onPlusKeyHandler(WORD keymsg)
 
     // INCREASE CONTRAST
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -4205,7 +4205,7 @@ void onMinusKeyHandler(WORD keymsg)
 
     // DECREASE CONTRAST
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -4269,7 +4269,7 @@ void onDotKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
         halScreen.Form + halScreen.Stack + halScreen.CmdLine +
         halScreen.Menu1;
@@ -4414,7 +4414,7 @@ void onSpcKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -4518,7 +4518,7 @@ void onMulDivKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -4618,7 +4618,7 @@ void onDigitKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -4684,7 +4684,7 @@ void onUpDownKeyHandler(WORD keymsg)
     halStatusAreaPopup();
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int ytop =
             halScreen.Form + halScreen.Stack + halScreen.CmdLine +
             halScreen.Menu1;
@@ -7928,7 +7928,7 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
     {
         // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         gglsurface scr;
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
         UNIFONT *fnt   = FONT_STATUS;
 
         // FOR DEBUG ONLY
@@ -8002,7 +8002,7 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), in
     int64_t offcounter = 0;
 
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     jobdone = isidle = 0;
     halTimeoutEvent = -1;
 

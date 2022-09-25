@@ -191,7 +191,7 @@ void keyb_irq_update()
     /*
     // PRINT KEYBOARD MATRIX
     gglsurface scr;
-    ggl_initscr(&scr);
+    ggl_init_screen(&scr);
     int k;
     // DRAW THE KEYMATRIX
     for(k=0;k<64;++k)

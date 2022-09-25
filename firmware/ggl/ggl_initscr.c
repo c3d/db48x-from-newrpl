@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-void ggl_initscr(gglsurface *srf)
+void ggl_init_screen(gglsurface *srf)
 {
     srf->pixels = (pixword *) MEM_PHYS_SCREEN;
     srf->width  = LCD_SCANLINE;
@@ -28,7 +28,7 @@ void ggl_initscr(gglsurface *srf)
 #endif
 }
 
-gglsurface ggl_monochrome_bitmap(pixword *bits, size width, size height)
+gglsurface ggl_bitmap(pixword *bits, size width, size height)
 {
     gglsurface result = {
         .pixels = bits,

@@ -40,7 +40,7 @@ static inline coord DrawTextInternal(gglsurface    *surface,
 
     size       fwidth   = Font->BitmapWidth << 3;
     size       fheight  = Font->BitmapHeight;
-    gglsurface fontsrf  = ggl_monochrome_bitmap(fontbits, fwidth, fheight);
+    gglsurface fontsrf  = ggl_bitmap(fontbits, fwidth, fheight);
 
     coord      x0       = x;
     size       width    = 0;
@@ -322,7 +322,7 @@ void DrawTextN(gglsurface    *surface,
                      Text,
                      End,
                      Font,
-                     ggl_mono_fg,
+                     ggl_op_mono_fg,
                      foreground,
                      NULL,
                      foreground);
@@ -363,9 +363,9 @@ void DrawTextBkN(gglsurface    *surface,
                      Text,
                      End,
                      Font,
-                     ggl_mono_fg,
+                     ggl_op_mono_fg,
                      foreground,
-                     ggl_mono_bg,
+                     ggl_op_mono_bg,
                      background);
 }
 
@@ -402,7 +402,7 @@ void DrawTextMono(gglsurface    *surface,
                      Text,
                      End,
                      Font,
-                     ggl_mono_fg_1bpp,
+                     ggl_op_mono_fg_1bpp,
                      color,
                      NULL,
                      color);

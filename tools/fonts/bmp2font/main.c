@@ -674,7 +674,7 @@ int main(int argc, char *argv[])
                 "/*********** END OF CONVERTED FONT ******************/\n");
 
         /*
-           fprintf(han,"unsigned int ggl_mono2gray[256]={\n");
+           fprintf(han,"unsigned int ggl_op_mono2gray[256]={\n");
 
            for(j=0;j<256;j++)
            {

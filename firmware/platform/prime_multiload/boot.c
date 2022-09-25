@@ -47,7 +47,7 @@ void printline(char *left_text, char *right_text) {
         lcd_setmode(BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
         lcd_on();
 
-        ggl_initscr(&surface);
+        ggl_init_screen(&surface);
         ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid_pattern(RGB_TO_RGB16(255,0,0)));
         line =0;
     }

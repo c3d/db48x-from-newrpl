@@ -232,7 +232,7 @@ void main_virtual(unsigned int mode)
     //line = 0;
 
 
-    //ggl_initscr(&surface);
+    //ggl_init_screen(&surface);
     //ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, ggl_color(PAL_STK_BG));
 
      // INITIALIZE SOME SYSTEM VARIABLES
@@ -247,7 +247,7 @@ void main_virtual(unsigned int mode)
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
 
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
 
         halSetupTheme(NULL);
 
@@ -947,9 +947,9 @@ void startup(void)
     enable_interrupts();
 
     // Setup Default color palette for early exception handlers only, just in case
-    ggl_set_color(PAL_GRAY0,THEME_GRAY0);
-    ggl_set_color(PAL_GRAY8,THEME_GRAY8);
-    ggl_set_color(PAL_GRAY15,THEME_GRAY15);
+    ggl_color_set(PAL_GRAY0,THEME_GRAY0);
+    ggl_color_set(PAL_GRAY8,THEME_GRAY8);
+    ggl_color_set(PAL_GRAY15,THEME_GRAY15);
 
     tmr_setup();
 

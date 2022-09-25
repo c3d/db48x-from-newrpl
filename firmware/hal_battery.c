@@ -44,7 +44,7 @@ void battery_handler()
 #endif // TARGET_PRIME1
 
         gglsurface scr;
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
 
         // THIS IS FOR DEBUG ONLY
         char text[4] = { 0 };
@@ -147,7 +147,7 @@ void battery_handler()
         if(halScreen.Menu2==0) return;  // Don't display battery in single menu mode
 
         gglsurface scr;
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
 
         int text,rot;
         int k;
@@ -219,7 +219,7 @@ void busy_handler()
     // Force Display the Hourglass
     {
         gglsurface scr;
-        ggl_initscr(&scr);
+        ggl_init_screen(&scr);
         DrawTextBk(&scr, LCD_W-StringWidth((char *)"W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
                    Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
 
