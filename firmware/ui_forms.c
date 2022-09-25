@@ -117,8 +117,7 @@ void uiUpdateForm(word_p form)
         return;
     form = ScratchPointer1;
 
-    // PASS 2: REDRAW EACH ELEMENT ONTO THE NEW BITMAP
-
+    // Pass 2: Redraw each element onto the new bitmap
     gglsurface backgnd = ggl_grob(newbmp);
 
     int32_t ycoord = 0;
@@ -145,8 +144,7 @@ void uiUpdateForm(word_p form)
             int32_t def_itemw, itemw;
 
             while(col < endcol) {
-                // SCAN THE COLUMN
-
+                // Scan the column
                 if(ISint32_t(*col)) {
                     roww += rplReadint32_t(col);
                     col = rplSkipOb(col);
@@ -156,13 +154,11 @@ void uiUpdateForm(word_p form)
                 if(*col != CMD_ENDLIST)
                     ++ncols;
                 col = rplSkipOb(col);
-
             }
             def_itemw = LCD_W / ncols;
             roww += (ncols - forced) * (LCD_W / (ncols));
 
-            // NOW RENDER IT
-
+            // Now render it
             col = item + 1;
             backgnd.left = 0;
             backgnd.top = ycoord;
@@ -175,8 +171,8 @@ void uiUpdateForm(word_p form)
                 else
                     itemw = def_itemw;
                 if(ISSTRING(*col)) {
-                    // DRAW THE STRING
-                    // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
+                    // Draw the string
+                    // TODO: Support multiline text here, with proper text wrap
                     backgnd.right = backgnd.left + itemw - 1;
                     DrawTextBkN(&backgnd, backgnd.left, backgnd.top, (char *)(col + 1),
                                 (char *)(col + 1) + rplStrSize(col),
@@ -184,51 +180,49 @@ void uiUpdateForm(word_p form)
                     backgnd.left = backgnd.right + 1;
                 }
 
-                //TODO: RENDER FIELDS HERE
-
+                //TODO: Render fields here
                 col = rplSkipOb(col);
-
             }
 
         }
 
         if(ISSTRING(*item)) {
-            // DRAW THE STRING
-            // TODO: SUPPORT MULTILINE TEXT HERE, WITH PROPER TEXT WRAP
-            backgnd.left = 0;
-            backgnd.top = ycoord;
-            backgnd.bottom = ycoord + rowh - 1;
-            backgnd.right = backgnd.left + roww - 1;
-            DrawTextBkN(&backgnd, backgnd.left, backgnd.top, (char *)(item + 1),
-                        (char *)(item + 1) + rplStrSize(item),
-                        FONT_FORMS, ggl_solid(PAL_GRAY15), ggl_solid(PAL_GRAY0));
-            if(!rowid) {
-                // THIS IS THE FORM TITLE, HIGHLIGHT IT
-                gglsurface copy;
-                copy.pixels = backgnd.pixels;
-                copy.width = backgnd.width;
-
-                copy.x = 0;
-                copy.y = 0;
-                copy.left = backgnd.x;
-                backgnd.x = (backgnd.width - backgnd.x) / 2;
-                // CENTER THE TEXT
-                ggl_copy(&backgnd,
-                         &copy,
-                         copy.left,
-                         backgnd.bottom - backgnd.top + 1);
+            // Draw the string
+            // TODO: Support multiline text here, with proper text wrap
+            utf8_p str = (utf8_p) (item+1);
+            size_t len = rplStrSize(item);
+            coord left = 0;
+            coord top = ycoord;
+            coord right = backgnd.left + roww - 1;
+            coord bottom = ycoord + rowh - 1;
+            backgnd.right = right;
+            backgnd.bottom = bottom;
+            if(rowid)
+            {
+                // Regular row: just draw it as is
+                DrawTextBkN(&backgnd,
+                            left,
+                            top,
+                            str,
+                            str + len,
+                            FONT_FORMS,
+                            ggl_solid(PAL_GRAY15),
+                            ggl_solid(PAL_GRAY0));
+            }
+            else
+            {
+                size width = StringWidthN(str, str + len, FONT_FORMS);
                 ggl_cliprect(&backgnd,
-                             backgnd.x + copy.left,
-                             backgnd.top,
-                             backgnd.right,
-                             backgnd.bottom,
-                             ggl_solid(PAL_GRAY4));
-                ggl_cliprect(&backgnd,
-                             0,
-                             backgnd.top,
-                             backgnd.x - 1,
-                             backgnd.bottom,
-                             ggl_solid(PAL_GRAY4));
+                             left, top, right, bottom,
+                             ggl_solid(PAL_GRAY12));
+                DrawTextBkN(&backgnd,
+                            left + width/2,
+                            top,
+                            str,
+                            str + len,
+                            FONT_FORMS,
+                            ggl_solid(PAL_GRAY2),
+                            ggl_solid(PAL_GRAY12));
             }
 
         }

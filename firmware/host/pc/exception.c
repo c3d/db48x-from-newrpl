@@ -18,7 +18,6 @@ void ex_print(int x, int y, char *str)
     gglsurface dr;
     dr.pixels = (pixword *)MEM_PHYS_EXSCREEN;
     dr.width = LCD_SCANLINE;
-    dr.x = dr.y = 0;
     dr.left = dr.top = 0;
     dr.right = LCD_W;
     dr.bottom = LCD_H;

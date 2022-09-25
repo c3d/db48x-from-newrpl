@@ -1007,40 +1007,40 @@ extern WORD battery;
 // const unsigned int System7Font[];
 // const unsigned int MiniFont[];
 
-void        DrawText(gglsurface    *drawsurf,
-                     coord          x,
-                     coord          y,
-                     utf8_p         Text,
-                     UNIFONT const *Font,
-                     pattern_t      color);
-void        DrawTextN(gglsurface    *drawsurf,
+coord        DrawText(gglsurface    *drawsurf,
                       coord          x,
                       coord          y,
                       utf8_p         Text,
-                      utf8_p         End,
                       UNIFONT const *Font,
                       pattern_t      color);
-void        DrawTextBk(gglsurface    *drawsurf,
+coord        DrawTextN(gglsurface    *drawsurf,
                        coord          x,
                        coord          y,
                        utf8_p         Text,
+                       utf8_p         End,
                        UNIFONT const *Font,
-                       pattern_t      color,
-                       pattern_t      bkcolor);
-void        DrawTextBkN(gglsurface    *drawsurf,
+                       pattern_t      color);
+coord        DrawTextBk(gglsurface    *drawsurf,
                         coord          x,
                         coord          y,
                         utf8_p         Text,
-                        utf8_p         End,
                         UNIFONT const *Font,
                         pattern_t      color,
                         pattern_t      bkcolor);
-void        DrawTextMono(gglsurface    *drawsurf,
+coord        DrawTextBkN(gglsurface    *drawsurf,
                          coord          x,
                          coord          y,
                          utf8_p         Text,
+                         utf8_p         End,
                          UNIFONT const *Font,
-                         pattern_t      colors);
+                         pattern_t      color,
+                         pattern_t      bkcolor);
+coord        DrawTextMono(gglsurface    *drawsurf,
+                          coord          x,
+                          coord          y,
+                          utf8_p         Text,
+                          UNIFONT const *Font,
+                          pattern_t      colors);
 
 static inline utf8_p StringEnd(utf8_p str)
 {
@@ -1276,9 +1276,9 @@ void           uiClearRenderCache();
 void           uiAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
 void           uiUpdateOrAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
 word_p         uiFindCacheEntry(word_p object, const UNIFONT *font);
-void           uiDrawObject(word_p object, gglsurface *scr, const UNIFONT *font);
+void           uiDrawObject(gglsurface *scr, coord x, coord y, word_p object, const UNIFONT *font);
 word_p         uiRenderObject(word_p object, const UNIFONT *font);
-void           uiDrawBitmap(gglsurface *scr, word_p bmp, coord x, coord y);
+void           uiDrawBitmap(gglsurface *scr, coord x, coord y, word_p bmp);
 
 
 RECORDER_DECLARE(hal_api);

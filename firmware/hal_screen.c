@@ -360,7 +360,7 @@ void halRedrawForm(gglsurface *scr)
     halScreen.DirtyFlag &= ~FORM_DIRTY;
 }
 
-void halRedrawStack(gglsurface *scr)
+void halRedrawStack(gglsurface *screen)
 {
     if (halScreen.Stack == 0)
     {
@@ -370,30 +370,26 @@ void halRedrawStack(gglsurface *scr)
 
     halScreenUpdated();
 
-    int            oldleft, oldright, oldtop, oldbottom;
-    int            ystart = halScreen.Form, yend = ystart + halScreen.Stack;
-    int            depth = rplDepthData(), level = 1;
-    int            objheight, ytop, y, numwidth, xright, stknum_w;
-    int32_t           width, height;
+    gglsurface     clipped = *screen;
+    coord          ystart  = halScreen.Form;
+    coord          yend    = ystart + halScreen.Stack;
+    int            depth   = rplDepthData();
+    int            level   = 1;
+    int            objheight, ytop, y, numwidth, xright;
+    size           width, height;
     char           num[16];
     const UNIFONT *levelfnt;
-    word_p        object;
+    word_p         object;
 
-    oldleft  = scr->left;
-    oldtop  = scr->top;
-    oldright = scr->right;
-    oldbottom = scr->bottom;
-
-    stknum_w  = (FONT_HEIGHT(FONT_STACK) * 192) / 256; // ESTIMATE NUMBER WIDTH AT 75% OF THE FONT HEIGHT
+    // Estimate number width at 75% of the font height
+    size stknum_w  = (FONT_HEIGHT(FONT_STACK) * 192) / 256;
     if (halScreen.KeyContext & CONTEXT_INTSTACK)
     {
-        // ENSURE THE STACK POINTER IS COMPLETELY INSIDE THE SCREEN
-
+        // Ensure the stack pointer is completely inside the screen
         if (halScreen.StkVisibleLvl < 0)
         {
-            // NEED TO RECOMPUTE THIS
+            // Need to recompute this
             int k = halScreen.StkPointer;
-            int objh, stkheight = 0;
             if (k < 1)
                 k = 1;
             if (k > depth)
@@ -401,14 +397,10 @@ void halRedrawStack(gglsurface *scr)
 
             levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
             object   = uiRenderObject(rplPeekData(k), levelfnt);
-            // GET THE SIZE OF THE OBJECT
 
-            if (!object)
-                objh = levelfnt->BitmapHeight;
-            else
-                objh = object[2];
-
-            int ypref = ystart + (yend - ystart) / 4 + objh / 2;
+            // Get the size of the object
+            size objh = object ? object[2] : levelfnt->BitmapHeight;
+            coord ypref = ystart + (yend - ystart) / 4 + objh / 2;
             if (ypref > yend)
                 ypref = yend - objh;
             if (ypref < ystart)
@@ -418,13 +410,9 @@ void halRedrawStack(gglsurface *scr)
             {
                 levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
                 object   = uiRenderObject(rplPeekData(k), levelfnt);
-                // GET THE SIZE OF THE OBJECT
 
-                if (!object)
-                    stkheight += levelfnt->BitmapHeight;
-                else
-                    stkheight += object[2];
-
+                // Get the size of the object
+                int stkheight = object ? object[2] : levelfnt->BitmapHeight;
                 if (ypref + stkheight > yend)
                 {
                     y                          = ypref + stkheight;
@@ -439,63 +427,54 @@ void halRedrawStack(gglsurface *scr)
                 halScreen.StkVisibleOffset = 0;
             }
         }
-
         xright = 2 * stknum_w;
     }
     else
+    {
         xright = stknum_w;
+    }
 
     level = halScreen.StkVisibleLvl;
     y     = yend - halScreen.StkVisibleOffset;
 
-    if (depth >= 10)
-        xright += stknum_w;
-    if (depth >= 100)
-        xright += stknum_w;
-    if (depth >= 1000)
-        xright += stknum_w;
-    if (depth >= 10000)
+    for (int mul = 10; depth >= mul; mul *= 10)
         xright += stknum_w;
 
-    ggl_cliprect(scr, 0, ystart, xright - 1, yend - 1, ggl_solid(PAL_STK_IDX_BG));     // CLEAR RECTANGLE
-    ggl_cliprect(scr, xright + 1, ystart, LCD_W - 1, yend - 1, ggl_solid(PAL_STK_BG)); // CLEAR RECTANGLE
-    ggl_clipvline(scr, xright, ystart, yend - 1, ggl_solid(PAL_STK_VLINE));
+    // Clear the stack index area, the stack display area, and draw
+    ggl_cliprect(&clipped, 0, ystart, xright - 1, yend - 1, ggl_solid(PAL_STK_IDX_BG));
+    ggl_cliprect(&clipped, xright + 1, ystart, LCD_W - 1, yend - 1, ggl_solid(PAL_STK_BG));
+    ggl_clipvline(&clipped, xright, ystart, yend - 1, ggl_solid(PAL_STK_VLINE));
 
     while (y > ystart)
     {
         levelfnt = level == 1 ? FONT_STACKLVL1 : FONT_STACK;
 
-        // GET OBJECT SIZE
-
+        // Get Object size
         if (level <= depth)
         {
-            // DRAW THE OBJECT
+            // Draw the object
             object = uiRenderObject(rplPeekData(level), levelfnt);
-            // GET THE SIZE OF THE OBJECT
 
+            // Get the size of the object
             if (!object)
             {
-                // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
+                // Draw directly, don't cache something we couldn't render
+                word_p  string = (word_p) invalid_string;
 
-                word_p string  = (word_p) invalid_string;
-
-                // NOW SIZE THE STRING OBJECT
-                int32_t    nchars  = rplStrSize(string);
-                byte_p charptr = (byte_p) (string + 1);
-
-                width           = StringWidthN((char *) charptr, (char *) charptr + nchars, levelfnt);
-                height          = levelfnt->BitmapHeight;
+                // Now size the string object
+                int32_t len    = rplStrSize(string);
+                utf8_p  str    = (utf8_p) (string + 1);
+                width          = StringWidthN(str, str + len, levelfnt);
+                height         = levelfnt->BitmapHeight;
             }
             else
             {
-                width  = (int32_t) object[1];
-                height = (int32_t) object[2];
+                width  = (size) object[1];
+                height = (size) object[2];
             }
 
-            objheight = height;
-            if (objheight > 4 * levelfnt->BitmapHeight)
-                objheight =
-                    4 * levelfnt->BitmapHeight; // MAXIMUM HEIGHT FOR A STACK ITEM IS 4 LINES, AFTER THAT CLIP IT
+            // Maximum height for a stack item is 4 lines, after that clip it
+            objheight = min(height, 4 * levelfnt->BitmapHeight);
         }
         else
         {
@@ -504,92 +483,80 @@ void halRedrawStack(gglsurface *scr)
             width     = 0;
         }
 
-        ytop        = y - objheight;
-        scr->x      = xright + 1;
-        scr->y      = ytop;
+        ytop           = y - objheight;
 
-        // SET CLIPPING REGION
-
-        scr->left  = 0;
-        scr->right = LCD_W - 1;
-        scr->top  = (ytop < 0) ? 0 : ytop;
-        scr->bottom = (y > yend) ? yend - 1 : y - 1;
+        // Set clipping region
+        clipped.left   = 0;
+        clipped.right  = LCD_W - 1;
+        clipped.top    = (ytop < 0) ? 0 : ytop;
+        clipped.bottom = (y > yend) ? yend - 1 : y - 1;
 
         if (halScreen.KeyContext & CONTEXT_INTSTACK)
         {
-            // HIGHLIGHT SELECTED ITEMS
+            // Highlight selected items
             switch (halScreen.StkSelStatus)
             {
             default:
             case 0:
-                // NOTHING SELECTED YET
+                // Nothing selected yet
                 break;
             case 1:
-                // START WAS SELECTED, PAINT ALL LEVELS BETWEEN START AND CURRENT POSITION
+                // Start was selected, paint all levels between start and current position
                 if (halScreen.StkSelStart > halScreen.StkPointer)
                 {
                     if ((level >= halScreen.StkPointer) && (level <= halScreen.StkSelStart))
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
+                        ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
                     if (level == halScreen.StkSelStart)
-                        DrawText(scr, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                        DrawText(&clipped, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
                 }
                 else
                 {
                     if ((level >= halScreen.StkSelStart) && (level <= halScreen.StkPointer))
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
+                        ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
                     if (level == halScreen.StkSelStart)
-                        DrawText(scr, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                        DrawText(&clipped, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
                 }
                 break;
             case 2:
-                // BOTH START AND END SELECTED
+                // Both start and end selected
                 if ((level >= halScreen.StkSelStart) && (level <= halScreen.StkSelEnd))
-                    ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
+                    ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, ggl_solid(PAL_STK_SEL_BG));
                 if (level == halScreen.StkSelStart)
-                    DrawText(scr, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                    DrawText(&clipped, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
                 if (level == halScreen.StkSelEnd)
-                    DrawText(scr, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                    DrawText(&clipped, 2, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
                 break;
             }
 
-            // DRAW THE POINTER
+            // Draw the pointer
             if ((level <= depth) && (level == halScreen.StkPointer))
-                DrawText(scr, 0, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                DrawText(&clipped, 0, ytop, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
             else if ((level == 1) && (halScreen.StkPointer == 0))
-                DrawText(scr, 0, ytop + levelfnt->BitmapHeight / 2, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                DrawText(&clipped, 0, ytop + levelfnt->BitmapHeight / 2, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
             else if ((level == depth) && (halScreen.StkPointer > depth))
-                DrawText(scr, 0, ytop - levelfnt->BitmapHeight / 2 + 1, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
+                DrawText(&clipped, 0, ytop - levelfnt->BitmapHeight / 2 + 1, "▶", FONT_STACK, ggl_solid(PAL_STK_CURSOR));
         }
 
         if (level <= depth)
         {
-            // DRAW THE NUMBER
+            // Draw the stack level number
             halInt2String(level, num);
             numwidth = StringWidth(num, FONT_STACK);
+            DrawText(&clipped, xright - numwidth, ytop, num, FONT_STACK, ggl_solid(PAL_STK_INDEX));
 
-            DrawText(scr, xright - numwidth, ytop, num, FONT_STACK, ggl_solid(PAL_STK_INDEX));
-
-            // DO PROPER LAYOUT
-
-            coord x = LCD_W - width; // RIGHT-JUSTIFY ITEMS
+            // Do proper layout: right justify unless it does not fit
+            coord x = LCD_W - width;
             if (x < xright + 1)
-                x = xright + 1; // UNLESS IT DOESN'T FIT, THEN LEFT JUSTIFY
+                x = xright + 1;
 
-            // DISPLAY THE ITEM
-
-            scr->left = xright + 1;
-
-            uiDrawBitmap(scr, object, x, ytop);
+            // Display the item
+            clipped.left = xright + 1;
+            uiDrawBitmap(&clipped, x, ytop, object);
         }
 
         y = ytop;
         ++level;
     }
-
-    scr->left  = oldleft;
-    scr->right = oldright;
-    scr->top  = oldtop;
-    scr->bottom = oldbottom;
 
     halScreen.DirtyFlag &= ~STACK_DIRTY;
 }
@@ -1513,28 +1480,26 @@ void halRedrawStatus(gglsurface *scr)
                 {
                     start    = (byte_p) (pathnames[j] + 1);
                     lastword = rplSkipOb(pathnames[j]) - 1;
-                    DrawTextBk(scr, xst, y, "/", FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
-                    xst = scr->x;
+                    xst = DrawTextBk(scr, xst, y, "/", FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
                     if (*lastword & 0xff000000)
                     {
                         end = (byte_p) (lastword + 1);
-                        DrawTextBkN(scr, xst,
-                                    y,
-                                    (char *) start,
-                                    (char *) end,
-                                    FONT_STATUS,
-                                    ggl_solid(PAL_STA_TEXT),
-                                    ggl_solid(PAL_STA_BG));
+                        xst = DrawTextBkN(scr, xst,
+                                          y,
+                                          (char *) start,
+                                          (char *) end,
+                                          FONT_STATUS,
+                                          ggl_solid(PAL_STA_TEXT),
+                                          ggl_solid(PAL_STA_BG));
                     }
                     else
-                        DrawTextBk(scr, xst,
-                                   y,
-                                   (char *) start,
-                                   FONT_STATUS,
-                                   ggl_solid(PAL_STA_TEXT),
-                                   ggl_solid(PAL_STA_BG));
+                        xst = DrawTextBk(scr, xst,
+                                         y,
+                                         (char *) start,
+                                         FONT_STATUS,
+                                         ggl_solid(PAL_STA_TEXT),
+                                         ggl_solid(PAL_STA_BG));
 
-                    xst = scr->x;
                 }
             }
 #if 0
@@ -2000,39 +1965,33 @@ void halRedrawCmdLine(gglsurface *scr)
 
                     if (selst > string)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                    (char *) string,
-                                    (char *) selst,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_TEXT),
-                                    ggl_solid(PAL_CMD_BG));
-                        // xcoord+=StringWidthN((char *)string,(char *)selst,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
+                                             (char *) string,
+                                             (char *) selst,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_TEXT),
+                                             ggl_solid(PAL_CMD_BG));
                     }
                     if (selend > selst)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                    (char *) selst,
-                                    (char *) selend,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_SELTEXT),
-                                    ggl_solid(PAL_CMD_SEL_BG));
-                        // xcoord+=StringWidthN((char *)selst,(char *)selend,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
+                                             (char *) selst,
+                                             (char *) selend,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_SELTEXT),
+                                             ggl_solid(PAL_CMD_SEL_BG));
                     }
                     if (strend > selend)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                    (char *) selend,
-                                    (char *) strend,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_TEXT),
-                                    ggl_solid(PAL_CMD_BG));
-                        // xcoord+=StringWidthN((char *)selend,(char *)strend,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
+                                             (char *) selend,
+                                             (char *) strend,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_TEXT),
+                                             ggl_solid(PAL_CMD_BG));
                     }
                     if (tail)
                     {
@@ -2094,39 +2053,33 @@ void halRedrawCmdLine(gglsurface *scr)
             xcoord = -halScreen.XVisible;
             if (selst > string)
             {
-                DrawTextBkN(scr, xcoord,
-                            ytop + 2 + y,
-                            (char *) string,
-                            (char *) selst,
-                            FONT_CMDLINE,
-                            ggl_solid(PAL_CMD_TEXT),
-                            ggl_solid(PAL_CMD_BG));
-                // xcoord+=StringWidthN((char *)string,(char *)selst,FONT_CMDLINE);
-                xcoord = scr->x;
+                xcoord = DrawTextBkN(scr, xcoord,
+                                     ytop + 2 + y,
+                                     (char *) string,
+                                     (char *) selst,
+                                     FONT_CMDLINE,
+                                     ggl_solid(PAL_CMD_TEXT),
+                                     ggl_solid(PAL_CMD_BG));
             }
             if (selend > selst)
             {
-                DrawTextBkN(scr, xcoord,
-                            ytop + 2 + y,
-                            (char *) selst,
-                            (char *) selend,
-                            FONT_CMDLINE,
-                            ggl_solid(PAL_CMD_SELTEXT),
-                            ggl_solid(PAL_CMD_SEL_BG));
-                // xcoord+=StringWidthN((char *)selst,(char *)selend,FONT_CMDLINE);
-                xcoord = scr->x;
+                xcoord = DrawTextBkN(scr, xcoord,
+                                     ytop + 2 + y,
+                                     (char *) selst,
+                                     (char *) selend,
+                                     FONT_CMDLINE,
+                                     ggl_solid(PAL_CMD_SELTEXT),
+                                     ggl_solid(PAL_CMD_SEL_BG));
             }
             if (strend > selend)
             {
-                DrawTextBkN(scr, xcoord,
-                            ytop + 2 + y,
-                            (char *) selend,
-                            (char *) strend,
-                            FONT_CMDLINE,
-                            ggl_solid(PAL_CMD_TEXT),
-                            ggl_solid(PAL_CMD_BG));
-                // xcoord+=StringWidthN((char *)selend,(char *)strend,FONT_CMDLINE);
-                xcoord = scr->x;
+                xcoord = DrawTextBkN(scr, xcoord,
+                                     ytop + 2 + y,
+                                     (char *) selend,
+                                     (char *) strend,
+                                     FONT_CMDLINE,
+                                     ggl_solid(PAL_CMD_TEXT),
+                                     ggl_solid(PAL_CMD_BG));
             }
             if (tail)
             {
@@ -2207,39 +2160,33 @@ void halRedrawCmdLine(gglsurface *scr)
                     xcoord = -halScreen.XVisible;
                     if (selst > string)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + y,
-                                    (char *) string,
-                                    (char *) selst,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_TEXT),
-                                    ggl_solid(PAL_CMD_BG));
-                        // xcoord+=StringWidthN((char *)string,(char *)selst,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + y,
+                                             (char *) string,
+                                             (char *) selst,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_TEXT),
+                                             ggl_solid(PAL_CMD_BG));
                     }
                     if (selend > selst)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + y,
-                                    (char *) selst,
-                                    (char *) selend,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_SELTEXT),
-                                    ggl_solid(PAL_CMD_SEL_BG));
-                        // xcoord+=StringWidthN((char *)selst,(char *)selend,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + y,
+                                             (char *) selst,
+                                             (char *) selend,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_SELTEXT),
+                                             ggl_solid(PAL_CMD_SEL_BG));
                     }
                     if (strend > selend)
                     {
-                        DrawTextBkN(scr, xcoord,
-                                    ytop + 2 + y,
-                                    (char *) selend,
-                                    (char *) strend,
-                                    FONT_CMDLINE,
-                                    ggl_solid(PAL_CMD_TEXT),
-                                    ggl_solid(PAL_CMD_BG));
-                        // xcoord+=StringWidthN((char *)selend,(char *)strend,FONT_CMDLINE);
-                        xcoord = scr->x;
+                        xcoord = DrawTextBkN(scr, xcoord,
+                                             ytop + 2 + y,
+                                             (char *) selend,
+                                             (char *) strend,
+                                             FONT_CMDLINE,
+                                             ggl_solid(PAL_CMD_TEXT),
+                                             ggl_solid(PAL_CMD_BG));
                     }
 
                     if (tail)

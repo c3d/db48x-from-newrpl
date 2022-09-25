@@ -28,7 +28,6 @@ void ex_print(int x, int y, cstring str)
     gglsurface dr;
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
-    dr.x = dr.y = 0;
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
@@ -41,11 +40,10 @@ void ex_clrscreen()
     gglsurface dr;
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
-    dr.x = dr.y = 0;
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_rect(&dr, dr.x, dr.y, dr.right - 1, dr.bottom - 1, ggl_solid(PAL_GRAY0));
+    ggl_rect(&dr, 0, 0, dr.right - 1, dr.bottom - 1, ggl_solid(PAL_GRAY0));
 }
 
 void ex_hline(int y)
@@ -53,11 +51,10 @@ void ex_hline(int y)
     gglsurface dr;
     dr.pixels = (int *) MEM_PHYS_EXSCREEN;
     dr.width  = LCD_SCANLINE;
-    dr.x = dr.y = 0;
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_hline(&dr, y, dr.x, dr.right - 1, ggl_solid(PAL_GRAY8));
+    ggl_hline(&dr, y, 0, dr.right - 1, ggl_solid(PAL_GRAY8));
 }
 
 inline int ex_width(char *string)

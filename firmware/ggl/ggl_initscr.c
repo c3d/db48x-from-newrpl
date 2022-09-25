@@ -19,8 +19,6 @@ void ggl_init_screen(gglsurface *srf)
     srf->width  = LCD_SCANLINE;
     srf->height = LCD_H;
     srf->bpp    = BITS_PER_PIXEL;
-    srf->x      = 0;
-    srf->y      = 0;
     srf->left   = 0;
     srf->top    = 0;
     srf->right  = LCD_W - 1;
@@ -34,8 +32,6 @@ gglsurface ggl_bitmap(pixword *bits, size width, size height)
         .width  = width,
         .height = height,
         .bpp    = 1,
-        .x      = 0,
-        .y      = 0,
         .left   = 0,
         .top    = 0,
         .right  = width - 1,
@@ -64,8 +60,6 @@ gglsurface ggl_grob(word_p bmp)
         .width         = width,
         .height        = height,
         .bpp           = bpp,
-        .x             = 0,
-        .y             = 0,
         .left          = 0,
         .right         = width - 1,
         .top           = 0,

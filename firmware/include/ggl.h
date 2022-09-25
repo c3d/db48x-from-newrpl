@@ -154,7 +154,6 @@ typedef struct gglsurface
     size     width;         //! Width (in pixels) of the buffer
     size     height;        //! Height (in pixels) of the buffer
     size     bpp;           //! Bits per pixel
-    coord    x, y;          //! Offset coordinates within the buffer
     coord    left, right;   //! Horizontal clip area
     coord    top, bottom;   //! Vertical clip area
 } gglsurface;
@@ -419,7 +418,7 @@ static inline color16_t ggl_color_to_rgb16(color_t color)
 // ----------------------------------------------------------------------------
 {
 #if BITS_PER_PIXEL == 1
-    uint8_t value = color ? 0xFF : 0x00;
+    uint8_t value = color.value ? 0xFF : 0x00;
     return ggl_rgb32_to_rgb16(value, value, value);
 #elif BITS_PER_PIXEL == 4
     uint8_t value = color.value | (color.value << 4);
@@ -1090,6 +1089,11 @@ static inline void ggl_cliprect(gglsurface *srf,
                                 pattern_t   c)
 {
     ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, c, CLIP_DST);
+}
+
+static inline void ggl_clear(gglsurface *srf, pattern_t color)
+{
+    ggl_rect(srf, srf->left, srf->top, srf->right, srf->bottom, color);
 }
 
 static inline void ggl_hline(gglsurface *srf,

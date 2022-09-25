@@ -114,64 +114,57 @@ word_p uiAllocNewBitmap(int32_t width, int32_t height)
     return newobj;
 }
 
-// RENDER AN OBJECT TO THE GIVEN gglsurface, USE CACHE IF POSSIBLE
 
-void uiDrawObject(word_p object, gglsurface * scr, UNIFONT const *font)
+void uiDrawObject(gglsurface    *scr,
+                  coord          x,
+                  coord          y,
+                  word_p         object,
+                  UNIFONT const *font)
+// ----------------------------------------------------------------------------
+//   Draw an object to a given surface, using cache if possible
+// ----------------------------------------------------------------------------
 {
-
-    // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
+    // First, check if the object is in the cache
     word_p bmp = uiRenderObject(object, font);
     if(bmp) {
-        // COPY IT TO DESTINATION
+        // If cached, copy it to destination
         gglsurface tsurf = ggl_grob(bmp);
         ggl_copy(scr, &tsurf, tsurf.width, tsurf.height);
         return;
     }
 
-    // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
-
+    // Draw directly, don't cache something we couldn't render
     word_p string = (word_p) invalid_string;
 
-    // NOW PRINT THE STRING OBJECT
-    int32_t nchars = rplStrSize(string);
-    cstring charptr = (cstring) (string + 1);
-
-    DrawTextN(scr,
-              scr->x,
-              scr->y,
-              charptr,
-              charptr + nchars,
-              font,
-              ggl_solid(PAL_STK_ITEMS));
+    // Now print the string object
+    size_t len = rplStrSize(string);
+    cstring str = (cstring) (string + 1);
+    DrawTextN(scr, x, y, str, str+len, font, ggl_solid(PAL_STK_ITEMS));
 }
 
-// RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
 
 word_p uiRenderObject(word_p object, UNIFONT const *font)
+// ----------------------------------------------------------------------------
+//  Render an object to a bitmap, use cache if possible
+// ----------------------------------------------------------------------------
 {
 
-    // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
-
+    // First, check if the object is in the cache
     word_p bmp = uiFindCacheEntry(object, font);
-
     if(bmp)
         return bmp;
 
-    // OBJECT WAS NOT IN CACHE, RENDER IT AND ADD IT TO CACHE
-
-    // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
+    // Object was not in cache, render it and add it to cache
+    // TODO: Change decompile into proper display function
     word_p string;
     string = rplDecompile(object, DECOMP_NOHINTS);
-
     if(!string)
         string = (word_p) invalid_string;
 
-    // NOW PRINT THE STRING OBJECT
-
+    // Now print the string object
     int32_t nchars = rplStrSize(string);
     cstring charptr = (cstring) (string + 1);
     int32_t numwidth = StringWidthN(charptr, charptr + nchars, font);
-
     if(numwidth > MAX_BMP_WIDTH)
         numwidth = MAX_BMP_WIDTH;
 
@@ -180,21 +173,17 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
     word_p newbmp = uiAllocNewBitmap(numwidth, font->BitmapHeight);
     if(newbmp) {
 
-        // RELOAD ALL POINTERS IN CASE THERE WAS A GC
+        // Reload all pointers in case there was a GC
         string = ScratchPointer1;
         charptr = (cstring) (string + 1);
 
-
-        // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
+        // Draw to cache first, this will be blitted to scren later
         gglsurface tsurf = ggl_grob(newbmp);
 
-        // CLEAR THE BITMAP FIRST
-        ggl_rect(&tsurf,
-                 0,
-                 0,
-                 numwidth - 1,
-                 font->BitmapHeight - 1,
-                 ggl_solid(PAL_STK_BG));
+        // Clear the bitmap first
+        ggl_clear(&tsurf, ggl_solid(PAL_STK_BG));
+
+        // Render in the cache
         DrawTextN(&tsurf,
                   0,
                   0,
@@ -218,7 +207,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
 }
 
 // DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
-void uiDrawBitmap(gglsurface * scr, word_p bmp, coord x, coord y)
+void uiDrawBitmap(gglsurface * scr, coord x, coord y, word_p bmp)
 {
     if(bmp && ISBITMAP(*bmp)) {
         // COPY IT TO DESTINATION

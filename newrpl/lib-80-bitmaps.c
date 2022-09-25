@@ -673,8 +673,6 @@ void LIB_HANDLER()
             renderst->srf.bottom = h - 1;
             renderst->srf.pixels = (pixword *) (ROBJPTR(rstatus) + 3);
             renderst->srf.width = w;
-            renderst->srf.x = 0;
-            renderst->srf.y = 0;
             renderst->points[0].type = 0;
             renderst->points[0].x = 0;
             renderst->points[0].y = 0;

@@ -12,16 +12,16 @@
 typedef const unsigned *offset_p;
 
 
-static inline coord DrawTextInternal(gglsurface    *surface,
-                                     coord          x,
-                                     coord          y,
-                                     utf8_p         Text,
-                                     utf8_p         End,
-                                     UNIFONT const *Font,
-                                     gglop          fgop,
-                                     pattern_t      foreground,
-                                     gglop          bgop,
-                                     pattern_t      background)
+static inline coord     DrawTextInternal(gglsurface    *surface,
+                                         coord          x,
+                                         coord          y,
+                                         utf8_p         Text,
+                                         utf8_p         End,
+                                         UNIFONT const *Font,
+                                         gglop          fgop,
+                                         pattern_t      foreground,
+                                         gglop          bgop,
+                                         pattern_t      background)
 // ----------------------------------------------------------------------------
 //   Draw a UTF-8 text applying the given graphic operations
 // ----------------------------------------------------------------------------
@@ -155,31 +155,33 @@ size StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font)
 //   Compute the width of a text given as an extent
 // ----------------------------------------------------------------------------
 {
-    int cp, startcp, rangeend, offset, cpinfo;
-    unsigned int *offtable;
+    int                 cp, startcp, rangeend, offset, cpinfo;
+    unsigned int       *offtable;
     const unsigned int *mapptr;
-    unsigned int w;
-    int width = 0;
+    unsigned int        w;
+    int                 width = 0;
 
-    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *) (((unsigned int *) Font) + Font->OffsetTable);
 
-    while(Text < End) {
-
+    while (Text < End)
+    {
         cp = utf82cp(Text, End);
 
-        if(cp == -1) {
+        if (cp == -1)
+        {
             ++Text;
             continue;
         }
 
-        if(cp == '\n' || cp == '\r')
+        if (cp == '\n' || cp == '\r')
             return width;
 
-        if(cp > 0x7f) {
-
+        if (cp > 0x7f)
+        {
             cpinfo = getCPInfo(cp);
 
-            if(CCLASS(cpinfo) != 0) {
+            if (CCLASS(cpinfo) != 0)
+            {
                 // ADD SUPPORT FOR COMBINERS
                 Text = utf8skip(Text, End);
                 continue;
@@ -188,98 +190,98 @@ size StringWidthN(utf8_p Text, utf8_p End, UNIFONT const *Font)
 
         // GET THE INFORMATION FROM THE FONT
         rangeend = 0;
-        mapptr = Font->MapTable - 1;
-        do {
+        mapptr   = Font->MapTable - 1;
+        do
+        {
             ++mapptr;
-            startcp = rangeend;
+            startcp  = rangeend;
             rangeend = startcp + RANGE_LEN(*mapptr);
-        }
-        while(cp >= rangeend);
+        } while (cp >= rangeend);
 
         offset = FONT_OFFSET(*mapptr);
-        if(offset == 0xfff)
+        if (offset == 0xfff)
             w = offtable[0];
-        else {
+        else
             w = offtable[offset + cp - startcp];
-        }
 
-        width += (int)(w >> 16);
+        width += (int) (w >> 16);
         Text = utf8skip(Text, End);
-
     }
 
     return width;
-
 }
 
 // GET A POINTER INTO THE CHARACTER THAT WILL BE PRINTED AT *xcoord
 // ASSUMING x=0 AT Text START
-// IT WILL RETURN A POINTER INTO THE STRING, AND MODIFY *xcoord WITH THE CORRECT X COORDINATE
-// ALIGNED WITH THE FONT
+// IT WILL RETURN A POINTER INTO THE STRING, AND MODIFY *xcoord WITH THE CORRECT
+// X COORDINATE ALIGNED WITH THE FONT
 
 // WARNING: DO NOT PASS xcoord=NULL, NO ARGUMENT CHECKS
 
-utf8_p StringCoordToPointer(utf8_p        Text,
-                             utf8_p        End,
-                             UNIFONT const *Font,
-                             int           *xcoord)
+utf8_p StringCoordToPointer(utf8_p         Text,
+                            utf8_p         End,
+                            UNIFONT const *Font,
+                            int           *xcoord)
 {
-    int cp, startcp, rangeend, offset, cpinfo;
-    unsigned int *offtable;
+    int                 cp, startcp, rangeend, offset, cpinfo;
+    unsigned int       *offtable;
     const unsigned int *mapptr;
-    unsigned int w;
-    int  width = 0;
+    unsigned int        w;
+    int                 width = 0;
 
-    if(*xcoord < 0) {
+    if (*xcoord < 0)
+    {
         *xcoord = 0;
         return Text;
     }
 
-    offtable = (unsigned int *)(((unsigned int *)Font) + Font->OffsetTable);
+    offtable = (unsigned int *) (((unsigned int *) Font) + Font->OffsetTable);
 
-    while(Text < End) {
-
+    while (Text < End)
+    {
         cp = utf82cp(Text, End);
 
-        if(cp == -1) {
+        if (cp == -1)
+        {
             ++Text;
             continue;
         }
 
-        if(cp == '\n' || cp == '\r') {
+        if (cp == '\n' || cp == '\r')
+        {
             *xcoord = width;
             return Text;
         }
 
-        if(cp > 0x7f) {
-
+        if (cp > 0x7f)
+        {
             cpinfo = getCPInfo(cp);
-            if(CCLASS(cpinfo) != 0) {
+            if (CCLASS(cpinfo) != 0)
+            {
                 // ADD SUPPORT FOR COMBINERS
                 Text = utf8skip(Text, End);
                 continue;
             }
-
         }
 
         // GET THE INFORMATION FROM THE FONT
         rangeend = 0;
-        mapptr = Font->MapTable - 1;
-        do {
+        mapptr   = Font->MapTable - 1;
+        do
+        {
             ++mapptr;
-            startcp = rangeend;
+            startcp  = rangeend;
             rangeend = startcp + RANGE_LEN(*mapptr);
-        }
-        while(cp >= rangeend);
+        } while (cp >= rangeend);
 
         offset = FONT_OFFSET(*mapptr);
-        if(offset == 0xfff)
+        if (offset == 0xfff)
             w = offtable[0];
-        else {
+        else
             w = offtable[offset + cp - startcp];
-        }
 
-        if((*xcoord >= width) && (*xcoord < width + (int)(w >> 16))) {
+        if ((*xcoord >= width) && (*xcoord < width + (int) (w >> 16)))
+        {
             *xcoord = width;
             return Text;
         }
@@ -287,15 +289,13 @@ utf8_p StringCoordToPointer(utf8_p        Text,
         width += w >> 16;
 
         Text = utf8skip(Text, End);
-
     }
 
     *xcoord = width;
     return End;
-
 }
 
-size StringWidth(utf8_p Text, UNIFONT const * Font)
+size StringWidth(utf8_p Text, UNIFONT const *Font)
 // ----------------------------------------------------------------------------
 //   Compute the width of a zero-terminated UTF-8 text
 // ----------------------------------------------------------------------------
@@ -305,90 +305,89 @@ size StringWidth(utf8_p Text, UNIFONT const * Font)
 }
 
 
-void DrawTextN(gglsurface    *surface,
-               coord          x,
-               coord          y,
-               utf8_p         Text,
-               utf8_p         End,
-               UNIFONT const *Font,
-               pattern_t      foreground)
+coord DrawTextN(gglsurface    *surface,
+                coord          x,
+                coord          y,
+                utf8_p         Text,
+                utf8_p         End,
+                UNIFONT const *Font,
+                pattern_t      foreground)
 // ----------------------------------------------------------------------------
 //   Draw a range of text
 // ----------------------------------------------------------------------------
 {
-    DrawTextInternal(surface,
-                     x,
-                     y,
-                     Text,
-                     End,
-                     Font,
-                     ggl_op_mono_fg,
-                     foreground,
-                     NULL,
-                     foreground);
+    return DrawTextInternal(surface,
+                            x,
+                            y,
+                            Text,
+                            End,
+                            Font,
+                            ggl_op_mono_fg,
+                            foreground,
+                            NULL,
+                            foreground);
 }
 
 
-void DrawText(gglsurface    *surface,
-              coord          x,
-              coord          y,
-              utf8_p        Text,
-              UNIFONT const *Font,
-              pattern_t      color)
+coord DrawText(gglsurface    *surface,
+               coord          x,
+               coord          y,
+               utf8_p         Text,
+               UNIFONT const *Font,
+               pattern_t      color)
 // ----------------------------------------------------------------------------
 //   Draw a null-terminated transparent text
 // ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
-    DrawTextN(surface, x, y, Text, End, Font, color);
+    return DrawTextN(surface, x, y, Text, End, Font, color);
 }
 
 
-
-void DrawTextBkN(gglsurface    *surface,
-                 coord          x,
-                 coord          y,
-                 utf8_p         Text,
-                 utf8_p         End,
-                 UNIFONT const *Font,
-                 pattern_t      foreground,
-                 pattern_t      background)
+coord DrawTextBkN(gglsurface    *surface,
+                  coord          x,
+                  coord          y,
+                  utf8_p         Text,
+                  utf8_p         End,
+                  UNIFONT const *Font,
+                  pattern_t      foreground,
+                  pattern_t      background)
 // ----------------------------------------------------------------------------
 //   Draw a text range with a background color
 // ----------------------------------------------------------------------------
 {
-    DrawTextInternal(surface,
-                     x,
-                     y,
-                     Text,
-                     End,
-                     Font,
-                     ggl_op_mono_fg,
-                     foreground,
-                     ggl_op_mono_bg,
-                     background);
+    return DrawTextInternal(surface,
+                            x,
+                            y,
+                            Text,
+                            End,
+                            Font,
+                            ggl_op_mono_fg,
+                            foreground,
+                            ggl_op_mono_bg,
+                            background);
 }
 
-void DrawTextBk(gglsurface    *surface,
-                coord          x,
-                coord          y,
-                utf8_p        Text,
-                UNIFONT const *Font,
-                pattern_t      foreground,
-                pattern_t      background)
+coord DrawTextBk(gglsurface    *surface,
+                 coord          x,
+                 coord          y,
+                 utf8_p         Text,
+                 UNIFONT const *Font,
+                 pattern_t      foreground,
+                 pattern_t      background)
 // ----------------------------------------------------------------------------
 //   Draw a nul-terminated text with a foreground and background color
 // ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
-    DrawTextBkN(surface, x, y, Text, End, Font, foreground, background);
+    return DrawTextBkN(surface, x, y, Text, End, Font, foreground, background);
 }
 
 
-void DrawTextMono(gglsurface    *surface,
+coord DrawTextMono(gglsurface    *surface,
                   coord          x,
                   coord          y,
-                  utf8_p        Text,
+                  utf8_p         Text,
                   UNIFONT const *Font,
                   pattern_t      color)
 // ----------------------------------------------------------------------------
@@ -396,14 +395,14 @@ void DrawTextMono(gglsurface    *surface,
 // ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
-    DrawTextInternal(surface,
-                     x,
-                     y,
-                     Text,
-                     End,
-                     Font,
-                     ggl_op_mono_fg_1bpp,
-                     color,
-                     NULL,
-                     color);
+    return DrawTextInternal(surface,
+                            x,
+                            y,
+                            Text,
+                            End,
+                            Font,
+                            ggl_op_mono_fg_1bpp,
+                            color,
+                            NULL,
+                            color);
 }
