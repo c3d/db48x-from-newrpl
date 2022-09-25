@@ -163,11 +163,7 @@ SOURCES += \
         firmware/ggl/ggl_fltreplace.c \
         firmware/ggl/ggl_hblt.c \
         firmware/ggl/ggl_hbltfilter.c \
-        firmware/ggl/ggl_hline.c \
         firmware/ggl/ggl_initscr.c \
-        firmware/ggl/ggl_rect.c \
-        firmware/ggl/ggl_vline.c \
-
 
 # System
 SOURCES += \

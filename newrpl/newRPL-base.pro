@@ -13,17 +13,13 @@ SOURCES += \
     ../firmware/ggl/ggl/ggl_getnib.c \
     ../firmware/ggl/ggl/ggl_hblt.c \
     ../firmware/ggl/ggl/ggl_hbltfilter.c \
-    ../firmware/ggl/ggl/ggl_hline.c \
     ../firmware/ggl/ggl/ggl_initscr.c \
     ../firmware/ggl/ggl/ggl_color.c \
     ../firmware/ggl/ggl/ggl_color32.c \
     ../firmware/ggl/ggl/ggl_opmask.c \
     ../firmware/ggl/ggl/ggl_optransp.c \
     ../firmware/ggl/ggl/ggl_pltnib.c \
-    ../firmware/ggl/ggl/ggl_rect.c \
-    ../firmware/ggl/ggl/ggl_rectp.c \
-    ../firmware/ggl/ggl/ggl_vline.c \
-    ../firmware/hal_battery.c \
+        ../firmware/hal_battery.c \
     ../firmware/hal_keyboard.c \
     ../firmware/hal_screen.c \
     ../firmware/sys/Font18.c \

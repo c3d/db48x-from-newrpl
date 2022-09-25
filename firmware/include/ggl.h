@@ -819,6 +819,36 @@ static inline void ggl_blit(gglsurface *d, // Destination surface
     ggl_mixblit(d, s, l, r, t, b, x, y, o, c, bpp, bpp, bpp, clip);
 }
 
+// General drawing primitives based on ggl_blit
+static inline void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color)
+{
+    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, color, CLIP_NONE);
+}
+
+static inline void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t c)
+{
+    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, c, CLIP_DST);
+}
+
+static inline void ggl_hline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
+{
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_NONE);
+}
+
+static inline void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, pattern_t color)
+{
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_DST);
+}
+
+static inline void ggl_vline(gglsurface *srf, int x, int yt, int yb, pattern_t colors)
+{
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, CLIP_NONE);
+}
+
+static inline void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern_t colors)
+{
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, CLIP_DST);
+}
 
 static inline void ggl_copy_at(gglsurface *dst, gglsurface *src, coord x, coord y, size width, size height)
 {
@@ -836,7 +866,6 @@ static inline void ggl_copy_from(gglsurface *dst, gglsurface *src, coord x, coor
     pattern_t clear = { .bits = 0 };
     ggl_blit(dst, src, 0, width-1, 0, height-1, x, y, ggl_op_source, clear, CLIP_ALL);
 }
-
 
 
 // inline routines
@@ -863,27 +892,6 @@ static inline int ggl_getmonopix(byte_p buf, offset addr)
 
 
 int  ggl_getmonopix(byte_p buf, offset off);                      // peek a pixel in monochrome bitmap (off in pixels)
-
-// general drawing primitives
-
-// The low-level primitives take a pattern to describe colors because they work
-// on words rather than individual pixels.
-// The pattern_t argument is a 64-bit value containing a different color for
-// each pixel, arranged in a grid PATTERN_WIDTH wide and PATTERN_HEIGHT high.
-// The pattern repeats both horizontally and vertically, which makes it possible
-// to implement efficient operations on all supported BITS_PER_PIXEL configurations.
-// The ggl_solid will create a solid pattern from a palette index
-// The ggl_solid_pattern will do the same from a color
-// Note that the wrapping of data in a struct is zero-cost on any reasonably
-// decent compiler.
-
-void ggl_hline(gglsurface *srf, int y, int xl, int xr, pattern_t color); // fast low-level horizontal line
-void ggl_cliphline(gglsurface *srf, int y, int xl, int xr, pattern_t color);
-void ggl_vline(gglsurface *srf, int x, int yt, int yb, pattern_t color); // fast low-level vertical line
-void ggl_clipvline(gglsurface *srf, int x, int yt, int yb, pattern_t color);
-void ggl_rect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color);     // low-level rectangle
-void ggl_cliprect(gglsurface *srf, int x1, int y1, int x2, int y2, pattern_t color); // low-level rectangle
-
 // bit-blit functions
 
 // LOW-LEVEL row copy functions
