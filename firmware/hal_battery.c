@@ -14,7 +14,7 @@
 #define ADC_0_LIMIT     0x300
 #define ADC_PLUGGED     0x400
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
 // REVISIT: The values for the Prime case look better
 #define ADC_LOWBAT     0x320
 #define ADC_CRITICAL   0x300
@@ -35,13 +35,13 @@ void battery_handler()
 
     if (RECORDER_TWEAK(battery_debug))
     {
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
         const UNIFONT * font = (const UNIFONT *) Font_5A;
         enum { W = 4, H = 7 };
 #else //
         const UNIFONT * font = (const UNIFONT *) Font_8A;
         enum { W = 6, H = 9 };
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
 
         gglsurface scr;
         ggl_init_screen(&scr);
@@ -133,7 +133,7 @@ void battery_handler()
         halFlags &= ~HAL_SLOWLOCK;
     }
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
     // Update notification icon
     // only once every 4 seconds
     // (4 interrupts)
@@ -206,7 +206,7 @@ void battery_handler()
             halScreenUpdated();
         }
     }
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
 }
 
 void busy_handler()
@@ -215,7 +215,7 @@ void busy_handler()
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
     halSetNotification(N_HOURGLASS, 0xf);
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
     // Force Display the Hourglass
     {
         gglsurface scr;
@@ -224,7 +224,7 @@ void busy_handler()
                    Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
 
     }
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
 
     halScreenUpdated();
 
@@ -298,7 +298,7 @@ void halWakeUp()
 {
     word_p saved;
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
 
 // RESTORE UI THEME
 
@@ -334,7 +334,7 @@ void halWakeUp()
         else rplPurgeSettings((word_p)theme_ident);
     }
 
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
 // RESTORE THE FLAGS
 

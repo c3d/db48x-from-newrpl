@@ -26,7 +26,7 @@ include(simulator.pri)
 
 TARGET = prime-simulator
 
-DEFINES += TARGET_PC_PRIMEG1 TARGET_PRIME1
+DEFINES += TARGET_PC_PRIME TARGET_PRIME
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android-Prime
 

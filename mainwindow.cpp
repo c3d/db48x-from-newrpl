@@ -199,7 +199,7 @@ extern "C" void timer_singleshot(int msec)
 }
 
 
-#ifndef TARGET_PC_PRIMEG1
+#ifndef TARGET_PC_PRIME
 
 const int keyMap[] = {
     /*

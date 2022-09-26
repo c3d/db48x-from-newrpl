@@ -23,7 +23,7 @@ void halSetNotification(enum halNotification type, unsigned color)
     else
         halFlags &= ~(1 << (16 + type));
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     if (type < N_DATARECVD)
     {
         byte_p scrptr = (byte_p) MEM_PHYS_SCREEN;
@@ -36,7 +36,7 @@ void halSetNotification(enum halNotification type, unsigned color)
             (color << (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD / 4))));
         return;
     }
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     // DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
     if ((halFlags ^ old) & (1 << (16 + type)))
@@ -993,7 +993,7 @@ void halRedrawMenu1(gglsurface *scr)
     int ytop, ybottom;
     int oldleft, oldright, oldtop, oldbottom;
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
     ybottom = ytop + halScreen.Menu1 - 1;
     // DRAW BACKGROUND
@@ -1002,14 +1002,14 @@ void halRedrawMenu1(gglsurface *scr)
     ggl_cliphline(scr, ybottom, 0, LCD_W - 1, ggl_solid(PAL_MENU_HLINE));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* ! TARGET_PRIME1 */
+#endif /* ! TARGET_PRIME */
 
     oldleft  = scr->left;
     oldright = scr->right;
     oldtop  = scr->top;
     oldbottom = scr->bottom;
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     int64_t  m1code  = rplGetMenuCode(1);
     word_p MenuObj = uiGetLibMenu(m1code);
     int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
@@ -1047,7 +1047,7 @@ void halRedrawMenu1(gglsurface *scr)
             DrawText(scr, scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor);
     }
 
-#else  /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME */
     if (halScreen.Menu2 == 0)
     {
         // Draw a one-line horizontal menu with no status area when Menu2 is disabled
@@ -1182,7 +1182,7 @@ void halRedrawMenu1(gglsurface *scr)
                 DrawText(scr, scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor);
         }
     }
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     scr->left  = oldleft;
     scr->right = oldright;
@@ -1231,7 +1231,7 @@ void halRedrawMenu2(gglsurface *scr)
     int ytop, ybottom;
     int oldleft, oldright, oldtop, oldbottom;
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
     ybottom = ytop + halScreen.Menu2 - 1;
     // DRAW BACKGROUND
@@ -1246,14 +1246,14 @@ void halRedrawMenu2(gglsurface *scr)
     ggl_cliphline(scr, ybottom, 0, STATUS_AREA_X - 2, ggl_solid(PAL_MENU_HLINE));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* ! TARGET_PRIME1 */
+#endif /* ! TARGET_PRIME */
 
     oldleft  = scr->left;
     oldright = scr->right;
     oldtop  = scr->top;
     oldbottom = scr->bottom;
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
     // Draw a three-line menu with centered status area when Menu2 is enabled
     ytop         = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
     ybottom      = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
@@ -1270,7 +1270,7 @@ void halRedrawMenu2(gglsurface *scr)
     ggl_clipvline(scr, MENU2_STARTX - 1, ytop, ybottom, ggl_solid(PAL_MENU_HLINE));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     int64_t  m2code  = rplGetMenuCode(2);
     word_p MenuObj = uiGetLibMenu(m2code);
@@ -1287,13 +1287,13 @@ void halRedrawMenu2(gglsurface *scr)
     }
 
     // FIRST ROW
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     scr->top  = ytop;
     scr->bottom = ytop + MENU2_HEIGHT / 2 - 2;
-#else  /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME */
     scr->top  = ytop + 1;
     scr->bottom = ytop + MENU1_HEIGHT - 2;
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     for (k = 0; k < MENU2_COUNT; ++k)
     {
@@ -1304,13 +1304,13 @@ void halRedrawMenu2(gglsurface *scr)
     }
 
     // SECOND ROW
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     scr->top  = ytop + MENU2_HEIGHT / 2;
     scr->bottom = ybottom - 1;
-#else  /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME */
     scr->top  = ytop + MENU1_HEIGHT;
     scr->bottom = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     for (k = 0; k < 2; ++k)
     {
@@ -1320,7 +1320,7 @@ void halRedrawMenu2(gglsurface *scr)
         uiDrawMenuItem(item, mpalette, bpalette, scr);
     }
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
 
     // THIRD ROW
     scr->top  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
@@ -1331,16 +1331,16 @@ void halRedrawMenu2(gglsurface *scr)
     scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
     item        = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
     uiDrawMenuItem(item, mpalette, bpalette, scr);
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     // NOW DO THE NXT KEY
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     scr->left  = MENU_TAB_WIDTH * k;
     scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-#else  /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME */
     scr->left  = MENU2_STARTX + MENU_TAB_WIDTH;
     scr->right = MENU2_STARTX + MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
     if (nitems == 6)
     {
@@ -1376,10 +1376,10 @@ void halRedrawStatus(gglsurface *scr)
 
     if (halScreen.Menu2)
     {
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
         int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
         ggl_cliprect(scr, STATUS_AREA_X, ytop, LCD_W - 1, ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
-#else  /* TARGET_PRIME1 */
+#else  /* TARGET_PRIME */
         int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
 
         ggl_hline(scr, ytop, STATUS_AREA_X, LCD_W - 1, ggl_solid(PAL_MENU_HLINE));
@@ -1389,16 +1389,16 @@ void halRedrawStatus(gglsurface *scr)
                      LCD_W - 1,
                      ytop + halScreen.Menu1 + halScreen.Menu2 - 1,
                      ggl_solid(PAL_STA_BG));
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
         int32_t xc, yc;
         xc         = scr->left;
         yc         = scr->top;
         scr->left = STATUS_AREA_X;
         scr->top = ytop;
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
         ytop++;
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
 
         // AUTOCOMPLETE
         if (halScreen.CmdLineState & CMDSTATE_ACACTIVE)
@@ -1657,7 +1657,7 @@ void halRedrawStatus(gglsurface *scr)
             }
         }
 
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
         if (halGetNotification(N_ALARM))
         {
@@ -1689,7 +1689,7 @@ void halRedrawStatus(gglsurface *scr)
                        ggl_solid(PAL_STA_BG));
             xctracker += 2 + StringWidth(txt, FONT_STATUS);
         }
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
 
 #ifndef CONFIG_NO_FSYSTEM
         // SD CARD INSERTED INDICATOR
@@ -1758,7 +1758,7 @@ void halRedrawStatus(gglsurface *scr)
         }
 #endif // CONFIG_NO_FSYSTEM
 
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
         xctracker = 4;
         ytop      = LCD_H - 1 - Font_Notifications->BitmapHeight;
@@ -1859,7 +1859,7 @@ void halRedrawStatus(gglsurface *scr)
         }
 
         // Battery notifications are handled as part of the battery handler - do not display here
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 
         // ADD OTHER INDICATORS HERE
         scr->left = xc;
@@ -2273,9 +2273,9 @@ void halUpdateFonts()
 // PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
 void halPrepareBuffer(gglsurface *scr)
 {
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     UNUSED(scr);
-#else  // TARGET_PRIME1
+#else  // TARGET_PRIME
     size_t offset = LCD_W * LCD_H / PIXELS_PER_WORD;
     pixword *base = (pixword *) MEM_PHYS_SCREEN;
     if (scr->pixels == base)
@@ -2294,14 +2294,14 @@ void halPrepareBuffer(gglsurface *scr)
     halScreen.DirtyFlag &= ~BUFFER_LOCK;
 
     scr->pixels = base;
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 }
 
 void halSwapBuffer(gglsurface *scr)
 {
-#ifndef TARGET_PRIME1
+#ifndef TARGET_PRIME
     UNUSED(scr);
-#else  // TARGET_PRIME1
+#else  // TARGET_PRIME
     // Show new buffer on the screen
     // Avoid background processes from writing to the buffer while we copy it
     halScreen.DirtyFlag |= BUFFER_LOCK;
@@ -2314,7 +2314,7 @@ void halSwapBuffer(gglsurface *scr)
     halScreen.DirtyFlag &= ~BUFFER_LOCK;
 
     halScreenUpdated();
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
 }
 
 void halForceRedrawAll(gglsurface *scr)
@@ -2348,10 +2348,10 @@ void halRedrawAll(gglsurface *scr)
         if (!halScreen.SAreaTimer)
         {
             // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
             if (halScreen.DirtyFlag & MENU1_DIRTY)
                 halRedrawMenu1(scr);
-#endif /* TARGET_PRIME1 */
+#endif /* TARGET_PRIME */
             if (halScreen.DirtyFlag & MENU2_DIRTY)
                 halRedrawMenu2(scr);
             if (halScreen.DirtyFlag & STAREA_DIRTY)
@@ -2375,15 +2375,15 @@ void status_popup_handler()
     }
     else
     {
-#ifdef TARGET_PRIME1
+#ifdef TARGET_PRIME
         halScreen.DirtyFlag |= STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
-#else  // !TARGET_PRIME1
+#else  // !TARGET_PRIME
         gglsurface scr;
         ggl_init_screen(&scr);
         halRedrawMenu1(&scr);
         halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
-#endif // TARGET_PRIME1
+#endif // TARGET_PRIME
     }
     halScreen.SAreaTimer = 0;
 }

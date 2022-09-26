@@ -54,7 +54,7 @@ extern int usb_timeout;
 
 
 // Target PC uses 50g screen and other capabilities for now
-#ifndef TARGET_PC_PRIMEG1
+#ifndef TARGET_PC_PRIME
 // USABLE SCREEN WINDOW SIZE
 #define LCD_W 131
 #define LCD_H 80
@@ -80,7 +80,7 @@ extern int usb_timeout;
 
 #define ANN_X_COORD (LCD_W)
 
-#else // TARGET_PC_PRIMEG1
+#else // TARGET_PC_PRIME
 
 // USABLE SCREEN WINDOW SIZE
 #define LCD_W 320
@@ -109,7 +109,7 @@ extern int usb_timeout;
 #undef  STATUSAREA_X
 #define STATUSAREA_X  (MENU2_ENDX+1)
 
-#endif // TARGET_PC_PRIMEG1
+#endif // TARGET_PC_PRIME
 
 // DEFAULT CLOCK SPEEDS
 #define HAL_SLOWCLOCK     6000000
@@ -135,7 +135,7 @@ typedef unsigned int INTERRUPT_TYPE;
 
 
 
-#ifndef TARGET_PC_PRIMEG1
+#ifndef TARGET_PC_PRIME
 
 // Keyboard remapping constants
 

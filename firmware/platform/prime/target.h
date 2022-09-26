@@ -5,8 +5,8 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-#ifndef TARGET_PRIME1_H
-#define TARGET_PRIME1_H
+#ifndef TARGET_PRIME_H
+#define TARGET_PRIME_H
 
 #include <stdint.h>
 
@@ -927,4 +927,4 @@ void uart_init(void);
 void debug_print(const char *string);
 void debug_print_hex(const char *key, uint32_t value);
 
-#endif // TARGET_PRIME1_H
+#endif // TARGET_PRIME_H

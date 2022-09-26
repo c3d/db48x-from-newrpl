@@ -28,7 +28,7 @@ MACHINE_ARCH = armv4t
 
 TARGET = primeg1-newrpl.elf
 
-DEFINES += TARGET_PRIME1
+DEFINES += TARGET_PRIME
 
 include(firmware.pri)
 
