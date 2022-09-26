@@ -1858,7 +1858,8 @@ void halRedrawStatus(gglsurface *scr)
             xctracker += 4 + StringWidth((char *) "W", Font_Notifications);
         }
 
-        // Battery notifications are handled as part of the battery handler - do not display here
+        // Battery notifications are handled as part of the battery handler
+        // Do not display here
 #endif /* TARGET_PRIME */
 
         // ADD OTHER INDICATORS HERE
@@ -1875,84 +1876,80 @@ void halRedrawCmdLine(gglsurface *scr)
 
     if (halScreen.CmdLine)
     {
-        int ytop = halScreen.Form + halScreen.Stack;
+        int  ytop = halScreen.Form + halScreen.Stack;
+        size rowh = FONT_HEIGHT(FONT_CMDLINE);
+
         if ((halScreen.DirtyFlag & CMDLINE_ALLDIRTY) == CMDLINE_ALLDIRTY)
         {
-            // ggl_cliprect(scr,0,ytop,LCD_W-1,ytop+halScreen.CmdLine-1,0);
             ggl_cliphline(scr, ytop, 0, LCD_W - 1, ggl_solid(PAL_DIV_LINE));
             ggl_cliphline(scr, ytop + 1, 0, LCD_W - 1, ggl_solid(PAL_CMD_BG));
         }
 
         size   rows    = halScreen.LineCurrent - halScreen.LineVisible;
-        coord  y       = rows * FONT_HEIGHT(FONT_CMDLINE);
-        byte_p cmdline = (byte_p) (CmdLineCurrentLine + 1);
+        coord  y       = rows * rowh;
+        utf8_p cmdline = (utf8_p) (CmdLineCurrentLine + 1);
         size_t nchars  = rplStrSize(CmdLineCurrentLine);
 
         if (halScreen.DirtyFlag & CMDLINE_DIRTY)
         {
             // Show other lines here except the current edited line
             coord startoff = -1;
-            coord endoff;
-
+            coord endoff = -1;
             for (int k = 0; k < halScreen.NumLinesVisible; ++k)
             {
+                int row = halScreen.LineVisible + k;
+
                 // Update the line
-                if (halScreen.LineVisible + k < 1)
+                if (row < 1)
                     continue;
 
-                if (halScreen.LineVisible + k == halScreen.LineCurrent)
+                if (row == halScreen.LineCurrent)
                 {
                     if (startoff < 0)
                         continue;
                     startoff = endoff;
-                    if (startoff < 0)
-                        endoff = -1;
-                    else
-                        endoff = rplStringGetNextLine(CmdLineText, startoff);
+                    endoff = startoff < 0
+                        ? -1
+                        : rplStringGetNextLine(CmdLineText, startoff);
                     continue;
                 }
-                if (startoff < 0)
-                    startoff = rplStringGetLinePtr(CmdLineText, halScreen.LineVisible + k);
-                else
-                    startoff = endoff;
+                startoff = startoff < 0
+                    ? rplStringGetLinePtr(CmdLineText, row)
+                    : endoff;
 
-                if (startoff < 0)
-                    endoff = -1;
-                else
-                    endoff = rplStringGetNextLine(CmdLineText, startoff);
+                endoff = startoff < 0
+                    ? -1
+                    : rplStringGetNextLine(CmdLineText, startoff);
 
-                int32_t xcoord, tail;
-                xcoord = -halScreen.XVisible;
-
-                if ((startoff >= 0) || (endoff >= 0))
+                coord xcoord  = -halScreen.XVisible;
+                coord ycoord  = ytop + 2 + k * rowh;
+                coord ybottom = ycoord + rowh - 1;
+                if (startoff >= 0 || endoff >= 0)
                 {
-                    byte_p string = (byte_p) (CmdLineText + 1) + startoff;
-                    byte_p selst, selend;
-                    byte_p strend;
+                    utf8_p string = (utf8_p) (CmdLineText + 1) + startoff;
+                    utf8_p strend = (startoff >= 0 && endoff < 0)
+                        ? (utf8_p) (CmdLineText + 1) + rplStrSize(CmdLineText)
+                        : (utf8_p) (CmdLineText + 1) + endoff;
+                    utf8_p selst  = strend;
+                    utf8_p selend = strend;
+                    coord  tail   = 0;
 
-                    if ((startoff >= 0) && (endoff < 0))
-                        strend = (byte_p) (CmdLineText + 1) + rplStrSize(CmdLineText);
-                    else
-                        strend = (byte_p) (CmdLineText + 1) + endoff;
-
-                    selst = selend = strend;
-                    tail           = 0;
-                    if (halScreen.SelStartLine < halScreen.LineVisible + k)
+                    if (halScreen.SelStartLine < row)
                     {
                         selst = string;
                         tail  = 1;
                     }
-                    if (halScreen.SelStartLine == halScreen.LineVisible + k)
+                    if (halScreen.SelStartLine == row)
                     {
                         selst = string + halScreen.SelStart;
                         tail  = 1;
                     }
-                    if (halScreen.SelEndLine < halScreen.LineVisible + k)
+                    if (halScreen.SelEndLine < row)
                     {
                         selend = string;
                         tail   = 0;
                     }
-                    if (halScreen.SelEndLine == halScreen.LineVisible + k)
+                    if (halScreen.SelEndLine == row)
                     {
                         selend = string + halScreen.SelEnd;
                         tail   = 0;
@@ -1961,34 +1958,39 @@ void halRedrawCmdLine(gglsurface *scr)
                     if (selend <= selst)
                         selend = selst = string;
 
-                    // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
-
+                    // Draw the line split in 3 sections:
+                    // - string to selst
+                    // - selst to selend
+                    // - selend to strend
                     if (selst > string)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                             (char *) string,
-                                             (char *) selst,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             string,
+                                             selst,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_TEXT),
                                              ggl_solid(PAL_CMD_BG));
                     }
                     if (selend > selst)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                             (char *) selst,
-                                             (char *) selend,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             selst,
+                                             selend,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_SELTEXT),
                                              ggl_solid(PAL_CMD_SEL_BG));
                     }
                     if (strend > selend)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
-                                             (char *) selend,
-                                             (char *) strend,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             selend,
+                                             strend,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_TEXT),
                                              ggl_solid(PAL_CMD_BG));
@@ -1997,34 +1999,32 @@ void halRedrawCmdLine(gglsurface *scr)
                     {
                         ggl_cliprect(scr,
                                      xcoord,
-                                     ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
+                                     ycoord,
                                      xcoord + 3,
-                                     ytop + 2 + (k + 1) * FONT_HEIGHT(FONT_CMDLINE) - 1,
+                                     ybottom,
                                      ggl_solid(PAL_CMD_SEL_BG));
                         xcoord += 3;
                     }
                 }
 
-                // CLEAR UP TO END OF LINE
+                // Clear up to end of line
                 ggl_cliprect(scr,
                              xcoord,
-                             ytop + 2 + k * FONT_HEIGHT(FONT_CMDLINE),
+                             ycoord,
                              LCD_SCANLINE - 1,
-                             ytop + 2 + (k + 1) * FONT_HEIGHT(FONT_CMDLINE) - 1,
+                             ybottom,
                              ggl_solid(PAL_CMD_BG));
             }
         }
 
         if (halScreen.DirtyFlag & CMDLINE_LINEDIRTY)
         {
-            // UPDATE THE CURRENT LINE
-            byte_p string = cmdline;
-            byte_p selst, selend;
-            byte_p strend = cmdline + nchars;
-            int32_t    xcoord, tail;
-
-            selst = selend = strend;
-            tail           = 0;
+            // Update the current line
+            utf8_p string = cmdline;
+            utf8_p strend = cmdline + nchars;
+            utf8_p selst  = strend;
+            utf8_p selend = strend;
+            coord  tail   = 0;
             if (halScreen.SelStartLine < halScreen.LineCurrent)
             {
                 selst = string;
@@ -2049,34 +2049,42 @@ void halRedrawCmdLine(gglsurface *scr)
             if (selend <= selst)
                 selend = selst = string;
 
-            // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
-            xcoord = -halScreen.XVisible;
+            // Draw the line split in 3 sections:
+            // - string to selst,
+            // - selst to selend,
+            // - selend to strend
+            coord xcoord  = -halScreen.XVisible;
+            coord ycoord  = ytop + 2 + y;
+            coord ybottom = ycoord + rowh - 1;
             if (selst > string)
             {
-                xcoord = DrawTextBkN(scr, xcoord,
-                                     ytop + 2 + y,
-                                     (char *) string,
-                                     (char *) selst,
+                xcoord = DrawTextBkN(scr,
+                                     xcoord,
+                                     ycoord,
+                                     string,
+                                     selst,
                                      FONT_CMDLINE,
                                      ggl_solid(PAL_CMD_TEXT),
                                      ggl_solid(PAL_CMD_BG));
             }
             if (selend > selst)
             {
-                xcoord = DrawTextBkN(scr, xcoord,
-                                     ytop + 2 + y,
-                                     (char *) selst,
-                                     (char *) selend,
+                xcoord = DrawTextBkN(scr,
+                                     xcoord,
+                                     ycoord,
+                                     selst,
+                                     selend,
                                      FONT_CMDLINE,
                                      ggl_solid(PAL_CMD_SELTEXT),
                                      ggl_solid(PAL_CMD_SEL_BG));
             }
             if (strend > selend)
             {
-                xcoord = DrawTextBkN(scr, xcoord,
-                                     ytop + 2 + y,
-                                     (char *) selend,
-                                     (char *) strend,
+                xcoord = DrawTextBkN(scr,
+                                     xcoord,
+                                     ycoord,
+                                     selend,
+                                     strend,
                                      FONT_CMDLINE,
                                      ggl_solid(PAL_CMD_TEXT),
                                      ggl_solid(PAL_CMD_BG));
@@ -2085,53 +2093,55 @@ void halRedrawCmdLine(gglsurface *scr)
             {
                 ggl_cliprect(scr,
                              xcoord,
-                             ytop + 2 + y,
+                             ycoord,
                              xcoord + 3,
-                             ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
+                             ybottom,
                              ggl_solid(PAL_CMD_SEL_BG));
                 xcoord += 3;
             }
 
-            // CLEAR UP TO END OF LINE
+            // Clear up to end of line
             ggl_cliprect(scr,
                          xcoord,
-                         ytop + 2 + y,
+                         ycoord,
                          LCD_SCANLINE - 1,
-                         ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
+                         ybottom,
                          ggl_solid(PAL_CMD_BG));
         }
 
         if (halScreen.DirtyFlag & CMDLINE_CURSORDIRTY)
         {
-            // DRAW THE CURSOR
+            // Draw the cursor
+            coord xcoord  = halScreen.CursorX - halScreen.XVisible;
+            coord ycoord  = ytop + 2 + y;
+            coord ybottom = ycoord + rowh - 1;
             if (!(halScreen.CursorState & 0x8000))
-                DrawTextBkN(scr, halScreen.CursorX - halScreen.XVisible,
-                            ytop + 2 + y,
-                            (char *) &halScreen.CursorState,
-                            ((char *) &halScreen.CursorState) + 1,
+            {
+                DrawTextBkN(scr,
+                            xcoord,
+                            ycoord,
+                            (utf8_p) &halScreen.CursorState,
+                            (utf8_p) (&halScreen.CursorState) + 1,
                             FONT_CURSOR,
                             ggl_solid(PAL_CMD_CURSOR),
                             ggl_solid(PAL_CMD_CURSOR_BG));
-
+            }
             else
             {
-                scr->left  = halScreen.CursorX - halScreen.XVisible;
-                scr->right = scr->left + FONT_HEIGHT(FONT_CMDLINE) + 4; // HARD CODED MAXIMUM WIDTH OF THE CURSOR
-                if (scr->right >= LCD_W)
-                    scr->right = LCD_W - 1;
+                scr->left  = xcoord;
 
-                // REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
+                 // Hard code maximum width of the cursor
+                scr->right = min(scr->left + rowh + 4, LCD_W - 1);
+
+                // Redraw the portion of command line under the cursor
                 if (!(halScreen.DirtyFlag & CMDLINE_LINEDIRTY))
                 {
-                    // UPDATE THE CURRENT LINE
-                    // UPDATE THE CURRENT LINE
-                    byte_p string = cmdline;
-                    byte_p selst, selend;
-                    byte_p strend = cmdline + nchars;
-                    int32_t    xcoord, tail;
-
-                    selst = selend = strend;
-                    tail           = 0;
+                    // Update the current line
+                    utf8_p string = cmdline;
+                    utf8_p strend = cmdline + nchars;
+                    coord  tail   = 0;
+                    utf8_p selst  = strend;
+                    utf8_p selend = selend;
                     if (halScreen.SelStartLine < halScreen.LineCurrent)
                     {
                         selst = string;
@@ -2156,34 +2166,40 @@ void halRedrawCmdLine(gglsurface *scr)
                     if (selend <= selst)
                         selend = selst = string;
 
-                    // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
+                    // Draw the line split in 3 sections:
+                    // - string to selst,
+                    // - selst to selend,
+                    // - selend to strend
                     xcoord = -halScreen.XVisible;
                     if (selst > string)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + y,
-                                             (char *) string,
-                                             (char *) selst,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             string,
+                                             selst,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_TEXT),
                                              ggl_solid(PAL_CMD_BG));
                     }
                     if (selend > selst)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + y,
-                                             (char *) selst,
-                                             (char *) selend,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             selst,
+                                             selend,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_SELTEXT),
                                              ggl_solid(PAL_CMD_SEL_BG));
                     }
                     if (strend > selend)
                     {
-                        xcoord = DrawTextBkN(scr, xcoord,
-                                             ytop + 2 + y,
-                                             (char *) selend,
-                                             (char *) strend,
+                        xcoord = DrawTextBkN(scr,
+                                             xcoord,
+                                             ycoord,
+                                             selend,
+                                             strend,
                                              FONT_CMDLINE,
                                              ggl_solid(PAL_CMD_TEXT),
                                              ggl_solid(PAL_CMD_BG));
@@ -2193,26 +2209,27 @@ void halRedrawCmdLine(gglsurface *scr)
                     {
                         ggl_cliprect(scr,
                                      xcoord,
-                                     ytop + 2 + y,
+                                     ycoord,
                                      xcoord + 3,
-                                     ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
+                                     ybottom,
                                      ggl_solid(PAL_CMD_SEL_BG));
                         xcoord += 3;
                     }
-                    // CLEAR UP TO END OF LINE
+
+                    // Clear up to end of line
                     ggl_cliprect(scr,
                                  xcoord,
-                                 ytop + 2 + y,
+                                 ycoord,
                                  LCD_SCANLINE - 1,
-                                 ytop + 2 + y + FONT_HEIGHT(FONT_CMDLINE) - 1,
+                                 ybottom,
                                  ggl_solid(PAL_CMD_BG));
                 }
 
-                // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN
+                // Reset the clipping rectangle back to whole screen
                 scr->left  = 0;
-                scr->right = LCD_W - 1;
+                scr->right = scr->width - 1;
                 scr->top  = 0;
-                scr->bottom = LCD_H - 1;
+                scr->bottom = scr->height - 1;
             }
         }
     }
@@ -2518,14 +2535,14 @@ void halShowErrorMsg()
             word_p cmdname = halGetCommandName(ExceptionPointer);
             if (cmdname)
             {
-                byte_p start = (byte_p) (cmdname + 1);
-                byte_p end   = start + rplStrSize(cmdname);
+                utf8_p start = (utf8_p) (cmdname + 1);
+                utf8_p end   = start + rplStrSize(cmdname);
 
-                xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
+                xstart += StringWidthN(start, end, FONT_HLPTITLE);
                 DrawTextN(&scr, scr.left + 6,
                           scr.top + 1,
-                          (char *) start,
-                          (char *) end,
+                          start,
+                          end,
                           FONT_HLPTITLE,
                           ggl_solid(PAL_HLP_TEXT));
                 xstart += 4;
@@ -2544,13 +2561,13 @@ void halShowErrorMsg()
                     message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
                 if (message)
                 {
-                    byte_p msgstart = (byte_p) (message + 1);
-                    byte_p msgend   = msgstart + rplStrSize(message);
+                    utf8_p msgstart = (utf8_p) (message + 1);
+                    utf8_p msgend   = msgstart + rplStrSize(message);
 
                     DrawTextN(&scr, scr.left + 6,
                               scr.top + 3 + FONT_HEIGHT(FONT_HLPTEXT),
-                              (char *) msgstart,
-                              (char *) msgend,
+                              msgstart,
+                              msgend,
                               FONT_HLPTEXT,
                               ggl_solid(PAL_HLP_TEXT));
                 }
@@ -2567,14 +2584,14 @@ void halShowErrorMsg()
             word_p cmdname = halGetCommandName(ExceptionPointer);
             if (cmdname)
             {
-                byte_p start = (byte_p) (cmdname + 1);
-                byte_p end   = start + rplStrSize(cmdname);
+                utf8_p start = (utf8_p) (cmdname + 1);
+                utf8_p end   = start + rplStrSize(cmdname);
 
-                xstart += StringWidthN((char *) start, (char *) end, FONT_HLPTITLE);
+                xstart += StringWidthN(start, end, FONT_HLPTITLE);
                 DrawTextN(&scr, scr.left + 6,
                           scr.top + 1,
-                          (char *) start,
-                          (char *) end,
+                          start,
+                          end,
                           FONT_HLPTITLE,
                           ggl_solid(PAL_HLP_TEXT));
                 xstart += 4;
@@ -2588,13 +2605,13 @@ void halShowErrorMsg()
             message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
         if (message)
         {
-            byte_p msgstart = (byte_p) (message + 1);
-            byte_p msgend   = msgstart + rplStrSize(message);
+            utf8_p msgstart = (utf8_p) (message + 1);
+            utf8_p msgend   = msgstart + rplStrSize(message);
 
             DrawTextN(&scr, scr.left + 6,
                       scr.top + 3 + FONT_HEIGHT(FONT_HLPTITLE),
-                      (char *) msgstart,
-                      (char *) msgend,
+                      msgstart,
+                      msgend,
                       FONT_HLPTEXT,
                       ggl_solid(PAL_HLP_TEXT));
         }
