@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/bitmap">
+        <file>bitmap/ann_right.xbm</file>
+        <file>bitmap/ann_left.xbm</file>
+        <file>bitmap/ann_io.xbm</file>
+        <file>bitmap/ann_busy.xbm</file>
+        <file>bitmap/ann_battery.xbm</file>
+        <file>bitmap/ann_alpha.xbm</file>
+        <file alias="bitmap/keyboard.png">bitmap/keyboard-dm42.png</file>
+        <file>bitmap/icon.png</file>
+    </qresource>
+</RCC>

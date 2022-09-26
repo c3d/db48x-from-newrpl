@@ -22,7 +22,7 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-SIMULATORS=hp50 prime
+SIMULATORS=hp50 prime dm42
 FIRMWARES=hp39 hp40 hp48 hp50 prime prime-multiload
 CONFIG=debug
 OS=$(shell uname -s)
