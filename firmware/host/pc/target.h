@@ -54,62 +54,90 @@ extern int usb_timeout;
 
 
 // Target PC uses 50g screen and other capabilities for now
-#ifndef TARGET_PC_PRIME
+#if TARGET_PC_PRIME
+
 // USABLE SCREEN WINDOW SIZE
-#define LCD_W 131
-#define LCD_H 80
-#define PIXELS_PER_WORD 8
-
-#define SCREEN_BUFFERS 1
-
+#    define LCD_W               320
+#    define LCD_H               240
+#    define PIXELS_PER_WORD     2
+#    define SCREEN_BUFFERS      2
 
 // DEFAULT COLOR MODE OF THE SYSTEM
-#define BITS_PER_PIXEL 4
-#define DEFAULT_BITMAP_MODE   1   // SAME AS BITMAP_RAW16G
+#    define BITS_PER_PIXEL      16
+#    define DEFAULT_BITMAP_MODE 3 // SAME AS BITMAP_RAW64KC
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#define LCD_SCANLINE 160
+#    define LCD_SCANLINE        320
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
-#define LCD_H 80
+#    define LCD_H               240
 
-// HP50G menu organization
-#define MENU2_STARTX 0
-#define MENU2_ENDX   SCREEN_W
-#define MENU2_COUNT  3
-
-#define ANN_X_COORD (LCD_W)
-
-#else // TARGET_PC_PRIME
-
-// USABLE SCREEN WINDOW SIZE
-#define LCD_W 320
-#define LCD_H 240
-#define PIXELS_PER_WORD 2
-#define SCREEN_BUFFERS 2
-
-// DEFAULT COLOR MODE OF THE SYSTEM
-#define BITS_PER_PIXEL 16
-#define DEFAULT_BITMAP_MODE   3   // SAME AS BITMAP_RAW64KC
-
-// PHYSICAL SCREEN SIZE
-//  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#define LCD_SCANLINE 320
-// HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
-#define LCD_H 240
-
-#define ANN_X_COORD (LCD_W)
-#define MENU1_ENDX  ((44*LCD_W)/131)
+#    define ANN_X_COORD         (LCD_W)
+#    define MENU1_ENDX          ((44 * LCD_W) / 131)
 
 // Prime menu organization constants
-#define MENU2_STARTX (MENU1_ENDX+1)
-#define MENU2_ENDX  (1+(88*LCD_W)/131)
-#define MENU2_COUNT  2
+#    define MENU2_STARTX        (MENU1_ENDX + 1)
+#    define MENU2_ENDX          (1 + (88 * LCD_W) / 131)
+#    define MENU2_COUNT         2
 
-#undef  STATUSAREA_X
-#define STATUSAREA_X  (MENU2_ENDX+1)
+#    undef STATUSAREA_X
+#    define STATUSAREA_X (MENU2_ENDX + 1)
 
-#endif // TARGET_PC_PRIME
+#elif TARGET_PC_DM42
+
+#    define LCD_W               400
+#    define LCD_H               240
+#    define PIXELS_PER_WORD     32
+#    define SCREEN_BUFFERS      2
+
+#    define BITS_PER_PIXEL      1
+#    define DEFAULT_BITMAP_MODE 0 // SAME AS BITMAP_MONO
+
+// PHYSICAL SCREEN SIZE
+//  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
+#    define LCD_SCANLINE        400
+// HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
+#    define LCD_H               240
+
+#    define ANN_X_COORD         (LCD_W)
+#    define MENU1_ENDX          ((44 * LCD_W) / 131)
+
+// Prime menu organization constants
+#    define MENU2_STARTX        (MENU1_ENDX + 1)
+#    define MENU2_ENDX          (1 + (88 * LCD_W) / 131)
+#    define MENU2_COUNT         2
+
+#    undef STATUSAREA_X
+#    define STATUSAREA_X (MENU2_ENDX + 1)
+
+#else
+
+// USABLE SCREEN WINDOW SIZE
+#    define LCD_W               131
+#    define LCD_H               80
+#    define PIXELS_PER_WORD     8
+
+#    define SCREEN_BUFFERS      1
+
+
+// DEFAULT COLOR MODE OF THE SYSTEM
+#    define BITS_PER_PIXEL      4
+#    define DEFAULT_BITMAP_MODE 1 // SAME AS BITMAP_RAW16G
+
+// PHYSICAL SCREEN SIZE
+//  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
+#    define LCD_SCANLINE        160
+// HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
+#    define LCD_H               80
+
+// HP50G menu organization
+#    define MENU2_STARTX        0
+#    define MENU2_ENDX          SCREEN_W
+#    define MENU2_COUNT         3
+
+#    define ANN_X_COORD         (LCD_W)
+
+#endif // TARGET_PC_PRIME || TARGET_PC_DM42
 
 // DEFAULT CLOCK SPEEDS
 #define HAL_SLOWCLOCK     6000000
@@ -122,46 +150,16 @@ extern char ExceptionScreen[(LCD_SCANLINE*LCD_H)*4/PIXELS_PER_WORD];
 typedef unsigned int INTERRUPT_TYPE;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#ifndef TARGET_PC_PRIME
+#if TARGET_PC_PRIME
 
 // Keyboard remapping constants
 
 // Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS   0x7000000000000000LL
-#define KEYMATRIX_ON           0x8000000000000000LL
-#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>61)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>62)&1)
-#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>60)&1)
-
-
-// Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (bit)
-#define KEYMAP_BITFROMCODE(code) (code)
-
-#else
-
-// Keyboard remapping constants
-
-// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS   ((1LL<<26)|(1LL<<51)|(1LL<<63))
-#define KEYMATRIX_ON           (1LL<<52)
-#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>51)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>63)&1)
-#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>26)&1)
-
+#    define KEYMATRIX_ALL_SHIFTS        ((1LL << 26) | (1LL << 51) | (1LL << 63))
+#    define KEYMATRIX_ON                (1LL << 52)
+#    define KEYMATRIX_LSHIFTBIT(matrix) (((matrix) >> 51) & 1)
+#    define KEYMATRIX_RSHIFTBIT(matrix) (((matrix) >> 63) & 1)
+#    define KEYMATRIX_ALPHABIT(matrix)  (((matrix) >> 26) & 1)
 
 
 // Matrix to KeyCode mapping - Defined in keyboard.c for this target
@@ -169,10 +167,46 @@ extern const unsigned char keyb_irq_codefrombit[64];
 extern const unsigned char keyb_irq_bitfromcode[64];
 
 // Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
-#define KEYMAP_BITFROMCODE(code) (keyb_irq_bitfromcode[code])
+#    define KEYMAP_CODEFROMBIT(bit)     (keyb_irq_codefrombit[bit])
+#    define KEYMAP_BITFROMCODE(code)    (keyb_irq_bitfromcode[code])
+
+#elif TARGET_PC_DM42
+
+// Keyboard remapping constants
+
+// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
+#    define KEYMATRIX_ALL_SHIFTS        ((1LL << 26) | (1LL << 51) | (1LL << 63))
+#    define KEYMATRIX_ON                (1LL << 52)
+#    define KEYMATRIX_LSHIFTBIT(matrix) (((matrix) >> 51) & 1)
+#    define KEYMATRIX_RSHIFTBIT(matrix) (((matrix) >> 63) & 1)
+#    define KEYMATRIX_ALPHABIT(matrix)  (((matrix) >> 26) & 1)
+
+
+// Matrix to KeyCode mapping - Defined in keyboard.c for this target
+extern const unsigned char keyb_irq_codefrombit[64];
+extern const unsigned char keyb_irq_bitfromcode[64];
+
+// Keyboard mapping macros  - MUST exist for all targets
+#    define KEYMAP_CODEFROMBIT(bit)     (keyb_irq_codefrombit[bit])
+#    define KEYMAP_BITFROMCODE(code)    (keyb_irq_bitfromcode[code])
+
+#else
+
+// Keyboard remapping constants
+
+// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
+#    define KEYMATRIX_ALL_SHIFTS        0x7000000000000000LL
+#    define KEYMATRIX_ON                0x8000000000000000LL
+#    define KEYMATRIX_LSHIFTBIT(matrix) (((matrix) >> 61) & 1)
+#    define KEYMATRIX_RSHIFTBIT(matrix) (((matrix) >> 62) & 1)
+#    define KEYMATRIX_ALPHABIT(matrix)  (((matrix) >> 60) & 1)
+
+
+// Keyboard mapping macros  - MUST exist for all targets
+#    define KEYMAP_CODEFROMBIT(bit)     (bit)
+#    define KEYMAP_BITFROMCODE(code)    (code)
+
 
 #endif
-
 
 #endif // TARGET_PC_H
