@@ -35,7 +35,11 @@ QEmuScreen::QEmuScreen(QWidget *parent)
 
     screen_height = LCD_H;
     screen_width  = LCD_W;
+#ifndef TARGET_PC_DM42
     BkgndColor    = QColor(172, 222, 157);
+#else // TARGET_PC_DM42
+    BkgndColor    = QColor(230, 230, 230);
+#endif // TARGET_PC_DM42
     MainColor     = QColor(0, 0, 0);
     BkgndPen.setColor(BkgndColor);
     BkgndPen.setStyle(Qt::NoPen);
@@ -62,12 +66,11 @@ QEmuScreen::QEmuScreen(QWidget *parent)
 
     scr.setBackgroundBrush(/*QBrush(BkgndColor)*/ QBrush(Qt::black));
 
-
     mainPixmap.fill(Grays[8]);
     mainScreen = scr.addPixmap(mainPixmap);
     mainScreen->setOffset(0.0, 0.0);
 
-    // ADD SOME ANNUNCIATORS
+    // Add some annunciators
     annHourglass.setMask(annHourglass.createMaskFromColor(Qt::white));
     annBattery.setMask(annBattery.createMaskFromColor(Qt::white));
     annComms.setMask(annComms.createMaskFromColor(Qt::white));
@@ -139,7 +142,7 @@ void QEmuScreen::setTimer(QTimer *tmr)
     screentmr = tmr;
 }
 
-// SET A PIXEL IN THE SPECIFIED COLOR
+// Set a pixel in the specified color
 void QEmuScreen::setPixel(int offset, QEmuScreen::palette_index color)
 {
     // Pixels[offset]->setBrush(GrayBrush[color & 15]);
@@ -193,8 +196,7 @@ void QEmuScreen::update()
 
     if (lcd_mode == 0)
     {
-        // MONOCHROME SCREEN
-
+        // Monochrome screen
         scr.setBackgroundBrush(QBrush(BkgndColor));
         QPainter      pt(&mainPixmap);
 
@@ -211,7 +213,11 @@ void QEmuScreen::update()
                 color = *ptr & mask;
                 // Pixels[i * screen_width +
                 //         j]->setBrush(GrayBrush[(color ? 15 : 0)]);
+#ifndef TARGET_PC_DM42
                 pt.setPen(Grays[(color ? 15 : 0)]);
+#else // TARGET_PC_DM42
+                pt.setPen(color ? BkgndColor : Qt::black);
+#endif // TARGET_PC_DM42
                 // Pixels[i * screen_width + j]->setPen(BkgndPen);
                 pt.drawPoint(j, i);
                 mask <<= 1;

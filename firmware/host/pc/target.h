@@ -95,7 +95,7 @@ extern int usb_timeout;
 
 // PHYSICAL SCREEN SIZE
 //  WIDTH MUST BE AT LEAST ONE MORE THAN THE WINDOW SIZE
-#    define LCD_SCANLINE        400
+#    define LCD_SCANLINE        416
 // HEIGHT MUST BE AT LEAST THE SAME AS WINDOW SIZE
 #    define LCD_H               240
 
