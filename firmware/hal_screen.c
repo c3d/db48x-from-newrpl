@@ -1758,109 +1758,57 @@ void halRedrawStatus(gglsurface *scr)
         }
 #endif // CONFIG_NO_FSYSTEM
 
-#ifdef TARGET_PRIME
+#if !defined(ANN_X_COORD) || !defined(ANN_Y_COORD)
         // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
         xctracker = 4;
         ytop      = LCD_H - 1 - Font_Notifications->BitmapHeight;
 
-        // ALARM
-        if (halGetNotification(N_ALARM))
+        static struct annunciator
         {
-            DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                       ytop + 1,
-                       (char *) "X",
-                       Font_Notifications,
-                       ggl_solid(PAL_STA_ANNPRESS),
-                       ggl_solid(PAL_STA_BG));
-            xctracker += 4 + StringWidth((char *) "X", Font_Notifications);
-        }
-
-        // USB CONNECTION - GRAYED = CONNECTED, BLACK = DATA RECEIVED
-        if (halGetNotification(N_CONNECTION))
+            int id;
+            int highlight;
+            utf8_p label;
+        } annunciators[] =
         {
-            palette_index color;
-            if (halGetNotification(N_DATARECVD))
-                color = PAL_STA_ANNPRESS;
-            else
-                color = PAL_STA_ANN;
+            { N_ALARM,          0,                      "X" },
+            { N_CONNECTION,       N_DATARECVD,            "U"},
+            { N_LEFTSHIFT,        N_INTERNALSHIFTHOLD,    "L"},
+            { N_RIGHTSHIFT,       N_INTERNALSHIFTHOLD,    "R"},
+            { N_ALPHA,            N_INTERNALALPHAHOLD,    "A"},
+            { N_HOURGLASS,        0,                      "W"},
+        };
 
-            DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                       ytop + 1,
-                       (char *) "U",
-                       Font_Notifications,
-                       ggl_solid(color),
-                       ggl_solid(PAL_STA_BG));
-            xctracker += 4 + StringWidth((char *) "U", Font_Notifications);
-        }
-
-        // Keyboard
+        for (unsigned k = 0; k < sizeof(annunciators)/sizeof(annunciators[0]); k++)
         {
-            if (halGetNotification(N_LEFTSHIFT))
+            if (halGetNotification(annunciators[k].id))
             {
-                palette_index color;
-                if (halGetNotification(N_INTERNALSHIFTHOLD))
-                    color = PAL_STA_ANNPRESS;
-                else
-                    color = PAL_STA_ANN;
+                pattern_t fg = ggl_solid(PAL_STA_ANNPRESS);
+                pattern_t bg = ggl_solid(PAL_STA_BG);
 
-                DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                           ytop + 1,
-                           (char *) "L",
-                           Font_Notifications,
-                           ggl_solid(color),
-                           ggl_solid(PAL_STA_BG));
-                xctracker += 4 + StringWidth((char *) "L", Font_Notifications);
-            }
-            if (halGetNotification(N_RIGHTSHIFT))
-            {
-                palette_index color;
-                if (halGetNotification(N_INTERNALSHIFTHOLD))
-                    color = PAL_STA_ANNPRESS;
-                else
-                    color = PAL_STA_ANN;
+                if (annunciators[k].highlight &&
+                    halGetNotification(annunciators[k].highlight))
+                {
+#if BITS_PER_PIXEL == 1
+                    // Monochrome: use high-resolution pattern
+                    color_t bi = ggl_color(PAL_STA_ANNPRESS);
+                    color_t wi = ggl_color(PAL_STA_ANN);
+                    fg = ggl_pattern_4_colors(bi, bi, wi, bi);
+#else
+                    fg = ggl_solid(PAL_STA_ANN);
+#endif
+                }
 
-                DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
+                DrawTextBk(scr,
+                           STATUS_AREA_X + 1 + xctracker,
                            ytop + 1,
-                           (char *) "R",
+                           annunciators[k].label,
                            Font_Notifications,
-                           ggl_solid(color),
-                           ggl_solid(PAL_STA_BG));
-                xctracker += 4 + StringWidth((char *) "R", Font_Notifications);
-            }
-            if (halGetNotification(N_ALPHA))
-            {
-                palette_index color;
-                if (halGetNotification(N_INTERNALALPHAHOLD))
-                    color = PAL_STA_ANNPRESS;
-                else
-                    color = PAL_STA_ANN;
-
-                DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                           ytop + 1,
-                           (char *) "A",
-                           Font_Notifications,
-                           ggl_solid(color),
-                           ggl_solid(PAL_STA_BG));
-                xctracker += 4 + StringWidth((char *) "A", Font_Notifications);
+                           fg,
+                           bg);
+                xctracker += 4 + StringWidth((char *) "X", Font_Notifications);
             }
         }
-
-        // Busy
-
-        if (halGetNotification(N_HOURGLASS))
-        {
-            DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                       ytop + 1,
-                       (char *) "W",
-                       Font_Notifications,
-                       ggl_solid(PAL_STA_ANNPRESS),
-                       ggl_solid(PAL_STA_BG));
-            xctracker += 4 + StringWidth((char *) "W", Font_Notifications);
-        }
-
-        // Battery notifications are handled as part of the battery handler
-        // Do not display here
-#endif /* TARGET_PRIME */
+#endif // No physical annunciators
 
         // ADD OTHER INDICATORS HERE
         scr->left = xc;
