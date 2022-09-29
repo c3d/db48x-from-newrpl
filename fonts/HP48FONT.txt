@@ -1,0 +1,165 @@
+--> HP48 G/GX primarily; of some use for S/SX also.
+
+HP48FONTS - A collection of TrueType fonts for HP48 Developers.
+Fonts created by Ted J. Kerber of D'Zign, using Fontographer by
+Altsys.  Beta-tested by Jim Donnelly. This little documentation file
+written by Joe Horn.
+
+These fonts were originally intended to be a commercial product,
+complete with printed documentation including copious illustrations.
+Ted could not find a dealer interested in selling it, so he wrote me a
+letter including the following:
+
+    I am still convinced that developers of software for the HP48 can
+    get some use out of these fonts for writing their documentation
+    and instruction sheets.  Feel free to include the fonts on one of
+    your Goodies Disks.  You can also copy as much (or as little) of
+    the manual as you like, and consider this letter to also be a
+    copyright release for the whole batch.
+
+Ted included a copy of the printed documentation; it's beautiful!
+Graphics, font tables, examples, the whole nine yards.  Since I cannot
+possibly convert it to ASCII, he and D'Zign kindly agreed to make it
+available for free.  For your copy of the printed documentation, send
+a 9x12-inch envelope, with $0.78 return postage attached, to:
+
+        Ted J. Kerber
+        c/o D'Zign
+        P.O. Box 430
+        Tollhouse, CA 93667
+     
+This offer good only to United States addresses.  Non-USA residents
+can obtain the documentation by convincing one of their friends in
+the USA to get it for them.  D'Zign will pay for the photocopying.
+
+Disclaimer:  This software is not supported.  This material is
+transferred free of charge, as is.  D'Zign makes no warranty,
+expressed or implied as to its performance. D'Zign specifically
+disclaims the implied warranties of merchantability and fitness for
+any particular purpose. D'Zign shall not be liable for any direct,
+indirect, special, incidental or consequential damages, whether based
+on contract, tort, or any other legal theory. D'Zign specifically will
+not offer any support concerning this material and grants no
+exclusivity for its use. D'Zign specifically does not offer this
+material as a product and does not commit to make this material
+available in the future as such.
+
+
++-----------+
+| THE FONTS |
++-----------+
+
+INSTALLATION: Install as you would any TrueType font. The character
+map is logically laid out, but if you want it in tabular form you may
+either obtain the complete printed documentation (see above) or print
+it out yourself using any common TrueType utility (I use TrueType for
+DOS by MicroLogic).
+
+HP48GOS1.TTF - HP48 character set, size 1 (small, status-area size)
+HP48GOS2.TTF - HP48 character set, size 2 (medium, DISP size)
+HP48GOS3.TTF - HP48 character set, size 3 (large, stack & edit size)
+
+HPPRNTR.TTF - HP 82240B Thermal Infrared Printer font (not 82240A)
+
+HP48MENU.TTF - Special font that allows you to create text that looks
+               exactly like HP48 menus, even including directory
+               "tabs", any special character, etc.  Software that runs
+               on the HP48 to help use this font is included (see
+               below) for automatically centering text in the menu and
+               making it the correct width, just like the HP48 does.
+
+HP48KEYS.TTF - Each character of this font is a mini-graphic that
+               looks exactly like a key on the HP48G keyboard (not
+               HP48S) including shifted keys. All the white-on-black
+               keys are also available as black-on-white for
+               applications in which that would be more legible.
+               Example: the "J" character is a white-on-black VAR key,
+               but "j" is a black-on-white VAR key.
+
+HP48AKEY.TTF - Same as HP48KEYS but the alphabet keys include the
+               letter at the bottom right corner (just as it appears
+               on the HP48 keyboard), so for example "J" is a VAR key
+               with a tiny J attached.  This font is intended for the
+               creation of instruction sheets to be used by people who
+               are not familiar with the HP48.
+
+
++--------------+
+| THE SOFTWARE |
++--------------+
+
+MENUHP - Automates the use of the HP48MENU font for creation of text
+         that looks exactly like HP48 menus.
+
+INSTALLATION: Transfer MENUHP to your HP48. Recall it to the stack
+(it's Library 916), then purge MENUHP, then type a port number (0 if
+you don't have any RAM cards installed; GX owners may use port 2 or
+higher) and press STO. Turn the HP48 off then back on. Now type
+exactly as you see here:
+                                instl
+
+Be sure to use lower-case letters, and press ENTER.  This will create
+a directory called 'mENu' containing two programs: 'norm' and 'misc'.
+Use the 'norm' program for creating normal menus containing only
+letters and/or numbers (no special alpha characters).  Use 'misc' for
+creating menus with miscellaneous alpha characters and/or custom
+characters.  These two programs work very differently from each other,
+so be sure to read their instructions.
+
+NOTE: You can create "directory menus" (with the little tab on top) by
+pressing shift-0 *immediately before* the menu characters. Depending
+on your software, it may not display correctly, but it will print
+correctly.
+
++--------+
+| 'norm' |
++--------+
+
+Run 'norm'.  At the "Input menu key Info" prompt, type the
+character(s) which you wish to be in the menu, and press ENTER.
+Whatever the screen says, do that on your computer, pressing the CONT
+softkey to go to each successive screen, until CONT no longer appears.
+
+For example, to create a menu that says HI, run 'norm', key in HI and
+press ENTER.  The HP48 says that you should type shift-3 on your
+computer, followed immediately by a 5. Press CONT on your HP48, and it
+now says that you should type HI on your computer, followed by
+shift-7, and that's all there is to it!
+
+As mentioned above, you can make a "HI directory menu" by pressing
+shift-0 *first*, immediately before the keys that 'norm' said to
+press.
+
+Note: If you do what 'norm' says to do, but are not obtaining correct
+results, it is probable that you are using characters that are not in
+the HP48MENU font.  Use 'misc' instead of 'norm' for such cases.
+
++--------+
+| 'misc' |
++--------+
+
+The 'misc' program requires its input to be on the stack *before* you
+run it; it then tells you screen-by-screen exactly what to type on
+your computer.  Be patient; it takes a while to run.
+
+For example, to create a menu that says "Sigma Plus" (symbolically),
+first you must create that as a string on the HP48.  This can be done
+many ways; I prefer to use the GX's CHARS character-map and press ECHO
+on the sigma-character. After you have "sigma plus" on the stack, run
+'misc'. It says that you should type shift-6 on your computer... then
+type n d j n \ [ q [ \, and finally type shift-6.
+
+The 'mENu' directory only takes up 297 bytes of memory, but you may
+purge it any time you need that memory, because it can be created
+later by just typing "instl" as described above.
+
+
++---------+
+| SUPPORT |
++---------+
+
+There isn't any.  But if you have a simple question, I'm very familiar
+with the use of this package now, so I'll be happy to help you.  Send
+email to:
+
+-Joseph K. Horn-   <joehorn@mail.liberty.com> or <jkh@sc.liberty.com>
