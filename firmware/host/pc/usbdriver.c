@@ -21,10 +21,6 @@ int usb_timeout;
 // OTHER BIT DEFINITIONS
 #define USB_RESET        8
 
-#define EP0_FIFO_SIZE    8
-#define EP1_FIFO_SIZE    64
-#define EP2_FIFO_SIZE    64
-
 #define USB_DIRECTION   0x80
 #define USB_DEV_TO_HOST 0x80
 
