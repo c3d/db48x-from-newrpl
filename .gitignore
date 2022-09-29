@@ -29,3 +29,11 @@
 /*.ROM
 /*.elf
 /**/.*
+/tools-bin/bmp2font
+/tools-bin/ttf2font
+/tools/fonts/bmp2font/bmp2font
+/tools/fonts/bmp2font/bmp2font.mak
+/tools/fonts/bmp2font/main.o
+/tools/fonts/ttf2font/ttf2font
+/tools/fonts/ttf2font/ttf2font.mak
+/tools/fonts/ttf2font/ttf2font.o

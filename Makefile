@@ -39,16 +39,24 @@ help:
 
 compiler: compiler-$(TAG).mak recorder
 	$(MAKE) -f $< install
+
 elf2rom: tools-bin/elf2rom
 tools-bin/elf2rom: tools/elf2rom/elf2rom.mak | compiler
 	cd tools/elf2rom && $(MAKE) -f elf2rom.mak install
 tools/elf2rom/elf2rom.mak: tools/elf2rom/elf2rom.pro
 	cd tools/elf2rom && qmake $(<F) -o $(@F)
+
 bmp2font: tools-bin/bmp2font
 tools-bin/bmp2font: tools/fonts/bmp2font/bmp2font.mak tools/fonts/bmp2font/main.c
 	cd tools/fonts/bmp2font && $(MAKE) -f bmp2font.mak install
 tools/fonts/bmp2font/bmp2font.mak: tools/fonts/bmp2font/bmp2font.pro
 	cd tools/fonts/bmp2font && qmake $(<F) -o $(@F)
+
+ttf2font: tools-bin/ttf2font
+tools-bin/ttf2font: tools/fonts/ttf2font/ttf2font.mak tools/fonts/ttf2font/ttf2font.c
+	cd tools/fonts/ttf2font && $(MAKE) -f ttf2font.mak install
+tools/fonts/ttf2font/ttf2font.mak: tools/fonts/ttf2font/ttf2font.pro
+	cd tools/fonts/ttf2font && qmake $(<F) -o $(@F)
 
 %-sim %-simulator: %-simulator-$(TAG).mak compiler recorder .ALWAYS
 	$(MAKE) -f $<
@@ -71,7 +79,7 @@ release-% %-release:
 debug: debug-sim
 release: release-all
 
-fonts: bmp2font
+fonts: bmp2font ttf2font
 	cd bitmap/fonts && ./doallfonts.sh
 	mv bitmap/fonts/*.c firmware/sys/
 	mv bitmap/fonts/fontlist.h firmware/include/
