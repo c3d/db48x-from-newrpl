@@ -91,37 +91,37 @@ QEmuScreen::QEmuScreen(QWidget *parent)
     Annunciators[0]->setScale(0.25);
     Annunciators[0]->setOffset(((LCD_W - 10) - 0 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[0]->setOpacity(1.0);
+    Annunciators[0]->setOpacity(0.0);
 
     Annunciators[1] = scr.addPixmap(annLShift);
     Annunciators[1]->setScale(0.25);
     Annunciators[1]->setOffset(((LCD_W - 10) - 5 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[1]->setOpacity(1.0);
+    Annunciators[1]->setOpacity(0.0);
 
     Annunciators[2] = scr.addPixmap(annRShift);
     Annunciators[2]->setScale(0.25);
     Annunciators[2]->setOffset(((LCD_W - 10) - 4 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[2]->setOpacity(1.0);
+    Annunciators[2]->setOpacity(0.0);
 
     Annunciators[3] = scr.addPixmap(annAlpha);
     Annunciators[3]->setScale(0.25);
     Annunciators[3]->setOffset(((LCD_W - 10) - 3 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[3]->setOpacity(1.0);
+    Annunciators[3]->setOpacity(0.0);
 
     Annunciators[4] = scr.addPixmap(annBattery);
     Annunciators[4]->setScale(0.25);
     Annunciators[4]->setOffset(((LCD_W - 10) - 2 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[4]->setOpacity(1.0);
+    Annunciators[4]->setOpacity(0.0);
 
     Annunciators[5] = scr.addPixmap(annHourglass);
     Annunciators[5]->setScale(0.25);
     Annunciators[5]->setOffset(((LCD_W - 10) - 1 * ((LCD_W - 30) / 5)) * 4,
                                -20);
-    Annunciators[5]->setOpacity(1.0);
+    Annunciators[5]->setOpacity(0.0);
 
     setScene(&scr);
     setSceneRect(0, -5, screen_width, screen_height + 5);
@@ -230,6 +230,7 @@ void QEmuScreen::update()
         }
         pt.end();
 
+#if defined(ANN_X_COORD) && defined(ANN_Y_COORD)
         // UPDATE ANNUNCIATORS
         mask = 1 << 3;
         for (i = 0; i < 6; ++i)
@@ -238,7 +239,7 @@ void QEmuScreen::update()
             color = (*ptr & mask) >> 3;
             Annunciators[i]->setOpacity(color ? 1.0 : 0.0);
         }
-
+#endif // Physical annunciators
 
         mainScreen->setPixmap(mainPixmap);
         QGraphicsView::update();
@@ -284,7 +285,8 @@ void QEmuScreen::update()
 
         pt.end();
 
-        // UPDATE ANNUNCIATORS
+#if defined(ANN_X_COORD) && defined(ANN_Y_COORD)
+        // Update physical annunciators
         mask = (((1 << BITSPERPIXEL) - 1)
                 << (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD))));
         for (i = 0; i < 6; ++i)
@@ -295,6 +297,7 @@ void QEmuScreen::update()
                     (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD)));
             Annunciators[i]->setOpacity(((qreal) color) / 15.0);
         }
+#endif // Physical annunciators
 
         mainScreen->setPixmap(mainPixmap);
         QGraphicsView::update();
@@ -333,39 +336,6 @@ void QEmuScreen::update()
                      Qt::AutoColor);
 
         pt.end();
-        /*
-        for(i = 0; i < screen_height; ++i) {
-            mask = 0xf;
-            ptr = lcd_buffer + (LCD_SCANLINE >> 3) * i;
-            for(j = 0; j < screen_width; ++j) {
-                color = (*ptr & mask) >> ((j & 7) * 4);
-                //Pixels[i * screen_width + j]->setBrush(GrayBrush[color]);
-                //Pixels[i * screen_width + j]->setPen(BkgndPen);
-                pt.setPen(Grays[color]);
-                pt.drawPoint(j,i);
-
-                mask <<= 4;
-                if(!mask) {
-                    mask = 0xf;
-                    ++ptr;
-                }
-            }
-        }
-
-        pt.end();
-        */
-
-        // RGB SCREENS DON'T HAVE SEPARATE ANNUNCIATORS TO UPDATE
-
-        /*
-        mask = (((1<<BITSPERPIXEL)-1) << (BITSPERPIXEL*(ANN_X_COORD %
-        (PIXELS_PER_WORD)))); for(i = 0; i < 6; ++i) { ptr = lcd_buffer +
-        ANN_X_COORD / (PIXELS_PER_WORD); ptr += i * (LCD_SCANLINE /
-        PIXELS_PER_WORD); color = (*ptr & mask) >> (BITSPERPIXEL*(ANN_X_COORD %
-        (PIXELS_PER_WORD))); Annunciators[i]->setOpacity(((qreal) color)
-        / 15.0);
-        }
-        */
         mainScreen->setPixmap(mainPixmap);
         QGraphicsView::update();
         if (screentmr)
@@ -378,9 +348,7 @@ void QEmuScreen::update()
     }
 
     // ANY OTHER MODE IS UNSUPPORTED, SHOW BLANK SCREEN
-
     mainPixmap.fill(Grays[8]);
-
 
     // UPDATE ANNUNCIATORS
     for (i = 0; i < 6; ++i)

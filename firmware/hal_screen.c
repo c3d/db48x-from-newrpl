@@ -23,7 +23,7 @@ void halSetNotification(enum halNotification type, unsigned color)
     else
         halFlags &= ~(1 << (16 + type));
 
-#ifndef TARGET_PRIME
+#if defined(ANN_X_COORD) && defined(ANN_Y_COORD)
     if (type < N_DATARECVD)
     {
         byte_p scrptr = (byte_p) MEM_PHYS_SCREEN;
@@ -36,7 +36,7 @@ void halSetNotification(enum halNotification type, unsigned color)
             (color << (BITSPERPIXEL * (ANN_X_COORD % (PIXELS_PER_WORD / 4))));
         return;
     }
-#endif /* TARGET_PRIME */
+#endif /* has physical annunciators */
 
     // DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
     if ((halFlags ^ old) & (1 << (16 + type)))
