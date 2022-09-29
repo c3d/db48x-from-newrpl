@@ -341,182 +341,6 @@ void irq_clrpending(int service_number);
 void usb_mutex_lock(void);
 void usb_mutex_unlock(void);
 
-/*
-
-KEYBOARD BIT MAP
-----------------
-This is the bit number in the 64-bit keymatrix.
-Bit set means key is pressed.
-
-    A]-+  B]-+  C]-+  D]-+  E]-+  F]-+
-    |41|  |42|  |43|  |44|  |45|  |46|
-    +--+  +--+  +--+  +--+  +--+  +--+
-
-    G]-+  H]-+  I]-+        UP]+
-    |47|  |53|  |54|        |49|
-    +--+  +--+  +--+  LF]+  +--+  RT]+
-                      |50|  DN]+  |52|
-    J]-+  K]-+  L]-+  +--+  |51|  +--+
-    |55|  |57|  |58|        +--+
-    +--+  +--+  +--+
-
-    M]--+  N]--+  O]--+  P]--+  BKS]+
-    | 33|  | 25|  | 17|  | 09|  | 01|
-    +---+  +---+  +---+  +---+  +---+
-
-    Q]--+  R]--+  S]--+  T]--+  U]--+
-    | 34|  | 26|  | 18|  | 10|  | 02|
-    +---+  +---+  +---+  +---+  +---+
-
-    V]--+  W]--+  X]--+  Y]--+  /]--+
-    | 35|  | 27|  | 19|  | 11|  | 03|
-    +---+  +---+  +---+  +---+  +---+
-
-    AL]-+  7]--+  8]--+  9]--+  *]--+
-    | 60|  | 28|  | 20|  | 12|  | 04|
-    +---+  +---+  +---+  +---+  +---+
-
-    LS]-+  4]--+  5]--+  6]--+  -]--+
-    | 61|  | 29|  | 21|  | 13|  | 05|
-    +---+  +---+  +---+  +---+  +---+
-
-    RS]-+  1]--+  2]--+  3]--+  +]--+AL_API
-    | 62|  | 30|  | 22|  | 14|  | 06|
-    +---+  +---+  +---+  +---+  +---+
-
-    ON]-+  0]--+  .]--+  SP]-+  EN]-+
-    | 63|  | 31|  | 23|  | 15|  | 07|
-    +---+  +---+  +---+  +---+  +---+
-
-*/
-
-//! Constant for the F1 (A) key
-#define KB_A                 41
-//! Constant for the F2 (B) key
-#define KB_B                 42
-//! Constant for the F3 (C) key
-#define KB_C                 43
-//! Constant for the F4 (D) key
-#define KB_D                 44
-//! Constant for the F5 (E) key
-#define KB_E                 45
-//! Constant for the F6 (F) key
-#define KB_F                 46
-//! Constant for the APPS (G) key
-#define KB_G                 47
-//! Constant for the MODE (H) key
-#define KB_H                 53
-//! Constant for the TOOL (I) key
-#define KB_I                 54
-//! Constant for the VAR (J) key
-#define KB_J                 55
-//! Constant for the STO (K) key
-#define KB_K                 57
-//! Constant for the NXT (L) key
-#define KB_L                 58
-//! Constant for the HIST (M) key
-#define KB_M                 33
-//! Constant for the EVAL (N) key
-#define KB_N                 25
-//! Constant for the ' (O) key
-#define KB_O                 17
-//! Constant for the SYMB (P) key
-#define KB_P                 9
-//! Constant for the Y^X (Q) key
-#define KB_Q                 34
-//! Constant for the Sqrt (R) key
-#define KB_R                 26
-//! Constant for the SIN (S) key
-#define KB_S                 18
-//! Constant for the COS (T) key
-#define KB_T                 10
-//! Constant for the TAN (U) key
-#define KB_U                 2
-//! Constant for the EEX (V) key
-#define KB_V                 35
-//! Constant for the +/- (W) key
-#define KB_W                 27
-//! Constant for the X (X) key
-#define KB_X                 19
-//! Constant for the 1/X (Y) key
-#define KB_Y                 11
-//! Constant for the / (Z) key
-#define KB_Z                 KB_DIV
-//! Constant for the 0 key
-#define KB_0                 31
-//! Constant for the 1 key
-#define KB_1                 30
-//! Constant for the 2 key
-#define KB_2                 22
-//! Constant for the 3 key
-#define KB_3                 14
-//! Constant for the 4 key
-#define KB_4                 29
-//! Constant for the 5 key
-#define KB_5                 21
-//! Constant for the 6 key
-#define KB_6                 13
-//! Constant for the 7 key
-#define KB_7                 28
-//! Constant for the 8 key
-#define KB_8                 20
-//! Constant for the 9 key
-#define KB_9                 12
-//! Constant for the backspace key
-#define KB_BKS               1
-//! Constant for the / (Z) key
-#define KB_DIV               3
-//! Constant for the * key
-#define KB_MUL               4
-//! Constant for the + key
-#define KB_ADD               6
-//! Constant for the - key
-#define KB_SUB               5
-//! Constant for the . key
-#define KB_DOT               23
-//! Constant for the SPC key
-#define KB_SPC               15
-//! Constant for the ENT key
-#define KB_ENT               7
-//! Constant for the up arrow key
-#define KB_UP                49
-//! Constant for the down arrow key
-#define KB_DN                51
-//! Constant for the left arrow key
-#define KB_LF                50
-//! Constant for the right arrow key
-#define KB_RT                52
-//! Constant for the ALPHA key
-#define KB_ALPHA             60
-//! Constant for the left shift key
-#define KB_LSHIFT            61
-//! Constant for the right shift key
-#define KB_RSHIFT            62
-//! Constant for the ON key
-#define KB_ON                63
-//! Constant for the APPS key (prime Only)
-#define KB_APP               8
-//! Constant for the HOME key (prime Only)
-#define KB_HOM               16
-//! Constant for the SYMB key (prime Only)
-#define KB_SYM               24
-//! Constant for the PLOT key (prime Only)
-#define KB_PLT               32
-//! Constant for the NUM key (prime Only)
-#define KB_NUM               48
-//! Constant for the HELP key (prime Only)
-#define KB_HLP               36
-//! Constant for the VIEW key (prime Only)
-#define KB_VIE               37
-//! Constant for the MENU key (prime Only)
-#define KB_MEN               38
-//! Constant for the ESC key (prime Only)
-#define KB_ESC               39
-//! Constant for the CAS key (prime Only)
-#define KB_CAS               40
-
-// Unassigned key codes: 56, 59
-
 
 // MACROS TO CREATE KEYBOARD MASKS
 /*!
@@ -585,9 +409,9 @@ Bit set means key is pressed.
 //#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
 //#define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
 #define OLDKEYSHIFT(keycode) ((keycode << 7) & SHIFT_ANYLOCK)
-#define MKOLDSHIFT(keyplane) (((keyplane) &SHIFT_ANYLOCK) >> 7)
-#define KEYSHIFT(keycode)    ((keycode) &SHIFT_ANY)
-#define KEYVALUE(keycode)    ((keycode) &0x3f)
+#define MKOLDSHIFT(keyplane) (((keyplane) & SHIFT_ANYLOCK) >> 7)
+#define KEYSHIFT(keycode)    ((keycode) & SHIFT_ANY)
+#define KEYVALUE(keycode)    ((keycode) & 0x3f)
 
 // KEYMATRIX TYPE DEFINITION
 /*!
@@ -596,7 +420,7 @@ Bit set means key is pressed.
  * This data type is a 64-bit integer used to represent the complete state of the keyboard.
  *
  */
-typedef unsigned long long keymatrix;
+typedef uint64_t keymatrix;
 
 // SCANS THE KEYBOARD AND STORES THE 64-BIT MATRIX
 /*!
@@ -740,6 +564,22 @@ keymatrix                  keyb_getmatrix();
  */
 int keyb_getkey(int wait);
 
+// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
+#define KEYMATRIX_ALL_SHIFTS            ((1ULL << KB_ALPHA) |    \
+                                         (1ULL << KB_LSHIFT) |   \
+                                         (1ULL << KB_RSHIFT))
+#define KEYMATRIX_ON                    (1ULL << KB_ON)
+#define KEYMATRIX_LSHIFTBIT(matrix)     (((matrix)>>KB_LSHIFT)&1)
+#define KEYMATRIX_RSHIFTBIT(matrix)     (((matrix)>>KB_RSHIFT)&1)
+#define KEYMATRIX_ALPHABIT(matrix)      (((matrix)>>KB_ALPHA)&1)
+
+// Keyboard mapping macros  - MUST exist for all targets - Will be used later
+#define KEYMAP_CODEFROMBIT(bit)         (bit)
+#define KEYMAP_BITFROMCODE(code)        (code)
+
+#define KEYMAP_IS_SHIFT_OR_ON(bit)      ((1ULL<<bit) & (KEYMATRIX_ALL_SHIFTS | KEYMATRIX_ON))
+
+
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_PRESS           0x0000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
@@ -788,13 +628,13 @@ int keyb_getkey(int wait);
 #define KEYB_SCANSPEED     20
 
 //! \brief Convenience macro to extract message type from a message
-#define KM_MESSAGE(a)      ((a) &KM_MSGMASK)
+#define KM_MESSAGE(a)      ((a) & KM_MSGMASK)
 //! \brief Convenience macro to extract pure key code from a message
-#define KM_KEY(a)          ((a) &KM_KEYMASK)
+#define KM_KEY(a)          ((a) & KM_KEYMASK)
 //! \brief Convenience macro to extract shifted key code from a message
 #define KM_SHIFTEDKEY(a)   ((a) & (KM_KEYMASK | KM_SHIFTMASK))
 //! \brief Convenience macro to extract shift plane from a message
-#define KM_SHIFTPLANE(a)   ((a) &KM_SHIFTMASK)
+#define KM_SHIFTPLANE(a)   ((a) & KM_SHIFTMASK)
 
 
 //! \brief Convenience macro to extract touch coordinates from a message

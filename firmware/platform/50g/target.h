@@ -195,6 +195,7 @@
 #define RAM_BASE_PHYSICAL 0x08000000
 #define RAM_END_PHYSICAL  0x08080000
 
+#define SCREEN_BUFFERS  1
 #define MEM_PHYS_SCREEN  0x08006000
 #define MEM_PHYS_EXSCREEN  0x08007900
 #define MEM_VIRT_SCREEN  0x08006000
@@ -341,25 +342,136 @@
 
 #define ENABLE_ARM_ASSEMBLY 1
 
-typedef unsigned int INTERRUPT_TYPE;
+typedef unsigned INTERRUPT_TYPE;
 
 
-// Keyboard remapping constants
+/*
 
-// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS   0x7000000000000000LL
-#define KEYMATRIX_ON           0x8000000000000000LL
-#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>61)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>62)&1)
-#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>60)&1)
+KEYBOARD BIT MAP
+----------------
+This is the bit number in the 64-bit keymatrix.
+Bit set means key is pressed.
 
+    A]-+  B]-+  C]-+  D]-+  E]-+  F]-+
+    |41|  |42|  |43|  |44|  |45|  |46|
+    +--+  +--+  +--+  +--+  +--+  +--+
 
-// Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (bit)
-#define KEYMAP_BITFROMCODE(code) (code)
+    G]-+  H]-+  I]-+        UP]+
+    |47|  |53|  |54|        |49|
+    +--+  +--+  +--+  LF]+  +--+  RT]+
+                      |50|  DN]+  |52|
+    J]-+  K]-+  L]-+  +--+  |51|  +--+
+    |55|  |57|  |58|        +--+
+    +--+  +--+  +--+
 
+    M]--+  N]--+  O]--+  P]--+  BKS]+
+    | 33|  | 25|  | 17|  | 09|  | 01|
+    +---+  +---+  +---+  +---+  +---+
 
+    Q]--+  R]--+  S]--+  T]--+  U]--+
+    | 34|  | 26|  | 18|  | 10|  | 02|
+    +---+  +---+  +---+  +---+  +---+
 
+    V]--+  W]--+  X]--+  Y]--+  /]--+
+    | 35|  | 27|  | 19|  | 11|  | 03|
+    +---+  +---+  +---+  +---+  +---+
 
+    AL]-+  7]--+  8]--+  9]--+  *]--+
+    | 60|  | 28|  | 20|  | 12|  | 04|
+    +---+  +---+  +---+  +---+  +---+
+
+    LS]-+  4]--+  5]--+  6]--+  -]--+
+    | 61|  | 29|  | 21|  | 13|  | 05|
+    +---+  +---+  +---+  +---+  +---+
+
+    RS]-+  1]--+  2]--+  3]--+  +]--+AL_API
+    | 62|  | 30|  | 22|  | 14|  | 06|
+    +---+  +---+  +---+  +---+  +---+
+
+    ON]-+  0]--+  .]--+  SP]-+  EN]-+
+    | 63|  | 31|  | 23|  | 15|  | 07|
+    +---+  +---+  +---+  +---+  +---+
+
+*/
+
+#define KB_ALPHA             60         //! ALPHA
+#define KB_ON                63         //! ON
+#define KB_ESC               63         //! ESC -> ON
+#define KB_DOT               23         //! .
+#define KB_SPC               15         //! SPC
+#define KB_QUESTION           0         //! ? not mapped
+#define KB_SHIFT             61         //! Shift -> left shift
+#define KB_LSHIFT            61         //! left shift
+#define KB_RSHIFT            62         //! right shift
+
+#define KB_ADD               6          //! +
+#define KB_SUB               5          //! -
+#define KB_MUL               4          //! *
+#define KB_DIV               3          //! / (Z)
+
+#define KB_ENT               7          //! ENT
+#define KB_BKS               1          //! backspace
+#define KB_UP                49         //! up arrow
+#define KB_DN                51         //! down arrow
+#define KB_LF                50         //! left arrow
+#define KB_RT                52         //! right arrow
+
+#define KB_F1                41         //! Function key 1
+#define KB_F2                42         //! Function key 2
+#define KB_F3                43         //! Function key 3
+#define KB_F4                44         //! Function key 4
+#define KB_F5                45         //! Function key 5
+#define KB_F6                46         //! Function key 6
+
+#define KB_0                 31         //! 0
+#define KB_1                 30         //! 1
+#define KB_2                 22         //! 2
+#define KB_3                 14         //! 3
+#define KB_4                 29         //! 4
+#define KB_5                 21         //! 5
+#define KB_6                 13         //! 6
+#define KB_7                 28         //! 7
+#define KB_8                 20         //! 8
+#define KB_9                 12         //! 9
+
+#define KB_A                 41         //! F1 (A)
+#define KB_B                 42         //! F2 (B)
+#define KB_C                 43         //! F3 (C)
+#define KB_D                 44         //! F4 (D)
+#define KB_E                 45         //! F5 (E)
+#define KB_F                 46         //! F6 (F)
+#define KB_G                 47         //! APPS (G)
+#define KB_H                 53         //! MODE (H)
+#define KB_I                 54         //! TOOL (I)
+#define KB_J                 55         //! VAR (J)
+#define KB_K                 57         //! STO (K)
+#define KB_L                 58         //! NXT (L)
+#define KB_M                 33         //! HIST (M)
+#define KB_N                 25         //! EVAL (N)
+#define KB_O                 17         //! ' (O)
+#define KB_P                  9         //! SYMB (P)
+#define KB_Q                 34         //! Y^X (Q)
+#define KB_R                 26         //! Sqrt (R)
+#define KB_S                 18         //! SIN (S)
+#define KB_T                 10         //! COS (T)
+#define KB_U                  2         //! TAN (U)
+#define KB_V                 35         //! EEX (V)
+#define KB_W                 27         //! +/- (W)
+#define KB_X                 19         //! X (X)
+#define KB_Y                 11         //! 1/X (Y)
+#define KB_Z                  3         //! / (Z)
+
+// Prime-specific keys (using their names) all map to 'P'
+#define KB_APPS               9         //! APPS key (prime only)
+#define KB_SYMB               9         //! SYMB key (prime only)
+#define KB_HELP               9         //! HELP key (prime only)
+#define KB_HOME               9         //! HOME key (prime only)
+#define KB_PLOT               9         //! PLOT key (prime only)
+#define KB_VIEW               9         //! VIEW key (prime only)
+#define KB_CAS                9         //! CAS key (prime only)
+#define KB_NUM                9         //! NUM key (prime only)
+#define KB_MENU               9         //! MENU key (prime only)
+
+#include <host.h>
 
 #endif // TARGET_50G_H

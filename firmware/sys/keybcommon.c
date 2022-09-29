@@ -57,8 +57,7 @@ const unsigned short const keyb_irq_shiftconvert[8] = {
 int keyb_irq_getkey(int wait)
 {
 
-    keymatrix m,m_noshift;
-    m = keyb_irq_getmatrixEX();
+    keymatrix m = keyb_irq_getmatrixEX();
 
     if(wait) {
         // wait for a non-shift key to be pressed
@@ -66,12 +65,12 @@ int keyb_irq_getkey(int wait)
             m = keyb_irq_getmatrixEX();
     }
 
-    int kcode,kcodebit, shft = KEYMATRIX_ALPHABIT(m) | (KEYMATRIX_LSHIFTBIT(m)<<1) | (KEYMATRIX_RSHIFTBIT(m)<<2);
+    int shft = KEYMATRIX_ALPHABIT(m) | (KEYMATRIX_LSHIFTBIT(m)<<1) | (KEYMATRIX_RSHIFTBIT(m)<<2);
 
-    m_noshift=m & (~KEYMATRIX_ALL_SHIFTS);
+    keymatrix m_noshift = m & (~KEYMATRIX_ALL_SHIFTS);
     unsigned char *mbytes = (unsigned char *)&m_noshift;
-    int k;
-    for(k = 0, kcodebit = 0; k < 8; ++mbytes, ++k, kcodebit += 8) {
+    int kcodebit = 0;
+    for(int k = 0; k < 8; ++mbytes, ++k, kcodebit += 8) {
         if(*mbytes != 0) {
             k = *mbytes;
             while(!(k & 1)) {
@@ -81,7 +80,7 @@ int keyb_irq_getkey(int wait)
             break;
         }
     }
-    kcode=KEYMAP_CODEFROMBIT(kcodebit);
+    int kcode = KEYMAP_CODEFROMBIT(kcodebit);
 
     if(wait) {
         while((m & (~KEYMATRIX_ALL_SHIFTS)) != 0)
@@ -215,10 +214,11 @@ void keyb_irq_update()
                         keycount = 0;
                     }
                     else {
-                        keyb_irq_postmsg(KM_KEYDN + KEYMAP_CODEFROMBIT(key));
-                        if( (KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
-                                 || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
-                                || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                        keyb_irq_postmsg(KM_KEYDN | KEYMAP_CODEFROMBIT(key));
+                        if( !KEYMAP_IS_SHIFT_OR_ON(key)
+                            || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
+                            || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
+                            || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
                                 )
                         {
                             keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
@@ -287,7 +287,8 @@ void keyb_irq_update()
 
 
 
-                    if((KEYMAP_CODEFROMBIT(key) < 60) || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))) {
+                    if( !KEYMAP_IS_SHIFT_OR_ON(key) ||
+                        ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))) {
                         if(keynumber > 0)
                             keynumber = -keynumber;
                         keycount = -BOUNCE_KEYTIME;
@@ -438,8 +439,10 @@ void keyb_irq_update()
                     // OTHERWISE DO REPEAT
                 case KB_UP:
                 case KB_DN:
+#ifndef TARGET_DM42
                 case KB_LF:
                 case KB_RT:
+#endif // TARGET_DM42
                     // THESE ALWAYS REPEAT, EVEN SHIFTED
                     keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));
@@ -469,8 +472,10 @@ void keyb_irq_update()
                     // OTHERWISE DO REPEAT
                 case KB_UP:
                 case KB_DN:
+#ifndef TARGET_DM42
                 case KB_LF:
                 case KB_RT:
+#endif // TARGET_DM42
                     // THESE ALWAYS REPEAT, EVEN SHIFTED
                     keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
                                 SHIFT_ANY));

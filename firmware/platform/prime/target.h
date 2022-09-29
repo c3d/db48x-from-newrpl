@@ -821,10 +821,12 @@ extern char SERIAL_NUMBER_ADDRESS[11];
 #define ROMOBJECTS __attribute__((section (".romobjects")))
 #define ROMLINK  __attribute__((section (".romlink")))
 
+#ifndef TARGET_PC
 typedef struct {
 	uint32_t mask1;
 	uint32_t mask2;
 } INTERRUPT_TYPE;
+#endif
 
 // This preamble preceeds PRIME_OS.ROM
 struct Preamble {
@@ -839,25 +841,132 @@ struct Preamble {
 } __attribute__ ((packed));
 
 
-// Keyboard remapping constants
+/*
 
-// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS   ((1LL<<26)|(1LL<<51)|(1LL<<63))
-#define KEYMATRIX_ON           (1LL<<52)
-#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>51)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>63)&1)
-#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>26)&1)
+KEYBOARD BIT MAP
+----------------
+This is the bit number in the 64-bit keymatrix.
+Bit set means key is pressed.
 
+        AP]+  SY]+                   HL]+  ES]+
+        |36|  |20|                   |61|  |52|
+        +--+  +--+                   +--+  +--+
 
+        HM]+  PL]+        UP]+       VW]+  CA]+
+        |28|  |12|        |37|       |29|  |13|
+        +--+  +--+  LF]+  +--+  RT]+ +--+  +--+
+                    |57|  DN]+  |15|
+              NM]+  +--+  |44|  +--+ ME]+
+              |04|        +--+       |21|
+              +--+                   +--+
 
-// Matrix to KeyCode mapping - Defined in keyboard.c for this target
-extern unsigned char const keyb_irq_codefrombit[64];
-extern unsigned char const keyb_irq_bitfromcode[64];
+        A]--+  B]--+  C]--+  D]--+  E]--+  BKS]+
+        | 42|  | 58|  | 18|  | 10|  | 34|  | 02|
+        +---+  +---+  +---+  +---+  +---+  +---+
 
-// Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
-#define KEYMAP_BITFROMCODE(code) (keyb_irq_bitfromcode[code])
+        F]--+  G]--+  H]--+  I]--+  J]--+  K]--+
+        | 59|  | 50|  | 43|  | 35|  | 27|  | 19|
+        +---+  +---+  +---+  +---+  +---+  +---+
 
+        L]--+  M]--+  N]--+  O]--+  ENTER]-----+
+        | 11|  | 03|  | 60|  | 06|  |    07    |
+        +---+  +---+  +---+  +---+  +----------+
+
+        P]--+  7]---+  8]---+  9]---+  /]--+
+        | 01|  | 22 |  | 14 |  | 05 |  | 17|
+        +---+  +----+  +----+  +----+  +---+
+
+        AL]-+  4]---+  5]---+  6]---+  *]--+
+        | 26|  | 46 |  | 38 |  | 30 |  | 25|
+        +---+  +----+  +----+  +----+  +---+
+
+        RS]-+  1]---+  2]---+  3]---+  -]--+
+        | 51|  | 45 |  | 62 |  | 54 |  | 33|
+        +---+  +----+  +----+  +----+  +---+
+
+        ON]-+  0]---+  .]---+  SP]--+  +]--+
+        | 63|  | 09 |  | 53 |  | 49 |  | 41|
+        +---+  +----+  +----+  +----+  +---+
+
+*/
+
+#define KB_ALPHA             26         //! Alpha
+#define KB_ON                63         //! ON
+#define KB_ESC               52         //! ESC key (prime only)
+#define KB_DOT               53         //! Dot
+#define KB_SPC               49         //! Space
+#define KB_QUESTION          KB_HELP    //! Question -> Help
+#define KB_SHIFT             51         //! Shift
+#define KB_LSHIFT            51         //! Shift -> Left Shift
+#define KB_RSHIFT            51         //! Shift -> Right Shift
+
+#define KB_ADD               41         //! +
+#define KB_SUB               33         //! -
+#define KB_MUL               25         //! *
+#define KB_DIV               17         //! /
+
+#define KB_ENT                7         //! ENTER
+#define KB_BKS                2         //! backspace
+#define KB_UP                37         //! up arrow
+#define KB_DN                44         //! down arrow
+#define KB_LF                57         //! left arrow
+#define KB_RT                15         //! right arrow
+
+#define KB_F1                20         //! Function key 1 = SYMB
+#define KB_F2                12         //! Function key 2 = PLOT
+#define KB_F3                04         //! Function key 3 = NUM
+#define KB_F4                61         //! Function key 4 = HELP
+#define KB_F5                29         //! Function key 5 = VIEW
+#define KB_F6                21         //! Function key 6 = MENU
+
+#define KB_0                  9         //! 0
+#define KB_1                 45         //! 1
+#define KB_2                 62         //! 2
+#define KB_3                 54         //! 3
+#define KB_4                 46         //! 4
+#define KB_5                 38         //! 5
+#define KB_6                 30         //! 6
+#define KB_7                 22         //! 7
+#define KB_8                 14         //! 8
+#define KB_9                  5         //! 9
+
+#define KB_A                 42         //! A / Vars
+#define KB_B                 58         //! B / Mem
+#define KB_C                 18         //! C / Math / Units
+#define KB_D                 10         //! D / Define
+#define KB_E                 34         //! E / a b/c
+#define KB_F                 59         //! F x^y
+#define KB_G                 50         //! G SIN
+#define KB_H                 43         //! H COS
+#define KB_I                 35         //! I TAN
+#define KB_J                 27         //! J LN
+#define KB_K                 19         //! K LOG
+#define KB_L                 11         //! L X^2
+#define KB_M                  3         //! M +/=
+#define KB_N                 60         //! N ()
+#define KB_O                  6         //! O ,
+#define KB_P                  1         //! P / EEX
+#define KB_Q                 KB_7       //! Q / 7
+#define KB_R                 KB_8       //! R / 8
+#define KB_S                 KB_9       //! S / 9
+#define KB_T                 KB_DIV     //! T / DIV
+#define KB_U                 KB_4       //! U / 4
+#define KB_V                 KB_5       //! V / 5
+#define KB_W                 KB_6       //! W / 6
+#define KB_X                 KB_MUL     //! X / MUL
+#define KB_Y                 45         //! Y / 1
+#define KB_Z                 62         //! Z / 2
+
+// Prime-specific keys (using their names)
+#define KB_APPS              36         //! APPS key (prime only)
+#define KB_SYMB              20         //! SYMB key (prime only)
+#define KB_HELP              61         //! HELP key (prime only)
+#define KB_HOME              28         //! HOME key (prime only)
+#define KB_PLOT              12         //! PLOT key (prime only)
+#define KB_VIEW              29         //! VIEW key (prime only)
+#define KB_CAS               13         //! CAS key (prime only)
+#define KB_NUM                4         //! NUM key (prime only)
+#define KB_MENU              21         //! MENU key (prime only)
 
 // Touchscreen related functions
 extern void ts_init();
@@ -926,5 +1035,7 @@ void reset_gpio();
 void uart_init(void);
 void debug_print(const char *string);
 void debug_print_hex(const char *key, uint32_t value);
+
+#include <host.h>
 
 #endif // TARGET_PRIME_H

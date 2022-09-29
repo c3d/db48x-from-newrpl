@@ -72,6 +72,8 @@ extern "C" int change_autorcv(int newfl);
 
 extern "C" void setExceptionPoweroff();
 
+RECORDER(gui, 16, "Information about the GUI");
+
 MainWindow::MainWindow(QWidget * parent):
 QMainWindow(parent), rpl(this), usbdriver(this), themeEdit(this), ui(new Ui::MainWindow)
 {
@@ -125,7 +127,6 @@ QMainWindow(parent), rpl(this), usbdriver(this), themeEdit(this), ui(new Ui::Mai
         screentmr->setSingleShot(true);
         screentmr->start(20);
     }
-
 }
 
 MainWindow::~MainWindow()
@@ -172,6 +173,8 @@ void MainWindow::resizeEvent(QResizeEvent * event)
     // NOW CONVERT BACK TO dp SCALE
     ui->EmuScreen->setScale(scale / dpratio);
 
+    qreal dpheight = event->size().height();
+    record(gui, "Resize to %f x %f, ratio %f, real width=%f", dpwidth, dpheight, dpratio, realwidth);
 }
 
 void MainWindow::on_EmuScreen_destroyed()
@@ -199,401 +202,310 @@ extern "C" void timer_singleshot(int msec)
 }
 
 
-#ifdef TARGET_PC_PRIME
+const int keyMap[] =
+{
+    // Actual key mappings are in the relevant platform's target.h
+    Qt::Key_Tab,        KB_ALPHA,
+    Qt::Key_SysReq,     KB_ON,
+    Qt::Key_Escape,     KB_ESC,
+    Qt::Key_Period,     KB_DOT,
+    Qt::Key_Space,      KB_SPC,
+    Qt::Key_Question,   KB_QUESTION,
+    Qt::Key_Control,    KB_SHIFT,
+    Qt::Key_Alt,        KB_LSHIFT,
+    Qt::Key_Meta,       KB_RSHIFT,
 
-const int keyMap[] = {
-    /*
+    Qt::Key_Plus,       KB_ADD,
+    Qt::Key_Minus,      KB_SUB,
+    Qt::Key_Asterisk,   KB_MUL,
+    Qt::Key_Slash,      KB_DIV,
 
-    KEYBOARD BIT MAP
-    ----------------
-    This is the bit number in the 64-bit keymatrix.
-    Bit set means key is pressed.
+    Qt::Key_Enter,      KB_ENT,
+    Qt::Key_Return,     KB_ENT,
+    Qt::Key_Backspace,  KB_BKS,
+    Qt::Key_Up,         KB_UP,
+    Qt::Key_Down,       KB_DN,
+    Qt::Key_Left,       KB_LF,
+    Qt::Key_Right,      KB_RT,
 
-        AP]+  SY]+                   HL]+  ES]+
-        |36|  |20|                   |61|  |52|
-        +--+  +--+                   +--+  +--+
+    Qt::Key_F1,         KB_F1,
+    Qt::Key_F2,         KB_F2,
+    Qt::Key_F3,         KB_F3,
+    Qt::Key_F4,         KB_F4,
+    Qt::Key_F5,         KB_F5,
+    Qt::Key_F6,         KB_F6,
 
-        HM]+  PL]+        UP]+       VW]+  CA]+
-        |28|  |12|        |37|       |29|  |13|
-        +--+  +--+  LF]+  +--+  RT]+ +--+  +--+
-                    |57|  DN]+  |15|
-              NM]+  +--+  |44|  +--+ ME]+
-              |04|        +--+       |21|
-              +--+                   +--+
+    Qt::Key_0,          KB_0,
+    Qt::Key_1,          KB_1,
+    Qt::Key_2,          KB_2,
+    Qt::Key_3,          KB_3,
+    Qt::Key_4,          KB_4,
+    Qt::Key_5,          KB_5,
+    Qt::Key_6,          KB_6,
+    Qt::Key_7,          KB_7,
+    Qt::Key_8,          KB_8,
+    Qt::Key_9,          KB_9,
+    Qt::Key_A,          KB_A,
+    Qt::Key_B,          KB_B,
+    Qt::Key_C,          KB_C,
+    Qt::Key_D,          KB_D,
+    Qt::Key_E,          KB_E,
+    Qt::Key_F,          KB_F,
+    Qt::Key_G,          KB_G,
+    Qt::Key_H,          KB_H,
+    Qt::Key_I,          KB_I,
+    Qt::Key_J,          KB_J,
+    Qt::Key_K,          KB_K,
+    Qt::Key_L,          KB_L,
+    Qt::Key_M,          KB_M,
+    Qt::Key_N,          KB_N,
+    Qt::Key_O,          KB_O,
+    Qt::Key_P,          KB_P,
+    Qt::Key_Q,          KB_Q,
+    Qt::Key_R,          KB_R,
+    Qt::Key_S,          KB_S,
+    Qt::Key_T,          KB_T,
+    Qt::Key_U,          KB_U,
+    Qt::Key_V,          KB_V,
+    Qt::Key_W,          KB_W,
+    Qt::Key_X,          KB_X,
+    Qt::Key_Y,          KB_Y,
+    Qt::Key_Z,          KB_Z,
 
-        A]--+  B]--+  C]--+  D]--+  E]--+  BKS]+
-        | 42|  | 58|  | 18|  | 10|  | 34|  | 02|
-        +---+  +---+  +---+  +---+  +---+  +---+
+#ifdef KB_HOME
+    Qt::Key_Home,       KB_HOME,
+#endif // KB_HOME
 
-        F]--+  G]--+  H]--+  I]--+  J]--+  K]--+
-        | 59|  | 50|  | 43|  | 35|  | 27|  | 19|
-        +---+  +---+  +---+  +---+  +---+  +---+
+#ifdef KB_HELP
+    Qt::Key_F11,        KB_HELP,
+#endif // KB_HELP
 
-        L]--+  M]--+  N]--+  O]--+  ENTER]-----+
-        | 11|  | 03|  | 60|  | 06|  |    07    |
-        +---+  +---+  +---+  +---+  +----------+
-
-        P]--+  7]---+  8]---+  9]---+  /]--+
-        | 01|  | 22 |  | 14 |  | 05 |  | 17|
-        +---+  +----+  +----+  +----+  +---+
-
-        AL]-+  4]---+  5]---+  6]---+  *]--+
-        | 26|  | 46 |  | 38 |  | 30 |  | 25|
-        +---+  +----+  +----+  +----+  +---+
-
-        RS]-+  1]---+  2]---+  3]---+  -]--+
-        | 51|  | 45 |  | 62 |  | 54 |  | 33|
-        +---+  +----+  +----+  +----+  +---+
-
-        ON]-+  0]---+  .]---+  SP]--+  +]--+
-        | 63|  | 09 |  | 53 |  | 49 |  | 41|
-        +---+  +----+  +----+  +----+  +---+
-
-    */
-
-    Qt::Key_Backspace, 2,
-    Qt::Key_U, 36,
-    Qt::Key_Slash, 17,
-    Qt::Key_Z, 17,
-    Qt::Key_Asterisk, 25,
-    Qt::Key_Minus, 33,
-    Qt::Key_Plus, 41,
-    Qt::Key_Return, 7,
-    Qt::Key_Enter, 7,
-    Qt::Key_P, 1,
-    Qt::Key_T, 13,
-    Qt::Key_Y, 61,
-    Qt::Key_9, 5,
-    Qt::Key_6, 30,
-    Qt::Key_3, 54,
-    Qt::Key_Space, 49,
-    Qt::Key_O, 6,
-    Qt::Key_S, 21,
-    Qt::Key_X, 20,
-    Qt::Key_8, 14,
-    Qt::Key_5, 38,
-    Qt::Key_2, 62,
-    Qt::Key_Period, 53,
-    Qt::Key_N, 60,
-    Qt::Key_R, 4,
-    Qt::Key_W, 29,
-    Qt::Key_7, 22,
-    Qt::Key_4, 46,
-    Qt::Key_1, 45,
-    Qt::Key_0, 9,
-    Qt::Key_M, 3,
-    Qt::Key_Q, 28,
-    Qt::Key_V, 12,
-    Qt::Key_A, 42,
-    Qt::Key_F1, 20,
-    Qt::Key_B, 58,
-    Qt::Key_F2, 12,
-    Qt::Key_C, 18,
-    Qt::Key_F3, 4,
-    Qt::Key_D, 10,
-    Qt::Key_F4, 61,
-    Qt::Key_E, 34,
-    Qt::Key_F5, 29,
-    Qt::Key_F, 59,
-    Qt::Key_F6, 21,
-    Qt::Key_G, 50,
-    Qt::Key_Up, 37,
-    Qt::Key_Left, 57,
-    Qt::Key_Down, 44,
-    Qt::Key_Right, 15,
-    Qt::Key_H, 43,
-    Qt::Key_I, 35,
-    Qt::Key_J, 27,
-    Qt::Key_K, 19,
-    Qt::Key_L, 11,
-    Qt::Key_Tab, 26,
-    Qt::Key_CapsLock, 51,
-    Qt::Key_Alt, 51,
-    Qt::Key_Meta, 51,
-    Qt::Key_Control, 63,
-    Qt::Key_Escape, 52,
-    Qt::Key_Home, 28,
-            // ADD MORE KEYS HERE
-    0, 0
+    0,0
 };
+
 
 struct mousemap
 {
     int key, keynum;
     qreal left, right, top, bot;
 } mouseMap[] = {
-    {Qt::Key_Escape, 52, 0.836036, 0.960360, 0.030631, 0.104286},
-    {Qt::Key_T, 13, 0.836036, 0.960360, 0.137143, 0.214286},
 
-    {Qt::Key_Backspace, 2, 0.836036, 0.960360, 0.270000, 0.345714},
-    {Qt::Key_K, 19, 0.836036, 0.960360, 0.372857, 0.448571},
-    {Qt::Key_Enter, 7, 0.675676, 0.960360, 0.477143, 0.557143},
+#if TARGET_PC_PRIME
+  // Prime-like keyboard
+    {   Qt::Key_Escape, 52, 0.836036, 0.960360, 0.030631, 0.104286},
+    {        Qt::Key_T, 13, 0.836036, 0.960360, 0.137143, 0.214286},
 
-    {Qt::Key_Slash, 17, 0.836036, 0.960360, 0.580000, 0.660000},
-    {Qt::Key_Asterisk, 25, 0.836036, 0.960360, 0.687143, 0.762857},
-    {Qt::Key_Minus, 33, 0.836036, 0.960360, 0.791429, 0.867143},
-    {Qt::Key_Plus, 41, 0.836036, 0.960360, 0.894286, 0.972857},
+    {Qt::Key_Backspace,  2, 0.836036, 0.960360, 0.270000, 0.345714},
+    {        Qt::Key_K, 19, 0.836036, 0.960360, 0.372857, 0.448571},
+    {    Qt::Key_Enter,  7, 0.675676, 0.960360, 0.477143, 0.557143},
 
-    {Qt::Key_Y, 61, 0.677477, 0.798198, 0.015714, 0.067143},
-    {Qt::Key_W, 29, 0.677477, 0.798198, 0.094286, 0.145714},
-    {Qt::Key_S, 21, 0.677477, 0.798198, 0.172857, 0.222857},
+    {    Qt::Key_Slash, 17, 0.836036, 0.960360, 0.580000, 0.660000},
+    { Qt::Key_Asterisk, 25, 0.836036, 0.960360, 0.687143, 0.762857},
+    {    Qt::Key_Minus, 33, 0.836036, 0.960360, 0.791429, 0.867143},
+    {     Qt::Key_Plus, 41, 0.836036, 0.960360, 0.894286, 0.972857},
 
-    {Qt::Key_E, 34, 0.677477, 0.798198, 0.270000, 0.345714},
-    {Qt::Key_J, 27, 0.677477, 0.798198, 0.372857, 0.448571},
+    {        Qt::Key_Y, 61, 0.677477, 0.798198, 0.015714, 0.067143},
+    {        Qt::Key_W, 29, 0.677477, 0.798198, 0.094286, 0.145714},
+    {        Qt::Key_S, 21, 0.677477, 0.798198, 0.172857, 0.222857},
 
-    {Qt::Key_9, 5, 0.625225, 0.803604, 0.580000, 0.660000},
-    {Qt::Key_6, 30, 0.625225, 0.803604, 0.687143, 0.762857},
-    {Qt::Key_3, 54, 0.625225, 0.803604, 0.791429, 0.867143},
-    {Qt::Key_Space, 49, 0.625225, 0.803604, 0.894286, 0.972857},
+    {        Qt::Key_E, 34, 0.677477, 0.798198, 0.270000, 0.345714},
+    {        Qt::Key_J, 27, 0.677477, 0.798198, 0.372857, 0.448571},
 
-    {Qt::Key_D, 10, 0.517117, 0.636036, 0.270000, 0.345714},
-    {Qt::Key_I, 35, 0.517117, 0.636036, 0.372857, 0.448571},
-    {Qt::Key_O, 6,  0.517117, 0.636036, 0.477143, 0.557143},
+    {        Qt::Key_9,  5, 0.625225, 0.803604, 0.580000, 0.660000},
+    {        Qt::Key_6, 30, 0.625225, 0.803604, 0.687143, 0.762857},
+    {        Qt::Key_3, 54, 0.625225, 0.803604, 0.791429, 0.867143},
+    {    Qt::Key_Space, 49, 0.625225, 0.803604, 0.894286, 0.972857},
 
-    {Qt::Key_C, 18, 0.356757, 0.477477, 0.270000, 0.345714},
-    {Qt::Key_H, 43, 0.356757, 0.477477, 0.372857, 0.448571},
-    {Qt::Key_N, 60,  0.356757, 0.477477, 0.477143, 0.557143},
+    {        Qt::Key_D, 10, 0.517117, 0.636036, 0.270000, 0.345714},
+    {        Qt::Key_I, 35, 0.517117, 0.636036, 0.372857, 0.448571},
+    {        Qt::Key_O,  6, 0.517117, 0.636036, 0.477143, 0.557143},
 
-    {Qt::Key_8, 14, 0.410811, 0.585586, 0.580000, 0.660000},
-    {Qt::Key_5, 38, 0.410811, 0.585586, 0.687143, 0.762857},
-    {Qt::Key_2, 62, 0.410811, 0.585586, 0.791429, 0.867143},
-    {Qt::Key_Period, 53, 0.410811, 0.585586, 0.894286, 0.972857},
+    {        Qt::Key_C, 18, 0.356757, 0.477477, 0.270000, 0.345714},
+    {        Qt::Key_H, 43, 0.356757, 0.477477, 0.372857, 0.448571},
+    {        Qt::Key_N, 60, 0.356757, 0.477477, 0.477143, 0.557143},
 
-    {Qt::Key_X, 20, 0.192793, 0.318919, 0.015714, 0.067143},
-    {Qt::Key_V, 12, 0.192793, 0.318919, 0.094286, 0.145714},
-    {Qt::Key_R, 04, 0.192793, 0.318919, 0.172857, 0.222857},
+    {        Qt::Key_8, 14, 0.410811, 0.585586, 0.580000, 0.660000},
+    {        Qt::Key_5, 38, 0.410811, 0.585586, 0.687143, 0.762857},
+    {        Qt::Key_2, 62, 0.410811, 0.585586, 0.791429, 0.867143},
+    {   Qt::Key_Period, 53, 0.410811, 0.585586, 0.894286, 0.972857},
 
-    {Qt::Key_B, 58, 0.192793, 0.318919, 0.270000, 0.345714},
-    {Qt::Key_G, 50, 0.192793, 0.318919, 0.372857, 0.448571},
-    {Qt::Key_M, 3,  0.192793, 0.318919, 0.477143, 0.557143},
+    {        Qt::Key_X, 20, 0.192793, 0.318919, 0.015714, 0.067143},
+    {        Qt::Key_V, 12, 0.192793, 0.318919, 0.094286, 0.145714},
+    {        Qt::Key_R, 04, 0.192793, 0.318919, 0.172857, 0.222857},
 
-    {Qt::Key_7, 22, 0.192793, 0.374775, 0.580000, 0.660000},
-    {Qt::Key_4, 46, 0.192793, 0.374775, 0.687143, 0.762857},
-    {Qt::Key_1, 45, 0.192793, 0.374775, 0.791429, 0.867143},
-    {Qt::Key_0, 9, 0.192793, 0.374775, 0.894286, 0.972857},
+    {        Qt::Key_B, 58, 0.192793, 0.318919, 0.270000, 0.345714},
+    {        Qt::Key_G, 50, 0.192793, 0.318919, 0.372857, 0.448571},
+    {        Qt::Key_M,  3, 0.192793, 0.318919, 0.477143, 0.557143},
 
-    {Qt::Key_U, 36, 0.034234, 0.158559, 0.030631, 0.104286},
-    {Qt::Key_Q, 28, 0.034234, 0.158559, 0.137143, 0.214286},
+    {        Qt::Key_7, 22, 0.192793, 0.374775, 0.580000, 0.660000},
+    {        Qt::Key_4, 46, 0.192793, 0.374775, 0.687143, 0.762857},
+    {        Qt::Key_1, 45, 0.192793, 0.374775, 0.791429, 0.867143},
+    {        Qt::Key_0,  9, 0.192793, 0.374775, 0.894286, 0.972857},
 
-    {Qt::Key_A, 42, 0.034234, 0.158559, 0.270000, 0.345714},
-    {Qt::Key_F, 59, 0.034234, 0.158559, 0.372857, 0.448571},
-    {Qt::Key_L, 11,  0.034234, 0.158559, 0.477143, 0.557143},
-    {Qt::Key_P, 1,  0.034234, 0.158559, 0.580000, 0.660000},
+    {        Qt::Key_U, 36, 0.034234, 0.158559, 0.030631, 0.104286},
+    {        Qt::Key_Q, 28, 0.034234, 0.158559, 0.137143, 0.214286},
 
-    {Qt::Key_Tab, 26, 0.034234, 0.158559, 0.687143, 0.762857},
-    {Qt::Key_CapsLock, 51, 0.034234, 0.158559, 0.791429, 0.867143},
-    {Qt::Key_Control , 63, 0.034234, 0.158559, 0.894286, 0.972857},
+    {        Qt::Key_A, 42, 0.034234, 0.158559, 0.270000, 0.345714},
+    {        Qt::Key_F, 59, 0.034234, 0.158559, 0.372857, 0.448571},
+    {        Qt::Key_L, 11, 0.034234, 0.158559, 0.477143, 0.557143},
+    {        Qt::Key_P,  1, 0.034234, 0.158559, 0.580000, 0.660000},
 
-    {Qt::Key_Up, 37, 0.410811, 0.585586, 0.030631, 0.104286},
-    {Qt::Key_Down, 44, 0.410811, 0.585586,  0.149202, 0.222857},
-    {Qt::Key_Left, 57, 0.356757, 0.477477, 0.104286, 0.149202},
-    {Qt::Key_Right, 15, 0.517117, 0.636036, 0.104286, 0.149202},
+    {      Qt::Key_Tab, 26, 0.034234, 0.158559, 0.687143, 0.762857},
+    { Qt::Key_CapsLock, 51, 0.034234, 0.158559, 0.791429, 0.867143},
+    {  Qt::Key_Control, 63, 0.034234, 0.158559, 0.894286, 0.972857},
 
+    {       Qt::Key_Up, 37, 0.410811, 0.585586, 0.030631, 0.104286},
+    {     Qt::Key_Down, 44, 0.410811, 0.585586, 0.149202, 0.222857},
+    {     Qt::Key_Left, 57, 0.356757, 0.477477, 0.104286, 0.149202},
+    {    Qt::Key_Right, 15, 0.517117, 0.636036, 0.104286, 0.149202},
 
-    // DONE UP TO HERE
+#elif TARGET_DM42
 
+    { Qt::Key_F1,         38, 0, 0, 0, 0 },
+    { Qt::Key_F2,         39, 0, 0, 0, 0 },
+    { Qt::Key_F3,         40, 0, 0, 0, 0 },
+    { Qt::Key_F4,         41, 0, 0, 0, 0 },
+    { Qt::Key_F5,         42, 0, 0, 0, 0 },
+    { Qt::Key_F6,         43, 0, 0, 0, 0 },
 
-//    {Qt::Key_F10, 64, 0.872845, 0.987069, 0.108007, 0.163873},
+    { Qt::Key_A,          1, 0, 0, 0, 0 },
+    { Qt::Key_B,          2, 0, 0, 0, 0 },
+    { Qt::Key_C,          3, 0, 0, 0, 0 },
+    { Qt::Key_D,          4, 0, 0, 0, 0 },
+    { Qt::Key_E,          5, 0, 0, 0, 0 },
+    { Qt::Key_F,          6, 0, 0, 0, 0 },
 
-// ADD MORE KEYS HERE
+    { Qt::Key_G,          7, 0, 0, 0, 0 },
+    { Qt::Key_H,          8, 0, 0, 0, 0 },
+    { Qt::Key_I,          9, 0, 0, 0, 0 },
+    { Qt::Key_J,         10, 0, 0, 0, 0 },
+    { Qt::Key_K,         11, 0, 0, 0, 0 },
+    { Qt::Key_L,         12, 0, 0, 0, 0 },
 
-    {0, 0, 0.0, 0.0, 0.0, 0.0}
+    { Qt::Key_Return,    13, 0, 0, 0, 0 },
+    { Qt::Key_Enter,     13, 0, 0, 0, 0 },
+    { Qt::Key_M,         14, 0, 0, 0, 0 },
+    { Qt::Key_N,         15, 0, 0, 0, 0 },
+    { Qt::Key_O,         16, 0, 0, 0, 0 },
+    { Qt::Key_Backspace, 17, 0, 0, 0, 0 },
+    { Qt::Key_Delete,    17, 0, 0, 0, 0 },
 
+    { Qt::Key_Up,        18, 0, 0, 0, 0 },
+    { Qt::Key_Left,      18, 0, 0, 0, 0 },
+    { Qt::Key_P,         19, 0, 0, 0, 0 },
+    { Qt::Key_7,         19, 0, 0, 0, 0 },
+    { Qt::Key_Q,         20, 0, 0, 0, 0 },
+    { Qt::Key_8,         20, 0, 0, 0, 0 },
+    { Qt::Key_R,         21, 0, 0, 0, 0 },
+    { Qt::Key_9,         21, 0, 0, 0, 0 },
+    { Qt::Key_S,         22, 0, 0, 0, 0 },
+    { Qt::Key_Slash,     22, 0, 0, 0, 0 },
+
+    { Qt::Key_Down,      23, 0, 0, 0, 0 },
+    { Qt::Key_Right,     23, 0, 0, 0, 0 },
+    { Qt::Key_T,         24, 0, 0, 0, 0 },
+    { Qt::Key_4,         24, 0, 0, 0, 0 },
+    { Qt::Key_U,         25, 0, 0, 0, 0 },
+    { Qt::Key_5,         25, 0, 0, 0, 0 },
+    { Qt::Key_V,         26, 0, 0, 0, 0 },
+    { Qt::Key_6,         26, 0, 0, 0, 0 },
+    { Qt::Key_W,         27, 0, 0, 0, 0 },
+    { Qt::Key_Asterisk,  27, 0, 0, 0, 0 },
+
+    { Qt::Key_Tab,       28, 0, 0, 0, 0 },
+    { Qt::Key_CapsLock,  28, 0, 0, 0, 0 },
+    { Qt::Key_Alt,       28, 0, 0, 0, 0 },
+    { Qt::Key_Meta,      28, 0, 0, 0, 0 },
+    { Qt::Key_Control,   28, 0, 0, 0, 0 },
+    { Qt::Key_X,         29, 0, 0, 0, 0 },
+    { Qt::Key_1,         29, 0, 0, 0, 0 },
+    { Qt::Key_Y,         30, 0, 0, 0, 0 },
+    { Qt::Key_2,         30, 0, 0, 0, 0 },
+    { Qt::Key_Z,         31, 0, 0, 0, 0 },
+    { Qt::Key_3,         31, 0, 0, 0, 0 },
+    { Qt::Key_Minus,     32, 0, 0, 0, 0 },
+
+    { Qt::Key_Escape,    33, 0, 0, 0, 0 },
+    { Qt::Key_SysReq,    33, 0, 0, 0, 0 },
+    { Qt::Key_Colon,     34, 0, 0, 0, 0 },
+    { Qt::Key_0,         34, 0, 0, 0, 0 },
+    { Qt::Key_Period,    35, 0, 0, 0, 0 },
+    { Qt::Key_Comma,     35, 0, 0, 0, 0 },
+    { Qt::Key_Question,  36, 0, 0, 0, 0 },
+
+    { Qt::Key_Space,     37, 0, 0, 0, 0 },
+    { Qt::Key_Plus,      37, 0, 0, 0, 0 },
+
+#else // HP50G graphics
+
+    { Qt::Key_Backspace, 1, 0.842672, 0.982759, 0.335196, 0.383613 },
+    { Qt::Key_U, 2, 0.842672, 0.982759, 0.428305, 0.482309 },
+    { Qt::Key_Z, 3, 0.842672, 0.982759, 0.527002, 0.575419 },
+    { Qt::Key_Asterisk, 4, 0.842672, 0.982759, 0.616387, 0.683426 },
+    { Qt::Key_Minus, 5, 0.842672, 0.982759, 0.716946, 0.783985 },
+    { Qt::Key_Plus, 6, 0.842672, 0.982759, 0.817505, 0.886406 },
+    { Qt::Key_Enter, 7, 0.842672, 0.982759, 0.918063, 0.979516 },
+
+    { Qt::Key_P, 9, 0.637931, 0.778017, 0.335196, 0.383613 },
+    { Qt::Key_T, 10, 0.637931, 0.778017, 0.428305, 0.482309 },
+    { Qt::Key_Y, 11, 0.637931, 0.778017, 0.527002, 0.575419 },
+    { Qt::Key_9, 12, 0.637931, 0.778017, 0.616387, 0.683426 },
+    { Qt::Key_6, 13, 0.637931, 0.778017, 0.716946, 0.783985 },
+    { Qt::Key_3, 14, 0.637931, 0.778017, 0.817505, 0.886406 },
+    { Qt::Key_Space, 15, 0.637931, 0.778017, 0.918063, 0.979516 },
+
+    { Qt::Key_O, 17, 0.428879, 0.573276, 0.335196, 0.383613 },
+    { Qt::Key_S, 18, 0.428879, 0.573276, 0.428305, 0.482309 },
+    { Qt::Key_X, 19, 0.428879, 0.573276, 0.527002, 0.575419 },
+    { Qt::Key_8, 20, 0.428879, 0.573276, 0.616387, 0.683426 },
+    { Qt::Key_5, 21, 0.428879, 0.573276, 0.716946, 0.783985 },
+    { Qt::Key_2, 22, 0.428879, 0.573276, 0.817505, 0.886406 },
+    { Qt::Key_Period, 23, 0.428879, 0.573276, 0.918063, 0.979516 },
+
+    { Qt::Key_N, 25, 0.217672, 0.364224, 0.335196, 0.383613 },
+    { Qt::Key_R, 26, 0.217672, 0.364224, 0.428305, 0.482309 },
+    { Qt::Key_W, 27, 0.217672, 0.364224, 0.527002, 0.575419 },
+    { Qt::Key_7, 28, 0.217672, 0.364224, 0.616387, 0.683426 },
+    { Qt::Key_4, 29, 0.217672, 0.364224, 0.716946, 0.783985 },
+    { Qt::Key_1, 30, 0.217672, 0.364224, 0.817505, 0.886406 },
+    { Qt::Key_0, 31, 0.217672, 0.364224, 0.918063, 0.979516 },
+
+    { Qt::Key_M, 33, 0.00862069, 0.153017, 0.335196, 0.383613 },
+    { Qt::Key_Q, 34, 0.00862069, 0.153017, 0.428305, 0.482309 },
+    { Qt::Key_V, 35, 0.00862069, 0.153017, 0.527002, 0.575419 },
+
+    { Qt::Key_F1, 41, 0.00862069, 0.118534, 0.00931099, 0.0521415 },
+    { Qt::Key_F2, 42, 0.181034, 0.295259, 0.00931099, 0.0521415 },
+    { Qt::Key_F3, 43, 0.357759, 0.467672, 0.00931099, 0.0521415 },
+    { Qt::Key_F4, 44, 0.530172, 0.642241, 0.00931099, 0.0521415 },
+    { Qt::Key_F5, 45, 0.706897, 0.814655, 0.00931099, 0.0521415 },
+    { Qt::Key_F6, 46, 0.872845, 0.987069, 0.00931099, 0.0521415 },
+    { Qt::Key_G, 47, 0.00862069, 0.118534, 0.108007, 0.163873 },
+    { Qt::Key_Up, 49, 0.706897, 0.803879, 0.0893855, 0.156425 },
+    { Qt::Key_Left, 50, 0.581897, 0.678879, 0.150838, 0.230912 },
+    { Qt::Key_Down, 51, 0.706897, 0.803879, 0.219739, 0.292365 },
+    { Qt::Key_Right, 52, 0.838362, 0.937500, 0.150838, 0.230912 },
+    { Qt::Key_H, 53, 0.181034, 0.295259, 0.108007, 0.163873 },
+    { Qt::Key_I, 54, 0.357759, 0.467672, 0.108007, 0.163873 },
+    { Qt::Key_J, 55, 0.00862069, 0.118534, 0.221601, 0.271881 },
+    { Qt::Key_K, 57, 0.181034, 0.295259, 0.221601, 0.271881 },
+    { Qt::Key_L, 58, 0.357759, 0.467672, 0.221601, 0.271881 },
+
+    { Qt::Key_Tab, 60, 0.00862069, 0.161638, 0.616387, 0.683426 },
+    { Qt::Key_CapsLock, 61, 0.00862069, 0.161638, 0.716946, 0.783985 },
+    { Qt::Key_Control, 62, 0.00862069, 0.161638, 0.817505, 0.886406 },
+    { Qt::Key_Home, 63, 0.00862069, 0.118534, 0.918063, 0.979516 },
+
+    { Qt::Key_F10, 64, 0.872845, 0.987069, 0.108007, 0.163873 },
+
+#endif // Type of keyboard
+
+    {                0,  0,      0.0,      0.0,      0.0,      0.0}
 };
-
-#else
-
-const int keyMap[] = {
-    /*
-
-       KEYBOARD BIT MAP
-       ----------------
-       This is the bit number in the 64-bit keymatrix.
-       Bit set means key is pressed.
-
-       A]-+  B]-+  C]-+  D]-+  E]-+  F]-+
-       |41|  |42|  |43|  |44|  |45|  |46|
-       +--+  +--+  +--+  +--+  +--+  +--+
-
-       G]-+  H]-+  I]-+        UP]+
-       |47|  |53|  |54|        |49|
-       +--+  +--+  +--+  LF]+  +--+  RT]+
-       |50|  DN]+  |52|
-       J]-+  K]-+  L]-+  +--+  |51|  +--+
-       |55|  |57|  |58|        +--+
-       +--+  +--+  +--+
-
-       M]--+  N]--+  O]--+  P]--+  BKS]+
-       | 33|  | 25|  | 17|  | 09|  | 01|
-       +---+  +---+  +---+  +---+  +---+
-
-       Q]--+  R]--+  S]--+  T]--+  U]--+
-       | 34|  | 26|  | 18|  | 10|  | 02|
-       +---+  +---+  +---+  +---+  +---+
-
-       V]--+  W]--+  X]--+  Y]--+  /]--+
-       | 35|  | 27|  | 19|  | 11|  | 03|
-       +---+  +---+  +---+  +---+  +---+
-
-       AL]-+  7]--+  8]--+  9]--+  *]--+
-       | 60|  | 28|  | 20|  | 12|  | 04|
-       +---+  +---+  +---+  +---+  +---+
-
-       LS]-+  4]--+  5]--+  6]--+  -]--+
-       | 61|  | 29|  | 21|  | 13|  | 05|
-       +---+  +---+  +---+  +---+  +---+
-
-       RS]-+  1]--+  2]--+  3]--+  +]--+
-       | 62|  | 30|  | 22|  | 14|  | 06|
-       +---+  +---+  +---+  +---+  +---+
-
-       ON]-+  0]--+  .]--+  SP]-+  EN]-+
-       | 63|  | 31|  | 23|  | 15|  | 07|
-       +---+  +---+  +---+  +---+  +---+
-
-     */
-    Qt::Key_Backspace, 1,
-    Qt::Key_U, 2,
-    Qt::Key_Slash, 3,
-    Qt::Key_Z, 3,
-    Qt::Key_Asterisk, 4,
-    Qt::Key_Minus, 5,
-    Qt::Key_Plus, 6,
-    Qt::Key_Return, 7,
-    Qt::Key_Enter, 7,
-    Qt::Key_P, 9,
-    Qt::Key_T, 10,
-    Qt::Key_Y, 11,
-    Qt::Key_9, 12,
-    Qt::Key_6, 13,
-    Qt::Key_3, 14,
-    Qt::Key_Space, 15,
-    Qt::Key_O, 17,
-    Qt::Key_S, 18,
-    Qt::Key_X, 19,
-    Qt::Key_8, 20,
-    Qt::Key_5, 21,
-    Qt::Key_2, 22,
-    Qt::Key_Period, 23,
-    Qt::Key_N, 25,
-    Qt::Key_R, 26,
-    Qt::Key_W, 27,
-    Qt::Key_7, 28,
-    Qt::Key_4, 29,
-    Qt::Key_1, 30,
-    Qt::Key_0, 31,
-    Qt::Key_M, 33,
-    Qt::Key_Q, 34,
-    Qt::Key_V, 35,
-    Qt::Key_A, 41,
-    Qt::Key_F1, 41,
-    Qt::Key_B, 42,
-    Qt::Key_F2, 42,
-    Qt::Key_C, 43,
-    Qt::Key_F3, 43,
-    Qt::Key_D, 44,
-    Qt::Key_F4, 44,
-    Qt::Key_E, 45,
-    Qt::Key_F5, 45,
-    Qt::Key_F, 46,
-    Qt::Key_F6, 46,
-    Qt::Key_G, 47,
-    Qt::Key_Up, 49,
-    Qt::Key_Left, 50,
-    Qt::Key_Down, 51,
-    Qt::Key_Right, 52,
-    Qt::Key_H, 53,
-    Qt::Key_I, 54,
-    Qt::Key_J, 55,
-    Qt::Key_K, 57,
-    Qt::Key_L, 58,
-    Qt::Key_Tab, 60,
-    Qt::Key_CapsLock, 61,
-    Qt::Key_Alt, 61,
-    Qt::Key_Meta, 61,
-    Qt::Key_Control, 62,
-    Qt::Key_Escape, 63,
-    Qt::Key_Home, 63
-            // ADD MORE KEYS HERE
-    , 0, 0
-};
-
-struct mousemap
-{
-    int key, keynum;
-    qreal left, right, top, bot;
-} mouseMap[] = {
-    {Qt::Key_Backspace, 1, 0.842672, 0.982759, 0.335196, 0.383613},
-    {Qt::Key_U, 2, 0.842672, 0.982759, 0.428305, 0.482309},
-    {Qt::Key_Z, 3, 0.842672, 0.982759, 0.527002, 0.575419},
-    {Qt::Key_Asterisk, 4, 0.842672, 0.982759, 0.616387, 0.683426},
-    {Qt::Key_Minus, 5, 0.842672, 0.982759, 0.716946, 0.783985},
-    {Qt::Key_Plus, 6, 0.842672, 0.982759, 0.817505, 0.886406},
-    {Qt::Key_Enter, 7, 0.842672, 0.982759, 0.918063, 0.979516},
-
-    {Qt::Key_P, 9, 0.637931, 0.778017, 0.335196, 0.383613},
-    {Qt::Key_T, 10, 0.637931, 0.778017, 0.428305, 0.482309},
-    {Qt::Key_Y, 11, 0.637931, 0.778017, 0.527002, 0.575419},
-    {Qt::Key_9, 12, 0.637931, 0.778017, 0.616387, 0.683426},
-    {Qt::Key_6, 13, 0.637931, 0.778017, 0.716946, 0.783985},
-    {Qt::Key_3, 14, 0.637931, 0.778017, 0.817505, 0.886406},
-    {Qt::Key_Space, 15, 0.637931, 0.778017, 0.918063, 0.979516},
-
-    {Qt::Key_O, 17, 0.428879, 0.573276, 0.335196, 0.383613},
-    {Qt::Key_S, 18, 0.428879, 0.573276, 0.428305, 0.482309},
-    {Qt::Key_X, 19, 0.428879, 0.573276, 0.527002, 0.575419},
-    {Qt::Key_8, 20, 0.428879, 0.573276, 0.616387, 0.683426},
-    {Qt::Key_5, 21, 0.428879, 0.573276, 0.716946, 0.783985},
-    {Qt::Key_2, 22, 0.428879, 0.573276, 0.817505, 0.886406},
-    {Qt::Key_Period, 23, 0.428879, 0.573276, 0.918063, 0.979516},
-
-    {Qt::Key_N, 25, 0.217672, 0.364224, 0.335196, 0.383613},
-    {Qt::Key_R, 26, 0.217672, 0.364224, 0.428305, 0.482309},
-    {Qt::Key_W, 27, 0.217672, 0.364224, 0.527002, 0.575419},
-    {Qt::Key_7, 28, 0.217672, 0.364224, 0.616387, 0.683426},
-    {Qt::Key_4, 29, 0.217672, 0.364224, 0.716946, 0.783985},
-    {Qt::Key_1, 30, 0.217672, 0.364224, 0.817505, 0.886406},
-    {Qt::Key_0, 31, 0.217672, 0.364224, 0.918063, 0.979516},
-
-    {Qt::Key_M, 33, 0.00862069, 0.153017, 0.335196, 0.383613},
-    {Qt::Key_Q, 34, 0.00862069, 0.153017, 0.428305, 0.482309},
-    {Qt::Key_V, 35, 0.00862069, 0.153017, 0.527002, 0.575419},
-
-    {Qt::Key_F1, 41, 0.00862069, 0.118534, 0.00931099, 0.0521415},
-    {Qt::Key_F2, 42, 0.181034, 0.295259, 0.00931099, 0.0521415},
-    {Qt::Key_F3, 43, 0.357759, 0.467672, 0.00931099, 0.0521415},
-    {Qt::Key_F4, 44, 0.530172, 0.642241, 0.00931099, 0.0521415},
-    {Qt::Key_F5, 45, 0.706897, 0.814655, 0.00931099, 0.0521415},
-    {Qt::Key_F6, 46, 0.872845, 0.987069, 0.00931099, 0.0521415},
-    {Qt::Key_G, 47, 0.00862069, 0.118534, 0.108007, 0.163873},
-    {Qt::Key_Up, 49, 0.706897, 0.803879, 0.0893855, 0.156425},
-    {Qt::Key_Left, 50, 0.581897, 0.678879, 0.150838, 0.230912},
-    {Qt::Key_Down, 51, 0.706897, 0.803879, 0.219739, 0.292365},
-    {Qt::Key_Right, 52, 0.838362, 0.937500, 0.150838, 0.230912},
-    {Qt::Key_H, 53, 0.181034, 0.295259, 0.108007, 0.163873},
-    {Qt::Key_I, 54, 0.357759, 0.467672, 0.108007, 0.163873},
-    {Qt::Key_J, 55, 0.00862069, 0.118534, 0.221601, 0.271881},
-    {Qt::Key_K, 57, 0.181034, 0.295259, 0.221601, 0.271881},
-    {Qt::Key_L, 58, 0.357759, 0.467672, 0.221601, 0.271881},
-
-    {Qt::Key_Tab, 60, 0.00862069, 0.161638, 0.616387, 0.683426},
-    {Qt::Key_CapsLock, 61, 0.00862069, 0.161638, 0.716946, 0.783985},
-    {Qt::Key_Control, 62, 0.00862069, 0.161638, 0.817505, 0.886406},
-    {Qt::Key_Home, 63, 0.00862069, 0.118534, 0.918063, 0.979516},
-
-    {Qt::Key_F10, 64, 0.872845, 0.987069, 0.108007, 0.163873},
-
-// ADD MORE KEYS HERE
-
-    {0, 0, 0.0, 0.0, 0.0, 0.0}
-
-};
-
-
-#endif
 
 
 RECORDER(gui_keys, 32, "Keys from the user interface");
+RECORDER(gui_mouse, 32, "Mouse events from user interface");
 
 void MainWindow::keyPressEvent(QKeyEvent * ev)
 {
@@ -609,7 +521,7 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
 
     if(ev->key() == Qt::Key_F12) {
         record(gui_keys, "KeyPress Interrupt requested");
-        pckeymatrix = (1ULL << 63) | (1ULL << 41) | (1ULL << 43);
+        pckeymatrix = (1ULL << KB_ON) | (1ULL << KB_A) | (1ULL << KB_C);
         keyb_irq_update();
         ev->accept();
         return;
@@ -645,7 +557,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
 
     if(ev->key() == Qt::Key_F12) {
         record(gui_keys, "KeyRelease Interrupt requested");
-        pckeymatrix &= ~((1ULL << 63) | (1ULL << 41) | (1ULL << 43));
+        pckeymatrix &= ~((1ULL << KB_ON) | (1ULL << KB_A) | (1ULL << KB_C));
         keyb_irq_update();
         ev->accept();
         return;
@@ -1613,7 +1525,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                 relx = coordinates.x() / (qreal) ui->KeybImage->width();
                 rely = coordinates.y() / (qreal) ui->KeybImage->height();
 
-                //qDebug() << "PRESS x=" << relx << ", y=" << rely ;
+                record(gui_mouse, "Touch x=%f, y=%f", relx, rely);
 
                 struct mousemap *ptr = mouseMap;
 
@@ -1630,8 +1542,9 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                             if(pressed) {
                                 pckeymatrix |= 1ULL << (ptr->keynum);
-                                //qDebug() << "PRESS x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
-                                if(ptr->keynum == 63) {
+                                record(gui_keys, "Simulated key press from touch at x=%f, y=%f, key=%d",
+                                       relx, rely, ptr->keynum);
+                                if(ptr->keynum == KB_ON) {
                                     // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
                                     if(!rpl.isRunning())
                                         on_actionPower_ON_triggered();
@@ -1639,7 +1552,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                             }
                             else {
                                 pckeymatrix &= ~(1ULL << (ptr->keynum));
-                                //qDebug() << "RELEA x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
+                                record(gui_keys, "Simulated key release from touch at x=%f, y=%f, key=%d",
+                                       relx, rely, ptr->keynum);
                             }
 
                             keyb_irq_update();
@@ -1672,8 +1586,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
             rely = (qreal) me->position().y() / (qreal) ui->KeybImage->height();
 #endif // Qt vertsion 6
 
-            //qDebug() << "PRESS x=" << relx << ", y=" << rely ;
-
+            record(gui_mouse, "Mouse down x=%f, y=%f", relx, rely);
             struct mousemap *ptr = mouseMap;
 
             while(ptr->key != 0) {
@@ -1687,9 +1600,11 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     }
                     else {
                         //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
+                        record(gui_keys, "Simulated key press from mouse at x=%f, y=%f, key=%d",
+                               relx, rely, ptr->keynum);
                         pckeymatrix |= 1ULL << (ptr->keynum);
                         keyb_irq_update();
-                        if(ptr->keynum == 63) {
+                        if(ptr->keynum == KB_ON) {
                             // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
                             if(!rpl.isRunning())
                                 on_actionPower_ON_triggered();
@@ -1715,7 +1630,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
             rely = (qreal) me->position().y() / (qreal) ui->KeybImage->height();
 #endif // Qt vertsion 6
 
-            //qDebug() << "RELEASE x=" << relx << ", y=" << rely ;
+            record(gui_mouse, "Mouse up x=%f, y=%f", relx, rely);
 
             struct mousemap *ptr = mouseMap;
 
@@ -1725,6 +1640,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     // CLICKED INSIDE A KEY
 
                     //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
+                    record(gui_keys, "Simulated key press from mouse at x=%f, y=%f, key=%d",
+                           relx, rely, ptr->keynum);
                     pckeymatrix &= ~(1ULL << (ptr->keynum));
                     keyb_irq_update();
                 }

@@ -1517,16 +1517,16 @@ const BYTE const keytable[] = {
     '+', 0, KB_ADD,
     '-', 0, KB_SUB,
 // HP Prime additional keys
-    'A', 'P', KB_APP,
-    'H', 'O', KB_HOM,
-    'S', 'Y', KB_SYM,
-    'P', 'L', KB_PLT,
+    'A', 'P', KB_APPS,
+    'H', 'O', KB_HOME,
+    'S', 'Y', KB_SYMB,
+    'P', 'L', KB_PLOT,
     'N', 'U', KB_NUM,
-    'H', 'L', KB_HLP,
-    'V', 'W', KB_VIE,
-    'M', 'E', KB_MEN,
+    'H', 'L', KB_HELP,
+    'V', 'W', KB_VIEW,
+    'M', 'E', KB_MENU,
     'C', 'A', KB_CAS,
-    0, 0, 0
+    0, 0, 0,
 };
 
 const BYTE const modiftable[] = {

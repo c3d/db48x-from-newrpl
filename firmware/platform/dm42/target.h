@@ -835,10 +835,12 @@ extern char SERIAL_NUMBER_ADDRESS[11];
 #define ROMOBJECTS __attribute__((section (".romobjects")))
 #define ROMLINK  __attribute__((section (".romlink")))
 
+#ifndef TARGET_PC
 typedef struct {
 	uint32_t mask1;
 	uint32_t mask2;
 } INTERRUPT_TYPE;
+#endif
 
 // This preamble preceeds PRIME_OS.ROM
 struct Preamble {
@@ -853,24 +855,133 @@ struct Preamble {
 } __attribute__ ((packed));
 
 
-// Keyboard remapping constants
+/*
+    KEYBOARD BIT MAP
+    ----------------
+    This is the bit number in the 64-bit keymatrix.
+    Bit set means key is pressed.
+    Note that DMCP does not define keys as bitmaps,
+    but rather using keycodes.
 
-// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS   ((1LL<<26)|(1LL<<51)|(1LL<<63))
-#define KEYMATRIX_ON           (1LL<<52)
-#define KEYMATRIX_LSHIFTBIT(matrix)    (((matrix)>>51)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)    (((matrix)>>63)&1)
-#define KEYMATRIX_ALPHABIT(matrix)    (((matrix)>>26)&1)
+      +--------+--------+--------+--------+--------+--------+
+      |   F1   |   F2   |   F3   |   F4   |   F5   |   F6   |
+      |   38   |   39   |   40   |   41   |   42   |   43   |
+      +--------+--------+--------+--------+--------+--------+
+    S |  Sum-  |  y^x   |  x^2   |  10^x  |  e^x   |  GTO   |
+      |  Sum+  |  1/x   |  Sqrt  |  Log   |  Ln    |  XEQ   |
+      |   1    |   2    |   3    |   4    |   5    |   6    |
+    A |   A    |   B    |   C    |   D    |   E    |   F    |
+      +--------+--------+--------+--------+--------+--------+
+    S | Complx |   %    |  Pi    |  ASIN  |  ACOS  |  ATAN  |
+      |  STO   |  RCL   |  R_dwn |   SIN  |   COS  |   TAN  |
+      |   7    |   8    |   9    |   10   |   11   |   12   |
+    A |   G    |   H    |   I    |    J   |    K   |    L   |
+      +--------+--------+--------+--------+--------+--------+
+    S |     Alpha       | Last x |  MODES |  DISP  |  CLEAR |
+      |     ENTER       |  x<>y  |  +/-   |   E    |   <--  |
+      |       13        |   14   |   15   |   16   |   17   |
+    A |                 |    M   |    N   |    O   |        |
+      +--------+--------+-+------+----+---+-------++--------+
+    S |   BST  | Solver   |  Int f(x) |  Matrix   |  STAT   |
+      |   Up   |    7     |     8     |     9     |   /     |
+      |   18   |   19     |    20     |    21     |   22    |
+    A |        |    P     |     Q     |     R     |    S    |
+      +--------+----------+-----------+-----------+---------+
+    S |   SST  |  BASE    |  CONVERT  |  FLAGS    |  PROB   |
+      |  Down  |    4     |     5     |     6     |    x    |
+      |   23   |   24     |    25     |    26     |   27    |
+    A |        |    T     |     U     |     V     |    W    |
+      +--------+----------+-----------+-----------+---------+
+    S |        | ASSIGN   |  CUSTOM   |  PGM.FCN  |  PRINT  |
+      |  SHIFT |    1     |     2     |     3     |    -    |
+      |   28   |   29     |    30     |    31     |   32    |
+    A |        |    X     |     Y     |     Z     |    -    |
+      +--------+----------+-----------+-----------+---------+
+    S |  OFF   |  TOP.FCN |   SHOW    |   PRGM    | CATALOG |
+      |  EXIT  |    0     |     .     |    R/S    |    +    |
+      |   33   |   34     |    35     |    36     |   37    |
+    A |        |    :     |     .     |     ?     |   ' '   |
+      +--------+----------+-----------+-----------+---------+
 
+*/
 
+#define KB_ALPHA             28         //! Alpha
+#define KB_ON                33         //! ON
+#define KB_ESC               33         //! Exit
+#define KB_DOT               53         //! Dot
+#define KB_SPC               49         //! Space
+#define KB_QUESTION          36         //! ?
+#define KB_SHIFT             28         //! Shift
+#define KB_LSHIFT            28         //! Left shift
+#define KB_RSHIFT            28         //! Right shift
 
-// Matrix to KeyCode mapping - Defined in keyboard.c for this target
-extern unsigned char const keyb_irq_codefrombit[64];
-extern unsigned char const keyb_irq_bitfromcode[64];
+#define KB_ADD               37         //! +
+#define KB_SUB               32         //! -
+#define KB_MUL               27         //! *
+#define KB_DIV               22         //! /
 
-// Keyboard mapping macros  - MUST exist for all targets
-#define KEYMAP_CODEFROMBIT(bit) (keyb_irq_codefrombit[bit])
-#define KEYMAP_BITFROMCODE(code) (keyb_irq_bitfromcode[code])
+#define KB_ENT               13         //! ENTER
+#define KB_BKS               17         //! backspace
+#define KB_UP                18         //! up arrow
+#define KB_DN                23         //! down arrow
+#define KB_LF                18         //! left arrow
+#define KB_RT                23         //! right arrow
+
+#define KB_F1                38         //! Function key 1
+#define KB_F2                39         //! Function key 2
+#define KB_F3                40         //! Function key 3
+#define KB_F4                41         //! Function key 4
+#define KB_F5                42         //! Function key 5
+#define KB_F6                43         //! Function key 6
+
+#define KB_0                 34         //! 0
+#define KB_1                 29         //! 1
+#define KB_2                 30         //! 2
+#define KB_3                 31         //! 3
+#define KB_4                 24         //! 4
+#define KB_5                 25         //! 5
+#define KB_6                 26         //! 6
+#define KB_7                 19         //! 7
+#define KB_8                 20         //! 8
+#define KB_9                 21         //! 9
+
+#define KB_A                  1         //! A
+#define KB_B                  2         //! B
+#define KB_C                  3         //! C
+#define KB_D                  4         //! D
+#define KB_E                  5         //! E
+#define KB_F                  6         //! F
+#define KB_G                  7         //! G
+#define KB_H                  8         //! H
+#define KB_I                  9         //! I
+#define KB_J                 10         //! J
+#define KB_K                 11         //! K
+#define KB_L                 12         //! L
+#define KB_M                 14         //! M
+#define KB_N                 15         //! N
+#define KB_O                 16         //! O
+#define KB_P                 19         //! P
+#define KB_Q                 20         //! Q
+#define KB_R                 21         //! R
+#define KB_S                 22         //! S
+#define KB_T                 24         //! T
+#define KB_U                 25         //! U
+#define KB_V                 26         //! V
+#define KB_W                 27         //! W
+#define KB_X                 29         //! X
+#define KB_Y                 30         //! Y
+#define KB_Z                 31         //! Z
+
+// Prime-specific keys (using their names) all map to 'RCL'
+#define KB_APPS               8         //! APPS key (prime only)
+#define KB_SYMB               8         //! SYMB key (prime only)
+#define KB_HELP               8         //! HELP key (prime only)
+#define KB_HOME               8         //! HOME key (prime only)
+#define KB_PLOT               8         //! PLOT key (prime only)
+#define KB_VIEW               8         //! VIEW key (prime only)
+#define KB_CAS                8         //! CAS key (prime only)
+#define KB_NUM                8         //! NUM key (prime only)
+#define KB_MENU               8         //! MENU key (prime only)
 
 
 // Touchscreen related functions
@@ -900,13 +1011,13 @@ extern void ts_init();
 */
 
 // DEFAULT COLOR MODE OF THE SYSTEM
-#define BITS_PER_PIXEL 16
-#define DEFAULT_BITMAP_MODE   3   // SAME AS BITMAP_RGB64K
+#define BITS_PER_PIXEL 1
+#define DEFAULT_BITMAP_MODE   0   // SAME AS BITMAP_RAWMONO
 
 #define ANN_X_COORD 131
 #define ANN_Y_COORD 0
 
-#define PIXELS_PER_WORD 2
+#define PIXELS_PER_WORD 64
 
 
 // LOW LEVEL TIMER FUNCTIONS FOR HARDWARE SETUP
@@ -940,5 +1051,7 @@ void reset_gpio();
 void uart_init(void);
 void debug_print(const char *string);
 void debug_print_hex(const char *key, uint32_t value);
+
+#include <host.h>
 
 #endif // TARGET_DM42_H

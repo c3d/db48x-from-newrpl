@@ -585,16 +585,16 @@ doitagain:
         if (options & EX_CONT)
         {
             j = EX_CONT;
-            if (KEYVALUE(f) == KB_SYM)
+            if (KEYVALUE(f) == KB_SYMB)
                 break;
         }
         if (options & (EX_EXIT | EX_RPLEXIT))
         {
             j = options & (EX_EXIT | EX_RPLEXIT);
-            if (KEYVALUE(f) == KB_PLT)
+            if (KEYVALUE(f) == KB_PLOT)
                 break;
         }
-        if (KEYVALUE(f) == KB_MEN)
+        if (KEYVALUE(f) == KB_MENU)
         {
             options ^= EX_RPLREGS;
             options &= ~EX_NOREG;
@@ -619,7 +619,7 @@ doitagain:
         if (options & EX_RESET)
         {
             j = EX_RESET;
-            if (KEYVALUE(f) == KB_HLP)
+            if (KEYVALUE(f) == KB_HELP)
                 break;
         }
     } while (1);
