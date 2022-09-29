@@ -163,6 +163,7 @@ SOURCES += \
         firmware/sys/Font10A.c \
         firmware/sys/Font18.c \
         firmware/sys/Font24.c \
+        firmware/sys/Font32.c \
         firmware/sys/Font5A.c \
         firmware/sys/Font5B.c \
         firmware/sys/Font5C.c \

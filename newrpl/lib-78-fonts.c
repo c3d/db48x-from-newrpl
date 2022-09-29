@@ -222,6 +222,12 @@ ROMOBJECT fnt24_ident[] = {
     TEXT2WORD('2', '4', 0, 0)
 };
 
+ROMOBJECT fnt32_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('F', 'o', 'n', 't'),
+    TEXT2WORD('3', '2', 0, 0)
+};
+
 
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
 // SO IT'S NOT HARDWARE-INDEPENDENT, BUT THE NAMES OF THE FONTS SHOULD BE CONSISTENT
@@ -278,6 +284,8 @@ const word_p const ROMPTR_TABLE[] = {
     (word_p) Font_18,
     (word_p) fnt24_ident,
     (word_p) Font_24,
+    (word_p) fnt32_ident,
+    (word_p) Font_32,
 
     0, // ZERO PAIR AS FINALIZER
     0

@@ -41,3 +41,5 @@ extern const UNIFONT FONT_18;
 
 extern const UNIFONT FONT_Notifications;
 #define Font_Notifications (&FONT_Notifications)
+extern const UNIFONT FONT_32;
+#define Font_32 (&FONT_32)
