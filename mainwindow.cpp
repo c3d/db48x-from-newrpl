@@ -127,6 +127,12 @@ QMainWindow(parent), rpl(this), usbdriver(this), themeEdit(this), ui(new Ui::Mai
         screentmr->setSingleShot(true);
         screentmr->start(20);
     }
+
+#if TARGET_PRIME || TARGET_DM42
+    // Select default sizes that match the screen size
+    qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
+    resize(256 * dpratio, 490 * dpratio);
+#endif // LARGE_SCREEN
 }
 
 MainWindow::~MainWindow()
