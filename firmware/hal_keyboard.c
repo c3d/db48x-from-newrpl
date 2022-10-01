@@ -17,6 +17,7 @@
 
 
 RECORDER(keys, 16, "Keyboard handling");
+RECORDER(keys_debug, 16, "Detailed debugging");
 
 static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
 {
@@ -7918,45 +7919,72 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         if(!wasProcessed)
             wasProcessed = halDoDefaultKey(keymsg);
 
-#if 0
-    // *************** DEBUG ONLY ************
-    if (!wasProcessed &&
-        ((KM_MESSAGE(keymsg) == KM_PRESS) || (KM_MESSAGE(keymsg) == KM_LPRESS) || (KM_MESSAGE(keymsg) == KM_REPEAT)))
+    if (RECORDER_TWEAK(keys_debug))
     {
-        // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
-        gglsurface scr;
-        ggl_init_screen(&scr);
-        UNIFONT *fnt   = FONT_STATUS;
-
-        // FOR DEBUG ONLY
-        int      width = StringWidth((char *) keyNames[KM_KEY(keymsg)], fnt);
-        int      ytop  = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
-        // CLEAR STATUS AREA AND SHOW KEY THERE
-        ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1, ytop + halScreen.Menu2 - 1, 0);
-        DrawTextBk(&scr, LCD_W - width, ytop + halScreen.Menu2 / 2, (char *) keyNames[KM_KEY(keymsg)], fnt, 15, 0);
-        char *shiftstr;
-        switch (KM_SHIFTPLANE(keymsg))
+        // *************** DEBUG ONLY ************
+        if (!wasProcessed && ((KM_MESSAGE(keymsg) == KM_PRESS) ||
+                              (KM_MESSAGE(keymsg) == KM_LPRESS) ||
+                              (KM_MESSAGE(keymsg) == KM_REPEAT)))
         {
-        case SHIFT_LS: shiftstr = "(LS)"; break;
-        case SHIFT_LS | SHIFT_LSHOLD: shiftstr = "(LSH)"; break;
-        case SHIFT_RS: shiftstr = "(RS)"; break;
-        case SHIFT_RS | SHIFT_RSHOLD: shiftstr = "(RSH)"; break;
-        case SHIFT_ALPHA: shiftstr = "(AL)"; break;
-        case SHIFT_ALPHA | SHIFT_ALPHAHOLD: shiftstr = "(ALH)"; break;
-        case SHIFT_ONHOLD: shiftstr = "(ONH)"; break;
-        case SHIFT_ALPHA | SHIFT_LS: shiftstr = "(AL-LS)"; break;
-        case SHIFT_ALPHA | SHIFT_RS: shiftstr = "(AL-RS)"; break;
-        case SHIFT_ALPHA | SHIFT_LSHOLD: shiftstr = "(AL-LSH)"; break;
-        case SHIFT_ALPHA | SHIFT_RSHOLD: shiftstr = "(AL-RSH)"; break;
+            // All other keys, just display the key name on screen
+            gglsurface scr;
+            ggl_init_screen(&scr);
+            const UNIFONT *fnt = FONT_STATUS;
+            char keyName[16] = { 0 };
+            snprintf(keyName, sizeof(keyName), "%X %u", keymsg, KM_KEY(keymsg));
 
-        default: shiftstr = "";
+            int width = StringWidth(keyName, fnt);
+            int ytop  = halScreen.Form + halScreen.Stack + halScreen.CmdLine +
+                       halScreen.Menu1;
+
+            ggl_rect(&scr,
+                     STATUS_AREA_X,
+                     ytop,
+                     LCD_W - 1,
+                     ytop + halScreen.Menu2 - 1,
+                     ggl_solid(PAL_STA_TEXT));
+            DrawTextBk(&scr,
+                       LCD_W - width,
+                       ytop + halScreen.Menu2 / 2,
+                       keyName,
+                       fnt,
+                       ggl_solid(PAL_STA_TEXT),
+                       ggl_solid(PAL_STA_BG));
+            char *shiftstr;
+            switch (KM_SHIFTPLANE(keymsg))
+            {
+            case SHIFT_LS: shiftstr = "(LS)"; break;
+            case SHIFT_LS | SHIFT_LSHOLD: shiftstr = "(LSH)"; break;
+            case SHIFT_RS: shiftstr = "(RS)"; break;
+            case SHIFT_RS | SHIFT_RSHOLD: shiftstr = "(RSH)"; break;
+            case SHIFT_ALPHA: shiftstr = "(AL)"; break;
+            case SHIFT_ALPHA | SHIFT_ALPHAHOLD: shiftstr = "(ALH)"; break;
+            case SHIFT_ONHOLD: shiftstr = "(ONH)"; break;
+            case SHIFT_ALPHA | SHIFT_LS: shiftstr = "(AL-LS)"; break;
+            case SHIFT_ALPHA | SHIFT_RS: shiftstr = "(AL-RS)"; break;
+            case SHIFT_ALPHA | SHIFT_LSHOLD: shiftstr = "(AL-LSH)"; break;
+            case SHIFT_ALPHA | SHIFT_RSHOLD: shiftstr = "(AL-RSH)"; break;
+
+            default: shiftstr = "";
+            }
+            DrawTextBk(&scr,
+                       LCD_W - width - 32,
+                       ytop + halScreen.Menu2 / 2,
+                       shiftstr,
+                       fnt,
+                       ggl_solid(PAL_STA_TEXT),
+                       ggl_solid(PAL_STA_BG));
+
+            if (KM_MESSAGE(keymsg) == KM_LPRESS)
+                DrawTextBk(&scr,
+                           LCD_W - width - 42,
+                           ytop + halScreen.Menu2 / 2,
+                           "L=",
+                           fnt,
+                           ggl_solid(PAL_STA_TEXT),
+                           ggl_solid(PAL_STA_BG));
         }
-        DrawTextBk(&scr, LCD_W - width - 32, ytop + halScreen.Menu2 / 2, shiftstr, fnt, 15, 0);
-
-        if (KM_MESSAGE(keymsg) == KM_LPRESS)
-            DrawTextBk(&scr, LCD_W - width - 42, ytop + halScreen.Menu2 / 2, "L=", fnt, 15, 0);
     }
-#  endif // DEBUG
 
     if(wasProcessed < 0)
         return 1;
