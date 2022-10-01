@@ -80,14 +80,16 @@ debug: debug-sim
 release: release-all
 
 FONTLIST=firmware/include/fontlist.h
-fonts: bmp2font ttf2font
+fonts: bmpfonts ttffonts firmware/include/fontlist.h
+bmpfonts: bmp2font
 	cd bitmap/fonts && ./doallfonts.sh
 	mv bitmap/fonts/*.c firmware/sys/
-	mv bitmap/fonts/fontlist.h firmware/include/
-	tools-bin/ttf2font -s18 FONT_18 fonts/C43StandardFont.ttf firmware/sys/Font18.c
-	tools-bin/ttf2font -s24 FONT_24 fonts/C43StandardFont.ttf firmware/sys/Font24.c
+ttffonts: ttf2font
+	tools-bin/ttf2font FONT_18 fonts/C43StandardFont.ttf firmware/sys/Font18.c
+	tools-bin/ttf2font -s24 FONT_24 fonts/C43SNumericFont.ttf firmware/sys/Font24.c
 	tools-bin/ttf2font -s32 FONT_32 fonts/C43SNumericFont.ttf firmware/sys/Font32.c
-	sed -e 's/_24/_32/g;t' -e d < $(FONTLIST) >> $(FONTLIST)
+firmware/include/fontlist.h: bitmap/fonts/fontlist.h
+	(cat $< ;  sed -e 's/_24/_32/g;t' -e d $< ) > $@
 
 FILES=$(shell git ls-files '*.c' '*.h' '*.cpp')
 reformat clang-format: $(FILES:%=%.clang-format)
