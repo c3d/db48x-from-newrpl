@@ -1095,8 +1095,8 @@ int            halExitOuterLoop();
 
 // KEYBOARD FUNCTIONS
 void           halInitKeyboard();
-int32_t           halWaitForKey();
-int32_t           halWaitForKeyTimeout(int32_t timeoutms);
+int32_t        halWaitForKey();
+int32_t        halWaitForKeyTimeout(int32_t timeoutms);
 void           halPostKeyboardMessage(WORD keymsg);
 int            halDoDefaultKey(WORD keymsg);
 int            halDoCustomKey(WORD keymsg);

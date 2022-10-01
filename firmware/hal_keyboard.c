@@ -76,121 +76,96 @@ static int rplGetDecompiledStringWithoutTickmarks(word_p object, int32_t flags, 
     return 1;
 }
 
-// WAITS FOR A KEY TO BE PRESSED IN SLOW MODE
 
-int32_t halWaitForKey()
-{
-    unsigned keymsg;
-    int wokeup;
-
-    if(!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0)) {
-        tmr_eventkill(halBusyEvent);
-        halBusyEvent = -1;
-    }
-
-    wokeup = 0;
-    do {
-
-        keymsg = keyb_getmsg();
-
-        if(!keymsg) {
-            // FIRST: ENTER LOW SPEED MODE
-            // UPDATE RESPONSIVENESS FLAG
-            if(rplTestSystemFlag(FL_QUICKRESPONSE))
-                halFlags |= HAL_QUICKRESPONSE;
-            else
-                halFlags &= ~HAL_QUICKRESPONSE;
-
-            if(halFlags & HAL_FASTMODE) {
-                halCPUSlowMode();
-                halFlags &= ~HAL_FASTMODE;
-            }
-            if(halFlags & HAL_HOURGLASS) {
-                halSetNotification(N_HOURGLASS, 0);
-                halFlags &= ~HAL_HOURGLASS;
-                halScreenUpdated();
-            }
-
-            if(!keyb_wasupdated() && wokeup)
-                return 0;       // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
-
-            // LAST: GO INTO "WAIT FOR INTERRUPT"
-            cpu_waitforinterrupt();
-            wokeup = 1;
-        }
-    }
-    while(!keymsg);
-
-    return keymsg;
-
-}
-
-// DO-NOTHING HANDLER
 void timeouthandler()
+// ----------------------------------------------------------------------------
+//   Handler that simply records the timeout and does nothing else
+// ----------------------------------------------------------------------------
 {
     halFlags |= HAL_TIMEOUT;
 }
 
-int32_t halWaitForKeyTimeout(int32_t timeoutms)
-{
-    unsigned keymsg;
-    int wokeup;
 
-    if(!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0)) {
+int32_t halWaitForKeyTimeout(int32_t timeoutms)
+// ----------------------------------------------------------------------------
+//   Wait for a key for the given amount of time
+// ----------------------------------------------------------------------------
+// Use timeoutms <=0 to continue waiting for a previously scheduled timeout
+// in case other event wakes up the cpu
+{
+    unsigned keymsg = 0;
+    int      wokeup = 0;
+
+    if (!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0))
+    {
         tmr_eventkill(halBusyEvent);
         halBusyEvent = -1;
     }
 
-    wokeup = 0;
-
-    // START A TIMER TO PROVIDE PROPER TIMEOUT
-    // USE timeoutms <=0 TO CONTINUE WAITING FOR A PREVIOUSLY SCHEDULED TIMEOUT
-    // IN CASE OTHER EVENT WAKES UP THE CPU
-    if(timeoutms > 0) {
+    // Start a timer to provide proper timeout
+    if (timeoutms > 0)
+    {
         halFlags &= ~HAL_TIMEOUT;
         halTimeoutEvent = tmr_eventcreate(&timeouthandler, timeoutms, 0);
     }
 
-    do {
-
+    for(;;)
+    {
+        // Fetch current key if any, and return if we have it
         keymsg = keyb_getmsg();
+        if (keymsg)
+            return keymsg;
 
-        if(!keymsg) {
-            // FIRST: ENTER LOW SPEED MODE
-            if(rplTestSystemFlag(FL_QUICKRESPONSE))
-                halFlags |= HAL_QUICKRESPONSE;
-            else
-                halFlags &= ~HAL_QUICKRESPONSE;
+        // Enter low speed mode
+        if (rplTestSystemFlag(FL_QUICKRESPONSE))
+            halFlags |= HAL_QUICKRESPONSE;
+        else
+            halFlags &= ~HAL_QUICKRESPONSE;
 
-            if(halFlags & HAL_FASTMODE) {
-                halCPUSlowMode();
-                halFlags &= ~HAL_FASTMODE;
-            }
-            if(halFlags & HAL_HOURGLASS) {
-                halSetNotification(N_HOURGLASS, 0);
-                halFlags &= ~HAL_HOURGLASS;
-                halScreenUpdated();
-
-            }
-
-            if(wokeup) {
-                if(halFlags & HAL_TIMEOUT) {
-                    halFlags &= ~HAL_TIMEOUT;
-                    return -1;
-                }
-                return 0;       // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
-            }
-
-            // LAST: GO INTO "WAIT FOR INTERRUPT"
-            cpu_waitforinterrupt();
-            wokeup = 1;
+        if (halFlags & HAL_FASTMODE)
+        {
+            halCPUSlowMode();
+            halFlags &= ~HAL_FASTMODE;
         }
+        if (halFlags & HAL_HOURGLASS)
+        {
+            halSetNotification(N_HOURGLASS, 0);
+            halFlags &= ~HAL_HOURGLASS;
+            halScreenUpdated();
+        }
+
+        if (wokeup)
+        {
+            // Check if we woke up because of a timeout
+            if (timeoutms && (halFlags & HAL_TIMEOUT))
+            {
+                halFlags &= ~HAL_TIMEOUT;
+                return -1;
+            }
+
+            // Otherwise allow screen refresh requested by other irqs
+            return 0;
+        }
+
+        // Wait for an interrupt to wake us up
+        cpu_waitforinterrupt();
+        wokeup = 1;
     }
-    while(!keymsg);
 
-    return keymsg;
-
+    return -1;
 }
+
+
+int32_t halWaitForKey()
+// ----------------------------------------------------------------------------
+// Wait for a key to be pressed in slow mode
+// ----------------------------------------------------------------------------
+{
+    return halWaitForKeyTimeout(0);
+}
+
+
+
 
 // SYSTEM CONTEXT VARIABLE
 // STORES THE CONTEXT ID
@@ -530,7 +505,8 @@ void endCmdLine()
 
 void numberKeyHandler(WORD keymsg)
 {
-    record(keys, "number key handler %u=%08X", keymsg, keymsg);
+    record(keys, "number key handler %08X key %d msg %x shift %x ",
+           keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFTPLANE(keymsg));
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -7720,17 +7696,20 @@ int halCustomKeyExists(WORD keymsg)
 
 int halDoDefaultKey(WORD keymsg)
 {
-    record(keys, "halDoDefaultKey %u=%08x", keymsg, keymsg);
+    record(keys, "halDoDefaultKey %08X key %d msg %x shift %x ",
+           keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFTPLANE(keymsg));
 
     struct keyhandler_t *ptr = (struct keyhandler_t *)keydefaulthandlers;
 
     while(ptr->action) {
         if(ptr->message == keymsg) {
-            // CHECK IF CONTEXT MATCHES
-            if((!ptr->context) || (ptr->context == halScreen.KeyContext) ||
-                    (!(ptr->context & 0x1f)
-                        && (ptr->context == (halScreen.KeyContext & ~0x1f)))) {
-                //  IT'S A MATCH, EXECUTE THE ACTION;
+            // Check if context matches
+            if((!ptr->context) ||
+               (ptr->context == halScreen.KeyContext) ||
+               (!(ptr->context & 0x1f)
+                && (ptr->context == (halScreen.KeyContext & ~0x1f))))
+            {
+                //  It's a match, execute the action;
                 (ptr->action) (keymsg);
                 return 1;
             }
@@ -7772,12 +7751,17 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
     if(!keymsg)
         return 0;
 
-    record(keys, "halProcessKey %u=%08x flags=%08X, handler=%p", keymsg, keymsg, flags, dokey);
+    record(keys,
+           "halProcessKey %08x (%d) flags=%08X, handler=%p",
+           keymsg,
+           KM_KEY(keymsg),
+           flags,
+           dokey);
 
 #ifdef TARGET_PRIME
     if(KM_MESSAGE(keymsg) == KM_TOUCH) {
         // TODO: Convert touch events into keys or gestures
-        word_p keyname=rplMsg2KeyName(keymsg);
+        word_p keyname = rplMsg2KeyName(keymsg);
         if(keyname)
             rplPushData(keyname);
         else
@@ -8006,25 +7990,32 @@ void halDoDeferredProcess()
 
 }
 
-// THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
-
-void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), int32_t flags)
+void halOuterLoop(int32_t timeoutms,
+                  int (*dokey)(WORD),
+                  int (*doidle)(WORD),
+                  int32_t flags)
+// ----------------------------------------------------------------------------
+//    Main handler for an interactive context, e.g. form or command line
+// ----------------------------------------------------------------------------
+// This function returns when the form closes, or the user exits with ON/EXIT
 {
-    WORD keymsg = 0;
-    int isidle, jobdone;
-    int64_t offcounter = 0;
+    WORD       keymsg     = 0;
+    int        isidle     = 0;
+    int        jobdone    = 0;
+    int64_t    offcounter = 0;
 
     gglsurface scr;
     ggl_init_screen(&scr);
-    jobdone = isidle = 0;
-    halTimeoutEvent = -1;
+    halTimeoutEvent  = -1;
 
-    do {
-        if(!(halFlags & (HAL_RESET | HAL_HWRESET)))
+    do
+    {
+        if (!(halFlags & (HAL_RESET | HAL_HWRESET)))
             halRedrawAll(&scr);
-        if(!(flags & OL_NOEXIT) && halExitOuterLoop())
+        if (!(flags & OL_NOEXIT) && halExitOuterLoop())
             break;
-        if(halFlags & HAL_POWEROFF) {
+        if (halFlags & HAL_POWEROFF)
+        {
             halFlags &= ~HAL_POWEROFF;
 #ifndef CONFIG_NO_FSYSTEM
             if (FSIsInit())
@@ -8035,63 +8026,69 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), in
                     FSShutdownNoCard();
             }
 #endif
-            if(!(halFlags & (HAL_RESET | HAL_HWRESET))) {
+            if (!(halFlags & (HAL_RESET | HAL_HWRESET)))
+            {
                 halPreparePowerOff();
                 halEnterPowerOff();
             }
-            else {
-                if(!(halFlags & HAL_HWRESET)) {
-                    //halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
-                    //halPreparePowerOff(); // DON'T DO A POWEROFF PROCEDURE
+            else
+            {
+                if (!(halFlags & HAL_HWRESET))
+                {
+                    // halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE
+                    // FLAGS halPreparePowerOff(); // DON'T DO A POWEROFF
+                    // PROCEDURE
                     halFlags = HAL_RESET;
                 }
                 else
                     halReset(); // THIS FUNCTION DOES NOT RETURN
-
             }
             return;
         }
 
-        if(halFlags & HAL_FASTAUTORESUME) {
+        if (halFlags & HAL_FASTAUTORESUME)
+        {
             halSetBusyHandler();
             jobdone = isidle = 0;
             halFlags &= ~HAL_FASTAUTORESUME;
-            uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION BEFORE PROCESSING ANY KEYS
-            halScreen.DirtyFlag |=
-                    CMDLINE_ALLDIRTY | STACK_DIRTY | STAREA_DIRTY | MENU1_DIRTY
-                    | MENU2_DIRTY | FORM_DIRTY;
+            uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION BEFORE
+                                // PROCESSING ANY KEYS
+            halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
+                                   STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY |
+                                   FORM_DIRTY;
             continue;
         }
 
-        if(Exceptions) {
-            if(flags & OL_EXITONERROR)
+        if (Exceptions)
+        {
+            if (flags & OL_EXITONERROR)
                 break;
             halShowErrorMsg();
             Exceptions = 0;
         }
 
-        keymsg = halWaitForKeyTimeout(timeoutms);
+        keymsg    = halWaitForKeyTimeout(timeoutms);
         timeoutms = 0;
 
         if (keymsg == 0xffffffff)
         {
             // TIMED OUT!
-            if(halTimeoutEvent >= 0)
+            if (halTimeoutEvent >= 0)
                 tmr_eventkill(halTimeoutEvent);
             halTimeoutEvent = -1;
             halFlags &= ~HAL_TIMEOUT;
-            break;      // JUST EXIT THE POL
+            break; // JUST EXIT THE POL
         }
 
         if (!keymsg)
         {
-            // SOMETHING OTHER THAN A KEY WOKE UP THE CPU
-
+            // Something other than a key woke up the cpu
             halDoDeferredProcess();
 
-            if(usb_isconfigured()) {
+            if (usb_isconfigured())
+            {
                 halSetNotification(N_CONNECTION, 15);
-                if(usb_hasdata())
+                if (usb_hasdata())
                     halSetNotification(N_DATARECVD, 15);
                 else
                     halSetNotification(N_DATARECVD, 0);
@@ -8099,49 +8096,57 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), in
             else
                 halSetNotification(N_CONNECTION, 0);
 
-            if(!(flags & OL_NOCOMMS)) {
-                if(usb_hasdata()) {
-                    if(!rplTestSystemFlag(FL_NOAUTORECV)) {
+            if (!(flags & OL_NOCOMMS))
+            {
+                if (usb_hasdata())
+                {
+                    if (!rplTestSystemFlag(FL_NOAUTORECV))
+                    {
                         uiCmdRun(CMD_USBAUTORCV);
-                        halScreen.DirtyFlag |=
-                                CMDLINE_ALLDIRTY | STACK_DIRTY | STAREA_DIRTY |
-                                MENU1_DIRTY | MENU2_DIRTY | FORM_DIRTY;
+                        halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
+                                               STAREA_DIRTY | MENU1_DIRTY |
+                                               MENU2_DIRTY | FORM_DIRTY;
                         continue;
                     }
                 }
             }
 
-            if(!isidle)
+            if (!isidle)
                 offcounter = halTicks();
 
 #ifndef CONFIG_NO_FSYSTEM
             // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
-            if(!(flags & OL_NOSDFLUSH) && !(jobdone & 1) && FSIsInit()) {
-
-                if(halTicks() - offcounter >= 3000000) {
-                    if(FSIsDirty()) {
+            if (!(flags & OL_NOSDFLUSH) && !(jobdone & 1) && FSIsInit())
+            {
+                if (halTicks() - offcounter >= 3000000)
+                {
+                    if (FSIsDirty())
+                    {
                         FSFlushAll();
                         halUpdateStatus();
                     }
                     jobdone |= 1;
                     isidle = 0;
                 }
-
             }
 #endif
 
             // AUTO-OFF WHEN IDLING
-            if(!(flags & OL_NOAUTOOFF) && (halFlags & HAL_AUTOOFFTIME)
-                    && (!usb_isconnected())) {
+            if (!(flags & OL_NOAUTOOFF) && (halFlags & HAL_AUTOOFFTIME) &&
+                (!usb_isconnected()))
+            {
                 int64_t autoofftime = 15000000 << (GET_AUTOOFFTIME(halFlags));
-                if(halTicks() - offcounter >= autoofftime) {
+                if (halTicks() - offcounter >= autoofftime)
+                {
                     halPreparePowerOff();
                     halEnterPowerOff();
                 }
             }
 
-            if(!(flags & OL_NOALARM)) {
-                if(halCheckSystemAlarm()) {
+            if (!(flags & OL_NOALARM))
+            {
+                if (halCheckSystemAlarm())
+                {
                     jobdone = isidle = 0;
                     halTriggerAlarm();
                 }
@@ -8149,39 +8154,44 @@ void halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), in
 
             // DO OTHER IDLE PROCESSING HERE
 
-            if(halFlags & HAL_AUTORESUME) {
+            if (halFlags & HAL_AUTORESUME)
+            {
                 halSetBusyHandler();
                 jobdone = isidle = 0;
-                uiCmdRun(CMD_CONT);     // AUTOMATICALLY CONTINUE EXECUTION AFTER 10 IDLE CYCLES
-                halScreen.DirtyFlag |=
-                        CMDLINE_ALLDIRTY | STACK_DIRTY | STAREA_DIRTY |
-                        MENU1_DIRTY | MENU2_DIRTY | FORM_DIRTY;
+                uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION AFTER 10
+                                    // IDLE CYCLES
+                halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
+                                       STAREA_DIRTY | MENU1_DIRTY |
+                                       MENU2_DIRTY | FORM_DIRTY;
                 continue;
             }
 
-            if(doidle) {
-                if((*doidle) (0))
+            if (doidle)
+            {
+                if ((*doidle)(0))
                     break;
             }
 
             isidle = 1;
         }
-        else {
+        else
+        {
             jobdone = isidle = 0;
 #ifdef TARGET_PRIME
-            // Reset count of the battery display so it only updates when idling for a while (Prime Only)
+            // Reset count of the battery display so it only updates when idling
+            // for a while (Prime Only)
             extern int bat_readcnt;
-            bat_readcnt=1;
+            bat_readcnt = 1;
 #endif /* TARGET_PRIME */
         }
 
         halSetBusyHandler();
 
-    }
-    while(!halProcessKey(keymsg, dokey, flags));
+    } while (!halProcessKey(keymsg, dokey, flags));
 
-    // MAKE SURE WE CLEANUP THE EVENT TIMER BEFORE WE EXIT SO IT DOESN'T TRIGGER INSIDE A PARENT POL
-    if(halTimeoutEvent >= 0)
+    // MAKE SURE WE CLEANUP THE EVENT TIMER BEFORE WE EXIT SO IT DOESN'T TRIGGER
+    // INSIDE A PARENT POL
+    if (halTimeoutEvent >= 0)
         tmr_eventkill(halTimeoutEvent);
     halTimeoutEvent = -1;
     halFlags &= ~HAL_TIMEOUT;
