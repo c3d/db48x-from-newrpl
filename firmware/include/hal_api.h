@@ -570,6 +570,7 @@ int keyb_getkey(int wait);
                                          (1ULL << KB_RSHIFT) |   \
                                          (1ULL << KB_SHIFT))
 #define KEYMATRIX_ON                    (1ULL << KB_ON)
+#define KEYMATRIX_UNSHIFTED(matrix)     ((matrix) & ~ KEYMATRIX_ALL_SHIFTS)
 #define KEYMATRIX_LSHIFTBIT(matrix)     (((matrix)>>KB_LSHIFT)&1)
 #define KEYMATRIX_RSHIFTBIT(matrix)     (((matrix)>>KB_RSHIFT)&1)
 #define KEYMATRIX_ALPHABIT(matrix)      (((matrix)>>KB_ALPHA)&1)

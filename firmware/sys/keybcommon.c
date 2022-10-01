@@ -63,7 +63,7 @@ int keyb_irq_getkey()
     keymatrix m = keyb_irq_getmatrixEX();
 
     // Wait for a non-shift key to be pressed
-    while ((m & ~KEYMATRIX_ALL_SHIFTS) == 0)
+    while (KEYMATRIX_UNSHIFTED(m) == 0)
         m = keyb_irq_getmatrixEX();
 
     // Check which shift keys are pressed
@@ -79,12 +79,12 @@ int keyb_irq_getkey()
         shifts |= SHIFT_ALPHA | SHIFT_ALPHAHOLD;
 #endif // Has a genuine alpha key (all but DM42)
 
-    keymatrix noshift  = m & (~KEYMATRIX_ALL_SHIFTS);
+    keymatrix noshift  = KEYMATRIX_UNSHIFTED(m);
     int       kcodebit = ffsll(noshift);
     int       kcode    = KEYMAP_CODEFROMBIT(kcodebit);
 
     // Wait for all non-shifted key to be released
-    while ((m & (~KEYMATRIX_ALL_SHIFTS)) != 0)
+    while (KEYMATRIX_UNSHIFTED(m) != 0)
         m = keyb_irq_getmatrixEX();
 
     if (kcodebit < 64)
