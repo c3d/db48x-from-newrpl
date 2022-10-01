@@ -7,100 +7,91 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include <strings.h>
 
-INTERRUPT_TYPE cpu_intoff_nosave();
-void cpu_inton_nosave(INTERRUPT_TYPE state);
-void tmr_eventreschedule();
 
-// KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-unsigned int keyb_irq_buffer[KEYB_BUFFER] SYSTEM_GLOBAL;
-volatile int keyb_irq_lock SYSTEM_GLOBAL;
-int keyflags SYSTEM_GLOBAL;
-int kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
-keymatrix kmat SYSTEM_GLOBAL;
-unsigned int keyplane SYSTEM_GLOBAL;
-int keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
-int keyb_irq_repeattime SYSTEM_GLOBAL, keyb_irq_longpresstime SYSTEM_GLOBAL,
-        keyb_irq_debounce SYSTEM_GLOBAL;
+INTERRUPT_TYPE             cpu_intoff_nosave();
+void                       cpu_inton_nosave(INTERRUPT_TYPE state);
+void                       tmr_eventreschedule();
 
-// LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
-// HANDLERS ONLY
+// ============================================================================
+//
+// Keyboard, low level global variables
+//
+// ============================================================================
 
-keymatrix keyb_irq_getmatrix();
+unsigned                   keyb_irq_buffer[KEYB_BUFFER] SYSTEM_GLOBAL;
+volatile int               keyb_irq_lock SYSTEM_GLOBAL;
+int                        keyflags SYSTEM_GLOBAL;
+int                        kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
+keymatrix                  kmat SYSTEM_GLOBAL;
+unsigned                   keyplane SYSTEM_GLOBAL;
+int                        keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
+int                        keyb_irq_repeattime SYSTEM_GLOBAL;
+int                        keyb_irq_longpresstime SYSTEM_GLOBAL;
+int                        keyb_irq_debounce SYSTEM_GLOBAL;
 
-// WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
-// NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
 
-keymatrix keyb_irq_getmatrixEX();
+// ============================================================================
+//
+// Low-level routine to be used by the irq and exception handlers only
+//
+// ============================================================================
 
-void keyb_irq_waitrelease();
+keymatrix                  keyb_irq_getmatrix();
 
-// RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
-// MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
+// Wrapper to disable interrupts while reading the keyboard from handler
+keymatrix                  keyb_irq_getmatrixEX();
+
+void                       keyb_irq_waitrelease();
+
+// Returns the current working matrix, bypass hardware if kbd handlers running
 keymatrix keyb_getmatrix();
 
-// LOW-LEVEL FUNCTION TO BE USED BY THE
-// EXCEPTION SUBSYSTEM ONLY
 
-const unsigned short const keyb_irq_shiftconvert[8] = {
-    0,
-    SHIFT_ALPHA | SHIFT_ALPHAHOLD,
-    SHIFT_LS | SHIFT_LSHOLD,
-    SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_LS | SHIFT_LSHOLD,
-    SHIFT_RS | SHIFT_RSHOLD,
-    SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_RS | SHIFT_RSHOLD,
-    SHIFT_LS | SHIFT_LSHOLD | SHIFT_RS | SHIFT_RSHOLD,
-    SHIFT_LS | SHIFT_LSHOLD | SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_RS |
-            SHIFT_RSHOLD
-};
+// ============================================================================
+//
+//    Low-level function to be used by the exception subsystem only
+//
+// ============================================================================
 
-int keyb_irq_getkey(int wait)
+int keyb_irq_getkey()
+// ----------------------------------------------------------------------------
+//   Get a non-shift key
+// ----------------------------------------------------------------------------
 {
-
     keymatrix m = keyb_irq_getmatrixEX();
 
-    if(wait) {
-        // wait for a non-shift key to be pressed
-        while((m & (~KEYMATRIX_ALL_SHIFTS)) == 0LL)
-            m = keyb_irq_getmatrixEX();
-    }
+    // Wait for a non-shift key to be pressed
+    while ((m & ~KEYMATRIX_ALL_SHIFTS) == 0)
+        m = keyb_irq_getmatrixEX();
 
-    int shft = KEYMATRIX_ALPHABIT(m) | (KEYMATRIX_LSHIFTBIT(m)<<1) | (KEYMATRIX_RSHIFTBIT(m)<<2);
+    // Check which shift keys are pressed
+    int shifts = 0;
+    if (KEYMATRIX_LSHIFTBIT(m))
+        shifts |= SHIFT_LS | SHIFT_LSHOLD;
+#if KB_RSHIFT != KB_LSHIFT
+    if (KEYMATRIX_RSHIFTBIT(m))
+        shifts |= SHIFT_RS | SHIFT_RSHOLD;
+#endif // Has a genuine right shift (HP50G, etc)
+#if KB_ALPHA != KB_LSHIFT
+    if (KEYMATRIX_ALPHABIT(m))
+        shifts |= SHIFT_ALPHA | SHIFT_ALPHAHOLD;
+#endif // Has a genuine alpha key (all but DM42)
 
-    keymatrix m_noshift = m & (~KEYMATRIX_ALL_SHIFTS);
-    unsigned char *mbytes = (unsigned char *)&m_noshift;
-    int kcodebit = 0;
-    for(int k = 0; k < 8; ++mbytes, ++k, kcodebit += 8) {
-        if(*mbytes != 0) {
-            k = *mbytes;
-            while(!(k & 1)) {
-                k >>= 1;
-                ++kcodebit;
-            }
-            break;
-        }
-    }
-    int kcode = KEYMAP_CODEFROMBIT(kcodebit);
+    keymatrix noshift  = m & (~KEYMATRIX_ALL_SHIFTS);
+    int       kcodebit = ffsll(noshift);
+    int       kcode    = KEYMAP_CODEFROMBIT(kcodebit);
 
-    if(wait) {
-        while((m & (~KEYMATRIX_ALL_SHIFTS)) != 0)
-            m = keyb_irq_getmatrixEX();
-    }
+    // Wait for all non-shifted key to be released
+    while ((m & (~KEYMATRIX_ALL_SHIFTS)) != 0)
+        m = keyb_irq_getmatrixEX();
 
-    if(kcodebit < 64)
-              return kcode | keyb_irq_shiftconvert[shft];
+    if (kcodebit < 64)
+        return kcode | shifts;
+
     return 0;
-
 }
-
-#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
-#define REPEAT_KEYTIME (keyb_irq_repeattime)
-#define BOUNCE_KEYTIME (keyb_irq_debounce)
-
-#define KF_RUNNING   1
-#define KF_ALPHALOCK 2
-#define KF_NOREPEAT  4
-#define KF_UPDATED   8
 
 void keyb_irq_postmsg(unsigned int msg)
 {

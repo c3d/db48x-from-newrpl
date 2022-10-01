@@ -565,9 +565,10 @@ keymatrix                  keyb_getmatrix();
 int keyb_getkey(int wait);
 
 // Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS            ((1ULL << KB_ALPHA) |    \
+#define KEYMATRIX_ALL_SHIFTS            ((1ULL << KB_ALPHA)  |   \
                                          (1ULL << KB_LSHIFT) |   \
-                                         (1ULL << KB_RSHIFT))
+                                         (1ULL << KB_RSHIFT) |   \
+                                         (1ULL << KB_SHIFT))
 #define KEYMATRIX_ON                    (1ULL << KB_ON)
 #define KEYMATRIX_LSHIFTBIT(matrix)     (((matrix)>>KB_LSHIFT)&1)
 #define KEYMATRIX_RSHIFTBIT(matrix)     (((matrix)>>KB_RSHIFT)&1)
@@ -579,6 +580,14 @@ int keyb_getkey(int wait);
 
 #define KEYMAP_IS_SHIFT_OR_ON(bit)      ((1ULL<<bit) & (KEYMATRIX_ALL_SHIFTS | KEYMATRIX_ON))
 
+#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
+#define REPEAT_KEYTIME    (keyb_irq_repeattime)
+#define BOUNCE_KEYTIME    (keyb_irq_debounce)
+
+#define KF_RUNNING        1
+#define KF_ALPHALOCK      2
+#define KF_NOREPEAT       4
+#define KF_UPDATED        8
 
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_PRESS           0x0000

@@ -13,7 +13,7 @@
 RECORDER(exceptions, 16, "System exceptions");
 
 void keyb_irq_waitrelease();
-int keyb_irq_getkey(int wait);
+int keyb_irq_getkey();
 
 extern unsigned int RPLLastOpcode;
 
@@ -482,7 +482,7 @@ ARM_MODE int exception_handler(char *exstr, unsigned int *registers,
     keyb_irq_waitrelease();
 
     do {
-        f = keyb_irq_getkey(1);
+        f = keyb_irq_getkey();
 
         if(options & EX_CONT) {
             j = EX_CONT;

@@ -17,13 +17,15 @@ extern void keyb_irq_update();
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
 extern unsigned short int keyb_irq_buffer[KEYB_BUFFER];
-extern volatile int keyb_irq_lock;
-extern int keyflags;
-extern int kused, kcurrent;
-extern keymatrix kmat;
-extern int keyplane;
-extern int keynumber, keycount;
-extern int keyb_irq_repeattime, keyb_irq_longpresstime, keyb_irq_debounce;
+extern volatile int       keyb_irq_lock;
+extern int                keyflags;
+extern int                kused, kcurrent;
+extern keymatrix          kmat;
+extern int                keyplane;
+extern int                keynumber, keycount;
+extern int                keyb_irq_repeattime;
+extern int                keyb_irq_longpresstime;
+extern int                keyb_irq_debounce;
 
 // LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
 // HANDLERS ONLY
@@ -88,7 +90,7 @@ keymatrix keyb_irq_getmatrix()
     *GPGCON = 0x5555AAA9;       // SET TO TRIGGER INTERRUPTS ON ANY KEY
     *GPGDAT = 0;        // DRIVE ALL OUTPUT COLUMNS LOW
 
-    unsigned int volatile *GPFDAT = ((unsigned int *)(IO_REGS + 0x54));
+    volatile unsigned int *GPFDAT = ((unsigned int *) (IO_REGS + 0x54));
 
     c = 0;
     while (c < DEBOUNCE) {
@@ -125,15 +127,6 @@ void keyb_irq_waitrelease()
         m = keyb_irq_getmatrixEX();
     }
 }
-
-#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
-#define REPEAT_KEYTIME (keyb_irq_repeattime)
-#define BOUNCE_KEYTIME (keyb_irq_debounce)
-
-#define KF_RUNNING   1
-#define KF_ALPHALOCK 2
-#define KF_NOREPEAT  4
-#define KF_UPDATED   8
 
 // RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
 // MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED

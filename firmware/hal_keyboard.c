@@ -7741,15 +7741,13 @@ int halDefaultKeyExists(WORD keymsg)
 
 }
 
-// PROCESSES KEY MESSAGES AND CALL APPROPRIATE HANDLERS BY KEYCODE
-
-// RETURNS 0 IF THE LOOP HAS TO CONTINUE, 1 TO TERMINATE OUTER LOOP
-
 int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
+// ----------------------------------------------------------------------------
+//   Process key messages and call appropriate handlers for keycode
+// ----------------------------------------------------------------------------
+//  Returns 0 if the loop has to continue, 1 to terminate outer loop
 {
-    int wasProcessed;
-
-    if(!keymsg)
+    if (!keymsg)
         return 0;
 
     record(keys,
@@ -7760,22 +7758,26 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
            dokey);
 
 #ifdef TARGET_PRIME
-    if(KM_MESSAGE(keymsg) == KM_TOUCH) {
+    if (KM_MESSAGE(keymsg) == KM_TOUCH)
+    {
         // TODO: Convert touch events into keys or gestures
         word_p keyname = rplMsg2KeyName(keymsg);
-        if(keyname)
+        if (keyname)
             rplPushData(keyname);
         else
             rplPushFalse();
     }
 #endif /* TARGET_PRIME */
 
-    if(KM_MESSAGE(keymsg) == KM_SHIFT) {
+    int processed = 0;
+    if (KM_MESSAGE(keymsg) == KM_SHIFT)
+    {
         halScreenUpdated();
 
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
-        if(KM_SHIFTPLANE(keymsg) & SHIFT_LS) {
-            if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+        if (KM_SHIFTPLANE(keymsg) & SHIFT_LS)
+        {
+            if ((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
             {
                 halSetNotification(N_LEFTSHIFT, 0xf);
                 halSetNotification(N_INTERNALSHIFTHOLD, 0xf);
@@ -7783,18 +7785,19 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
             else
             {
                 halSetNotification(N_LEFTSHIFT, 8);
-            halSetNotification(N_INTERNALSHIFTHOLD, 0);
+                halSetNotification(N_INTERNALSHIFTHOLD, 0);
             }
         }
         else
         {
             halSetNotification(N_LEFTSHIFT, 0);
-            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            if (!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+                halSetNotification(N_INTERNALSHIFTHOLD, 0);
         }
 
-        if(KM_SHIFTPLANE(keymsg) & SHIFT_RS) {
-            if((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+        if (KM_SHIFTPLANE(keymsg) & SHIFT_RS)
+        {
+            if ((KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
             {
                 halSetNotification(N_RIGHTSHIFT, 0xf);
                 halSetNotification(N_INTERNALSHIFTHOLD, 0xf);
@@ -7808,38 +7811,43 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         else
         {
             halSetNotification(N_RIGHTSHIFT, 0);
-            if(!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
-                halSetNotification(N_INTERNALSHIFTHOLD,0);
+            if (!(KM_SHIFTPLANE(keymsg) & SHIFT_HOLD))
+                halSetNotification(N_INTERNALSHIFTHOLD, 0);
         }
-        if(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA) {
-            if((KM_SHIFTPLANE(keymsg) & SHIFT_ALHOLD))
+        if (KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA)
+        {
+            if ((KM_SHIFTPLANE(keymsg) & SHIFT_ALHOLD))
             {
                 halSetNotification(N_ALPHA, 15);
-                halSetNotification(N_INTERNALALPHAHOLD,15);
+                halSetNotification(N_INTERNALALPHAHOLD, 15);
             }
             else
             {
                 halSetNotification(N_ALPHA, 8);
-                halSetNotification(N_INTERNALALPHAHOLD,0);
+                halSetNotification(N_INTERNALALPHAHOLD, 0);
             }
         }
         else
         {
             halSetNotification(N_ALPHA, 0);
-            halSetNotification(N_INTERNALALPHAHOLD,0);
+            halSetNotification(N_INTERNALALPHAHOLD, 0);
         }
 
         // UPDATE EDITOR MODE ACCORDINGLY
         int oldplane = OLDKEYSHIFT(keymsg);
-        if(KM_SHIFTPLANE(keymsg ^ oldplane) & SHIFT_ALPHA) {
+        if (KM_SHIFTPLANE(keymsg ^ oldplane) & SHIFT_ALPHA)
+        {
             // THERE WAS A CHANGE IN ALPHA MODE
             halSwapCmdLineMode(KM_SHIFTPLANE(keymsg) & SHIFT_ALPHA);
         }
-        else {
+        else
+        {
             // NO CHANGE IN ALPHA STATE
-            if(KM_SHIFTPLANE(oldplane) & SHIFT_ALPHALOCK) {
-                if((KM_SHIFTPLANE(keymsg ^ oldplane) & SHIFT_ALPHAHOLD) ==
-                        SHIFT_ALHOLD) {
+            if (KM_SHIFTPLANE(oldplane) & SHIFT_ALPHALOCK)
+            {
+                if ((KM_SHIFTPLANE(keymsg ^ oldplane) & SHIFT_ALPHAHOLD) ==
+                    SHIFT_ALHOLD)
+                {
                     // CHECK GOING FROM ALPHA TO ALPHA-HOLD OR VICEVERSA
                     // TEMPORARILY CHANGE SHIFT STATE
                     alphaKeyHandler(0);
@@ -7848,89 +7856,100 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         }
 
         return 0;
-
     }
 
     // THIS ALLOWS KEYS WITH LONG PRESS DEFINITION TO POSTPONE
     // EXECUTION UNTIL THE KEY IS RELEASED
-    if(halLongKeyPending) {
+    if (halLongKeyPending)
+    {
         // THERE WAS A KEY PENDING EXECUTION
-        if((KM_MESSAGE(keymsg) == KM_LPRESS)
-                && (KM_KEY(keymsg) == KM_KEY(halLongKeyPending))) {
-            // WE RECEIVED A LONG PRESS ON THAT KEY, DISCARD THE OLD EVENT AND DO A LONG PRESS ONLY
+        if ((KM_MESSAGE(keymsg) == KM_LPRESS) &&
+            (KM_KEY(keymsg) == KM_KEY(halLongKeyPending)))
+        {
+            // WE RECEIVED A LONG PRESS ON THAT KEY, DISCARD THE OLD EVENT AND
+            // DO A LONG PRESS ONLY
             halLongKeyPending = 0;
         }
-        else {
-            // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
+        else
+        {
+            // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY
+            // FIRST, THEN THE NEW ONE
 
-            int32_t tmp = halLongKeyPending;
-            halLongKeyPending = 0;      // THIS CLEANUP IS ONLY NEEDED IN CASE THE KEY HANDLER CALLS A KEYBOARD LOOP
+            int32_t tmp       = halLongKeyPending;
+            halLongKeyPending = 0; // THIS CLEANUP IS ONLY NEEDED IN CASE THE
+                                   // KEY HANDLER CALLS A KEYBOARD LOOP
 
-            if(dokey)
-                wasProcessed = (*dokey) (tmp);
+            if (dokey)
+                processed = (*dokey)(tmp);
             else
-                wasProcessed = 0;
+                processed = 0;
 
-            if(!(flags & OL_NOCUSTOMKEYS))
-                if(!wasProcessed)
-                    wasProcessed = halDoCustomKey(tmp);
-            if(!(flags & OL_NODEFAULTKEYS))
-                if(!wasProcessed)
-                    wasProcessed = halDoDefaultKey(tmp);
+            if (!(flags & OL_NOCUSTOMKEYS))
+                if (!processed)
+                    processed = halDoCustomKey(tmp);
+            if (!(flags & OL_NODEFAULTKEYS))
+                if (!processed)
+                    processed = halDoDefaultKey(tmp);
 
-            if(wasProcessed < 0)
-                return 1;       // DON'T EXECUTE THE NEW KEY IF THIS ONE WANTS TO END THE LOOP
+            if (processed < 0)
+                return 1; // DON'T EXECUTE THE NEW KEY IF THIS ONE WANTS TO END
+                          // THE LOOP
         }
-
     }
 
     // BEFORE EXECUTING, CHECK IF THIS KEY HAS A LONG PRESS ASSIGNMENT
     // AND IF SO, DELAY EXECUTION
 
-    if(KM_MESSAGE(keymsg) == KM_PRESS) {
-        if(flags & OL_LONGPRESS) {
+    if (KM_MESSAGE(keymsg) == KM_PRESS)
+    {
+        if (flags & OL_LONGPRESS)
+        {
             // ALL KEYS WAIT FOR A LONG PRESS EVENT
             halLongKeyPending = keymsg;
             return 0;
         }
-        else {
-            // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE EXECUTE IMMEDIATELY
+        else
+        {
+            // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE
+            // EXECUTE IMMEDIATELY
             int32_t longmsg = KM_LPRESS | KM_SHIFTEDKEY(keymsg);
 
-            if(halCustomKeyExists(longmsg)) {
+            if (halCustomKeyExists(longmsg))
+            {
                 halLongKeyPending = keymsg;
                 return 0;
             }
-            if(halDefaultKeyExists(longmsg)) {
+            if (halDefaultKeyExists(longmsg))
+            {
                 halLongKeyPending = keymsg;
                 return 0;
             }
         }
     }
 
-    if(dokey)
-        wasProcessed = (*dokey) (keymsg);
+    if (dokey)
+        processed = (*dokey)(keymsg);
     else
-        wasProcessed = 0;
-    if(!(flags & OL_NOCUSTOMKEYS))
-        if(!wasProcessed)
-            wasProcessed = halDoCustomKey(keymsg);
-    if(!(flags & OL_NODEFAULTKEYS))
-        if(!wasProcessed)
-            wasProcessed = halDoDefaultKey(keymsg);
+        processed = 0;
+    if (!(flags & OL_NOCUSTOMKEYS))
+        if (!processed)
+            processed = halDoCustomKey(keymsg);
+    if (!(flags & OL_NODEFAULTKEYS))
+        if (!processed)
+            processed = halDoDefaultKey(keymsg);
 
     if (RECORDER_TWEAK(keys_debug))
     {
         // *************** DEBUG ONLY ************
-        if (!wasProcessed && ((KM_MESSAGE(keymsg) == KM_PRESS) ||
+        if (!processed && ((KM_MESSAGE(keymsg) == KM_PRESS) ||
                               (KM_MESSAGE(keymsg) == KM_LPRESS) ||
                               (KM_MESSAGE(keymsg) == KM_REPEAT)))
         {
             // All other keys, just display the key name on screen
             gglsurface scr;
             ggl_init_screen(&scr);
-            const UNIFONT *fnt = FONT_STATUS;
-            char keyName[16] = { 0 };
+            const UNIFONT *fnt         = FONT_STATUS;
+            char           keyName[16] = { 0 };
             snprintf(keyName, sizeof(keyName), "%X %u", keymsg, KM_KEY(keymsg));
 
             int width = StringWidth(keyName, fnt);
@@ -7986,11 +8005,12 @@ int halProcessKey(WORD keymsg, int (*dokey)(WORD), int32_t flags)
         }
     }
 
-    if(wasProcessed < 0)
+    if (processed < 0)
         return 1;
     else
         return 0;
 }
+
 
 // SET A PROCESS TO BE EXECUTED AS SOON AS THERE'S NO MORE KEY PRESSES
 void halDeferProcess(void (*function)(void))

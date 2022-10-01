@@ -8,8 +8,8 @@
 #include <newrpl.h>
 #include <ui.h>
 
-void keyb_irq_waitrelease();
-int keyb_irq_getkey(int wait);
+void                keyb_irq_waitrelease();
+int                 keyb_irq_getkey();
 
 extern unsigned int RPLLastOpcode;
 
@@ -310,7 +310,7 @@ int exception_handler(char *exstr, unsigned int *registers, int options)
     keyb_irq_waitrelease();
 
     do {
-        f = keyb_irq_getkey(1);
+        f = keyb_irq_getkey();
 
         if(options & EX_CONT) {
             j = EX_CONT;

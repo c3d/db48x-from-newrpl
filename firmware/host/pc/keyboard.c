@@ -24,8 +24,9 @@ extern int kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
 extern keymatrix kmat SYSTEM_GLOBAL;
 extern int keyplane SYSTEM_GLOBAL;
 extern int keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
-extern int keyb_irq_repeattime, keyb_irq_longpresstime SYSTEM_GLOBAL,
-        keyb_irq_debounce SYSTEM_GLOBAL;
+extern int keyb_irq_repeattime;
+extern int keyb_irq_longpresstime SYSTEM_GLOBAL;
+extern int keyb_irq_debounce SYSTEM_GLOBAL;
 
 // QT-BASED KEYBOARD MESSAGES MUST UPDATE THIS MATRIX;
 volatile keymatrix pckeymatrix;
