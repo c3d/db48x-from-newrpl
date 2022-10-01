@@ -6370,8 +6370,9 @@ struct keyhandler_t
 };
 
 // LIST OF HANDLERS, END WITH action=NULL
-const struct keyhandler_t const keydefaulthandlers[] = {
-
+// clang-format off
+const struct keyhandler_t const keydefaulthandlers[] =
+{
     // BASIC NUMBERS
     {KM_PRESS | KB_1, CONTEXT_ANY, &numberKeyHandler},
     {KM_PRESS | KB_2, CONTEXT_ANY, &numberKeyHandler},
@@ -7508,6 +7509,8 @@ const struct keyhandler_t const keydefaulthandlers[] = {
 
     {0, 0, 0}
 };
+// clang-format on
+
 
 // DO CUSTOM KEYBOARD ACTIONS. RETURN 0 IF NO ACTION WAS DEFINED, NONZERO IF SOMETHING WAS EXECUTED
 // KEY MESSAGES ARE PROCESSED THROUGH A LIST OF USER DEFINED KEYCODES
