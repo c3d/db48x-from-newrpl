@@ -38,7 +38,7 @@ int FSMountVolume(SD_CARD * Disk, FS_VOLUME * fs, int VolNumber)
 
     do {
 //printf("Vaddr=%08X\n",fs->VolumeAddr);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
         if(!SDDRead((((uint64_t) fs->VolumeAddr) << 9), 512, TempData, Disk)) {
             simpfree(TempData);
             return FALSE;

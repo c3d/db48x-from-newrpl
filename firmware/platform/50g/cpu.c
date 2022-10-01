@@ -216,9 +216,11 @@ ARM_MODE void cpu_waitforinterrupt()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-ARM_MODE int cpu_getlock(int lockvar, volatile int *lock_ptr)
+ARM_MODE int cpu_get_lock(int lockvar, volatile int *lock_ptr)
 {
-    asm volatile ("swp %1,%1,[%2];":"=r" (lockvar):"r"(lockvar), "r"(lock_ptr));
+    asm volatile("swp %1,%1,[%2];"
+                 : "=r"(lockvar)
+                 : "r"(lockvar), "r"(lock_ptr));
 
     return lockvar;
 }

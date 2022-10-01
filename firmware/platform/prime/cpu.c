@@ -28,7 +28,7 @@ INTERRUPT_TYPE cpu_intoff_nosave()
 	*INTMSK1 = 0xffffffff;
 	*INTMSK2 = 0xffffffff;
 
-	return previous;	
+	return previous;
 }
 
 void cpu_inton()
@@ -203,9 +203,11 @@ int cpu_getPCLK()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-ARM_MODE int cpu_getlock(int lockvar, volatile int *lock_ptr)
+ARM_MODE int cpu_get_lock(int lockvar, volatile int *lock_ptr)
 {
-    asm volatile ("swp %1,%1,[%2];":"=r" (lockvar):"r"(lockvar), "r"(lock_ptr));
+    asm volatile("swp %1,%1,[%2];"
+                 : "=r"(lockvar)
+                 : "r"(lockvar), "r"(lock_ptr));
 
     return lockvar;
 }
@@ -327,7 +329,7 @@ ARM_MODE void reset_gpio()
     // GPK0-15 input pull-down
     *GPKCON = 0x00000000;
     *GPKUDP = 0x55555555;
-    
+
     // GPL0-3 input pull-down
     // GPL8-9 input pull-down
     // GPL13 output low

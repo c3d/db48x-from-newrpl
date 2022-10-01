@@ -71,7 +71,7 @@ void SDSetClock(int sdclk)
         prescaler = 0xff;
 
 //      printf("Prescaler=%d\n",prescaler);
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
     *SDIPRE = prescaler;
 }
 
@@ -150,7 +150,7 @@ int SDIOSetup(SD_CARD * card, int shutdown)
         else
             *EXTINT0 = ((*EXTINT0) & (~0x7000)) | (0x4000);
 
-        irq_addhook(3, &SD_irqeventinsert); // INSTALL IRQ HANDLER
+        irq_add_hook(3, &SD_irqeventinsert); // INSTALL IRQ HANDLER
 
         *GPF(CON) = (*GPF(CON) & (~0xc0)) | (0X80);     // SET PIN FUNCTION TO EINT3
 
@@ -291,7 +291,7 @@ int SDSlowDown()
     *SDIPRE = a;
 
 //printf("Slowdown=%d\n",a);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
     SDPowerUp();
 
     return TRUE;
@@ -321,7 +321,7 @@ int SDWaitResp(int mask)
 //printf("Hang: %04X, org=%04X\n",a,*SDICSTA);
 //printf("DSTA=%04X\n",*SDIDSTA);
 //printf("FSTA=%04X\n",*SDIFSTA);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
         return 0x400;
 
     }
@@ -411,7 +411,7 @@ int SDSendACmd(int rca, int cmdnum, int arg, int cmdmsk, int mask)
             // ** CODE REMOVED - OBSOLETE (NEVER CALLED IN MY TESTS) **
             //if(trials<80) continue;           // RETRY 20 TIMES BEFORE GIVING ERROR
 //                      printf("Slowdown!\n");
-//                      keyb_getkeyM(1);
+//                      keyb_get_keyM(1);
             //if(!SDSlowDown()) { printf("A slowdown failed\n"); return FALSE;}  else { trials-=80; continue; }         // retry if Timeout
             continue;
 
@@ -706,7 +706,7 @@ int SDDStop()
 {
 // FINISH TRANSMISSION
 //printf("ABout to stop transmission\n");
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
 //*SDIDCON=0x34000;
 //printf("SDIDCNT=%04X\n",*SDIDCNT);
 //printf("SDIBSIZE=%04X\n",*SDIBSIZE);
@@ -716,7 +716,7 @@ int SDDStop()
         if((*SDIDSTA & 1) && (*SDIFSTA & 0x100)) {
 // ONGOING READ OPERATION W/FULL FIFO, CLOCK MAY BE STOPPED
 //printf("Clock stopped!\n");
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
             while(*SDIFSTA & 0x1000)
                 *SDIDCNT = *SDIDAT;
             continue;
@@ -727,7 +727,7 @@ int SDDStop()
 
 //printf("Failed to STOP transmission\n");
 //*SDIDCON=0x34000;
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
             break;
         }
 
@@ -844,7 +844,7 @@ SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD * card)
 
     /*
        printf("status=%04X\n",status);
-       keyb_getkeyM(1);
+       keyb_get_keyM(1);
        if(status&0x20) {                // CHECK FOR TIMEOUT
        printf("Timeout!\n");
        if(!SDSlowDown()) {
@@ -1020,7 +1020,7 @@ SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD * card)
 // FAILED TO GET START BIT
 // MOST LIKELY CARD IS BUSY
 //printf("Card busy?\n");
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
                         while((*SDIFSTA & 0x1000)) {
                             *SDIDCNT = *SDIDAT;
                         }
@@ -1099,13 +1099,13 @@ SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD * card)
     }
 
     if((*SDIDSTA & 0x1fc) != 0x10) {
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
 //printf("blocks=%d\n",blocks);
 //printf("DSTA=%04X\n",*SDIDSTA);
 //printf("FSTA=%04X\n",*SDIFSTA);
 //printf("Data Error!!!\n");
         *SDIDSTA = 0x7fc;       // RESET ALL BITS
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
         halFlags &= ~HAL_NOCLOCKCHANGE;
 
         return FALSE;
@@ -1114,7 +1114,7 @@ SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD * card)
     *SDIDSTA = 0x7fc;   // RESET ALL BITS
 //if(startaddr-SDAddr!=NumBytes) {
 //printf("What??? %d==%d\n",startaddr-SDAddr,NumBytes);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
 //}
     halFlags &= ~HAL_NOCLOCKCHANGE;
 
@@ -1374,7 +1374,7 @@ SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD * card)
 
     /*
        printf("status=%04X\n",status);
-       keyb_getkeyM(1);
+       keyb_get_keyM(1);
        if(status&0x20) {                // CHECK FOR TIMEOUT
        printf("Timeout!\n");
        if(!SDSlowDown()) {

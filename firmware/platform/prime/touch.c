@@ -228,7 +228,7 @@ static void nt11002_get_properties(ts_t *ts)
     // max_fingers = buffer[9];
 }
 
-extern void keyb_irq_postmsg(unsigned int msg);
+extern void keyb_irq_post_message(unsigned int msg);
 
 static int nt11002_get_data(ts_t *ts)
 {
@@ -246,7 +246,7 @@ static int nt11002_get_data(ts_t *ts)
         y = ( y * ts->adjust_height) >> 10;
 
         if((track_id>0)&&(track_id<=TS_FINGERS)) {
-            keyb_postmsg(KM_MAKETOUCHMSG((((int)event)<<30),((int)track_id),x,y));
+            keyb_post_message(KM_TOUCH_MESSAGE((((int)event)<<30),((int)track_id),x,y));
             result = 1; // Return 1 if there were any valid touch events
         }
 
@@ -341,7 +341,7 @@ static int gt9137_get_data(ts_t *ts)
                 x = ( x * ts->adjust_width ) >> 10;
                 y = ( y * ts->adjust_height) >> 10;
 
-                keyb_postmsg(KM_MAKETOUCHMSG((((int)event)<<30),((int)(track_id+1)),x,y));
+                keyb_post_message(KM_TOUCH_MESSAGE((((int)event)<<30),((int)(track_id+1)),x,y));
 
                 // And clear the state, this finger was lifted
 
@@ -374,7 +374,7 @@ static int gt9137_get_data(ts_t *ts)
             x = ( x * ts->adjust_width ) >> 10;
             y = ( y * ts->adjust_height) >> 10;
 
-            keyb_postmsg(KM_MAKETOUCHMSG((((int)event)<<30),((int)(track_id+1)),x,y));
+            keyb_post_message(KM_TOUCH_MESSAGE((((int)event)<<30),((int)(track_id+1)),x,y));
             }
 
         }
@@ -399,7 +399,7 @@ static int gt9137_get_data(ts_t *ts)
                     x = ( x * ts->adjust_width ) >> 10;
                     y = ( y * ts->adjust_height) >> 10;
 
-                    keyb_postmsg(KM_MAKETOUCHMSG((((int)event)<<30),((int)(track_id+1)),x,y));
+                    keyb_post_message(KM_TOUCH_MESSAGE((((int)event)<<30),((int)(track_id+1)),x,y));
 
                     // And clear the state, this finger was lifted
 
@@ -496,7 +496,7 @@ void ts_init()
 
     if(touchscreen.detected) {
         ts_status = TS_STAT_INIT;
-        irq_addhook(2, &ts_update);
+        irq_add_hook(2, &ts_update);
         irq_clrpending(2);
         irq_unmask(2);
     }

@@ -11,9 +11,6 @@
 
 RECORDER(exceptions, 16, "System exceptions");
 
-void                keyb_irq_waitrelease();
-int                 keyb_irq_getkey();
-
 extern unsigned int RPLLastOpcode;
 
 // EXCEPTIONS SCREEN AREA RIGHT AFTER THE SCREEN, RESERVE SPACE FOR 16-BIT COLOR MODE
@@ -575,56 +572,56 @@ doitagain:
 
     // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
 
-    keyb_irq_waitrelease();
+    keyb_irq_wait_release();
 
 
     do
     {
-        f = keyb_irq_getkey();
+        f = keyb_irq_get_key();
 
         if (options & EX_CONT)
         {
             j = EX_CONT;
-            if (KEYVALUE(f) == KB_SYMB)
+            if (KM_KEY(f) == KB_SYMB)
                 break;
         }
         if (options & (EX_EXIT | EX_RPLEXIT))
         {
             j = options & (EX_EXIT | EX_RPLEXIT);
-            if (KEYVALUE(f) == KB_PLOT)
+            if (KM_KEY(f) == KB_PLOT)
                 break;
         }
-        if (KEYVALUE(f) == KB_MENU)
+        if (KM_KEY(f) == KB_MENU)
         {
             options ^= EX_RPLREGS;
             options &= ~EX_NOREG;
             goto doitagain;
         }
         // FORCE A SHIFTED KEY PRESS
-        if (!KEYSHIFT(f))
+        if (!KM_SHIFT(f))
             continue;
 
 
         if (options & (EX_WARM | EX_WIPEOUT))
         {
             if ((options & EX_WIPEOUT) &&
-                (KEYSHIFT(f) == (SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_RS | SHIFT_RSHOLD | SHIFT_LS | SHIFT_LSHOLD)))
+                (KM_SHIFT(f) == (KSHIFT_ALPHA | KHOLD_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_LEFT | KHOLD_LEFT)))
                 j = EX_WIPEOUT;
             else
                 j = EX_WARM;
-            if (KEYVALUE(f) == KB_NUM)
+            if (KM_KEY(f) == KB_NUM)
                 break;
         }
 
         if (options & EX_RESET)
         {
             j = EX_RESET;
-            if (KEYVALUE(f) == KB_HELP)
+            if (KM_KEY(f) == KB_HELP)
                 break;
         }
     } while (1);
 
-    keyb_irq_waitrelease();
+    keyb_irq_wait_release();
 
     lcd_restore(lcd_buffer);
 

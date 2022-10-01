@@ -1963,7 +1963,7 @@ ARM_MODE void ram_startfwupdate()
     cpu_flushicache();
 
     // SET INTERRUPT HANDLER IN RAM
-    irq_addhook(25,
+    irq_add_hook(25,
             (void *)(codeblock + ((word_p) & ramusb_irqservice -
                     (word_p) & ramusb_crc32roll)));
 

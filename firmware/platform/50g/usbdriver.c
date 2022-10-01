@@ -455,8 +455,8 @@ void usb_init(int force)
     irq_mask(25);
     irq_mask(1);
 
-    irq_addhook(25, &usb_irqservice);
-    irq_addhook(1, &usb_irqdisconnect);
+    irq_add_hook(25, &usb_irqservice);
+    irq_add_hook(1, &usb_irqdisconnect);
 
     // ELIMINATE PREVIOUS DISCONNECT INTERRUPTS CAUSED BY NOISE
     *HWREG(INT_REGS, 0) = 2;    // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
@@ -501,7 +501,7 @@ void usb_shutdown()
     *HWREG(IO_REGS, 0x50) = (*HWREG(IO_REGS, 0x50) & (~0xc)) | 0x8;     // GPF1 SET TO EINT1
     *HWREG(IO_REGS, 0x88) = (*HWREG(IO_REGS, 0x88) & (~0x70)) | 0x40;   // CHANGE TO RAISING EDGE TRIGGERED
 
-    irq_addhook(1, &usb_irqconnect);
+    irq_add_hook(1, &usb_irqconnect);
 
     *HWREG(INT_REGS, 0) = 2;    // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
     *HWREG(INT_REGS, 0X10) = 2; // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE

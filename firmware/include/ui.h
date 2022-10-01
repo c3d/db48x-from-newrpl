@@ -157,8 +157,8 @@
 // Theme colors for status area
 #  define THEME_STA_BG            THEME_GRAY0
 #  define THEME_STA_TEXT          THEME_GRAY15
-#  define THEME_STA_ANNPRESS      THEME_GRAY15
-#  define THEME_STA_ANN           THEME_GRAY8
+#  define THEME_STA_ANNPRESS      THEME_GRAY8
+#  define THEME_STA_ANN           THEME_GRAY15
 #  define THEME_STA_BAT           THEME_GRAY15
 #  define THEME_STA_UFLAG0        THEME_GRAY8
 #  define THEME_STA_UFLAG1        THEME_GRAY15

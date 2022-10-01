@@ -100,7 +100,7 @@ int FSGetChain(int firstcluster, FS_FRAGMENT * fr, FS_VOLUME * fs)
                 for(; addr <= 510; addr += 2, ++firstcluster) {
                     fatentry = ReadInt16(buffer + addr);
                     //printf("Entry=%04X fc=%04X\n",fatentry,firstcluster);
-                    //keyb_getkeyM(1);
+                    //keyb_get_keyM(1);
                     if(fatentry != firstcluster + 1) {
 //              printf("End of fragment\nnewcluster=%d\ncurrent=%d\n",fatentry,firstcluster);
                         anotherblock = 0;
@@ -134,7 +134,7 @@ int FSGetChain(int firstcluster, FS_FRAGMENT * fr, FS_VOLUME * fs)
         fr->EndAddr =
                 FSCluster2Addr(firstcluster, fs) + (1 << (fs->ClusterSize - 9));
 //printf("end of frag\n");
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
         if(!eoc) {
             if(!(fr->NextFragment =
                         (FS_FRAGMENT *) simpmallocb(sizeof(FS_FRAGMENT)))) {

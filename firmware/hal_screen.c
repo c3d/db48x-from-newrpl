@@ -11,6 +11,8 @@
 #include <newrpl.h>
 #include <ui.h>
 
+RECORDER(annunciators, 16, "Annunciators");
+
 // THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
 // SET TO SHOW/HIDE THE NOTIFICATION ICON
@@ -760,8 +762,8 @@ void halInitScreen()
     halScreen.SAreaTimer  = 0;
     halScreen.CursorTimer = -1;
     halScreen.KeyContext  = CONTEXT_STACK;
-    halSetNotification(N_LEFTSHIFT, 0);
-    halSetNotification(N_RIGHTSHIFT, 0);
+    halSetNotification(N_LEFT_SHIFT, 0);
+    halSetNotification(N_RIGHT_SHIFT, 0);
     halSetNotification(N_ALPHA, 0);
     halSetNotification(N_LOWBATTERY, 0);
     halSetNotification(N_HOURGLASS, 0);
@@ -1763,38 +1765,46 @@ void halRedrawStatus(gglsurface *scr)
         xctracker = 4;
         ytop      = LCD_H - 1 - Font_Notifications->BitmapHeight;
 
+        unsigned highlightFlags =
+            ((halGetNotification(N_DATARECVD) != 0)     << 1)   |
+            (((keyb_flags & KHOLD_LEFT)       != 0)     << 2)   |
+            (((keyb_flags & KHOLD_RIGHT)      != 0)     << 3)   |
+            (((keyb_flags & KHOLD_ALPHA)      != 0)     << 4);
+
         static struct annunciator
         {
             int id;
             int highlight;
             utf8_p label;
-        } annunciators[] =
-        {
-            { N_ALARM,          0,                      "X" },
-            { N_CONNECTION,       N_DATARECVD,            "U"},
-            { N_LEFTSHIFT,        N_INTERNALSHIFTHOLD,    "L"},
-            { N_RIGHTSHIFT,       N_INTERNALSHIFTHOLD,    "R"},
-            { N_ALPHA,            N_INTERNALALPHAHOLD,    "A"},
-            { N_HOURGLASS,        0,                      "W"},
+        } annunciators[] = {
+            {      N_ALARM, 0, "X"},
+            { N_CONNECTION, 1, "U"},
+            { N_LEFT_SHIFT, 2, "L"},
+            {N_RIGHT_SHIFT, 3, "R"},
+            {      N_ALPHA, 4, "A"},
+            {  N_HOURGLASS, 0, "W"},
         };
 
-        for (unsigned k = 0; k < sizeof(annunciators)/sizeof(annunciators[0]); k++)
+        record(annunciators, "Annunciators highlight=%X\n", highlightFlags);
+        const unsigned count = sizeof(annunciators)/sizeof(annunciators[0]);
+        for (unsigned k = 0; k < count; k++)
         {
             if (halGetNotification(annunciators[k].id))
             {
-                pattern_t fg = ggl_solid(PAL_STA_ANNPRESS);
+                pattern_t fg = ggl_solid(PAL_STA_ANN);
                 pattern_t bg = ggl_solid(PAL_STA_BG);
 
-                if (annunciators[k].highlight &&
-                    halGetNotification(annunciators[k].highlight))
+                record(annunciators, "  %d: highlight=%d",
+                       k, (highlightFlags >> annunciators[k].highlight) & 1);
+                if ((highlightFlags >> annunciators[k].highlight) & 1)
                 {
 #if BITS_PER_PIXEL == 1
                     // Monochrome: use high-resolution pattern
-                    color_t bi = ggl_color(PAL_STA_ANNPRESS);
-                    color_t wi = ggl_color(PAL_STA_ANN);
+                    color_t bi = ggl_color(PAL_STA_ANN);
+                    color_t wi = ggl_color(PAL_STA_ANNPRESS);
                     fg = ggl_pattern_4_colors(bi, bi, wi, bi);
 #else
-                    fg = ggl_solid(PAL_STA_ANN);
+                    fg = ggl_solid(PAL_STA_ANNPRESS);
 #endif
                 }
 

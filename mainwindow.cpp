@@ -32,43 +32,45 @@ extern "C"
 {
 #include "ui.h"
 #include "firmware.h"
+#include "keyboard.h"
 }
 #define takemax(a,b) (((a)>(b))? (a):(b))
 
 MainWindow *myMainWindow;
 
-// CAN'T INCLUDE THE HEADERS DIRECTLY DUE TO CONFLICTING TYPES ON WINDOWS ONLY...
-
-extern unsigned long long pckeymatrix;
-extern int pc_terminate;
-extern int memmap_intact;
+// Can't include the headers directly due to conflicting types on Windows...
+extern keymatrix    pc_key_matrix;
+extern int          pc_terminate;
+extern int          memmap_intact;
 extern volatile int cpu_idle;
-extern hid_device *usb_curdevice;
-extern char usb_devicepath[8192];
+extern hid_device  *usb_curdevice;
+extern char         usb_devicepath[8192];
 extern volatile int usb_paused;
 
-extern "C" void usb_irqservice();
-extern "C" void usb_irqdisconnect();
-extern "C" void usb_irqconnect();
-extern "C" int usb_isconnected();
+extern "C" void     usb_irqservice();
+extern "C" void     usb_irqdisconnect();
+extern "C" void     usb_irqconnect();
+extern "C" int      usb_isconnected();
 
-extern "C" void keyb_irq_update();
+extern "C" void     keyb_irq_update();
 // BACKUP/RESTORE
-extern "C" int rplBackup(int (*writefunc)(unsigned int, void *), void *);
-extern "C" int rplRestoreBackup(int, unsigned int (*readfunc)(void *), void *);
-extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)(void *), void *);      // DEBUG ONLY
+extern "C" int      rplBackup(int (*writefunc)(unsigned int, void *), void *);
+extern "C" int  rplRestoreBackup(int, unsigned int (*readfunc)(void *), void *);
+extern "C" int  rplRestoreBackupMessedup(unsigned int (*readfunc)(void *),
+                                         void *); // DEBUG ONLY
 extern "C" void SD_irqeventinsert();
 
-extern int sd_inserted;
-extern int sd_nsectors;       // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
-extern int sd_RCA;
-extern unsigned char *sd_buffer;      // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
+extern int      sd_inserted;
+extern int      sd_nsectors; // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+extern int      sd_RCA;
+extern unsigned char
+               *sd_buffer; // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
-extern "C" int usbremotearchivestart();
-extern "C" int usbreceivearchive(uint32_t * buffer, int bufsize);
-extern "C" int usbremoterestorestart();
-extern "C" int usbsendarchive(uint32_t * buffer, int bufsize);
-extern "C" int change_autorcv(int newfl);
+extern "C" int  usbremotearchivestart();
+extern "C" int  usbreceivearchive(uint32_t *buffer, int bufsize);
+extern "C" int  usbremoterestorestart();
+extern "C" int  usbsendarchive(uint32_t *buffer, int bufsize);
+extern "C" int  change_autorcv(int newfl);
 
 extern "C" void setExceptionPoweroff();
 
@@ -503,7 +505,7 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
 
     if(ev->key() == Qt::Key_F12) {
         record(gui_keys, "KeyPress Interrupt requested");
-        pckeymatrix = (1ULL << KB_ON) | (1ULL << KB_A) | (1ULL << KB_C);
+        pc_key_matrix = KM_MASK(KB_ON) | KM_MASK(KB_A) | KM_MASK(KB_C);
         keyb_irq_update();
         ev->accept();
         return;
@@ -514,7 +516,7 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
             record(gui_keys, "Offset %d keymap is %u 0x%x", i, keyMap[i], keyMap[i]);
         if(ev->key() == keyMap[i]) {
             record(gui_keys, "KeyPress found in keymap at offset %d, code is %u", i, keyMap[i+1]);
-            pckeymatrix |= 1ULL << (keyMap[i + 1]);
+            pc_key_matrix |= KM_MASK(keyMap[i + 1]);
             keyb_irq_update();
             ev->accept();
             return;
@@ -539,7 +541,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
 
     if(ev->key() == Qt::Key_F12) {
         record(gui_keys, "KeyRelease Interrupt requested");
-        pckeymatrix &= ~((1ULL << KB_ON) | (1ULL << KB_A) | (1ULL << KB_C));
+        pc_key_matrix &= ~(KM_MASK(KB_ON) | KM_MASK(KB_A) | KM_MASK(KB_C));
         keyb_irq_update();
         ev->accept();
         return;
@@ -550,7 +552,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
     for(i = 0; keyMap[i] != 0; i += 2) {
         if(mykey == keyMap[i]) {
             record(gui_keys, "KeyRelease found in keymap at offset %d, code is %u", i, keyMap[i+1]);
-            pckeymatrix &= ~(1ULL << (keyMap[i + 1]));
+            pc_key_matrix &= ~KM_MASK((keyMap[i + 1]));
             keyb_irq_update();
             ev->accept();
             return;
@@ -577,7 +579,7 @@ void MainWindow::on_actionExit_triggered()
         if(rpl.isRunning()) {
             cpu_idle = 0;
             pc_terminate = 1;
-            pckeymatrix ^= (1ULL << 63);
+            pc_key_matrix ^= KM_MASK(KB_ON);
             keyb_irq_update();
             while(rpl.isRunning()) {
                 pc_terminate = 1;
@@ -603,7 +605,7 @@ void MainWindow::on_actionExit_triggered()
     if(rpl.isRunning()) {
         cpu_idle = 0;
         pc_terminate = 1;
-        pckeymatrix ^= (1ULL << 63);
+        pc_key_matrix ^= KM_MASK(KB_ON);
         keyb_irq_update();
         while(rpl.isRunning()) {
             pc_terminate = 1;
@@ -681,7 +683,7 @@ void MainWindow::on_actionOpen_triggered()
         if(!rpl.isRunning()) {
             // RESTART RPL ENGINE
             pc_terminate = 0;
-            pckeymatrix = 0;
+            pc_key_matrix = 0;
 
             rpl.start();
             screentmr->setSingleShot(true);
@@ -717,7 +719,7 @@ void MainWindow::on_actionNew_triggered()
     if(rpl.isRunning()) {
         cpu_idle = 0;
         pc_terminate = 1;
-        pckeymatrix ^= (1ULL << 63);
+        pc_key_matrix ^= KM_MASK(KB_ON);
         keyb_irq_update();
         while(rpl.isRunning()) {
             usbupdate();
@@ -731,7 +733,7 @@ void MainWindow::on_actionNew_triggered()
 
     // RESTART RPL ENGINE
     pc_terminate = 0;
-    pckeymatrix = 0;
+    pc_key_matrix = 0;
 
     rpl.start();
 
@@ -835,7 +837,7 @@ void MainWindow::on_actionPower_ON_triggered()
     if(rpl.isRunning()) {
         cpu_idle = 0;
         pc_terminate = 1;
-        pckeymatrix ^= (1ULL << 63);
+        pc_key_matrix ^= KM_MASK(KB_ON);
         keyb_irq_update();
         while(rpl.isRunning()) {
             pc_terminate = 1;
@@ -851,7 +853,7 @@ void MainWindow::on_actionPower_ON_triggered()
 
     // RESTART RPL ENGINE
     pc_terminate = 0;
-    pckeymatrix = 0;
+    pc_key_matrix = 0;
 
     rpl.start();
     screentmr->setSingleShot(true);
@@ -1326,7 +1328,7 @@ int MainWindow::OpenFile(QString fname)
         if(rpl.isRunning()) {
             cpu_idle = 0;
             pc_terminate = 1;
-            pckeymatrix ^= (1ULL << 63);
+            pc_key_matrix ^= KM_MASK(KB_ON);
             keyb_irq_update();
             while(rpl.isRunning()) {
                 usbupdate();
@@ -1399,7 +1401,7 @@ int MainWindow::OpenFile(QString fname)
 
         // RESTART RPL ENGINE
         pc_terminate = 0;
-        pckeymatrix = 0;
+        pc_key_matrix = 0;
 
         rpl.start();
         screentmr->setSingleShot(true);
@@ -1437,7 +1439,7 @@ void MainWindow::SaveFile(QString fname)
             setExceptionPoweroff();
             cpu_idle = 0;
             pc_terminate = 1;
-            pckeymatrix ^= (1ULL << 63);
+            pc_key_matrix ^= KM_MASK(KB_ON);
             keyb_irq_update();
             while(rpl.isRunning()) {
                 usbupdate();
@@ -1455,7 +1457,7 @@ void MainWindow::SaveFile(QString fname)
         memmap_intact = 2;
         // RESTART RPL ENGINE
         pc_terminate = 0;
-        pckeymatrix = 0;
+        pc_key_matrix = 0;
         rpl.start();
         screentmr->setSingleShot(true);
         screentmr->start(20);
@@ -1523,7 +1525,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                         else {
                             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                             if(pressed) {
-                                pckeymatrix |= 1ULL << (ptr->keynum);
+                                pc_key_matrix |= 1ULL << (ptr->keynum);
                                 record(gui_keys, "Simulated key press from touch at x=%f, y=%f, key=%d",
                                        relx, rely, ptr->keynum);
                                 if(ptr->keynum == KB_ON) {
@@ -1533,7 +1535,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                                 }
                             }
                             else {
-                                pckeymatrix &= ~(1ULL << (ptr->keynum));
+                                pc_key_matrix &= ~KM_MASK((ptr->keynum));
                                 record(gui_keys, "Simulated key release from touch at x=%f, y=%f, key=%d",
                                        relx, rely, ptr->keynum);
                             }
@@ -1584,7 +1586,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                         //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                         record(gui_keys, "Simulated key press from mouse at x=%f, y=%f, key=%d",
                                relx, rely, ptr->keynum);
-                        pckeymatrix |= 1ULL << (ptr->keynum);
+                        pc_key_matrix |= 1ULL << (ptr->keynum);
                         keyb_irq_update();
                         if(ptr->keynum == KB_ON) {
                             // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
@@ -1624,7 +1626,7 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                     record(gui_keys, "Simulated key press from mouse at x=%f, y=%f, key=%d",
                            relx, rely, ptr->keynum);
-                    pckeymatrix &= ~(1ULL << (ptr->keynum));
+                    pc_key_matrix &= ~KM_MASK((ptr->keynum));
                     keyb_irq_update();
                 }
                 ptr++;

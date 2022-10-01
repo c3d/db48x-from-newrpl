@@ -96,19 +96,17 @@ ROMOBJECT theme_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
-    (word_p) lib76menu_main,
-    (word_p) lib76menu_clip,
-    (word_p) lib76menu_keyb,
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
+                                      (word_p) lib76menu_main,
+                                      (word_p) lib76menu_clip,
+                                      (word_p) lib76menu_keyb,
 
-    (word_p) clipbd_ident,
-    (word_p) invalid_string,
-    (word_p) theme_ident,
+                                      (word_p) clipbd_ident,
+                                      (word_p) invalid_string,
+                                      (word_p) theme_ident,
 
-    0
-};
+                                      0 };
 
 //  PROCESS KEYS FOR THE WAIT COMMAND (ON CAN INTERRUPT THE WAIT)
 int waitProcess(WORD keymsg)
@@ -126,9 +124,9 @@ int waitKeyProcess(WORD keymsg)
 {
     switch (KM_MESSAGE(keymsg)) {
     case KM_PRESS:
-    case KM_LPRESS:
+    case KM_LONG_PRESS:
     case KM_REPEAT:
-    case KM_LREPEAT:
+    case KM_LONG_OR_REPEAT:
         // CAPTURE THE KEY MESSAGE
         RetNum = keymsg;
         return -1;
@@ -277,34 +275,38 @@ void LIB_HANDLER()
 
         RetNum = 0;
 
-        if(mstimeout > 0) {
-            halOuterLoop(mstimeout, &waitProcess, 0,
-                    OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF | OL_NOCUSTOMKEYS |
-                    OL_NODEFAULTKEYS | OL_EXITONERROR);
+        if (mstimeout > 0)
+        {
+            halOuterLoop(mstimeout,
+                         &waitProcess,
+                         0,
+                         OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF |
+                             OL_NOCUSTOMKEYS | OL_NODEFAULTKEYS |
+                             OL_EXITONERROR);
             rplDropData(1);
         }
-        else {
-            if(mstimeout < 0)
-                mstimeout = -mstimeout;
-            halOuterLoop(mstimeout, &waitKeyProcess, 0,
-                    OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF | OL_NODEFAULTKEYS |
-                    OL_NOCUSTOMKEYS | OL_LONGPRESS | OL_EXITONERROR);
+        else if (mstimeout < 0)
+            mstimeout = -mstimeout;
+        halOuterLoop(mstimeout,
+                     &waitKeyProcess,
+                     0,
+                     OL_NOCOMMS | OL_NOEXIT | OL_NOAUTOOFF | OL_NODEFAULTKEYS |
+                         OL_NOCUSTOMKEYS | OL_LONGPRESS | OL_EXITONERROR);
 
-            keymsg = RetNum;
+        keymsg = RetNum;
 
-            if(keymsg) {
-                // PUSH THE KEY MESSAGE
+        if (keymsg)
+        {
+            // PUSH THE KEY MESSAGE
 
-                word_p keyname = rplMsg2KeyName(keymsg);
-                if(!keyname)
-                    return;
-                rplOverwriteData(1, keyname);
-            }
-            else
-                rplOverwriteData(1, (word_p) empty_string);
+            word_p keyname = rplMsg2KeyName(keymsg);
+            if (!keyname)
+                return;
+            rplOverwriteData(1, keyname);
         }
+        else
+            rplOverwriteData(1, (word_p) empty_string);
         return;
-
     }
 
     case KEYEVAL:
@@ -350,7 +352,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get instantaneous state of the keyboard
         //@INCOMPAT
-        keymatrix key = keyb_getmatrix();
+        keymatrix key = keyb_get_matrix();
 
         if(!key) {
             rplPushData((word_p) zero_bint);
@@ -361,7 +363,7 @@ void LIB_HANDLER()
         int k;
         for(k = 0; k < 63; ++k) {
             if(key & (1LL << k)) {
-                word_p kn = rplMsg2KeyName(KEYMAP_CODEFROMBIT(k));
+                word_p kn = rplMsg2KeyName(keyb_code(k));
 
                 if(!kn)
                     return;

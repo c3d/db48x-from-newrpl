@@ -7,108 +7,66 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include <keyboard.h>
 
-void thread_processevents();    // ONLY NEEDED TO AVOID LOCKING IN MULTITHREADED ENVIRONMENTS
 
-INTERRUPT_TYPE cpu_intoff_nosave();
-void cpu_inton_nosave(INTERRUPT_TYPE state);
-void tmr_eventreschedule();
+// Qt event processing
+extern void thread_processevents();
 
-void keyb_irq_update();
-
-// KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned short int keyb_irq_buffer[KEYB_BUFFER] SYSTEM_GLOBAL;
-extern volatile int keyb_irq_lock SYSTEM_GLOBAL;
-extern int keyflags SYSTEM_GLOBAL;
-extern int kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
-extern keymatrix kmat SYSTEM_GLOBAL;
-extern int keyplane SYSTEM_GLOBAL;
-extern int keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
-extern int keyb_irq_repeattime;
-extern int keyb_irq_longpresstime SYSTEM_GLOBAL;
-extern int keyb_irq_debounce SYSTEM_GLOBAL;
-
-// QT-BASED KEYBOARD MESSAGES MUST UPDATE THIS MATRIX;
-volatile keymatrix pckeymatrix;
-// QT-BASED TERMINATE MESSAGE COMES IN THIS VARIABLE
+// Qt-based terminate message comes in this variable
 extern volatile int pc_terminate;
 
+// Keys set by the PC to simulate hardware reading of the keyboard matrix
+keymatrix pc_key_matrix = 0;
 
 
 
-// LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
-// HANDLERS ONLY
-
-keymatrix keyb_irq_getmatrix()
+keymatrix keyb_irq_get_matrix()
+// ----------------------------------------------------------------------------
+//   Stub for the low-level keyboard routine
+// ----------------------------------------------------------------------------
 {
-    return pckeymatrix;
-}
-
-// WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
-// NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
-
-keymatrix keyb_irq_getmatrixEX()
-{
-    INTERRUPT_TYPE saved = cpu_intoff_nosave();
-    keymatrix m = keyb_irq_getmatrix();
     thread_processevents();
-    cpu_inton_nosave(saved);
-    return m;
+    return pc_key_matrix;
 }
 
-void keyb_irq_waitrelease()
-{
-    keymatrix m = 1;
-    // DO NOT LOCK THE THREAD
-    while(m != 0LL) {
-        m = keyb_irq_getmatrixEX();
-    }
-    pckeymatrix = 0;
-}
-
-#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
-#define REPEAT_KEYTIME (keyb_irq_repeattime)
-#define BOUNCE_KEYTIME (keyb_irq_debounce)
-
-#define KF_RUNNING   1
-#define KF_ALPHALOCK 2
-#define KF_NOREPEAT  4
-
-// RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
-// MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
-keymatrix keyb_getmatrix()
-{
-    return pckeymatrix;
-}
 
 void keyb_irq_init()
+// ----------------------------------------------------------------------------
+//   Initialize the PC keyboard subsystem
+// ----------------------------------------------------------------------------
 {
-    keyflags = KF_RUNNING;
-    keyplane = 0;
-    kused = kcurrent = 0;
-    keynumber = 0;
-    kmat = 0LL;
-    keyb_irq_repeattime = 50 / KEYB_SCANSPEED;
-    keyb_irq_longpresstime = 800 / KEYB_SCANSPEED;
-    keyb_irq_debounce = 0;        //20/KEYB_SCANSPEED;
-    keyb_irq_lock = 0;
-    pckeymatrix = 0;
-// INITIALIZE TIMER EVENT 0
+    keyb_flags                 = 0;
+    keyb_plane                 = 0;
+    keyb_used                  = 0;
+    keyb_current               = 0;
+    keyb_last_code             = 0;
+    keyb_matrix                = 0LL;
+    keyb_irq_repeat_time       = 50 / KEYB_SCAN_SPEED;
+    keyb_irq_long_press_time   = 800 / KEYB_SCAN_SPEED;
+    keyb_irq_debounce          = 0; // 20/KEYB_SCAN_SPEED;
+    keyb_irq_lock              = 0;
 
+    pc_key_matrix              = 0;
+
+    // Initialize timer event 0
     tmr_events[0].eventhandler = keyb_irq_update;
-    tmr_events[0].delay = (KEYB_SCANSPEED * tmr_getsysfreq()) / 1000;
+    tmr_events[0].delay        = (KEYB_SCAN_SPEED * tmr_getsysfreq()) / 1000;
 
-    tmr_events[0].status = 0;
+    tmr_events[0].status       = 0;
 
-    keyflags |= KF_RUNNING;
-
+    keyb_flags                 = KFLAG_RUNNING;
 }
 
+
 void keyb_irq_stop(unsigned int *keysave)
+// ----------------------------------------------------------------------------
+//    Shutdown keyboard subsystem - Dead code (not called)
+// ----------------------------------------------------------------------------
 {
     UNUSED(keysave);
 
     tmr_events[0].status = 0;
 
-    keyflags &= ~1;
+    keyb_flags &= ~KFLAG_RUNNING;
 }

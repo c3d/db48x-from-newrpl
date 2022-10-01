@@ -10,7 +10,7 @@
 // IMPORT A FEW FUNCTIONS FROM THE CPU MODULE
 int cpu_getPCLK();
 
-void tmr_eventreschedule();
+void tmr_event_reschedule();
 
 // TIMERS
 volatile long long systmr SYSTEM_GLOBAL;
@@ -77,7 +77,7 @@ void tmr_restore(unsigned int *tmrbuffer)
 // THIS EVENT IS CALLED TO CHECK IF WE HAVE AN EVENT
 void tmr_newirqeventsvc()
 {
-    if(cpu_getlock(2, &tmr_lock))
+    if(cpu_get_lock(2, &tmr_lock))
         return; // GET A LOCK ON THE TIMERS, ABORT IF SOMEBODY ELSE HAS IT
     tmr_lock = 1;
 
@@ -106,7 +106,7 @@ void tmr_newirqeventsvc()
 
     tmr_lock = 0;
 
-    tmr_eventreschedule();
+    tmr_event_reschedule();
 
 }
 
@@ -260,8 +260,8 @@ void tmr_setup()
 
     evtmr = 0;
 
-    irq_addhook(10, (__interrupt__) & tmr_irqservice);
-    irq_addhook(11, (__interrupt__) & tmr_newirqeventsvc);
+    irq_add_hook(10, (__interrupt__) & tmr_irqservice);
+    irq_add_hook(11, (__interrupt__) & tmr_newirqeventsvc);
 
 // UNMASK INTERRUPTS FOR TIMERS 0 AND 1
     *HWREG(INT_REGS, 0x8) &= ~0xc00;
@@ -429,16 +429,16 @@ HEVENT tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepeat)
             tmr_events[f].ticks = ticks + tmr_events[f].delay;
             tmr_events[f].status = ((autorepeat) ? 2 : 0) | 1;
 
-            tmr_eventreschedule();
+            tmr_event_reschedule();
             return f;
         }
     }
     return -1;
 }
 
-void tmr_eventreschedule()
+void tmr_event_reschedule()
 {
-    if(cpu_getlock(2, &tmr_lock))
+    if(cpu_get_lock(2, &tmr_lock))
         return; // GET A LOCK ON THE TIMERS, ABORT IF SOMEBODY ELSE HAS IT
 
     tmr_t current_ticks;
@@ -529,7 +529,7 @@ void tmr_eventresume(HEVENT event)
     tmr_events[event].ticks = tmr_ticks() + tmr_events[event].delay;
     tmr_events[event].status |= 1;      // TURN EVENT ON
     tmr_events[event].status &= ~4;     // CLEAR THE DISABLE BIT
-    tmr_eventreschedule();
+    tmr_event_reschedule();
 }
 
 void tmr_eventkill(HEVENT event)

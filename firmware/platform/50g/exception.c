@@ -12,9 +12,6 @@
 
 RECORDER(exceptions, 16, "System exceptions");
 
-void keyb_irq_waitrelease();
-int keyb_irq_getkey();
-
 extern unsigned int RPLLastOpcode;
 
 ARM_MODE void ex_print(int x, int y, char *str)
@@ -479,55 +476,55 @@ ARM_MODE int exception_handler(char *exstr, unsigned int *registers,
 
 // WAIT FOR ALL KEYS TO BE RELEASED TO AVOID ACCIDENTAL KEYPRESSES
 
-    keyb_irq_waitrelease();
+    keyb_irq_wait_release();
 
     do {
-        f = keyb_irq_getkey();
+        f = keyb_irq_get_key();
 
         if(options & EX_CONT) {
             j = EX_CONT;
-            if(KEYVALUE(f) == KB_A)
+            if(KM_KEY(f) == KB_A)
                 break;
         }
         if(options & (EX_EXIT | EX_RPLEXIT)) {
             j = options & (EX_EXIT | EX_RPLEXIT);
-            if(KEYVALUE(f) == KB_B)
+            if(KM_KEY(f) == KB_B)
                 break;
         }
-        if(KEYVALUE(f) == KB_L) {
+        if(KM_KEY(f) == KB_L) {
             options ^= EX_RPLREGS;
             options &= ~EX_NOREG;
             goto doitagain;
         }
 // FORCE A SHIFTED KEY PRESS
-        if(!KEYSHIFT(f))
+        if(!KM_SHIFT(f))
             continue;
 
         if(options & (EX_WARM | EX_WIPEOUT)) {
             if((options & EX_WIPEOUT)
-                    && (KEYSHIFT(f) ==
-                        (SHIFT_ALPHA | SHIFT_ALPHAHOLD | SHIFT_RS | SHIFT_RSHOLD
-                            | SHIFT_LS | SHIFT_LSHOLD)))
+                    && (KM_SHIFT(f) ==
+                        (KSHIFT_ALPHA | KHOLD_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT
+                            | KSHIFT_LEFT | KHOLD_LEFT)))
                 j = EX_WIPEOUT;
             else
                 j = EX_WARM;
-            if(KEYVALUE(f) == KB_C)
+            if(KM_KEY(f) == KB_C)
                 break;
-            if(KEYVALUE(f) == KB_D)
+            if(KM_KEY(f) == KB_D)
                 break;
         }
 
         if(options & EX_RESET) {
             j = EX_RESET;
-            if(KEYVALUE(f) == KB_E)
+            if(KM_KEY(f) == KB_E)
                 break;
-            if(KEYVALUE(f) == KB_F)
+            if(KM_KEY(f) == KB_F)
                 break;
         }
     }
     while(1);
 
-    keyb_irq_waitrelease();
+    keyb_irq_wait_release();
     lcd_restore(lcd_buffer);
 
     return j;

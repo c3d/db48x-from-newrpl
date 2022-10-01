@@ -101,7 +101,7 @@ int FSPackDir(FS_FILE * dir)
 //      printf("entries valid\n");
             if(order) {
 //              printf("failed entries checksum test\n");
-//              keyb_getkeyM(1);
+//              keyb_get_keyM(1);
                 // ENTRIES ARE ORPHANS, DISCARD AND CONTINUE SEARCHING
                 FSSeek(dir, -32 * (order + 1), FSSEEK_CUR);     // REWIND TO NEXT UNKNOWN ENTRY
                 continue;
@@ -111,7 +111,7 @@ int FSPackDir(FS_FILE * dir)
             if(((ptr[11] & FSATTR_LONGMASK) == FSATTR_LONGNAME) || (*ptr == 0)
                     || (*ptr == 0xe5)) {
 //      printf("no valid shortname follows\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
 
                 // VALID SHORT ENTRY NOT FOUND
                 if(*ptr == 0)
@@ -135,7 +135,7 @@ int FSPackDir(FS_FILE * dir)
             if(checksum != buffer[13]) {
                 // FAILED CHECKSUM, SKIP ORPHANS AND CONTINUE
 //      printf("failed checksum\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
                 FSSeek(dir, -32, FSSEEK_CUR);   // REWIND LAST ENTRY
                 continue;
             }

@@ -256,7 +256,7 @@ void main_virtual(unsigned int mode)
 
 
             // CHECK FOR MAGIC KEY COMBINATION
-            if(keyb_isAnyKeyPressed()) {
+            if(keyb_is_any_key_pressed()) {
                 throw_exception("Wipeout requested",
                         EX_WARM | EX_WIPEOUT | EX_EXIT);
             }
@@ -319,7 +319,7 @@ void main_virtual(unsigned int mode)
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,  ggl_solid(PAL_GRAY4));
 
-        keyb_flushnowait();
+        keyb_flush_no_wait();
 
         if(halFlags & HAL_RESET) {
             rplWarmInit();
@@ -1067,7 +1067,7 @@ void halEnterPowerOff()
     cpu_setspeed(HAL_SLOWCLOCK);
 
     // WAIT FOR ALL KEYS TO BE RELEASED
-    keyb_irq_waitrelease();
+    keyb_irq_wait_release();
 
     disable_interrupts();
 

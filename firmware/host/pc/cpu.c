@@ -83,7 +83,7 @@ void cpu_waitforinterrupt()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-int __attribute__((noinline)) cpu_getlock(int lockvar, volatile int *lock_ptr)
+int __attribute__((noinline)) cpu_get_lock(int lockvar, volatile int *lock_ptr)
 {
     int tmp = *lock_ptr;
     if(!tmp)

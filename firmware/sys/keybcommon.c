@@ -7,12 +7,9 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include <keyboard.h>
 #include <strings.h>
 
-
-INTERRUPT_TYPE             cpu_intoff_nosave();
-void                       cpu_inton_nosave(INTERRUPT_TYPE state);
-void                       tmr_eventreschedule();
 
 // ============================================================================
 //
@@ -20,33 +17,18 @@ void                       tmr_eventreschedule();
 //
 // ============================================================================
 
-unsigned                   keyb_irq_buffer[KEYB_BUFFER] SYSTEM_GLOBAL;
-volatile int               keyb_irq_lock SYSTEM_GLOBAL;
-int                        keyflags SYSTEM_GLOBAL;
-int                        kused SYSTEM_GLOBAL, kcurrent SYSTEM_GLOBAL;
-keymatrix                  kmat SYSTEM_GLOBAL;
-unsigned                   keyplane SYSTEM_GLOBAL;
-int                        keynumber SYSTEM_GLOBAL, keycount SYSTEM_GLOBAL;
-int                        keyb_irq_repeattime SYSTEM_GLOBAL;
-int                        keyb_irq_longpresstime SYSTEM_GLOBAL;
-int                        keyb_irq_debounce SYSTEM_GLOBAL;
-
-
-// ============================================================================
-//
-// Low-level routine to be used by the irq and exception handlers only
-//
-// ============================================================================
-
-keymatrix                  keyb_irq_getmatrix();
-
-// Wrapper to disable interrupts while reading the keyboard from handler
-keymatrix                  keyb_irq_getmatrixEX();
-
-void                       keyb_irq_waitrelease();
-
-// Returns the current working matrix, bypass hardware if kbd handlers running
-keymatrix keyb_getmatrix();
+keyb_msg_t      keyb_irq_buffer[KEYB_BUFFER]            SYSTEM_GLOBAL;
+volatile int    keyb_irq_lock                           SYSTEM_GLOBAL;
+unsigned        keyb_flags                              SYSTEM_GLOBAL;
+keyb_index_t    keyb_used                               SYSTEM_GLOBAL;
+keyb_index_t    keyb_current                            SYSTEM_GLOBAL;
+keymatrix       keyb_matrix                             SYSTEM_GLOBAL;
+unsigned        keyb_plane                              SYSTEM_GLOBAL;
+int             keyb_last_code                          SYSTEM_GLOBAL;
+int             keyb_duration                           SYSTEM_GLOBAL;
+int             keyb_irq_repeat_time                    SYSTEM_GLOBAL;
+int             keyb_irq_long_press_time                SYSTEM_GLOBAL;
+int             keyb_irq_debounce                       SYSTEM_GLOBAL;
 
 
 // ============================================================================
@@ -55,545 +37,490 @@ keymatrix keyb_getmatrix();
 //
 // ============================================================================
 
-int keyb_irq_getkey()
+keyb_msg_t keyb_irq_get_key()
 // ----------------------------------------------------------------------------
 //   Get a non-shift key
 // ----------------------------------------------------------------------------
 {
-    keymatrix m = keyb_irq_getmatrixEX();
+    keymatrix m = keyb_irq_get_matrix_no_interrupts();
 
     // Wait for a non-shift key to be pressed
-    while (KEYMATRIX_UNSHIFTED(m) == 0)
-        m = keyb_irq_getmatrixEX();
+    while (KM_UNSHIFTED(m) == 0)
+        m = keyb_irq_get_matrix_no_interrupts();
 
     // Check which shift keys are pressed
     int shifts = 0;
-    if (KEYMATRIX_LSHIFTBIT(m))
-        shifts |= SHIFT_LS | SHIFT_LSHOLD;
-#if KB_RSHIFT != KB_LSHIFT
-    if (KEYMATRIX_RSHIFTBIT(m))
-        shifts |= SHIFT_RS | SHIFT_RSHOLD;
-#endif // Has a genuine right shift (HP50G, etc)
-#if KB_ALPHA != KB_LSHIFT
-    if (KEYMATRIX_ALPHABIT(m))
-        shifts |= SHIFT_ALPHA | SHIFT_ALPHAHOLD;
-#endif // Has a genuine alpha key (all but DM42)
+    if (KM_HAS_LEFT_SHIFT(m))
+        shifts |= KSHIFT_LEFT | KHOLD_LEFT;
 
-    keymatrix noshift  = KEYMATRIX_UNSHIFTED(m);
-    int       kcodebit = ffsll(noshift);
-    int       kcode    = KEYMAP_CODEFROMBIT(kcodebit);
+#if KB_RSHIFT != KB_LSHIFT      // Has a genuine right shift (HP50G, etc)
+    if (KM_HAS_RIGHT_SHIFT(m))
+        shifts |= KSHIFT_RIGHT | KHOLD_RIGHT;
+#endif
+
+#if KB_ALPHA != KB_LSHIFT       // Has a genuine alpha key (all but DM42)
+    if (KM_HAS_ALPHA(m))
+        shifts |= KSHIFT_ALPHA | KHOLD_ALPHA;
+#endif
+
+    keymatrix noshift  = KM_UNSHIFTED(m);
+    int       kcodebit = ffsll(noshift) - 1;
+    int       kcode    = keyb_code(kcodebit);
 
     // Wait for all non-shifted key to be released
-    while (KEYMATRIX_UNSHIFTED(m) != 0)
-        m = keyb_irq_getmatrixEX();
+    while (KM_UNSHIFTED(m) != 0)
+        m = keyb_irq_get_matrix_no_interrupts();
 
-    if (kcodebit < 64)
-        return kcode | shifts;
-
-    return 0;
+    return kcode | shifts;
 }
 
-void keyb_irq_postmsg(unsigned int msg)
+
+void keyb_irq_post_message(keyb_msg_t msg)
+// ----------------------------------------------------------------------------
+//  Post a message in the keyboard buffer
+// ----------------------------------------------------------------------------
 {
+    keyb_index_t current = keyb_current;
+    keyb_index_t next = (current + 1) % KEYB_BUFFER;
 
-    keyb_irq_buffer[kcurrent] = msg;
-    kcurrent = (kcurrent + 1) & (KEYB_BUFFER - 1);
-// CHECK FOR BUFFER OVERRUN
-    if(kcurrent == kused) {
-        // BUFFER OVERRUN, DROP LAST KEY
-        kcurrent = (kcurrent - 1) & (KEYB_BUFFER - 1);
-    }
+    // Buffer overrun: exit without recording anything
+    if(next == keyb_used)
+        return;
 
+    // Tag the relevant flags to the message
+    msg |= keyb_flags & KM_FLAGS_MASK;
+
+    // Write buffer before index. In case of race, only one message is recorded
+    keyb_irq_buffer[current] = msg;
+    keyb_current = next;
 }
 
-void keyb_postmsg(unsigned int msg)
-{
-    // WARNING: PROBLEMS MAY ARISE IF THE INTERRUPT SERVICE WANTS
-    // TO POST A MESSAGE WHILE THE USER IS POSTING ONE.
-    while(cpu_getlock(1, &keyb_irq_lock));
 
-    keyb_irq_postmsg(msg);
+void keyb_post_message(keyb_msg_t msg)
+// ----------------------------------------------------------------------------
+//    Post a message under CPU lock
+// ----------------------------------------------------------------------------
+// WARNING: Problems may arise if the interrupt service wants
+// to post a message while the user is posting one.
+// REVISIT: What kind of problem exactly?
+{
+    while(cpu_get_lock(1, &keyb_irq_lock));
+    keyb_irq_post_message(msg);
     keyb_irq_lock = 0;
 
 }
 
-unsigned int keyb_getmsg()
+
+keyb_msg_t keyb_get_message()
+// ----------------------------------------------------------------------------
+//    Get the next keyboard message posted
+// ----------------------------------------------------------------------------
 {
-    if(kused == kcurrent)
+    if(keyb_used == keyb_current)
         return 0;
-    unsigned int msg = keyb_irq_buffer[kused];
-    kused = (kused + 1) & (KEYB_BUFFER - 1);
+    keyb_msg_t msg = keyb_irq_buffer[keyb_used];
+    keyb_used = (keyb_used + 1) & (KEYB_BUFFER - 1);
     return msg;
 }
 
-// CHECK IF ANY AVAILABLE KEYSTROKES
-int keyb_anymsg()
+
+unsigned keyb_any_message()
+// ----------------------------------------------------------------------------
+//   Return number of pending keystrokes
+// ----------------------------------------------------------------------------
 {
-    if(kused == kcurrent)
-        return 0;
-    return 1;
+    return keyb_current - keyb_used;
 }
 
-// FLUSH KEYBOARD BUFFER
+
 void keyb_flush()
+// ----------------------------------------------------------------------------
+//   Wait until no key is pressed, then flush keyboard buffer
+// ----------------------------------------------------------------------------
 {
-    while(keyb_getmatrix() != 0LL);
-    kused = kcurrent;
+    while(keyb_get_matrix() != 0LL);
+    keyb_used = keyb_current;
 }
 
-// FLUSH KEYBOARD BUFFER WITHOUT WAITING
-void keyb_flushnowait()
+
+void keyb_flush_no_wait()
+// ----------------------------------------------------------------------------
+//   Flush keyboard buffer without waiting
+// ----------------------------------------------------------------------------
 {
-    kused = kcurrent;
+    keyb_used = keyb_current;
 }
 
-// RETURN TRUE IF AN UPDATE HAPPENED
-// USED TO DETECT IF AN INTERRUPT WAS DUE TO THE KEYBOARD
-int keyb_wasupdated()
-{
-    int k = keyflags & KF_UPDATED;
 
-    keyflags ^= k;
+int keyb_was_updated()
+// ----------------------------------------------------------------------------
+//    Check if a keyboard update happened
+// ----------------------------------------------------------------------------
+{
+    unsigned k = keyb_flags & KFLAG_UPDATED;
+    keyb_flags ^= k;            // Clear if it was set
     return k;
 }
 
-// ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
-#define ALPHALOCK   (SHIFT_ALPHA<<17)
-#define OTHER_KEY   (SHIFT_ALPHA<<18)
-#define ONE_PRESS   (SHIFT_ALPHA<<19)
-#define ALPHASWAP   (SHIFT_ALPHA<<20)
+
+int keyb_irq_on_keys(keymatrix hw, keymatrix changes)
+// ----------------------------------------------------------------------------
+//   Process ON key changes
+// ----------------------------------------------------------------------------
+//   ON alone: Acts as EXIT (interrupts the program) or OFF if shifted
+//             This is handled as a normal key in the RPL main loop
+//   ON +    : Increase contrast
+//   ON -    : Decrease contrast
+//   ON UP   : Increase font size
+//   ON DN   : Decrease font size
+//   ON .    : Cycle locale
+//   ON 0-9  : Adjust precision (mapping to be decided)
+//   ON A    : Attention - Force-interrupt the RPL program
+//   ON D    : Dump - Dump the recorder to flash
+//   ON F    : Firmware - Go to firmware (DM42 only)
+//   ON A F  : Forced attention - Throw exception
+//   ON A C  : Take control - Force interrupt RPL program
+{
+    // Check if ON is still held, and if other keys changed
+    if ((hw & KM(ON)) && (changes & KM(ON)) == 0)
+    {
+        // ON A: Attention
+        if (hw & KM(A))
+        {
+            // Check ON-A-C pressed, offer the option to stop the program
+            if (hw & KM(C))
+            {
+                throw_exception("RPL Break requested",
+                                EX_CONT | EX_RPLEXIT | EX_WARM | EX_RESET);
+                // Loop in caller to send key up for released keys
+                return 1;
+            }
+
+             // Check ON-A-F: User break
+            if (hw & KM(F))
+            {
+                throw_exception("User BREAK requested",
+                                EX_CONT | EX_WARM | EX_WIPEOUT | EX_RESET |
+                                EX_RPLREGS);
+                // Loop in caller to send key up for released keys
+                return 1;
+            }
+        }
+
+        // Check if another key was released while ON was held
+        if ((hw & changes) == 0)
+        {
+            int key = ffsll(changes) - 1;
+            switch(key)
+            {
+            case KB_ADD:
+                // Increase contrast
+                break;
+            case KB_SUB:
+                // Decrease contrast
+                break;
+            case KB_UP:
+                // Increase font size
+                break;
+            case KB_DN:
+                // Decrease font size
+                break;
+            case KB_DOT:
+                // Cycle through locales
+                break;
+            case KB_0:
+            case KB_1:
+            case KB_2:
+            case KB_3:
+            case KB_4:
+            case KB_5:
+            case KB_6:
+            case KB_7:
+            case KB_8:
+            case KB_9:
+                // Change computation precision
+                break;
+            case KB_A:
+                // Attention handler
+                break;
+            case KB_D:
+                // Dump recorder to flash
+                break;
+            case KB_F:
+                // Go to firwmare (DM42)
+                break;
+            }
+
+            // In that case, we have processed the relevant keys, reload
+            return 1;
+        }
+    }
+
+    // All other cases: return to the main handler
+    return 0;
+}
+
+
+static inline void keyb_irq_shifts(keymatrix hwkeys, keymatrix changes)
+// ----------------------------------------------------------------------------
+//    Run the logic for how shift keys change
+// ----------------------------------------------------------------------------
+{
+    // Need to observe if either key changes, or currently held
+    keymatrix relevant = (hwkeys | changes) & KM_ALL_SHIFTS;
+    while (relevant)
+    {
+        int        key    = ffsll(relevant) - 1;
+        keymatrix  change = KM_MASK(key);
+        keyb_msg_t msg    = key;
+        keyb_flags |= KFLAG_SHIFTS_CHANGED;
+        keyb_irq_shift_logic(key, hwkeys, changes);
+        keyb_irq_post_message(msg); // Will pass shifts flags from keyb_flags
+        keyb_last_code = key;
+        relevant ^= change;
+    }
+}
+
+
+static inline void keyb_irq_normal_keys(keymatrix hwkeys, keymatrix changes)
+// ----------------------------------------------------------------------------
+//    Run the logic for how normal keys change
+// ----------------------------------------------------------------------------
+{
+    keymatrix relevant = changes & ~KM_ALL_SHIFTS;
+    while (relevant)
+    {
+        int        key  = ffsll(relevant) - 1;
+        keymatrix  mask = KM_MASK(key);
+        int        down = (hwkeys & mask) != 0;
+        keyb_msg_t msg  = key | (down ? KM_KEYDN : KM_KEYUP);
+        keyb_irq_post_message(msg); // Will pass required flags from keyb_flags
+        if (!down)
+            keyb_irq_post_key(key);
+        keyb_last_code = key;
+        relevant ^= mask;
+    }
+}
+
+
+static inline void keyb_irq_setup_repeat_timer(keymatrix hwkeys)
+// ----------------------------------------------------------------------------
+//   Enable or disable key scanning timer depending on need
+// ----------------------------------------------------------------------------
+{
+    if (hwkeys == 0)
+    {
+        // No key pressed: we can disable the timer, use keyboard interrupts
+        if (keyb_duration)
+        {
+            tmr_events[0].status = 0;
+            keyb_duration        = 0;
+        }
+    }
+    else if ((tmr_events[0].status & 1) == 0)
+    {
+        // Activate the timer event if not already running
+        tmr_events[0].ticks  = tmr_ticks() + tmr_events[0].delay;
+        tmr_events[0].status = 3;
+        tmr_event_reschedule();
+    }
+}
+
+
+static inline void keyb_irq_check_long_presses(keymatrix hwkeys,
+                                               keymatrix changes)
+// ----------------------------------------------------------------------------
+//   Check if we got long presses and need to post long press or repeat
+// ----------------------------------------------------------------------------
+{
+    if (changes)
+    {
+        // Any change in keyboard matrix state disables repeat / long-press
+        keyb_duration = 0;
+        keyb_flags &= ~(KFLAG_LONG_PRESS | KFLAG_REPEAT);
+    }
+    else if (hwkeys & KM_MASK(keyb_last_code))
+    {
+        ++keyb_duration;
+
+        // Check if key handler asked for key repeat, if so send it
+        if (keyb_flags & KFLAG_REPEAT)
+        {
+            if (keyb_duration >= KEYB_REPEAT_TIME)
+            {
+                // Post a repeat event
+                keyb_irq_post_repeat(keyb_last_code);
+                keyb_duration -= KEYB_REPEAT_TIME;
+            }
+        }
+        else if ((keyb_flags & KFLAG_LONG_PRESS) == 0)
+        {
+            // Post long-press only the first time we see it
+            if (keyb_duration >= KEYB_LONG_PRESS_TIME)
+            {
+                keyb_irq_post_message(KM_LONG_PRESS | keyb_last_code);
+                keyb_flags |= KFLAG_LONG_PRESS;
+                keyb_duration -= KEYB_LONG_PRESS_TIME;
+            }
+        }
+    }
+}
+
 
 void keyb_irq_update()
+// ----------------------------------------------------------------------------
+//   Heavy lifting state machine for key status updates
+// ----------------------------------------------------------------------------
+//   REVISIT: This badly needs to be broken up and simplified
 {
-
-    if(cpu_getlock(1, &keyb_irq_lock))
+    if (cpu_get_lock(1, &keyb_irq_lock))
         return;
 
-    keymatrix a, b;
+retry:
+    // Indicate we are updating
+    keyb_flags |= KFLAG_UPDATED;
 
-    keyflags |= KF_UPDATED;
-  doupdate:
+    keymatrix hwkeys  = keyb_irq_get_matrix();
+    keymatrix changes = hwkeys ^ keyb_matrix;
+    keyb_matrix       = hwkeys;
 
-    a = keyb_irq_getmatrix();
-    b = a ^ kmat;
-    kmat = a;
-    //****** DEBUG
-    /*
-    // PRINT KEYBOARD MATRIX
+#if 0 // DEBUG code
+    // Print keyboard matrix for debugging
     gglsurface scr;
     ggl_init_screen(&scr);
     int k;
-    // DRAW THE KEYMATRIX
-    for(k=0;k<64;++k)
-        ggl_rect(&scr, LCD_W-4*(k+2), 0, LCD_W-4*(k+1),4 ,
-                   (a&(1LL<<k))? 0xffffffff:0x44444444);
+    for (k = 0; k < 64; ++k)
+        ggl_rect(&scr, LCD_W - 4 * (k + 2), 0, LCD_W - 4 * (k + 1), 4,
+                 (hw & (1LL << k)) ? 0xffffffff : 0x44444444);
+#endif // Debug code
 
-    */
-    //************ END DEBUG
-    // ANALYZE CHANGES
-    if(b != 0) {
-        // POST MESSAGE
-        int key = 0;        // KEY HAS THE BIT POSITION OF A KEY, NOT THE KEYCODE
-        while(b != 0) {
-            if(b & 1) {
-                if(a & 1) {
-                    // POST KEYDN MESSAGE
-                    if(keynumber == -key) {
-                        // DISREGARD SPURIOUS KEYPRESS
-                        kmat &= ~(1LL << key);        // CLEAR THE KEY
-                        keynumber = 0;
-                        keycount = 0;
-                    }
-                    else {
-                        keyb_irq_postmsg(KM_KEYDN | KEYMAP_CODEFROMBIT(key));
-                        if( !KEYMAP_IS_SHIFT_OR_ON(key)
-                            || ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))     // TREAT SHIFT-ALPHA LIKE REGULAR KEYPRESS
-                            || ((KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
-                            || ((KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) && (keyplane & (SHIFT_ONHOLD)))                                     // TRAT ON-HOLD + SHIFT AS A REGULAR KEYPRESS
-                                )
-                        {
-                            keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                    (keyplane & SHIFT_ANY));
-                            keynumber = key;
-                            keycount = 0;
+    // Check if this is a configuration or interrupt function (ON + keys)
+    if (changes & KM(ON))
+        if (keyb_irq_on_keys(hwkeys, changes))
+            goto retry;
 
-                            keyplane &= ~ONE_PRESS;
+    // Enable / disable the repeater timer
+    keyb_irq_setup_repeat_timer(hwkeys);
 
-                        }
-                        else {
-                            unsigned int oldplane = keyplane;
-                            if(KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) {
-                                keyplane &=
-                                        ~(SHIFT_RSHOLD | SHIFT_RS | (SHIFT_RS <<
-                                            16));
-                                keyplane |= SHIFT_LSHOLD | SHIFT_LS;
-                                keyplane ^= SHIFT_LS << 16;
-                            }
-                            if(KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) {
-                                keyplane &=
-                                        ~(SHIFT_LSHOLD | SHIFT_LS | (SHIFT_LS <<
-                                            16));
-                                keyplane |= SHIFT_RSHOLD | SHIFT_RS;
-                                keyplane ^= SHIFT_RS << 16;
-                            }
-                            if(KEYMAP_CODEFROMBIT(key) == KB_ALPHA) {
-                                keyplane &= ~OTHER_KEY;
-                                if(keyplane & SHIFT_ALPHA) {
-                                    // ALREADY IN ALPHA MODE
-                                    keyplane |= ALPHASWAP;
-                                }
-                                else {
-                                    keyplane &= ~ONE_PRESS;
-                                }
-                                keyplane |= SHIFT_ALPHAHOLD | SHIFT_ALPHA;
+    // Check long press / repeat
+    keyb_irq_check_long_presses(hwkeys, changes);
 
-                            }
-                            if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
-                                keyplane &= ~OTHER_KEY;
-                                keyplane |= SHIFT_ONHOLD;
-                            }
-                            // THE KM_SHIFT MESSAGE CARRIES THE OLD PLANE IN THE KEY CODE
-                            // AND THE NEW PLANE IN THE SHIFT CODE.
-                            keyb_irq_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) |
-                                    MKOLDSHIFT(oldplane | ((oldplane &
-                                                ALPHALOCK) >> 16)));
+    // Before any other key, process shifts
+    if ((hwkeys | changes) & KM_ALL_SHIFTS)
+        keyb_irq_shifts(hwkeys, changes);
 
-                        }
-                    }
-                }
-                else {
+    // Analyze other keys
+    keyb_irq_normal_keys(hwkeys, changes);
 
-                    if(KEYMAP_CODEFROMBIT(key) == KB_ON) {      // SPECIAL CASE OF THE ON KEY PRESSED AND RELEASED
-                         if(!(keyplane & OTHER_KEY)) {
-                             // NO OTHER KEY WAS PRESSED , ONLY ON WAS PRESSED AND RELEASED
-                             // POST A LATE PRESS MESSAGE FOR THE ON KEY
-                             keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                     (keyplane & (SHIFT_ANY) & ~(SHIFT_ONHOLD)));
-
-                         }
-                    }
-
-
-                    keyb_irq_postmsg(KM_KEYUP + KEYMAP_CODEFROMBIT(key));
-
-
-
-                    if( !KEYMAP_IS_SHIFT_OR_ON(key) ||
-                        ((KEYMAP_CODEFROMBIT(key) == KB_ALPHA) && (keyplane & (SHIFT_RS | SHIFT_LS)))) {
-                        if(keynumber > 0)
-                            keynumber = -keynumber;
-                        keycount = -BOUNCE_KEYTIME;
-                        keyplane &= ~((SHIFT_LS | SHIFT_RS) << 16);
-
-                        if(!(keyplane & (SHIFT_HOLD | SHIFT_ALHOLD |
-                                        SHIFT_ONHOLD))) {
-                            unsigned int oldkeyplane = keyplane;
-                            keyplane &= ~(SHIFT_LS | SHIFT_RS | SHIFT_ALPHA); // KILL ALL SHIFT PLANES
-                            if(keyplane & ALPHALOCK)
-                                keyplane |= SHIFT_ALPHA;      // KEEP ALPHA IF LOCKED
-                            keyplane &= ~((SHIFT_ALPHA) << 16);
-
-                            if(oldkeyplane != keyplane)
-                                keyb_irq_postmsg(KM_SHIFT | (keyplane &
-                                            SHIFT_ANY) | MKOLDSHIFT(oldkeyplane
-                                            | ((oldkeyplane & ALPHALOCK) >>
-                                                16)));
-                        }
-                        else {
-
-                            if(keyplane & (SHIFT_ALPHA|SHIFT_ONHOLD)) {
-                                // THIS IS A PRESS AND HOLD KEY BEING RAISED
-                                keyplane |= OTHER_KEY;
-                            }
-                            if(!(keyplane & (SHIFT_HOLD))) {
-                                unsigned int oldkeyplane = keyplane;
-                                // IT WAS ALPHA-HOLD OR ON-HOLD, KILL SHIFTS
-                                keyplane &= ~(SHIFT_LS | SHIFT_RS);   // KILL ALL SHIFT PLANES
-
-                                if(oldkeyplane != keyplane)
-                                    keyb_irq_postmsg(KM_SHIFT | (keyplane &
-                                                SHIFT_ANY) |
-                                            MKOLDSHIFT(oldkeyplane |
-                                                ((oldkeyplane & ALPHALOCK) >>
-                                                    16)));
-                            }
-                        }
-
-                    }
-                    else {
-                        unsigned int oldkeyplane = keyplane;
-                        if(KEYMAP_CODEFROMBIT(key) == KB_LSHIFT) {
-                            keyplane &=
-                                    ~((SHIFT_LSHOLD | SHIFT_LS) ^ ((keyplane
-                                            >> 16) & SHIFT_LS));
-                            if(!(oldkeyplane & SHIFT_ALHOLD))
-                                keyplane &=
-                                        ~((SHIFT_ALPHA) ^ (((keyplane >> 16) |
-                                                (keyplane >> 17)) &
-                                            SHIFT_ALPHA));
-
-                        }
-                        if(KEYMAP_CODEFROMBIT(key) == KB_RSHIFT) {
-                            keyplane &=
-                                    ~((SHIFT_RSHOLD | SHIFT_RS) ^ ((keyplane
-                                            >> 16) & SHIFT_RS));
-                            if(!(oldkeyplane & SHIFT_ALHOLD))
-                                keyplane &=
-                                        ~((SHIFT_ALPHA) ^ (((keyplane >> 16) |
-                                                (keyplane >> 17)) &
-                                            SHIFT_ALPHA));
-
-                        }
-                        if(KEYMAP_CODEFROMBIT(key) == KB_ALPHA) {
-                            if(keyplane & ALPHASWAP) {
-                                // ALPHA WAS PRESSED WHILE ALREADY IN ALPHA MODE
-                                if(keyplane & OTHER_KEY) {
-                                    // ANOTHER KEY WAS PRESSED BEFORE RELEASING ALPHA
-                                    keyplane &= ~ONE_PRESS;
-
-                                }
-                                else {
-                                    // ALPHA WAS PRESSED AND RELEASED, NO OTHER KEYS
-                                    if(keyplane & ONE_PRESS) {
-                                        // THIS IS THE SECOND PRESS, KILL ALPHA MODE
-                                        keyplane &= ~ALPHALOCK;
-                                        keyplane &= ~SHIFT_ALPHA;
-                                    }
-                                    else
-                                        keyplane |= ONE_PRESS;
-
-                                    // SEND MESSAGE THAT ALPHA MODE CYCLING WAS REQUESTED
-                                    keyb_irq_postmsg(KM_PRESS + KEYMAP_CODEFROMBIT(key) +
-                                            (keyplane & SHIFT_ANY));
-                                    keynumber = key;
-                                    keycount = 0;
-
-                                }
-                                keyplane &= ~ALPHASWAP;
-
-                            }
-                            else {
-                                // ALPHA WAS PRESSED FOR THE FIRST TIME FROM OTHER MODE
-                                if(keyplane & OTHER_KEY) {
-
-                                    keyplane &= ~SHIFT_ALPHAHOLD;
-                                }
-                                else {
-                                    // ALPHA WAS PRESSED AND RELEASED
-                                    keyplane |= ALPHALOCK;
-
-                                }
-                                keyplane &= ~ONE_PRESS;
-
-                            }
-
-                            keyplane &= ~SHIFT_ALHOLD;
-
-                        }
-                        if(KEYMAP_CODEFROMBIT(key) == KB_ON) {
-                            keyplane &= ~SHIFT_ONHOLD;
-                            keyplane &= ~OTHER_KEY;
-                        }
-                        keyb_irq_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) |
-                                MKOLDSHIFT(oldkeyplane | ((oldkeyplane &
-                                            ALPHALOCK) >> 16)));
-
-                        keynumber = -key;
-                        keycount = -BOUNCE_KEYTIME;
-                    }
-
-                }
-            }
-            b >>= 1;
-            a >>= 1;
-            ++key;
-        }
-    }
-    // ANALYZE STATUS OF CURRENT KEYPRESS
-    if(keynumber >= 0) {
-        if(kmat & (1LL << keynumber)) {
-            // KEY STILL PRESSED, INCREASE COUNTER
-            ++keycount;
-            if((keycount > LONG_KEYPRESSTIME)) {
-                //if(!(keyflags&KF_NOREPEAT)) {
-                // ONLY CERTAIN KEYS WILL AUTOREPEAT
-                switch (KEYMAP_CODEFROMBIT(keynumber)) {
-                case KB_SPC:
-                case KB_BKS:
-                    if(keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
-                                SHIFT_ALHOLD)) {
-                        keyb_irq_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                    SHIFT_ANY));
-                        keycount = -LONG_KEYPRESSTIME;
-                        break;
-                    }
-                    // OTHERWISE DO REPEAT
-                case KB_UP:
-                case KB_DN:
-#ifndef TARGET_DM42
-                case KB_LF:
-                case KB_RT:
-#endif // TARGET_DM42
-                    // THESE ALWAYS REPEAT, EVEN SHIFTED
-                    keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                SHIFT_ANY));
-                    keycount = -REPEAT_KEYTIME;
-                    break;
-                default:
-                    // DO NOT AUTOREPEAT, DO LONG PRESS
-                    keyb_irq_postmsg(KM_LPRESS | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                SHIFT_ANY));
-                    keycount = -LONG_KEYPRESSTIME;
-                }
-
-            }
-
-            if(!keycount) {
-
-                switch (KEYMAP_CODEFROMBIT(keynumber)) {
-                case KB_SPC:
-                case KB_BKS:
-                    if(keyplane & (SHIFT_LS | SHIFT_RS | SHIFT_HOLD |
-                                SHIFT_ALHOLD)) {
-                        keyb_irq_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                    SHIFT_ANY));
-                        keycount -= LONG_KEYPRESSTIME;
-                        break;
-                    }
-                    // OTHERWISE DO REPEAT
-                case KB_UP:
-                case KB_DN:
-#ifndef TARGET_DM42
-                case KB_LF:
-                case KB_RT:
-#endif // TARGET_DM42
-                    // THESE ALWAYS REPEAT, EVEN SHIFTED
-                    keyb_irq_postmsg(KM_REPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                SHIFT_ANY));
-                    keycount -= REPEAT_KEYTIME;
-                    break;
-                default:
-                    // DO NOT AUTOREPEAT, DO LONG PRESS
-                    keyb_irq_postmsg(KM_LREPEAT | KEYMAP_CODEFROMBIT(keynumber) | (keyplane &
-                                SHIFT_ANY));
-                    keycount -= LONG_KEYPRESSTIME;
-                }
-
-            }
-
-        }
-    }
-
-    // REPEATER
-    if(kmat == 0) {
-        if(keycount >= 0) {
-            tmr_events[0].status = 0;
-            keynumber = 0;
-        }
-        else {
-            ++keycount;
-        }
-    }
-    else {
-
-        if(!(tmr_events[0].status & 1)) {
-            // ACTIVATE THE TIMER EVENT IF NOT ALREADY RUNNING
-            tmr_events[0].ticks = tmr_ticks() + tmr_events[0].delay;
-            tmr_events[0].status = 3;
-            tmr_eventreschedule();
-        }
-    }
-
-    // On-C and On-A-F handling
-
-    if(kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_F)))) {
-        // ON-A-F pressed, offer the option to stop the program
-
-        keyb_irq_lock = 0;
-
-        throw_exception("User BREAK requested",
-                EX_CONT | EX_WARM | EX_WIPEOUT | EX_RESET |
-                EX_RPLREGS);
-
-        //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
-        //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
-        goto doupdate;
-
-    }
-
-    if(kmat == ((1ULL << KEYMAP_BITFROMCODE(KB_ON)) | (1ULL << KEYMAP_BITFROMCODE(KB_A)) | (1ULL << KEYMAP_BITFROMCODE(KB_C)))) {
-        // ON-A-C pressed, offer the option to stop the program
-
-        keyb_irq_lock = 0;
-
-        throw_exception("RPL Break requested",
-                EX_CONT | EX_RPLEXIT | EX_WARM | EX_RESET);
-
-        //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
-        //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
-        goto doupdate;
-
-    }
-
+    // Signal the key udpate and release the interrupt lock
+    keyb_flags |= KFLAG_UPDATED;
     keyb_irq_lock = 0;
+}
+
+
+void keyb_set_timing(int repeat, int lgprs, int debounce)
+// ----------------------------------------------------------------------------
+//   Set the timing for repeat, long press and debounce
+// ----------------------------------------------------------------------------
+{
+    keyb_irq_repeat_time = (repeat + KEYB_SCAN_SPEED - 1) / KEYB_SCAN_SPEED;
+    keyb_irq_long_press_time = (lgprs + KEYB_SCAN_SPEED - 1) / KEYB_SCAN_SPEED;
+    keyb_irq_debounce = (debounce + KEYB_SCAN_SPEED - 1) / KEYB_SCAN_SPEED;
+}
+
+
+void keyb_set_repeat(int repeat)
+// ----------------------------------------------------------------------------
+//   Used by key handlers to indicate the key can repeat
+// ----------------------------------------------------------------------------
+{
+    if(repeat)
+        keyb_flags |= KFLAG_REPEAT;
+    else
+        keyb_flags &= ~KFLAG_REPEAT;
+}
+
+
+void keyb_set_alpha_once(int single_alpha)
+// ----------------------------------------------------------------------------
+//   Indicate that we want a single alpha
+// ----------------------------------------------------------------------------
+{
+    if(single_alpha)
+        keyb_flags |= KFLAG_ALPHA_ONCE;
+    else
+        keyb_flags &= ~KFLAG_ALPHA_ONCE;
 
 }
 
-void keyb_settiming(int repeat, int longpress, int debounce)
+void keyb_set_shift_plane(unsigned newplane)
+// ----------------------------------------------------------------------------
+//    Change the shift plane (use one of the SHIFT constants)
+// ----------------------------------------------------------------------------
 {
-    keyb_irq_repeattime = (repeat + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
-    keyb_irq_longpresstime = (longpress + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
-    keyb_irq_debounce = (debounce + KEYB_SCANSPEED - 1) / KEYB_SCANSPEED;
+    unsigned oldplane = keyb_plane;
+
+    if(newplane & KSHIFT_LEFT)
+        keyb_plane |= KSHIFT_LEFT;
+    else
+        keyb_plane &= ~KSHIFT_LEFT;
+    if(newplane & KSHIFT_RIGHT)
+        keyb_plane |= KSHIFT_RIGHT;
+    else
+        keyb_plane &= ~KSHIFT_RIGHT;
+    if(newplane & KSHIFT_ALPHA)
+        keyb_plane |= KSHIFT_ALPHA;
+    else
+        keyb_plane &= ~KSHIFT_ALPHA;
+
+    if (keyb_plane != oldplane)
+        keyb_flags |= KFLAG_SHIFTS_CHANGED;
 }
 
-void keyb_setrepeat(int repeat)
+
+unsigned int keyb_get_shift_plane()
+// ----------------------------------------------------------------------------
+//    Get the current shift plane
+// ----------------------------------------------------------------------------
 {
-    if(!repeat)
-        keyflags |= KF_NOREPEAT;
-    else
-        keyflags &= ~KF_NOREPEAT;
+    return keyb_plane & KSHIFT_ANY;
 }
 
-void keyb_setalphalock(int single_alpha_lock)
-{
-    if(single_alpha_lock)
-        keyflags |= KF_ALPHALOCK;
-    else
-        keyflags &= ~KF_ALPHALOCK;
 
+
+// ============================================================================
+//
+//   Shared interrupt routines
+//
+// ============================================================================
+
+keymatrix keyb_irq_get_matrix_no_interrupts()
+// ----------------------------------------------------------------------------
+//   Read the keyboard from exception handler (Disable interrupts)
+// ----------------------------------------------------------------------------
+// This is needed only when called from within an exception handler
+{
+    INTERRUPT_TYPE saved = cpu_intoff_nosave();
+    keymatrix m = keyb_irq_get_matrix();
+    cpu_inton_nosave(saved);
+    return m;
 }
 
-void keyb_setshiftplane(int leftshift, int rightshift, int alpha, int alphalock)
+
+void keyb_irq_wait_release()
+// ----------------------------------------------------------------------------
+//   Wait for all keys to be released
+// ----------------------------------------------------------------------------
 {
-//    while(keyb_getmatrix()!=0LL) ;            // WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
-
-    int oldplane = keyplane;
-
-    if(leftshift)
-        keyplane |= SHIFT_LS | (SHIFT_LS << 16);
-    else
-        keyplane &= ~(SHIFT_LS | (SHIFT_LS << 16));
-    if(rightshift)
-        keyplane |= SHIFT_RS | (SHIFT_RS << 16);
-    else
-        keyplane &= ~(SHIFT_RS | (SHIFT_RS << 16));
-    if(alpha || alphalock)
-        keyplane |= SHIFT_ALPHA | (SHIFT_ALPHA << 16);
-    else
-        keyplane &= ~(SHIFT_ALPHA | (SHIFT_ALPHA << 16));
-    if(alphalock) {
-        keyplane |= SHIFT_ALPHA << 17;        // LOCK ALPHA
-        keyplane &= ~(SHIFT_ALPHA << 16);
-    }
-    else {
-        keyplane &= ~(SHIFT_ALPHA << 17);
-    }
-    keyb_postmsg(KM_SHIFT | (keyplane & SHIFT_ANY) | MKOLDSHIFT(oldplane |
-                ((oldplane & ALPHALOCK) >> 16)));
-
+    while(keyb_irq_get_matrix_no_interrupts())
+        /* spin */;
 }
 
-unsigned int keyb_getshiftplane()
+
+keymatrix keyb_get_matrix()
+// ----------------------------------------------------------------------------
+//   Get the cached matrix value if running, otherwise fetch it from hardware
+// ----------------------------------------------------------------------------
 {
-    return keyplane &SHIFT_ANY;
+    return (keyb_flags & KFLAG_RUNNING) ? keyb_matrix : keyb_irq_get_matrix();
 }

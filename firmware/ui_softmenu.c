@@ -182,18 +182,18 @@ word_p uiGetMenuItemAction(word_p item, int32_t shift)
     int nactions = rplListLength(item);
 
     int index;
-    switch (KM_SHIFTPLANE(shift)) {
+    switch (KM_SHIFT(shift)) {
     case 0:
         index = 0;
         break;
-    case SHIFT_LS:
+    case KSHIFT_LEFT:
         if(nactions < 2) {
             index = 0;
             break;
         }
         index = 1;
         break;
-    case SHIFT_RS:
+    case KSHIFT_RIGHT:
         if(nactions < 2) {
             index = 0;
             break;
@@ -204,7 +204,7 @@ word_p uiGetMenuItemAction(word_p item, int32_t shift)
         }
         index = 2;
         break;
-    case SHIFT_LS | SHIFT_LSHOLD:
+    case KSHIFT_LEFT | KHOLD_LEFT:
         if(nactions < 2) {
             index = 0;
             break;
@@ -219,7 +219,7 @@ word_p uiGetMenuItemAction(word_p item, int32_t shift)
         }
         index = 3;
         break;
-    case SHIFT_RS | SHIFT_RSHOLD:
+    case KSHIFT_RIGHT | KHOLD_RIGHT:
         if(nactions < 2) {
             index = 0;
             break;

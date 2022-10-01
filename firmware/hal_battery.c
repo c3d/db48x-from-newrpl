@@ -397,8 +397,8 @@ void halWakeUp()
 
 // FLUSH THE ON-KEY KEYPRESS FROM THE KEYBOARD BUFFER BEFORE ENTERING THE OUTER LOOP
 // THIS CAN CANCEL AN EXISTING COMMAND LINE
-    keyb_flushnowait();
-    keyb_setshiftplane(0, 0, 0, 0);
+    keyb_flush_no_wait();
+    keyb_set_shift_plane(KSHIFT_NONE);
 
     halSetNotification(N_ALARM, rplCheckAlarms() ? 0xf : 0);
 

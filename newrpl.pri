@@ -61,6 +61,7 @@ SOURCES += \
         firmware/sys/exception.c \
         firmware/sys/irq.c \
         firmware/sys/keyboard.c \
+	firmware/sys/shifts.c \
         firmware/sys/lcd.c \
         firmware/sys/stdlib.c \
         firmware/sys/timer.c \

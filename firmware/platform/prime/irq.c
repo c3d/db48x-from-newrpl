@@ -75,7 +75,7 @@ for(f=0;f<40;++f)
 
 }
 
-void irq_addhook(int service_number,__interrupt__ serv_routine)
+void irq_add_hook(int service_number,__interrupt__ serv_routine)
 {
     if(service_number<0 || service_number>39) return;
     irq_table[service_number]=(unsigned int)serv_routine;

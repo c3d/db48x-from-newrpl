@@ -17,7 +17,7 @@ int FSWriteFATEntry(unsigned int cluster, int value, FS_VOLUME * fs)
     int f;
     ch = fs->FATCache;
 //printf("FAT cluster=%04X, val=%04X\n",cluster,value);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
     while(ch) {
         for(f = 0; f < ch->Used; ++f) {
             if(ch->Entries[f].Cluster == cluster) {

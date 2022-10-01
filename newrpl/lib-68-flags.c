@@ -1530,17 +1530,17 @@ const BYTE const keytable[] = {
 };
 
 const BYTE const modiftable[] = {
-    'A', 'L', 'H', (SHIFT_ALPHA | SHIFT_LSHOLD) >> 4,
-    'A', 'R', 'H', (SHIFT_ALPHA | SHIFT_RSHOLD) >> 4,
-    'L', 'H', 0, SHIFT_LSHOLD >> 4,
-    'R', 'H', 0, SHIFT_RSHOLD >> 4,
-    'A', 'L', 0, (SHIFT_LS | SHIFT_ALPHA) >> 4,
-    'A', 'R', 0, (SHIFT_RS | SHIFT_ALPHA) >> 4,
-    'A', 'H', 0, SHIFT_ALPHAHOLD >> 4,
-    'O', 'H', 0, SHIFT_ONHOLD >> 4,
-    'L', 0, 0, SHIFT_LS >> 4,
-    'R', 0, 0, SHIFT_RS >> 4,
-    'A', 0, 0, SHIFT_ALPHA >> 4,
+    'A', 'L', 'H', (KSHIFT_ALPHA | KHOLD_LEFT) >> KSHIFT_BITS,
+    'A', 'R', 'H', (KSHIFT_ALPHA | KHOLD_RIGHT) >> KSHIFT_BITS,
+    'L', 'H', 0, KHOLD_LEFT >> KSHIFT_BITS,
+    'R', 'H', 0, KHOLD_RIGHT >> KSHIFT_BITS,
+    'A', 'L', 0, (KSHIFT_LEFT | KSHIFT_ALPHA) >> KSHIFT_BITS,
+    'A', 'R', 0, (KSHIFT_RIGHT | KSHIFT_ALPHA) >> KSHIFT_BITS,
+    'A', 'H', 0, KHOLD_ALPHA >> KSHIFT_BITS,
+    'O', 'H', 0, KHOLD_ON >> KSHIFT_BITS,
+    'L', 0, 0, KSHIFT_LEFT >> KSHIFT_BITS,
+    'R', 0, 0, KSHIFT_RIGHT >> KSHIFT_BITS,
+    'A', 0, 0, KSHIFT_ALPHA >> KSHIFT_BITS,
     0, 0, 0, 0
 };
 
@@ -1667,7 +1667,7 @@ WORD rplKeyName2Msg(word_p keyname)
             if(!(*tblptr))
                 return 0;
 
-            shifts <<= 4;
+            shifts <<= KSHIFT_BITS;
         }
     }
     // FINALLY, LOOK FOR MESSAGE
@@ -1682,7 +1682,7 @@ WORD rplKeyName2Msg(word_p keyname)
             msg = KM_KEYUP;
             break;
         case 'L':
-            msg = KM_LPRESS;
+            msg = KM_LONG_PRESS;
             break;
         case 'P':
             msg = KM_PRESS;
@@ -1691,7 +1691,7 @@ WORD rplKeyName2Msg(word_p keyname)
             msg = KM_REPEAT;
             break;
         case 'T':
-            msg = KM_LREPEAT;
+            msg = KM_LONG_OR_REPEAT;
             break;
         default:
             return 0;   // INVALID KEY MESSAGE
@@ -1718,24 +1718,21 @@ word_p rplMsg2KeyName(WORD keymsg)
 
     if(KM_MESSAGE(keymsg)==KM_TOUCH) {
         *keyptr++='T';
-        *keyptr++=KM_TOUCHFINGER(keymsg)+'0';
-        switch(KM_TOUCHEVENT(keymsg))
+        *keyptr++=KM_TOUCH_FINGER(keymsg)+'0';
+        switch(KM_TOUCH_EVENT(keymsg))
         {
-        case 0:
-            *keyptr++='?';
-            break;
-        case KM_FINGERDOWN:
+        case KM_FINGER_DOWN:
             *keyptr++='D';
             break;
-        case KM_FINGERMOVE:
+        case KM_FINGER_MOVE:
             *keyptr++='M';
             break;
-        case KM_FINGERUP:
+        case KM_FINGER_UP:
             *keyptr++='U';
         }
         *keyptr++='.';
 
-        int x=KM_TOUCHX(keymsg),startnum=0;
+        int x=KM_TOUCH_X(keymsg),startnum=0;
 
         if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
         if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
@@ -1744,7 +1741,7 @@ word_p rplMsg2KeyName(WORD keymsg)
 
         *keyptr++='.';
         startnum=0;
-        x=KM_TOUCHY(keymsg);
+        x=KM_TOUCH_Y(keymsg);
         if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
         if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
         if((x>=10)||startnum) { *keyptr++='0'+(x/10); x%=10; startnum=1; }
@@ -1758,7 +1755,7 @@ word_p rplMsg2KeyName(WORD keymsg)
 
 
     while(*tblptr) {
-        if(tblptr[2] == (KEYVALUE(keymsg))) {
+        if(tblptr[2] == (KM_KEY(keymsg))) {
             *keyptr++ = tblptr[0];
             if(tblptr[1])
                 *keyptr++ = tblptr[1];
@@ -1774,13 +1771,13 @@ word_p rplMsg2KeyName(WORD keymsg)
     }
     */
 
-    if(KEYSHIFT(keymsg)) {
+    if(KM_SHIFT(keymsg)) {
         *keyptr++ = '.';
 
         tblptr = (byte_p) modiftable;
 
         while(*tblptr) {
-            if(tblptr[3] == (KEYSHIFT(keymsg) >> 4)) {
+            if(tblptr[3] == (KM_SHIFT(keymsg) >> KSHIFT_BITS)) {
                 *keyptr++ = tblptr[0];
                 if(tblptr[1])
                     *keyptr++ = tblptr[1];
@@ -1799,13 +1796,13 @@ word_p rplMsg2KeyName(WORD keymsg)
 
     if(KM_MESSAGE(keymsg) != KM_PRESS) {
 
-        if(!KEYSHIFT(keymsg))
+        if(!KM_SHIFT(keymsg))
             *keyptr++ = '.';
 
         *keyptr++ = '.';
 
         switch (KM_MESSAGE(keymsg)) {
-        case KM_LPRESS:
+        case KM_LONG_PRESS:
             *keyptr++ = 'L';
             break;
         case KM_KEYUP:
@@ -1817,7 +1814,7 @@ word_p rplMsg2KeyName(WORD keymsg)
         case KM_REPEAT:
             *keyptr++ = 'R';
             break;
-        case KM_LREPEAT:
+        case KM_LONG_OR_REPEAT:
             *keyptr++ = 'T';
             break;
         }

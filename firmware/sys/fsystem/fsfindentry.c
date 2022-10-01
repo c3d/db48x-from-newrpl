@@ -41,7 +41,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
     namelen = (int)stringlen((char *)name);
 //printf("Search... %s\n",name);
 //printf("dir size=%d\n",dir->FileSize);
-//keyb_getkeyM(1);
+//keyb_get_keyM(1);
     FSSeek(dir, 0, FSSEEK_SET);
 
     while((checksum = FSReadLL(buffer, 32, dir, fs)) == 32) {
@@ -81,7 +81,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
             }
 
 //      printf("Read %d entries\n",nentries);
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
 
 //      printf("Checking validity\n");
             // VERIFY THAT ENTRIES ARE VALID
@@ -94,7 +94,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
 //      printf("entries valid\n");
             if(order) {
 //              printf("failed entries checksum test\n");
-//              keyb_getkeyM(1);
+//              keyb_get_keyM(1);
                 // ENTRIES ARE ORPHANS, DISCARD AND CONTINUE SEARCHING
                 FSSeek(dir, -32 * (order + 1), FSSEEK_CUR);     // REWIND TO NEXT UNKNOWN ENTRY
                 simpfree(morebuff);
@@ -105,7 +105,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
             if(((ptr[11] & FSATTR_LONGMASK) == FSATTR_LONGNAME) || (*ptr == 0)
                     || (*ptr == 0xe5)) {
 //      printf("no valid shortname follows\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
 
                 // VALID SHORT ENTRY NOT FOUND
                 simpfree(morebuff);
@@ -130,7 +130,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
             if(checksum != buffer[13]) {
                 // FAILED CHECKSUM, SKIP ORPHANS AND CONTINUE
 //      printf("failed checksum\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
                 simpfree(morebuff);
                 FSSeek(dir, -32, FSSEEK_CUR);   // REWIND LAST ENTRY
                 continue;
@@ -170,7 +170,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
                 if(!FSNameCompare((char *)shortn, name, caseflags)) {
                     // NOT THIS ENTRY
                     //printf("Not this one...\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
                     simpfree(entry->Name);
                     continue;
                 }
@@ -195,7 +195,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
 
             if(!FSNameCompare(entry->Name, name, caseflags)) {
                 //printf("Not this one...(short)\n");
-//      keyb_getkeyM(1);
+//      keyb_get_keyM(1);
 
                 simpfree(entry->Name);
                 continue;

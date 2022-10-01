@@ -47,7 +47,7 @@ void main_virtual()
 
         if(!mode) {
             // CHECK FOR MAGIC KEY COMBINATION
-            if(keyb_isAnyKeyPressed()) {
+            if(keyb_is_any_key_pressed()) {
                 throw_exception("Wipeout requested",
                         EX_WARM | EX_WIPEOUT | EX_EXIT);
             }
@@ -113,7 +113,7 @@ void main_virtual()
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, LCD_W, LCD_H - 1, ggl_solid(PAL_GRAY4));
 
-        keyb_flushnowait();
+        keyb_flush_no_wait();
 
         if(halFlags & HAL_RESET) {
             rplWarmInit();
@@ -137,7 +137,7 @@ void startup()
     // BOOTLOADER LEAVES STACK ON MAIN RAM, MOVE TO SRAM
     // ALSO WE ENTER IN SUPERVISOR MODE
 
-    // CLEAR THE REQUEST TO TERMINATE THE THREAD
+    // Clear the request to terminate the thread
     pc_terminate = 0;
 
     setup_hardware();   // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
@@ -199,8 +199,7 @@ void halReset()
 
 void halEnterPowerOff()
 {
-    // TODO: NOT IDEAL, BUT INDICATE WE WANT TO EXIT THE APPLICATION
-
+    // Indicate we want to exit the application
     pc_terminate = 2;
 }
 

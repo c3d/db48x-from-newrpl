@@ -14,6 +14,7 @@
 #include "newrpl.h"
 #include "recorder.h"
 #include "unifont.h"
+#include "keyboard.h"
 
 #ifndef EXTERN
 #  define EXTERN extern
@@ -88,15 +89,13 @@ enum halFlagsEnum
 enum halNotification
 {
     N_CONNECTION = 0,
-    N_LEFTSHIFT,
-    N_RIGHTSHIFT,
+    N_LEFT_SHIFT,
+    N_RIGHT_SHIFT,
     N_ALPHA,
     N_LOWBATTERY,
     N_HOURGLASS,
     N_DATARECVD,
     N_ALARM,
-    N_INTERNALSHIFTHOLD,
-    N_INTERNALALPHAHOLD
 };
 
 enum halFonts
@@ -315,7 +314,7 @@ void throw_dbgexception(cstring message, unsigned int options);
  \sa irq_releasehook
 */
 
-void irq_addhook(int service_number, __interrupt__ serv_routine);
+void irq_add_hook(int service_number, __interrupt__ serv_routine);
 
 /*!
     \brief Uninstall an IRQ handler
@@ -326,9 +325,9 @@ void irq_addhook(int service_number, __interrupt__ serv_routine);
 
     \param service_number Identifies the device that is causing the interrupt. It's a
                           number from 0 to 31 according to the list below (see Samsung S3C2410X manual).
-    \note See irq_addhook for a list of interrupt service numbers
+    \note See irq_add_hook for a list of interrupt service numbers
 
- \sa irq_addhook
+ \sa irq_add_hook
 */
 
 void irq_releasehook(int service_number);
@@ -342,423 +341,7 @@ void usb_mutex_lock(void);
 void usb_mutex_unlock(void);
 
 
-// MACROS TO CREATE KEYBOARD MASKS
-/*!
- * \brief Create a bitmask representing the given key.
- *
- * The bitmask returned by this macro can be compared with the keymatrix result.
- */
-#define KB_MASK(a)           (((unsigned long long) 1) << (a))
 
-// COMMON KEYBOARD MASKS
-// ALL CURSOR KEYS
-
-/*!
- * \brief A bitmask to represent the arrow keys.
- *
- * The keymatrix can be combined with this mask
- * via a bitwise and (&) to eliminate everything except the state of the
- * arrow keys (aka cursor keys).  This is a convenience constant, and its
- * value is equivalent to: \c KB_MASK(KB_UP) \c | \c KB_MASK(KB_DN)
- * \c | \c KB_MASK(KB_LF) \c | \c KB_MASK(KB_RT).
- */
-#define KB_CURS              ((unsigned long long) 0x001e000000000000)
-
-// ALL FUNCTION KEYS (A-F)
-/*!
- * \brief A bitmask to represent the function keys.
- *
- * The keymatrix can be combined with this mask
- * via a bitwise and (&) to eliminate everything except the state of the
- * function keys.  This is a convenience constant, and its value is equivalent
- * to: \c KB_MASK(KB_A) \c | \c KB_MASK(KB_B) \c | \c KB_MASK(KB_C)
- * \c | \c KB_MASK(KB_D) \c | \c KB_MASK(KB_E) \c | \c KB_MASK(KB_F).
- */
-#define KB_FUNC              ((unsigned long long) 0x00007e0000000000)
-
-// SHIFT CONSTANTS FOR HIGH-LEVEL KEYBOARD FUNCTIONS
-
-//! Shift constant to use in a combined shiftcode. Shift-Hold.
-#define SHIFT_HOLD           0x200
-//! Shift constant to use in a combined shiftcode. Hold-On key.
-#define SHIFT_ONHOLD         0x40
-//! Shift constant to use in a combined shiftcode. Alpha-Hold.
-#define SHIFT_ALHOLD         0x400
-
-//! Shift constant to use in a combined shiftcode. Left Shift.
-#define SHIFT_LS             0x80
-//! Shift constant to use in a combined shiftcode. Right Shift.
-#define SHIFT_RS             0x100
-//! Shift constant to use in a combined shiftcode. Alpha.
-#define SHIFT_ALPHA          0x800
-
-//! Shift constant to use in a combined shiftcode. Hold-Left Shift.
-#define SHIFT_LSHOLD         (SHIFT_LS | SHIFT_HOLD)
-//! Shift constant to use in a combined shiftcode. Hold-Right Shift.
-#define SHIFT_RSHOLD         (SHIFT_RS | SHIFT_HOLD)
-//! Shift constant to use in a combined shiftcode. Hold-Alpha.
-#define SHIFT_ALPHAHOLD      (SHIFT_ALPHA | SHIFT_ALHOLD)
-
-#define SHIFT_ALPHALOCK      0x1000 // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
-
-//! Shift constant to use in a combined shiftcode. Any Shift or ON.
-#define SHIFT_ANY            0xfc0
-#define SHIFT_ANYLOCK        0x1fc0 // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
-
-// 18-BIT KEY CODE FOR KEYBOARD HANDLER
-//#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
-//#define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
-#define OLDKEYSHIFT(keycode) ((keycode << 7) & SHIFT_ANYLOCK)
-#define MKOLDSHIFT(keyplane) (((keyplane) & SHIFT_ANYLOCK) >> 7)
-#define KEYSHIFT(keycode)    ((keycode) & SHIFT_ANY)
-#define KEYVALUE(keycode)    ((keycode) & 0x3f)
-
-// KEYMATRIX TYPE DEFINITION
-/*!
- * \brief A matrix of simultaneous key states.
- *
- * This data type is a 64-bit integer used to represent the complete state of the keyboard.
- *
- */
-typedef uint64_t keymatrix;
-
-// SCANS THE KEYBOARD AND STORES THE 64-BIT MATRIX
-/*!
- * \brief Retrieves the state of the complete keyboard.
- *
- * This function retrieves the state of the entire keyboard in one
- * operation. The result can then be inspected using the various \c KB_*
- * preprocessor macros and constants.
- *
- * \return A ::keymatrix, which will hold the result.
- */
-keymatrix                  keyb_getmatrix();
-
-/*!
- * \brief Tests the current state of a key.
- *
- * This macro detects if a key is pressed.
- *
- * \param key The KB_... constant of a key.
- * \return TRUE if the key is pressed; FALSE otherwise
- *
- */
-#define keyb_isKeyPressed(key) (keyb_getkey(0) == key)
-
-/*!
- * \brief Tests whether any key is being pressed on the keyboard.
- * \return TRUE if a key is pressed; FALSE otherwise
- *
- */
-
-#define keyb_isAnyKeyPressed() (keyb_getmatrix() != 0LL)
-
-/*!
- * \brief Tests if the left arrow key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- */
-#define keyb_isLeft()          ((keyb_getmatrix() & KB_MASK(KB_LF)) != 0)
-
-/*!
- * \brief Tests if the right arrow key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- */
-#define keyb_isRight()         ((keyb_getmatrix() & KB_MASK(KB_RT)) != 0)
-
-/*!
- * \brief Tests if the up arrow key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- */
-#define keyb_isUp()            ((keyb_getmatrix() & KB_MASK(KB_UP)) != 0)
-
-/*!
- * \brief Tests if the down arrow key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- */
-#define keyb_isDown()          ((keyb_getmatrix() & KB_MASK(KB_DN)) != 0)
-
-/*!
- * \brief Tests if the alpha key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- *
- */
-#define keyb_isAlpha()         ((keyb_getmatrix() & KB_MASK(KB_ALPHA)) != 0)
-
-/*!
- * \brief Tests if the left-shift key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- *
- */
-#define keyb_isLS()            ((keyb_getmatrix() & KB_MASK(KB_LSHIFT)) != 0)
-
-/*!
- * \brief Tests if the right-shift key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- *
- */
-#define keyb_isRS()            ((keyb_getmatrix() & KB_MASK(KB_RSHIFT)) != 0)
-/*!
- * \brief Tests if the ON key is down.
- *
- * This is a convenience macro.
- *
- * \return TRUE if the key is pressed; FALSE otherwise
- *
- */
-#define keyb_isON()            ((keyb_getmatrix() & KB_MASK(KB_ON)) != 0)
-
-/*!
- * \brief Returns the key constant of the first key pressed.
- *
- * Optionally waits for a non-shift key to be pressed, and then returns a
- * shiftplane specifying which key was pressed and the shift state.
- *
- * If the wait parameter is non-zero, this function does not return until a
- * key has been completely pressed and released (only the key, shift can remain
- * pressed). If multiple keys are pressed simultaneously, the function does
- * not return until all keys have been released; but the return value will be
- * the identifier of the first key.
- * If the wait parameter is zero, the function will wait neither for a key
- * to be pressed or released.
- * The ON key is detected as a normal key, but Shift-ON is not detected.
- *
- * \param wait If 0, return a 0 identifier if no key is pressed;
- *             If non-zero, wait until a key is pressed.
- *
- * \return A shiftcode for the key pressed, or 0 if no key was pressed and
- *         the wait parameter was zero. The shiftcode will be comprised of
- *         a KB_... constant and a combination of the SHIFT_... constants.
- *         Use the KEYCODE() macro to extract the keycode from the shiftcode.
- *         For example,
- *                    int key=keyb_getkey(1);
- *         To check for A regardless of shift state:
- *                    if(KEYCODE(key)==KB_A) ...
- *         To check for LS-A (LS only):
- *                    if(key==(KB_A | SHIFT_LS | SHIFT_LSHOLD)) ...
- *         or         if(KEYCODE(key)==KB_A && SHIFTPLANE(key)==SHIFT_LS|SHIFT_LSHOLD)
- *
- * \note Because this function uses instantaneous keyboard readings, it can only detect
- *       shift-hold planes. Therefore, it always return a combination of (SHIFT_LS|SHIFT_LSHOLD),
- *       (SHIFT_RS|SHIFT_RSHOLD), or (SHIFT_ALPHA|SHIFT_ALPHAHOLD) for the shift plane.
- */
-int keyb_getkey(int wait);
-
-// Keymatrix mask to isolate all shifts (Left, Right and Alpha)
-#define KEYMATRIX_ALL_SHIFTS            ((1ULL << KB_ALPHA)  |   \
-                                         (1ULL << KB_LSHIFT) |   \
-                                         (1ULL << KB_RSHIFT) |   \
-                                         (1ULL << KB_SHIFT))
-#define KEYMATRIX_ON                    (1ULL << KB_ON)
-#define KEYMATRIX_UNSHIFTED(matrix)     ((matrix) & ~ KEYMATRIX_ALL_SHIFTS)
-#define KEYMATRIX_LSHIFTBIT(matrix)     (((matrix)>>KB_LSHIFT)&1)
-#define KEYMATRIX_RSHIFTBIT(matrix)     (((matrix)>>KB_RSHIFT)&1)
-#define KEYMATRIX_ALPHABIT(matrix)      (((matrix)>>KB_ALPHA)&1)
-
-// Keyboard mapping macros  - MUST exist for all targets - Will be used later
-#define KEYMAP_CODEFROMBIT(bit)         (bit)
-#define KEYMAP_BITFROMCODE(code)        (code)
-
-#define KEYMAP_IS_SHIFT_OR_ON(bit)      ((1ULL<<bit) & (KEYMATRIX_ALL_SHIFTS | KEYMATRIX_ON))
-
-#define LONG_KEYPRESSTIME (keyb_irq_longpresstime)
-#define REPEAT_KEYTIME    (keyb_irq_repeattime)
-#define BOUNCE_KEYTIME    (keyb_irq_debounce)
-
-#define KF_RUNNING        1
-#define KF_ALPHALOCK      2
-#define KF_NOREPEAT       4
-#define KF_UPDATED        8
-
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_PRESS           0x0000
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_REPEAT          0x2000
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_LPRESS          0x4000
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_LREPEAT         (KM_LPRESS | KM_REPEAT)
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_KEYDN           0x8000
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_KEYUP           0xA000
-//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_SHIFT           0xc000
-//! \brief Keyboard message constant, special message from a touch device
-#define KM_TOUCH           0xe000
-
-
-//! \brief Mask to isolate the key shift plane bits
-#define KM_SHIFTMASK       SHIFT_ANYLOCK
-//! \brief Mask to isolate the key value bits
-#define KM_KEYMASK         0x003f
-//! \brief Mask to isolate the key message bits
-#define KM_MSGMASK         0xe000
-
-//! \brief Mask to isolate the X coordinate in a touch message
-#define KM_TOUCHXMASK      0xfff
-//! \brief Mask to isolate the Y coordinate in a touch message
-#define KM_TOUCHYMASK      0xfff0000
-//! \brief Mask to isolate the finger ID in a touch message
-#define KM_TOUCHFINGERMASK 0x30000000
-//! \brief Mask to isolate the touch event in a touch message
-#define KM_TOUCHEVENTMASK  0xc0000000
-
-//! \brief Touch event finger down (start touching)
-#define KM_FINGERDOWN      0x40000000
-//! \brief Touch event finger dragged
-#define KM_FINGERMOVE      0x80000000
-//! \brief Touch event finger up (stop touching)
-#define KM_FINGERUP        0xc0000000
-
-
-//! \brief Keyboard message queue size (# of messages)
-#define KEYB_BUFFER        128
-//! \brief Keyboard scanning speed in milliseconds
-#define KEYB_SCANSPEED     20
-
-//! \brief Convenience macro to extract message type from a message
-#define KM_MESSAGE(a)      ((a) & KM_MSGMASK)
-//! \brief Convenience macro to extract pure key code from a message
-#define KM_KEY(a)          ((a) & KM_KEYMASK)
-//! \brief Convenience macro to extract shifted key code from a message
-#define KM_SHIFTEDKEY(a)   ((a) & (KM_KEYMASK | KM_SHIFTMASK))
-//! \brief Convenience macro to extract shift plane from a message
-#define KM_SHIFTPLANE(a)   ((a) & KM_SHIFTMASK)
-
-
-//! \brief Convenience macro to extract touch coordinates from a message
-#define KM_TOUCHX(a)       ((a) &KM_TOUCHXMASK)
-//! \brief Convenience macro to extract touch coordinates from a message
-#define KM_TOUCHY(a)       (((a) &KM_TOUCHYMASK) >> 16)
-//! \brief Convenience macro to extract finger ID from a message
-#define KM_TOUCHFINGER(a)  (((a) &KM_TOUCHFINGERMASK) >> 28)
-//! \brief Convenience macro to extract finger ID from a message
-#define KM_TOUCHEVENT(a)   ((a) &KM_TOUCHEVENTMASK)
-
-//! \brief Convenience macro to compose a touch message
-#define KM_MAKETOUCHMSG(ev, finger, x, y) \
-  ((ev) | (((finger) << 28) & KM_TOUCHFINGERMASK) | ((x) &KM_TOUCHXMASK) | (((y) << 16) & KM_TOUCHYMASK) | KM_TOUCH)
-
-/*!
- * \brief Inserts a key message into the keyboard buffer.
- *
- * Use this function to simulate a keystroke by inserting the proper messages into the keyboard queue.
- * A valid keypress sequence is composed of a KM_KEYDN message, followed by a KM_PRESS and a KM_KEYUP.
- *
- * \param msg A keyboard message, composed of KM_KEYUP, KM_KEYDN or KM_PRESS
- * plus a key value (a KB_XXX constant). KM_PRESS messages can optionally have a SHIFT_XXX shift plane.
- *
- * For example, to simulate pressing the key A in Alpha mode, the sequence of messages
- * can be formed as: (KM_KEYDN | KB_A), then (KM_PRESS | KB_A | SHIFT_ALPHA) and finally
- * (KM_KEYUP | KB_A). If the client program does not require the complete sequence to work,
- * sending only the KM_PRESS message will do the job.
- *
- */
-void         keyb_postmsg(unsigned int msg);
-
-/*!
- * \brief Get a key message from the keyboard buffer.
- *
- * Use this function to extract key messages from the queue. This function gives access
- * to the most basic keyboard functions. Consider using other higher level keyboard functions
- * for more advanced features, like functions from the stdio module.
- * When a key is pressed, 2 messages are immediately generated: KM_KEYDN and KM_PRESS. Then,
- * if the user keeps the key pressed for a long period of time (see keyb_settiming), an additional
- * KM_PRESS message will be posted. If the user continues to hold the key, an extra KM_PRESS
- * message will be generated at the keyboard repeat rate (see keyb_settiming).
- * When the user releases the key, a KM_KEYUP message will be posted.
- * Notice that Alpha, Left Shift, Right Shift and ON do not generate KM_PRESS messages, only
- * KM_KEYDN/KM_KEYUP pairs.
- * Every time the shift plane changes, a KM_SHIFT message is generated, indicating the new
- * plane. Each KM_PRESS message already carries shift plane information, the KM_SHIFT message
- * is posted to do other tasks like updating the annunciator icons.
- *
- *
- * \return A keyboard message, composed of KM_KEYUP, KM_KEYDN or KM_PRESS
- * plus a key value (a KB_XXX constant). To isolate the key value in the message use
- * the bit mask KM_KEYMASK (like in key=full_msg&KM_KEYMASK). Similarly, to isolate the message type
- * use the bit mask KM_MSGMASK (msg=full_msg&KM_MSGMASK).
- * The KM_PRESS and KM_SHIFT messages include shift planes, that can be isolated
- * using the KM_SHIFTMASK bit mask.
- *
- */
-unsigned int keyb_getmsg();
-
-/*!
- * \brief Set all keyboard timing constants.
- *
- * This function defines keyboard timing through 3 parameters.
- *
- *  \param repeat Time in milliseconds between KM_PRESS messages when the user holds
- *                down a key.
- *  \param longpress Time in milliseconds the user needs to hold down a key to generate
- *                   the first KM_LPRESS message and start autorepeating the keypress.
- *  \param debounce Time in milliseconds measured from the moment the user releases a key,
- *                  in which the keyboard handler will ignore additional keypresses of the
- *                  same key
- *
- *
- */
-void         keyb_settiming(int repeat, int longpress, int debounce);
-
-/*!
- * \brief Activate/deactivate keyboard autorepeat.
- *
- *  \param repeat  Nonzero to activate autorepeat, zero to disable the feature.
- *
- */
-void         keyb_setrepeat(int repeat);
-
-/*!
- * \brief Activate/deactivate single-alhpa lock mode.
- *
- *  \param single_alpha_lock  Nonzero to lock alpha mode with a single
- *  alpha keypress, zero to require double alpha keypress to lock.
- *
- */
-void         keyb_setalphalock(int single_alpha_lock);
-
-/*!
- * \brief Manualy set the shift plane.
- *
- *  \param leftshift Nonzero to activate left shift plane.
- *  \param rightshift Nonzero to activate right shift plane.
- *  \param alpha Nonzero to activate alpha shift plane for the next keypress only.
- *  \param alphalock Nonzero to activate alpha mode for all subsequent keypresses.
- *
- * \note This function will wait until all keys have been released prior to changing
- * the shift plane.
- *
- */
-void         keyb_setshiftplane(int leftshift, int rightshift, int alpha, int alphalock);
-
-// OTHER LOWER LEVEL KEYBOARD FUNCTIONS
-int          keyb_anymsg();
-void         keyb_flush();
-void         keyb_flushnowait();
-int          keyb_wasupdated();
-unsigned int keyb_getshiftplane();
 
 #define NUM_EVENTS 5 // NUMBER OF SIMULTANEOUS TIMED EVENTS
 
@@ -906,7 +489,7 @@ utf8_p      StringCoordToPointer(utf8_p         Text,
                                  UNIFONT const *Font,
                                  int           *xcoord);
 
-int         cpu_getlock(int lockvar, volatile int *lock_ptr);
+int         cpu_get_lock(int lockvar, volatile int *lock_ptr);
 int         cpu_setspeed(int);
 void        cpu_waitforinterrupt();
 void        cpu_off();
@@ -972,7 +555,7 @@ int         usb_rxfileclose(int fileid);
 #define usb_filetype(fileid) ((fileid) >> 8)
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
-void        keyb_irq_waitrelease();
+void        keyb_irq_wait_release();
 
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void        flash_CFIRead(unsigned short *ptr);
@@ -1098,37 +681,51 @@ void          halSwitch2Stack();
 #define OL_NOCOMMS       128 // DON'T AUTOMATICALLY RECEIVE DATA OVER USB OR SERIAL
 #define OL_EXITONERROR   256 // EXIT THE POL IF THERE ARE ANY EXCEPTIONS
 
-// OUTER LOOP
-void           halOuterLoop(int32_t timeoutms, int (*dokey)(WORD), int (*doidle)(WORD), int32_t flags);
-//  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
-int            halExitOuterLoop();
+#define HAL_KEY_WAKEUP  ((keyb_msg_t)  0)
+#define HAL_KEY_TIMEOUT ((keyb_msg_t) -1)
 
-// KEYBOARD FUNCTIONS
-void           halInitKeyboard();
-int32_t        halWaitForKey();
-int32_t        halWaitForKeyTimeout(int32_t timeoutms);
-void           halPostKeyboardMessage(WORD keymsg);
-int            halDoDefaultKey(WORD keymsg);
-int            halDoCustomKey(WORD keymsg);
+// Outer loop
+void          halOuterLoop(int32_t timeoutms,
+                           int (*dokey)(WORD),
+                           int (*doidle)(WORD),
+                           int32_t flags);
 
-// IDLE PROCESSES
-void           halDeferProcess(void (*function)(void));
+//  If this function returns true, terminate the outer loop
+int           halExitOuterLoop();
+
+// Keyboard functions
+void          halInitKeyboard();
+keyb_msg_t    halWaitForKey();
+keyb_msg_t    halWaitForKeyTimeout(int32_t timeoutms);
+void          halPostKeyboardMessage(keyb_msg_t keymsg);
+int           halDoDefaultKey(keyb_msg_t keymsg);
+int           halDoCustomKey(keyb_msg_t keymsg);
+
+// Idle processes
+void          halDeferProcess(void (*function)(void));
 
 
-// RENDER CACHE EXTERNAL DATA
+// Render cache external DATA
 extern word_p halCacheContents[3 * MAX_RENDERCACHE_ENTRIES];
-extern WORD    halCacheEntry;
+extern WORD   halCacheEntry;
 
 
-// RENDER
-
-void           uiClearRenderCache();
-void           uiAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
-void           uiUpdateOrAddCacheEntry(word_p object, word_p bitmap, const UNIFONT *font);
-word_p         uiFindCacheEntry(word_p object, const UNIFONT *font);
-void           uiDrawObject(gglsurface *scr, coord x, coord y, word_p object, const UNIFONT *font);
-word_p         uiRenderObject(word_p object, const UNIFONT *font);
-void           uiDrawBitmap(gglsurface *scr, coord x, coord y, word_p bmp);
+// Render
+void          uiClearRenderCache();
+void          uiAddCacheEntry(word_p object,
+                              word_p bitmap,
+                              const UNIFONT *font);
+void          uiUpdateOrAddCacheEntry(word_p object,
+                                      word_p bitmap,
+                                      const UNIFONT *font);
+word_p        uiFindCacheEntry(word_p object, const UNIFONT *font);
+void          uiDrawObject(gglsurface    *scr,
+                           coord          x,
+                           coord          y,
+                           word_p         object,
+                           const UNIFONT *font);
+word_p        uiRenderObject(word_p object, const UNIFONT *font);
+void          uiDrawBitmap(gglsurface *scr, coord x, coord y, word_p bmp);
 
 
 RECORDER_DECLARE(hal_api);

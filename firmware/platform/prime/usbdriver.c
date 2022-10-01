@@ -488,8 +488,8 @@ void usb_init(int force)
     irq_mask(25);
     irq_mask(3);
 
-    irq_addhook(25, &usb_irqservice);
-    irq_addhook(3, &usb_irqdisconnect);
+    irq_add_hook(25, &usb_irqservice);
+    irq_add_hook(3, &usb_irqdisconnect);
 
     // ELIMINATE PREVIOUS DISCONNECT INTERRUPTS CAUSED BY NOISE AND USB INTERRUPTS
     irq_clrpending(25);
@@ -545,7 +545,7 @@ void usb_shutdown()
     *GPFUDP = (*GPFUDP & ~0xc0) | 0x40;     // PULL DOWN ENABLED
     *EXTINT0 = (*EXTINT0 & ~0x7000) | (CABLE_IS_CONNECTED? 0x2000:0x4000);   // FALLING EDGE TRIGGERED
 
-    irq_addhook(3, &usb_irqconnect);
+    irq_add_hook(3, &usb_irqconnect);
 
     irq_unmask(3);
 }

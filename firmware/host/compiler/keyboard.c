@@ -19,3 +19,11 @@
 // ****************************************************************************
 
 #include <host/pc/keyboard.c>
+
+typedef unsigned long long keymatrix;
+void keyb_irq_shift_logic(unsigned key, keymatrix hwkeys, keymatrix changes)
+{
+    UNUSED(key);
+    UNUSED(hwkeys);
+    UNUSED(changes);
+}

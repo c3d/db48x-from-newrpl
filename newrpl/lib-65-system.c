@@ -1006,7 +1006,7 @@ static int32_t AckSequence(struct alarm *alrm)
 
     for(i = 0; i < 30; i++) {
         tmr_delayms(100);
-        ack = keyb_anymsg();
+        ack = keyb_any_message();
         if(ack) {
             keyb_flush();
             break;

@@ -60,11 +60,11 @@ void irq_install()
 
 }
 
-void irq_addhook(int service_number, __interrupt__ serv_routine)
+void irq_add_hook(int service_number, __interrupt__ serv_routine)
 {
     if(service_number < 0 || service_number > 31)
         return;
-    irq_table[service_number] = (unsigned int)serv_routine;
+    irq_table[service_number] = (uintptr_t) serv_routine;
 
 }
 

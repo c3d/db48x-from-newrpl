@@ -6,207 +6,143 @@
  */
 
 #include <ui.h>
+#include <keyboard.h>
 
-extern INTERRUPT_TYPE cpu_intoff_nosave();
-extern void cpu_inton_nosave(INTERRUPT_TYPE state);
-extern void tmr_eventreschedule();
 
-extern void keyb_irq_update();
+// ============================================================================
+//
+// Low-level routine to be used by the irq and exception handlers only
+//
+// ============================================================================
 
 #define DEBOUNCE  48    // 10 SEEMS TO BE ADEQUATE EVEN AT 75 MHz
 
-// KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned short int keyb_irq_buffer[KEYB_BUFFER];
-extern volatile int       keyb_irq_lock;
-extern int                keyflags;
-extern int                kused, kcurrent;
-extern keymatrix          kmat;
-extern int                keyplane;
-extern int                keynumber, keycount;
-extern int                keyb_irq_repeattime;
-extern int                keyb_irq_longpresstime;
-extern int                keyb_irq_debounce;
-
-// LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
-// HANDLERS ONLY
-
-keymatrix keyb_irq_getmatrix()
+keymatrix keyb_irq_get_matrix()
+// ----------------------------------------------------------------------------
+//   Get the keyboard matrix
+// ----------------------------------------------------------------------------
 {
-    unsigned int c;
-    uint32_t v;
+    unsigned lo = 0;
+    unsigned hi = 0;
 
-    unsigned int lo = 0, hi = 0;
+    for (int col = 7; col >= 0; --col)
+    {
+        unsigned control = (1 << ((col + 8) * 2)) | 0x1;
 
-    int col;
-    unsigned int control;
-
-    for(col = 7; col >= 4; --col) {
-
-        control = 1 << ((col + 8) * 2);
-        control = control | 0x1;
-        *GPGDAT = 0;    // DRIVE THE OUTPUT COLUMN LOW
+         // Drive the output column low
+        *GPGDAT = 0;
         *GPGCON = control;
 
-        // DEBOUNCE TECHNIQUE
-        c = 0;
-        while (c < DEBOUNCE) {
-            uint32_t nv = *GPGDAT & 0xfe;
-            if (nv == v) {
-                ++c;
-            } else {
-                c = 0;
-                v = nv;
-            }
-        }
-
-        hi = (hi << 8) | ((~(v)) & 0xfe);
-
+        // Read debounced column
+        unsigned colKeys = debounce (GPGDAT, 0xfe, DEBOUNCE);
+        lo = (lo << 8) | ((~colKeys) & 0xfe);
+        if (col == 4)
+            hi = lo;
     }
 
-    for(; col >= 0; --col) {
+    *GPGCON = 0x5555AAA9; // Set to trigger interrupts on any key
+    *GPGDAT = 0;          // Drive all output columns low
+    unsigned intKeys = debounce(GPFDAT, 0x71, DEBOUNCE);
 
-        control = 1 << ((col + 8) * 2);
-        control = control | 0x1;
-        *GPGDAT = 0;    // DRIVE THE OUTPUT COLUMN LOW
-        *GPGCON = control;
-
-        // GPGDAT WAS SET TO ZERO, SO THE SELECTED COLUMN IS DRIVEN LOW
-
-        c = 0;
-        while (c < DEBOUNCE) {
-            uint32_t nv = *GPGDAT & 0xfe;
-            if (nv == v) {
-                ++c;
-            } else {
-                c = 0;
-                v = nv;
-            }
-        }
-
-        lo = (lo << 8) | ((~(v)) & 0xfe);
-
-    }
-
-    *GPGCON = 0x5555AAA9;       // SET TO TRIGGER INTERRUPTS ON ANY KEY
-    *GPGDAT = 0;        // DRIVE ALL OUTPUT COLUMNS LOW
-
-    volatile unsigned int *GPFDAT = ((unsigned int *) (IO_REGS + 0x54));
-
-    c = 0;
-    while (c < DEBOUNCE) {
-        uint32_t nv = *GPFDAT & 0x71;
-        if (nv == v) {
-            ++c;
-        } else {
-            c = 0;
-            v = nv;
-        }
-    }
-
-    hi |= (v & 0x70) << 24;
-    hi |= v << 31;
+    hi |= (intKeys & 0x70) << 24;
+    hi |= intKeys << 31;
 
     return ((keymatrix) lo) | (((keymatrix) hi) << 32);
 }
 
-// WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
-// NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
-
-keymatrix keyb_irq_getmatrixEX()
-{
-    INTERRUPT_TYPE saved = cpu_intoff_nosave();
-    keymatrix m = keyb_irq_getmatrix();
-    cpu_inton_nosave(saved);
-    return m;
-}
-
-void keyb_irq_waitrelease()
-{
-    keymatrix m = 1;
-    while(m != 0LL) {
-        m = keyb_irq_getmatrixEX();
-    }
-}
-
-// RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
-// MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
-keymatrix keyb_getmatrix()
-{
-    if(keyflags & KF_RUNNING)
-        return kmat;
-    else
-        return keyb_irq_getmatrix();
-}
-
-// ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
 
 void keyb_irq_int_handler()
+// ----------------------------------------------------------------------------
+// Analyze changes in the keyboard status and post messages accordingly
+// ----------------------------------------------------------------------------
 {
-
     *EINTMASK |= 0xfe70;
 
     keyb_irq_update();
 
     *EINTPEND |= 0xfe70;
     *EINTMASK &= ~0xfe70;
-
 }
+
 
 void keyb_irq_init()
+// ----------------------------------------------------------------------------
+//   Initialize the keyboard interrupt subsystem for HP50G and similar
+// ----------------------------------------------------------------------------
 {
-    keyflags = KF_RUNNING;
-    keyplane = 0;
-    kused = kcurrent = 0;
-    keynumber = 0;
-    kmat = 0LL;
-    keyb_irq_repeattime = 100 / KEYB_SCANSPEED;
-    keyb_irq_longpresstime = 1000 / KEYB_SCANSPEED;
-    keyb_irq_debounce = 20 / KEYB_SCANSPEED;
-    keyb_irq_lock = 0;
-// INITIALIZE TIMER EVENT 0
-
-    tmr_events[0].eventhandler = keyb_irq_update;
-    tmr_events[0].delay = (KEYB_SCANSPEED * tmr_getsysfreq()) / 1000;
-
-    tmr_events[0].status = 0;
-
-// MASK ALL EXTINT UNTIL THEY ARE PROPERLY PROGRAMMED
+    // Mask all external interrupts until they are properly programmed
     *INTMSK |= 0x31;
 
-    *GPGCON = 0x5555AAA9;       // DRIVE ALL COLUMNS TO OUTPUT, ROWS TO EINT
-    *GPGDAT = 0;        // DRIVE OUTPUTS LOW
-    *GPGUP = 0x1;       // ENABLE PULLUPS ON ALL INPUT LINES, DISABLE ON ALL OUTPUTS
-//keysave[1]=*GPFCON;
-    *GPFCON = (*GPFCON & 0xffffc0fc) | 0x2a02;  // SET ALL SHIFTS TO GENERATE INTERRUPTS
+    // Initialize all global variables used by the keyboard subsystem
+    keyb_flags                 = 0;
+    keyb_plane                 = 0;
+    keyb_used                  = 0;
+    keyb_current               = 0;
+    keyb_last_code             = 0;
+    keyb_matrix                = 0LL;
+    keyb_irq_repeat_time       = 100 / KEYB_SCAN_SPEED;
+    keyb_irq_long_press_time   = 1000 / KEYB_SCAN_SPEED;
+    keyb_irq_debounce          = 20 / KEYB_SCAN_SPEED;
+    keyb_irq_lock              = 0;
 
-    irq_addhook(5, &keyb_irq_int_handler);
-    irq_addhook(4, &keyb_irq_int_handler);      // SHIFTS
-    irq_addhook(0, &keyb_irq_int_handler);      // ON
+    // Initialize timer event 0
+    tmr_events[0].eventhandler = keyb_irq_update;
+    tmr_events[0].delay = (KEYB_SCAN_SPEED * tmr_getsysfreq()) / 1000;
+    tmr_events[0].status = 0;
 
-    *EXTINT0 = (*EXTINT0 & 0xf000fff0) | 0x06660006;    // ALL SHIFTS TRIGGER ON BOTH EDGES
-    *EXTINT1 = 0x66666666;      // ALL OTHER KEYS TRIGGER ON BOTH EDGES
-    *EINTMASK = (*EINTMASK & 0x00ff018f);       // UNMASK 4,5,6 AND 9-15
-    *EINTPEND = 0xffffffff;     // CLEAR ALL PENDING INTERRUPTS
-    *INTMSK = *INTMSK & 0xffffffce;     // UNMASK EXTERNAL INTERRUPTS
+    // Initialize the hardware
+    *GPGCON = 0x5555AAA9;       // Drive all columns to output, rows to EINT
+    *GPGDAT = 0;                // Drive outputs low
+    *GPGUP = 0x1;               // Enable pullups on input lines only
+
+    // Set all shifts to generate interrupts
+    *GPFCON = (*GPFCON & 0xffffc0fc) | 0x2a02;
+
+    // Add interrupt hooks for the relevant keys
+    irq_add_hook(5, &keyb_irq_int_handler);
+    irq_add_hook(4, &keyb_irq_int_handler);      // Shifts
+    irq_add_hook(0, &keyb_irq_int_handler);      // ON
+
+    // Shifts trigger on both edges
+    *EXTINT0 = (*EXTINT0 & 0xf000fff0) | 0x06660006;
+
+    // Other keys trigger on both edges
+    *EXTINT1 = 0x66666666;
+
+    // Unmask interrupts 4, 5, 6 and 9-15
+    *EINTMASK = (*EINTMASK & 0x00ff018f);
+
+    // Clear all pending interrupts
+    *EINTPEND = 0xffffffff;
+
+    // Unmask external interrupts
+    *INTMSK = *INTMSK & 0xffffffce;
     *SRCPND |= 0x31;
-    *INTPND |= 0x31;    // UNMASK EXTERNAL INTERRUPTS
+    *INTPND |= 0x31;
 
+    // We are done - Mark keyboard interrupt handling  as running
+    keyb_flags = KFLAG_RUNNING;
 }
 
+
 void keyb_irq_stop(unsigned int *keysave)
+// ----------------------------------------------------------------------------
+//   Shutdown the keyboard interrupt subsystem (dead code, not ever called)
+// ----------------------------------------------------------------------------
 {
+    // We can no longer run at this point
+    keyb_flags &= ~KFLAG_RUNNING;
 
     tmr_events[0].status = 0;
 
-// DISABLE INTERRUPTS, STATUS WILL BE FULLY RESTORED ON EXIT
+    // Disable interrupts, status will be fully restored on exit
     *INTMSK |= 0x31;
     *EINTMASK |= 0xFE70;
     irq_releasehook(5);
     irq_releasehook(4);
     irq_releasehook(0);
 
-// RESTORE IO PORT CONFIGURATION
+    // Restore io port configuration
     *GPGCON = keysave[0];
     *GPFCON = keysave[1];
-    keyflags &= ~KF_RUNNING;
 }
