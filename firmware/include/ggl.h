@@ -943,8 +943,6 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     {
         uint64_t csave    = cdata64;
         unsigned sadjsave = sadj;
-        unsigned slssave  = sls;
-        unsigned srssave  = srs;
         pixword *ssave    = sp;
         pixword *dp       = dp1;
         pixword  dmask    = dmask1;
@@ -1029,7 +1027,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
         }
 
         // Check if we can directly move to next line
-        if (sslant)
+        if (sslant || dslant)
         {
             sy1 += ydir;
             sp   = ggl_pixel_address(src, sbpp, sx1, sy1);
@@ -1042,8 +1040,6 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
         {
             sp   = ssave + syoff;
             sadj = sadjsave;
-            sls  = slssave;
-            srs  = srssave;
         }
     }
 }
