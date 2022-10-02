@@ -60,17 +60,15 @@
 
 // Theme colors for menu
 #define PAL_MENU_BG           ggl_color(31)
+#define PAL_MENU_UNUSED_1     ggl_color(32)
 #define PAL_MENU_TEXT         ggl_color(33)
+#define PAL_MENU_DIR_MARK     ggl_color(34)
 #define PAL_MENU_DIR          ggl_color(35)
 #define PAL_MENU_DIR_BG       ggl_color(36)
 #define PAL_MENU_HLINE        ggl_color(37)
 #define PAL_MENU_FOCUS_HLINE  ggl_color(38)
 #define PAL_MENU_PRESS_BG     ggl_color(39)
-
-// Obsolete
-#define PAL_MENU_INV_TEXT     ggl_color(34)
-#define PAL_MENU_INV_BG       ggl_color(32)
-#define PAL_MENU_PRESS_INV_BG ggl_color(40)
+#define PAL_MENU_UNUSED_2     ggl_color(40)
 
 
 // Theme colors for status area
@@ -94,88 +92,6 @@
 #define PAL_FORM_CURSOR       ggl_color(55)
 
 
-// Add additional theme colors here
-
-
-// up to PALETTE_SIZE palette colors
-
-
-// Default Palette values
-// stick to 16 grays mode by default
-
-#define THEME_GRAY0               255, 255, 255
-#define THEME_GRAY1               238, 238, 238
-#define THEME_GRAY2               221, 221, 221
-#define THEME_GRAY3               204, 204, 204
-#define THEME_GRAY4               187, 187, 187
-#define THEME_GRAY5               170, 170, 170
-#define THEME_GRAY6               153, 153, 153
-#define THEME_GRAY7               136, 136, 136
-#define THEME_GRAY8               119, 119, 119
-#define THEME_GRAY9               102, 102, 102
-#define THEME_GRAY10              85, 85, 85
-#define THEME_GRAY11              68, 68, 68
-#define THEME_GRAY12              51, 51, 51
-#define THEME_GRAY13              34, 34, 34
-#define THEME_GRAY14              17, 17, 17
-#define THEME_GRAY15              0, 0, 0
-
-
-// Theme colors for stack
-// Default Palette values for GRAYSCALE hardware
-// stick to 16 grays mode by default
-
-// Theme colors for stack
-#define THEME_STK_BG              THEME_GRAY0
-#define THEME_STK_INDEX           THEME_GRAY15
-#define THEME_STK_VLINE           THEME_GRAY8
-#define THEME_STK_IDX_BG          THEME_GRAY0
-#define THEME_STK_ITEMS           THEME_GRAY15
-#define THEME_STK_SEL_BG          THEME_GRAY6
-#define THEME_STK_SEL_ITEM        THEME_GRAY15
-#define THEME_STK_CURSOR          THEME_GRAY15
-
-// Theme colors for command line
-#define THEME_CMD_BG              THEME_GRAY2
-#define THEME_CMD_TEXT            THEME_GRAY15
-#define THEME_CMD_SEL_BG          THEME_GRAY6
-#define THEME_CMD_SELTEXT         THEME_GRAY15
-#define THEME_CMD_CURSOR_BG       THEME_GRAY15
-#define THEME_CMD_CURSOR          THEME_GRAY0
-#define THEME_DIV_LINE            THEME_GRAY8
-
-// Theme colors for menu
-#define THEME_MENU_BG             THEME_GRAY15
-#define THEME_MENU_INV_BG         THEME_GRAY0
-#define THEME_MENU_TEXT           THEME_GRAY0
-#define THEME_MENU_INV_TEXT       THEME_GRAY15
-#define THEME_MENU_DIR            THEME_GRAY1
-#define THEME_MENU_DIR_BG         THEME_GRAY14
-#define THEME_MENU_HLINE          THEME_GRAY8
-#define THEME_MENU_FOCUS_HLINE    THEME_GRAY0
-#define THEME_MENU_PRESS_BG       255, 0, 0
-#define THEME_MENU_PRESS_INV_BG   255, 0, 0
-
-// Theme colors for status area
-#define THEME_STA_BG              THEME_GRAY0
-#define THEME_STA_TEXT            THEME_GRAY15
-#define THEME_STA_ANNPRESS        THEME_GRAY8
-#define THEME_STA_ANN             THEME_GRAY15
-#define THEME_STA_BAT             THEME_GRAY15
-#define THEME_STA_UFLAG0          THEME_GRAY8
-#define THEME_STA_UFLAG1          THEME_GRAY15
-
-// Theme colors for help and popup messages
-#define THEME_HLP_BG              THEME_GRAY0
-#define THEME_HLP_TEXT            THEME_GRAY15
-#define THEME_HLP_LINES           THEME_GRAY8
-
-// Theme colors for Forms
-#define THEME_FORMBACKGROUND      THEME_GRAY0
-#define THEME_FORMTEXT            THEME_GRAY15
-#define THEME_FORMSELTEXT         THEME_GRAY15
-#define THEME_FORMSEL_BG          THEME_GRAY6
-#define THEME_FORMCURSOR          THEME_GRAY15
 
 // HERE'S THE LANGUAGE OF THE ROM
 // CHANGE THIS FOR OTHER LANGUAGES

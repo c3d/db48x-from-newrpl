@@ -640,6 +640,34 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
 }
 
 
+// ============================================================================
+//
+//    Default Palette values
+//
+// ============================================================================
+
+// Stick to 16 grays mode for the first 15 colors for default UI elements
+#define THEME_GRAY0               255, 255, 255
+#define THEME_GRAY1               238, 238, 238
+#define THEME_GRAY2               221, 221, 221
+#define THEME_GRAY3               204, 204, 204
+#define THEME_GRAY4               187, 187, 187
+#define THEME_GRAY5               170, 170, 170
+#define THEME_GRAY6               153, 153, 153
+#define THEME_GRAY7               136, 136, 136
+#define THEME_GRAY8               119, 119, 119
+#define THEME_GRAY9               102, 102, 102
+#define THEME_GRAY10              85, 85, 85
+#define THEME_GRAY11              68, 68, 68
+#define THEME_GRAY12              51, 51, 51
+#define THEME_GRAY13              34, 34, 34
+#define THEME_GRAY14              17, 17, 17
+#define THEME_GRAY15              0, 0, 0
+
+// Include the target-specific palette
+#include <theme.h>
+
+
 static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
 {
     { THEME_GRAY0 },
@@ -680,15 +708,15 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
 
     // Theme colors for menu
     { THEME_MENU_BG },
-    { THEME_MENU_INV_BG },
+    { THEME_MENU_UNUSED_1 },
     { THEME_MENU_TEXT },
-    { THEME_MENU_INV_TEXT },
+    { THEME_MENU_DIR_MARK },
     { THEME_MENU_DIR },
     { THEME_MENU_DIR_BG },
     { THEME_MENU_HLINE },
     { THEME_MENU_FOCUS_HLINE },
     { THEME_MENU_PRESS_BG },
-    { THEME_MENU_PRESS_INV_BG },
+    { THEME_MENU_UNUSED_2 },
 
     // Theme colors for status area
     { THEME_STA_BG },
@@ -978,8 +1006,8 @@ void halRedrawMenu1(gglsurface *scr)
     halScreenUpdated();
 
     int invMenu = rplTestSystemFlag(FL_MENU1WHITE);
-    pattern_t mcolor = invMenu ? PAL_MENU_INV_TEXT : PAL_MENU_TEXT;
-    pattern_t bcolor = invMenu ? PAL_MENU_INV_BG   : PAL_MENU_BG;
+    pattern_t mcolor  = invMenu ? PAL_MENU_BG   : PAL_MENU_TEXT;
+    pattern_t bcolor  = invMenu ? PAL_MENU_TEXT : PAL_MENU_BG;
 
     int ytop, ybottom;
     int oldleft, oldright, oldtop, oldbottom;
@@ -1209,8 +1237,8 @@ void halRedrawMenu2(gglsurface *scr)
     halScreenUpdated();
 
     int invMenu = rplTestSystemFlag(FL_MENU1WHITE);
-    pattern_t mcolor = invMenu ? PAL_MENU_INV_TEXT : PAL_MENU_TEXT;
-    pattern_t bcolor = invMenu ? PAL_MENU_INV_BG   : PAL_MENU_BG;
+    pattern_t mcolor = invMenu ? PAL_MENU_BG   : PAL_MENU_TEXT;
+    pattern_t bcolor = invMenu ? PAL_MENU_TEXT : PAL_MENU_BG;
 
     int ytop, ybottom;
     int oldleft, oldright, oldtop, oldbottom;

@@ -947,9 +947,11 @@ void startup(void)
     enable_interrupts();
 
     // Setup Default color palette for early exception handlers only
-    ggl_palette_set(0, THEME_GRAY0);
-    ggl_palette_set(8, THEME_GRAY8);
-    ggl_palette_set(15, THEME_GRAY15);
+    for (unsigned gray = 0; gray < 16; gray++)
+    {
+        uint8_t level = 255 - 255 * gray / 15;
+        ggl_palette_set(gray, level, level, level);
+    }
 
     tmr_setup();
 

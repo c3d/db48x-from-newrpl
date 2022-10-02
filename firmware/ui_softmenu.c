@@ -493,6 +493,7 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
 
     // Draw the text for the menu
     DrawTextN(scr, pos, scr->top + 1, text, end, FONT_MENU, fg);
+
 }
 
 
