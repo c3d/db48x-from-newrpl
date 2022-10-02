@@ -69,4 +69,4 @@ gglsurface ggl_grob(word_p bmp)
 }
 
 // Global palette, can be used for grayscale conversion or for themes
-color_t ggl_palette[PALETTE_SIZE] SYSTEM_GLOBAL;
+pattern_t ggl_palette[PALETTE_SIZE] SYSTEM_GLOBAL;

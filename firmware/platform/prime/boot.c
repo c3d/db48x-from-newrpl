@@ -252,7 +252,7 @@ void main_virtual(unsigned int mode)
         halSetupTheme(NULL);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid(PAL_STK_BG));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, PAL_STK_BG);
 
 
             // CHECK FOR MAGIC KEY COMBINATION
@@ -317,7 +317,7 @@ void main_virtual(unsigned int mode)
 
         tmr_eventkill(event);
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,  ggl_solid(PAL_GRAY4));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,  PAL_GRAY4);
 
         keyb_flush_no_wait();
 
@@ -826,9 +826,9 @@ void read_serial_number() {
     uint8_t buffer[NAND_PAGE_SIZE];
 
 
-    const char const noserial[]="NO SERIAL!";
+                   const const char noserial[] = "NO SERIAL!";
 
-    // Copy dummy serial number
+                   // Copy dummy serial number
     for (int i = 0; i < 10; ++i) {
         SERIAL_NUMBER_ADDRESS[i] = noserial[i];
     }
@@ -946,10 +946,10 @@ void startup(void)
 
     enable_interrupts();
 
-    // Setup Default color palette for early exception handlers only, just in case
-    ggl_color_set(PAL_GRAY0,THEME_GRAY0);
-    ggl_color_set(PAL_GRAY8,THEME_GRAY8);
-    ggl_color_set(PAL_GRAY15,THEME_GRAY15);
+    // Setup Default color palette for early exception handlers only
+    ggl_palette_set(0, THEME_GRAY0);
+    ggl_palette_set(8, THEME_GRAY8);
+    ggl_palette_set(15, THEME_GRAY15);
 
     tmr_setup();
 

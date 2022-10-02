@@ -69,13 +69,11 @@ INCLUDE_ROMOBJECT(lib80_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
-    (word_p) lib80_menu,
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
+                                      (word_p) lib80_menu,
 
-    0
-};
+                                      0 };
 
 const char *const bitmap_modes[] = {
     "MONO",
@@ -322,13 +320,16 @@ word_p rplBmpToDisplay(word_p bitmap)
 
             // READ A PIXEL FROM SOURCE
             pixel = *srcptr & mask;
-            // CONVERT TO PROPER FORMAT
-            if(pixel)
-                pixel = RGB_TO_RGB16(0,0,0).value;            // ASSUME MONOCHROME GRAPHICS ARE BLACK ON WHITE (SAME AS 50G OR A FAX)
-            else
-                pixel = RGB_TO_RGB16(255,255,255).value;
 
-            // WRITE TO DESTINATION
+            // Convert to proper format
+            // Assume monochrome graphics are black on white
+            // (Same as 50g or a fax)
+            if(pixel)
+                pixel = ggl_rgb16(0,0,0).value;
+            else
+                pixel = ggl_rgb16(255,255,255).value;
+
+            // Write to destination
             *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
@@ -363,11 +364,12 @@ word_p rplBmpToDisplay(word_p bitmap)
             pixel = 0xf0 - ((*srcptr & mask) << rot);
             if(pixel&0x80) pixel|=0xf;
 
-            // CONVERT TO PROPER FORMAT
-            pixel = RGB_TO_RGB16(pixel,pixel,pixel).value;            // ASSUME GRAY16 GRAPHICS ARE BLACK ON WHITE (SAME AS 50G BITMAPS)
+            // Convert to proper format
+            // Assume gray16 graphics are black on white (same as 50g bitmaps)
+            pixel = ggl_rgb16(pixel,pixel,pixel).value;
 
             // WRITE TO DESTINATION
-                *destptr = (uint16_t) pixel;
+            *destptr = (uint16_t) pixel;
 
             //INCREASE SOURCE POINTER
             mask <<= 4;
@@ -401,7 +403,7 @@ word_p rplBmpToDisplay(word_p bitmap)
             // READ A PIXEL FROM SOURCE
             pixel = *srcptr;
             // CONVERT TO PROPER FORMAT
-            color16_t pixel16 = RGB_TO_RGB16(pixel,pixel,pixel);
+            color16_t pixel16 = ggl_rgb16(pixel,pixel,pixel);
 
             // WRITE TO DESTINATION
             *destptr = pixel16.value;
@@ -439,7 +441,10 @@ word_p rplBmpToDisplay(word_p bitmap)
             pixel=*srcptr;
 
             // CONVERT TO PROPER FORMAT
-            pixel = RGB_TO_RGB16((pixel>>16)&0xff,(pixel>>8)&0xff,(pixel)&0xff).value;
+            pixel = ggl_rgb16((pixel >> 16) & 0xff,
+                              (pixel >> 8) & 0xff,
+                              (pixel) &0xff)
+                        .value;
 
             *destptr = (uint16_t) pixel;
 
@@ -743,7 +748,7 @@ void LIB_HANDLER()
             int32_t k;
             for(k = 0; k < renderst->npoints; ++k) {
                 ggl_cliphline(&(renderst->srf), renderst->points[k].y >> 24,
-                              renderst->points[k].x, renderst->points[k].x, ggl_solid(PAL_GRAY15));
+                              renderst->points[k].x, renderst->points[k].x, PAL_GRAY15);
             }
 
             return;

@@ -29,7 +29,7 @@ void ex_print(int x, int y, cstring str)
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
 
-    DrawText(&dr, x, y, str, Font_10A, ggl_solid(PAL_GRAY15));
+    DrawText(&dr, x, y, str, Font_10A, PAL_GRAY15);
 }
 
 void ex_clrscreen()
@@ -40,7 +40,7 @@ void ex_clrscreen()
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_rect(&dr, 0, 0, dr.right - 1, dr.bottom - 1, ggl_solid(PAL_GRAY0));
+    ggl_rect(&dr, 0, 0, dr.right - 1, dr.bottom - 1, PAL_GRAY0);
 }
 
 void ex_hline(int y)
@@ -51,7 +51,7 @@ void ex_hline(int y)
     dr.left = dr.top = 0;
     dr.right           = LCD_W;
     dr.bottom           = LCD_H;
-    ggl_hline(&dr, y, 0, dr.right - 1, ggl_solid(PAL_GRAY8));
+    ggl_hline(&dr, y, 0, dr.right - 1, PAL_GRAY8);
 }
 
 inline int ex_width(char *string)

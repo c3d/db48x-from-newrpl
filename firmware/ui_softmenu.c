@@ -289,480 +289,226 @@ word_p uiGetMenuItemHelp(word_p item)
 
 }
 
-// DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
-// DOES NOT CLEAR BACKGROUND
-
-void uiDrawMenuItem(word_p item, palette_index palette_color, palette_index palette_bkcolor, gglsurface * scr)
+static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
+// ----------------------------------------------------------------------------
+//   Draw a single item in the current clipping box, does not clear background
+// ----------------------------------------------------------------------------
+// flags & 1 == is directory
+// flags & 2 == inverted
+// flags & 4 == use help colors
 {
-    word_p ptr;
-    int32_t flags = 0;
-    if(!item)
+    if (!item)
         return;
 
-
-
-    if(ISLIST(*item)) {
+    word_p  ptr;
+    if (ISLIST(*item))
+    {
         ptr = item + 1;
-        if(ptr >= rplSkipOb(item) - 1)
+        if (ptr >= rplSkipOb(item) - 1)
             return;
 
-        if(*ptr == CMD_ENDLIST)
+        if (*ptr == CMD_ENDLIST)
             ptr = item;
-        else {
-            // IF IT'S A PROGRAM, RUN IT AND TAKE THE RESULT FROM THE STACK
-            if(ISPROGRAM(*ptr)) {
+        else
+        {
+            // If it's a program, run it and take the result from the stack
+            if (ISPROGRAM(*ptr))
+            {
                 rplPushData(item);
                 rplPushData(ptr);
 
                 int32_t nresults = uiCmdRunTransparent(CMD_OVR_XEQ, 1, 1);
 
-                if(nresults == 1)
+                if (nresults == 1)
                     ptr = rplPopData();
                 else
-                    ptr = (word_p) empty_string;       // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
-                item = rplPopData();    // RESTORE THE item POINTER IN CASE OF GC
-                halUpdateFonts();
-                // CONTINUE HERE WITH THE NEW ptr
+                    // Failed to run, use empty string
+                    ptr = (word_p) empty_string;
 
+                // Restore the item pointer in case of GC
+                item = rplPopData();
+                halUpdateFonts();
             }
-            if(ISLIBRARY(*ptr)) {
-                // MAKE THE ITEM BE THE LIBRARY IDENTIFIER
+            if (ISLIBRARY(*ptr))
+            {
+                // Make the item be the library identifier
                 ptr++;
             }
 
-            //  IF IT'S A LIST, THEN TAKE THE FLAGS FROM THE SECOND ELEMENT IN THE LIST, AND USE THE FIRST AS THE DISPLAY OBJECT
-            if(ISLIST(*ptr)) {
+            //  If it's a list, then take the flags from the second element in
+            //  the list, and use the first as the display object
+            if (ISLIST(*ptr))
+            {
                 ptr = ptr + 1;
-                if(ptr >= rplSkipOb(item) - 1)
+                if (ptr >= rplSkipOb(item) - 1)
                     return;
-                if(*ptr == CMD_ENDLIST)
+                if (*ptr == CMD_ENDLIST)
                     ptr = item;
-                else {
+                else
+                {
                     word_p next = rplSkipOb(ptr);
-                    if(ISint32_t(*next))
+                    if (ISint32_t(*next))
                         flags = rplReadint32_t(next);
                 }
             }
-
         }
     }
     else
+    {
         ptr = item;
-
-    // HERE ptr HAS AN OBJECT TO DISPLAY
-
-    // AND flags HAS THE FLAGS
-
-
-    pattern_t color, bcolor, dircolor;
-    if (palette_color == PAL_MENU_INV_TEXT)
-    {
-        // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-        if (flags & 2)
-        {
-            color    = ggl_solid(PAL_MENU_TEXT);
-            bcolor   = ggl_solid(PAL_MENU_BG);
-            dircolor = ggl_solid(PAL_MENU_DIR_MARK);
-        }
-        else
-        {
-            color    = ggl_solid(PAL_MENU_INV_TEXT);
-            bcolor   = ggl_solid(PAL_MENU_INV_BG);
-            dircolor = ggl_solid(PAL_MENU_INV_DIR_MARK);
-        }
     }
-    else
-    {
-        if (palette_color == PAL_MENU_TEXT)
-        {
-            // IF INVERTED BY FLAGS, USE THE ALTERNATIVE SET OF COLORS
-            if (flags & 2)
-            {
-                color    = ggl_solid(PAL_MENU_INV_TEXT);
-                bcolor   = ggl_solid(PAL_MENU_INV_BG);
-                dircolor = ggl_solid(PAL_MENU_INV_DIR_MARK);
-            }
-            else
-            {
-                color    = ggl_solid(PAL_MENU_TEXT);
-                bcolor   = ggl_solid(PAL_MENU_BG);
-                dircolor = ggl_solid(PAL_MENU_DIR_MARK);
-            }
-        }
-        else
-        {
-            // JUST USE THE SPECIFIC COLORS REQUESTED BY CALLER, SWAP COLORS IF
-            // INVERTED BY FLAGS
-            if (flags & 2)
-            {
-                dircolor = bcolor = ggl_solid(palette_color);
-                color             = ggl_solid(palette_bkcolor);
-            }
-            else
-            {
-                color    = ggl_solid(palette_color);
-                dircolor = bcolor = ggl_solid(palette_bkcolor);
-            }
-        }
-    }
+
+    // Here ptr has an object to display and flags has the flags
+
+    // Select what to display
+    utf8_p    text      = "";
+    utf8_p    end       = text;
 
     if (ISLIBRARY(*ptr))
     {
-        // SPECIAL CASE: DRAW IT LIKE A DIRECTORY, DISPLAYING THE LIBRARY ID
+        // Draw it like a directory, displaying the library ID
         ptr++;
-
-
-        // REDRAW THE BACKGROUND WITH THE NEW COLOR
-        if (flags & 2)
-            ggl_rect(scr, scr->left, scr->top, scr->right, scr->bottom, bcolor);
-
-
-        int32_t w = StringWidthN((char *) (ptr + 1),
-                                 (char *) (ptr + 1) + rplGetIdentLength(ptr),
-                                 FONT_MENU),
-                pos;
-
-        if (w >= scr->right - scr->left)
-            pos = scr->left + 1;
-        else
-            pos = (scr->right + 1 + scr->left - w) >> 1;
-
-        // FIRST LETTER GRAY BACKGROUND
-        ggl_cliprect(scr,
-                     pos,
-                     scr->top,
-                     pos + MENU1_HEIGHT / 2,
-                     scr->bottom,
-                     dircolor);
-        /*
-        ggl_clipvline(scr, pos + 1, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        ggl_clipvline(scr, pos + 2, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        ggl_clipvline(scr, pos + 3, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        */
-        DrawTextN(scr,
-                  pos,
-                  scr->top + 1,
-                  (char *) (ptr + 1),
-                  (char *) (ptr + 1) + rplGetIdentLength(ptr),
-                  FONT_MENU,
-                  color);
-
-#if 1
-#warning Need to revisit that lighten/darken code
-#else
-        // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
-        if (w >= scr->right - scr->left)
-        {
-            int rf = RGBRED(color);
-            int rb = RGBRED(bcolor);
-            int gf = RGBGREEN(color);
-            int gb = RGBGREEN(bcolor);
-            int bf = RGBBLUE(color);
-            int bb = RGBBLUE(bcolor);
-
-
-            // Vanishing width
-            // Create 3 interpolated colors: (3f+b)/4, (f+b)/2 and (f+3b)/4
-            int vw = MENU_TAB_WIDTH / 16;
-
-            scr->x = scr->right - vw + 1;
-            scr->y = scr->top;
-
-
-            ggl_filter(scr, vw, scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16( (rf+3*rb)>>2 , (gf+3*gb)>>2 , (bf+3*bb)>>2).value | (color.value<<16) , &ggl_fltreplace);
-            scr->x-=vw;
-            ggl_filter(scr, vw, scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16( (rf+rb)>>1 , (gf+gb)>>1 , (bf+bb)>>1).value | (color.value<<16), &ggl_fltreplace);
-            scr->x-=vw;
-            ggl_filter(scr, vw, scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16( (3*rf+rb)>>2 , (3*gf+gb)>>2 , (3*bf+bb)>>2).value | (color.value<<16), &ggl_fltreplace);
-        }
-#endif // Darken / Lighten
-
-
-        return;
+        text = (utf8_p) (ptr+1);
+        end =  text + rplGetIdentLength(ptr);
+        flags |= 1;             // Show as directory
     }
-
-    if(ISIDENT(*ptr)) {
-
-        // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
+    else if (ISIDENT(*ptr))
+    {
+        // For idents look for variables and check for directories
         word_p *var = rplFindGlobal(ptr, 1);
-
-        int32_t w = StringWidthN((char *)(ptr + 1),
-                (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                FONT_MENU), pos;
-
-        if(w >= scr->right - scr->left)
-            pos = scr->left + 1;
-        else
-            pos = (scr->right + 1 + scr->left - w) >> 1;
-        if(palette_color==PAL_MENU_INV_TEXT) {
-            if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
-                color=ggl_solid(PAL_MENU_TEXT);
-                bcolor=ggl_solid(PAL_MENU_BG);
-                dircolor=ggl_solid(PAL_MENU_DIR_MARK);
-
-                // REDRAW THE BACKGROUND WITH THE NEW COLOR
-                ggl_rect(scr,scr->left,scr->top,scr->right,scr->bottom,bcolor);
-            }
-
+        if (var)
+        {
+            if (ISDIR(*var[1]))
+                flags |= 1;     // Directory: Show as directory
+            if ((rplGetIdentAttr(var[0]) & IDATTR_DEFN) == 0)
+                flags |= 2;     // Undefined: Invert
         }
-        else {
-        if((flags & 2) || (var && (rplGetIdentAttr(var[0]) & IDATTR_DEFN))) {
-            color=ggl_solid(PAL_MENU_INV_TEXT);
-            bcolor=ggl_solid(PAL_MENU_INV_BG);
-            dircolor=ggl_solid(PAL_MENU_INV_DIR_MARK);
-
-            // REDRAW THE BACKGROUND WITH THE NEW COLOR
-            ggl_rect(scr,scr->left,scr->top,scr->right,scr->bottom,bcolor);
-
-        }
-        }
-
-
-
-
-        // flags & 1 == IS_DIRECTORY
-        // flags & 2 == INVERTED
-        if((flags & 1) || (var && ISDIR(*var[1]))) {
-            //ggl_clipvline(scr,scr->right,scr->top,scr->bottom,ggl_solid(color));
-            //ggl_cliphline(scr,scr->top,scr->left,scr->left+3,ggl_solid(color));
-            //DrawTextN(pos+1,scr->top+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),FONT_MENU,(color)? 0x4:0xa,scr);
-
-
-
-            // FIRST LETTER GRAY BACKGROUND
-            ggl_cliprect(scr, pos, scr->top, pos+MENU1_HEIGHT/2,scr->bottom,
-                    dircolor);
-
-            /*
-            ggl_clipvline(scr, pos, scr->top, scr->bottom,
-                    ggl_solid((color) ? 0X4 : 0x8));
-            ggl_clipvline(scr, pos + 1, scr->top, scr->bottom,
-                    ggl_solid((color) ? 0X4 : 0x8));
-            ggl_clipvline(scr, pos + 2, scr->top, scr->bottom,
-                    ggl_solid((color) ? 0X4 : 0x8));
-            ggl_clipvline(scr, pos + 3, scr->top, scr->bottom,
-                    ggl_solid((color) ? 0X4 : 0x8));
-            */
-            // LOWER 2 LINES GRAY
-            //ggl_cliphline(scr,scr->bottom,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-            //ggl_cliphline(scr,scr->bottom-1,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-            //ggl_cliphline(scr,scr->bottom-2,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-
-            // UNDERLINE FIRST LETTER
-            //ggl_cliphline(scr,scr->bottom,pos,pos+6,ggl_solid( (color)? 0X4:0x6));
-
-        }
-
-        DrawTextN(scr, pos, scr->top + 1, (char *)(ptr + 1),
-                (char *)(ptr + 1) + rplGetIdentLength(ptr),
-                FONT_MENU, color);
-
-#if 1
-#warning Revisit
-#else
-        // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
-        if(w >= scr->right - scr->left) {
-
-            int rf,rb,gf,gb,bf,bb;
-
-            rf=RGBRED(color);
-            rb=RGBRED(bcolor);
-            gf=RGBGREEN(color);
-            gb=RGBGREEN(bcolor);
-            bf=RGBBLUE(color);
-            bb=RGBBLUE(bcolor);
-
-            // CREATE 3 INTERPOLATED COLORS: (3F+B)/4, (F+B)/2 AND (F+3B)/4
-            int vw=MENU_TAB_WIDTH/16;
-
-            scr->x = scr->right-vw+1;
-            scr->y = scr->top;
-
-
-            ggl_filter(scr,
-                       vw,
-                       scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16((rf + 3 * rb) >> 2, (gf + 3 * gb) >> 2, (bf + 3 * bb) >> 2).value |
-                           (color.value << 16),
-                       &ggl_fltreplace);
-            scr->x-=vw;
-            ggl_filter(scr,
-                       vw,
-                       scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16((rf + rb) >> 1, (gf + gb) >> 1, (bf + bb) >> 1).value | (color.value << 16),
-                       &ggl_fltreplace);
-            scr->x-=vw;
-            ggl_filter(scr,
-                       vw,
-                       scr->bottom - scr->top + 1,
-                       RGB_TO_RGB16((3 * rf + rb) >> 2, (3 * gf + gb) >> 2, (3 * bf + bb) >> 2).value |
-                       (color.value << 16),
-                       &ggl_fltreplace);
-        }
-#endif // 0
-
-        return;
+        text = (utf8_p) (ptr + 1);
+        end =  text + rplGetIdentLength(ptr);
     }
-
-    // ALL OTHER OBJECTS NEED TO BE DECOMPILED, EXCEPT THE STRING AND GROBS
-
-    int32_t totaln;
-    byte_p string, endstring;
-
-    // TODO: ADD GROBS HERE
-
-    if(!ISSTRING(*ptr)) {
-
-        WORD ptrprolog = *ptr;
+    else if (ISSTRING(*ptr))
+    {
+        // Strings can be displayed as is
+        unsigned totaln = rplStrLenCp(ptr);
+        text = (utf8_p) (ptr + 1);
+        end  = utf8nskip(text, (utf8_p) rplSkipOb(ptr), totaln);
+    }
+    else
+    {
+        // Other objects must be decompiled for display
+        WORD    ptrprolog      = *ptr;
 
         int32_t SavedException = Exceptions;
         int32_t SavedErrorCode = ErrorCode;
-        int32_t removevalue = 0;
+        int32_t removevalue    = 0;
 
-        if(ISUNIT(ptrprolog)) {
+        if (ISUNIT(ptrprolog))
+        {
             REAL r;
-            if(ISNUMBER(ptr[1])) {
+            if (ISNUMBER(ptr[1]))
+            {
                 rplReadNumberAsReal(ptr + 1, &r);
                 rplOneToRReg(0);
                 removevalue = eqReal(&r, &RReg[0]);
             }
         }
 
-        Exceptions = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+        // Erase any previous error to allow the decompiler to run
+        Exceptions = 0;
+
+        // Do not save IPtr because it can move
         word_p opname = rplDecompile(ptr, DECOMP_NOHINTS);
-        Exceptions = SavedException;
-        ErrorCode = SavedErrorCode;
+        Exceptions    = SavedException;
+        ErrorCode     = SavedErrorCode;
 
-        if(!opname)
-            return;
-
-        // HERE WE HAVE A STRING, DO SOME MORE POST-PROCESSING DEPENDING ON OBJECT
-
-        string = (byte_p) (opname + 1);
-        totaln = rplStrLenCp(opname);
-        endstring =
-                (byte_p) utf8nskip((char *)string, (char *)rplSkipOb(opname),
-                totaln);
-
-        if(removevalue) {
-            // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
-            int32_t k, offset;
-            for(k = 0, offset = 0; k < totaln;
-                    ++k, offset =
-                    (byte_p) utf8skip((char *)string + offset,
-                        (char *)endstring) - string)
-                if(utf82cp((char *)string + offset, (char *)endstring) == '_') {
-                    totaln -= k + 1;
-                    string += offset + 1;
-                    break;
-                }
+        if (!opname)
+        {
+            // Error, show a sign of it
+            text = "ERR?";
+            end  = text + 4;
         }
+        else
+        {
+            // Here we have a string
+            // Do some more post-processing depending on object
+            unsigned totaln = rplStrLenCp(opname);
+            text = (utf8_p) (opname + 1);
+            end  = utf8nskip(text, (utf8_p) rplSkipOb(opname), totaln);
 
-        // TODO: ADD MORE SPECIALIZED HANDLING HERE
-
+            if (removevalue)
+            {
+                // Skip the numeric portion, leave just the unit
+                int32_t offset = 0;
+                for (unsigned k = 0; k < totaln; k++)
+                {
+                    offset = utf8skip(text + offset, end) - text;
+                    if (utf82cp(text + offset, end) == '_')
+                    {
+                        totaln -= k + 1;
+                        text += offset + 1;
+                        break;
+                    }
+                }
+                // TODO: Add more specialized handling here
+            }
+        }
     }
-    else {
-        string = (byte_p) (ptr + 1);
-        totaln = rplStrLenCp(ptr);
-        endstring =
-                (byte_p) utf8nskip((char *)string, (char *)rplSkipOb(ptr),
-                totaln);
-    }
 
-    // JUST DISPLAY THE STRING
+    // Select display colors
+    int       directory = (flags & 1) != 0;
+    int       inverted  = (flags & 2) != 0;
+    int       help_menu = (flags & 4) != 0;
+    pattern_t color_1   = help_menu ? PAL_HLP_TEXT
+                        : directory ? PAL_MENU_DIR
+                                    : PAL_MENU_TEXT;
+    pattern_t color_2   = help_menu ? PAL_HLP_BG
+                        : directory ? PAL_MENU_DIR_BG
+                                    : PAL_MENU_BG;
+    pattern_t fg        = inverted ? color_2 : color_1;
+    pattern_t bg        = inverted ? color_1 : color_2;
 
-    // REDRAW THE BACKGROUND WITH THE NEW COLOR
-    if(flags&2) ggl_rect(scr,scr->left,scr->top,scr->right,scr->bottom,bcolor);
+    size      width     = StringWidthN(text, end, FONT_MENU);
+    size      swidth    = scr->right - scr->left;
+    coord     pos       = (width >= swidth)
+        ? 1 + scr->left
+        : (1 + scr->right + scr->left - width) >> 1;
 
+    // Draw the background
+    ggl_cliprect(scr, scr->left, scr->top, scr->right, scr->bottom, bg);
 
-    int32_t w = StringWidthN((char *)string, (char *)endstring,
-            FONT_MENU), pos;
-    if(w >= scr->right - scr->left)
-        pos = scr->left + 1;
-    else
-        pos = (scr->right + 1 + scr->left - w) >> 1;
-
-    if(flags & 1)       // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
+    // Draw a marker to indicate directories
+    if (directory)
     {
-        //ggl_clipvline(scr,scr->right,scr->top,scr->bottom,ggl_solid(color));
-        //ggl_cliphline(scr,scr->top,scr->left,scr->left+3,ggl_solid(color));
-        //DrawTextN(pos+1,scr->top+1,(char *)string,(char *)endstring,FONT_MENU,(color)? 0x4:0xa,scr);
-
-        ggl_cliprect(scr, pos, scr->top, pos+MENU1_HEIGHT/2,scr->bottom,
-                dircolor);
-        /*
-        // FIRST LETTER GRAY BACKGROUND
-        ggl_clipvline(scr, pos, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        ggl_clipvline(scr, pos + 1, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        ggl_clipvline(scr, pos + 2, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        ggl_clipvline(scr, pos + 3, scr->top, scr->bottom,
-                ggl_solid((color) ? 0X4 : 0x8));
-        */
-        // LOWER 2 LINES GRAY
-        //ggl_cliphline(scr,scr->bottom,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-        //ggl_cliphline(scr,scr->bottom-1,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-        //ggl_cliphline(scr,scr->bottom-2,scr->left,scr->right,ggl_solid( (color)? 0X4:0x6));
-
-        // UNDERLINE FIRST LETTER
-        //ggl_cliphline(scr,scr->bottom,pos,pos+6,ggl_solid( (color)? 0X4:0x6));
-
+        size marker = FONT_MENU->BitmapHeight / 2;
+        coord x = scr->left;
+        coord top = scr->top;
+        pattern_t earmark = PAL_MENU_DIR_MARK;
+        for (unsigned row = 0; row < marker; row++)
+        {
+            coord y = top + row;
+            size  w = marker - row;
+            ggl_cliprect(scr, x, y, x+w, y+1, earmark);
+        }
     }
 
-    DrawTextN(scr, pos, scr->top + 1, (char *)string, (char *)endstring,
-            FONT_MENU, color);
+    // Draw the text for the menu
+    DrawTextN(scr, pos, scr->top + 1, text, end, FONT_MENU, fg);
+}
 
 
-#if 1
-#warning Revisit
-#else
-    // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
-    if(w >= scr->right - scr->left) {
-
-        int rf,rb,gf,gb,bf,bb;
-
-        rf=RGBRED(color);
-        rb=RGBRED(bcolor);
-        gf=RGBGREEN(color);
-        gb=RGBGREEN(bcolor);
-        bf=RGBBLUE(color);
-        bb=RGBBLUE(bcolor);
-
-        // CREATE 3 INTERPOLATED COLORS: (3F+B)/4, (F+B)/2 AND (F+3B)/4
-        int vw=MENU_TAB_WIDTH/16;
-
-        scr->x = scr->right-vw+1;
-        scr->y = scr->top;
+void uiDrawMenuItem(gglsurface   *scr, word_p item)
+// ----------------------------------------------------------------------------
+//   Draw a regular menu item
+// ----------------------------------------------------------------------------
+{
+    uiDrawMenuItemInternal(scr, item, 0);
+}
 
 
-        ggl_filter(scr,
-                   vw,
-                   scr->bottom - scr->top + 1,
-                   RGB_TO_RGB16((rf + 3 * rb) >> 2, (gf + 3 * gb) >> 2, (bf + 3 * bb) >> 2).value | (color.value << 16),
-                   &ggl_fltreplace);
-        scr->x -= vw;
-        ggl_filter(scr,
-                   vw,
-                   scr->bottom - scr->top + 1,
-                   RGB_TO_RGB16((rf + rb) >> 1, (gf + gb) >> 1, (bf + bb) >> 1).value | (color.value << 16),
-                   &ggl_fltreplace);
-        scr->x -= vw;
-        ggl_filter(scr,
-                   vw,
-                   scr->bottom - scr->top + 1,
-                   RGB_TO_RGB16((3 * rf + rb) >> 2, (3 * gf + gb) >> 2, (3 * bf + bb) >> 2).value | (color.value << 16),
-                   &ggl_fltreplace);
-    }
-#endif
-    return;
-
+void uiDrawHelpMenuItem(gglsurface   *scr, word_p item)
+// ----------------------------------------------------------------------------
+//   Draw a regular menu item
+// ----------------------------------------------------------------------------
+{
+    uiDrawMenuItemInternal(scr, item, 4);
 }

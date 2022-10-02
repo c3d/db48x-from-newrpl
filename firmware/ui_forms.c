@@ -176,7 +176,7 @@ void uiUpdateForm(word_p form)
                     backgnd.right = backgnd.left + itemw - 1;
                     DrawTextBkN(&backgnd, backgnd.left, backgnd.top, (char *)(col + 1),
                                 (char *)(col + 1) + rplStrSize(col),
-                                FONT_FORMS, ggl_solid(PAL_GRAY15), ggl_solid(PAL_GRAY0));
+                                FONT_FORMS, PAL_GRAY15, PAL_GRAY0);
                     backgnd.left = backgnd.right + 1;
                 }
 
@@ -206,23 +206,23 @@ void uiUpdateForm(word_p form)
                             str,
                             str + len,
                             FONT_FORMS,
-                            ggl_solid(PAL_GRAY15),
-                            ggl_solid(PAL_GRAY0));
+                            PAL_GRAY15,
+                            PAL_GRAY0);
             }
             else
             {
                 size width = StringWidthN(str, str + len, FONT_FORMS);
                 ggl_cliprect(&backgnd,
                              left, top, right, bottom,
-                             ggl_solid(PAL_GRAY12));
+                             PAL_GRAY12);
                 DrawTextBkN(&backgnd,
                             left + width/2,
                             top,
                             str,
                             str + len,
                             FONT_FORMS,
-                            ggl_solid(PAL_GRAY2),
-                            ggl_solid(PAL_GRAY12));
+                            PAL_GRAY2,
+                            PAL_GRAY12);
             }
 
         }

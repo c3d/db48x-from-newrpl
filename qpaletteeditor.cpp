@@ -107,11 +107,14 @@ QPaletteEditor::QPaletteEditor(QWidget *parent) :
     {
         ui->pTable->insertRow(k);
         QTableWidgetItem *item=new QTableWidgetItem("     ");
-        QBrush tempbkgnd(QColor::fromRgb(RGBRED(ggl_palette[k]),RGBGREEN(ggl_palette[k]),RGBBLUE(ggl_palette[k])));
+        pattern_t pat = ggl_palette[k];
+        color16_t color = { .value = (uint16_t) pat.bits };
+        QBrush tempbkgnd(QColor::fromRgb(ggl_red(color),
+                                         ggl_green(color),
+                                         ggl_blue(color)));
         item->setBackground(tempbkgnd);
         ui->pTable->setItem(k,0,item);
         ui->pTable->setItem(k,1,new QTableWidgetItem(QString(pal_descriptions[k])));
-
     }
 
 
@@ -146,8 +149,8 @@ void QPaletteEditor::on_buttonBox_clicked(QAbstractButton *button)
         int k;
         for(k=0;k<64;++k)
         {
-            QColor color=ui->pTable->item(k,0)->background().color();
-            ggl_palette[k]=ggl_rgb16_to_color(RGB_TO_RGB16(color.red(),color.green(),color.blue()));
+            QColor color = ui->pTable->item(k,0)->background().color();
+            ggl_palette_set(k, color.red(), color.green(), color.blue());
             FullScreenUpdate();
         }
         return;
@@ -223,7 +226,11 @@ void QPaletteEditor::ReadPalette()
     for(k=0;k<64;++k)
     {
         QTableWidgetItem *item=ui->pTable->takeItem(k,0);
-        QBrush tempbkgnd(QColor::fromRgb(RGBRED(ggl_palette[k]),RGBGREEN(ggl_palette[k]),RGBBLUE(ggl_palette[k])));
+        pattern_t pat = ggl_palette[k];
+        color16_t color = { .value = (uint16_t) pat.bits };
+        QBrush tempbkgnd(QColor::fromRgb(ggl_red(color),
+                                         ggl_green(color),
+                                         ggl_blue(color)));
         item->setBackground(tempbkgnd);
         ui->pTable->setItem(k,0,item);
     }

@@ -4151,29 +4151,40 @@ void tagKeyHandler(keyb_msg_t keymsg)
 
 }
 
+
+static void onPlusMinusPattern()
+// ----------------------------------------------------------------------------
+//   Draw a contrast pattern for the ON+ and ON- key handlers
+// ----------------------------------------------------------------------------
+{
+    gglsurface scr;
+    ggl_init_screen(&scr);
+    int ytop =
+        halScreen.Form + halScreen.Stack + halScreen.CmdLine +
+        halScreen.Menu1;
+
+    // Clear status area
+    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
+             ytop + halScreen.Menu2 - 1, PAL_STA_BG);
+
+    for (int j = 0; j < 16; ++j)
+    {
+        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
+                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_color(j));
+        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
+                 STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_color(15 - j));
+    }
+}
+
+
 void onPlusKeyHandler(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     halStatusAreaPopup();
+    onPlusMinusPattern();
 
-    // INCREASE CONTRAST
-    gglsurface scr;
-    ggl_init_screen(&scr);
-    int ytop =
-            halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
-    // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
-
-    for(int j = 0; j < 15; ++j) {
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_solid(j));
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_solid(15 - j));
-    }
-
+    // Increase contrast
     lcd_contrast++;
     if(lcd_contrast > 0xf)
         lcd_contrast = 0xf;
@@ -4192,25 +4203,9 @@ void onMinusKeyHandler(keyb_msg_t keymsg)
     UNUSED(keymsg);
 
     halStatusAreaPopup();
+    onPlusMinusPattern();
 
-    // DECREASE CONTRAST
-    gglsurface scr;
-    ggl_init_screen(&scr);
-    int ytop =
-            halScreen.Form + halScreen.Stack + halScreen.CmdLine +
-            halScreen.Menu1;
-    // CLEAR STATUS AREA
-    ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
-
-    int j;
-    for(j = 0; j < 15; ++j) {
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop + 7,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 12, ggl_solid(j));
-        ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
-                STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_solid(15 - j));
-    }
-
+    // Decrease contrast
     lcd_contrast--;
     if(lcd_contrast < 0)
         lcd_contrast = 0;
@@ -4265,13 +4260,13 @@ void onDotKeyHandler(keyb_msg_t keymsg)
         halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-             ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
+             ytop + halScreen.Menu2 - 1, PAL_STA_BG);
 
     DrawTextBk(&scr,STATUS_AREA_X + 1, ytop + 1, "Format:",
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)options[option], FONT_STATUS,ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               (char *)options[option], FONT_STATUS,PAL_STA_TEXT, PAL_STA_BG);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
     switch (option) {
@@ -4410,13 +4405,13 @@ void onSpcKeyHandler(keyb_msg_t keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, PAL_STA_BG);
 
     DrawTextBk(&scr, STATUS_AREA_X + 1, ytop + 1, "Display Mode:",
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               options[option], FONT_STATUS, ggl_solid(PAL_STA_TEXT),ggl_solid(PAL_STA_BG));
+               options[option], FONT_STATUS, PAL_STA_TEXT,PAL_STA_BG);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
     switch (option) {
@@ -4514,14 +4509,14 @@ void onMulDivKeyHandler(keyb_msg_t keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, PAL_STA_BG);
 
     DrawTextBk(&scr, STATUS_AREA_X + 1, ytop + 1, "ENG exponent:",
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
                onMulDivKeyHandler_options[option],
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
 
     if(option)
         option += 7;
@@ -4614,13 +4609,13 @@ void onDigitKeyHandler(keyb_msg_t keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, PAL_STA_BG);
 
     DrawTextBk(&scr, STATUS_AREA_X + 1, ytop + 1, "Display Digits:",
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (cstring) &digits, FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               (cstring) &digits, FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
@@ -4680,13 +4675,13 @@ void onUpDownKeyHandler(keyb_msg_t keymsg)
             halScreen.Menu1;
     // CLEAR STATUS AREA
     ggl_rect(&scr, STATUS_AREA_X, ytop, LCD_W - 1,
-            ytop + halScreen.Menu2 - 1, ggl_solid(PAL_STA_BG));
+            ytop + halScreen.Menu2 - 1, PAL_STA_BG);
 
     DrawTextBk(&scr, STATUS_AREA_X + 1, ytop + 1, "System precision:",
-               FONT_STATUS, ggl_solid(PAL_STA_TEXT),ggl_solid(PAL_STA_BG));
+               FONT_STATUS, PAL_STA_TEXT,PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               digits_string, FONT_STATUS, ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+               digits_string, FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
 
     halScreen.DirtyFlag |= STACK_DIRTY;
 
@@ -7925,14 +7920,14 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
                      ytop,
                      LCD_W - 1,
                      ytop + halScreen.Menu2 - 1,
-                     ggl_solid(PAL_STA_TEXT));
+                     PAL_STA_TEXT);
             DrawTextBk(&scr,
                        LCD_W - width,
                        ytop + halScreen.Menu2 / 2,
                        keyName,
                        fnt,
-                       ggl_solid(PAL_STA_TEXT),
-                       ggl_solid(PAL_STA_BG));
+                       PAL_STA_TEXT,
+                       PAL_STA_BG);
             char *shiftstr;
             switch (KM_SHIFT(keymsg))
             {
@@ -7955,8 +7950,8 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
                        ytop + halScreen.Menu2 / 2,
                        shiftstr,
                        fnt,
-                       ggl_solid(PAL_STA_TEXT),
-                       ggl_solid(PAL_STA_BG));
+                       PAL_STA_TEXT,
+                       PAL_STA_BG);
 
             if (KM_MESSAGE(keymsg) == KM_LONG_PRESS)
                 DrawTextBk(&scr,
@@ -7964,8 +7959,8 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
                            ytop + halScreen.Menu2 / 2,
                            "L=",
                            fnt,
-                           ggl_solid(PAL_STA_TEXT),
-                           ggl_solid(PAL_STA_BG));
+                           PAL_STA_TEXT,
+                           PAL_STA_BG);
         }
     }
 

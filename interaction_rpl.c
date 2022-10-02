@@ -300,21 +300,26 @@ void fullscreenupdate()
     halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
 }
 
-// Make a list with the color theme palette vlaues (64 int32_ts)
-// size contains the buffer maximum size, if palette doesn't fit it returns size=0
-// if it fits, it returns size = actual object size in words
-// and the object is stored at the buffer (list)
+// Make a list with the color theme palette values (64 int32_ts) size contains
+// the buffer maximum size, if palette doesn't fit it returns size=0 if it fits,
+// it returns size = actual object size in words and the object is stored at the
+// buffer (list)
 void palette2list(uint32_t *list,int *size)
 {
+    // 64 palette entries, 3 words per 64-bit entry, plus prolog and endlist
     int k;
-    if(*size<PALETTE_SIZE * 3 + 2) { *size=0; return; }  // 64 PALETTE ENTRIES, 3 WORDS PER 64-BIT int32_t, PLUS PROLOG AND ENDLIST
+    if (*size < PALETTE_SIZE * 3 + 2)
+    {
+        *size = 0;
+        return;
+    }
 
     list[0]=MKPROLOG(DOLIST, PALETTE_SIZE * 3 + 1);
     for(k=0;k<PALETTE_SIZE;++k)
     {
-        list[1+3*k]=MKPROLOG(HEXint32_t,2);
-        list[2+3*k]=ggl_palette[k].value;
-        list[3+3*k]=0;
+        list[1 + 3 * k] = MKPROLOG(HEXint32_t, 2);
+        list[2 + 3 * k] = (uint32_t) ggl_palette[k].bits;
+        list[3 + 3 * k] = (uint32_t) (ggl_palette[k].bits >> 32);
     }
     list[1+3*k]=CMD_ENDLIST;
 
@@ -324,13 +329,15 @@ void palette2list(uint32_t *list,int *size)
 
 void list2palette(uint32_t *list)
 {
-    int k;
-    word_p ptr=list+1;
-    for(k=0;k<PALETTE_SIZE;++k)
+    int    k;
+    word_p ptr = list + 1;
+    for (k = 0; k < PALETTE_SIZE; ++k)
     {
-        if(*ptr==CMD_ENDLIST) break;
-        if(ISint32_t(*ptr)) ggl_palette[k].value=ptr[1];
-        ptr=rplSkipOb(ptr);
+        if (*ptr == CMD_ENDLIST)
+            break;
+        if (ISint32_t(*ptr))
+            ggl_palette[k].bits = ptr[1] | ((uint64_t) ptr[2] << 32);
+        ptr = rplSkipOb(ptr);
     }
 }
 

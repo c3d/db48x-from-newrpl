@@ -139,7 +139,7 @@ void uiDrawObject(gglsurface    *scr,
     // Now print the string object
     size_t len = rplStrSize(string);
     cstring str = (cstring) (string + 1);
-    DrawTextN(scr, x, y, str, str+len, font, ggl_solid(PAL_STK_ITEMS));
+    DrawTextN(scr, x, y, str, str+len, font, PAL_STK_ITEMS);
 }
 
 
@@ -181,7 +181,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
         gglsurface tsurf = ggl_grob(newbmp);
 
         // Clear the bitmap first
-        ggl_clear(&tsurf, ggl_solid(PAL_STK_BG));
+        ggl_clear(&tsurf, PAL_STK_BG);
 
         // Render in the cache
         DrawTextN(&tsurf,
@@ -190,7 +190,7 @@ word_p uiRenderObject(word_p object, UNIFONT const *font)
                   charptr,
                   charptr + nchars,
                   font,
-                  ggl_solid(PAL_STK_ITEMS));
+                  PAL_STK_ITEMS);
 
         // AND ADD TO CACHE
 
@@ -227,6 +227,6 @@ void uiDrawBitmap(gglsurface * scr, coord x, coord y, word_p bmp)
                   charptr,
                   charptr + nchars,
                   FONT_STACK,
-                  ggl_solid(PAL_STK_ITEMS));
+                  PAL_STK_ITEMS);
     }
 }

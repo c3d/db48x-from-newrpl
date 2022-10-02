@@ -23,7 +23,7 @@ ARM_MODE void ex_print(int x, int y, char *str)
     dr.right = LCD_W;
     dr.bottom = LCD_H;
 
-    DrawTextMono(&dr, x, y, str, Font_6A, ggl_solid(PAL_GRAY1));
+    DrawTextMono(&dr, x, y, str, Font_6A, PAL_GRAY1);
 }
 
 ARM_MODE void ex_clrscreen()

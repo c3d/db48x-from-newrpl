@@ -373,9 +373,7 @@ static inline color16_t ggl_rgb16(uint8_t red, uint8_t green, uint8_t blue)
 //   Convert from RGB (0-255) to RGB16(5-6-5)
 // ----------------------------------------------------------------------------
 {
-    color16_t result = {
-        .rgb16 = {.red = red, .green = green, .blue = blue}
-    };
+    color16_t result = { .rgb16 = {.red = red, .green = green, .blue = blue} };
     return result;
 }
 
@@ -391,24 +389,31 @@ static inline color16_t ggl_rgb32_to_rgb16(uint8_t red,
 }
 
 
-static inline color_t ggl_rgb16_to_color(color16_t c16)
+static inline pattern_t ggl_rgb_to_pattern(uint8_t red,
+                                           uint8_t green,
+                                           uint8_t blue)
 // ----------------------------------------------------------------------------
-//   Convert from RGB16 to current color mode
+//   Convert from RGB to current color mode
 // ----------------------------------------------------------------------------
 {
 #if BITS_PER_PIXEL == 1
-    uint8_t value = c16.value ? 1 : 0;
+    uint16_t gray = (red + green + green + blue) / 4;
+    color1_t a = { .value = gray > 192 };
+    color1_t b = { .value = gray > 64  };
+    color1_t c = { .value = gray > 128 };
+    color1_t d = { .value = gray > 32  };
+    return ggl_pattern_4_colors(a, b, c, d);
 #elif BITS_PER_PIXEL == 4
+    uint16_t gray = (red + green + green + blue) / 4;
     // On the HP48, 0xF is black, not white
-    uint8_t value =
-        0xF - (c16.rgb16.red + c16.rgb16.green + c16.rgb16.blue) / 8;
+    color_t color = { .value = (uint8_t) (0xF - gray / 16) };
+    return ggl_solid_pattern(color);
 #elif BITS_PER_PIXEL == 16
-    uint16_t value = c16.value;
+    color_t color = ggl_rgb32_to_rgb16(red, green, blue);
+    return ggl_solid_pattern(color);
 #else
 #    error Invalid BITS_PER_PIXEL
 #endif //
-    color_t color = { .value = value };
-    return color;
 }
 
 
@@ -458,23 +463,6 @@ static inline uint8_t ggl_blue(color16_t color)
 }
 
 
-#define RGB_TO_RGB16(red, green, blue) \
-    (ggl_rgb32_to_rgb16((red), (green), (blue)))
-
-// Pack RGB16 components (red=0-31, green=0-63, blue=0-31)
-#define PACK_RGB16(red, green, blue) (ggl_rgb16((red), (green), (blue)))
-
-// Extract RGB red component from RGB16 color (bit expand to 0-255 range)
-#define RGBRED(color)                ggl_red(ggl_color_to_rgb16(color))
-// Extract RGB green component from RGB16 color (bit expand to 0-255 range)
-#define RGBGREEN(color)              ggl_green(ggl_color_to_rgb16(color))
-// Extract RGB blue component from RGB16 color (bit expand to 0-255 range)
-#define RGBBLUE(color)               ggl_blue(ggl_color_to_rgb16(color))
-
-// Convert from RGB (0-255) to GRAY16(4-bit)
-#define RGB16_TO_GRAY(red, green, blue) \
-    ((((red) + (green) + (green) + (blue)) >> 6) & 0xf)
-
 
 // ============================================================================
 //
@@ -488,9 +476,9 @@ static inline uint8_t ggl_blue(color16_t color)
 #define PALETTE_MASK 63
 
 // Global palette, can be used for grayscale conversion or for themes
-extern color_t        ggl_palette[PALETTE_SIZE];
+extern pattern_t      ggl_palette[PALETTE_SIZE];
 
-static inline color_t ggl_color(palette_index index)
+static inline pattern_t ggl_color(palette_index index)
 // ----------------------------------------------------------------------------
 //   Find a color from a palette entry
 // ----------------------------------------------------------------------------
@@ -499,21 +487,15 @@ static inline color_t ggl_color(palette_index index)
 }
 
 
-static inline void ggl_color_set(palette_index index, color_t color)
-// ----------------------------------------------------------------------------
-//   Set a palette entry
-// ----------------------------------------------------------------------------
-{
-    ggl_palette[index & PALETTE_MASK] = color;
-}
-
-
-static inline void ggl_color_set16(palette_index index, color16_t color)
+static inline void ggl_palette_set(palette_index index,
+                                   uint8_t       red,
+                                   uint8_t       green,
+                                   uint8_t       blue)
 // ----------------------------------------------------------------------------
 //   Set a color from a standard RGB16 value
 // ----------------------------------------------------------------------------
 {
-    ggl_palette[index & PALETTE_MASK] = ggl_rgb16_to_color(color);
+    ggl_palette[index & PALETTE_MASK] = ggl_rgb_to_pattern(red, green, blue);
 }
 
 
@@ -1198,34 +1180,6 @@ static inline void ggl_copy_from(gglsurface *dst,
 }
 
 
-// static inline routines
-
-// THIS IS PLATFORM INDEPENDENT ROTATION
-// IN ARM, A<<B WITH B>=32 = ZERO
-// IN X86, A<<B WITH B>=32 = A<<(B&31)
-
-#define ROT_LEFT(a, b)   (((b) >= 32) ? 0 : (((unsigned) a) << (b)))
-#define ROT_RIGHT(a, b)  (((b) >= 32) ? 0 : ((a) >> (b)))
-
-#define ggl_leftmask(cx) ((ROT_LEFT(1, (((cx) &7) << 2)) - 1)) // create mask
-#define ggl_rightmask(cx) \
-    (ROT_LEFT((-1), ((((cx) &7) + 1) << 2))) // create mask
-
-
-// drawing primitives
-
-// Read a pixel from a monochrome bitmap
-static inline int ggl_getmonopix(byte_p buf, offset addr)
-{
-    byte_p ptr = buf + (addr >> 3);
-    return (*ptr & (1 << (addr & 7))) ? 1 : 0;
-}
-
-
-int ggl_getmonopix(
-    byte_p buf,
-    offset off); // peek a pixel in monochrome bitmap (off in pixels)
-// bit-blit functions
 
 // LOW-LEVEL row copy functions
 // ggl_ll_hblt is a general nibble-aligned memcpyb
@@ -1238,48 +1192,33 @@ int ggl_getmonopix(
 // note: hblt will behave well even if the zones overlap, no need for
 // moveup/movedown
 
-void                    ggl_hblt(pixword *dest,
-                                 int      destoff,
-                                 pixword *src,
-                                 int      srcoff,
-                                 size     npixels); // copy a row of pixels
+void ggl_hblt(pixword *dest,
+              int      destoff,
+              pixword *src,
+              int      srcoff,
+              size     npixels); // copy a row of pixels
 
 // same behavior as hblt but specifying a transparent color
 // every pixel in *src with the transparent color will not affect the
 // corresponding pixel in *dest
-void                    ggl_hbltmask(pixword *dest,
-                                     int      destoff,
-                                     pixword *src,
-                                     int      srcoff,
-                                     size     npixels,
-                                     int      tcol); // copy a row of pixels w/mask
+void ggl_hbltmask(pixword *dest,
+                  int      destoff,
+                  pixword *src,
+                  int      srcoff,
+                  size     npixels,
+                  int      tcol); // copy a row of pixels w/mask
 
 // rectangle scrolling routines
 // dest contains the surface to scroll, and width and height define the
 // rectangle the area that needs to be redrawn after the scroll is not erased or
 // modified by these routines
-void                    ggl_scrolllf(gglsurface *dest,
-                                     size        width,
-                                     size        height,
-                                     size        npixels); // scroll npixels left
-void                    ggl_scrollrt(gglsurface *dest,
-                                     size        width,
-                                     size        height,
-                                     size        npixels); // scroll npixels right
-
-
-// ggl_color repeats the same color on every nibble
-// ggl_color(2) will return 0x22222222
-static inline pattern_t ggl_solid(palette_index index)
-{
-    return ggl_solid_pattern(ggl_color(index));
-}
-
-// ggl_color32 creates virtual 32-colors by using 8x8 patterns
-// col32 is a value from 0 to 30, being 30=black, 0=white
-// note: the user is responsible to provide a valid int[8] buffer in the
-// pattern argument
-void ggl_color32(int  col32,
-                 int *pattern); // 50% dither pattern generator for 31 colors
+void ggl_scrolllf(gglsurface *dest,
+                  size        width,
+                  size        height,
+                  size        npixels); // scroll npixels left
+void ggl_scrollrt(gglsurface *dest,
+                  size        width,
+                  size        height,
+                  size        npixels); // scroll npixels right
 
 #endif

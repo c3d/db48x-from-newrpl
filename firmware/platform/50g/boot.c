@@ -164,7 +164,7 @@ void main_virtual(unsigned int mode)
         ggl_init_screen(&scr);
 
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid(PAL_GRAY0));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, PAL_GRAY0);
 
         if(!mode) {
             // CHECK FOR MAGIC KEY COMBINATION
@@ -232,7 +232,7 @@ void main_virtual(unsigned int mode)
 
         tmr_eventkill(event);
         //   CLEAR SCREEN
-        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid(PAL_GRAY1));
+        ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1, PAL_GRAY1);
 
         keyb_flush_no_wait();
 

@@ -15,7 +15,6 @@
 
 #define lineheight 12
 #define font Font_10A
-#define black ggl_solid_pattern(RGB_TO_RGB16(0,0,0))
 #define left 0
 #define right 160
 
@@ -40,27 +39,28 @@ static void tobin(uint32_t value, char *buffer) {
     }
 }
 
-void printline(char *left_text, char *right_text) {
+void printline(char *left_text, char *right_text)
+{
+    pattern_t black = ggl_solid_pattern(ggl_rgb16(0, 0, 0));
+    pattern_t red   = ggl_solid_pattern(ggl_rgb16(255, 0, 0));
 
-    if(line==-1) {
+    if (line == -1)
+    {
         lcd_poweron();
-        lcd_setmode(BPPMODE_16BPP565, (unsigned int *)MEM_PHYS_SCREEN);
+        lcd_setmode(BPPMODE_16BPP565, (unsigned int *) MEM_PHYS_SCREEN);
         lcd_on();
 
         ggl_init_screen(&surface);
-        ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, ggl_solid_pattern(RGB_TO_RGB16(255,0,0)));
-        line =0;
+        ggl_rect(&surface, 0, 0, LCD_W - 1, LCD_H - 1, red);
+        line = 0;
     }
 
-    if (left_text) {
+    if (left_text)
         DrawText(&surface, left, line * lineheight, left_text, font, black);
-    }
-    if (right_text) {
+    if (right_text)
         DrawText(&surface, right, line * lineheight, right_text, font, black);
-    }
-    if (left_text || right_text) {
+    if (left_text || right_text)
         ++line;
-    }
 }
 
 int esc_pressed() {

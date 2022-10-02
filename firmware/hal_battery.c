@@ -66,14 +66,14 @@ void battery_handler()
             : l < 62259 ? '9'
             : 'X';
 
-        DrawTextBk(&scr, STATUS_AREA_X,LCD_H-2*H,text,font,ggl_solid(PAL_STA_TEXT), ggl_solid(PAL_STA_BG));
+        DrawTextBk(&scr, STATUS_AREA_X,LCD_H-2*H,text,font,PAL_STA_TEXT, PAL_STA_BG);
 
         for (unsigned s = 0; s < 3; s++)
         {
             k = (battery>>(8-4*s)) & 0xf;
             text[s] = k < 10 ? k + '0' : k + 'A' - 10;
         }
-        DrawTextBk(&scr,STATUS_AREA_X,LCD_H-H,text,font,ggl_solid(PAL_STA_TEXT),ggl_solid(PAL_STA_BG));
+        DrawTextBk(&scr,STATUS_AREA_X,LCD_H-H,text,font,PAL_STA_TEXT,PAL_STA_BG);
     }
 
     // THIS IS THE REAL HANDLER
@@ -170,7 +170,7 @@ void battery_handler()
         if(battery==0x400) {
             // Battery is charging - display charging icon
             DrawTextBk(&scr, LCD_W-StringWidth((char *)"C", Font_Notifications)-1, LCD_H-1-FONT_Notifications.BitmapHeight, (char *)"C",
-                       Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
+                       Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
         }
         else {
             // Display Battery percentage below battery icon
@@ -199,10 +199,10 @@ void battery_handler()
                 batwidth=(percentwidth+batwidth)/2;
             } else percentwidth=(percentwidth+batwidth)/2;
 
-            DrawTextBk(&scr, LCD_W-percentwidth,LCD_H-FONT_10A.BitmapHeight-1,(cstring)&text,Font_10A,ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
+            DrawTextBk(&scr, LCD_W-percentwidth,LCD_H-FONT_10A.BitmapHeight-1,(cstring)&text,Font_10A,PAL_STA_BAT, PAL_STA_BG);
 
             DrawTextBk(&scr, LCD_W-batwidth, LCD_H-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
-                       Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
+                       Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
             halScreenUpdated();
         }
     }
@@ -221,7 +221,7 @@ void busy_handler()
         gglsurface scr;
         ggl_init_screen(&scr);
         DrawTextBk(&scr, LCD_W-StringWidth((char *)"W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
-                   Font_Notifications, ggl_solid(PAL_STA_BAT), ggl_solid(PAL_STA_BG));
+                   Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
 
     }
 #endif // TARGET_PRIME
