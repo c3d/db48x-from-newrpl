@@ -27,6 +27,10 @@ const keyb_msg_t     km_long_or_repeat = KM_LONG_OR_REPEAT;
 const keyb_msg_t     km_keydn          = KM_KEYDN;
 const keyb_msg_t     km_keyup          = KM_KEYUP;
 
+// Convenience macro to name key handlers
+#define KH(name)        name##KeyHandler
+
+
 static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
 {
     int32_t SavedException = Exceptions;
@@ -198,33 +202,42 @@ int32_t halGetContext()
     return halScreen.KeyContext;
 }
 
-// TOGGLES BETWEEN ALPHA AND ANOTHER MODE
-// isalpha TELLS IF ALPHA MODE IS ACTIVE, TO
-// KEEP THE CURSOR IN SYNC
 void halSwapCmdLineMode(int32_t isalpha)
+// ----------------------------------------------------------------------------
+//   Toggle between Alpha and another mode, e.g. D or A
+// ----------------------------------------------------------------------------
 {
-    int tmp = halScreen.CursorState;
+    unsigned state = halScreen.CursorState;
+    BYTE mode = (BYTE) halScreen.CursorState;
+    BYTE old = (BYTE) (state >> 24);
+    if (mode == 'L' || mode == 'C')
+    {
+        // If we are already in alpha mode, don't change
+        if (isalpha)
+            return;
+    }
+    else
+    {
+        // If we are already not in alpha mode, stay there
+        if (!isalpha)
+            return;
 
-    if(((tmp & 0xff) == 'L') || ((tmp & 0xff) == 'C')) {
-        // DO NOTHING IF WE ALREADY ARE IN ALPHA MODE
-        if(isalpha)
-            return;
+        // Lock uppercase mode when entering alpha
+        old = 'C';
     }
-    else {
-        if(!isalpha)
-            return;
-        // LOCK CAPS MODE WHEN ENTERING ALPHA MODE
-        tmp &= 0x00ffffff;
-        tmp |= 'C' << 24;
-    }
-    halScreen.CursorState &= 0x00ffff00;
-    halScreen.CursorState |= tmp << 24;
-    halScreen.CursorState |= (tmp >> 24) & 0xff;
+
+    state = (mode << 24) | (state & 0x00FFFF00) | old;
+    halScreen.CursorState = state;
 }
 
 void halSetCmdLineMode(BYTE mode)
 {
-    halScreen.CursorState = (halScreen.CursorState & ~0xff) | mode;
+    BYTE old = (BYTE) halScreen.CursorState;
+    if (mode != old)
+    {
+        halScreen.CursorState = (halScreen.CursorState & ~0xff) | mode;
+        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
+    }
 }
 
 BYTE halGetCmdLineMode()
@@ -245,7 +258,7 @@ void halForceAlphaModeOff()
 }
 
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
-void dummyKeyhandler(keyb_msg_t keymsg)
+void KH(dummy)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
     return;
@@ -512,7 +525,7 @@ void endCmdLine()
 // *******************    DEFAULT KEY HANDLERS     **************************
 // **************************************************************************
 
-void numberKeyHandler(keyb_msg_t keymsg)
+void KH(number)(keyb_msg_t keymsg)
 {
     record(keys, "number key handler %08X key %d msg %x shift %x ",
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
@@ -1036,13 +1049,13 @@ void uiStackRedo()
             uiRestoreUndoLevel(halScreen.StkCurrentLevel - 1);
 }
 
-// TYPICAL COMMAND KEY HANDLER.
-// EXECUTES Opcode IN DIRECT MODE
-// INSERTS Progmode AS TEXT IN THE COMMAND LINE WHEN IN PROGRAMMING MODE
-// IF IsFunc == 0 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG. MODE
-//    IsFunc == 1 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG, WITH FUNCTION PARENTHESIS
-//    IsFunc == 2 --> IN ALG MODE, RUN THE OPCODE DIRECTLY, AS IN 'D' MODE
-//    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
+// Typical command key handler.
+// executes Opcode in direct mode
+// Inserts Progmode as text in the command line when in programming mode
+// if IsFunc == 0 --> In alg mode insert the same text as in prog. mode
+//    IsFunc == 1 --> In alg mode insert it with parentheses
+//    IsFunc == 2 --> In alg mode, run the opcode directly, as in direct mode
+//    IsFunc < 0  --> Not allowed in symbolic (alg) mode, do nothing
 
 void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
 {
@@ -1129,7 +1142,7 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
     }
 }
 
-void transpcmdKeyHandler(WORD Opcode)
+void KH(transpcmd)(WORD Opcode)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -1161,14 +1174,15 @@ void transpcmdKeyHandler(WORD Opcode)
 
 }
 
-void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
+// REVISIT: This function is 1097 lines long!
+void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 {
-#ifdef TARGET_PRIME
-    // SWITCH MENUS
-    if(halKeyMenuSwitch)
-        menunum = (menunum==2) ? 1 : 2;
-#endif /* TARGET_PRIME */
-    if(KM_MESSAGE(keymsg) == KM_LONG_PRESS) {
+    // Switch menus
+    if (halKeyMenuSwitch)
+        menunum = (menunum == 2) ? 1 : 2;
+
+    if (KM_MESSAGE(keymsg) == KM_LONG_PRESS)
+    {
         // ENTER MENU HELP MODE
         // KILL ANY PENDING POPUPS
         halScreen.HelpMode = (menunum << 16) | varnum;
@@ -1182,7 +1196,6 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             halScreen.HelpMode = 0;
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
         }
-
         return;
     }
 
@@ -2041,34 +2054,40 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                     int32_t nlines = 0;
 
-                    if(dhints & HINT_ALLBEFORE) {
-                        if(dhints & HINT_ADDINDENTBEFORE)
+                    if (dhints & HINT_ALLBEFORE)
+                    {
+                        if (dhints & HINT_ADDINDENTBEFORE)
                             halScreen.CmdLineIndent += 2;
-                        if(dhints & HINT_SUBINDENTBEFORE)
+                        if (dhints & HINT_SUBINDENTBEFORE)
                             halScreen.CmdLineIndent -= 2;
 
-                        if(dhints & HINT_NLBEFORE) {
+                        if (dhints & HINT_NLBEFORE)
+                        {
                             int32_t isempty;
                             int32_t nlvl = uiGetIndentLevel(&isempty);
                             // IF THE LINE IS EMPTY DON'T ADD A NEW LINE
-                            if(isempty) {
-                                if(dhints & HINT_ADDINDENTBEFORE)
+                            if (isempty)
+                            {
+                                if (dhints & HINT_ADDINDENTBEFORE)
                                     uiInsertCharacters((byte_p) "  ");
-                                if(dhints & HINT_SUBINDENTBEFORE) {
-                                    if(nlvl > 2)
+                                if (dhints & HINT_SUBINDENTBEFORE)
+                                {
+                                    if (nlvl > 2)
                                         nlvl = 2;
                                     uiCursorLeft(nlvl);
                                     uiRemoveCharacters(nlvl);
                                 }
                             }
-                            else {
+                            else
+                            {
                                 uiInsertCharacters((byte_p) "\n");
 
                                 ++nlines;
                                 int k;
-                                for(k = 0; k < nlvl + halScreen.CmdLineIndent;
-                                        ++k)
-                                    uiInsertCharacters((byte_p) " ");  // APPLY INDENT
+                                for (k = 0; k < nlvl + halScreen.CmdLineIndent;
+                                     ++k)
+                                    uiInsertCharacters(
+                                        (byte_p) " "); // APPLY INDENT
                                 halScreen.CmdLineIndent = 0;
                             }
                         }
@@ -2077,25 +2096,28 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     uiSeparateToken();
                     nlines += uiInsertCharactersN(string, endstring);
 
-                    if(dhints & HINT_ALLAFTER) {
-                        if(dhints & HINT_ADDINDENTAFTER)
+                    if (dhints & HINT_ALLAFTER)
+                    {
+                        if (dhints & HINT_ADDINDENTAFTER)
                             halScreen.CmdLineIndent += 2;
-                        if(dhints & HINT_SUBINDENTAFTER)
+                        if (dhints & HINT_SUBINDENTAFTER)
                             halScreen.CmdLineIndent -= 2;
-                        if(dhints & HINT_NLAFTER) {
+                        if (dhints & HINT_NLAFTER)
+                        {
                             int32_t nlvl = uiGetIndentLevel(0);
 
                             uiInsertCharacters((byte_p) "\n");
 
                             ++nlines;
                             int k;
-                            for(k = 0; k < nlvl + halScreen.CmdLineIndent; ++k)
-                                uiInsertCharacters((byte_p) " ");      // APPLY INDENT
+                            for (k = 0; k < nlvl + halScreen.CmdLineIndent; ++k)
+                                uiInsertCharacters(
+                                    (byte_p) " "); // APPLY INDENT
                             halScreen.CmdLineIndent = 0;
                         }
                     }
 
-                    if(nlines)
+                    if (nlines)
                         uiStretchCmdLine(nlines);
 
                     uiSeparateToken();
@@ -2103,27 +2125,25 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                     break;
                 }
-
                 }
                 break;
-
             }
 
-            if(ISLIBRARY(*action)) {
+            if (ISLIBRARY(*action))
+            {
                 // SHOW THE LIBRARY MENU
-                int64_t libmcode =
-                        (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
-                        0, 0);
+                int64_t libmcode = (((int64_t) action[2]) << 32) |
+                                   MKMENUCODE(0, DOLIBPTR, 0, 0);
                 word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
 
-                if(!numobject || Exceptions)
+                if (!numobject || Exceptions)
                     return;
 
                 rplPushDataNoGrow(numobject);
                 rplSaveMenuHistory(menunum);
                 rplChangeMenu(menunum, rplPopData());
 
-                if(menunum == 1)
+                if (menunum == 1)
                     halScreen.DirtyFlag |= MENU1_DIRTY;
                 else
                     halScreen.DirtyFlag |= MENU2_DIRTY;
@@ -2131,21 +2151,25 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 break;
             }
 
-            if(ISPROGRAM(*action)) {
-                if(!ISSECO(*action)) {
+            if (ISPROGRAM(*action))
+            {
+                if (!ISSECO(*action))
+                {
                     // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
-                    rplPushData(action);        // PUSH THE NAME ON THE STACK
+                    rplPushData(action); // PUSH THE NAME ON THE STACK
                     Opcode = CMD_OVR_XEQ;
                 }
-                else {
-                    if(endCmdLineAndCompile()) {
+                else
+                {
+                    if (endCmdLineAndCompile())
+                    {
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
-                        menu = uiGetLibMenu(mcode);
-                        item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
-                        action = uiGetMenuItemAction(item,
-                                KM_SHIFT(keymsg));
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        menu   = uiGetLibMenu(mcode);
+                        item   = uiGetMenuItem(mcode,
+                                             menu,
+                                             MENUPAGE(mcode) + varnum);
+                        action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
+                        rplPushData(action); // PUSH THE NAME ON THE STACK
                         Opcode = CMD_OVR_XEQ;
                     }
                 }
@@ -2153,18 +2177,22 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             }
 
             // ALL OTHER OBJECTS AND COMMANDS
-            switch (halScreen.CursorState & 0xff) {
+            switch (halScreen.CursorState & 0xff)
+            {
             case 'D':
-                if(endCmdLineAndCompile()) {
+                if (endCmdLineAndCompile())
+                {
                     // FIND THE COMMAND AGAIN, IT MIGHT'VE MOVED DUE TO GC
                     menu = uiGetLibMenu(mcode);
                     item = uiGetMenuItem(mcode, menu, MENUPAGE(mcode) + varnum);
                     action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
-                    if(!ISPROLOG(*action)) {
-                        Opcode = *action;       // RUN COMMANDS DIRECTLY
+                    if (!ISPROLOG(*action))
+                    {
+                        Opcode       = *action; // RUN COMMANDS DIRECTLY
                         hideargument = 0;
                     }
-                    else {
+                    else
+                    {
                         Opcode = (CMD_OVR_XEQ);
                         rplPushData(action);
                     }
@@ -2173,29 +2201,33 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
             case 'A':
             {
-
-                WORD tokeninfo = 0;
-                LIBHANDLER han = rplGetLibHandler(LIBNUM(*action));
+                WORD       tokeninfo = 0;
+                LIBHANDLER han       = rplGetLibHandler(LIBNUM(*action));
 
                 // GET THE SYMBOLIC TOKEN INFORMATION
-                if(han) {
+                if (han)
+                {
                     WORD savecurOpcode = CurOpcode;
-                    DecompileObject = action;
+                    DecompileObject    = action;
                     CurOpcode = MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
-                    (*han) ();
+                    (*han)();
 
-                    if(RetNum > OK_TOKENINFO)
+                    if (RetNum > OK_TOKENINFO)
                         tokeninfo = RetNum;
 
                     CurOpcode = savecurOpcode;
                 }
 
                 byte_p string, endstring;
-                if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                if (!rplGetDecompiledString(action,
+                                            DECOMP_EDIT | DECOMP_NOHINTS,
+                                            &string,
+                                            &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
-                if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
+                if (TI_TYPE(tokeninfo) == TITYPE_FUNCTION)
+                {
                     uiInsertCharacters((byte_p) "()");
                     uiCursorLeft(1);
                 }
@@ -2207,12 +2239,15 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             case 'P':
             {
                 byte_p string, endstring;
-                if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
+                if (!rplGetDecompiledString(action,
+                                            DECOMP_EDIT,
+                                            &string,
+                                            &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 int32_t nlines = uiInsertCharactersN(string, endstring);
-                if(nlines)
+                if (nlines)
                     uiStretchCmdLine(nlines);
 
                 uiSeparateToken();
@@ -2220,17 +2255,16 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                 break;
             }
-
             }
 
             break;
-
         }
         }
 
-        if(Opcode)
+        if (Opcode)
             uiCmdRunHide(Opcode, hideargument);
-        if(Exceptions) {
+        if (Exceptions)
+        {
             // TODO: SHOW ERROR MESSAGE
             halShowErrorMsg();
             Exceptions = 0;
@@ -2239,7 +2273,6 @@ void varsKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
         halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
     }
-
 }
 
 void symbolKeyHandler(keyb_msg_t keymsg, byte_p symbol, int32_t separate)
@@ -2293,7 +2326,7 @@ void alphasymbolKeyHandler(keyb_msg_t keymsg, byte_p Lsymbol, byte_p Csymbol)
 
 }
 
-void VarMenuKeyHandler(keyb_msg_t keymsg)
+void KH(VarMenu)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2305,7 +2338,7 @@ void VarMenuKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void newlineKeyHandler(keyb_msg_t keymsg)
+void KH(newline)(keyb_msg_t keymsg)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
@@ -2337,7 +2370,7 @@ void newlineKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void decimaldotKeyHandler(keyb_msg_t keymsg)
+void KH(decimalDot)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
@@ -2367,7 +2400,7 @@ void decimaldotKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void enterKeyHandler(keyb_msg_t keymsg)
+void KH(enter)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2417,7 +2450,7 @@ void enterKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void cutclipKeyHandler(keyb_msg_t keymsg)
+void KH(cut)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2571,7 +2604,7 @@ void cutclipKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void copyclipKeyHandler(keyb_msg_t keymsg)
+void KH(copy)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2682,7 +2715,7 @@ void copyclipKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void pasteclipKeyHandler(keyb_msg_t keymsg)
+void KH(paste)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2774,7 +2807,7 @@ void pasteclipKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void backspKeyHandler(keyb_msg_t keymsg)
+void KH(backsp)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2942,7 +2975,7 @@ void backspKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void deleteKeyHandler(keyb_msg_t keymsg)
+void KH(del)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -2952,7 +2985,15 @@ void deleteKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void leftKeyHandler(keyb_msg_t keymsg)
+
+
+// ============================================================================
+//
+//    Cursor keys
+//
+// ============================================================================
+
+void KH(left)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3118,63 +3159,7 @@ void leftKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void rsleftKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // REDO ACTION
-            uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
-            return;
-        }
-
-    }
-    else {
-        uiCursorStartOfLine();
-        uiAutocompleteUpdate();
-    }
-}
-
-void rsholdleftKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // REDO ACTION
-            uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
-            return;
-
-        }
-
-    }
-    else {
-        uiCursorPageLeft();
-        uiAutocompleteUpdate();
-    }
-}
-
-void lsleftKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
-            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
-
-        }
-
-    }
-    else {
-        uiSetSelectionStart();
-    }
-}
-
-void rightKeyHandler(keyb_msg_t keymsg)
+void KH(right)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3334,78 +3319,56 @@ void rightKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void rsrightKeyHandler(keyb_msg_t keymsg)
+void KH(up)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
-            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+            // START INTERACTIVE STACK MANIPULATION HERE
 
+            if(rplDepthData() > 0) {
+
+                // ENABLE UNDO
+                rplRemoveSnapshot(halScreen.StkUndolevels + 1);
+                rplRemoveSnapshot(halScreen.StkUndolevels);
+                if(halScreen.StkCurrentLevel != 1)
+                    rplTakeSnapshot();
+                halScreen.StkCurrentLevel = 0;
+
+                halSetContext((halGetContext() & ~CONTEXT_STACK) |
+                        CONTEXT_INTSTACK);
+
+                halScreen.StkPointer = 1;
+                halScreen.StkSelStart = halScreen.StkSelEnd = -1;
+                halScreen.StkVisibleLvl = 1;
+                halScreen.StkVisibleOffset = 0;
+                halScreen.DirtyFlag |= STACK_DIRTY;
+                halScreen.StkSelStatus = 0;
+            }
+            return;
         }
-
-    }
-    else {
-        uiCursorEndOfLine();
-        uiAutocompleteUpdate();
-    }
-}
-
-void lsrightKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // NOT SURE WHAT TO DO WITH THIS KEY
-
-        }
-
-    }
-    else {
-        // IN THE EDITOR, DO SELECTION
-        uiSetSelectionEnd();
-    }
-}
-
-void rsholdrightKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
-            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
-
-        }
-
-    }
-    else {
-        uiCursorPageRight();
-        uiAutocompleteUpdate();
-    }
-}
-
-void alphaholdrightKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            // TODO: ??
+        if(halGetContext() & CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer <= rplDepthData()) {
+                ++halScreen.StkPointer;
+                halScreen.StkVisibleLvl = -1;
+                halScreen.DirtyFlag |= STACK_DIRTY;
+            }
+            return;
         }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
-        uiAutocompInsert();
-        uiAutocompleteUpdate();
+        uiCursorUp(1);
+        halScreen.CmdLineIndent = 0;
+        halDeferProcess(&uiAutocompleteUpdate);
+
     }
 }
 
-void downKeyHandler(keyb_msg_t keymsg)
+void KH(down)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3482,38 +3445,95 @@ void downKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void rsholddownKeyHandler(keyb_msg_t keymsg)
+void KH(upOrLeft)(keyb_msg_t keymsg)
+{
+    keyb_msg_t key     = KM_KEY(keymsg);
+    unsigned   shifted = (key & KSHIFT_LEFT) != 0;
+    unsigned   editing = (halGetContext() & CONTEXT_INEDITOR) != 0;
+    if (shifted ^ editing)
+        leftKeyHandler(keymsg);
+    else
+        upKeyHandler(keymsg);
+}
+
+void KH(downOrRight)(keyb_msg_t keymsg)
+{
+    keyb_msg_t key     = KM_KEY(keymsg);
+    unsigned   shifted = (key & KSHIFT_LEFT) != 0;
+    unsigned   editing = (halGetContext() & CONTEXT_INEDITOR) != 0;
+    if (shifted ^ editing)
+        rightKeyHandler(keymsg);
+    else
+        upKeyHandler(keymsg);
+}
+
+void KH(startOfLine)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            // TODO: ??
+            // REDO ACTION
+            uiStackRedo();
+            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            return;
+        }
+
+    }
+    else {
+        uiCursorStartOfLine();
+        uiAutocompleteUpdate();
+    }
+}
+
+void KH(endOfLine)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else {
+        uiCursorEndOfLine();
+        uiAutocompleteUpdate();
+    }
+}
+
+void KH(startOfText)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // TODO: START INTERACTIVE STACK MANIPULATION HERE
         }
         if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer > 1) {
-                halScreen.StkPointer = halScreen.StkVisibleLvl - 1;
-                if(halScreen.StkPointer < 1)
-                    halScreen.StkPointer = 1;
+            if(halScreen.StkPointer != rplDepthData()) {
+                halScreen.StkPointer = rplDepthData();
                 halScreen.StkVisibleLvl = -1;
                 halScreen.DirtyFlag |= STACK_DIRTY;
             }
             return;
         }
-        // TODO: ADD OTHER CONTEXTS HERE
 
+        // TODO: ADD OTHER CONTEXTS HERE
     }
 
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
-        uiCursorPageDown();
+        uiCursorStartOfText();
         halScreen.CmdLineIndent = 0;
 
-        halDeferProcess(&uiAutocompleteUpdate);
+        uiAutocompleteUpdate();
     }
 }
 
-void rsdownKeyHandler(keyb_msg_t keymsg)
+void KH(endOfText)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3543,73 +3563,45 @@ void rsdownKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void alphaholddownKeyHandler(keyb_msg_t keymsg)
+void KH(pageLeft)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            // TODO: ??
-        }
-        // TODO: ADD OTHER CONTEXTS HERE
-    }
+            // REDO ACTION
+            uiStackRedo();
+            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            return;
 
+        }
+
+    }
     else {
-        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
-        uiAutocompNext();
+        uiCursorPageLeft();
+        uiAutocompleteUpdate();
     }
 }
 
-void upKeyHandler(keyb_msg_t keymsg)
+void KH(pageRight)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            // START INTERACTIVE STACK MANIPULATION HERE
+            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
-            if(rplDepthData() > 0) {
-
-                // ENABLE UNDO
-                rplRemoveSnapshot(halScreen.StkUndolevels + 1);
-                rplRemoveSnapshot(halScreen.StkUndolevels);
-                if(halScreen.StkCurrentLevel != 1)
-                    rplTakeSnapshot();
-                halScreen.StkCurrentLevel = 0;
-
-                halSetContext((halGetContext() & ~CONTEXT_STACK) |
-                        CONTEXT_INTSTACK);
-
-                halScreen.StkPointer = 1;
-                halScreen.StkSelStart = halScreen.StkSelEnd = -1;
-                halScreen.StkVisibleLvl = 1;
-                halScreen.StkVisibleOffset = 0;
-                halScreen.DirtyFlag |= STACK_DIRTY;
-                halScreen.StkSelStatus = 0;
-            }
-            return;
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer <= rplDepthData()) {
-                ++halScreen.StkPointer;
-                halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
-            }
-            return;
-        }
-        // TODO: ADD OTHER CONTEXTS HERE
+
     }
-
     else {
-        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
-        uiCursorUp(1);
-        halScreen.CmdLineIndent = 0;
-        halDeferProcess(&uiAutocompleteUpdate);
-
+        uiCursorPageRight();
+        uiAutocompleteUpdate();
     }
 }
 
-void rsholdupKeyHandler(keyb_msg_t keymsg)
+void KH(pageUp)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3640,36 +3632,72 @@ void rsholdupKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void rsupKeyHandler(keyb_msg_t keymsg)
+void KH(pageDown)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
-            // TODO: START INTERACTIVE STACK MANIPULATION HERE
+            // TODO: ??
         }
         if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer != rplDepthData()) {
-                halScreen.StkPointer = rplDepthData();
+            if(halScreen.StkPointer > 1) {
+                halScreen.StkPointer = halScreen.StkVisibleLvl - 1;
+                if(halScreen.StkPointer < 1)
+                    halScreen.StkPointer = 1;
                 halScreen.StkVisibleLvl = -1;
                 halScreen.DirtyFlag |= STACK_DIRTY;
             }
             return;
         }
-
         // TODO: ADD OTHER CONTEXTS HERE
+
     }
 
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
-        uiCursorStartOfText();
+        uiCursorPageDown();
         halScreen.CmdLineIndent = 0;
 
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
     }
 }
 
-void alphaholdupKeyHandler(keyb_msg_t keymsg)
+void KH(startSelection)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else {
+        uiSetSelectionStart();
+    }
+}
+
+void KH(endSelection)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // NOT SURE WHAT TO DO WITH THIS KEY
+
+        }
+
+    }
+    else {
+        // IN THE EDITOR, DO SELECTION
+        uiSetSelectionEnd();
+    }
+}
+
+void KH(autoComplete)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3682,11 +3710,51 @@ void alphaholdupKeyHandler(keyb_msg_t keymsg)
 
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompInsert();
+        uiAutocompleteUpdate();
+    }
+}
+
+void KH(autoCompleteNext)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // TODO: ??
+        }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        uiAutocompNext();
+    }
+}
+
+void KH(autoCompletePrevious)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+
+    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+        if(halGetContext() & CONTEXT_STACK) {
+            // TODO: ??
+        }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
         uiAutocompPrev();
     }
 }
 
-void chsKeyHandler(keyb_msg_t keymsg)
+
+// ============================================================================
+//
+//    Operators
+//
+// ============================================================================
+
+void KH(chs)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -3950,7 +4018,7 @@ void chsKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-void eexKeyHandler(keyb_msg_t keymsg)
+void KH(eex)(keyb_msg_t keymsg)
 {
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
@@ -4082,7 +4150,7 @@ void bracketKeyHandler(keyb_msg_t keymsg, byte_p string)
 
 }
 
-void curlyBracketKeyHandler(keyb_msg_t keymsg)
+void KH(curlyBracket)(keyb_msg_t keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
@@ -4094,7 +4162,7 @@ void curlyBracketKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void squareBracketKeyHandler(keyb_msg_t keymsg)
+void KH(squareBracket)(keyb_msg_t keymsg)
 {
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
@@ -4104,7 +4172,7 @@ void squareBracketKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void secoBracketKeyHandler(keyb_msg_t keymsg)
+void KH(secoBracket)(keyb_msg_t keymsg)
 {
     bracketKeyHandler(keymsg, (byte_p) "«  »");
 
@@ -4113,13 +4181,13 @@ void secoBracketKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void parenBracketKeyHandler(keyb_msg_t keymsg)
+void KH(parenBracket)(keyb_msg_t keymsg)
 {
     bracketKeyHandler(keymsg, (byte_p) "()");
 
 }
 
-void textBracketKeyHandler(keyb_msg_t keymsg)
+void KH(textBracket)(keyb_msg_t keymsg)
 {
     bracketKeyHandler(keymsg, (byte_p) "\"\"");
 
@@ -4129,7 +4197,7 @@ void textBracketKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void ticksKeyHandler(keyb_msg_t keymsg)
+void KH(ticks)(keyb_msg_t keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
         bracketKeyHandler(keymsg, (byte_p) "''");
@@ -4139,7 +4207,7 @@ void ticksKeyHandler(keyb_msg_t keymsg)
         symbolKeyHandler(keymsg, (byte_p) "'", 0);
 }
 
-void tagKeyHandler(keyb_msg_t keymsg)
+void KH(tag)(keyb_msg_t keymsg)
 {
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
         bracketKeyHandler(keymsg, (byte_p) "::");
@@ -4152,7 +4220,7 @@ void tagKeyHandler(keyb_msg_t keymsg)
 }
 
 
-static void onPlusMinusPattern()
+static void contrastPattern()
 // ----------------------------------------------------------------------------
 //   Draw a contrast pattern for the ON+ and ON- key handlers
 // ----------------------------------------------------------------------------
@@ -4177,12 +4245,12 @@ static void onPlusMinusPattern()
 }
 
 
-void onPlusKeyHandler(keyb_msg_t keymsg)
+void KH(increaseContrast)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     halStatusAreaPopup();
-    onPlusMinusPattern();
+    contrastPattern();
 
     // Increase contrast
     lcd_contrast++;
@@ -4198,12 +4266,12 @@ void onPlusKeyHandler(keyb_msg_t keymsg)
     Exceptions = savedex;
 }
 
-void onMinusKeyHandler(keyb_msg_t keymsg)
+void KH(decreaseContrast)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     halStatusAreaPopup();
-    onPlusMinusPattern();
+    contrastPattern();
 
     // Decrease contrast
     lcd_contrast--;
@@ -4218,7 +4286,7 @@ void onMinusKeyHandler(keyb_msg_t keymsg)
     Exceptions = savedex;
 }
 
-void onDotKeyHandler(keyb_msg_t keymsg)
+void KH(cycleLocale)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -4371,7 +4439,7 @@ void onDotKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void onSpcKeyHandler(keyb_msg_t keymsg)
+void KH(cycleFormat)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -4465,12 +4533,13 @@ void onSpcKeyHandler(keyb_msg_t keymsg)
 
 }
 
-const const char *const onMulDivKeyHandler_options[] = { "Auto",    "  =  0",  "k = +3",  "M = +6",
-                                                         "G = +9",  "T = +12", "P = +15", "E = +18",
-                                                         "Z = +21", "z = -21", "a = -18", "f = -15",
-                                                         "p = -12", "n = -9",  "µ = -6",  "m = -3" };
+const const char *const onMulDivKeyHandler_options[] = {
+    "Auto",    "  =  0",  "k = +3",  "M = +6",  "G = +9",  "T = +12",
+    "P = +15", "E = +18", "Z = +21", "z = -21", "a = -18", "f = -15",
+    "p = -12", "n = -9",  "µ = -6",  "m = -3"
+};
 
-void onMulDivKeyHandler(keyb_msg_t keymsg)
+static void formatChange(keyb_msg_t keymsg)
 {
 
     // CYCLE BETWEEN VARIOUS OPTIONS
@@ -4487,11 +4556,13 @@ void onMulDivKeyHandler(keyb_msg_t keymsg)
     }
 
     // CYCLE THROUGH ITEMS:
-    if(KM_KEY(keymsg) == KB_MUL) {
+    switch(keymsg)
+    {
+    case KB_UP:
         if(option != 9)
             --option;
-    }
-    else {
+        break;
+    case KB_DN:
         if(option != 8)
             ++option;
     }
@@ -4542,7 +4613,21 @@ void onMulDivKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void onDigitKeyHandler(keyb_msg_t keymsg)
+void KH(nextScientificFormat)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+    formatChange(KB_UP);
+}
+
+void KH(previousScientificFormat)(keyb_msg_t keymsg)
+{
+    UNUSED(keymsg);
+    formatChange(KB_UP);
+}
+
+
+
+void KH(onDigit)(keyb_msg_t keymsg)
 {
     NUMFORMAT fmt;
     int32_t digits = 0;
@@ -4623,7 +4708,7 @@ void onDigitKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void onUpDownKeyHandler(keyb_msg_t keymsg)
+void KH(onUpDown)(keyb_msg_t keymsg)
 {
     int32_t precision = Context.precdigits;
 
@@ -4688,7 +4773,7 @@ void onUpDownKeyHandler(keyb_msg_t keymsg)
 }
 
 // SHOW/HIDE THE SECOND MENU WHEN PRESSED
-void onVarKeyHandler(keyb_msg_t keymsg)
+void KH(onVar)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
     if(halScreen.Menu2) {
@@ -4702,52 +4787,11 @@ void onVarKeyHandler(keyb_msg_t keymsg)
 
 }
 
-void onBKeyHandler(keyb_msg_t keymsg)
+void KH(onB)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
     halFlags |= HAL_SKIPNEXTALARM;
-
-}
-
-void alphaKeyHandler(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
-    if((halScreen.CursorState & 0xff) == 'L') {
-        halSetCmdLineMode('C');
-        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-
-    }
-    else {
-        if((halScreen.CursorState & 0xff) == 'C') {
-            halSetCmdLineMode('L');
-            halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-
-        }
-
-    }
-}
-
-void shiftedalphaKeyHandler(keyb_msg_t keymsg)
-{
-    // CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
-    UNUSED(keymsg);
-
-    switch (halScreen.CursorState & 0xff) {
-    case 'D':
-        halSetCmdLineMode('P');
-        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-        break;
-    case 'P':
-        halSetCmdLineMode('A');
-        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-        break;
-    case 'A':
-        halSetCmdLineMode('P');
-        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-        break;
-    }
 
 }
 
@@ -4791,12 +4835,12 @@ void backmenuKeyHandler(keyb_msg_t keymsg, WORD menu)
 
 }
 
-void backmenu1KeyHandler(keyb_msg_t keymsg)
+void KH(backmenu1)(keyb_msg_t keymsg)
 {
     backmenuKeyHandler(keymsg, 1);
 }
 
-void backmenu2KeyHandler(keyb_msg_t keymsg)
+void KH(backmenu2)(keyb_msg_t keymsg)
 {
     backmenuKeyHandler(keymsg, 2);
 }
@@ -5192,7 +5236,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
 }
 
-void formswitcherKeyHandler(keyb_msg_t keymsg)
+void KH(formswitcher)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5207,8 +5251,7 @@ void formswitcherKeyHandler(keyb_msg_t keymsg)
     return;
 }
 
-#ifdef TARGET_PRIME
-void switchmenukeysKeyHandler(keyb_msg_t keymsg)
+void KH(switchmenukeys)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5220,10 +5263,8 @@ void switchmenukeysKeyHandler(keyb_msg_t keymsg)
 
     return;
 }
-#endif /* TARGET_PRIME */
 
-
-void basecycleKeyHandler(keyb_msg_t keymsg)
+void KH(basecycle)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5357,131 +5398,238 @@ void basecycleKeyHandler(keyb_msg_t keymsg)
     }
 }
 
-#define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    UNUSED(keymsg); \
-    transpcmdKeyHandler(opcode); \
-    }
+#define TRANSP_CMD_KEY_HANDLER(name, opcode) \
+    void name##KeyHandler(keyb_msg_t keymsg) \
+    {                                        \
+        UNUSED(keymsg);                      \
+        transpcmdKeyHandler(opcode);         \
+    }                                        \
+    extern int dummy
 
-#define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    UNUSED(keymsg); \
-    cmdKeyHandler(opcode,(byte_p)string,issymbfunc); \
-    }
+#define CMD_KEY_HANDLER(name, opcode, string, issymbfunc)   \
+    void name##KeyHandler(keyb_msg_t keymsg)                \
+    {                                                       \
+        UNUSED(keymsg);                                     \
+        cmdKeyHandler(opcode, (byte_p) string, issymbfunc); \
+    }                                                       \
+    extern int dummy
 
-#define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    varsKeyHandler(keymsg,(menu),(int32_t)(idx)); \
-    }
+#define FUNCTION_KEY_HANDLER(name, menu, idx)                \
+    void name##KeyHandler(keyb_msg_t keymsg)                 \
+    {                                                        \
+        functionKeyHandler(keymsg, (menu), (int32_t) (idx)); \
+    }                                                        \
+    extern int dummy
 
-#define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    changemenuKeyHandler(keymsg,(int64_t)(menucode)); \
-    }
+#define MENU_KEY_HANDLER(name, menucode)                    \
+    void name##KeyHandler(keyb_msg_t keymsg)                \
+    {                                                       \
+        changemenuKeyHandler(keymsg, (int64_t) (menucode)); \
+    }                                                       \
+    extern int dummy
 
-#define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    alphasymbolKeyHandler(keymsg,(byte_p)(lsymbol),(byte_p)(csymbol)); \
-    }
+#define KEY_HANDLER(name, lsymbol, csymbol)                                    \
+    void name##KeyHandler(keyb_msg_t keymsg)                                   \
+    {                                                                          \
+        alphasymbolKeyHandler(keymsg, (byte_p) (lsymbol), (byte_p) (csymbol)); \
+    }                                                                          \
+    extern int dummy
 
-#define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(keyb_msg_t keymsg) \
-{ \
-    symbolKeyHandler(keymsg,(byte_p)(symbol),(sep)); \
-    }
+#define SYMB_KEY_HANDLER(name, symbol, sep)                 \
+    void name##KeyHandler(keyb_msg_t keymsg)                \
+    {                                                       \
+        symbolKeyHandler(keymsg, (byte_p) (symbol), (sep)); \
+    }                                                       \
+    extern int dummy
 
-#define KEYHANDLER_NAME(name)  &(name##KeyHandler)
+KEY_HANDLER(a, "a", "A");
+KEY_HANDLER(b, "b", "B");
+KEY_HANDLER(c, "c", "C");
+KEY_HANDLER(d, "d", "D");
+KEY_HANDLER(e, "e", "E");
+KEY_HANDLER(f, "f", "F");
+KEY_HANDLER(g, "g", "G");
+KEY_HANDLER(h, "h", "H");
+KEY_HANDLER(i, "i", "I");
+KEY_HANDLER(j, "j", "J");
+KEY_HANDLER(k, "k", "K");
+KEY_HANDLER(l, "l", "L");
+KEY_HANDLER(m, "m", "M");
+KEY_HANDLER(n, "n", "N");
+KEY_HANDLER(o, "o", "O");
+KEY_HANDLER(p, "p", "P");
+KEY_HANDLER(q, "q", "Q");
+KEY_HANDLER(r, "r", "R");
+KEY_HANDLER(s, "s", "S");
+KEY_HANDLER(t, "t", "T");
+KEY_HANDLER(u, "u", "U");
+KEY_HANDLER(v, "v", "V");
+KEY_HANDLER(w, "w", "W");
+KEY_HANDLER(x, "x", "X");
+KEY_HANDLER(y, "y", "Y");
+KEY_HANDLER(z, "z", "Z");
+SYMB_KEY_HANDLER(arrow, "→", 1);
+SYMB_KEY_HANDLER(rulesep, ":→", 1);
+SYMB_KEY_HANDLER(comma, ",", 0);
+SYMB_KEY_HANDLER(semi, ";", 0);
+SYMB_KEY_HANDLER(colon, ":", 0);
+SYMB_KEY_HANDLER(infinity, "∞", 1);
+SYMB_KEY_HANDLER(undinfinity, "∞̅", 1);
+SYMB_KEY_HANDLER(dot, ".", 0);
+SYMB_KEY_HANDLER(giventhat, "|", 0);
+SYMB_KEY_HANDLER(question, "?", 0);
+SYMB_KEY_HANDLER(openquestion, "¿", 0);
+SYMB_KEY_HANDLER(exclamation, "!", 0);
+SYMB_KEY_HANDLER(openexclamation, "¡", 0);
+SYMB_KEY_HANDLER(approx, "~", 0);
+SYMB_KEY_HANDLER(percent, "%", 0);
+SYMB_KEY_HANDLER(dollar, "$", 0);
+SYMB_KEY_HANDLER(euro, "€", 0);
+SYMB_KEY_HANDLER(backslash, "\\", 0);
+SYMB_KEY_HANDLER(pound, "£", 0);
+SYMB_KEY_HANDLER(angle, "∡", 0);
+SYMB_KEY_HANDLER(degree, "°", 0);
+SYMB_KEY_HANDLER(pi, "π", 1);
+SYMB_KEY_HANDLER(delta, "Δ", 0);
+SYMB_KEY_HANDLER(at, "@", 0);
+SYMB_KEY_HANDLER(and, "&", 0);
+SYMB_KEY_HANDLER(econst, "е", 0);
+SYMB_KEY_HANDLER(iconst, "і", 0);
+SYMB_KEY_HANDLER(jconst, "ј", 0);
+SYMB_KEY_HANDLER(greekalpha, "α", 0);
+SYMB_KEY_HANDLER(greekbeta, "β", 0);
+SYMB_KEY_HANDLER(greekgamma, "γ", 0);
+SYMB_KEY_HANDLER(greekdelta, "δ", 0);
+SYMB_KEY_HANDLER(greekepsilon, "ε", 0);
+SYMB_KEY_HANDLER(greeketa, "η", 0);
+SYMB_KEY_HANDLER(greekrho, "ρ", 0);
+SYMB_KEY_HANDLER(greeksigma, "σ", 0);
+SYMB_KEY_HANDLER(greektau, "τ", 0);
+SYMB_KEY_HANDLER(greektheta, "θ", 0);
+SYMB_KEY_HANDLER(greeklambda, "λ", 0);
+SYMB_KEY_HANDLER(greekkappa, "κ", 0);
+SYMB_KEY_HANDLER(greekmu, "μ", 0);
+SYMB_KEY_HANDLER(greeknu, "ν", 0);
+SYMB_KEY_HANDLER(greekphi, "φ", 0);
+SYMB_KEY_HANDLER(greekomega, "ω", 0);
+SYMB_KEY_HANDLER(greekgammacap, "Γ", 0);
+SYMB_KEY_HANDLER(greeklambdacap, "Λ", 0);
+SYMB_KEY_HANDLER(greekomegacap, "Ω", 0);
+SYMB_KEY_HANDLER(greekpicap, "Π", 0);
+SYMB_KEY_HANDLER(greeksigmacap, "Σ", 0);
+SYMB_KEY_HANDLER(greekthetacap, "Θ", 0);
+SYMB_KEY_HANDLER(greekphicap, "Φ", 0);
+SYMB_KEY_HANDLER(micro, "µ", 0);
+FUNCTION_KEY_HANDLER(softmenu1_1, 1, 0);
+FUNCTION_KEY_HANDLER(softmenu2_1, 1, 1);
+FUNCTION_KEY_HANDLER(softmenu3_1, 1, 2);
+FUNCTION_KEY_HANDLER(softmenu4_1, 1, 3);
+FUNCTION_KEY_HANDLER(softmenu5_1, 1, 4);
+FUNCTION_KEY_HANDLER(softmenu6_1, 1, 5);
+FUNCTION_KEY_HANDLER(softmenu1_2, 2, 0);
+FUNCTION_KEY_HANDLER(softmenu2_2, 2, 1);
+FUNCTION_KEY_HANDLER(softmenu3_2, 2, 2);
+FUNCTION_KEY_HANDLER(softmenu4_2, 2, 3);
+FUNCTION_KEY_HANDLER(softmenu5_2, 2, 4);
+FUNCTION_KEY_HANDLER(softmenu6_2, 2, 5);
+SYMB_KEY_HANDLER(thinspc, " ", 0);
+SYMB_KEY_HANDLER(hash, "#", 0);
+SYMB_KEY_HANDLER(equal, "=", 1);
+SYMB_KEY_HANDLER(notequal, "≠", 1);
+SYMB_KEY_HANDLER(ls, "<", 1);
+SYMB_KEY_HANDLER(gt, ">", 1);
+SYMB_KEY_HANDLER(le, "≤", 1);
+SYMB_KEY_HANDLER(ge, "≥", 1);
+SYMB_KEY_HANDLER(sadd, "+", 0);
+SYMB_KEY_HANDLER(ssub, "-", 0);
+SYMB_KEY_HANDLER(smul, "*", 0);
+SYMB_KEY_HANDLER(sdiv, "/", 0);
+SYMB_KEY_HANDLER(spow, "^", 0);
+KEY_HANDLER(sub0, "₀", "⁰");
+KEY_HANDLER(sub1, "₁", "¹");
+KEY_HANDLER(sub2, "₂", "²");
+KEY_HANDLER(sub3, "₃", "³");
+KEY_HANDLER(sub4, "₄", "⁴");
+KEY_HANDLER(sub5, "₅", "⁵");
+KEY_HANDLER(sub6, "₆", "⁶");
+KEY_HANDLER(sub7, "₇", "⁷");
+KEY_HANDLER(sub8, "₈", "⁸");
+KEY_HANDLER(sub9, "₉", "⁹");
+SYMB_KEY_HANDLER(keyx, "X", 0);
+CMD_KEY_HANDLER(clear, CMD_CLEAR, "CLEAR", -1);
+CMD_KEY_HANDLER(add, CMD_OVR_ADD, "+", 0);
+CMD_KEY_HANDLER(sub, CMD_OVR_SUB, "-", 0);
+CMD_KEY_HANDLER(div, CMD_OVR_DIV, "/", 0);
+CMD_KEY_HANDLER(mul, CMD_OVR_MUL, "*", 0);
+CMD_KEY_HANDLER(fact, CMD_FACTORIAL, "!", 0);
+CMD_KEY_HANDLER(inv, CMD_OVR_INV, "INV", 1);
+CMD_KEY_HANDLER(sin, CMD_SIN, "SIN", 1);
+CMD_KEY_HANDLER(asin, CMD_ASIN, "ASIN", 1);
+CMD_KEY_HANDLER(sinh, CMD_SINH, "SINH", 1);
+CMD_KEY_HANDLER(asinh, CMD_ASINH, "ASINH", 1);
+CMD_KEY_HANDLER(cos, CMD_COS, "COS", 1);
+CMD_KEY_HANDLER(acos, CMD_ACOS, "ACOS", 1);
+CMD_KEY_HANDLER(cosh, CMD_COSH, "COSH", 1);
+CMD_KEY_HANDLER(acosh, CMD_ACOSH, "ACOSH", 1);
+CMD_KEY_HANDLER(tan, CMD_TAN, "TAN", 1);
+CMD_KEY_HANDLER(atan, CMD_ATAN, "ATAN", 1);
+CMD_KEY_HANDLER(tanh, CMD_TANH, "TANH", 1);
+CMD_KEY_HANDLER(atanh, CMD_ATANH, "ATANH", 1);
+CMD_KEY_HANDLER(eval, CMD_OVR_EVAL, "EVAL", -1);
+CMD_KEY_HANDLER(eval1, CMD_OVR_EVAL1, "EVAL1", -1);
+CMD_KEY_HANDLER(tonum, CMD_OVR_NUM, "→NUM", -1);
+CMD_KEY_HANDLER(tofrac, CMD_TOFRACTION, "→Q", -1);
+CMD_KEY_HANDLER(sqrt, CMD_SQRT, "√", 0);
+CMD_KEY_HANDLER(swap, CMD_SWAP, "SWAP", 0);
+CMD_KEY_HANDLER(pow, CMD_OVR_POW, "^", 0);
+CMD_KEY_HANDLER(ln, CMD_LN, "LN", 1);
+CMD_KEY_HANDLER(exp, CMD_EXP, "EXP", 1);
+CMD_KEY_HANDLER(log, CMD_LOG, "LOG", 1);
+CMD_KEY_HANDLER(alog, CMD_ALOG, "ALOG", 1);
+CMD_KEY_HANDLER(sq, CMD_SQ, "SQ", 1);
+CMD_KEY_HANDLER(xroot, CMD_OVR_XROOT, "XROOT", 1);
+CMD_KEY_HANDLER(sto, CMD_STO, "STO", 2);
+CMD_KEY_HANDLER(rcl, CMD_RCL, "RCL", 2);
+CMD_KEY_HANDLER(purge, CMD_PURGE, "PURGE", -1);
+CMD_KEY_HANDLER(abs, CMD_OVR_ABS, "ABS", 1);
+CMD_KEY_HANDLER(arg, CMD_ARG, "ARG", 1);
+CMD_KEY_HANDLER(convert, CMD_CONVERT, "CONVERT", -1);
+CMD_KEY_HANDLER(cont, CMD_CONT, "CONT", -1);
+TRANSP_CMD_KEY_HANDLER(updir, CMD_UPDIR);
+TRANSP_CMD_KEY_HANDLER(home, CMD_HOME);
+TRANSP_CMD_KEY_HANDLER(menuswap, CMD_MENUSWAP);
 
-DECLARE_KEYHANDLER(a, "a", "A")
-        DECLARE_KEYHANDLER(b, "b", "B")
-        DECLARE_KEYHANDLER(c, "c", "C")
-        DECLARE_KEYHANDLER(d, "d", "D")
-        DECLARE_KEYHANDLER(e, "e", "E")
-        DECLARE_KEYHANDLER(f, "f", "F")
-        DECLARE_KEYHANDLER(g, "g", "G")
-        DECLARE_KEYHANDLER(h, "h", "H")
-        DECLARE_KEYHANDLER(i, "i", "I")
-        DECLARE_KEYHANDLER(j, "j", "J")
-        DECLARE_KEYHANDLER(k, "k", "K")
-        DECLARE_KEYHANDLER(l, "l", "L")
-        DECLARE_KEYHANDLER(m, "m", "M")
-        DECLARE_KEYHANDLER(n, "n", "N")
-        DECLARE_KEYHANDLER(o, "o", "O")
-        DECLARE_KEYHANDLER(p, "p", "P")
-        DECLARE_KEYHANDLER(q, "q", "Q")
-        DECLARE_KEYHANDLER(r, "r", "R")
-        DECLARE_KEYHANDLER(s, "s", "S")
-        DECLARE_KEYHANDLER(t, "t", "T")
-        DECLARE_KEYHANDLER(u, "u", "U")
-        DECLARE_KEYHANDLER(v, "v", "V")
-        DECLARE_KEYHANDLER(w, "w", "W")
-        DECLARE_KEYHANDLER(x, "x", "X")
-        DECLARE_KEYHANDLER(y, "y", "Y")
-        DECLARE_KEYHANDLER(z, "z", "Z")
-        DECLARE_SYMBKEYHANDLER(arrow, "→", 1)
-        DECLARE_SYMBKEYHANDLER(rulesep, ":→", 1)
-        DECLARE_SYMBKEYHANDLER(comma, ",", 0)
-        DECLARE_SYMBKEYHANDLER(semi, ";", 0)
-        DECLARE_SYMBKEYHANDLER(colon, ":", 0)
-        DECLARE_SYMBKEYHANDLER(infinity, "∞", 1)
-        DECLARE_SYMBKEYHANDLER(undinfinity, "∞̅", 1)
-        DECLARE_SYMBKEYHANDLER(dot, ".", 0)
-        DECLARE_SYMBKEYHANDLER(giventhat, "|", 0)
-        DECLARE_SYMBKEYHANDLER(question, "?", 0)
-        DECLARE_SYMBKEYHANDLER(openquestion, "¿", 0)
-        DECLARE_SYMBKEYHANDLER(exclamation, "!", 0)
-        DECLARE_SYMBKEYHANDLER(openexclamation, "¡", 0)
-        DECLARE_SYMBKEYHANDLER(approx, "~", 0)
-        DECLARE_SYMBKEYHANDLER(percent, "%", 0)
-        DECLARE_SYMBKEYHANDLER(dollar, "$", 0)
-        DECLARE_SYMBKEYHANDLER(euro, "€", 0)
-        DECLARE_SYMBKEYHANDLER(backslash, "\\", 0)
-        DECLARE_SYMBKEYHANDLER(pound, "£", 0)
-        DECLARE_SYMBKEYHANDLER(angle, "∡", 0)
-        DECLARE_SYMBKEYHANDLER(degree, "°", 0)
-        DECLARE_SYMBKEYHANDLER(pi, "π", 1)
-        DECLARE_SYMBKEYHANDLER(delta, "Δ", 0)
-        DECLARE_SYMBKEYHANDLER(at, "@", 0)
-        DECLARE_SYMBKEYHANDLER(and, "&", 0)
-        DECLARE_SYMBKEYHANDLER(econst, "е", 0)
-        DECLARE_SYMBKEYHANDLER(iconst, "і", 0)
-        DECLARE_SYMBKEYHANDLER(jconst, "ј", 0)
-        DECLARE_SYMBKEYHANDLER(greekalpha, "α", 0)
-        DECLARE_SYMBKEYHANDLER(greekbeta, "β", 0)
-        DECLARE_SYMBKEYHANDLER(greekgamma, "γ", 0)
-        DECLARE_SYMBKEYHANDLER(greekdelta, "δ", 0)
-        DECLARE_SYMBKEYHANDLER(greekepsilon, "ε", 0)
-        DECLARE_SYMBKEYHANDLER(greeketa, "η", 0)
-        DECLARE_SYMBKEYHANDLER(greekrho, "ρ", 0)
-        DECLARE_SYMBKEYHANDLER(greeksigma, "σ", 0)
-        DECLARE_SYMBKEYHANDLER(greektau, "τ", 0)
-        DECLARE_SYMBKEYHANDLER(greektheta, "θ", 0)
-        DECLARE_SYMBKEYHANDLER(greeklambda, "λ", 0)
-        DECLARE_SYMBKEYHANDLER(greekkappa, "κ", 0)
-        DECLARE_SYMBKEYHANDLER(greekmu, "μ", 0)
-        DECLARE_SYMBKEYHANDLER(greeknu, "ν", 0)
-        DECLARE_SYMBKEYHANDLER(greekphi, "φ", 0)
-        DECLARE_SYMBKEYHANDLER(greekomega, "ω", 0)
-        DECLARE_SYMBKEYHANDLER(greekgammacap, "Γ", 0)
-        DECLARE_SYMBKEYHANDLER(greeklambdacap, "Λ", 0)
-        DECLARE_SYMBKEYHANDLER(greekomegacap, "Ω", 0)
-        DECLARE_SYMBKEYHANDLER(greekpicap, "Π", 0)
-        DECLARE_SYMBKEYHANDLER(greeksigmacap, "Σ", 0)
-        DECLARE_SYMBKEYHANDLER(greekthetacap, "Θ", 0)
-        DECLARE_SYMBKEYHANDLER(greekphicap, "Φ", 0)
-        DECLARE_SYMBKEYHANDLER(micro, "µ", 0)
-        DECLARE_VARKEYHANDLER(var1_1, 1, 0)
-        DECLARE_VARKEYHANDLER(var2_1, 1, 1)
-        DECLARE_VARKEYHANDLER(var3_1, 1, 2)
-        DECLARE_VARKEYHANDLER(var4_1, 1, 3)
-        DECLARE_VARKEYHANDLER(var5_1, 1, 4)
-        DECLARE_VARKEYHANDLER(var6_1, 1, 5)
-        DECLARE_VARKEYHANDLER(var1, 2, 0)
-        DECLARE_VARKEYHANDLER(var2, 2, 1)
-        DECLARE_VARKEYHANDLER(var3, 2, 2)
-        DECLARE_VARKEYHANDLER(var4, 2, 3)
-        DECLARE_VARKEYHANDLER(var5, 2, 4)
-        DECLARE_VARKEYHANDLER(var6, 2, 5)
-     void underscoreKeyHandler(keyb_msg_t keymsg)
+MENU_KEY_HANDLER(unitmenu, MKMENUCODE(0, DOUNIT, 0, 0));
+MENU_KEY_HANDLER(systemmenu, MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(prgmenu, MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(stackmenu, MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(testsmenu, MKMENUCODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(listmenu, MKMENUCODE(0, 68, 3, 0));         // REVISIT
+MENU_KEY_HANDLER(charsmenu, MKMENUCODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(symbolsmenu, MKMENUCODE(0, 68, 3, 0));      // REVISIT
+MENU_KEY_HANDLER(memmenu, MKMENUCODE(0, 68, 3, 0));          // REVISIT
+MENU_KEY_HANDLER(settingsmenu, MKMENUCODE(0, 68, 3, 0));     // REVISIT
+MENU_KEY_HANDLER(mathsettingsmenu, MKMENUCODE(0, 68, 3, 0)); // REVISIT
+MENU_KEY_HANDLER(varsmenu, MKMENUCODE(1, 0, 0, 0));
+MENU_KEY_HANDLER(mainmenu, MKMENUCODE(0, 68, 2, 0));
+MENU_KEY_HANDLER(infomenu, MKMENUCODE(0, 68, 2, 0));   // REVISIT
+MENU_KEY_HANDLER(matrixmenu, MKMENUCODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(constantsmenu, MKMENUCODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(notesmenu, MKMENUCODE(0, 68, 2, 0));  // REVISIT
+MENU_KEY_HANDLER(arithmenu, MKMENUCODE(0, 64, 0, 0));
+MENU_KEY_HANDLER(mathmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(statsmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(probamenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(casmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(cplxmenu, MKMENUCODE(0, 30, 0, 0));
+MENU_KEY_HANDLER(timemenu, MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(iomenu, MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(basemenu, MKMENUCODE(0, 70, 0, 0));
+MENU_KEY_HANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0));
+MENU_KEY_HANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0));
+MENU_KEY_HANDLER(financemenu, MKMENUCODE(0, 104, 1, 0));
+
+void KH(underscore)(keyb_msg_t keymsg)
 {
     symbolKeyHandler(keymsg, (byte_p) "_", 0);
 
@@ -5492,7 +5640,7 @@ DECLARE_KEYHANDLER(a, "a", "A")
     }
 }
 
-void spcKeyHandler(keyb_msg_t keymsg)
+void KH(spc)(keyb_msg_t keymsg)
 {
     if(halGetContext() & CONTEXT_INTSTACK) {
 
@@ -5540,7 +5688,7 @@ void spcKeyHandler(keyb_msg_t keymsg)
 }
 
 // INTERACTIVE STACK ONLY
-void tolistKeyHandler(keyb_msg_t keymsg)
+void KH(tolist)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5665,7 +5813,7 @@ void tolistKeyHandler(keyb_msg_t keymsg)
     return;
 }
 
-void tomatKeyHandler(keyb_msg_t keymsg)
+void KH(tomat)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5791,7 +5939,7 @@ void tomatKeyHandler(keyb_msg_t keymsg)
 }
 
 // INTERACTIVE STACK ONLY
-void tocplxKeyHandler(keyb_msg_t keymsg)
+void KH(tocplx)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -5956,7 +6104,7 @@ void tocplxKeyHandler(keyb_msg_t keymsg)
     return;
 }
 
-void explodeKeyHandler(keyb_msg_t keymsg)
+void KH(explode)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
 
@@ -6209,85 +6357,7 @@ void explodeKeyHandler(keyb_msg_t keymsg)
     return;
 }
 
-DECLARE_SYMBKEYHANDLER(thinspc, " ", 0)
-DECLARE_SYMBKEYHANDLER(hash, "#", 0)
-DECLARE_SYMBKEYHANDLER(equal, "=", 1)
-DECLARE_SYMBKEYHANDLER(notequal, "≠", 1)
-DECLARE_SYMBKEYHANDLER(ls, "<", 1)
-DECLARE_SYMBKEYHANDLER(gt, ">", 1)
-DECLARE_SYMBKEYHANDLER(le, "≤", 1)
-DECLARE_SYMBKEYHANDLER(ge, "≥", 1)
-DECLARE_SYMBKEYHANDLER(sadd, "+", 0)
-DECLARE_SYMBKEYHANDLER(ssub, "-", 0)
-DECLARE_SYMBKEYHANDLER(smul, "*", 0)
-DECLARE_SYMBKEYHANDLER(sdiv, "/", 0)
-DECLARE_SYMBKEYHANDLER(spow, "^", 0)
-DECLARE_KEYHANDLER(sub0, "₀", "⁰")
-DECLARE_KEYHANDLER(sub1, "₁", "¹")
-DECLARE_KEYHANDLER(sub2, "₂", "²")
-DECLARE_KEYHANDLER(sub3, "₃", "³")
-DECLARE_KEYHANDLER(sub4, "₄", "⁴")
-DECLARE_KEYHANDLER(sub5, "₅", "⁵")
-DECLARE_KEYHANDLER(sub6, "₆", "⁶")
-DECLARE_KEYHANDLER(sub7, "₇", "⁷")
-DECLARE_KEYHANDLER(sub8, "₈", "⁸")
-DECLARE_KEYHANDLER(sub9, "₉", "⁹")
-DECLARE_SYMBKEYHANDLER(keyx, "X", 0)
-DECLARE_CMDKEYHANDLER(clear, CMD_CLEAR, "CLEAR", -1)
-DECLARE_CMDKEYHANDLER(add, (CMD_OVR_ADD), "+", 0)
-DECLARE_CMDKEYHANDLER(sub, (CMD_OVR_SUB), "-", 0)
-DECLARE_CMDKEYHANDLER(div, (CMD_OVR_DIV), "/", 0)
-DECLARE_CMDKEYHANDLER(mul, (CMD_OVR_MUL), "*", 0)
-DECLARE_CMDKEYHANDLER(fact, (CMD_FACTORIAL), "!", 0)
-DECLARE_CMDKEYHANDLER(inv, (CMD_OVR_INV), "INV", 1)
-DECLARE_CMDKEYHANDLER(sin, CMD_SIN, "SIN", 1)
-DECLARE_CMDKEYHANDLER(asin, CMD_ASIN, "ASIN", 1)
-DECLARE_CMDKEYHANDLER(sinh, CMD_SINH, "SINH", 1)
-DECLARE_CMDKEYHANDLER(asinh, CMD_ASINH, "ASINH", 1)
-DECLARE_CMDKEYHANDLER(cos, CMD_COS, "COS", 1)
-DECLARE_CMDKEYHANDLER(acos, CMD_ACOS, "ACOS", 1)
-DECLARE_CMDKEYHANDLER(cosh, CMD_COSH, "COSH", 1)
-DECLARE_CMDKEYHANDLER(acosh, CMD_ACOSH, "ACOSH", 1)
-DECLARE_CMDKEYHANDLER(tan, CMD_TAN, "TAN", 1)
-DECLARE_CMDKEYHANDLER(atan, CMD_ATAN, "ATAN", 1)
-DECLARE_CMDKEYHANDLER(tanh, CMD_TANH, "TANH", 1)
-DECLARE_CMDKEYHANDLER(atanh, CMD_ATANH, "ATANH", 1)
-DECLARE_CMDKEYHANDLER(eval, (CMD_OVR_EVAL), "EVAL", -1)
-DECLARE_CMDKEYHANDLER(eval1, (CMD_OVR_EVAL1), "EVAL1", -1)
-DECLARE_CMDKEYHANDLER(tonum, (CMD_OVR_NUM), "→NUM", -1)
-DECLARE_CMDKEYHANDLER(tofrac, (CMD_TOFRACTION), "→Q", -1)
-DECLARE_CMDKEYHANDLER(sqrt, CMD_SQRT, "√", 0)
-DECLARE_CMDKEYHANDLER(pow, (CMD_OVR_POW), "^", 0)
-DECLARE_CMDKEYHANDLER(ln, CMD_LN, "LN", 1)
-DECLARE_CMDKEYHANDLER(exp, CMD_EXP, "EXP", 1)
-DECLARE_CMDKEYHANDLER(log, CMD_LOG, "LOG", 1)
-DECLARE_CMDKEYHANDLER(alog, CMD_ALOG, "ALOG", 1)
-DECLARE_CMDKEYHANDLER(sq, CMD_SQ, "SQ", 1)
-DECLARE_CMDKEYHANDLER(xroot, (CMD_OVR_XROOT), "XROOT", 1)
-DECLARE_CMDKEYHANDLER(sto, CMD_STO, "STO", 2)
-DECLARE_CMDKEYHANDLER(rcl, CMD_RCL, "RCL", 2)
-DECLARE_CMDKEYHANDLER(purge, CMD_PURGE, "PURGE", -1)
-DECLARE_CMDKEYHANDLER(abs, CMD_OVR_ABS, "ABS", 1)
-DECLARE_CMDKEYHANDLER(arg, CMD_ARG, "ARG", 1)
-DECLARE_CMDKEYHANDLER(convert, CMD_CONVERT, "CONVERT", -1)
-DECLARE_CMDKEYHANDLER(cont, CMD_CONT, "CONT", -1)
-DECLARE_TRANSPCMDKEYHANDLER(updir, CMD_UPDIR)
-DECLARE_TRANSPCMDKEYHANDLER(home, CMD_HOME)
-DECLARE_TRANSPCMDKEYHANDLER(menuswap, CMD_MENUSWAP)
-DECLARE_MENUKEYHANDLER(unitmenu, MKMENUCODE(0, DOUNIT, 0, 0))
-DECLARE_MENUKEYHANDLER(prgmenu, MKMENUCODE(0, 68, 3, 0))
-DECLARE_MENUKEYHANDLER(varsmenu, MKMENUCODE(1, 0, 0, 0))
-DECLARE_MENUKEYHANDLER(mainmenu, MKMENUCODE(0, 68, 2, 0))
-DECLARE_MENUKEYHANDLER(arithmenu, MKMENUCODE(0, 64, 0, 0))
-DECLARE_MENUKEYHANDLER(cplxmenu, MKMENUCODE(0, 30, 0, 0))
-DECLARE_MENUKEYHANDLER(timemenu, MKMENUCODE(0, 65, 0, 0))
-DECLARE_MENUKEYHANDLER(basemenu, MKMENUCODE(0, 70, 0, 0))
-DECLARE_MENUKEYHANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0))
-DECLARE_MENUKEYHANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0))
-DECLARE_MENUKEYHANDLER(financemenu, MKMENUCODE(0, 104, 1, 0))
-
-#ifdef TARGET_PRIME
-void powerOffKeyHandler(keyb_msg_t keymsg)
+void KH(powerOff)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
     // SHIFT-ON MEANS POWER OFF!
@@ -6295,27 +6365,10 @@ void powerOffKeyHandler(keyb_msg_t keymsg)
     halEnterPowerOff();
     return;
 }
-#endif /* TARGET_PRIME */
 
-void cancelKeyHandler(keyb_msg_t keymsg)
+void KH(cancel)(keyb_msg_t keymsg)
 {
     UNUSED(keymsg);
-
-#ifndef TARGET_PRIME
-    if(halGetNotification(N_RIGHT_SHIFT)) {
-        // SHIFT-ON MEANS POWER OFF!
-        halPreparePowerOff();
-        halEnterPowerOff();
-        return;
-    }
-#endif /* TARGET_PRIME */
-
-    if(halGetNotification(N_LEFT_SHIFT)) {
-        // This is continue
-        contKeyHandler(keymsg);
-        keyb_set_shift_plane(KSHIFT_NONE);
-        return;
-    }
 
     if((halGetContext() & CONTEXT_INEDITOR)) {
         // END THE COMMAND LINE
@@ -6338,1158 +6391,6 @@ void cancelKeyHandler(keyb_msg_t keymsg)
 // **************************************************************************
 // ******************* END OF DEFAULT KEY HANDLERS **************************
 // **************************************************************************
-
-typedef void (*key_handler_fn)(keyb_msg_t keymsg);
-
-// STRUCTURE FOR DEFAULT KEYBOARD HANDLERS
-struct keyhandler_t
-{
-    WORD message;
-    int32_t context;
-    key_handler_fn action;
-};
-
-// LIST OF HANDLERS, END WITH action=NULL
-// clang-format off
-const struct keyhandler_t const keydefaulthandlers[] =
-{
-    // BASIC NUMBERS
-    {KM_PRESS | KB_1, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_2, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_3, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_4, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_5, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_6, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_7, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_8, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_9, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_0, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_DOT, CONTEXT_ANY, &decimaldotKeyHandler},
-    {KM_PRESS | KB_DOT | KHOLD_ALPHA, CONTEXT_ANY, &dotKeyHandler},
-    {KM_PRESS | KB_1 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_2 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_3 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_4 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_6 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_7 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_9 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_ALPHA, CONTEXT_ANY, &numberKeyHandler},
-    {KM_PRESS | KB_DOT | KSHIFT_ALPHA, CONTEXT_ANY, &decimaldotKeyHandler},
-
-// BASIC ON AND SHIFTS
-#ifndef TARGET_PRIME
-    {KM_KEYDN | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ON, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ESC, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ON | KSHIFT_ALPHA, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ON | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ON | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ON | KSHIFT_LEFT, CONTEXT_ANY, &cancelKeyHandler},
-    {KM_PRESS | KB_ON | KSHIFT_RIGHT, CONTEXT_ANY, &cancelKeyHandler},
-
-    {KM_PRESS | KB_RSHIFT | KHOLD_ON, CONTEXT_ANY, &powerOffKeyHandler},
-    {KM_PRESS | KB_RSHIFT | KHOLD_ON | KSHIFT_ALPHA, CONTEXT_ANY, &powerOffKeyHandler},
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &shiftedalphaKeyHandler},
-    {KM_PRESS | KB_ALPHA | KHOLD_RIGHT, CONTEXT_ANY, &shiftedalphaKeyHandler},
-
-// TEXT EDITING KEYS
-    {KM_PRESS | KB_ENT, CONTEXT_ANY, &enterKeyHandler},
-    {KM_PRESS | KB_ENT | KSHIFT_ALPHA, CONTEXT_ANY, &enterKeyHandler},
-    {KM_PRESS | KB_ENT | KHOLD_ALPHA, CONTEXT_ANY, &enterKeyHandler},
-    {KM_PRESS | KB_BKS, CONTEXT_ANY, &backspKeyHandler},
-    {KM_REPEAT | KB_BKS, CONTEXT_ANY, &backspKeyHandler},
-    {KM_PRESS | KB_BKS | KSHIFT_ALPHA, CONTEXT_ANY, &backspKeyHandler},
-    {KM_REPEAT | KB_BKS | KSHIFT_ALPHA, CONTEXT_ANY, &backspKeyHandler},
-    {KM_PRESS | KB_BKS | KSHIFT_RIGHT, CONTEXT_ANY, &clearKeyHandler},
-    {KM_PRESS | KB_BKS | KHOLD_RIGHT, CONTEXT_ANY, &clearKeyHandler},
-    {KM_PRESS | KB_BKS | KSHIFT_LEFT, CONTEXT_ANY, &deleteKeyHandler},
-    {KM_PRESS | KB_BKS | KHOLD_LEFT, CONTEXT_ANY, &deleteKeyHandler},
-    {KM_PRESS | KB_BKS | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &deleteKeyHandler},
-    {KM_PRESS | KB_BKS | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &deleteKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_LEFT, CONTEXT_ANY, &lsleftKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_LEFT, CONTEXT_ANY, &lsrightKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY,
-                &copyclipKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY,
-                &pasteclipKeyHandler},
-    {KM_PRESS | KB_DN | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY,
-                &cutclipKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, &lsleftKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &lsrightKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &copyclipKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &pasteclipKeyHandler},
-
-// INTERACTIVE STACK OVERRIDES
-    {KM_PRESS | KB_ADD, CONTEXT_ANY | CONTEXT_INTSTACK, &tolistKeyHandler},
-    {KM_PRESS | KB_MUL, CONTEXT_ANY | CONTEXT_INTSTACK, &tomatKeyHandler},
-    {KM_PRESS | KB_SUB, CONTEXT_ANY | CONTEXT_INTSTACK, &tocplxKeyHandler},
-    {KM_PRESS | KB_DIV, CONTEXT_ANY | CONTEXT_INTSTACK, &explodeKeyHandler},
-
-// CURSOR MOVEMENT KEYS
-    {KM_PRESS | KB_LF, CONTEXT_ANY, &leftKeyHandler},
-    {KM_REPEAT | KB_LF, CONTEXT_ANY, &leftKeyHandler},
-    {KM_PRESS | KB_RT, CONTEXT_ANY, &rightKeyHandler},
-    {KM_REPEAT | KB_RT, CONTEXT_ANY, &rightKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_ALPHA, CONTEXT_ANY, &leftKeyHandler},
-    {KM_REPEAT | KB_LF | KSHIFT_ALPHA, CONTEXT_ANY, &leftKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_ALPHA, CONTEXT_ANY, &rightKeyHandler},
-    {KM_REPEAT | KB_RT | KSHIFT_ALPHA, CONTEXT_ANY, &rightKeyHandler},
-    {KM_PRESS | KB_DN, CONTEXT_ANY, &downKeyHandler},
-    {KM_REPEAT | KB_DN, CONTEXT_ANY, &downKeyHandler},
-    {KM_PRESS | KB_DN | KSHIFT_ALPHA, CONTEXT_ANY, &downKeyHandler},
-    {KM_REPEAT | KB_DN | KSHIFT_ALPHA, CONTEXT_ANY, &downKeyHandler},
-    {KM_PRESS | KB_UP, CONTEXT_ANY, &upKeyHandler},
-    {KM_REPEAT | KB_UP, CONTEXT_ANY, &upKeyHandler},
-    {KM_PRESS | KB_UP | KSHIFT_ALPHA, CONTEXT_ANY, &upKeyHandler},
-    {KM_REPEAT | KB_UP | KSHIFT_ALPHA, CONTEXT_ANY, &upKeyHandler},
-
-    {KM_PRESS | KB_LF | KSHIFT_RIGHT, CONTEXT_ANY, &rsleftKeyHandler},
-    {KM_PRESS | KB_LF | KHOLD_RIGHT, CONTEXT_ANY, &rsholdleftKeyHandler},
-    {KM_PRESS | KB_LF | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &rsleftKeyHandler},
-    {KM_PRESS | KB_LF | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &rsholdleftKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_RIGHT, CONTEXT_ANY, &rsrightKeyHandler},
-    {KM_PRESS | KB_RT | KHOLD_RIGHT, CONTEXT_ANY, &rsholdrightKeyHandler},
-    {KM_PRESS | KB_RT | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &rsrightKeyHandler},
-    {KM_PRESS | KB_RT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &rsholdrightKeyHandler},
-    {KM_PRESS | KB_RT | KHOLD_ALPHA, CONTEXT_ANY,
-                &alphaholdrightKeyHandler},
-
-    {KM_PRESS | KB_UP | KSHIFT_RIGHT, CONTEXT_ANY, &rsupKeyHandler},
-    {KM_PRESS | KB_UP | KHOLD_RIGHT, CONTEXT_ANY, &rsholdupKeyHandler},
-    {KM_PRESS | KB_UP | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &rsupKeyHandler},
-    {KM_PRESS | KB_UP | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &rsholdupKeyHandler},
-    {KM_PRESS | KB_UP | KHOLD_ALPHA | KSHIFT_ALPHA, CONTEXT_ANY,
-                &alphaholdupKeyHandler},
-
-    {KM_PRESS | KB_DN | KSHIFT_RIGHT, CONTEXT_ANY, &rsdownKeyHandler},
-    {KM_PRESS | KB_DN | KHOLD_RIGHT, CONTEXT_ANY, &rsholddownKeyHandler},
-    {KM_PRESS | KB_DN | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &rsdownKeyHandler},
-    {KM_PRESS | KB_DN | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY,
-                &rsholddownKeyHandler},
-    {KM_PRESS | KB_DN | KHOLD_ALPHA | KSHIFT_ALPHA, CONTEXT_ANY,
-                &alphaholddownKeyHandler},
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_DOT | KSHIFT_RIGHT, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | KHOLD_RIGHT, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_DOT | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
-    {KM_PRESS | KB_DOT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_ENT | KHOLD_RIGHT, CONTEXT_ANY, &newlineKeyHandler},
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
-    {KM_PRESS | KB_ENT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, newlineKeyHandler},
-#endif /* TARGET_PRIME */
-
-// BASIC OPERATORS
-    {KM_PRESS | KB_ADD, CONTEXT_ANY, &addKeyHandler},
-    {KM_PRESS | KB_SUB, CONTEXT_ANY, &subKeyHandler},
-    {KM_PRESS | KB_DIV, CONTEXT_ANY, &divKeyHandler},
-    {KM_PRESS | KB_MUL, CONTEXT_ANY, &mulKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sadd)},
-    {KM_PRESS | KB_SUB | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ssub)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_MUL | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(smul)},
-
-#ifndef TARGET_PRIME
-// VARS MENU KEYS
-    {KM_PRESS | KB_G, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_PRESS | KB_G | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_PRESS | KB_G | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_PRESS | KB_G | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_PRESS | KB_G | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_LONG_PRESS | KB_G, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-    {KM_KEYUP | KB_G, CONTEXT_ANY, KEYHANDLER_NAME(var1)},
-
-    {KM_PRESS | KB_H, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_PRESS | KB_H | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_PRESS | KB_H | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_PRESS | KB_H | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_PRESS | KB_H | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_LONG_PRESS | KB_H, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-    {KM_KEYUP | KB_H, CONTEXT_ANY, KEYHANDLER_NAME(var2)},
-
-    {KM_PRESS | KB_I, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_PRESS | KB_I | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_PRESS | KB_I | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_PRESS | KB_I | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_PRESS | KB_I | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_LONG_PRESS | KB_I, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-    {KM_KEYUP | KB_I, CONTEXT_ANY, KEYHANDLER_NAME(var3)},
-
-    {KM_PRESS | KB_J, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_PRESS | KB_J | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_PRESS | KB_J | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_PRESS | KB_J | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_PRESS | KB_J | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_LONG_PRESS | KB_J, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-    {KM_KEYUP | KB_J, CONTEXT_ANY, KEYHANDLER_NAME(var4)},
-
-    {KM_PRESS | KB_K, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_PRESS | KB_K | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_PRESS | KB_K | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_PRESS | KB_K | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_PRESS | KB_K | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_LONG_PRESS | KB_K, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-    {KM_KEYUP | KB_K, CONTEXT_ANY, KEYHANDLER_NAME(var5)},
-
-    {KM_PRESS | KB_L, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_PRESS | KB_L | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_PRESS | KB_L | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_PRESS | KB_L | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_PRESS | KB_L | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_LONG_PRESS | KB_L, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-    {KM_KEYUP | KB_L, CONTEXT_ANY, KEYHANDLER_NAME(var6)},
-
-    {KM_PRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_A | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_A | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_A | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_A | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_LONG_PRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_KEYUP | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-
-    {KM_PRESS | KB_B, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_B | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_B | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_B | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_B | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_LONG_PRESS | KB_B, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_KEYUP | KB_B, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-
-    {KM_PRESS | KB_C, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_C | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_C | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_C | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_C | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_LONG_PRESS | KB_C, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_KEYUP | KB_C, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-
-    {KM_PRESS | KB_D, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_D | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_D | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_D | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_D | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_LONG_PRESS | KB_D, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_KEYUP | KB_D, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-
-    {KM_PRESS | KB_E, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_E | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_E | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_E | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_LONG_PRESS | KB_E, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_KEYUP | KB_E, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-
-    {KM_PRESS | KB_F, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_F | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_F | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_F | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_F | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_LONG_PRESS | KB_F, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_KEYUP | KB_F, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-#else /* TARGET_PRIME */
-
-// VARS MENU KEYS - Variant #2 - only 6 keys for 1 menu
-
-    {KM_PRESS | KB_SYMB, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_SYMB | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_SYMB | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_SYMB | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_PRESS | KB_SYMB | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_LONG_PRESS | KB_SYMB, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-    {KM_KEYUP | KB_SYMB, CONTEXT_ANY, KEYHANDLER_NAME(var1_1)},
-
-    {KM_PRESS | KB_PLOT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_PLOT | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_PLOT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_PLOT | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_PRESS | KB_PLOT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_LONG_PRESS | KB_PLOT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-    {KM_KEYUP | KB_PLOT, CONTEXT_ANY, KEYHANDLER_NAME(var3_1)},
-
-    {KM_PRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_NUM | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_NUM | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_NUM | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_PRESS | KB_NUM | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_LONG_PRESS | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-    {KM_KEYUP | KB_NUM, CONTEXT_ANY, KEYHANDLER_NAME(var5_1)},
-
-    {KM_PRESS | KB_HELP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_HELP | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_HELP | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_HELP | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_PRESS | KB_HELP | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_LONG_PRESS | KB_HELP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-    {KM_KEYUP | KB_HELP, CONTEXT_ANY, KEYHANDLER_NAME(var2_1)},
-
-    {KM_PRESS | KB_VIEW, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_VIEW | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_VIEW | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_VIEW | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_PRESS | KB_VIEW | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_LONG_PRESS | KB_VIEW, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-    {KM_KEYUP | KB_VIEW, CONTEXT_ANY, KEYHANDLER_NAME(var4_1)},
-
-    {KM_PRESS | KB_MENU, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_MENU | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_MENU | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_MENU | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_PRESS | KB_MENU | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_LONG_PRESS | KB_MENU, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-    {KM_KEYUP | KB_MENU, CONTEXT_ANY, KEYHANDLER_NAME(var6_1)},
-
-    {KM_PRESS | KB_CAS, CONTEXT_ANY, KEYHANDLER_NAME(switchmenukeys)},
-
-#endif /* TARGET_PRIME */
-
-// NORMAL COMMANDS/FUNCTIONS
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Y, CONTEXT_ANY, &invKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_N, CONTEXT_ANY, &invKeyHandler},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_SPC, CONTEXT_ANY, &spcKeyHandler},
-    {KM_REPEAT | KB_SPC, CONTEXT_ANY, &spcKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_ALPHA, CONTEXT_ANY, &spcKeyHandler},
-    {KM_REPEAT | KB_SPC | KSHIFT_ALPHA, CONTEXT_ANY, &spcKeyHandler},
-    {KM_PRESS | KB_SPC | KHOLD_ALPHA, CONTEXT_ANY, &thinspcKeyHandler},
-    {KM_REPEAT | KB_SPC | KHOLD_ALPHA, CONTEXT_ANY, &thinspcKeyHandler},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_W, CONTEXT_ANY, &chsKeyHandler},
-    {KM_PRESS | KB_V, CONTEXT_ANY, &eexKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_M, CONTEXT_ANY, &chsKeyHandler},
-    {KM_PRESS | KB_P, CONTEXT_ANY, &eexKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_ADD | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_O, CONTEXT_ANY, &ticksKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_8 | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &curlyBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_8 | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &secoBracketKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_SUB | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_N | KSHIFT_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_N | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_N | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-    {KM_PRESS | KB_N | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &parenBracketKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_MUL | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_5 | KSHIFT_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-    {KM_PRESS | KB_5 | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &squareBracketKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_MUL | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_MUL | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_0 | KSHIFT_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &textBracketKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifdef TARGET_PRIME
-    {KM_PRESS | KB_O, CONTEXT_ANY, &ticksKeyHandler},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_O | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &ticksKeyHandler},
-    {KM_PRESS | KB_O | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &ticksKeyHandler},
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_DOT | KSHIFT_LEFT, CONTEXT_ANY, &tagKeyHandler},
-    {KM_PRESS | KB_DOT | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &tagKeyHandler},
-    {KM_PRESS | KB_DOT | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
-    {KM_PRESS | KB_DOT | KSHIFT_ALPHA | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SUB | KSHIFT_RIGHT, CONTEXT_ANY, &tagKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &tagKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
-    {KM_PRESS | KB_SUB | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(colon)},
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_ADD | KHOLD_ON, CONTEXT_ANY, &onPlusKeyHandler},
-    {KM_PRESS | KB_SUB | KHOLD_ON, CONTEXT_ANY, &onMinusKeyHandler},
-
-    {KM_PRESS | KB_DOT | KHOLD_ON, CONTEXT_ANY, &onDotKeyHandler},
-    {KM_PRESS | KB_SPC | KHOLD_ON, CONTEXT_ANY, &onSpcKeyHandler},
-    {KM_PRESS | KB_MUL | KHOLD_ON, CONTEXT_ANY, &onMulDivKeyHandler},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Z | KHOLD_ON, CONTEXT_ANY, &onMulDivKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_DIV | KHOLD_ON, CONTEXT_ANY, &onMulDivKeyHandler},
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_UP | KHOLD_ON, CONTEXT_ANY, &onUpDownKeyHandler},
-    {KM_REPEAT | KB_UP | KHOLD_ON, CONTEXT_ANY, &onUpDownKeyHandler},
-    {KM_PRESS | KB_DN | KHOLD_ON, CONTEXT_ANY, &onUpDownKeyHandler},
-    {KM_REPEAT | KB_DN | KHOLD_ON, CONTEXT_ANY, &onUpDownKeyHandler},
-
-    {KM_PRESS | KB_0 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_1 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_2 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_3 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_4 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_5 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_6 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_7 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_8 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-    {KM_PRESS | KB_9 | KHOLD_ON, CONTEXT_ANY, &onDigitKeyHandler},
-
-#ifndef TARGET_PRIME
-    {KM_LONG_PRESS | KB_J | KHOLD_ON, CONTEXT_ANY, &onVarKeyHandler},
-    {KM_PRESS | KB_J | KHOLD_ON, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
-    {KM_PRESS | KB_B | KHOLD_ON, CONTEXT_ANY, &onBKeyHandler},
-#endif /* ! TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_0 | KSHIFT_LEFT, CONTEXT_ANY, &infinityKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &undinfinityKeyHandler},
-#else /* TARGET_PRIME */
-    { KM_PRESS  | KB_MENU | KHOLD_ON, CONTEXT_ANY, KEYHANDLER_NAME(menuswap)},
-    { KM_LONG_PRESS | KB_MENU | KHOLD_ON, CONTEXT_ANY, &onVarKeyHandler},
-    { KM_PRESS  | KB_B | KHOLD_ON, CONTEXT_ANY, &onBKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_0 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, &infinityKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, &undinfinityKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_9 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler},
-    {KM_PRESS | KB_9 | KSHIFT_LEFT, CONTEXT_ANY, &infinityKeyHandler},
-    {KM_PRESS | KB_9 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &undinfinityKeyHandler},
-    {KM_PRESS | KB_9 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, &undinfinityKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_0 | KSHIFT_RIGHT, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_0 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT, CONTEXT_ANY, &commaKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &commaKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &semiKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &semiKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_SPC | KHOLD_RIGHT, CONTEXT_ANY, &arrowKeyHandler},
-    {KM_PRESS | KB_SPC | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &arrowKeyHandler},
-
-    {KM_PRESS | KB_O | KSHIFT_RIGHT, CONTEXT_ANY, &commaKeyHandler},
-    {KM_PRESS | KB_O | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &commaKeyHandler},
-
-    {KM_PRESS | KB_ADD | KSHIFT_RIGHT , CONTEXT_ANY, &semiKeyHandler},
-    {KM_PRESS | KB_ADD | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &semiKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_SUB | KSHIFT_RIGHT, CONTEXT_ANY, &underscoreKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &underscoreKeyHandler},
-    {KM_PRESS | KB_SUB | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, &underscoreKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT, CONTEXT_ANY, &underscoreKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &underscoreKeyHandler},
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, &underscoreKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_S, CONTEXT_ANY, &sinKeyHandler},
-    {KM_PRESS | KB_T, CONTEXT_ANY, &cosKeyHandler},
-    {KM_PRESS | KB_U, CONTEXT_ANY, &tanKeyHandler},
-    {KM_PRESS | KB_S | KSHIFT_LEFT, CONTEXT_ANY, &asinKeyHandler},
-    {KM_PRESS | KB_T | KSHIFT_LEFT, CONTEXT_ANY, &acosKeyHandler},
-    {KM_PRESS | KB_U | KSHIFT_LEFT, CONTEXT_ANY, &atanKeyHandler},
-    {KM_PRESS | KB_S | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &asinKeyHandler},
-    {KM_PRESS | KB_T | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &acosKeyHandler},
-    {KM_PRESS | KB_U | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &atanKeyHandler},
-    {KM_LONG_PRESS | KB_S, CONTEXT_ANY, &sinhKeyHandler},
-    {KM_LONG_PRESS | KB_T, CONTEXT_ANY, &coshKeyHandler},
-    {KM_LONG_PRESS | KB_U, CONTEXT_ANY, &tanhKeyHandler},
-    {KM_LONG_PRESS | KB_S | KSHIFT_LEFT, CONTEXT_ANY, &asinhKeyHandler},
-    {KM_LONG_PRESS | KB_T | KSHIFT_LEFT, CONTEXT_ANY, &acoshKeyHandler},
-    {KM_LONG_PRESS | KB_U | KSHIFT_LEFT, CONTEXT_ANY, &atanhKeyHandler},
-    {KM_LONG_PRESS | KB_S | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &asinhKeyHandler},
-    {KM_LONG_PRESS | KB_T | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &acoshKeyHandler},
-    {KM_LONG_PRESS | KB_U | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &atanhKeyHandler},
-
-    {KM_PRESS | KB_N, CONTEXT_ANY, &evalKeyHandler},
-    {KM_LONG_PRESS | KB_N, CONTEXT_ANY, &eval1KeyHandler},
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT, CONTEXT_ANY, &tonumKeyHandler},
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &tonumKeyHandler},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_G, CONTEXT_ANY, &sinKeyHandler},
-    {KM_PRESS | KB_H, CONTEXT_ANY, &cosKeyHandler},
-    {KM_PRESS | KB_I, CONTEXT_ANY, &tanKeyHandler},
-    {KM_PRESS | KB_G | KSHIFT_LEFT, CONTEXT_ANY, &asinKeyHandler},
-    {KM_PRESS | KB_H | KSHIFT_LEFT, CONTEXT_ANY, &acosKeyHandler},
-    {KM_PRESS | KB_I | KSHIFT_LEFT, CONTEXT_ANY, &atanKeyHandler},
-    {KM_PRESS | KB_G | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &asinKeyHandler},
-    {KM_PRESS | KB_H | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &acosKeyHandler},
-    {KM_PRESS | KB_I | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &atanKeyHandler},
-    {KM_LONG_PRESS | KB_G, CONTEXT_ANY, &sinhKeyHandler},
-    {KM_LONG_PRESS | KB_H, CONTEXT_ANY, &coshKeyHandler},
-    {KM_LONG_PRESS | KB_I, CONTEXT_ANY, &tanhKeyHandler},
-    {KM_LONG_PRESS | KB_G | KSHIFT_LEFT, CONTEXT_ANY, &asinhKeyHandler},
-    {KM_LONG_PRESS | KB_H | KSHIFT_LEFT, CONTEXT_ANY, &acoshKeyHandler},
-    {KM_LONG_PRESS | KB_I | KSHIFT_LEFT, CONTEXT_ANY, &atanhKeyHandler},
-    {KM_LONG_PRESS | KB_G | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &asinhKeyHandler},
-    {KM_LONG_PRESS | KB_H | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &acoshKeyHandler},
-    {KM_LONG_PRESS | KB_I | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &atanhKeyHandler},
-
-    {KM_PRESS | KB_B, CONTEXT_ANY, &evalKeyHandler},
-    {KM_LONG_PRESS | KB_B, CONTEXT_ANY, &eval1KeyHandler},
-
-    {KM_PRESS | KB_E | KSHIFT_RIGHT, CONTEXT_ANY, &tonumKeyHandler},
-    {KM_PRESS | KB_E | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, &tonumKeyHandler},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_ENT | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
-    {KM_PRESS | KB_ENT | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
-
-    {KM_PRESS | KB_R, CONTEXT_ANY, &sqrtKeyHandler},
-    {KM_PRESS | KB_Q, CONTEXT_ANY, &powKeyHandler},
-    {KM_PRESS | KB_Q | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &powKeyHandler},
-    {KM_PRESS | KB_Q | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_E , CONTEXT_ANY, KEYHANDLER_NAME(tofrac)},
-
-    {KM_PRESS | KB_F, CONTEXT_ANY, &powKeyHandler},
-    {KM_PRESS | KB_F | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, &powKeyHandler},
-    {KM_PRESS | KB_F | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
-    {KM_PRESS | KB_F | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
-
-    {KM_PRESS | KB_J | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Q | KSHIFT_ALPHA | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_J | KSHIFT_ALPHA | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Q | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(exp)},
-    {KM_PRESS | KB_Q | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY,KEYHANDLER_NAME(exp)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_J | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(exp)},
-    {KM_PRESS | KB_J | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY,KEYHANDLER_NAME(exp)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Q | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(ln)},
-    {KM_PRESS | KB_Q | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(ln)},
-
-    {KM_PRESS | KB_M, CONTEXT_ANY, KEYHANDLER_NAME(sto)},
-    {KM_LONG_PRESS | KB_M, CONTEXT_ANY, KEYHANDLER_NAME(purge)},
-    {KM_PRESS | KB_M | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
-    {KM_PRESS | KB_M | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_J , CONTEXT_ANY, KEYHANDLER_NAME(ln)},
-    {KM_PRESS | KB_J | KSHIFT_RIGHT , CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-    {KM_PRESS | KB_J | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(econst)},
-
-
-    {KM_PRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(sto)},
-    {KM_LONG_PRESS | KB_A, CONTEXT_ANY, KEYHANDLER_NAME(purge)},
-    {KM_PRESS | KB_A | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
-    {KM_PRESS | KB_A | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(rcl)},
-#endif /* TARGET_PRIME */
-
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_V | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
-    {KM_PRESS | KB_V | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
-#else /* TARGET_PRIME */
-
-    {KM_PRESS | KB_K , CONTEXT_ANY, KEYHANDLER_NAME(log)},
-    {KM_PRESS | KB_K | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
-    {KM_PRESS | KB_K | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(alog)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_V | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(log)},
-    {KM_PRESS | KB_V | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(log)},
-
-    {KM_PRESS | KB_R | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(sq)},
-    {KM_PRESS | KB_R | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(sq)},
-    {KM_PRESS | KB_R | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
-    {KM_PRESS | KB_R | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(xroot)},
-#endif /* ! TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Z | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
-    {KM_PRESS | KB_Z | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_L | KSHIFT_LEFT, CONTEXT_ANY, &sqrtKeyHandler},
-    {KM_PRESS | KB_L | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, &sqrtKeyHandler},
-    {KM_PRESS | KB_L , CONTEXT_ANY, KEYHANDLER_NAME(sq)},
-
-    {KM_PRESS | KB_M | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
-    {KM_PRESS | KB_M | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(abs)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Z | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
-    {KM_PRESS | KB_Z | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
-#else /* TARGET_PRIME */
-
-    {KM_PRESS | KB_M | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
-    {KM_PRESS | KB_M | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(arg)},
-#endif /* TARGET_PRIME */
-
-
-#ifdef TARGET_PRIME
-    // Directory navigation keys
-
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_UP | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(updir)},
-    {KM_PRESS | KB_UP | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(updir)},
-    {KM_PRESS | KB_UP | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(home)},
-    {KM_PRESS | KB_UP | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(home)},
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_X, CONTEXT_ANY, KEYHANDLER_NAME(keyx)},
-#endif /* ! TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_6 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_D, CONTEXT_ANY, KEYHANDLER_NAME(keyx)},
-
-    {KM_PRESS | KB_C | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
-    {KM_PRESS | KB_C | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(convert)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SUB | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SUB | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(basecycle)},
-#endif /* TARGET_PRIME */
-
-// LETTERS
-    {KM_PRESS | KB_A | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(a)},
-    {KM_PRESS | KB_B | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(b)},
-    {KM_PRESS | KB_C | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(c)},
-    {KM_PRESS | KB_D | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(d)},
-    {KM_PRESS | KB_E | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(e)},
-    {KM_PRESS | KB_F | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(f)},
-    {KM_PRESS | KB_G | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(g)},
-    {KM_PRESS | KB_H | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(h)},
-    {KM_PRESS | KB_I | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(i)},
-    {KM_PRESS | KB_J | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(j)},
-    {KM_PRESS | KB_K | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(k)},
-    {KM_PRESS | KB_L | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(l)},
-    {KM_PRESS | KB_M | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(m)},
-    {KM_PRESS | KB_N | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(n)},
-    {KM_PRESS | KB_O | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(o)},
-    {KM_PRESS | KB_P | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(p)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Q | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_R | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_S | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_T | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_U | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_V | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_W | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_X | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_Y | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_Q | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_R | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_S | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_T | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_U | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_V | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_W | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_X | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_Y | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_DIV | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HOME | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_NUM | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_MENU | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_CAS | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_APPS | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_PLOT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_VIEW | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_SYMB | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_HELP | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_HOME | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(q)},
-    {KM_PRESS | KB_NUM | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(r)},
-    {KM_PRESS | KB_MENU | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(s)},
-    {KM_PRESS | KB_CAS | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(t)},
-    {KM_PRESS | KB_APPS | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(u)},
-    {KM_PRESS | KB_PLOT | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(v)},
-    {KM_PRESS | KB_VIEW | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(w)},
-    {KM_PRESS | KB_SYMB | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(x)},
-    {KM_PRESS | KB_HELP | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(y)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(z)},
-    {KM_PRESS | KB_A | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(a)},
-    {KM_PRESS | KB_B | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(b)},
-    {KM_PRESS | KB_C | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(c)},
-    {KM_PRESS | KB_D | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(d)},
-    {KM_PRESS | KB_E | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(e)},
-    {KM_PRESS | KB_F | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(f)},
-    {KM_PRESS | KB_G | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(g)},
-    {KM_PRESS | KB_H | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(h)},
-    {KM_PRESS | KB_I | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(i)},
-    {KM_PRESS | KB_J | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(j)},
-    {KM_PRESS | KB_K | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(k)},
-    {KM_PRESS | KB_L | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(l)},
-    {KM_PRESS | KB_M | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(m)},
-    {KM_PRESS | KB_N | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(n)},
-    {KM_PRESS | KB_O | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(o)},
-    {KM_PRESS | KB_P | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(p)},
-
-    {KM_PRESS | KB_ALPHA | KHOLD_ALPHA, CONTEXT_ANY, &alphaKeyHandler},
-
-
-// SYMBOLS
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openquestion)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_7 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(question)},
-    {KM_PRESS | KB_7 | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openquestion)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_9 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_P | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_9 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_P | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_8 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openexclamation)},
-    {KM_PRESS | KB_1 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(approx)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ENT | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(approx)},
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_1 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(percent)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(openexclamation)},
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(exclamation)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_2 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(fact)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_3 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(hash)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(question)},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_4 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(euro)},
-    {KM_PRESS | KB_4 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(dollar)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_5 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pound)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_4 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pound)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_MUL | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
-    {KM_PRESS | KB_MUL | KSHIFT_LEFT , CONTEXT_ANY, KEYHANDLER_NAME(angle)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_MUL | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(angle)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT , CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT | KHOLD_LEFT , CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(degree)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_7 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_2 | KSHIFT_LEFT , CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_7 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KHOLD_LEFT , CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(iconst)},
-    {KM_PRESS | KB_2 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(jconst)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_SPC | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_3 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_ENT | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ADD | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ADD | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_ENT | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
-    {KM_PRESS | KB_ENT | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(at)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_ADD | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(and)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_W | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
-    {KM_PRESS | KB_W | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
-#else /* TARGET_PRIME */
-
-    {KM_PRESS | KB_DOT | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
-    {KM_PRESS | KB_DOT | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(equal)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_W | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
-    {KM_PRESS | KB_W | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_DOT | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
-    {KM_PRESS | KB_DOT | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(notequal)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_X | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
-    {KM_PRESS | KB_X | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_6 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ls)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Y | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
-    {KM_PRESS | KB_Y | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(gt)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_X | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(le)},
-    {KM_PRESS | KB_X | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(le)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(le)},
-    {KM_PRESS | KB_6 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(le)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_Y | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
-    {KM_PRESS | KB_Y | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(ge)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(sdiv)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
-    {KM_PRESS | KB_DIV | KSHIFT_ALPHA | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_DIV | KSHIFT_LEFT | KSHIFT_ALPHA , CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
-    {KM_PRESS | KB_DIV | KHOLD_LEFT | KSHIFT_ALPHA , CONTEXT_ANY, KEYHANDLER_NAME(backslash)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_0 | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SPC | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_0 | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_SPC | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(rulesep)},
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_2 | KSHIFT_ALPHA | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(giventhat)},
-    {KM_PRESS | KB_2 | KSHIFT_ALPHA | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(giventhat)},
-
-
-// NUMBERS
-
-    {KM_PRESS | KB_0 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub0)},
-    {KM_PRESS | KB_1 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub1)},
-    {KM_PRESS | KB_2 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub2)},
-    {KM_PRESS | KB_3 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub3)},
-    {KM_PRESS | KB_4 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub4)},
-    {KM_PRESS | KB_5 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub5)},
-    {KM_PRESS | KB_6 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub6)},
-    {KM_PRESS | KB_7 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub7)},
-    {KM_PRESS | KB_8 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub8)},
-    {KM_PRESS | KB_9 | KHOLD_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(sub9)},
-
-// MENUS
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_6 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(unitmenu)},
-    {KM_PRESS | KB_N | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(prgmenu)},
-    {KM_PRESS | KB_P, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
-    {KM_PRESS | KB_1 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(arithmenu)},
-    {KM_PRESS | KB_1 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_C | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(unitmenu)},
-    {KM_PRESS | KB_HOME, CONTEXT_ANY, KEYHANDLER_NAME(mainmenu)},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_2 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(libsmenu)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_9 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(timemenu)},
-    {KM_PRESS | KB_9 | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(financemenu)},
-    {KM_PRESS | KB_3 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(basemenu)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HOME | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(timemenu)},
-    {KM_PRESS | KB_HOME | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(financemenu)},
-    {KM_PRESS | KB_HOME | KSHIFT_LEFT | KHOLD_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(arithmenu)},
-    {KM_PRESS | KB_HOME | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu)},
-    {KM_LONG_PRESS | KB_HOME , CONTEXT_ANY, KEYHANDLER_NAME(prgmenu)},
-
-    {KM_PRESS | KB_SUB | KSHIFT_LEFT, CONTEXT_ANY, KEYHANDLER_NAME(basemenu)},
-#endif /* TARGET_PRIME */
-    {KM_PRESS | KB_7 | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(numsolvermenu)},
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_M | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
-    {KM_PRESS | KB_M | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_A | KSHIFT_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
-    {KM_PRESS | KB_A | KSHIFT_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu1)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_M | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_A | KSHIFT_RIGHT | KHOLD_RIGHT, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_M | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_A | KSHIFT_RIGHT | KHOLD_RIGHT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(backmenu2)},
-#endif /* TARGET_PRIME */
-
-
-// FORM SWITCHER
-#ifndef TARGET_PRIME
-    {KM_LONG_PRESS | KB_P, CONTEXT_ANY, KEYHANDLER_NAME(formswitcher)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_APPS, CONTEXT_ANY, KEYHANDLER_NAME(formswitcher)},
-#endif /* TARGET_PRIME */
-
-// GREEK LETTERS
-
-    {KM_PRESS | KB_A | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekalpha)},
-    {KM_PRESS | KB_A | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekalpha)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_B | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekbeta)},
-    {KM_PRESS | KB_B | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekbeta)}, // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_C | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekgamma)},
-    {KM_PRESS | KB_C | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekgammacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_D | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekdelta)},
-    {KM_PRESS | KB_D | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(delta)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_E | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekepsilon)},
-    {KM_PRESS | KB_E | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekepsilon)},      // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_F | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekphi)},
-    {KM_PRESS | KB_F | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekphicap)},       // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_G | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeketa)},
-    {KM_PRESS | KB_G | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeketa)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_K | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekkappa)},
-    {KM_PRESS | KB_K | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekkappa)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_L | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeklambda)},
-    {KM_PRESS | KB_L | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeklambdacap)},    // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_N | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekmu)},
-    {KM_PRESS | KB_N | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekmu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_O | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekomega)},
-    {KM_PRESS | KB_O | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekomegacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_P | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(pi)},
-    {KM_PRESS | KB_P | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekpicap)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_3 | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekpicap)},        // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_R | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HELP | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_R | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HELP | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekrho)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_S | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigma)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_VIEW | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigma)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_S | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigmacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_VIEW | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeksigmacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_T | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektheta)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_MENU | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektheta)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_T | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekthetacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_MENU | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greekthetacap)},     // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_U | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_APPS | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_U | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_APPS | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_V | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HOME | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},
-#endif /* TARGET_PRIME */
-
-#ifndef TARGET_PRIME
-    {KM_PRESS | KB_V | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-
-    {KM_PRESS | KB_T | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},
-    {KM_PRESS | KB_T | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greektau)},  // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#else /* TARGET_PRIME */
-    {KM_PRESS | KB_HOME | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(greeknu)},   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
-#endif /* TARGET_PRIME */
-
-    {KM_PRESS | KB_M | KSHIFT_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(micro)},
-    {KM_PRESS | KB_M | KSHIFT_LEFT | KHOLD_LEFT | KSHIFT_ALPHA, CONTEXT_ANY, KEYHANDLER_NAME(micro)},     // MICRO OR MICRON SYMBOL (SIMILAR TO GREEK LETTER MU)
-
-    {0, 0, 0}
-};
-// clang-format on
 
 
 // DO CUSTOM KEYBOARD ACTIONS. RETURN 0 IF NO ACTION WAS DEFINED, NONZERO IF SOMETHING WAS EXECUTED
@@ -7692,56 +6593,82 @@ int halCustomKeyExists(keyb_msg_t keymsg)
     return 0;
 }
 
-// CONTEXT MATCH FOR KEYS:
-// IF CONTEXT == 0 (CONTEXT_ANY) IT'S CONSIDERED A MATCH TO ALL CONTEXTS/SUBCONTEXTS
-// IF CONTEXT HAS A SUBCONTEXT, THEN IT ONLY MATCHES THE CONTEXT AND SUBCONTEXT EXACTLY
-// IF CONTEXT DOESN'T HAVE A SUBCONTEXT (SUBCONTEXT_ANY), THEN IT MATCHES ALL SUBCONTEXTS WITHIN
-// THE GIVEN MAIN CONTEXT.
+
+typedef void (*key_handler_fn)(keyb_msg_t keymsg);
+
+static const key_handler_fn keymap_unshifted[64];
+static const key_handler_fn keymap_left_shift[64];
+static const key_handler_fn keymap_right_shift[64];
+static const key_handler_fn keymap_alpha[64];
+static const key_handler_fn keymap_left_hold[64];
+static const key_handler_fn keymap_right_hold[64];
+static const key_handler_fn keymap_alpha_hold[64];
+static const key_handler_fn keymap_on_hold[64];
+
+#include "keymap.c"         // Platform-dependent
+
+static inline key_handler_fn halKeymap(keyb_msg_t           keymsg,
+                                       unsigned             flag,
+                                       const key_handler_fn keymap[])
+// ----------------------------------------------------------------------------
+//   Check if we find an entry in the given keymap
+// ----------------------------------------------------------------------------
+{
+    if (keymsg & flag)
+    {
+        unsigned key = KM_KEY(keymsg);
+        key_handler_fn function = keymap[key];
+        if (function)
+            return function;
+    }
+    return NULL;
+}
+
+
+static inline key_handler_fn halDefaultKeyHandler(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+// Return the key handler if it exists
+// ----------------------------------------------------------------------------
+{
+    key_handler_fn fn = NULL;
+    if (!fn)
+        fn = halKeymap(keymsg, KHOLD_ON,        keymap_on_hold);
+    if (!fn)
+        fn = halKeymap(keymsg, KHOLD_ALPHA,     keymap_alpha_hold);
+    if (!fn)
+        fn = halKeymap(keymsg, KSHIFT_ALPHA,    keymap_alpha);
+    if (!fn)
+        fn = halKeymap(keymsg, KHOLD_LEFT,      keymap_left_hold);
+    if (!fn)
+        fn = halKeymap(keymsg, KHOLD_RIGHT,     keymap_right_hold);
+    if (!fn)
+        fn = halKeymap(keymsg, KSHIFT_LEFT,     keymap_left_shift);
+    if (!fn)
+        fn = halKeymap(keymsg, KSHIFT_RIGHT,    keymap_right_shift);
+    if (!fn)
+        fn = halKeymap(keymsg, ~0U,             keymap_unshifted);
+    return fn;
+}
+
 
 int halDoDefaultKey(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Find the operation to execute depending on current keyboard mode
+// ----------------------------------------------------------------------------
 {
     record(keys, "halDoDefaultKey %08X key %d msg %x shift %x ",
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
 
-    struct keyhandler_t *ptr = (struct keyhandler_t *)keydefaulthandlers;
-
-    while(ptr->action) {
-        if(ptr->message == keymsg) {
-            // Check if context matches
-            if((!ptr->context) ||
-               (ptr->context == halScreen.KeyContext) ||
-               (!(ptr->context & 0x1f)
-                && (ptr->context == (halScreen.KeyContext & ~0x1f))))
-            {
-                //  It's a match, execute the action;
-                (ptr->action) (keymsg);
-                return 1;
-            }
-        }
-        ++ptr;
+    keyb_msg_t msg = KM_MESSAGE(keymsg);
+    if (msg == KM_PRESS)
+    {
+        key_handler_fn handler = halDefaultKeyHandler(keymsg);
+        if (handler)
+            handler(keymsg);
+        return handler != NULL;
     }
+
     return 0;
-}
-
-// RETURN TRUE/FALSE IF A DEFAULT HANDLER EXISTS
-int halDefaultKeyExists(keyb_msg_t keymsg)
-{
-    struct keyhandler_t *ptr = (struct keyhandler_t *)keydefaulthandlers;
-
-    while(ptr->action) {
-        if(ptr->message == keymsg) {
-            // CHECK IF CONTEXT MATCHES
-            if((!ptr->context) || (ptr->context == halScreen.KeyContext) ||
-                    (!(ptr->context & 0x1f)
-                        && (ptr->context == (halScreen.KeyContext & ~0x1f)))) {
-                //  IT'S A MATCH;
-                return 1;
-            }
-        }
-        ++ptr;
-    }
-    return 0;
-
 }
 
 
@@ -7752,7 +6679,12 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
 //  Returns 0 if the loop has to continue, 1 to terminate outer loop
 {
     if (!keymsg)
-        return 0;
+    {
+        // Check if there are pending shift changes - If so, update display
+        if ((keyb_flags & KFLAG_SHIFTS_CHANGED) == 0)
+            return 0;
+        keymsg = (keyb_flags & (KSHIFT_ANY|KHOLD_ANY)) | KFLAG_SHIFTS_CHANGED;
+    }
 
     record(keys,
            "halProcessKey %08x (%d) flags=%08X, handler=%p",
@@ -7794,18 +6726,10 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
                            0);
 
         // Update editor mode accordingly
-        unsigned oldplane = keyb_plane;
-        unsigned change = oldplane ^ keymsg;
-        if (change & KSHIFT_ALPHA)
+        if (keymsg & KSHIFT_ALPHA)
         {
             // There was a change in alpha mode
             halSwapCmdLineMode(keymsg & KSHIFT_ALPHA);
-        }
-        else if (change & KFLAG_ALPHA_ONCE)
-        {
-            // Check going from alpha to alpha-hold or viceversa
-            // Temporarily change shift state
-            alphaKeyHandler(0);
         }
 
         // Mark that we got the shift change
@@ -7875,16 +6799,13 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
                 halLongKeyPending = keymsg;
                 return 0;
             }
-            if (halDefaultKeyExists(longmsg))
+            if (halDefaultKeyHandler(longmsg))
             {
                 halLongKeyPending = keymsg;
                 return 0;
             }
         }
     }
-
-    // TEMPORARY: Eliminate irrelevant flags (e.g ALPHA_ONCE) for table lookup
-    keymsg = KM_MESSAGE(keymsg) | KM_KEY(keymsg);
 
     if (dokey)
         processed = (*dokey)(keymsg);

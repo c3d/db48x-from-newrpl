@@ -963,6 +963,7 @@ Bit set means key is pressed.
 #define KB_CAS               13         //! CAS key (prime only)
 #define KB_NUM                4         //! NUM key (prime only)
 #define KB_MENU              21         //! MENU key (prime only)
+#define KB_TOOL              58         //! TOOL key (prime only)
 
 // Touchscreen related functions
 extern void ts_init();

@@ -123,7 +123,8 @@ struct Preamble {
 #define KB_ON                33         //! ON
 #define KB_ESC               33         //! Exit
 #define KB_DOT               53         //! Dot
-#define KB_SPC               49         //! Space
+#define KB_SPC               36         //! Space
+#define KB_RUNSTOP           36         //! R/S
 #define KB_QUESTION          36         //! ?
 #define KB_SHIFT             28         //! Shift
 #define KB_LSHIFT            28         //! Left shift

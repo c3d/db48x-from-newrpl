@@ -169,17 +169,18 @@ int keyb_irq_on_keys(keymatrix hw, keymatrix changes)
 // ----------------------------------------------------------------------------
 //   ON alone: Acts as EXIT (interrupts the program) or OFF if shifted
 //             This is handled as a normal key in the RPL main loop
-//   ON +    : Increase contrast
-//   ON -    : Decrease contrast
-//   ON UP   : Increase font size
-//   ON DN   : Decrease font size
-//   ON .    : Cycle locale
-//   ON 0-9  : Adjust precision (mapping to be decided)
-//   ON A    : Attention - Force-interrupt the RPL program
-//   ON D    : Dump - Dump the recorder to flash
-//   ON F    : Firmware - Go to firmware (DM42 only)
-//   ON A F  : Forced attention - Throw exception
-//   ON A C  : Take control - Force interrupt RPL program
+//   ON-hold : Keys for systems setup, handled in the main RPL loop
+//    ON +   : Increase contrast
+//    ON -   : Decrease contrast
+//    ON UP  : Increase font size
+//    ON DN  : Decrease font size
+//    ON .   : Cycle locale
+//    ON SPC : Cycle display mode
+//    ON 0-9 : Adjust precision (mapping to be decided)
+//   ON-A    : Attention - Operations under interrupt, work even when frozen
+//    ON-A-C : Take control - Offer option to force interrupt RPL program
+//    ON-A-D : Dump - Dump the recorder on screen, possibly to flash
+//    ON-A-F : Forced attention - Throw exception
 {
     // Check if ON is still held, and if other keys changed
     if ((hw & KM(ON)) && (changes & KM(ON)) == 0)
@@ -196,7 +197,17 @@ int keyb_irq_on_keys(keymatrix hw, keymatrix changes)
                 return 1;
             }
 
-             // Check ON-A-F: User break
+             // Check ON-A-D: Recorder dump
+            if (hw & KM(D))
+            {
+                throw_exception("Recorder dump",
+                                EX_CONT | EX_WARM | EX_WIPEOUT | EX_RESET |
+                                EX_RPLREGS);
+                // Loop in caller to send key up for released keys
+                return 1;
+            }
+
+            // Check ON-A-F: User break
             if (hw & KM(F))
             {
                 throw_exception("User BREAK requested",
@@ -205,54 +216,6 @@ int keyb_irq_on_keys(keymatrix hw, keymatrix changes)
                 // Loop in caller to send key up for released keys
                 return 1;
             }
-        }
-
-        // Check if another key was released while ON was held
-        if ((hw & changes) == 0)
-        {
-            int key = ffsll(changes) - 1;
-            switch(key)
-            {
-            case KB_ADD:
-                // Increase contrast
-                break;
-            case KB_SUB:
-                // Decrease contrast
-                break;
-            case KB_UP:
-                // Increase font size
-                break;
-            case KB_DN:
-                // Decrease font size
-                break;
-            case KB_DOT:
-                // Cycle through locales
-                break;
-            case KB_0:
-            case KB_1:
-            case KB_2:
-            case KB_3:
-            case KB_4:
-            case KB_5:
-            case KB_6:
-            case KB_7:
-            case KB_8:
-            case KB_9:
-                // Change computation precision
-                break;
-            case KB_A:
-                // Attention handler
-                break;
-            case KB_D:
-                // Dump recorder to flash
-                break;
-            case KB_F:
-                // Go to firwmare (DM42)
-                break;
-            }
-
-            // In that case, we have processed the relevant keys, reload
-            return 1;
         }
     }
 
@@ -288,17 +251,33 @@ static inline void keyb_irq_normal_keys(keymatrix hwkeys, keymatrix changes)
 // ----------------------------------------------------------------------------
 {
     keymatrix relevant = changes & ~KM_ALL_SHIFTS;
+    int       unshift  = 0;
     while (relevant)
     {
         int        key  = ffsll(relevant) - 1;
         keymatrix  mask = KM_MASK(key);
         int        down = (hwkeys & mask) != 0;
         keyb_msg_t msg  = key | (down ? KM_KEYDN : KM_KEYUP);
-        keyb_irq_post_message(msg); // Will pass required flags from keyb_flags
         if (!down)
+        {
             keyb_irq_post_key(key);
+            unshift = 1;
+        }
+        keyb_irq_post_message(msg); // Will pass required flags from keyb_flags
         keyb_last_code = key;
         relevant ^= mask;
+    }
+
+    // Clear shifts after regular keys
+    if (unshift)
+    {
+        unsigned old = keyb_flags;
+        if (!(keyb_flags & KHOLD_LEFT))
+            keyb_flags &= ~KSHIFT_LEFT;
+        if (!(keyb_flags & KHOLD_RIGHT))
+            keyb_flags &= ~KSHIFT_RIGHT;
+        if (old != keyb_flags)
+            keyb_flags |= KFLAG_SHIFTS_CHANGED;
     }
 }
 
