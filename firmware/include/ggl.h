@@ -1186,44 +1186,4 @@ static inline void ggl_copy_from(gglsurface *dst,
 
 
 
-// LOW-LEVEL row copy functions
-// ggl_ll_hblt is a general nibble-aligned memcpyb
-// WARNING: npixels is limited to 512!!
-//          if you need more than that, increase the constant HBLT_BUFFER above
-//          and RE-COMPILE the ggl library
-// dest and src must be word-aligned
-// destoff and srcoff are offsets in nibbles from the word-aligned pointers
-// npixels is the number of nibbles to copy
-// note: hblt will behave well even if the zones overlap, no need for
-// moveup/movedown
-
-void ggl_hblt(pixword *dest,
-              int      destoff,
-              pixword *src,
-              int      srcoff,
-              size     npixels); // copy a row of pixels
-
-// same behavior as hblt but specifying a transparent color
-// every pixel in *src with the transparent color will not affect the
-// corresponding pixel in *dest
-void ggl_hbltmask(pixword *dest,
-                  int      destoff,
-                  pixword *src,
-                  int      srcoff,
-                  size     npixels,
-                  int      tcol); // copy a row of pixels w/mask
-
-// rectangle scrolling routines
-// dest contains the surface to scroll, and width and height define the
-// rectangle the area that needs to be redrawn after the scroll is not erased or
-// modified by these routines
-void ggl_scrolllf(gglsurface *dest,
-                  size        width,
-                  size        height,
-                  size        npixels); // scroll npixels left
-void ggl_scrollrt(gglsurface *dest,
-                  size        width,
-                  size        height,
-                  size        npixels); // scroll npixels right
-
 #endif
