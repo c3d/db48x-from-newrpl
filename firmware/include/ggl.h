@@ -771,12 +771,15 @@ static inline pixword ggl_flt_invert(pixword dst, pixword src, pixword arg)
 
 typedef enum clip
 {
-    CLIP_NONE        = 0,
-    CLIP_SRC         = 1,
-    CLIP_DST         = 2,
-    CLIP_ALL         = 3,
-    CLIP_SKIP_SOURCE = 4,
-    CLIP_SKIP_COLOR  = 8,
+    CLIP_NONE   = 0,
+    CLIP_SRC    = 1,
+    CLIP_DST    = 2,
+    CLIP_ALL    = 3,
+    SKIP_SOURCE = 4,
+    SKIP_COLOR  = 8,
+    FILL_QUICK  = SKIP_SOURCE,
+    FILL_SAFE   = SKIP_SOURCE | CLIP_DST,
+    COPY        = CLIP_ALL | SKIP_COLOR,
 } clip_t;
 
 
@@ -822,8 +825,8 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
 {
     int clip_src = clip & CLIP_SRC;
     int clip_dst = clip & CLIP_DST;
-    int skip_src = clip & CLIP_SKIP_SOURCE;
-    int skip_col = clip & CLIP_SKIP_COLOR;
+    int skip_src = clip & SKIP_SOURCE;
+    int skip_col = clip & SKIP_COLOR;
 
     if (clip_src)
     {
@@ -1058,7 +1061,7 @@ static inline void ggl_rect(gglsurface *srf,
                             int         y2,
                             pattern_t   color)
 {
-    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, color, CLIP_NONE);
+    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, color, FILL_QUICK);
 }
 
 static inline void ggl_cliprect(gglsurface *srf,
@@ -1068,7 +1071,7 @@ static inline void ggl_cliprect(gglsurface *srf,
                                 int         y2,
                                 pattern_t   c)
 {
-    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, c, CLIP_DST);
+    ggl_blit(srf, srf, x1, x2, y1, y2, 0, 0, ggl_op_set, c, FILL_SAFE);
 }
 
 static inline void ggl_clear(gglsurface *srf, pattern_t color)
@@ -1082,7 +1085,7 @@ static inline void ggl_hline(gglsurface *srf,
                              int         xr,
                              pattern_t   color)
 {
-    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_NONE);
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, FILL_QUICK);
 }
 
 static inline void ggl_cliphline(gglsurface *srf,
@@ -1091,7 +1094,7 @@ static inline void ggl_cliphline(gglsurface *srf,
                                  int         xr,
                                  pattern_t   color)
 {
-    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, CLIP_DST);
+    ggl_blit(srf, srf, xl, xr, y, y, 0, 0, ggl_op_set, color, FILL_SAFE);
 }
 
 static inline void ggl_vline(gglsurface *srf,
@@ -1100,7 +1103,7 @@ static inline void ggl_vline(gglsurface *srf,
                              int         yb,
                              pattern_t   colors)
 {
-    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, CLIP_NONE);
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, FILL_QUICK);
 }
 
 static inline void ggl_clipvline(gglsurface *srf,
@@ -1109,7 +1112,7 @@ static inline void ggl_clipvline(gglsurface *srf,
                                  int         yb,
                                  pattern_t   colors)
 {
-    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, CLIP_DST);
+    ggl_blit(srf, srf, x, x, yt, yb, 0, 0, ggl_op_set, colors, FILL_SAFE);
 }
 
 static inline void ggl_filter(gglsurface *dst,
@@ -1149,7 +1152,7 @@ static inline void ggl_copy_at(gglsurface *dst,
              0,
              ggl_op_source,
              clear,
-             CLIP_ALL);
+             COPY);
 }
 
 static inline void ggl_copy(gglsurface *dst,
@@ -1178,7 +1181,7 @@ static inline void ggl_copy_from(gglsurface *dst,
              y,
              ggl_op_source,
              clear,
-             CLIP_ALL);
+             COPY);
 }
 
 
