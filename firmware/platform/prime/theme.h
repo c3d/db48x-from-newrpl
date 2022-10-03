@@ -32,7 +32,7 @@
 #define THEME_MENU_BG             THEME_GRAY15
 #define THEME_MENU_UNUSED_1       255, 0, 0
 #define THEME_MENU_TEXT           THEME_GRAY0
-#define THEME_MENU_DIR_MARK       140, 140, 250
+#define THEME_MENU_DIR_MARK       60, 120, 250
 #define THEME_MENU_DIR            THEME_GRAY1
 #define THEME_MENU_DIR_BG         THEME_GRAY14
 #define THEME_MENU_HLINE          THEME_GRAY8
