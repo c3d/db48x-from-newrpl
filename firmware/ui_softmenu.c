@@ -293,9 +293,11 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
 // ----------------------------------------------------------------------------
 //   Draw a single item in the current clipping box, does not clear background
 // ----------------------------------------------------------------------------
-// flags & 1 == is directory
-// flags & 2 == inverted
-// flags & 4 == use help colors
+// flags & 1  == is directory
+// flags & 2  == inverted
+// flags & 4  == use help colors
+// flags & 8  == flag menu
+// flags & 16 == flag value for flag menu
 {
     if (!item)
         return;
@@ -458,6 +460,7 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
     int       directory = (flags & 1) != 0;
     int       inverted  = (flags & 2) != 0;
     int       help_menu = (flags & 4) != 0;
+    int       flag_menu = (flags & 8) != 0;
     pattern_t color_1   = help_menu ? PAL_HLP_TEXT
                         : directory ? PAL_MENU_DIR
                                     : PAL_MENU_TEXT;
@@ -467,8 +470,9 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
     pattern_t fg        = inverted ? color_2 : color_1;
     pattern_t bg        = inverted ? color_1 : color_2;
 
+    size      height    = scr->bottom - scr->top;
     size      width     = StringWidthN(text, end, FONT_MENU);
-    size      swidth    = scr->right - scr->left;
+    size      swidth    = scr->right - scr->left - height * flag_menu;
     coord     pos       = (width >= swidth)
         ? 1 + scr->left
         : (1 + scr->right + scr->left - width) >> 1;
@@ -479,7 +483,7 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
     // Draw a marker to indicate directories
     if (directory)
     {
-        size marker = FONT_MENU->BitmapHeight / 2;
+        size marker = height / 2;
         coord x = scr->left;
         coord top = scr->top;
         pattern_t earmark = PAL_MENU_DIR_MARK;
@@ -491,8 +495,29 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
         }
     }
 
+    // Draw a marker to indicate flag selections
+    if (flag_menu)
+    {
+        int flag_value = (flags & 16) != 0;
+        pattern_t color = flag_value ? PAL_MENU_FLAG_ON : PAL_MENU_FLAG_OFF;
+        coord x = scr->right - height / 2;
+        coord y = scr->top + height / 2;
+        if (height >= 8)
+        {
+            ggl_cliprect(scr, x - 1, y - 2, x + 1, y - 2, color);
+            ggl_cliprect(scr, x - 2, y - 1, x + 2, y + 1, color);
+            ggl_cliprect(scr, x - 1, y + 2, x + 1, y + 2, color);
+        }
+        else
+        {
+            ggl_cliprect(scr, x - 1, y - 1, x + 1, y + 1, color);
+        }
+    }
+
     // Draw the text for the menu
+    scr->right -= height * flag_menu;
     DrawTextN(scr, pos, scr->top + 1, text, end, FONT_MENU, fg);
+    scr->right += height * flag_menu;
 
 }
 

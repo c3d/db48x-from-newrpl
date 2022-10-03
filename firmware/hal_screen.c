@@ -708,7 +708,6 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
 
     // Theme colors for menu
     { THEME_MENU_BG },
-    { THEME_MENU_UNUSED_1 },
     { THEME_MENU_TEXT },
     { THEME_MENU_DIR_MARK },
     { THEME_MENU_DIR },
@@ -716,7 +715,8 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
     { THEME_MENU_HLINE },
     { THEME_MENU_FOCUS_HLINE },
     { THEME_MENU_PRESS_BG },
-    { THEME_MENU_UNUSED_2 },
+    { THEME_MENU_FLAG_ON },
+    { THEME_MENU_FLAG_OFF },
 
     // Theme colors for status area
     { THEME_STA_BG },

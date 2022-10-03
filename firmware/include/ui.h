@@ -60,15 +60,15 @@
 
 // Theme colors for menu
 #define PAL_MENU_BG           ggl_color(31)
-#define PAL_MENU_UNUSED_1     ggl_color(32)
-#define PAL_MENU_TEXT         ggl_color(33)
-#define PAL_MENU_DIR_MARK     ggl_color(34)
-#define PAL_MENU_DIR          ggl_color(35)
-#define PAL_MENU_DIR_BG       ggl_color(36)
-#define PAL_MENU_HLINE        ggl_color(37)
-#define PAL_MENU_FOCUS_HLINE  ggl_color(38)
-#define PAL_MENU_PRESS_BG     ggl_color(39)
-#define PAL_MENU_UNUSED_2     ggl_color(40)
+#define PAL_MENU_TEXT         ggl_color(32)
+#define PAL_MENU_DIR_MARK     ggl_color(33)
+#define PAL_MENU_DIR          ggl_color(34)
+#define PAL_MENU_DIR_BG       ggl_color(35)
+#define PAL_MENU_HLINE        ggl_color(36)
+#define PAL_MENU_FOCUS_HLINE  ggl_color(37)
+#define PAL_MENU_PRESS_BG     ggl_color(38)
+#define PAL_MENU_FLAG_ON      ggl_color(39)
+#define PAL_MENU_FLAG_OFF     ggl_color(40)
 
 
 // Theme colors for status area

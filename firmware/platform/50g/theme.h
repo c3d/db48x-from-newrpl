@@ -30,15 +30,15 @@
 
 // Theme colors for menu
 #define THEME_MENU_BG             THEME_GRAY15
-#define THEME_MENU_UNUSED_1       255, 0, 0
 #define THEME_MENU_TEXT           THEME_GRAY0
 #define THEME_MENU_DIR_MARK       THEME_GRAY6
 #define THEME_MENU_DIR            THEME_GRAY1
 #define THEME_MENU_DIR_BG         THEME_GRAY14
 #define THEME_MENU_HLINE          THEME_GRAY8
 #define THEME_MENU_FOCUS_HLINE    THEME_GRAY0
-#define THEME_MENU_PRESS_BG       255, 0, 0
-#define THEME_MENU_UNUSED_2       255, 0, 0
+#define THEME_MENU_PRESS_BG       255, 0,   0
+#define THEME_MENU_FLAG_ON        THEME_GRAY0
+#define THEME_MENU_FLAG_OFF       THEME_GRAY8
 
 // Theme colors for status area
 #define THEME_STA_BG              THEME_GRAY0
