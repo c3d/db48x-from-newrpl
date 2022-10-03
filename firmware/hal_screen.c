@@ -654,8 +654,8 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
 #define THEME_GRAY4               187, 187, 187
 #define THEME_GRAY5               170, 170, 170
 #define THEME_GRAY6               153, 153, 153
-#define THEME_GRAY7               136, 136, 136
-#define THEME_GRAY8               119, 119, 119
+#define THEME_GRAY7               140, 140, 140
+#define THEME_GRAY8               128, 128, 128
 #define THEME_GRAY9               102, 102, 102
 #define THEME_GRAY10              85, 85, 85
 #define THEME_GRAY11              68, 68, 68

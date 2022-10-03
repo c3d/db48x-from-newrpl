@@ -397,12 +397,15 @@ static inline pattern_t ggl_rgb_to_pattern(uint8_t red,
 // ----------------------------------------------------------------------------
 {
 #if BITS_PER_PIXEL == 1
-    uint16_t gray = (red + green + green + blue) / 4;
-    color1_t a = { .value = gray > 192 };
-    color1_t b = { .value = gray > 64  };
-    color1_t c = { .value = gray > 128 };
-    color1_t d = { .value = gray > 32  };
-    return ggl_pattern_4_colors(a, b, c, d);
+    uint64_t bits = 0;
+    uint16_t gray = (red + green + green + blue + 4) / 16;
+    if (gray == 32)             // Hand tweak GRAY8
+        bits = 0xAAAAAAAAAAAAAAAAull;
+    else
+        for (int bit = 0; bit < 64 && gray; bit++, gray--)
+            bits |= 1ULL << (79 * bit % 64);
+    pattern_t result = { .bits = bits };
+    return result;
 #elif BITS_PER_PIXEL == 4
     uint16_t gray = (red + green + green + blue) / 4;
     // On the HP48, 0xF is black, not white
@@ -900,7 +903,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     unsigned   srs    = ggl_pixel_shift(src, sbpp, sr, sy1);
     unsigned   sws    = xback ? srs : sls;
     const size bpw    = BITS_PER_WORD;
-    unsigned   cshift = (cbpp == 16 ? 32 : cbpp == 4 ? 16 : cbpp == 1 ? 8 : 0);
+    unsigned   cshift = (cbpp == 16 ? 48 : cbpp == 4 ? 20 : cbpp == 1 ? 9 : 0);
     unsigned   cys    = ydir * (int) cshift;
     unsigned   cxs    = xdir * bpw * cbpp / dbpp;
 

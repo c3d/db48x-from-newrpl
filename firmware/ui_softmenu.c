@@ -487,7 +487,7 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
         {
             coord y = top + row;
             size  w = marker - row;
-            ggl_cliprect(scr, x, y, x+w, y+1, earmark);
+            ggl_cliprect(scr, x, y, x+w-1, y, earmark);
         }
     }
 

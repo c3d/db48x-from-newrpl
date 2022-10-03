@@ -15,14 +15,14 @@
 #define THEME_STK_VLINE           THEME_GRAY8
 #define THEME_STK_IDX_BG          THEME_GRAY0
 #define THEME_STK_ITEMS           THEME_GRAY15
-#define THEME_STK_SEL_BG          THEME_GRAY6
+#define THEME_STK_SEL_BG          THEME_GRAY8
 #define THEME_STK_SEL_ITEM        THEME_GRAY15
 #define THEME_STK_CURSOR          THEME_GRAY15
 
 // Theme colors for command line
-#define THEME_CMD_BG              THEME_GRAY2
+#define THEME_CMD_BG              THEME_GRAY0
 #define THEME_CMD_TEXT            THEME_GRAY15
-#define THEME_CMD_SEL_BG          THEME_GRAY6
+#define THEME_CMD_SEL_BG          THEME_GRAY8
 #define THEME_CMD_SELTEXT         THEME_GRAY15
 #define THEME_CMD_CURSOR_BG       THEME_GRAY15
 #define THEME_CMD_CURSOR          THEME_GRAY0
@@ -32,9 +32,9 @@
 #define THEME_MENU_BG             THEME_GRAY15
 #define THEME_MENU_UNUSED_1       255, 0, 0
 #define THEME_MENU_TEXT           THEME_GRAY0
-#define THEME_MENU_DIR_MARK       THEME_GRAY8
-#define THEME_MENU_DIR            THEME_GRAY1
-#define THEME_MENU_DIR_BG         THEME_GRAY14
+#define THEME_MENU_DIR_MARK       THEME_GRAY0
+#define THEME_MENU_DIR            THEME_GRAY0
+#define THEME_MENU_DIR_BG         THEME_GRAY15
 #define THEME_MENU_HLINE          THEME_GRAY8
 #define THEME_MENU_FOCUS_HLINE    THEME_GRAY0
 #define THEME_MENU_PRESS_BG       255, 0, 0
@@ -58,7 +58,7 @@
 #define THEME_FORMBACKGROUND      THEME_GRAY0
 #define THEME_FORMTEXT            THEME_GRAY15
 #define THEME_FORMSELTEXT         THEME_GRAY15
-#define THEME_FORMSEL_BG          THEME_GRAY6
+#define THEME_FORMSEL_BG          THEME_GRAY5
 #define THEME_FORMCURSOR          THEME_GRAY15
 
 #endif // THEME_H
