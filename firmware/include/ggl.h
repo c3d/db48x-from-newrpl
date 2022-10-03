@@ -920,7 +920,6 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
     if (!skip_col)
         cdata64 = ggl_rotate_pattern(cdata64, dx1 * cbpp + dy1 * cshift - dws);
 
-
     while (ycount-- >= 0)
     {
         uint64_t csave    = cdata64;
@@ -964,7 +963,7 @@ static inline void ggl_mixblit(gglsurface *dst,    // Destination surface
                     else
                         sdata = shlc(snew, sadj) | shr(smem, sadj);
                 else
-                    sdata = snew;
+                    sdata = xback ? snew : smem;
 
                 sadj = nextsadj;
             }
