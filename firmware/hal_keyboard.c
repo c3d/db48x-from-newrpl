@@ -6339,14 +6339,14 @@ void cancelKeyHandler(keyb_msg_t keymsg)
 // ******************* END OF DEFAULT KEY HANDLERS **************************
 // **************************************************************************
 
-typedef void (*handlerfunc_t)(keyb_msg_t keymsg);
+typedef void (*key_handler_fn)(keyb_msg_t keymsg);
 
 // STRUCTURE FOR DEFAULT KEYBOARD HANDLERS
 struct keyhandler_t
 {
     WORD message;
     int32_t context;
-    handlerfunc_t action;
+    key_handler_fn action;
 };
 
 // LIST OF HANDLERS, END WITH action=NULL
