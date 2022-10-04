@@ -42,7 +42,7 @@ void halSetNotification(enum halNotification type, unsigned color)
 
     // DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
     if ((halFlags ^ old) & (1 << (16 + type)))
-        halScreen.DirtyFlag |= STAREA_DIRTY; // REDRAW STATUS AS SOON AS POSSIBLE
+        halScreen.DirtyFlag |= STATUS_DIRTY; // REDRAW STATUS AS SOON AS POSSIBLE
 }
 
 unsigned halGetNotification(enum halNotification type)
@@ -191,7 +191,7 @@ void halSetMenu2Height(int h)
         }
         total = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
     }
-    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY | CMDLINE_ALLDIRTY;
+    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY | CMDLINE_ALLDIRTY;
 }
 
 void halSetCmdLineHeight(int h)
@@ -781,13 +781,14 @@ void halInitScreen()
 
     halFlags        = 0;
     halProcesses[0] = halProcesses[1] = halProcesses[2] = 0;
-    halScreen.HelpMode                                  = 0;
+    halScreen.HelpMessage                               = NULL;
+    halScreen.ShortHelpMessage                          = NULL;
     halScreen.CmdLine                                   = 0;
     halScreen.Menu1                                     = MENU1_HEIGHT;
     halScreen.Menu2                                     = MENU2_HEIGHT;
     halScreen.Stack                                     = 1;
     halSetFormHeight(0);
-    halScreen.DirtyFlag   = STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+    halScreen.DirtyFlag   = STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
     halScreen.SAreaTimer  = 0;
     halScreen.CursorTimer = -1;
     halScreen.KeyContext  = CONTEXT_STACK;
@@ -807,6 +808,8 @@ void halInitScreen()
     halScreen.StkVisibleOffset = 0;
 }
 
+void halRedrawMenu1(gglsurface *scr);
+void halRedrawMenu2(gglsurface *scr);
 void halRedrawHelp(gglsurface *scr)
 {
     if (!halScreen.Menu2)
@@ -818,183 +821,77 @@ void halRedrawHelp(gglsurface *scr)
     }
 
     halScreenUpdated();
-
-    word_p helptext;
-    int64_t  m1code  = rplGetMenuCode(halScreen.HelpMode >> 16);
-    word_p MenuObj = uiGetLibMenu(m1code);
-    int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
-    int32_t    k;
-    word_p item;
-
-    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-    // FOR EXAMPLE BY PURGING VARIABLES
-    if (MENUPAGE(m1code) >= (WORD) nitems)
+    utf8_p text = halScreen.HelpMessage;
+    if (text)
     {
-        m1code = SETMENUPAGE(m1code, 0);
-        rplSetMenuCode(halScreen.HelpMode >> 16, m1code);
-    }
+        coord ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        coord ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+        const UNIFONT *font = FONT_HLPTITLE;
 
-    if (((halScreen.HelpMode & 0xffff) == 5) && (nitems > 6))
-    {
-        halScreen.HelpMode = 0; // CLOSE HELP MODE IMMEDIATELY
-        halRedrawAll(scr);      // AND ISSUE A REDRAW
-        return;
-    }
-
-    // GET THE ITEM
-    item     = uiGetMenuItem(m1code, MenuObj, (halScreen.HelpMode & 0xffff) + MENUPAGE(m1code));
-    helptext = uiGetMenuItemHelp(item);
-
-    if (!helptext)
-    {
-        halScreen.HelpMode = 0; // CLOSE HELP MODE IMMEDIATELY
-        halRedrawAll(scr);      // AND ISSUE A REDRAW
-        return;
-    }
-
-    if (ISIDENT(*helptext))
-    {
-        // THE HELP TEXT SHOULD BE THE OBJECT DECOMPILED
-
-        // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
-        word_p *var = rplFindGlobal(helptext, 1);
-
-        if (!var)
-        {
-            halScreen.HelpMode = 0; // CLOSE HELP MODE IMMEDIATELY
-            halRedrawAll(scr);      // AND ISSUE A REDRAW
-            return;
-        }
-
-        int32_t SavedException = Exceptions;
-        int32_t SavedErrorCode = ErrorCode;
-
-        Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-        word_p objdecomp   = rplDecompile(var[1], DECOMP_NOHINTS);
-        Exceptions          = SavedException;
-        ErrorCode           = SavedErrorCode;
-
-        if (!objdecomp)
-            helptext = (word_p) empty_string;
-        else
-            helptext = objdecomp;
-
-        int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-
-        // CLEAR MENU2 AND STATUS AREA
+        // Clear menu2 and status area
         ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
-        // DO SOME DECORATIVE ELEMENTS
+
+        // Do some decorative elements
         ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_HLP_LINES);
 
-        // SHOW 3 LINES ONLY
+        coord y = ytop + 2;
+        coord x = 3;
 
-        int32_t namew =
-            StringWidthN((char *) (var[0] + 1), ((char *) (var[0] + 1)) + rplGetIdentLength(var[0]), FONT_HLPTITLE);
-
-        // SHOW THE NAME OF THE VARIABLE
-        DrawTextN(scr, 3,
-                  ytop + 2,
-                  (char *) (var[0] + 1),
-                  ((char *) (var[0] + 1)) + rplGetIdentLength(var[0]),
-                  FONT_HLPTITLE,
-                  PAL_HLP_TEXT);
-        DrawText(scr, 3 + namew, ytop + 2, ": ", FONT_HLPTITLE, PAL_HLP_TEXT);
-        namew += 3 + StringWidth(": ", FONT_HLPTITLE);
-
-        int     xend;
-        utf8_p basetext  = (utf8_p) (helptext + 1);
-        utf8_p endoftext = basetext + rplStrSize(helptext);
-        utf8_p nextline, endofline;
-
-        for (k = 0; k < 3; ++k)
+        // Display until end of help or next markdown section title
+        while(*text && (text[0] != '\n' || text[1] != '#') && ytop < LCD_H)
         {
-            xend      = LCD_W - 1 - namew;
-            endofline = StringCoordToPointer((char *) basetext, (char *) endoftext, FONT_HLPTEXT, &xend);
-            if (endofline < endoftext)
+            utf8_p end = text;
+
+            // Find end of word
+            while (*end && *end != ' ' && *end != '\n')
+                end++;
+
+            // Check if word fits. If not, skip to new line
+            size width = StringWidthN(text, end, font);
+            if (x + width >= LCD_W - 3)
             {
-                // BACK UP TO THE NEXT WHITE CHARACTER
-                utf8_p whitesp = endofline;
-                while ((whitesp > basetext) && (*whitesp != ' '))
-                    --whitesp;
-                if (whitesp >= basetext)
-                    endofline = whitesp; // ONLY IF THERE'S WHITESPACES
+                x = 3;
+                y += font->BitmapHeight;
             }
-            nextline = endofline;
-            // SKIP ANY NEWLINE OR WHITE CHARACTERS
-            while ((nextline < endoftext) &&
-                   ((*nextline == ' ') || (*nextline == '\n') || (*nextline == '\t') || (*nextline == '\r')))
-                ++nextline;
 
-            // DRAW THE TEXT
-            DrawTextN(scr,
-                      namew,
-                      ytop + 2 + FONT_HEIGHT(FONT_HLPTITLE) +
-                          (k - 1) * FONT_HEIGHT(FONT_HLPTEXT),
-                      basetext,
-                      endofline,
-                      FONT_HLPTEXT,
-                      PAL_HLP_TEXT);
-            basetext = nextline;
-            namew    = 3;
+            // Include space in what we draw
+            if (*end == ' ')
+                end++;
+
+            // Draw next word
+            x = DrawTextN(scr, x, y, text, end, font, PAL_HLP_TEXT);
+
+            // Check if we need to skip to end of line
+            text = end;
+            if (*text == '\n')
+            {
+                x = 3;
+                y += font->BitmapHeight;
+                text++;
+            }
+
+            // Switch to regular help font for the rest of the display
+            font = FONT_HLPTEXT;
         }
-
-        return;
+        halScreen.DirtyFlag &= ~HELP_DIRTY;
     }
-
-    if (ISSTRING(*helptext))
+    else
     {
-        int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-
-        // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
-        // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_HLP_LINES);
-
-        // SHOW MESSAGE'S FIRST 3 LINES ONLY
-        int32_t    currentline = 0, nextline;
-        byte_p basetext    = (byte_p) (helptext + 1);
-        for (k = 0; k < 3; ++k)
-        {
-            nextline = rplStringGetLinePtr(helptext, 2 + k);
-            if (nextline < 0)
-                nextline = rplStrSize(helptext);
-            DrawTextN(scr, 3,
-                      ytop + 2 + FONT_HEIGHT(FONT_HLPTITLE) + k * FONT_HEIGHT(FONT_HLPTEXT),
-                      (char *) basetext + currentline,
-                      (char *) basetext + nextline,
-                      FONT_HLPTEXT,
-                      PAL_HLP_TEXT);
-
-            currentline = nextline;
-        }
-
-        // FINALLY, SHOW THE NAME OF THE ITEM
-        int32_t oldtop = scr->top, oldbottom = scr->bottom;
-
-        scr->top  = ytop + 1;
-        scr->bottom = ytop + 1 + FONT_HLPTITLE->BitmapHeight;
-
-        uiDrawHelpMenuItem(scr, item);
-
-        scr->top  = oldtop;
-        scr->bottom = oldbottom;
-
-        return;
+        halScreen.DirtyFlag &= ~HELP_DIRTY;
+        halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
+        halRedrawAll(scr);
     }
 }
 
 // REDRAW THE VARS MENU
 void halRedrawMenu1(gglsurface *scr)
 {
-    if (halScreen.HelpMode)
+    if (halScreen.HelpMessage)
     {
         // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
         halRedrawHelp(scr);
         // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY);
+        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
         return;
     }
     if (halScreen.Menu1 == 0)
@@ -1219,12 +1116,12 @@ void halRedrawMenu1(gglsurface *scr)
 // REDRAW THE OTHER MENU
 void halRedrawMenu2(gglsurface *scr)
 {
-    if (halScreen.HelpMode)
+    if (halScreen.HelpMessage)
     {
         // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
         halRedrawHelp(scr);
         // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY);
+        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
         return;
     }
 
@@ -1375,12 +1272,12 @@ void halRedrawMenu2(gglsurface *scr)
 
 void halRedrawStatus(gglsurface *scr)
 {
-    if (halScreen.HelpMode)
+    if (halScreen.HelpMessage)
     {
         // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
         halRedrawHelp(scr);
         // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY);
+        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
         return;
     }
 
@@ -1435,7 +1332,7 @@ void halRedrawStatus(gglsurface *scr)
                     {
                         // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
                         Exceptions = 0;
-                        halScreen.DirtyFlag &= ~STAREA_DIRTY;
+                        halScreen.DirtyFlag &= ~STATUS_DIRTY;
                         return;
                     }
 
@@ -1590,11 +1487,11 @@ void halRedrawStatus(gglsurface *scr)
         {
             DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
                        ytop + 1,
-                       (char *) "C",
+                       "C",
                        FONT_STATUS,
                        PAL_STA_TEXT,
                        PAL_STA_BG);
-            xctracker += 4 + StringWidth((char *) "C", FONT_STATUS);
+            xctracker += 4 + StringWidth("C", FONT_STATUS);
         }
 
         // HALTED PROGRAM INDICATOR
@@ -1602,11 +1499,11 @@ void halRedrawStatus(gglsurface *scr)
         {
             DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
                        ytop + 1,
-                       (char *) "H",
+                       "H",
                        FONT_STATUS,
                        PAL_STA_TEXT,
                        PAL_STA_BG);
-            xctracker += 4 + StringWidth((char *) "H", FONT_STATUS);
+            xctracker += 4 + StringWidth("H", FONT_STATUS);
         }
 
         // FIRST 6 USER FLAGS
@@ -1815,7 +1712,7 @@ void halRedrawStatus(gglsurface *scr)
                            Font_Notifications,
                            fg,
                            bg);
-                xctracker += 4 + StringWidth((char *) "X", Font_Notifications);
+                xctracker += 4 + StringWidth("X", Font_Notifications);
             }
         }
 #endif // No physical annunciators
@@ -1825,7 +1722,17 @@ void halRedrawStatus(gglsurface *scr)
         scr->top = yc;
     }
 
-    halScreen.DirtyFlag &= ~STAREA_DIRTY;
+    utf8_p help = halScreen.ShortHelpMessage;
+    if (help)
+    {
+        coord ytop =
+            halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
+        coord x = STATUS_AREA_X + 12;
+        coord y = ytop + 1;
+        DrawTextBk(scr, x, y, help, FONT_HLPTEXT, PAL_STA_BG, PAL_HLP_TEXT);
+    }
+
+    halScreen.DirtyFlag &= ~STATUS_DIRTY;
 }
 
 void halRedrawCmdLine(gglsurface *scr)
@@ -2231,9 +2138,9 @@ void halUpdateFonts()
                     halSetMenu1Height(MENU1_HEIGHT);
                 if (halScreen.Menu2)
                     halSetMenu2Height(MENU2_HEIGHT);
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
                 break;
-            case FONT_INDEX_STATUS: halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY; break;
+            case FONT_INDEX_STATUS: halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY; break;
             case FONT_INDEX_PLOT: halScreen.DirtyFlag |= FORM_DIRTY; break;
             case FONT_INDEX_FORMS: halScreen.DirtyFlag |= FORM_DIRTY; break;
             case FONT_INDEX_HLPTITLE:
@@ -2294,44 +2201,40 @@ void halSwapBuffer(gglsurface *scr)
 
 void halForceRedrawAll(gglsurface *scr)
 {
-    halPrepareBuffer(scr);
-    halUpdateFonts();
-    halRedrawForm(scr);
-    halRedrawStack(scr);
-    halRedrawCmdLine(scr);
-    halRedrawMenu1(scr);
-    halRedrawMenu2(scr);
-    halRedrawStatus(scr);
-    halSwapBuffer(scr);
+    halScreen.DirtyFlag = ~0U;
+    halRedrawAll(scr);
 }
 
 void halRedrawAll(gglsurface *scr)
 {
-    if (halScreen.DirtyFlag)
+    unsigned dirty = halScreen.DirtyFlag;
+    if (dirty)
     {
         halUpdateFonts();
         halPrepareBuffer(scr);
 
-        if (halScreen.DirtyFlag & FORM_DIRTY)
+        if (dirty & FORM_DIRTY)
             halRedrawForm(scr);
-        if (halScreen.DirtyFlag & STACK_DIRTY)
+        if (dirty & STACK_DIRTY)
             halRedrawStack(scr);
-        if (halScreen.DirtyFlag & CMDLINE_ALLDIRTY)
+        if (dirty & CMDLINE_ALLDIRTY)
             halRedrawCmdLine(scr);
-        if (halScreen.DirtyFlag & MENU1_DIRTY)
+        if (dirty & MENU1_DIRTY)
             halRedrawMenu1(scr);
         if (!halScreen.SAreaTimer)
         {
             // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
 #ifdef TARGET_PRIME
-            if (halScreen.DirtyFlag & MENU1_DIRTY)
+            if (dirty & MENU1_DIRTY)
                 halRedrawMenu1(scr);
 #endif /* TARGET_PRIME */
-            if (halScreen.DirtyFlag & MENU2_DIRTY)
+            if (dirty & MENU2_DIRTY)
                 halRedrawMenu2(scr);
-            if (halScreen.DirtyFlag & STAREA_DIRTY)
+            if (dirty & STATUS_DIRTY)
                 halRedrawStatus(scr);
         }
+        if (dirty & HELP_DIRTY)
+            halRedrawHelp(scr);
         halSwapBuffer(scr);
     }
 }
@@ -2339,7 +2242,7 @@ void halRedrawAll(gglsurface *scr)
 // MARK STATUS AREA FOR IMMEDIATE UPDATE
 void halUpdateStatus()
 {
-    halScreen.DirtyFlag |= STAREA_DIRTY;
+    halScreen.DirtyFlag |= STATUS_DIRTY;
 }
 
 void status_popup_handler()
@@ -2351,7 +2254,7 @@ void status_popup_handler()
     else
     {
 #ifdef TARGET_PRIME
-        halScreen.DirtyFlag |= STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 #else  // !TARGET_PRIME
         gglsurface scr;
         ggl_init_screen(&scr);
@@ -2384,7 +2287,7 @@ void halCancelPopup()
     {
         tmr_eventkill(halScreen.SAreaTimer);
         // MARK DIRTY BUT DON'T REDRAW YET
-        halScreen.DirtyFlag |= STAREA_DIRTY | MENU2_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY | MENU2_DIRTY;
         halScreen.SAreaTimer = 0;
     }
     if (rplTestSystemFlag(FL_HIDEMENU2))
@@ -2631,7 +2534,7 @@ void halSwitch2Form()
 
     // uiFormEnterEvent();
 
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
+    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 }
 
 // CHANGE THE CONTEXT AND DISPLAY THE STACK
@@ -2655,5 +2558,5 @@ void halSwitch2Stack()
 
     uiClearRenderCache();
 
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
+    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 }

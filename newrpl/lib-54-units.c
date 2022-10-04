@@ -97,35 +97,33 @@ INCLUDE_ROMOBJECT(unitmenu_20_information);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) unitdir_ident,
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
+const const word_p ROMPTR_TABLE[] = { (word_p) unitdir_ident,
+                                      (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
 
-    (word_p) unitmenu_0_main,
-    (word_p) unitmenu_1_tools,
-    (word_p) unitmenu_2_length,
-    (word_p) unitmenu_3_area,
-    (word_p) unitmenu_4_volume,
-    (word_p) unitmenu_5_time,
-    (word_p) unitmenu_6_speed,
-    (word_p) unitmenu_7_mass,
-    (word_p) unitmenu_8_force,
-    (word_p) unitmenu_9_energy,
-    (word_p) unitmenu_10_power,
-    (word_p) unitmenu_11_pressure,
-    (word_p) unitmenu_12_temperature,
-    (word_p) unitmenu_13_electrical,
-    (word_p) unitmenu_14_angles,
-    (word_p) unitmenu_15_light,
-    (word_p) unitmenu_16_radiation,
-    (word_p) unitmenu_17_viscosity,
-    (word_p) unitmenu_18_acceleration,
-    (word_p) unitmenu_19_chemistry,
-    (word_p) unitmenu_20_information,
+                                      (word_p) unitmenu_0_main,
+                                      (word_p) unitmenu_1_tools,
+                                      (word_p) unitmenu_2_length,
+                                      (word_p) unitmenu_3_area,
+                                      (word_p) unitmenu_4_volume,
+                                      (word_p) unitmenu_5_time,
+                                      (word_p) unitmenu_6_speed,
+                                      (word_p) unitmenu_7_mass,
+                                      (word_p) unitmenu_8_force,
+                                      (word_p) unitmenu_9_energy,
+                                      (word_p) unitmenu_10_power,
+                                      (word_p) unitmenu_11_pressure,
+                                      (word_p) unitmenu_12_temperature,
+                                      (word_p) unitmenu_13_electrical,
+                                      (word_p) unitmenu_14_angles,
+                                      (word_p) unitmenu_15_light,
+                                      (word_p) unitmenu_16_radiation,
+                                      (word_p) unitmenu_17_viscosity,
+                                      (word_p) unitmenu_18_acceleration,
+                                      (word_p) unitmenu_19_chemistry,
+                                      (word_p) unitmenu_20_information,
 
-    0
-};
+                                      0 };
 
 // RETURN A POINTER TO THE END OF THE NEXT UNIT IDENTIFIER
 // SEPARATOR SYMBOLS ALLOWED ARE ( ) * / ^
@@ -136,7 +134,7 @@ byte_p rplNextUnitToken(byte_p start, byte_p end)
         if((*start == '*') || (*start == '/') || (*start == '^')
                 || (*start == '(') || (*start == ')'))
             break;
-        start = (byte_p) utf8skip((char *)start, (char *)end);
+        start = (byte_p) utf8skip((utf8_p)start, (utf8_p)end);
     }
     return start;
 }
@@ -1885,14 +1883,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(!rplIsValidIdent((byte_p) (name + 1) + 1,
-                        (byte_p) (name + 1) + newlen)) {
+            if(!rplIsValidIdent((utf8_p) (name + 1) + 1,
+                                (utf8_p) (name + 1) + newlen)) {
                 rplError(ERR_INVALIDUNITNAME);
                 return;
             }
 
-            name = rplCreateIDENT(DOIDENTSIPREFIX, (byte_p) (name + 1) + 1,
-                    (byte_p) (name + 1) + newlen);
+            name = rplCreateIDENT(DOIDENTSIPREFIX, (utf8_p) (name + 1) + 1,
+                    (utf8_p) (name + 1) + newlen);
 
             if(!name)
                 return;
@@ -2409,8 +2407,8 @@ void LIB_HANDLER()
                 endptr = nextptr;
 
                 while((endptr < (byte_p) BlankStart) && (*endptr != ']')) {
-                    endptr = (byte_p) utf8skip((char *)endptr,
-                            (char *)BlankStart);
+                    endptr = (byte_p) utf8skip((utf8_p)endptr,
+                                               (utf8_p)BlankStart);
                 }
 
                 // IT'S OK TO REACH END OF TOKEN WITHOUT A BRACKET
@@ -2473,17 +2471,19 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    if(!rplIsValidIdent(nextptr, nameend)) {
+                    if(!rplIsValidBytesIdent(nextptr, nameend)) {
                         rplError(ERR_INVALIDUNITDEFINITION);
                         RetNum = ERR_SYNTAX;
                         return;
                     }
 
-                    int32_t nletters = utf8nlen((char *)nextptr, (char *)nameend);
-                    // COMPILE THE IDENT
-
-                    rplCompileIDENT(DOIDENT, nextptr, nameend);
-                    if(Exceptions) {
+                    // Compile the ident
+                    utf8_p  ident    = (utf8_p) nextptr;
+                    utf8_p  end      = (utf8_p) nameend;
+                    int32_t nletters = utf8nlen(ident, end);
+                    rplCompileIDENT(DOIDENT, ident, end);
+                    if (Exceptions)
+                    {
                         RetNum = ERR_INVALID;
                         return;
                     }
@@ -3287,17 +3287,16 @@ void LIB_HANDLER()
                 }
 
                 // DECOMPILE THE IDENTIFIER
-
-                byte_p ptr =
-                        (byte_p) (DecompileObject + offset +
-                        OBJSIZE(*(DecompileObject + offset)));
-                if(ptr[3] == 0)
-                    // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
-                    rplDecompAppendString((byte_p) (DecompileObject + offset +
-                                1));
+                word_p   objp    = DecompileObject + offset;
+                unsigned objsize = OBJSIZE(*objp);
+                byte_p   ptr     = (byte_p) (objp + objsize);
+                utf8_p   end     = (utf8_p) (objp + 1);
+                if (ptr[3] == 0)
+                    // We have a null-terminated string,
+                    // so we can use the standard function
+                    rplDecompAppendString(end);
                 else
-                    rplDecompAppendString2((byte_p) (DecompileObject + offset +
-                                1), OBJSIZE(*(DecompileObject + offset)) << 2);
+                    rplDecompAppendString2(end, objsize << 2);
 
                 if(Exceptions) {
                     RetNum = ERR_INVALID;

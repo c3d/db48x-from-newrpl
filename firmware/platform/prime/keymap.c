@@ -53,15 +53,15 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_MENU] = KH(softmenu6_1),
 
     // Special Prime keys
-    [KB_APPS] = KH(mainmenu),
-    [KB_HOME] = KH(home),
-    [KB_CAS]  = KH(casmenu),
+    [KB_APPS] = KH(MainMenu),
+    [KB_HOME] = KH(HOME),
+    [KB_CAS]  = KH(EquationsMenu),
 
     // White keys
-    [KB_A] = KH(varsmenu),
-    [KB_B] = KH(prgmenu),
-    [KB_C] = KH(mathmenu),
-    [KB_D] = KH(keyx),
+    [KB_A] = KH(VariablesMenu),
+    [KB_B] = KH(ProgramMenu),
+    [KB_C] = KH(MathMenu),
+    [KB_D] = KH(eqnVar),
     [KB_E] = KH(tofrac),
     [KB_F] = KH(pow),
     [KB_G] = KH(sin),
@@ -83,16 +83,16 @@ static const  key_handler_fn keymap_left_shift[64] =
 // ----------------------------------------------------------------------------
 {
     // Numbers
-    [KB_0] = KH(notesmenu),
+    [KB_0] = KH(NotesMenu),
     [KB_1] = KH(secoBracket),
     [KB_2] = KH(iconst),
     [KB_3] = KH(pi),
-    [KB_4] = KH(matrixmenu),
+    [KB_4] = KH(MatrixMenu),
     [KB_5] = KH(squareBracket),
-    [KB_6] = KH(testsmenu),
-    [KB_7] = KH(listmenu),
+    [KB_6] = KH(TestsMenu),
+    [KB_7] = KH(ListsMenu),
     [KB_8] = KH(curlyBracket),
-    [KB_9] = KH(symbolsmenu),
+    [KB_9] = KH(SymbolsMenu),
     [KB_DOT] = KH(equal),
 
     // ON, BSP, ENTER, SPC
@@ -105,12 +105,12 @@ static const  key_handler_fn keymap_left_shift[64] =
     // Cursor keys
     [KB_LF] = KH(startSelection),
     [KB_RT] = KH(endSelection),
-    [KB_UP] = KH(updir),
+    [KB_UP] = KH(UPDIR),
     [KB_DN] = KH(endSelection),
 
     // Operators
-    [KB_ADD] = KH(stackmenu),
-    [KB_SUB] = KH(basemenu),
+    [KB_ADD] = KH(StackMenu),
+    [KB_SUB] = KH(BasesMenu),
     [KB_MUL] = KH(angle),
     [KB_DIV] = KH(inv),
 
@@ -123,15 +123,15 @@ static const  key_handler_fn keymap_left_shift[64] =
     [KB_MENU] = KH(softmenu6_2),
 
     // Special Prime keys
-    [KB_APPS] = KH(infomenu),
-    [KB_HOME] = KH(settingsmenu),
-    [KB_CAS]  = KH(mathsettingsmenu),
+    [KB_APPS] = KH(InfoMenu),
+    [KB_HOME] = KH(SettingsMenu),
+    [KB_CAS]  = KH(FlagsMenu),
 
     // White keys
-    [KB_A] = KH(charsmenu),
-    [KB_B] = KH(memmenu),
-    [KB_C] = KH(unitmenu),
-    [KB_D] = KH(menuswap),
+    [KB_A] = KH(CharsMenu),
+    [KB_B] = KH(MemoryMenu),
+    [KB_C] = KH(UnitsMenu),
+    [KB_D] = KH(MENUSWAP),
     [KB_E] = KH(textBracket),
     [KB_F] = KH(xroot),
     [KB_G] = KH(asin),
@@ -277,8 +277,11 @@ static const key_handler_fn keymap_on_hold[64] =
 
     [KB_ADD] = KH(increaseContrast),
     [KB_SUB] = KH(decreaseContrast),
-    [KB_MUL] = KH(previousScientificFormat),
-    [KB_DIV] = KH(nextScientificFormat),
+    [KB_MUL] = KH(previousScale),
+    [KB_DIV] = KH(nextScale),
     [KB_DOT] = KH(cycleLocale),
-    [KB_SPC] = KH(cycleFormat)
+    [KB_SPC] = KH(cycleFormat),
+
+    [KB_B] = KH(SkipNextAlarm),
+    [KB_M] = KH(ToggleMenu),
 };

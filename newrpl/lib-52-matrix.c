@@ -1170,8 +1170,8 @@ void LIB_HANDLER()
         DSTop--;
 
         if(rows)
-            rplNewint32_tPush(rows, DECBINT);
-        rplNewint32_tPush(cols, DECBINT);
+            rplNewBINTPush(rows, DECBINT);
+        rplNewBINTPush(cols, DECBINT);
         rplPushData((word_p) ((rows) ? two_bint : one_bint));
         rplCreateList();
 
@@ -1216,7 +1216,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewint32_tPush(cols, DECBINT);
+        rplNewBINTPush(cols, DECBINT);
 
         return;
 
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewint32_tPush(nrows, DECBINT);
+        rplNewBINTPush(nrows, DECBINT);
 
         return;
 
@@ -2366,14 +2366,14 @@ void LIB_HANDLER()
                     for(j = 1; j <= cols; ++j) {
                         rplPushData(rplMatrixFastGet(*mat, i, j));
                     }
-                    rplNewint32_tPush(cols, DECBINT);
+                    rplNewBINTPush(cols, DECBINT);
                     rplCreateList();
                     if(Exceptions) {
                         DSTop = mat + 1;
                         return;
                     }
                 }
-                rplNewint32_tPush(rows, DECBINT);
+                rplNewBINTPush(rows, DECBINT);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -2384,7 +2384,7 @@ void LIB_HANDLER()
                 for(j = 1; j <= cols; ++j) {
                     rplPushData(rplMatrixFastGet(*mat, 1, j));
                 }
-                rplNewint32_tPush(cols, DECBINT);
+                rplNewBINTPush(cols, DECBINT);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -3395,7 +3395,7 @@ void LIB_HANDLER()
                     // CREATE THE FRACTION IN CANONICAL FORM TO SAVE THE AUTOSIMPLIFY STEP
                     rplPushData((word_p) one_bint);
                     if(i + j - 1 > 1) {
-                        rplNewint32_tPush(i + j - 1, DECBINT);
+                        rplNewBINTPush(i + j - 1, DECBINT);
                         if(Exceptions) {
                             DSTop = savestk;
                             return;
@@ -4363,7 +4363,7 @@ void LIB_HANDLER()
         }
 
         DSTop = savestk;
-        word_p rankobj = rplNewint32_t(rank, DECBINT);
+        word_p rankobj = rplNewBINT(rank, DECBINT);
         if(!rankobj)
             return;
 
@@ -4468,7 +4468,7 @@ void LIB_HANDLER()
         int32_t random;
         for(k = 0; k < nelem; ++k) {
             random = (rplRandomNext() >> 8) % 19;
-            rplNewint32_tPush(random - 9, DECBINT);
+            rplNewBINTPush(random - 9, DECBINT);
             if(Exceptions) {
                 DSTop = first;
                 return;
@@ -5652,11 +5652,11 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            word_p number = rplNewint32_t(row + 1, DECBINT);
+            word_p number = rplNewBINT(row + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(4, number);
-            number = rplNewint32_t(col + 1, DECBINT);
+            number = rplNewBINT(col + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(5, number);
@@ -5677,7 +5677,7 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            word_p number = rplNewint32_t(row + 1, DECBINT);
+            word_p number = rplNewBINT(row + 1, DECBINT);
             if(!number)
                 return;
 
@@ -5688,7 +5688,7 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
 
-            number = rplNewint32_t(col + 1, DECBINT);
+            number = rplNewBINT(col + 1, DECBINT);
             if(!number)
                 return;
             // CREATE RULE TO SUBSTITUTE COLUMN
@@ -5747,7 +5747,7 @@ void LIB_HANDLER()
         if(index < nelem - 1) {
             // LEAVE THE CURRENT RESULT ON THE STACK
             // INCREASE THE INDEX
-            word_p number = rplNewint32_t(index + 1, DECBINT);
+            word_p number = rplNewBINT(index + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(3, number);
@@ -6074,7 +6074,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((byte_p) "[ ");
+            rplDecompAppendString("[ ");
             int32_t rows = MATROWS(*(DecompileObject + 1)), cols =
                     MATCOLS(*(DecompileObject + 1));
             int32_t doublebracket = rows;
@@ -6090,7 +6090,7 @@ void LIB_HANDLER()
                     rplDecompDoHintsWidth(HINT_NLAFTER | ((i ==
                                     0) ? HINT_ADDINDENTAFTER : 0));
 
-                    rplDecompAppendString((byte_p) "[ ");
+                    rplDecompAppendString("[ ");
 
                 }
                 if(Exceptions) {
@@ -6110,7 +6110,7 @@ void LIB_HANDLER()
                         rplDecompAppendChar(' ');
                 }
                 if(doublebracket)
-                    rplDecompAppendString((byte_p) "] ");
+                    rplDecompAppendString("] ");
                 if(Exceptions) {
                     RetNum = ERR_INVALID;
                     return;

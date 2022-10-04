@@ -47,18 +47,21 @@ static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
 }
 
 // Sets pointers to string. Returns string length in code points
-static int32_t rplGetStringPointers(word_p object, byte_p *start, byte_p *end)
+static int32_t rplGetStringPointers(word_p object, utf8_p *start, utf8_p *end)
 {
-    *start = (byte_p) (object + 1);
+    *start = (utf8_p) (object + 1);
     int32_t totaln = rplStrLenCp(object);
-    *end = (byte_p) utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
+    *end = utf8nskip((char *)*start, (char *)rplSkipOb(object), totaln);
     return totaln;
 }
 
 // Decompiles object and sets pointers to resulting string
 // Returns 0 on error with target pointers set to null
 // Returns string length in code points if ok with target pointers set
-static int32_t rplGetDecompiledString(word_p object, int32_t flags, byte_p *start, byte_p *end)
+static int32_t rplGetDecompiledString(word_p  object,
+                                      int32_t flags,
+                                      utf8_p *start,
+                                      utf8_p *end)
 {
     word_p opname = rplDecompileAnyway(object, flags);
     if (!opname) {
@@ -73,7 +76,10 @@ static int32_t rplGetDecompiledString(word_p object, int32_t flags, byte_p *star
 // Decompiles object and sets pointers to resulting string with tickmarks removed
 // returns 0 on error with target pointers set to null
 // returns 1 if ok with target pointers set
-static int rplGetDecompiledStringWithoutTickmarks(word_p object, int32_t flags, byte_p *start, byte_p *end)
+static int rplGetDecompiledStringWithoutTickmarks(word_p  object,
+                                                  int32_t flags,
+                                                  utf8_p *start,
+                                                  utf8_p *end)
 {
     int32_t totaln = rplGetDecompiledString(object, flags, start, end);
     if (!totaln)
@@ -88,6 +94,60 @@ static int rplGetDecompiledStringWithoutTickmarks(word_p object, int32_t flags, 
 
     return 1;
 }
+
+
+static inline utf8_p halHelpMessage(utf8_p command)
+// ----------------------------------------------------------------------------
+//   Find the help message associated with the topic
+// ----------------------------------------------------------------------------
+{
+    return command;
+}
+
+
+#define halRepeatingKey(keymsg)                                         \
+/* ----------------------------------------------------------------- */ \
+/* Indicate that a key can repeat                                    */ \
+/* ----------------------------------------------------------------- */ \
+    do                                                                  \
+    {                                                                   \
+        keyb_msg_t msg = KM_MESSAGE(keymsg);                            \
+        if (msg & KFLAG_LONG_PRESS)                                     \
+            keyb_flags |= KFLAG_REPEAT;                                 \
+        if (msg & KFLAG_CHANGED)                                        \
+            return;                                                     \
+    } while (0)
+
+
+#define halKeyHelp(keymsg, command)                                     \
+/* ----------------------------------------------------------------- */ \
+/*  Specify the help message for a key                               */ \
+/* ----------------------------------------------------------------- */ \
+/*  Key down   : Show the short help (name of the command)           */ \
+/*  Key up     : Clear the help and cancel execution                 */ \
+/*  Long Press : Show the extended help message (and cancel)         */ \
+    do                                                                  \
+    {                                                                   \
+        keyb_msg_t msg = KM_MESSAGE(keymsg);                            \
+                                                                        \
+        if (msg & KFLAG_CHANGED)                                        \
+        {                                                               \
+            if (msg & KFLAG_PRESSED)                                    \
+                halScreen.ShortHelpMessage = (command);                 \
+            else                                                        \
+                halScreen.ShortHelpMessage = NULL;                      \
+            halScreen.HelpMessage = NULL;                               \
+            halCancelPopup();                                           \
+            halScreen.DirtyFlag |= STATUS_DIRTY | HELP_DIRTY;           \
+            return;                                                     \
+        }                                                               \
+        if (msg & KFLAG_LONG_PRESS)                                     \
+        {                                                               \
+            halScreen.HelpMessage = halHelpMessage(command);            \
+            halScreen.DirtyFlag |= HELP_DIRTY;                          \
+            return;                                                     \
+        }                                                               \
+    } while (0)
 
 
 static void keybTimeoutHandler()
@@ -260,7 +320,7 @@ void halForceAlphaModeOff()
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
 void KH(dummy)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "dummy");
     return;
 }
 
@@ -279,7 +339,7 @@ int32_t endCmdLineAndCompile()
     int32_t len = rplStrSize(text);
     word_p newobject;
     if(len) {
-        newobject = rplCompile((byte_p) (text + 1), len, 1);
+        newobject = rplCompile((utf8_p) (text + 1), len, 1);
         if(Exceptions || (!newobject)) {
             // HIGHLIGHT THE WORD THAT CAUSED THE ERROR
 
@@ -527,9 +587,23 @@ void endCmdLine()
 
 void KH(number)(keyb_msg_t keymsg)
 {
+    halKeyHelp(keymsg, "Numbers");
     record(keys, "number key handler %08X key %d msg %x shift %x ",
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
-
+    int32_t number;
+    switch (KM_KEY(keymsg))
+    {
+    case KB_1: number = '1'; break;
+    case KB_2: number = '2'; break;
+    case KB_3: number = '3'; break;
+    case KB_4: number = '4'; break;
+    case KB_5: number = '5'; break;
+    case KB_6: number = '6'; break;
+    case KB_7: number = '7'; break;
+    case KB_8: number = '8'; break;
+    case KB_9: number = '9'; break;
+    case KB_0: number = '0'; break;
+    }
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -543,40 +617,7 @@ void KH(number)(keyb_msg_t keymsg)
         else
             uiOpenCmdLine('D');
     }
-    int32_t number;
-    switch (KM_KEY(keymsg)) {
-    case KB_1:
-        number = '1';
-        break;
-    case KB_2:
-        number = '2';
-        break;
-    case KB_3:
-        number = '3';
-        break;
-    case KB_4:
-        number = '4';
-        break;
-    case KB_5:
-        number = '5';
-        break;
-    case KB_6:
-        number = '6';
-        break;
-    case KB_7:
-        number = '7';
-        break;
-    case KB_8:
-        number = '8';
-        break;
-    case KB_9:
-        number = '9';
-        break;
-    case KB_0:
-        number = '0';
-        break;
-    }
-    uiInsertCharactersN((byte_p) & number, ((byte_p) & number) + 1);
+    uiInsertCharactersN((utf8_p) &number, ((utf8_p) &number) + 1);
     uiAutocompleteUpdate();
 
 }
@@ -1057,7 +1098,7 @@ void uiStackRedo()
 //    IsFunc == 2 --> In alg mode, run the opcode directly, as in direct mode
 //    IsFunc < 0  --> Not allowed in symbolic (alg) mode, do nothing
 
-void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
+void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -1069,7 +1110,7 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
                 Exceptions = 0;
             }
             else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
 
         }
@@ -1092,7 +1133,7 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
                 else {
                     if(rplTestSystemFlag(FL_LASTMENU))
                         halScreen.DirtyFlag |=
-                                MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                                MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
                 }
                 halScreen.DirtyFlag |= STACK_DIRTY;
             }
@@ -1101,7 +1142,7 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
         case 'P':      // PROGRAMMING MODE
             // TODO: SEPARATE TOKENS
             uiSeparateToken();
-            uiInsertCharacters(Progmode);
+            uiInsertCharacters((utf8_p) Progmode);
             uiSeparateToken();
             uiAutocompleteUpdate();
             break;
@@ -1121,15 +1162,15 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
                         }
                         else
                             halScreen.DirtyFlag |=
-                                    MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                                    MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
                         halScreen.DirtyFlag |= STACK_DIRTY;
                     }
                     break;
                 }
                 if(IsFunc < 2) {
-                    uiInsertCharacters(Progmode);
+                    uiInsertCharacters((utf8_p) Progmode);
                     if(IsFunc == 1) {
-                        uiInsertCharacters((byte_p) "()");
+                        uiInsertCharacters("()");
                         uiCursorLeft(1);
                     }
                     uiAutocompleteUpdate();
@@ -1142,7 +1183,7 @@ void cmdKeyHandler(WORD Opcode, byte_p Progmode, int32_t IsFunc)
     }
 }
 
-void KH(transpcmd)(WORD Opcode)
+void transpcmdKeyHandler(WORD Opcode)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -1154,7 +1195,7 @@ void KH(transpcmd)(WORD Opcode)
                 Exceptions = 0;
             }
             else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
 
@@ -1168,36 +1209,76 @@ void KH(transpcmd)(WORD Opcode)
             Exceptions = 0;
         }
         else
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
         halScreen.DirtyFlag |= STACK_DIRTY;
     }
 
 }
 
-// REVISIT: This function is 1097 lines long!
+
+utf8_p halCommandName(word_p item)
+// ----------------------------------------------------------------------------
+//   Return the command name associated with a given item
+// ----------------------------------------------------------------------------
+{
+    if (!item)
+        return NULL;
+
+    utf8_p       text, end;
+    menu_flags_t flags = MENU_NORMAL;
+    if (!uiMenuItemName(item, &flags, &text, &end))
+        return NULL;
+
+    // Copy in a local buffer, since the original may be a string (GC)
+    static char name[32] = { 0 };
+    size_t size = end - text;
+    if (size > sizeof(name)-1)
+        size = sizeof(name)-1;
+    strncpy(name, text, size);
+    name[size] = 0;
+    return name;
+
+#if 0
+    word_p helptext = uiGetMenuItemHelp(item);
+    if (!helptext)
+        return NULL;
+#endif
+}
+
+
+utf8_p halMenuCommandName(int menu, int index)
+// ----------------------------------------------------------------------------
+//   Find the command name associated with a given menu entry
+// ----------------------------------------------------------------------------
+{
+    uint64_t m1code  = rplGetMenuCode(menu);
+    word_p   MenuObj = uiGetLibMenu(m1code);
+    unsigned nitems  = uiCountMenuItems(m1code, MenuObj);
+
+    // Check if the command still exists (may have been purged)
+    if (MENUPAGE(m1code) >= nitems)
+    {
+        m1code = SETMENUPAGE(m1code, 0);
+        rplSetMenuCode(menu, m1code);
+    }
+
+    // Get the item's name
+    word_p item = uiGetMenuItem(m1code, MenuObj, index + MENUPAGE(m1code));
+    return halCommandName(item);
+}
+
+
 void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
+// ----------------------------------------------------------------------------
+//   Handler for function keys (soft menus)
+// ----------------------------------------------------------------------------
+// REVISIT: This function is 1097 lines long!
 {
     // Switch menus
     if (halKeyMenuSwitch)
         menunum = (menunum == 2) ? 1 : 2;
 
-    if (KM_MESSAGE(keymsg) == KM_LONG_PRESS)
-    {
-        // ENTER MENU HELP MODE
-        // KILL ANY PENDING POPUPS
-        halScreen.HelpMode = (menunum << 16) | varnum;
-        halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        return;
-    }
-
-    if(KM_MESSAGE(keymsg) == KM_KEYUP) {
-        if(halScreen.HelpMode) {
-            halCancelPopup();
-            halScreen.HelpMode = 0;
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
-        }
-        return;
-    }
+    halKeyHelp(keymsg, halMenuCommandName(menunum, varnum));
 
     // DEFAULT PRESS MESSAGE
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
@@ -1267,7 +1348,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                    word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1312,7 +1393,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                    word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1355,7 +1436,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                    word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1389,7 +1470,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             }
             else
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
         }
 
     }
@@ -1460,10 +1541,11 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 case 'P':
                     // USER IS TRYING TO 'STO' INTO THE VARIABLE
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "'");
-                    uiInsertCharactersN((byte_p) (action + 1),
-                            (byte_p) (action + 1) + rplGetIdentLength(action));
-                    uiInsertCharacters((byte_p) "' STO");
+                    uiInsertCharacters("'");
+                    uiInsertCharactersN((utf8_p) (action + 1),
+                                        (utf8_p) (action + 1) +
+                                            rplGetIdentLength(action));
+                    uiInsertCharacters("' STO");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
                     break;
@@ -1491,14 +1573,17 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 case 'P':
                 {
-                    byte_p string, endstring;
-                    if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
+                    utf8_p string, endstring;
+                    if (!rplGetDecompiledString(action,
+                                                DECOMP_EDIT | DECOMP_NOHINTS,
+                                                &string,
+                                                &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "CONVERT");
+                    uiInsertCharacters("CONVERT");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -1515,7 +1600,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                 if(!numobject || Exceptions)
                     return;
@@ -1569,14 +1654,14 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         word_p *var = rplFindGlobal(action, 1);
-                        byte_p string = 0, endstring;
+                        utf8_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (byte_p) (action + 1);
+                                string = (utf8_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
@@ -1587,7 +1672,8 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                                 uiSeparateToken();
                                 int32_t nlines =
-                                        uiInsertCharactersN(string, endstring);
+                                    uiInsertCharactersN(string,
+                                                        endstring);
                                 if(nlines)
                                     uiStretchCmdLine(nlines);
                                 uiSeparateToken();
@@ -1620,23 +1706,27 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         word_p *var = rplFindGlobal(action, 1);
-                        byte_p string = 0, endstring;
+                        utf8_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (byte_p) (action + 1);
+                                string = (utf8_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
-                                rplGetDecompiledStringWithoutTickmarks(var[1], DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring);
+                                rplGetDecompiledStringWithoutTickmarks(
+                                    var[1],
+                                    DECOMP_EDIT | DECOMP_NOHINTS,
+                                    &string,
+                                    &endstring);
                             }
 
                             if(string) {
                                 int32_t nlines =
-                                        uiInsertCharactersN(string, endstring);
+                                    uiInsertCharactersN(string, endstring);
                                 if(nlines)
                                     uiStretchCmdLine(nlines);
 
@@ -1649,8 +1739,9 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                     // JUST INSERT THE NAME IN ALGEBRAIC MODE
 
-                    uiInsertCharactersN((byte_p) (action + 1),
-                            (byte_p) (action + 1) + rplGetIdentLength(action));
+                    uiInsertCharactersN((utf8_p) (action + 1),
+                                        (utf8_p) (action + 1) +
+                                        rplGetIdentLength(action));
                     break;
 
                 case 'P':
@@ -1661,18 +1752,21 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                         word_p *var = rplFindGlobal(action, 1);
 
-                        byte_p string = 0, endstring;
+                        utf8_p string = 0, endstring;
 
                         if(var) {
 
                             if(ISDIR(*var[1])) {
                                 // VARIABLE IS A DIRECTORY, DON'T RCL
                                 // BUT PUT THE NAME
-                                string = (byte_p) (action + 1);
+                                string = (utf8_p) (action + 1);
                                 endstring = string + rplGetIdentLength(action);
                             }
                             else {
-                                rplGetDecompiledString(var[1], DECOMP_EDIT, &string, &endstring);
+                                rplGetDecompiledString(var[1],
+                                                       DECOMP_EDIT,
+                                                       &string,
+                                                       &endstring);
                             }
                             if(string) {
                                 uiSeparateToken();
@@ -1689,10 +1783,11 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                     }
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "'");
-                    uiInsertCharactersN((byte_p) (action + 1),
-                            (byte_p) (action + 1) + rplGetIdentLength(action));
-                    uiInsertCharacters((byte_p) "' RCL");
+                    uiInsertCharacters("'");
+                    uiInsertCharactersN((utf8_p) (action + 1),
+                                        (utf8_p) (action + 1) +
+                                            rplGetIdentLength(action));
+                    uiInsertCharacters("' RCL");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
                     break;
@@ -1720,14 +1815,14 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 case 'P':
                 {
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "/");
+                    uiInsertCharacters("/");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -1747,7 +1842,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                    word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1766,8 +1861,8 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 case 'A':
                 {
                     // INSERT THE LIBRARY IDENTIFIER
-                    byte_p string, endstring;
-                    string = (byte_p) (action + 2);
+                    utf8_p string, endstring;
+                    string = (utf8_p) (action + 2);
                     endstring = string + rplGetIdentLength(action + 1);
                     int32_t nlines = uiInsertCharactersN(string, endstring);
                     if(nlines)
@@ -1845,7 +1940,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                             break;
                         }
                     }
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -1867,7 +1962,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         }
                     }
 
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -1925,22 +2020,25 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     if(!opname)
                         break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    byte_p string, endstring;
-                    int32_t totaln = rplGetStringPointers(opname, &string, &endstring);
+                    utf8_p string, endstring;
+                    int32_t totaln =
+                        rplGetStringPointers(opname, &string, &endstring);
 
-                    if(removevalue) {
+                    if (removevalue)
+                    {
                         // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
-                        int32_t k, offset;
-                        for(k = 0, offset = 0; k < totaln;
-                                ++k, offset =
-                                (byte_p) utf8skip((char *)string + offset,
-                                    (char *)endstring) - string)
-                            if(utf82cp((char *)string + offset,
-                                        (char *)endstring) == '_') {
+                        int32_t k, offset = 0;
+                        for (k = 0; k < totaln; ++k)
+                        {
+                            utf8_p next = utf8skip(string + offset, endstring);
+                            offset = next - string;
+                            if (utf82cp(next, endstring) == '_')
+                            {
                                 totaln -= k + 1;
-                                string += offset + 1;
+                                string = next + 1;
                                 break;
                             }
+                        }
                     }
 
                     uiInsertCharactersN(string, endstring);
@@ -1951,14 +2049,14 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                 case 'P':
                 {
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     uiSeparateToken();
                     uiInsertCharactersN(string, endstring);
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "*");
+                    uiInsertCharacters("*");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -2005,7 +2103,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         CurOpcode = savecurOpcode;
                     }
 
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -2014,7 +2112,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         uiStretchCmdLine(nlines);
 
                     if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                        uiInsertCharacters((byte_p) "()");
+                        uiInsertCharacters("()");
                         uiCursorLeft(1);
                     }
                     uiAutocompleteUpdate();
@@ -2048,7 +2146,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                     }
 
-                    byte_p string, endstring;
+                    utf8_p string, endstring;
                     if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                         break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -2069,7 +2167,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                             if (isempty)
                             {
                                 if (dhints & HINT_ADDINDENTBEFORE)
-                                    uiInsertCharacters((byte_p) "  ");
+                                    uiInsertCharacters("  ");
                                 if (dhints & HINT_SUBINDENTBEFORE)
                                 {
                                     if (nlvl > 2)
@@ -2080,14 +2178,14 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                             }
                             else
                             {
-                                uiInsertCharacters((byte_p) "\n");
+                                uiInsertCharacters("\n");
 
                                 ++nlines;
                                 int k;
                                 for (k = 0; k < nlvl + halScreen.CmdLineIndent;
                                      ++k)
                                     uiInsertCharacters(
-                                        (byte_p) " "); // APPLY INDENT
+                                        " "); // APPLY INDENT
                                 halScreen.CmdLineIndent = 0;
                             }
                         }
@@ -2106,13 +2204,13 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         {
                             int32_t nlvl = uiGetIndentLevel(0);
 
-                            uiInsertCharacters((byte_p) "\n");
+                            uiInsertCharacters("\n");
 
                             ++nlines;
                             int k;
                             for (k = 0; k < nlvl + halScreen.CmdLineIndent; ++k)
                                 uiInsertCharacters(
-                                    (byte_p) " "); // APPLY INDENT
+                                    " "); // APPLY INDENT
                             halScreen.CmdLineIndent = 0;
                         }
                     }
@@ -2134,7 +2232,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 // SHOW THE LIBRARY MENU
                 int64_t libmcode = (((int64_t) action[2]) << 32) |
                                    MKMENUCODE(0, DOLIBPTR, 0, 0);
-                word_p numobject = rplNewint32_t(libmcode, HEXBINT);
+                word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                 if (!numobject || Exceptions)
                     return;
@@ -2218,7 +2316,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     CurOpcode = savecurOpcode;
                 }
 
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action,
                                             DECOMP_EDIT | DECOMP_NOHINTS,
                                             &string,
@@ -2228,7 +2326,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 uiInsertCharactersN(string, endstring);
                 if (TI_TYPE(tokeninfo) == TITYPE_FUNCTION)
                 {
-                    uiInsertCharacters((byte_p) "()");
+                    uiInsertCharacters("()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -2238,7 +2336,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
             case 'P':
             {
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action,
                                             DECOMP_EDIT,
                                             &string,
@@ -2271,12 +2369,18 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
         }
         else
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
     }
 }
 
-void symbolKeyHandler(keyb_msg_t keymsg, byte_p symbol, int32_t separate)
+
+void symbolKeyHandler(keyb_msg_t keymsg, utf8_p symbol, int32_t separate)
+// ----------------------------------------------------------------------------
+//   Insert a symbol
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, symbol);
+
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -2301,8 +2405,10 @@ void symbolKeyHandler(keyb_msg_t keymsg, byte_p symbol, int32_t separate)
 
 }
 
-void alphasymbolKeyHandler(keyb_msg_t keymsg, byte_p Lsymbol, byte_p Csymbol)
+void alphasymbolKeyHandler(keyb_msg_t keymsg, utf8_p Lsymbol, utf8_p Csymbol)
 {
+    halKeyHelp(keymsg, Csymbol);
+
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -2326,20 +2432,34 @@ void alphasymbolKeyHandler(keyb_msg_t keymsg, byte_p Lsymbol, byte_p Csymbol)
 
 }
 
-void KH(VarMenu)(keyb_msg_t keymsg)
+void KH(ToggleMenu)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Toggle second menu
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, halScreen.Menu2 ? "Hide menu" : "Show menu");
 
-    // SIMPLY TOGGLE THE MENU UPON PRESS
+    // Simply toggle the menu upon press
     if(halScreen.Menu2)
+    {
         halSetMenu2Height(0);
+        rplSetSystemFlag(FL_HIDEMENU2);
+    }
     else
+    {
         halSetMenu2Height(MENU2_HEIGHT);
-
+        rplClrSystemFlag(FL_HIDEMENU2);
+    }
 }
 
+
 void KH(newline)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Insert newline character
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, "New line");
+
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -2360,10 +2480,10 @@ void KH(newline)(keyb_msg_t keymsg)
     int32_t ilvl = uiGetIndentLevel(0);
 
     // ADD A NEW LINE
-    uiInsertCharacters((byte_p) "\n");
+    uiInsertCharacters("\n");
     int k;
     for(k = 0; k < ilvl + halScreen.CmdLineIndent; ++k)
-        uiInsertCharacters((byte_p) " ");
+        uiInsertCharacters(" ");
     halScreen.CmdLineIndent = 0;
 
     uiAutocompleteUpdate();
@@ -2371,8 +2491,12 @@ void KH(newline)(keyb_msg_t keymsg)
 }
 
 void KH(decimalDot)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Insert a decimal separator
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Decimal separator");
+
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() >> 5)
             return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
@@ -2391,18 +2515,22 @@ void KH(decimalDot)(keyb_msg_t keymsg)
     uint64_t Locale = rplGetSystemLocale();
 
     WORD ucode = cp2utf8(DECIMAL_DOT(Locale));
+    utf8_p text = (utf8_p) &ucode;
     if(ucode & 0xff000000)
-        uiInsertCharactersN((byte_p) & ucode, ((byte_p) & ucode) + 4);
+        uiInsertCharactersN(text, text+4);
     else
-        uiInsertCharacters((byte_p) & ucode);
+        uiInsertCharacters(text);
 
     uiAutocompleteUpdate();
 
 }
 
 void KH(enter)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Enter key
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "ENTER");
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         // PERFORM DUP
@@ -2434,7 +2562,7 @@ void KH(enter)(keyb_msg_t keymsg)
 
         if(endCmdLineAndCompile()) {
             halScreen.DirtyFlag |=
-                    STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                    STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             if(!(halFlags & (HAL_HWRESET | HAL_RESET))) {
                 rplRemoveSnapshot(halScreen.StkUndolevels + 2);
                 rplRemoveSnapshot(halScreen.StkUndolevels + 1);
@@ -2451,8 +2579,11 @@ void KH(enter)(keyb_msg_t keymsg)
 }
 
 void KH(cut)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Cut to clipboard
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Cut");
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2605,8 +2736,11 @@ void KH(cut)(keyb_msg_t keymsg)
 }
 
 void KH(copy)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Copy to clipboard
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Copy");
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2716,8 +2850,11 @@ void KH(copy)(keyb_msg_t keymsg)
 }
 
 void KH(paste)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Paste from clipboard
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Paste");
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -2799,8 +2936,8 @@ void KH(paste)(keyb_msg_t keymsg)
             }
 
             rplRemoveAtData(nitems, 1);
-            uiInsertCharactersN((byte_p) (object + 1),
-                    (byte_p) (object + 1) + rplStrSize(object));
+            uiInsertCharactersN((utf8_p) (object + 1),
+                    (utf8_p) (object + 1) + rplStrSize(object));
             --nitems;
         }
 
@@ -2808,8 +2945,11 @@ void KH(paste)(keyb_msg_t keymsg)
 }
 
 void KH(backsp)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Backspace key, delete to the left of cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halRepeatingKey(keymsg);
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         // DO DROP
@@ -2975,10 +3115,13 @@ void KH(backsp)(keyb_msg_t keymsg)
     }
 }
 
-void KH(del)(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
 
+void KH(del)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Delete to right of cursor
+// ----------------------------------------------------------------------------
+{
+    halRepeatingKey(keymsg);
     if((halGetContext() & CONTEXT_INEDITOR)) {
         // REMOVE CHARACTERS FROM THE COMMAND LINE
         uiRemoveCharacters(1);
@@ -2994,14 +3137,16 @@ void KH(del)(keyb_msg_t keymsg)
 // ============================================================================
 
 void KH(left)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Left cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             // PERFORM UNDO IN THE STACK
             uiStackUndo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
             return;
 
         }
@@ -3160,9 +3305,11 @@ void KH(left)(keyb_msg_t keymsg)
 }
 
 void KH(right)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Right cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
 
@@ -3320,9 +3467,11 @@ void KH(right)(keyb_msg_t keymsg)
 }
 
 void KH(up)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Up cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             // START INTERACTIVE STACK MANIPULATION HERE
@@ -3369,9 +3518,11 @@ void KH(up)(keyb_msg_t keymsg)
 }
 
 void KH(down)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//    Down cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
 
@@ -3445,7 +3596,11 @@ void KH(down)(keyb_msg_t keymsg)
     }
 }
 
+
 void KH(upOrLeft)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Up or left for DM42, which has no left/right keys
+// ----------------------------------------------------------------------------
 {
     keyb_msg_t key     = KM_KEY(keymsg);
     unsigned   shifted = (key & KSHIFT_LEFT) != 0;
@@ -3456,7 +3611,11 @@ void KH(upOrLeft)(keyb_msg_t keymsg)
         upKeyHandler(keymsg);
 }
 
+
 void KH(downOrRight)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Down or right for DM42, which has no left/right keys
+// ----------------------------------------------------------------------------
 {
     keyb_msg_t key     = KM_KEY(keymsg);
     unsigned   shifted = (key & KSHIFT_LEFT) != 0;
@@ -3467,15 +3626,18 @@ void KH(downOrRight)(keyb_msg_t keymsg)
         upKeyHandler(keymsg);
 }
 
-void KH(startOfLine)(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
 
+void KH(startOfLine)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move cursor to start of line
+// ----------------------------------------------------------------------------
+{
+    halKeyHelp(keymsg, "Start of line");
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             // REDO ACTION
             uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
             return;
         }
 
@@ -3487,9 +3649,11 @@ void KH(startOfLine)(keyb_msg_t keymsg)
 }
 
 void KH(endOfLine)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//    Move cursor to end of line
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "End of line");
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
@@ -3505,16 +3669,22 @@ void KH(endOfLine)(keyb_msg_t keymsg)
 }
 
 void KH(startOfText)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move cursor to start of text
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Start of text");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer != rplDepthData()) {
-                halScreen.StkPointer = rplDepthData();
+        if (halGetContext() & CONTEXT_INTSTACK)
+        {
+            if (halScreen.StkPointer != rplDepthData())
+            {
+                halScreen.StkPointer    = rplDepthData();
                 halScreen.StkVisibleLvl = -1;
                 halScreen.DirtyFlag |= STACK_DIRTY;
             }
@@ -3523,8 +3693,8 @@ void KH(startOfText)(keyb_msg_t keymsg)
 
         // TODO: ADD OTHER CONTEXTS HERE
     }
-
-    else {
+    else
+    {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorStartOfText();
         halScreen.CmdLineIndent = 0;
@@ -3534,17 +3704,23 @@ void KH(startOfText)(keyb_msg_t keymsg)
 }
 
 void KH(endOfText)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move cursor to end of text
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "End of text");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: ??
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer > 1) {
-                halScreen.StkPointer = 1;
-                halScreen.StkVisibleLvl = 1;
+        if (halGetContext() & CONTEXT_INTSTACK)
+        {
+            if (halScreen.StkPointer > 1)
+            {
+                halScreen.StkPointer       = 1;
+                halScreen.StkVisibleLvl    = 1;
                 halScreen.StkVisibleOffset = 0;
                 halScreen.DirtyFlag |= STACK_DIRTY;
             }
@@ -3553,8 +3729,8 @@ void KH(endOfText)(keyb_msg_t keymsg)
 
         // TODO: ADD OTHER CONTEXTS HERE
     }
-
-    else {
+    else
+    {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorEndOfText();
         halScreen.CmdLineIndent = 0;
@@ -3564,55 +3740,67 @@ void KH(endOfText)(keyb_msg_t keymsg)
 }
 
 void KH(pageLeft)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move one page left
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Page left");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // REDO ACTION
             uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
             return;
-
         }
-
     }
-    else {
+    else
+    {
         uiCursorPageLeft();
         uiAutocompleteUpdate();
     }
 }
 
 void KH(pageRight)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move one page right
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Page right");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
-
         }
-
     }
-    else {
+    else
+    {
         uiCursorPageRight();
         uiAutocompleteUpdate();
     }
 }
 
 void KH(pageUp)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move one page up
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Page up"); // REVISIT: Is it more useful to repeat?
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer < rplDepthData()) {
+        if (halGetContext() & CONTEXT_INTSTACK)
+        {
+            if (halScreen.StkPointer < rplDepthData())
+            {
                 halScreen.StkPointer += 5;
-                if(halScreen.StkPointer >= rplDepthData())
+                if (halScreen.StkPointer >= rplDepthData())
                     halScreen.StkPointer = rplDepthData();
                 halScreen.StkVisibleLvl = -1;
                 halScreen.DirtyFlag |= STACK_DIRTY;
@@ -3622,28 +3810,33 @@ void KH(pageUp)(keyb_msg_t keymsg)
 
         // TODO: ADD OTHER CONTEXTS HERE
     }
-
-    else {
+    else
+    {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageUp();
         halScreen.CmdLineIndent = 0;
         halDeferProcess(&uiAutocompleteUpdate);
-
     }
 }
 
 void KH(pageDown)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Move one page down
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Page down");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: ??
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
-            if(halScreen.StkPointer > 1) {
+        if (halGetContext() & CONTEXT_INTSTACK)
+        {
+            if (halScreen.StkPointer > 1)
+            {
                 halScreen.StkPointer = halScreen.StkVisibleLvl - 1;
-                if(halScreen.StkPointer < 1)
+                if (halScreen.StkPointer < 1)
                     halScreen.StkPointer = 1;
                 halScreen.StkVisibleLvl = -1;
                 halScreen.DirtyFlag |= STACK_DIRTY;
@@ -3651,10 +3844,9 @@ void KH(pageDown)(keyb_msg_t keymsg)
             return;
         }
         // TODO: ADD OTHER CONTEXTS HERE
-
     }
-
-    else {
+    else
+    {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageDown();
         halScreen.CmdLineIndent = 0;
@@ -3664,51 +3856,62 @@ void KH(pageDown)(keyb_msg_t keymsg)
 }
 
 void KH(startSelection)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Start the selection at cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Start selection");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
-
         }
-
     }
-    else {
+    else
+    {
         uiSetSelectionStart();
     }
 }
 
 void KH(endSelection)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   End selection at cursor
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "End selection");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // NOT SURE WHAT TO DO WITH THIS KEY
-
         }
-
     }
-    else {
+    else
+    {
         // IN THE EDITOR, DO SELECTION
         uiSetSelectionEnd();
     }
 }
 
 void KH(autoComplete)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//    Auto-complete
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Auto-complete");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: ??
         }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
-    else {
+    else
+    {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiAutocompInsert();
         uiAutocompleteUpdate();
@@ -3716,33 +3919,43 @@ void KH(autoComplete)(keyb_msg_t keymsg)
 }
 
 void KH(autoCompleteNext)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select next auto-completion
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Next completion");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: ??
         }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
-    else {
+    else
+    {
         uiAutocompNext();
     }
 }
 
 void KH(autoCompletePrevious)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select previous auto-completion
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    halKeyHelp(keymsg, "Previous completion");
+    if (!(halGetContext() & CONTEXT_INEDITOR))
+    {
+        if (halGetContext() & CONTEXT_STACK)
+        {
             // TODO: ??
         }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
-    else {
+    else
+    {
         uiAutocompPrev();
     }
 }
@@ -3755,9 +3968,11 @@ void KH(autoCompletePrevious)(keyb_msg_t keymsg)
 // ============================================================================
 
 void KH(chs)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Change sign
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "NEG");
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
@@ -3814,22 +4029,19 @@ void KH(chs)(keyb_msg_t keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-
-        byte_p startnum;
-        byte_p endnum;
+        utf8_p endnum;
         int32_t flags;
-        byte_p line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
-        startnum = uiFindNumberStart(&endnum, &flags);
-        line = (byte_p) (CmdLineCurrentLine + 1);
+        utf8_p startnum = (utf8_p) uiFindNumberStart(&endnum, &flags);
+        utf8_p line = (utf8_p) (CmdLineCurrentLine + 1);
         if(!startnum) {
             startnum = line + halScreen.CursorPosition;
             if(startnum > line) {
                 if(startnum[-1] == '+') {
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((byte_p) "-");
+                    uiInsertCharacters("-");
                     halScreen.DirtyFlag |=
                             CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
                     return;
@@ -3837,7 +4049,7 @@ void KH(chs)(keyb_msg_t keymsg)
                 if(startnum[-1] == '-') {
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((byte_p) "+");
+                    uiInsertCharacters("+");
                     halScreen.DirtyFlag |=
                             CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
                     return;
@@ -3845,18 +4057,18 @@ void KH(chs)(keyb_msg_t keymsg)
                 if((startnum[-1] == 'E') || (startnum[-1] == 'e')) {
                     if(startnum[0] == '+') {
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((byte_p) "-");
+                        uiInsertCharacters("-");
                         uiAutocompleteUpdate();
                         return;
                     }
                     else if(startnum[0] == '-') {
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((byte_p) "+");
+                        uiInsertCharacters("+");
                         uiAutocompleteUpdate();
                         return;
                     }
                     else {
-                        uiInsertCharacters((byte_p) "+");
+                        uiInsertCharacters("+");
                         uiAutocompleteUpdate();
                         return;
                     }
@@ -3883,7 +4095,7 @@ void KH(chs)(keyb_msg_t keymsg)
 
             if((halScreen.CursorState & 0xff) == 'P') {
                 uiSeparateToken();
-                uiInsertCharacters((byte_p) "NEG");
+                uiInsertCharacters("NEG");
                 uiSeparateToken();
                 uiAutocompleteUpdate();
                 return;
@@ -3894,30 +4106,27 @@ void KH(chs)(keyb_msg_t keymsg)
 
                 startnum = line + halScreen.CursorPosition;
                 int moveleft = 0;
-                byte_p prevstnum = startnum;
-                startnum =
-                        (byte_p) utf8rskipst((char *)startnum, (char *)line);
+                utf8_p prevstnum = startnum;
+                startnum = utf8rskipst(startnum, line);
                 if(startnum != prevstnum)
                     ++moveleft;
                 int32_t char1, char2;
                 extern const const char forbiddenChars[];
                 while(startnum >= line) {
-                    byte_p ptr = (byte_p) forbiddenChars;
+                    utf8_p ptr = (utf8_p) forbiddenChars;
                     char1 = utf82cp((char *)startnum, (char *)prevstnum);
                     do {
                         char2 = utf82cp((char *)ptr, (char *)ptr + 4);
                         if(char1 == char2)
                             break;
-                        ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
+                        ptr = (utf8_p) utf8skip((char *)ptr, (char *)ptr + 4);
                     }
                     while(*ptr);
                     if(*ptr)
                         break;
                     if(*startnum == '\'')
                         break;
-                    byte_p newptr =
-                            (byte_p) utf8rskipst((char *)startnum,
-                            (char *)line);
+                    utf8_p newptr = utf8rskipst(startnum, line);
                     if(newptr == startnum)
                         break;  // COULDN'T SKIP ANYMORE
                     ++moveleft;
@@ -3928,7 +4137,7 @@ void KH(chs)(keyb_msg_t keymsg)
                     if(moveleft > 0)
                         uiCursorLeft(moveleft);
                     uiRemoveCharacters(1);
-                    uiInsertCharacters((byte_p) "-");
+                    uiInsertCharacters("-");
                     if(moveleft > 0)
                         uiCursorRight(moveleft - 1);
                 }
@@ -3937,7 +4146,7 @@ void KH(chs)(keyb_msg_t keymsg)
                         if(moveleft > 0)
                             uiCursorLeft(moveleft);
                         uiRemoveCharacters(1);
-                        uiInsertCharacters((byte_p) "+");
+                        uiInsertCharacters("+");
                         if(moveleft > 0)
                             uiCursorRight(moveleft - 1);
                     }
@@ -3947,19 +4156,17 @@ void KH(chs)(keyb_msg_t keymsg)
                             uiCursorLeft(moveleft - 1);
                         else
                             uiCursorRight(1);
-                        startnum =
-                                (byte_p) utf8skipst((char *)startnum,
-                                (char *)(startnum + 4));
+                        startnum = (utf8_p) utf8skipst(startnum, startnum + 4);
                         if(*startnum == '+') {
                             uiRemoveCharacters(1);
-                            uiInsertCharacters((byte_p) "-");
+                            uiInsertCharacters("-");
                         }
                         else if(*startnum == '-') {
                             uiRemoveCharacters(1);
-                            uiInsertCharacters((byte_p) "+");
+                            uiInsertCharacters("+");
                         }
                         else
-                            uiInsertCharacters((byte_p) "-");
+                            uiInsertCharacters("-");
 
                         if(moveleft > 0)
                             uiCursorRight(moveleft - 1);
@@ -3989,7 +4196,7 @@ void KH(chs)(keyb_msg_t keymsg)
                     ++startnum;
             }
             uiMoveCursor(startnum - line);
-            byte_p plusminus = (byte_p) "-";
+            utf8_p plusminus = "-";
 
             if(startnum > line) {
                 if(startnum[-1] == '+') {
@@ -4000,7 +4207,7 @@ void KH(chs)(keyb_msg_t keymsg)
                 if(startnum[-1] == '-') {
                     uiMoveCursor(startnum - line - 1);
                     uiRemoveCharacters(1);
-                    plusminus = (byte_p) "+";
+                    plusminus = "+";
                     --oldposition;
                 }
             }
@@ -4019,8 +4226,11 @@ void KH(chs)(keyb_msg_t keymsg)
 }
 
 void KH(eex)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select an exponent
+// ----------------------------------------------------------------------------
 {
-
+    halKeyHelp(keymsg, "Exponent");
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
             halSetCmdLineHeight(CMDLINE_HEIGHT);
@@ -4034,9 +4244,9 @@ void KH(eex)(keyb_msg_t keymsg)
             rplGetSystemNumberFormat(&config);
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((byte_p) "1E");
+                uiInsertCharacters("1E");
             else
-                uiInsertCharacters((byte_p) "1e");
+                uiInsertCharacters("1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -4046,7 +4256,7 @@ void KH(eex)(keyb_msg_t keymsg)
         // ACTION INSIDE THE EDITOR
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
-        byte_p startnum, endnum;
+        utf8_p  startnum, endnum;
         int32_t flags;
         NUMFORMAT config;
 
@@ -4054,7 +4264,7 @@ void KH(eex)(keyb_msg_t keymsg)
 
         startnum = uiFindNumberStart(&endnum, &flags);
 
-        byte_p line = (byte_p) (CmdLineCurrentLine + 1);
+        utf8_p  line = (utf8_p) (CmdLineCurrentLine + 1);
 
         if(!startnum) {
             startnum = line + halScreen.CursorPosition;
@@ -4066,9 +4276,9 @@ void KH(eex)(keyb_msg_t keymsg)
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((byte_p) "1E");
+                uiInsertCharacters("1E");
             else
-                uiInsertCharacters((byte_p) "1e");
+                uiInsertCharacters("1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -4102,9 +4312,9 @@ void KH(eex)(keyb_msg_t keymsg)
                 else {
                     if((config.MiddleFmt | config.BigFmt | config.
                                 SmallFmt) & FMT_USECAPITALS)
-                        uiInsertCharacters((byte_p) "E");
+                        uiInsertCharacters("E");
                     else
-                        uiInsertCharacters((byte_p) "e");
+                        uiInsertCharacters("e");
                     uiMoveCursor(oldposition + 1);
                 }
                 uiEnsureCursorVisible();
@@ -4115,9 +4325,9 @@ void KH(eex)(keyb_msg_t keymsg)
             // THE CURSOR WAS PAST THE END OF THE NUMBER
             if((config.MiddleFmt | config.BigFmt | config.
                         SmallFmt) & FMT_USECAPITALS)
-                uiInsertCharacters((byte_p) "1E");
+                uiInsertCharacters("1E");
             else
-                uiInsertCharacters((byte_p) "1e");
+                uiInsertCharacters("1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -4125,8 +4335,10 @@ void KH(eex)(keyb_msg_t keymsg)
     }
 }
 
-// COMMON FUNCTION FOR AL "BRACKET TYPES"
-void bracketKeyHandler(keyb_msg_t keymsg, byte_p string)
+void bracketKeyHandler(keyb_msg_t keymsg, utf8_p string)
+// ----------------------------------------------------------------------------
+// Common function for all brackets (parenthese, curly braces, etc)
+// ----------------------------------------------------------------------------
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_INTSTACK)
@@ -4143,38 +4355,50 @@ void bracketKeyHandler(keyb_msg_t keymsg, byte_p string)
             || ((halScreen.CursorState & 0xff) == 'P'))
         uiSeparateToken();
 
-    byte_p end = string + stringlen((char *)string);
+    utf8_p end = string + stringlen(string);
     uiInsertCharactersN(string, end);
-    uiCursorLeft(utf8nlenst((char *)string, (char *)end) >> 1);
+    uiCursorLeft(utf8nlenst(string, end) >> 1);
     uiAutocompleteUpdate();
 
 }
 
 void KH(curlyBracket)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   List separators { } are list delimiters in RPL
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, "List delimiters");
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
-        bracketKeyHandler(keymsg, (byte_p) "{}");
+        bracketKeyHandler(keymsg, "{}");
     else {
-        bracketKeyHandler(keymsg, (byte_p) "{  }");
+        bracketKeyHandler(keymsg, "{  }");
         halSetCmdLineMode('P');
     }
 
 }
 
 void KH(squareBracket)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Square brackets [ ] are vector / matrix delimiters in RPL
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, "Matrix delimiters");
     if((halGetCmdLineMode() == 'A') || (halGetCmdLineMode() == 'C')
             || (halGetCmdLineMode() == 'L'))
-        bracketKeyHandler(keymsg, (byte_p) "[]");
+        bracketKeyHandler(keymsg, "[]");
     else
-        bracketKeyHandler(keymsg, (byte_p) "[  ]");
+        bracketKeyHandler(keymsg, "[  ]");
 
 }
 
 void KH(secoBracket)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Secondary brackets are program delimiters in RPL
+// ----------------------------------------------------------------------------
 {
-    bracketKeyHandler(keymsg, (byte_p) "«  »");
+    halKeyHelp(keymsg, "Program delimiters");
+    bracketKeyHandler(keymsg, "«  »");
 
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C'))
         halSetCmdLineMode('P');
@@ -4182,14 +4406,22 @@ void KH(secoBracket)(keyb_msg_t keymsg)
 }
 
 void KH(parenBracket)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Parentheses are used for priorities in arithmetic mode
+// ----------------------------------------------------------------------------
 {
-    bracketKeyHandler(keymsg, (byte_p) "()");
+    halKeyHelp(keymsg, "Parentheses");
+    bracketKeyHandler(keymsg, "()");
 
 }
 
 void KH(textBracket)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Quotes are used as text delimiters in RPL
+// ----------------------------------------------------------------------------
 {
-    bracketKeyHandler(keymsg, (byte_p) "\"\"");
+    halKeyHelp(keymsg, "Text delimiters");
+    bracketKeyHandler(keymsg, "\"\"");
 
     //  LOCK ALPHA MODE
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C'))
@@ -4198,27 +4430,34 @@ void KH(textBracket)(keyb_msg_t keymsg)
 }
 
 void KH(ticks)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Ticks are used as algebraic expression delimiters in RPL
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, "Expression delimiters");
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        bracketKeyHandler(keymsg, (byte_p) "''");
+        bracketKeyHandler(keymsg, "''");
         halSetCmdLineMode('A');
     }
     else
-        symbolKeyHandler(keymsg, (byte_p) "'", 0);
+        symbolKeyHandler(keymsg, "'", 0);
 }
 
 void KH(tag)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Colons are used as tag delimiter in RPL
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg, "Tag delimiter");
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        bracketKeyHandler(keymsg, (byte_p) "::");
+        bracketKeyHandler(keymsg, "::");
         //  Lock alpha mode
         keyb_set_shift_plane(KSHIFT_ALPHA);
     }
     else
-        symbolKeyHandler(keymsg, (byte_p) ":", 0);
+        symbolKeyHandler(keymsg, ":", 0);
 
 }
-
 
 static void contrastPattern()
 // ----------------------------------------------------------------------------
@@ -4246,9 +4485,11 @@ static void contrastPattern()
 
 
 void KH(increaseContrast)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Increase contrast on the display
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     halStatusAreaPopup();
     contrastPattern();
 
@@ -4267,9 +4508,11 @@ void KH(increaseContrast)(keyb_msg_t keymsg)
 }
 
 void KH(decreaseContrast)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Decrease contrast
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
+    halRepeatingKey(keymsg);
     halStatusAreaPopup();
     contrastPattern();
 
@@ -4286,9 +4529,13 @@ void KH(decreaseContrast)(keyb_msg_t keymsg)
     Exceptions = savedex;
 }
 
+
 void KH(cycleLocale)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Cycle through major locales
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Cycle locale");
 
     // CYCLE BETWEEN VARIOUS OPTIONS
     const char *const options[] = {
@@ -4334,7 +4581,7 @@ void KH(cycleLocale)(keyb_msg_t keymsg)
                FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
-               (char *)options[option], FONT_STATUS,PAL_STA_TEXT, PAL_STA_BG);
+               options[option], FONT_STATUS,PAL_STA_TEXT, PAL_STA_BG);
 
     // CHANGE THE FORMAT TO THE SELECTED OPTION
     switch (option) {
@@ -4439,9 +4686,13 @@ void KH(cycleLocale)(keyb_msg_t keymsg)
 
 }
 
+
 void KH(cycleFormat)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Cycle through major number formats
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Cycle format");
 
     // CYCLE BETWEEN VARIOUS OPTIONS
     const char *const options[] = {
@@ -4540,10 +4791,10 @@ const const char *const onMulDivKeyHandler_options[] = {
 };
 
 static void formatChange(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Helper function for format changes, cycle through options
+// ----------------------------------------------------------------------------
 {
-
-    // CYCLE BETWEEN VARIOUS OPTIONS
-
     NUMFORMAT fmt;
     int32_t option = 0;
     rplGetSystemNumberFormat(&fmt);
@@ -4613,59 +4864,49 @@ static void formatChange(keyb_msg_t keymsg)
 
 }
 
-void KH(nextScientificFormat)(keyb_msg_t keymsg)
+void KH(nextScale)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select next scale for display format
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Next scale");
     formatChange(KB_UP);
 }
 
-void KH(previousScientificFormat)(keyb_msg_t keymsg)
+void KH(previousScale)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select previous scale for display format
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Previous scale");
     formatChange(KB_UP);
 }
-
 
 
 void KH(onDigit)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Select the display precision
+// ----------------------------------------------------------------------------
 {
+    utf8_p    help = "?";
     NUMFORMAT fmt;
-    int32_t digits = 0;
-    rplGetSystemNumberFormat(&fmt);
-
-    switch (KM_KEY(keymsg)) {
-    case KB_0:
-        digits = 0xfff;
-        break;
-    case KB_1:
-        digits = 1;
-        break;
-    case KB_2:
-        digits = 2;
-        break;
-    case KB_3:
-        digits = 3;
-        break;
-    case KB_4:
-        digits = 4;
-        break;
-    case KB_5:
-        digits = 5;
-        break;
-    case KB_6:
-        digits = 6;
-        break;
-    case KB_7:
-        digits = 7;
-        break;
-    case KB_8:
-        digits = 8;
-        break;
-    case KB_9:
-        digits = 9;
-        break;
+    int32_t   digits = 0;
+    switch (KM_KEY(keymsg))
+    {
+    case KB_0: digits = 0xfff;  help = "Show all digits";    break;
+    case KB_1: digits = 1;      help = "Show 1 digit";       break;
+    case KB_2: digits = 2;      help = "Show 2 digits";      break;
+    case KB_3: digits = 3;      help = "Show 3 digits";      break;
+    case KB_4: digits = 4;      help = "Show 4 digits";      break;
+    case KB_5: digits = 5;      help = "Show 5 digits";      break;
+    case KB_6: digits = 6;      help = "Show 6 digits";      break;
+    case KB_7: digits = 7;      help = "Show 7 digits";      break;
+    case KB_8: digits = 8;      help = "Show 8 digits";      break;
+    case KB_9: digits = 9;      help = "Show 9 digits";      break;
     }
+    halKeyHelp(keymsg, help);
 
+    rplGetSystemNumberFormat(&fmt);
     fmt.MiddleFmt &= ~FMT_NUMDIGITS;
     fmt.MiddleFmt |= FMT_DIGITS(digits);
 
@@ -4675,12 +4916,8 @@ void KH(onDigit)(keyb_msg_t keymsg)
     fmt.SmallFmt &= ~FMT_NUMDIGITS;
     fmt.SmallFmt |= FMT_DIGITS(digits);
 
-
-
     fmt.SmallLimit.data=fmt.SmallLimitData;
     newRealFromint32_t(&fmt.SmallLimit,1,(digits==0xfff)? -12:-digits);
-
-
 
     if(digits==0xfff) digits= TEXT2WORD('A','l','l',0);
       else digits += '0';
@@ -4708,8 +4945,14 @@ void KH(onDigit)(keyb_msg_t keymsg)
 
 }
 
-void KH(onUpDown)(keyb_msg_t keymsg)
+void KH(SetPrecision)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//    Change precision for computations
+// ----------------------------------------------------------------------------
 {
+    halKeyHelp(keymsg,
+               KM_KEY(keymsg) == KB_UP ? "Increase precision"
+                                       : "Decrease precision");
     int32_t precision = Context.precdigits;
 
     if(KM_KEY(keymsg) == KB_UP)
@@ -4772,34 +5015,23 @@ void KH(onUpDown)(keyb_msg_t keymsg)
 
 }
 
-// SHOW/HIDE THE SECOND MENU WHEN PRESSED
-void KH(onVar)(keyb_msg_t keymsg)
+void KH(SkipNextAlarm)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Skip next alarm
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-    if(halScreen.Menu2) {
-        halSetMenu2Height(0);   // HIDE THE MENU
-        rplSetSystemFlag(FL_HIDEMENU2);
-    }
-    else {
-        halSetMenu2Height(MENU2_HEIGHT);
-        rplClrSystemFlag(FL_HIDEMENU2);
-    }
-
-}
-
-void KH(onB)(keyb_msg_t keymsg)
-{
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "Skip next alarm");
     halFlags |= HAL_SKIPNEXTALARM;
 
 }
 
-void changemenuKeyHandler(keyb_msg_t keymsg, int64_t menucode)
+void SelectMenuKeyHandler(keyb_msg_t keymsg, int64_t menucode, utf8_p help)
+// ----------------------------------------------------------------------------
+//   Select a given menu
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
-    word_p numobject = rplNewint32_t(menucode, HEXBINT);
+    halKeyHelp(keymsg, help);
+    word_p numobject = rplNewBINT(menucode, HEXBINT);
 
     if(!numobject || Exceptions)
         return;
@@ -4816,40 +5048,48 @@ void changemenuKeyHandler(keyb_msg_t keymsg, int64_t menucode)
 
 }
 
-void backmenuKeyHandler(keyb_msg_t keymsg, WORD menu)
+static int backMenuKeyHandler(int menu)
+// ----------------------------------------------------------------------------
+//   Helper function to move back a given menu
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
-
     if(menu < 1 || menu > 2)
-        return;
+        return 0;
 
     word_p oldmenu = rplPopMenuHistory(menu);
-    if(oldmenu) {
+    if(oldmenu)
         rplChangeMenu(menu, oldmenu);
-
-        if(menu == 1)
-            halScreen.DirtyFlag |= MENU1_DIRTY;
-        else
-            halScreen.DirtyFlag |= MENU2_DIRTY;
-    }
-
+    return oldmenu != 0;
 }
 
 void KH(backmenu1)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Go back on menu 1
+// ----------------------------------------------------------------------------
 {
-    backmenuKeyHandler(keymsg, 1);
+    halKeyHelp(keymsg, "Previous menu");
+    backMenuKeyHandler(1);
+    halScreen.DirtyFlag |= MENU1_DIRTY;
 }
 
 void KH(backmenu2)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Go back on menu 2
+// ----------------------------------------------------------------------------
 {
-    backmenuKeyHandler(keymsg, 2);
+    halKeyHelp(keymsg, "Previous secondary menu");
+    backMenuKeyHandler(2);
+    halScreen.DirtyFlag |= MENU2_DIRTY;
 }
 
-// CUSTOM KEY DEFINITIONS - LOWER LEVEL HANDLER
+
 void customKeyHandler(keyb_msg_t keymsg, word_p action)
+// ----------------------------------------------------------------------------
+//   Process a custom action
+// ----------------------------------------------------------------------------
 {
-    if(!action)
-        return;
+    halKeyHelp(keymsg, halCommandName(action));
+
     int32_t inlist = 0;
     // COMMANDS CAN BE PUT INSIDE LISTS
     if(ISLIST(*action)) {
@@ -4890,8 +5130,8 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                 uiOpenCmdLine('D');
 
             int32_t nlines =
-                    uiInsertCharactersN((byte_p) (action + 1),
-                    (byte_p) (action + 1) + rplStrSize(action));
+                    uiInsertCharactersN((utf8_p) (action + 1),
+                    (utf8_p) (action + 1) + rplStrSize(action));
             if(nlines)
                 uiStretchCmdLine(nlines);
 
@@ -4913,7 +5153,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
         }
         else
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
 
     }
     else {
@@ -4962,7 +5202,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                     }
                 }
 
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -4984,7 +5224,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                     }
                 }
 
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledStringWithoutTickmarks(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5014,7 +5254,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
             }
             case 'A':
             {
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 int32_t totaln = rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring);
                 if (!totaln)
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
@@ -5031,14 +5271,14 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
             case 'P':
             {
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiSeparateToken();
                 uiInsertCharactersN(string, endstring);
                 uiSeparateToken();
-                uiInsertCharacters((byte_p) "*");
+                uiInsertCharacters("*");
                 uiSeparateToken();
                 uiAutocompleteUpdate();
 
@@ -5079,13 +5319,13 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
                     CurOpcode = savecurOpcode;
                 }
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                    uiInsertCharacters((byte_p) "()");
+                    uiInsertCharacters("()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -5095,7 +5335,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
             case 'P':
             {
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5130,7 +5370,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
             }
         }
         else if(ISSTRING(*action)) {
-            byte_p string, endstring;
+            utf8_p string, endstring;
             rplGetStringPointers(action, &string, &endstring);
 
             if(!inlist) {
@@ -5138,13 +5378,13 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                 if(((halScreen.CursorState & 0xff) == 'P')
                         || ((halScreen.CursorState & 0xff) == 'D')) {
                     uiSeparateToken();
-                    uiInsertCharacters((byte_p) "\"");
+                    uiInsertCharacters("\"");
                 }
             }
             uiInsertCharactersN(string, endstring);
             if(!inlist && (((halScreen.CursorState & 0xff) == 'P')
                         || ((halScreen.CursorState & 0xff) == 'D'))) {
-                uiInsertCharacters((byte_p) "\"");
+                uiInsertCharacters("\"");
                 uiSeparateToken();
             }
             uiAutocompleteUpdate();
@@ -5187,13 +5427,13 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
                     CurOpcode = savecurOpcode;
                 }
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT | DECOMP_NOHINTS, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 uiInsertCharactersN(string, endstring);
                 if(TI_TYPE(tokeninfo) == TITYPE_FUNCTION) {
-                    uiInsertCharacters((byte_p) "()");
+                    uiInsertCharacters("()");
                     uiCursorLeft(1);
                 }
                 uiAutocompleteUpdate();
@@ -5203,7 +5443,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
             case 'P':
             {
-                byte_p string, endstring;
+                utf8_p string, endstring;
                 if (!rplGetDecompiledString(action, DECOMP_EDIT, &string, &endstring))
                     break; // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
@@ -5231,14 +5471,17 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
         }
         else
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STAREA_DIRTY;
+        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
     }
 
 }
 
 void KH(formswitcher)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Switch to/from form
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Switch form");
 
     if(halGetContext() >= CONTEXT_FORM) {
         // THE USER IS RUNNING A FORM OR OTHER CONTEXT, JUST CLOSE IT
@@ -5252,21 +5495,25 @@ void KH(formswitcher)(keyb_msg_t keymsg)
 }
 
 void KH(switchmenukeys)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Switch menus
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Switch menus");
 
-
-    // TODO: Just toggle a flag that the key handlers read and act on menu 1 or 2
+    // TODO: Just toggle a flag for the key handlers
     halKeyMenuSwitch^=1;
-
     halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
 
     return;
 }
 
 void KH(basecycle)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Cycle numeric base
+// ----------------------------------------------------------------------------
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Cycle base");
 
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
         if(halGetContext() & CONTEXT_STACK) {
@@ -5280,7 +5527,7 @@ void KH(basecycle)(keyb_msg_t keymsg)
                 Exceptions = 0;
             }
             else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
 
         }
@@ -5290,13 +5537,14 @@ void KH(basecycle)(keyb_msg_t keymsg)
 
         // ACTION INSIDE THE EDITOR
 
-        byte_p startnum, endnum;
-        byte_p line;
+        utf8_p  startnum, endnum;
+        utf8_p  line;
         int32_t numflags;
 
-        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE BASE OF THE NUMBER IN THE TEXT
+        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER,
+        // CHANGE THE BASE OF THE NUMBER IN THE TEXT
         startnum = uiFindNumberStart(&endnum, &numflags);
-        line = (byte_p) (CmdLineCurrentLine + 1);
+        line = (utf8_p) (CmdLineCurrentLine + 1);
         if(!startnum) {
 
             return;
@@ -5356,7 +5604,7 @@ void KH(basecycle)(keyb_msg_t keymsg)
             else {
                 // ADD NUMERAL SIGN IF NOT THERE YET AND IF THERE'S NO EXPONENT WITH A SIGN
                 if(!(numflags & 8) && (startnum[0] != '#')) {
-                    uiInsertCharacters((byte_p) str);
+                    uiInsertCharacters((utf8_p) str);
                     if(oldposition > startnum - line)
                         ++oldposition;
                     ++endnum;
@@ -5382,7 +5630,7 @@ void KH(basecycle)(keyb_msg_t keymsg)
             {
 
                 str[0] = endchar;
-                uiInsertCharacters((byte_p) str);
+                uiInsertCharacters((utf8_p) str);
                 if(oldposition >= endnum - line)
                     ++oldposition;
             }
@@ -5401,7 +5649,7 @@ void KH(basecycle)(keyb_msg_t keymsg)
 #define TRANSP_CMD_KEY_HANDLER(name, opcode) \
     void name##KeyHandler(keyb_msg_t keymsg) \
     {                                        \
-        UNUSED(keymsg);                      \
+        halKeyHelp(keymsg, #name);           \
         transpcmdKeyHandler(opcode);         \
     }                                        \
     extern int dummy
@@ -5409,8 +5657,8 @@ void KH(basecycle)(keyb_msg_t keymsg)
 #define CMD_KEY_HANDLER(name, opcode, string, issymbfunc)   \
     void name##KeyHandler(keyb_msg_t keymsg)                \
     {                                                       \
-        UNUSED(keymsg);                                     \
-        cmdKeyHandler(opcode, (byte_p) string, issymbfunc); \
+        halKeyHelp(keymsg, string);                         \
+        cmdKeyHandler(opcode, (utf8_p) string, issymbfunc); \
     }                                                       \
     extern int dummy
 
@@ -5421,25 +5669,25 @@ void KH(basecycle)(keyb_msg_t keymsg)
     }                                                        \
     extern int dummy
 
-#define MENU_KEY_HANDLER(name, menucode)                    \
-    void name##KeyHandler(keyb_msg_t keymsg)                \
-    {                                                       \
-        changemenuKeyHandler(keymsg, (int64_t) (menucode)); \
-    }                                                       \
+#define MENU_KEY_HANDLER(name, menucode)                          \
+    void name##MenuKeyHandler(keyb_msg_t keymsg)                  \
+    {                                                             \
+        SelectMenuKeyHandler(keymsg, (menucode), #name " menu"); \
+    }                                                             \
     extern int dummy
 
-#define KEY_HANDLER(name, lsymbol, csymbol)                                    \
-    void name##KeyHandler(keyb_msg_t keymsg)                                   \
-    {                                                                          \
-        alphasymbolKeyHandler(keymsg, (byte_p) (lsymbol), (byte_p) (csymbol)); \
-    }                                                                          \
+#define KEY_HANDLER(name, lsymbol, csymbol)                  \
+    void name##KeyHandler(keyb_msg_t keymsg)                 \
+    {                                                        \
+        alphasymbolKeyHandler(keymsg, (lsymbol), (csymbol)); \
+    }                                                        \
     extern int dummy
 
-#define SYMB_KEY_HANDLER(name, symbol, sep)                 \
-    void name##KeyHandler(keyb_msg_t keymsg)                \
-    {                                                       \
-        symbolKeyHandler(keymsg, (byte_p) (symbol), (sep)); \
-    }                                                       \
+#define SYMB_KEY_HANDLER(name, symbol, sep)        \
+    void name##KeyHandler(keyb_msg_t keymsg)       \
+    {                                              \
+        symbolKeyHandler(keymsg, (symbol), (sep)); \
+    }                                              \
     extern int dummy
 
 KEY_HANDLER(a, "a", "A");
@@ -5555,7 +5803,7 @@ KEY_HANDLER(sub6, "₆", "⁶");
 KEY_HANDLER(sub7, "₇", "⁷");
 KEY_HANDLER(sub8, "₈", "⁸");
 KEY_HANDLER(sub9, "₉", "⁹");
-SYMB_KEY_HANDLER(keyx, "X", 0);
+SYMB_KEY_HANDLER(eqnVar, "X", 0); // REVISIT: Depend on state, e.g. rho/theta
 CMD_KEY_HANDLER(clear, CMD_CLEAR, "CLEAR", -1);
 CMD_KEY_HANDLER(add, CMD_OVR_ADD, "+", 0);
 CMD_KEY_HANDLER(sub, CMD_OVR_SUB, "-", 0);
@@ -5595,46 +5843,49 @@ CMD_KEY_HANDLER(abs, CMD_OVR_ABS, "ABS", 1);
 CMD_KEY_HANDLER(arg, CMD_ARG, "ARG", 1);
 CMD_KEY_HANDLER(convert, CMD_CONVERT, "CONVERT", -1);
 CMD_KEY_HANDLER(cont, CMD_CONT, "CONT", -1);
-TRANSP_CMD_KEY_HANDLER(updir, CMD_UPDIR);
-TRANSP_CMD_KEY_HANDLER(home, CMD_HOME);
-TRANSP_CMD_KEY_HANDLER(menuswap, CMD_MENUSWAP);
+TRANSP_CMD_KEY_HANDLER(UPDIR, CMD_UPDIR);
+TRANSP_CMD_KEY_HANDLER(HOME, CMD_HOME);
+TRANSP_CMD_KEY_HANDLER(MENUSWAP, CMD_MENUSWAP);
 
-MENU_KEY_HANDLER(unitmenu, MKMENUCODE(0, DOUNIT, 0, 0));
-MENU_KEY_HANDLER(systemmenu, MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(prgmenu, MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(stackmenu, MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(testsmenu, MKMENUCODE(0, 68, 3, 0));        // REVISIT
-MENU_KEY_HANDLER(listmenu, MKMENUCODE(0, 68, 3, 0));         // REVISIT
-MENU_KEY_HANDLER(charsmenu, MKMENUCODE(0, 68, 3, 0));        // REVISIT
-MENU_KEY_HANDLER(symbolsmenu, MKMENUCODE(0, 68, 3, 0));      // REVISIT
-MENU_KEY_HANDLER(memmenu, MKMENUCODE(0, 68, 3, 0));          // REVISIT
-MENU_KEY_HANDLER(settingsmenu, MKMENUCODE(0, 68, 3, 0));     // REVISIT
-MENU_KEY_HANDLER(mathsettingsmenu, MKMENUCODE(0, 68, 3, 0)); // REVISIT
-MENU_KEY_HANDLER(varsmenu, MKMENUCODE(1, 0, 0, 0));
-MENU_KEY_HANDLER(mainmenu, MKMENUCODE(0, 68, 2, 0));
-MENU_KEY_HANDLER(infomenu, MKMENUCODE(0, 68, 2, 0));   // REVISIT
-MENU_KEY_HANDLER(matrixmenu, MKMENUCODE(0, 68, 2, 0)); // REVISIT
-MENU_KEY_HANDLER(constantsmenu, MKMENUCODE(0, 68, 2, 0)); // REVISIT
-MENU_KEY_HANDLER(notesmenu, MKMENUCODE(0, 68, 2, 0));  // REVISIT
-MENU_KEY_HANDLER(arithmenu, MKMENUCODE(0, 64, 0, 0));
-MENU_KEY_HANDLER(mathmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(statsmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(probamenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(casmenu, MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(cplxmenu, MKMENUCODE(0, 30, 0, 0));
-MENU_KEY_HANDLER(timemenu, MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(iomenu, MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(basemenu, MKMENUCODE(0, 70, 0, 0));
-MENU_KEY_HANDLER(libsmenu, MKMENUCODE(2, 0, 0, 0));
-MENU_KEY_HANDLER(numsolvermenu, MKMENUCODE(0, 104, 0, 0));
-MENU_KEY_HANDLER(financemenu, MKMENUCODE(0, 104, 1, 0));
+MENU_KEY_HANDLER(Main,       MKMENUCODE(0, 68, 2, 0));
+MENU_KEY_HANDLER(Units,      MKMENUCODE(0, DOUNIT, 0, 0));
+MENU_KEY_HANDLER(System,     MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Program,    MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Stack,      MKMENUCODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Tests,      MKMENUCODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(Lists,      MKMENUCODE(0, 68, 3, 0));         // REVISIT
+MENU_KEY_HANDLER(Chars,      MKMENUCODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(Symbols,    MKMENUCODE(0, 68, 3, 0));      // REVISIT
+MENU_KEY_HANDLER(Memory,     MKMENUCODE(0, 68, 3, 0));          // REVISIT
+MENU_KEY_HANDLER(Settings,   MKMENUCODE(0, 68, 3, 0));     // REVISIT
+MENU_KEY_HANDLER(Flags,      MKMENUCODE(0, 68, 3, 0)); // REVISIT
+MENU_KEY_HANDLER(Variables,  MKMENUCODE(1, 0, 0, 0));
+MENU_KEY_HANDLER(Info,       MKMENUCODE(0, 68, 2, 0));   // REVISIT
+MENU_KEY_HANDLER(Matrix,     MKMENUCODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(Constants,  MKMENUCODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(Notes,      MKMENUCODE(0, 68, 2, 0));  // REVISIT
+MENU_KEY_HANDLER(Math,       MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Arithmetic, MKMENUCODE(0, 64, 0, 0));
+MENU_KEY_HANDLER(Statistics, MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Proba,      MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Equations,  MKMENUCODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Complex,    MKMENUCODE(0, 30, 0, 0));
+MENU_KEY_HANDLER(Time,       MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Devices,    MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Storage,    MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Print,      MKMENUCODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Bases,      MKMENUCODE(0, 70, 0, 0));
+MENU_KEY_HANDLER(Libraries,  MKMENUCODE(2, 0, 0, 0));
+MENU_KEY_HANDLER(Solver,     MKMENUCODE(0, 104, 0, 0));
+MENU_KEY_HANDLER(Finance,    MKMENUCODE(0, 104, 1, 0));
 
 void KH(underscore)(keyb_msg_t keymsg)
 {
-    symbolKeyHandler(keymsg, (byte_p) "_", 0);
+    halKeyHelp(keymsg, "Underscore");
+    symbolKeyHandler(keymsg, "_", 0);
 
     if((halGetCmdLineMode() != 'L') && (halGetCmdLineMode() != 'C')) {
-        uiInsertCharacters((byte_p) "[]");
+        uiInsertCharacters("[]");
         uiCursorLeft(1);
         halSetCmdLineMode('A');
     }
@@ -5642,6 +5893,7 @@ void KH(underscore)(keyb_msg_t keymsg)
 
 void KH(spc)(keyb_msg_t keymsg)
 {
+    halRepeatingKey(keymsg);
     if(halGetContext() & CONTEXT_INTSTACK) {
 
         // SELECTION MODE
@@ -5683,15 +5935,14 @@ void KH(spc)(keyb_msg_t keymsg)
 
     }
 
-    symbolKeyHandler(keymsg, (byte_p) " ", 0);
+    symbolKeyHandler(keymsg, " ", 0);
 
 }
 
 // INTERACTIVE STACK ONLY
 void KH(tolist)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "TOLIST");
     switch (halScreen.StkSelStatus) {
     case 0:
         // NO ITEM SELECTED, MAKE A ONE-ELEMENT LIST
@@ -5815,8 +6066,7 @@ void KH(tolist)(keyb_msg_t keymsg)
 
 void KH(tomat)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "TOMAT");
     switch (halScreen.StkSelStatus) {
     case 0:
         // NO ITEM SELECTED, MAKE A ONE-ELEMENT MATRIX
@@ -5941,7 +6191,7 @@ void KH(tomat)(keyb_msg_t keymsg)
 // INTERACTIVE STACK ONLY
 void KH(tocplx)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "TOCPLX");
 
     switch (halScreen.StkSelStatus) {
     case 0:
@@ -6106,8 +6356,7 @@ void KH(tocplx)(keyb_msg_t keymsg)
 
 void KH(explode)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
-
+    halKeyHelp(keymsg, "EXPLODE");
     int32_t endlvl, stlvl;
 
     endlvl = stlvl = -1;
@@ -6359,7 +6608,8 @@ void KH(explode)(keyb_msg_t keymsg)
 
 void KH(powerOff)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Power off");
+
     // SHIFT-ON MEANS POWER OFF!
     halPreparePowerOff();
     halEnterPowerOff();
@@ -6368,7 +6618,7 @@ void KH(powerOff)(keyb_msg_t keymsg)
 
 void KH(cancel)(keyb_msg_t keymsg)
 {
-    UNUSED(keymsg);
+    halKeyHelp(keymsg, "Cancel");
 
     if((halGetContext() & CONTEXT_INEDITOR)) {
         // END THE COMMAND LINE
@@ -6659,16 +6909,10 @@ int halDoDefaultKey(keyb_msg_t keymsg)
     record(keys, "halDoDefaultKey %08X key %d msg %x shift %x ",
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
 
-    keyb_msg_t msg = KM_MESSAGE(keymsg);
-    if (msg == KM_PRESS || (msg & KFLAG_LONG_PRESS))
-    {
-        key_handler_fn handler = halDefaultKeyHandler(keymsg);
-        if (handler)
-            handler(keymsg);
-        return handler != NULL;
-    }
-
-    return 0;
+    key_handler_fn handler = halDefaultKeyHandler(keymsg);
+    if (handler)
+        handler(keymsg);
+    return handler != NULL;
 }
 
 
@@ -6709,7 +6953,7 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
     if (keymsg & KFLAG_SHIFTS_CHANGED)
     {
         halScreenUpdated();
-        halScreen.DirtyFlag |= STAREA_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY;
 
         // There was a change in shift plane, update annunciators
         halSetNotification(N_LEFT_SHIFT,
@@ -6909,7 +7153,7 @@ void halOuterLoop(int32_t timeoutms,
             uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION BEFORE
                                 // PROCESSING ANY KEYS
             halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                   STAREA_DIRTY | MENU1_DIRTY | MENU2_DIRTY |
+                                   STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY |
                                    FORM_DIRTY;
             continue;
         }
@@ -6959,7 +7203,7 @@ void halOuterLoop(int32_t timeoutms,
                     {
                         uiCmdRun(CMD_USBAUTORCV);
                         halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                               STAREA_DIRTY | MENU1_DIRTY |
+                                               STATUS_DIRTY | MENU1_DIRTY |
                                                MENU2_DIRTY | FORM_DIRTY;
                         continue;
                     }
@@ -7016,7 +7260,7 @@ void halOuterLoop(int32_t timeoutms,
                 uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION AFTER 10
                                     // IDLE CYCLES
                 halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                       STAREA_DIRTY | MENU1_DIRTY |
+                                       STATUS_DIRTY | MENU1_DIRTY |
                                        MENU2_DIRTY | FORM_DIRTY;
                 continue;
             }

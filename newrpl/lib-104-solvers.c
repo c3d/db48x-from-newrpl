@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
 
                 weight += j - 2;
                 //++weight;
-                rplNewint32_tPush(j - 2, DECBINT);
+                rplNewBINTPush(j - 2, DECBINT);
                 if(Exceptions) {
                     DSTop = stksave;
                     return;
@@ -1096,7 +1096,7 @@ void LIB_HANDLER()
                     return;
                 }
             }
-            rplNewint32_tPush(weight, DECBINT);
+            rplNewBINTPush(weight, DECBINT);
             rplRunAtomic(CMD_OVR_DIV);
             if(Exceptions) {
                 DSTop = stksave;

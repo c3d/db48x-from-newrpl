@@ -62,28 +62,26 @@
 
 #define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
 
-const uint64_t const powersof10[20] = {
-    1000000000000000000LL,
-    100000000000000000LL,
-    10000000000000000LL,
-    1000000000000000LL,
-    100000000000000LL,
-    10000000000000LL,
-    1000000000000LL,
-    100000000000LL,
-    10000000000LL,
-    1000000000LL,
-    100000000LL,
-    10000000LL,
-    1000000LL,
-    100000LL,
-    10000LL,
-    1000LL,
-    100LL,
-    10LL,
-    1LL,
-    0LL
-};
+const const uint64_t powersof10[20] = { 1000000000000000000LL,
+                                        100000000000000000LL,
+                                        10000000000000000LL,
+                                        1000000000000000LL,
+                                        100000000000000LL,
+                                        10000000000000LL,
+                                        1000000000000LL,
+                                        100000000000LL,
+                                        10000000000LL,
+                                        1000000000LL,
+                                        100000000LL,
+                                        10000000LL,
+                                        1000000LL,
+                                        100000LL,
+                                        10000LL,
+                                        1000LL,
+                                        100LL,
+                                        10LL,
+                                        1LL,
+                                        0LL };
 
 // INTERNAL SINT OBJECTS
 ROMOBJECT zero_bint[] = {
@@ -158,30 +156,28 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) zero_bint,
-    (word_p) one_bint,
-    (word_p) two_bint,
-    (word_p) three_bint,
-    (word_p) minusone_bint,
-    (word_p) ten_bint,
-    (word_p) four_bint,
-    (word_p) five_bint,
-    (word_p) six_bint,
-    (word_p) seven_bint,
-    (word_p) eight_bint,
-    (word_p) nine_bint,
-    (word_p) eleven_bint,
-    (word_p) twelve_bint,
-    (word_p) thirteen_bint,
-    (word_p) fourteen_bint,
-    (word_p) fifteen_bint,
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) zero_bint,
+                                      (word_p) one_bint,
+                                      (word_p) two_bint,
+                                      (word_p) three_bint,
+                                      (word_p) minusone_bint,
+                                      (word_p) ten_bint,
+                                      (word_p) four_bint,
+                                      (word_p) five_bint,
+                                      (word_p) six_bint,
+                                      (word_p) seven_bint,
+                                      (word_p) eight_bint,
+                                      (word_p) nine_bint,
+                                      (word_p) eleven_bint,
+                                      (word_p) twelve_bint,
+                                      (word_p) thirteen_bint,
+                                      (word_p) fourteen_bint,
+                                      (word_p) fifteen_bint,
 
-    0
-};
+                                      0 };
 
-const char const alldigits[] = "0123456789ABCDEF";
+const const char   alldigits[]    = "0123456789ABCDEF";
 
 word_p rplNewSINT(int num, int base)
 {
@@ -204,7 +200,7 @@ void rplNewSINTPush(int num, int base)
 
 }
 
-word_p rplNewint32_t(int64_t num, int base)
+word_p rplNewBINT(int64_t num, int base)
 {
     word_p obj;
 
@@ -258,7 +254,7 @@ void rplCompileint32_t(int64_t num, int base)
     }
 }
 
-void rplNewint32_tPush(int64_t num, int base)
+void rplNewBINTPush(int64_t num, int base)
 {
     word_p obj;
 
@@ -481,8 +477,9 @@ void rplLoadInt64AsReal(int64_t number, REAL * dec)
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
 static int rpl_log2(int64_t number, int bits)
 {
-    static const unsigned char const log2_table[16] =
-            { 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
+    static const unsigned const char log2_table[16] = {
+        0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4
+    };
     if(bits <= 4)
         return log2_table[number];
     bits >>= 1;
@@ -491,8 +488,13 @@ static int rpl_log2(int64_t number, int bits)
     return rpl_log2(number, bits);
 }
 
-// CONVERT TO STRING AND RETURN THE NUMBER OF BYTES OUTPUT
-int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer, byte_p endbuffer)
+int32_t rplIntToString(int64_t number,
+                       int32_t base,
+                       byte_p  buffer,
+                       byte_p  endbuffer)
+// ----------------------------------------------------------------------------
+// Convert to string and return the number of bytes output
+// ----------------------------------------------------------------------------
 {
 
     base -= DOBINT;
@@ -519,7 +521,7 @@ int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer, byte_p endbu
 
         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-        byte_p string;
+        utf8_p string;
 
         int32_t len = formatlengthReal(&realnum, 0, fmt.Locale);
 
@@ -527,8 +529,8 @@ int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer, byte_p endbu
             return 0;
 
         // NOW USE IT
-        string = (byte_p) buffer;
-        return (byte_p) formatReal(&realnum, (char *)string, 0,
+        string = (utf8_p) buffer;
+        return (utf8_p) formatReal(&realnum, (char *)string, 0,
                 fmt.Locale) - string;
 
     }
@@ -707,7 +709,7 @@ void LIB_HANDLER()
                     addReal(&RReg[0], &RReg[1], &rop2);
                     if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -731,12 +733,12 @@ void LIB_HANDLER()
             int64_t minop2;
 
             if(op1 > 0) {
-                maxop2 = MAX_int32_t - op1;
-                minop2 = MIN_int32_t;
+                maxop2 = MAX_BINT - op1;
+                minop2 = MIN_BINT;
             }
             else {
-                maxop2 = MAX_int32_t;
-                minop2 = MIN_int32_t - op1;
+                maxop2 = MAX_BINT;
+                minop2 = MIN_BINT - op1;
             }
 
             if((op2 > maxop2) || (op2 < minop2)) {
@@ -755,7 +757,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            rplNewint32_tPush(op1 + op2,
+            rplNewBINTPush(op1 + op2,
                     LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             return;
         }
@@ -778,7 +780,7 @@ void LIB_HANDLER()
 
                     if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -803,12 +805,12 @@ void LIB_HANDLER()
             int64_t minop2;
 
             if(op1 > 0) {
-                maxop2 = MAX_int32_t - op1;
-                minop2 = MIN_int32_t;
+                maxop2 = MAX_BINT - op1;
+                minop2 = MIN_BINT;
             }
             else {
-                maxop2 = MAX_int32_t;
-                minop2 = MIN_int32_t - op1;
+                maxop2 = MAX_BINT;
+                minop2 = MIN_BINT - op1;
             }
 
             if((-op2 > maxop2) || (-op2 < minop2)) {
@@ -827,7 +829,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            rplNewint32_tPush(op1 - op2,
+            rplNewBINTPush(op1 - op2,
                     LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             return;
         }
@@ -850,7 +852,7 @@ void LIB_HANDLER()
 
                     if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -890,10 +892,10 @@ void LIB_HANDLER()
                 if(rpl_log2(op1, 64) + rpl_log2(op2, 32) < 63) {
                     op1 *= op2;
                     if(sign1)
-                        rplNewint32_tPush(-op1,
+                        rplNewBINTPush(-op1,
                                 LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
                     else
-                        rplNewint32_tPush(op1,
+                        rplNewBINTPush(op1,
                                 LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
                     return;
                 }
@@ -943,7 +945,7 @@ void LIB_HANDLER()
 
                     if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-                            rplNewint32_tPush(getint64_tReal(&RReg[0]),
+                            rplNewBINTPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
                                             || op2app) ? APPROX_BIT : 0));
                             if(!Exceptions)
@@ -982,7 +984,7 @@ void LIB_HANDLER()
             }
             else {
                 int64_t result = getint64_tReal(&RReg[0]);
-                rplNewint32_tPush(result,
+                rplNewBINTPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
             if(!Exceptions)
@@ -1078,7 +1080,7 @@ void LIB_HANDLER()
 
             if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                 int64_t result = getint64_tReal(&RReg[0]);
-                rplNewint32_tPush(result,
+                rplNewBINTPush(result,
                         LIBNUM(*arg1) | (LIBNUM(*arg2) & APPROX_BIT));
             }
             else
@@ -1163,7 +1165,7 @@ void LIB_HANDLER()
                         base = DECBINT;
                     else
                         base = LIBNUM(*arg1);
-                    rplNewint32_tPush(result, base | (LIBNUM(*arg2) & APPROX_BIT));
+                    rplNewBINTPush(result, base | (LIBNUM(*arg2) & APPROX_BIT));
                 }
                 else
                     rplNewRealFromRRegPush(8);
@@ -1485,7 +1487,7 @@ void LIB_HANDLER()
         case OVR_NEG:
         case OVR_UMINUS:
             op1 = -op1;
-            rplNewint32_tPush(op1, LIBNUM(*arg1));
+            rplNewBINTPush(op1, LIBNUM(*arg1));
             return;
         case OVR_UPLUS:
         case OVR_FUNCEVAL:
@@ -1498,7 +1500,7 @@ void LIB_HANDLER()
             return;
         case OVR_ABS:
             if(op1 < 0)
-                rplNewint32_tPush(-op1, LIBNUM(*arg1));
+                rplNewBINTPush(-op1, LIBNUM(*arg1));
             else
                 rplPushData(arg1);
             return;
@@ -1528,7 +1530,7 @@ void LIB_HANDLER()
 
     int64_t result;
     uint64_t uresult;
-    byte_p strptr, strend;
+    utf8_p strptr, strend;
     int base, libbase, digit, count, neg, argnum1;
     char basechr;
 
@@ -1557,8 +1559,8 @@ void LIB_HANDLER()
             uint64_t Locale = rplGetSystemLocale();
             // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
-            strptr = (byte_p) TokenStart;
-            strend = (byte_p) BlankStart;
+            strptr = (utf8_p) TokenStart;
+            strend = (utf8_p) BlankStart;
             base = 10;
             libbase = DECBINT;
             neg = 0;
@@ -1636,7 +1638,7 @@ void LIB_HANDLER()
 
             for(count = 0; count < argnum1; ++count) {
                 digit = utf82cp((char *)strptr, (char *)strend);
-                strptr = (byte_p) utf8skipst((char *)strptr, (char *)strend);
+                strptr = (utf8_p) utf8skipst((char *)strptr, (char *)strend);
                 if(digit < 0) {
                     RetNum = ERR_NOTMINE;
                     return;
@@ -1750,7 +1752,7 @@ void LIB_HANDLER()
 
                 // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-                byte_p string;
+                utf8_p string;
 
                 int32_t len = formatlengthReal(&realnum, Format, fmt.Locale);
 
@@ -1767,7 +1769,7 @@ void LIB_HANDLER()
                 fmt.BigLimit.data = (int32_t *) ScratchPointer3;
 
                 // NOW USE IT
-                string = (byte_p) DecompStringEnd;
+                string = (utf8_p) DecompStringEnd;
                 string -= len;
 
                 if(Exceptions) {
@@ -1859,7 +1861,7 @@ void LIB_HANDLER()
 
             // COMPILE A NUMBER TO A SINT OR A int32_t, DEPENDING ON THE ACTUAL NUMERIC VALUE
             result = 0;
-            strptr = (byte_p) TokenStart;
+            strptr = (utf8_p) TokenStart;
             base = 10;
             libbase = DECBINT;
             neg = 0;
@@ -1981,14 +1983,14 @@ void LIB_HANDLER()
                             ++count;
                         // REPORT AS MANY VALID DIGITS AS POSSIBLE
                         RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + count) -
-                                (byte_p) TokenStart, TITYPE_INTEGER, 0, 1);
+                                (utf8_p) TokenStart, TITYPE_INTEGER, 0, 1);
                         return;
                     }
                 }
             }
             // ALL DIGITS WERE CORRECT
             RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + argnum1) -
-                    (byte_p) TokenStart, TITYPE_INTEGER, 0, 1);
+                    (utf8_p) TokenStart, TITYPE_INTEGER, 0, 1);
             return;
         }
         case OPCODE_GETINFO:

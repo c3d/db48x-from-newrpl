@@ -55,7 +55,7 @@ void libDecompileCmds(char *libnames[], WORD libopcodes[], int numcmds)
         return;
     }
 
-    rplDecompAppendString((byte_p) libnames[idx]);
+    rplDecompAppendString(libnames[idx]);
     RetNum = OK_CONTINUE;
 }
 

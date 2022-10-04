@@ -982,7 +982,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((byte_p) "::");
+            rplDecompAppendString("::");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -996,13 +996,13 @@ void LIB_HANDLER()
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplDecompAppendString((byte_p) ";");
+            rplDecompAppendString(";");
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, XEQSECO)) {
-            rplDecompAppendString((byte_p) "→");
+            rplDecompAppendString("→");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }

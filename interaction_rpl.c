@@ -36,7 +36,7 @@ void removestackobject(int level, int nitems)
         rplRemoveAtData(level, nitems);
     halScreen.DirtyFlag |=
             CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STAREA_DIRTY;
+            MENU2_DIRTY | STATUS_DIRTY;
 
 }
 
@@ -71,7 +71,7 @@ void pushobject(char *data, int sizebytes)
     rplPushData(newobj);
     halScreen.DirtyFlag |=
             CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STAREA_DIRTY;
+            MENU2_DIRTY | STATUS_DIRTY;
 }
 
 // PUSH A TEXT OBJECT IN THE STACK
@@ -86,7 +86,7 @@ void pushtext(char *data, int sizebytes)
     rplPushData(newobj);
     halScreen.DirtyFlag |=
             CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STAREA_DIRTY;
+            MENU2_DIRTY | STATUS_DIRTY;
 
 }
 
@@ -94,13 +94,12 @@ void pushtext(char *data, int sizebytes)
 int compileobject()
 {
     int strsize;
-    byte_p strdata;
     if(rplDepthData() < 1)
         return 0;
     if(!ISSTRING(*rplPeekData(1)))
         return 0;
 
-    strdata = (byte_p) rplPeekData(1);
+    utf8_p strdata = (utf8_p) rplPeekData(1);
     strdata += 4;
     strsize = rplStrSize(rplPeekData(1));
 
@@ -297,7 +296,7 @@ int change_autorcv(int newfl)
 void fullscreenupdate()
 {
     uiClearRenderCache();
-    halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+    halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STATUS_DIRTY;
 }
 
 // Make a list with the color theme palette values (64 int32_ts) size contains

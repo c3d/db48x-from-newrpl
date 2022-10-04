@@ -171,7 +171,7 @@ void LIB_HANDLER()
 
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
-        rplNewint32_tPush(wsize, DECBINT);
+        rplNewBINTPush(wsize, DECBINT);
 
         return;
     }
@@ -234,7 +234,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -297,7 +297,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -360,7 +360,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -428,7 +428,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -498,7 +498,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -564,7 +564,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -627,7 +627,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -690,7 +690,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -753,7 +753,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -834,7 +834,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -906,7 +906,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -979,7 +979,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(2);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -1032,7 +1032,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 
@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
             num1 &= ((1LL << wsize) - 1);
 
         rplDropData(1);
-        rplNewint32_tPush(num1, base);
+        rplNewBINTPush(num1, base);
         return;
     }
 

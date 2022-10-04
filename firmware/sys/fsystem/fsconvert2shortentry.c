@@ -57,7 +57,7 @@ int FSConvert2ShortEntry(char *name, int minnum)
     nlen = ptr - tmp + 1;
 
 // FIND EXTENSION
-    ext = (unsigned char *)fsfindcharrev((char *)tmp, NULL, (char *)".");
+    ext = (unsigned char *)fsfindcharrev((char *)tmp, NULL, ".");
 
     if(!ext) {
         noext = 1;      // POINT TO END-OF-STRING
@@ -183,7 +183,7 @@ int FSConvert2ShortEntry(char *name, int minnum)
 // ADD TAIL IF REQUIRED
 // FIND EXTENSION
         ext = (unsigned char *)fsfindcharrev((char *)orgname, NULL,
-                (char *)".");
+                ".");
         if(!ext)
             ext = orgname + nlen - 1;
 

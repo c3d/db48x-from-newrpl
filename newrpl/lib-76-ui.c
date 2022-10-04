@@ -373,7 +373,7 @@ void LIB_HANDLER()
             }
 
         }
-        rplNewint32_tPush(knum, DECBINT);
+        rplNewBINTPush(knum, DECBINT);
 
         return;
 
@@ -427,9 +427,8 @@ void LIB_HANDLER()
         }
 
         word_p string = rplPeekData(1);
-        byte_p start, end;
-        start = (byte_p) (string + 1);
-        end = start + rplStrSize(string);
+        utf8_p start = (utf8_p) (string + 1);
+        utf8_p end = start + rplStrSize(string);
 
         uiOpenAndInsertTextN(start, end);
 
@@ -652,10 +651,8 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        byte_p start, end;
-
-        start = uiAutocompStringStart();
-        end = uiAutocompStringTokEnd();
+        utf8_p start = uiAutocompStringStart();
+        utf8_p end = uiAutocompStringTokEnd();
 
         word_p newstr = rplCreateString(start, end);
 
@@ -676,10 +673,8 @@ void LIB_HANDLER()
         if(!(halGetContext() & CONTEXT_INEDITOR))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
-        byte_p start, end;
-
-        start = uiAutocompStringStart();
-        end = uiAutocompStringEnd();
+        utf8_p start = uiAutocompStringStart();
+        utf8_p end = uiAutocompStringEnd();
 
         word_p newstr = rplCreateString(start, end);
 

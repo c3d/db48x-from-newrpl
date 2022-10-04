@@ -108,14 +108,12 @@ INCLUDE_ROMOBJECT(lib74_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
-    (word_p) lib74_menu,
-    0
-};
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
+                                      (word_p) lib74_menu,
+                                      0 };
 
-#ifndef CONFIG_NO_FSYSTEM
+#    ifndef CONFIG_NO_FSYSTEM
 // CONVERT FILE SYSTEM ERROR MESSAGE INTO THIS LIBRARY ERRORS
 int32_t rplFSError2Error(int32_t err)
 {
@@ -266,7 +264,7 @@ void LIB_HANDLER()
         // REINIT FILE SYSTEM
         int error = FSRestart();
         if(error != FS_OK) {
-            rplNewint32_tPush((int64_t) FSystem.CurrentVolume, HEXBINT);
+            rplNewBINTPush((int64_t) FSystem.CurrentVolume, HEXBINT);
             rplError(rplFSError2Error(error));
         }
         return;
@@ -812,7 +810,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
+        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -878,7 +876,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
+        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -942,7 +940,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
+        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1006,7 +1004,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
+        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1397,7 +1395,7 @@ void LIB_HANDLER()
         int64_t pos = FSTell(handle);
 
         rplDropData(1);
-        rplNewint32_tPush(pos, DECBINT);
+        rplNewBINTPush(pos, DECBINT);
 
         return;
     }
@@ -1431,7 +1429,7 @@ void LIB_HANDLER()
         int64_t len = FSFileLength(handle);
 
         rplDropData(1);
-        rplNewint32_tPush(len, DECBINT);
+        rplNewBINTPush(len, DECBINT);
 
         return;
     }
@@ -1530,7 +1528,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
+        rplNewBINTPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1601,9 +1599,8 @@ void LIB_HANDLER()
         // PUT THE DATA ON A LIST
 
         word_p *dsave = DSTop;
-        word_p newobj =
-                rplCreateString((byte_p) entry.Name,
-                (byte_p) entry.Name + stringlen(entry.Name));
+        utf8_p name = (utf8_p) entry.Name;
+        word_p  newobj = rplCreateString(name, name + stringlen(name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1620,7 +1617,7 @@ void LIB_HANDLER()
         attr_string[4] = (entry.Attr & FSATTR_VOLUME) ? 'V' : '_';
         attr_string[5] = (entry.Attr & FSATTR_ARCHIVE) ? 'A' : '_';
 
-        newobj = rplCreateString(attr_string, attr_string + 6);
+        newobj = rplCreateStringFromBytes(attr_string, attr_string + 6);
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1629,7 +1626,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECBINT);
+        rplNewBINTPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1717,9 +1714,8 @@ void LIB_HANDLER()
         // PUT THE DATA ON A LIST
 
         word_p *dsave = DSTop;
-        word_p newobj =
-                rplCreateString((byte_p) entry.Name,
-                (byte_p) entry.Name + stringlen(entry.Name));
+        utf8_p name = (utf8_p) entry.Name;
+        word_p  newobj = rplCreateString(name, name + stringlen(name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1736,7 +1732,7 @@ void LIB_HANDLER()
         attr_string[4] = (entry.Attr & FSATTR_VOLUME) ? 'V' : '_';
         attr_string[5] = (entry.Attr & FSATTR_ARCHIVE) ? 'A' : '_';
 
-        newobj = rplCreateString(attr_string, attr_string + 6);
+        newobj = rplCreateStringFromBytes(attr_string, attr_string + 6);
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1745,7 +1741,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECBINT);
+        rplNewBINTPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1851,13 +1847,12 @@ void LIB_HANDLER()
         }
         while(1);
 
-        // PUT THE DATA ON A LIST
-
-        word_p *dsave = DSTop;
-        word_p newobj =
-                rplCreateString((byte_p) entry.Name,
-                (byte_p) entry.Name + stringlen(entry.Name));
-        if(!newobj) {
+        // Put the data on a list
+        word_p *dsave  = DSTop;
+        utf8_p  name   = (utf8_p) entry.Name;
+        word_p  newobj = rplCreateString(name, name + stringlen(name));
+        if (!newobj)
+        {
             DSTop = dsave;
             FSReleaseEntry(&entry);
             return;
@@ -1873,7 +1868,7 @@ void LIB_HANDLER()
         attr_string[4] = (entry.Attr & FSATTR_VOLUME) ? 'V' : '_';
         attr_string[5] = (entry.Attr & FSATTR_ARCHIVE) ? 'A' : '_';
 
-        newobj = rplCreateString(attr_string, attr_string + 6);
+        newobj = rplCreateStringFromBytes(attr_string, attr_string + 6);
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1882,7 +1877,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECBINT);
+        rplNewBINTPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -2168,12 +2163,13 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p path = (byte_p) FSGetcwd(cvol), endpath;
-        if(!path) {
+        utf8_p path = FSGetcwd(cvol);
+        if (!path)
+        {
             rplError(ERR_UNKNOWNFSERROR);
             return;
         }
-        endpath = path;
+        utf8_p endpath = path;
         while(*endpath)
             ++endpath;
         word_p newstring = rplCreateString(path, endpath);
@@ -2185,7 +2181,7 @@ void LIB_HANDLER()
 
         // VERY IMPORTANT TO RELEASE THE MEMORY
         // ALLOCATED BY THE FILE SYSTEM FOR THE PATH!
-        simpfree(path);
+        simpfree((void *) path);
 
         return;
     }
@@ -2208,7 +2204,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplNewint32_tPush(size * 512, DECBINT);
+        rplNewBINTPush(size * 512, DECBINT);
 
         return;
     }
@@ -2402,7 +2398,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplNewint32_tPush(cvol + 3, DECBINT);
+        rplNewBINTPush(cvol + 3, DECBINT);
         return;
     }
 

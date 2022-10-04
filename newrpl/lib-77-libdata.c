@@ -1021,7 +1021,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
-            rplDecompAppendString((byte_p) "BINDATA ");
+            rplDecompAppendString("BINDATA ");
             int32_t size = OBJSIZE(*DecompileObject);
             int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
@@ -1079,7 +1079,7 @@ void LIB_HANDLER()
                         encoder[k] = '$';
                 }
                 ScratchPointer1 = ptr;
-                rplDecompAppendString(encoder);
+                rplDecompAppendString((utf8_p) encoder);
                 if(Exceptions) {
                     RetNum = ERR_INVALID;
                     return;

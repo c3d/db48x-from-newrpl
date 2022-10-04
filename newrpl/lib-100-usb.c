@@ -200,7 +200,7 @@ void LIB_HANDLER()
         int32_t status =
                 usb_isconnected() + 2 * usb_isconfigured() + 4 * usb_hasdata();
 
-        rplNewint32_tPush(status, HEXBINT);
+        rplNewBINTPush(status, HEXBINT);
         return;
     }
 

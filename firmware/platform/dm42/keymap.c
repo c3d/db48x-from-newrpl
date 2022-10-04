@@ -50,15 +50,15 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_F6] = KH(softmenu6_1),
 
     // Normal keys
-    [KB_A] = KH(mathmenu),
+    [KB_A] = KH(MathMenu),
     [KB_B] = KH(inv),
     [KB_C] = KH(sqrt),
     [KB_D] = KH(log),
     [KB_E] = KH(ln),
     [KB_F] = KH(eval),
     [KB_G] = KH(sto),
-    [KB_H] = KH(varsmenu),
-    [KB_I] = KH(stackmenu),
+    [KB_H] = KH(VariablesMenu),
+    [KB_I] = KH(StackMenu),
     [KB_J] = KH(sin),
     [KB_K] = KH(cos),
     [KB_L] = KH(tan),
@@ -74,21 +74,21 @@ static const  key_handler_fn keymap_left_shift[64] =
 // ----------------------------------------------------------------------------
 {
     // Numbers
-    [KB_0] = KH(systemmenu),
-    [KB_1] = KH(home),
-    [KB_2] = KH(libsmenu),
-    [KB_3] = KH(prgmenu),
-    [KB_4] = KH(basemenu),
-    [KB_5] = KH(unitmenu),
-    [KB_6] = KH(settingsmenu),
-    [KB_7] = KH(numsolvermenu),
-    [KB_8] = KH(casmenu),
-    [KB_9] = KH(matrixmenu),
-    [KB_DOT] = KH(infomenu),
+    [KB_0] = KH(SystemMenu),
+    [KB_1] = KH(HOME),
+    [KB_2] = KH(LibrariesMenu),
+    [KB_3] = KH(ProgramMenu),
+    [KB_4] = KH(BasesMenu),
+    [KB_5] = KH(UnitsMenu),
+    [KB_6] = KH(SettingsMenu),
+    [KB_7] = KH(SolverMenu),
+    [KB_8] = KH(EquationsMenu),
+    [KB_9] = KH(MatrixMenu),
+    [KB_DOT] = KH(InfoMenu),
 
     // ON, BSP, ENTER, SPC
     [KB_ON] = KH(powerOff),
-    [KB_ENT] = KH(charsmenu),
+    [KB_ENT] = KH(CharsMenu),
     [KB_BKS] = KH(del),
     [KB_SPC] = KH(secoBracket),
 
@@ -97,10 +97,10 @@ static const  key_handler_fn keymap_left_shift[64] =
     [KB_DN] = KH(downOrRight),
 
     // Operators
-    [KB_ADD] = KH(mainmenu),
-    [KB_SUB] = KH(iomenu),
-    [KB_MUL] = KH(probamenu),
-    [KB_DIV] = KH(statsmenu),
+    [KB_ADD] = KH(MainMenu),
+    [KB_SUB] = KH(DevicesMenu),
+    [KB_MUL] = KH(ProbaMenu),
+    [KB_DIV] = KH(StatisticsMenu),
 
      // Soft menu keys
     [KB_F1] = KH(softmenu1_2),
@@ -111,15 +111,15 @@ static const  key_handler_fn keymap_left_shift[64] =
     [KB_F6] = KH(softmenu6_2),
 
     // Normal keys
-    [KB_A] = KH(arithmenu),
+    [KB_A] = KH(ArithmeticMenu),
     [KB_B] = KH(pow),
     [KB_C] = KH(sq),
     [KB_D] = KH(alog),
     [KB_E] = KH(exp),
-    [KB_F] = KH(testsmenu),
-    [KB_G] = KH(cplxmenu),
+    [KB_F] = KH(TestsMenu),
+    [KB_G] = KH(ComplexMenu),
     [KB_H] = KH(tofrac),
-    [KB_I] = KH(constantsmenu),
+    [KB_I] = KH(ConstantsMenu),
     [KB_J] = KH(asin),
     [KB_K] = KH(acos),
     [KB_L] = KH(atan),
@@ -198,7 +198,7 @@ static const  key_handler_fn keymap_alpha[64] =
     [KB_DN] = KH(downOrRight),
 
     // Operators
-    [KB_ADD] = KH(charsmenu),
+    [KB_ADD] = KH(CharsMenu),
     [KB_SUB] = KH(underscore),
 
      // Alphabetic keys
@@ -259,8 +259,11 @@ static const key_handler_fn keymap_on_hold[64] =
 
     [KB_ADD] = KH(increaseContrast),
     [KB_SUB] = KH(decreaseContrast),
-    [KB_MUL] = KH(previousScientificFormat),
-    [KB_DIV] = KH(nextScientificFormat),
+    [KB_MUL] = KH(previousScale),
+    [KB_DIV] = KH(nextScale),
     [KB_DOT] = KH(cycleLocale),
-    [KB_SPC] = KH(cycleFormat)
+    [KB_SPC] = KH(cycleFormat),
+
+    [KB_B] = KH(SkipNextAlarm),
+    [KB_M] = KH(ToggleMenu),
 };

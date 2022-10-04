@@ -1263,9 +1263,9 @@ void LIB_HANDLER()
             byte_p ptr = (byte_p) (DecompileObject + len);
             if(ptr[3] == 0)
                 // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
-                rplDecompAppendString((byte_p) (DecompileObject + 1));
+                rplDecompAppendString((utf8_p) (DecompileObject + 1));
             else
-                rplDecompAppendString2((byte_p) (DecompileObject + 1),
+                rplDecompAppendString2((utf8_p) (DecompileObject + 1),
                         len << 2);
 
             if((OPCODE(CurOpcode) == OPCODE_DECOMPEDIT)) {
@@ -1294,24 +1294,24 @@ void LIB_HANDLER()
                     }
 
                     if((!noinf) && !(attr & IDATTR_ISNOTINF))
-                        rplDecompAppendString((byte_p) "∞");
+                        rplDecompAppendString("∞");
 
                     if(attr & (IDATTR_ISINFCPLX | IDATTR_ISINFREAL)) {
                         switch (attr & (IDATTR_mMASK)) {
                         case IDATTR_GTEZERO | IDATTR_NOTZERO:
-                            rplDecompAppendString((byte_p) ">0");
+                            rplDecompAppendString(">0");
                             break;
                         case IDATTR_LTEZERO | IDATTR_NOTZERO:
-                            rplDecompAppendString((byte_p) "<0");
+                            rplDecompAppendString("<0");
                             break;
                         case IDATTR_GTEZERO:
-                            rplDecompAppendString((byte_p) "≥0");
+                            rplDecompAppendString("≥0");
                             break;
                         case IDATTR_LTEZERO:
-                            rplDecompAppendString((byte_p) "≤0");
+                            rplDecompAppendString("≤0");
                             break;
                         case IDATTR_NOTZERO:
-                            rplDecompAppendString((byte_p) "≠0");
+                            rplDecompAppendString("≠0");
                             break;
                         }
                     }
@@ -1321,7 +1321,7 @@ void LIB_HANDLER()
                     /*
                        int32_t rot=0;
                        while((rot<32)&&((attr>>rot)!=0)) {
-                       rplDecompAppendString2((byte_p)subscriptChars+((attr>>rot)&0xf)*3,3);
+                       rplDecompAppendString2((utf8_p)subscriptChars+((attr>>rot)&0xf)*3,3);
                        rot+=4;
                        }
                      */
@@ -1341,7 +1341,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, LSTO)) {
 
-            rplDecompAppendString((byte_p) "LSTO");
+            rplDecompAppendString("LSTO");
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             word_p object, prevobject;
@@ -1489,7 +1489,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, HIDELOCALS)) {
 
-            rplDecompAppendString((byte_p) "HIDELOCALS");
+            rplDecompAppendString("HIDELOCALS");
 
             // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
 
@@ -1572,7 +1572,7 @@ void LIB_HANDLER()
                 DecompileObject += 3 + OBJSIZE(alg);    // SKIP UNTIL END OF SECO
             }
             else
-                rplDecompAppendString((byte_p) "«");
+                rplDecompAppendString("«");
 
             RetNum = OK_ENDCONSTRUCT;
             return;
@@ -1590,7 +1590,7 @@ void LIB_HANDLER()
                 // THIS SHOULD NEVER HAPPEN!!
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
-                rplDecompAppendString((byte_p) "GETLAM");
+                rplDecompAppendString("GETLAM");
                 int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
@@ -1630,11 +1630,11 @@ void LIB_HANDLER()
             len <<= 2;
 
             if(lastword < 0x1000000)
-                rplDecompAppendString((byte_p) (name + 1));
+                rplDecompAppendString((utf8_p) (name + 1));
             else
-                rplDecompAppendString2(((byte_p) (name + 1)), len);
+                rplDecompAppendString2(((utf8_p) (name + 1)), len);
 
-            rplDecompAppendString((byte_p) "\' LRCL");
+            rplDecompAppendString("\' LRCL");
             RetNum = OK_CONTINUE;
             return;
         }
@@ -1651,7 +1651,7 @@ void LIB_HANDLER()
                 // THIS SHOULD NEVER HAPPEN!!
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
-                rplDecompAppendString((byte_p) "GETLAM");
+                rplDecompAppendString("GETLAM");
                 int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
@@ -1676,7 +1676,7 @@ void LIB_HANDLER()
                 }
                 basechr += result;
                 rplDecompAppendChar(basechr);
-                rplDecompAppendString((byte_p) "EVAL");
+                rplDecompAppendString("EVAL");
                 RetNum = OK_CONTINUE;
                 return;
             }
@@ -1691,9 +1691,9 @@ void LIB_HANDLER()
             len <<= 2;
 
             if(lastword < 0x1000000)
-                rplDecompAppendString((byte_p) (name + 1));
+                rplDecompAppendString((utf8_p) (name + 1));
             else
-                rplDecompAppendString2(((byte_p) (name + 1)), len);
+                rplDecompAppendString2(((utf8_p) (name + 1)), len);
 
             RetNum = OK_CONTINUE;
 
@@ -1711,7 +1711,7 @@ void LIB_HANDLER()
 
             if(!name) {
                 //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
-                rplDecompAppendString((byte_p) "PUTLAM");
+                rplDecompAppendString("PUTLAM");
                 int32_t result = OPCODE(*DecompileObject) & 0xffff;
                 if(result & 0x8000)
                     result |= 0xFFFF0000;
@@ -1755,11 +1755,11 @@ void LIB_HANDLER()
             len <<= 2;
 
             if(lastword < 0x1000000)
-                rplDecompAppendString((byte_p) (name + 1));
+                rplDecompAppendString((utf8_p) (name + 1));
             else
-                rplDecompAppendString2(((byte_p) (name + 1)), len);
+                rplDecompAppendString2(((utf8_p) (name + 1)), len);
 
-            rplDecompAppendString((byte_p) "\' STO");
+            rplDecompAppendString("\' STO");
             RetNum = OK_CONTINUE;
             return;
         }
@@ -1860,8 +1860,8 @@ void LIB_HANDLER()
             }
 
             // AND CHECK FOR NAME VALIDITY
-            if(!rplIsValidIdent((byte_p) (ObjectPTR + 1),
-                        ((byte_p) ObjectPTR) + (len << 2) + usedbytes)) {
+            if(!rplIsValidIdent((utf8_p) (ObjectPTR + 1),
+                        ((utf8_p) ObjectPTR) + (len << 2) + usedbytes)) {
                 RetNum = ERR_INVALID;
                 return;
             }

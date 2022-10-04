@@ -345,7 +345,7 @@ word_p *rplGetParentDir(word_p * directory)
 
 // FINDS A GLOBAL, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE DIRECTORY ENVIRONMENT
 
-word_p *rplFindGlobalbyName(byte_p name, byte_p nameend, int32_t scanparents)
+word_p *rplFindGlobalbyName(utf8_p name, utf8_p nameend, int32_t scanparents)
 {
     word_p *direntry = CurrentDir + 4;
     word_p parentdir;
@@ -368,7 +368,7 @@ word_p *rplFindGlobalbyName(byte_p name, byte_p nameend, int32_t scanparents)
     return 0;
 }
 
-word_p *rplFindGlobalbyNameInDir(byte_p name, byte_p nameend,
+word_p *rplFindGlobalbyNameInDir(utf8_p name, utf8_p nameend,
         word_p * parent, int32_t scanparents)
 {
     word_p *direntry = parent + 4;
@@ -740,7 +740,7 @@ void rplWipeDir(word_p * directory)
         return;
 
     // PUSH THE HANDLE TO PURGE LATER
-    rplNewint32_tPush(direntry - directory, DECBINT);
+    rplNewBINTPush(direntry - directory, DECBINT);
     rplPushData(directory[1]);
     if(Exceptions) {
         DSTop = Stacksave;
@@ -768,7 +768,7 @@ void rplWipeDir(word_p * directory)
                 if(dirsize) {
                     // NON-EMPTY DIR, RECURSE INTO IT
                     ScratchPointer1 = *(direntry + 1);  // PROTECT THE HANDLE FROM GC
-                    rplNewint32_tPush(direntry + 2 - directory, DECBINT);  // RESUME AT THE FOLLOWING ENTRY
+                    rplNewBINTPush(direntry + 2 - directory, DECBINT);  // RESUME AT THE FOLLOWING ENTRY
                     rplPushData(directory[1]);
                     if(Exceptions) {
                         DSTop = Stacksave;
@@ -921,7 +921,7 @@ void rplStoreSettings(word_p nameobject, word_p object)
                 rplFindDirbyHandle(SettingsDir));
 }
 
-void rplStoreSettingsbyName(byte_p name, byte_p nameend, word_p object)
+void rplStoreSettingsbyName(utf8_p name, utf8_p nameend, word_p object)
 {
     if(!ISDIR(*SettingsDir))
         return;
@@ -955,7 +955,7 @@ word_p rplGetSettings(word_p nameobject)
     return 0;
 }
 
-word_p rplGetSettingsbyName(byte_p name, byte_p nameend)
+word_p rplGetSettingsbyName(utf8_p name, utf8_p nameend)
 {
     if(!ISDIR(*SettingsDir))
         return 0;
@@ -1102,7 +1102,7 @@ word_p *rplFindGlobalPropInDir(word_p nameobj, WORD propname,
     word_p *direntry = parent;
     word_p parentdir;
     int32_t idlen = rplGetIdentLength(nameobj);
-    byte_p nameptr = (byte_p) (nameobj + 1);
+    utf8_p nameptr = (utf8_p) (nameobj + 1);
 
     if(!parent)
         return 0;
@@ -1118,7 +1118,7 @@ word_p *rplFindGlobalPropInDir(word_p nameobj, WORD propname,
             if(ISIDENT(**direntry)
                     && (rplGetIdentLength(*direntry) == idlen + 7)) {
                 // LONG ENOUGH TO BE A PROPERTY OF THIS VARIABLE
-                byte_p ptr = (byte_p) (direntry[0] + 1);
+                utf8_p ptr = (utf8_p) (direntry[0] + 1);
                 int k;
                 for(k = 0; k < idlen; ++k)
                     if(ptr[k] != nameptr[k])
@@ -1373,8 +1373,8 @@ void rplDoAutoEval(word_p varname, word_p * indir)
 WORD rplGetIdentProp(word_p ident)
 {
     WORD prop = 0;
-    byte_p ptr = (byte_p) (ident + 1);
-    byte_p end = (byte_p) rplSkipOb(ident);
+    utf8_p ptr = (utf8_p) (ident + 1);
+    utf8_p end = (utf8_p) rplSkipOb(ident);
 
     if(IDENTHASATTR(*ident))
         end -= 4;
@@ -1395,8 +1395,9 @@ WORD rplGetIdentProp(word_p ident)
 // RETURN AN IDENT WITH ANY PROPERTIES REMOVED
 word_p rplMakeIdentNoProps(word_p ident)
 {
-    byte_p ptr = (byte_p) (ident + 1);
-    byte_p start = ptr, end = (byte_p) rplSkipOb(ident);
+    byte_p ptr   = (byte_p) (ident + 1);
+    byte_p start = ptr;
+    byte_p end   = (byte_p) rplSkipOb(ident);
 
     if(IDENTHASATTR(*ident))
         end -= 4;

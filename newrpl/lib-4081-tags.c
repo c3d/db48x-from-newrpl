@@ -284,8 +284,8 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
 
             rplDecompAppendChar(':');
-            rplDecompAppendString2((byte_p) (DecompileObject + 2),
-                    rplStrSize(DecompileObject + 1));
+            rplDecompAppendString2((utf8_p) (DecompileObject + 2),
+                                   rplStrSize(DecompileObject + 1));
             rplDecompAppendChar(':');
             DecompileObject++;  // POINT TO THE STRING, IT WILL SKIP IT
 

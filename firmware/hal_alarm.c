@@ -57,7 +57,7 @@ void halTriggerAlarm()
         halSetNotification(N_ALARM, 0);
 
     halScreen.DirtyFlag |=
-            STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STAREA_DIRTY;
+            STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
 
     return;
 }

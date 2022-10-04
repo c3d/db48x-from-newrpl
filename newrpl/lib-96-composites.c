@@ -587,7 +587,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                word_p newnum = rplNewint32_t(position, DECBINT);
+                word_p newnum = rplNewBINT(position, DECBINT);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -747,10 +747,10 @@ void LIB_HANDLER()
             }
 
             if(nelem != 2)
-                rplNewint32_tPush((posrow - 1) * cols + poscol, DECBINT);
+                rplNewBINTPush((posrow - 1) * cols + poscol, DECBINT);
             else {
-                rplNewint32_tPush(posrow, DECBINT);
-                rplNewint32_tPush(poscol, DECBINT);
+                rplNewBINTPush(posrow, DECBINT);
+                rplNewBINTPush(poscol, DECBINT);
             }
             if(Exceptions) {
                 DSTop = stksave;
@@ -1087,7 +1087,7 @@ void LIB_HANDLER()
                 else
                     carry = 0;
 
-                word_p newnum = rplNewint32_t(position, DECBINT);
+                word_p newnum = rplNewBINT(position, DECBINT);
                 if(!newnum) {
                     DSTop = stksave;
                     return;
@@ -1228,10 +1228,10 @@ void LIB_HANDLER()
             }
 
             if(nelem != 2)
-                rplNewint32_tPush((posrow - 1) * cols + poscol, DECBINT);
+                rplNewBINTPush((posrow - 1) * cols + poscol, DECBINT);
             else {
-                rplNewint32_tPush(posrow, DECBINT);
-                rplNewint32_tPush(poscol, DECBINT);
+                rplNewBINTPush(posrow, DECBINT);
+                rplNewBINTPush(poscol, DECBINT);
             }
             if(Exceptions) {
                 DSTop = stksave;
@@ -1293,7 +1293,7 @@ void LIB_HANDLER()
                 rplError(ERR_EMPTYSTRING);
                 return;
             }
-            word_p newstring = rplCreateString(start, ptr);
+            word_p newstring = rplCreateStringFromBytes(start, ptr);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -1345,7 +1345,7 @@ void LIB_HANDLER()
             byte_p end = start + rplStrSize(comp);
             byte_p ptr = (byte_p) utf8skipst((char *)start, (char *)end);
 
-            word_p newstring = rplCreateString(ptr, end);
+            word_p newstring = rplCreateStringFromBytes(ptr, end);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -1845,7 +1845,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(2);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 ++pos;
@@ -1897,7 +1897,7 @@ void LIB_HANDLER()
                             (char *)str2e, len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(2);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 str1 = (byte_p) utf8skipst((char *)str1, (char *)(str1e));
@@ -1961,7 +1961,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(3);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 ++pos;
@@ -2027,7 +2027,7 @@ void LIB_HANDLER()
                             (char *)str2e, len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(3);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 str1 = (byte_p) utf8skipst((char *)str1, (char *)(str1 + 4));
@@ -2077,7 +2077,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(2);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 --pos;
@@ -2129,7 +2129,7 @@ void LIB_HANDLER()
                             len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(2);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 str1ptr = (byte_p) utf8rskipst((char *)str1ptr, (char *)str1);
@@ -2191,7 +2191,7 @@ void LIB_HANDLER()
                 }
                 if(rplIsTrue(rplPopData())) {
                     rplDropData(3);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 --pos;
@@ -2257,7 +2257,7 @@ void LIB_HANDLER()
                             len2) == 0) {
                     // IT'S A MATCH
                     rplDropData(3);
-                    rplNewint32_tPush(pos, DECBINT);
+                    rplNewBINTPush(pos, DECBINT);
                     return;
                 }
                 str1ptr = (byte_p) utf8rskipst((char *)str1ptr, (char *)str1);
@@ -2377,7 +2377,7 @@ void LIB_HANDLER()
             str2 = (byte_p) utf8nskipst((char *)str1, (char *)end, pos2);
             str1 = (byte_p) utf8nskipst((char *)str1, (char *)end, pos - 1);
 
-            word_p newstring = rplCreateString(str1, str2);
+            word_p newstring = rplCreateStringFromBytes(str1, str2);
             if(!newstring)
                 return;
             rplDropData(2);
@@ -2608,7 +2608,7 @@ void LIB_HANDLER()
         if(ISSTRING(*arg)) {
             int32_t size = rplStrSize(arg);
             rplDropData(1);
-            rplNewint32_tPush(size, DECBINT);
+            rplNewBINTPush(size, DECBINT);
             return;
         }
 
@@ -2619,14 +2619,14 @@ void LIB_HANDLER()
             if(size < 1)
                 size = 1;
             rplDropData(1);
-            rplNewint32_tPush(size, DECBINT);
+            rplNewBINTPush(size, DECBINT);
             return;
         }
 
         if(ISLIST(*arg)) {
             int32_t size = rplListLength(arg);
             rplDropData(1);
-            rplNewint32_tPush(size, DECBINT);
+            rplNewBINTPush(size, DECBINT);
             return;
         }
 
@@ -2638,7 +2638,7 @@ void LIB_HANDLER()
             if(!rows)
                 dims = 1;
             else {
-                rplNewint32_tPush(rows, DECBINT);
+                rplNewBINTPush(rows, DECBINT);
                 if(Exceptions) {
                     DSTop = stksave;
                     return;
@@ -2646,7 +2646,7 @@ void LIB_HANDLER()
                 dims = 2;
             }
 
-            rplNewint32_tPush(cols, DECBINT);
+            rplNewBINTPush(cols, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -2705,7 +2705,7 @@ void LIB_HANDLER()
                 rplError(ERR_EMPTYSTRING);
                 return;
             }
-            word_p newstring = rplCreateString(ptr, end);
+            word_p newstring = rplCreateStringFromBytes(ptr, end);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);
@@ -2759,7 +2759,7 @@ void LIB_HANDLER()
             byte_p end = start + rplStrSize(comp);
             byte_p ptr = (byte_p) utf8rskipst((char *)end, (char *)start);
 
-            word_p newstring = rplCreateString(start, ptr);
+            word_p newstring = rplCreateStringFromBytes(start, ptr);
             if(!newstring)
                 return;
             rplOverwriteData(1, newstring);

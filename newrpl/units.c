@@ -1153,213 +1153,408 @@ const WORD const system_unit_defs[] = {
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
-const word_p const system_unit_dir[] = {
-    (word_p) & system_unit_names[0], (word_p) & one_bint,     // 'm'=1
-    (word_p) & system_unit_names[2], (word_p) & one_bint,     // 'kg'=1
-    (word_p) & system_unit_names[4], (word_p) & one_bint,     // 's'=1
-    (word_p) & system_unit_names[6], (word_p) & system_unit_defs[0],  // 'a'=1_m^2
-    (word_p) & system_unit_names[282], (word_p) & system_unit_defs[1120],     // 'ha'=100_a
-    (word_p) & system_unit_names[284], (word_p) & system_unit_defs[1126],     // 'ca'=0.01_a
-    (word_p) & system_unit_names[8], (word_p) & system_unit_defs[6],  // 'Å'=1e-10_m
-    (word_p) & system_unit_names[10], (word_p) & one_bint,    // 'A'=1
-    (word_p) & system_unit_names[12], (word_p) & system_unit_defs[14],        // 'acre'=4840_yd^2
-    (word_p) & system_unit_names[14], (word_p) & system_unit_defs[20],        // 'acreUS'=4840_ydUS^2
-    (word_p) & system_unit_names[17], (word_p) & system_unit_defs[26],        // 'arcmin'=3*(180^-2)*pi_r
-    (word_p) & system_unit_names[20], (word_p) & system_unit_defs[40],        // 'arcs'=9*(180^-3)*pi_r
-    (word_p) & system_unit_names[22], (word_p) & system_unit_defs[54],        // 'atm'=101325_Pa
-    (word_p) & system_unit_names[24], (word_p) & system_unit_defs[60],        // 'au'=149597870700_m
-    (word_p) & system_unit_names[26], (word_p) & system_unit_defs[68],        // 'b'=1e-28_m^2
-    (word_p) & system_unit_names[28], (word_p) & system_unit_defs[76],        // 'bar'=1e5_Pa
-    (word_p) & system_unit_names[30], (word_p) & system_unit_defs[82],        // 'bbl'=42_gal
-    (word_p) & system_unit_names[32], (word_p) & system_unit_defs[88],        // 'Bq'=1_1/s
-    (word_p) & system_unit_names[34], (word_p) & system_unit_defs[1164],      // 'Btu'=1055.056_J
-    (word_p) & system_unit_names[291], (word_p) & system_unit_defs[94],       // 'BtuIT'=1055.05585262_J
-    (word_p) & system_unit_names[36], (word_p) & system_unit_defs[103],       // 'bu'=2150.42_in^3
-    (word_p) & system_unit_names[306], (word_p) & system_unit_defs[1218],     // 'buC'=8_galC
-    (word_p) & system_unit_names[304], (word_p) & system_unit_defs[1224],     // 'buUK'=8_galUK
-    (word_p) & system_unit_names[38], (word_p) & one_bint,    // '°C' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
-    (word_p) & system_unit_names[40], (word_p) & system_unit_defs[111],       // 'Δ°C'=1_ΔK
-    (word_p) & system_unit_names[43], (word_p) & system_unit_defs[117],       // 'c'=299792458_m/s
-    (word_p) & system_unit_names[45], (word_p) & system_unit_defs[129],       // 'C'=1_A*s
-    (word_p) & system_unit_names[47], (word_p) & system_unit_defs[477],       // 'cal'=4.184_J
-    (word_p) & system_unit_names[288], (word_p) & system_unit_defs[139],      // 'calIT'=4.1868_J
-    (word_p) & system_unit_names[49], (word_p) & system_unit_defs[147],       // 'kcal'=1000_cal
-    (word_p) & system_unit_names[51], (word_p) & one_bint,    // 'cd'=1
-    (word_p) & system_unit_names[53], (word_p) & system_unit_defs[153],       // 'chain'=66_ftUS
-    (word_p) & system_unit_names[56], (word_p) & system_unit_defs[159],       // 'Ci'=3.7e10_Bq
-    (word_p) & system_unit_names[58], (word_p) & system_unit_defs[167],       // 'ct'=200_mg
-    (word_p) & system_unit_names[60], (word_p) & system_unit_defs[173],       // 'cu'=1/16_gal (US cup)
-    (word_p) & system_unit_names[62], (word_p) & system_unit_defs[181],       // '°'=pi/180_r
-    (word_p) & system_unit_names[64], (word_p) & system_unit_defs[195],       // 'd'=86400_s
-    (word_p) & system_unit_names[294], (word_p) & one_real,   // 'dB'=1 (non-dimensional)
-    (word_p) & system_unit_names[66], (word_p) & system_unit_defs[201],       // 'dyn'=1_g*cm/s^2
-    (word_p) & system_unit_names[68], (word_p) & system_unit_defs[215],       // 'erg'=1_g*cm^2/s^2
-    (word_p) & system_unit_names[70], (word_p) & system_unit_defs[229],       // 'eV'=1.602176634e-19_J
-    (word_p) & system_unit_names[72], (word_p) & system_unit_defs[238],       // 'F'=1_C/V
-    (word_p) & system_unit_names[74], (word_p) & one_bint,    // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
-    (word_p) & system_unit_names[76], (word_p) & system_unit_defs[248],       // 'Δ°F'=1_Δ°R
-    (word_p) & system_unit_names[79], (word_p) & system_unit_defs[255],       // 'fath'=6_ftUS
-    (word_p) & system_unit_names[81], (word_p) & system_unit_defs[261],       // 'fbm'=144_in^3
-    (word_p) & system_unit_names[83], (word_p) & system_unit_defs[267],       // 'fc'=1_lm/ft^2
-    (word_p) & system_unit_names[85], (word_p) & system_unit_defs[277],       // 'Fdy'=96485.3321233100184_C (exact per 2019 SI redefinition)
-    (word_p) & system_unit_names[87], (word_p) & system_unit_defs[303],       // 'fermi'=1_fm
-    (word_p) & system_unit_names[90], (word_p) & system_unit_defs[309],       // 'flam'=1/pi_cd/ft^2
-    (word_p) & system_unit_names[92], (word_p) & system_unit_defs[323],       // 'ft'=12_in'
-    (word_p) & system_unit_names[94], (word_p) & system_unit_defs[329],       // 'ftUS'=1200/3937_m
-    (word_p) & system_unit_names[96], (word_p) & system_unit_defs[339],       // 'g'=0.001_kg
-    (word_p) & system_unit_names[98], (word_p) & system_unit_defs[347],       // 'ga'=9.80665_m/s^2
-    (word_p) & system_unit_names[100], (word_p) & system_unit_defs[359],      // 'gal'=231_in^3
-    (word_p) & system_unit_names[102], (word_p) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
-    (word_p) & system_unit_names[104], (word_p) & system_unit_defs[365],      // 'galC'='galUK'=0.00454609_m^3
-    (word_p) & system_unit_names[107], (word_p) & system_unit_defs[373],      // 'gf'=1_g*ga
-    (word_p) & system_unit_names[109], (word_p) & system_unit_defs[383],      // 'grad'=pi/200_r
-    (word_p) & system_unit_names[111], (word_p) & system_unit_defs[395],      // 'grain'=0.00006479891
-    (word_p) & system_unit_names[114], (word_p) & system_unit_defs[403],      // 'Gy'=1_J/kg
-    (word_p) & system_unit_names[116], (word_p) & system_unit_defs[413],      // 'H'=1_Wb/A
-    (word_p) & system_unit_names[118], (word_p) & system_unit_defs[423],      // 'h'=3600_s
-    (word_p) & system_unit_names[120], (word_p) & system_unit_defs[429],      // 'hp'=550_ft*lbf/s
-    (word_p) & system_unit_names[122], (word_p) & system_unit_defs[443],      // 'Hz'=1/s
-    (word_p) & system_unit_names[124], (word_p) & system_unit_defs[449],      // 'in'=0.0254_m
-    (word_p) & system_unit_names[126], (word_p) & system_unit_defs[457],      // 'inHg'=13595.1_kg/m^3*in*ga (at 0°C)
-    (word_p) & system_unit_names[128], (word_p) & system_unit_defs[1134],     // 'inH2O'=999.972_kg/m^3*in*ga (at 4°C)
-    (word_p) & system_unit_names[131], (word_p) & system_unit_defs[896],      // 'J'=1_N*m
-    (word_p) & system_unit_names[133], (word_p) & one_bint,   // 'K'=1
-    (word_p) & system_unit_names[135], (word_p) & system_unit_defs[1114],     // 'ΔK'=1_K
-    (word_p) & system_unit_names[137], (word_p) & system_unit_defs[485],      // 'kip'=1000_lbf
-    (word_p) & system_unit_names[139], (word_p) & system_unit_defs[491],      // 'knot'=1_nmi/h
-    (word_p) & system_unit_names[141], (word_p) & system_unit_defs[501],      // 'kph'=1_km/h
-    (word_p) & system_unit_names[143], (word_p) & system_unit_defs[511],      // 'l'=1_dm^3
-    (word_p) & system_unit_names[145], (word_p) & system_unit_defs[517],      // 'lam'=10000/pi_cd/m^2
-    (word_p) & system_unit_names[147], (word_p) & system_unit_defs[531],      // 'lb'=7000_grain
-    (word_p) & system_unit_names[149], (word_p) & system_unit_defs[538],      // 'lbf'=1_lb*ga
-    (word_p) & system_unit_names[151], (word_p) & system_unit_defs[548],      // 'lbt'=5760_grain
-    (word_p) & system_unit_names[153], (word_p) & system_unit_defs[555],      // 'lm'=1_cd*sr
-    (word_p) & system_unit_names[155], (word_p) & system_unit_defs[565],      // 'lx'=1_lm/m^2
-    (word_p) & system_unit_names[157], (word_p) & system_unit_defs[575],      // 'lyr'=365.25_d*c
-    (word_p) & system_unit_names[159], (word_p) & system_unit_defs[593],      // 'µ'=1_µm
-    (word_p) & system_unit_names[161], (word_p) & system_unit_defs[599],      // 'mho'=1_A/V
-    (word_p) & system_unit_names[163], (word_p) & system_unit_defs[609],      // 'mi'=5280_ft
-    (word_p) & system_unit_names[165], (word_p) & system_unit_defs[615],      // 'mil'=0.001_in
-    (word_p) & system_unit_names[167], (word_p) & system_unit_defs[623],      // 'min'=60_s
-    (word_p) & system_unit_names[169], (word_p) & system_unit_defs[629],      // 'miUS'=5280_ftUS
-    (word_p) & system_unit_names[171], (word_p) & system_unit_defs[635],      // 'mmHg'=1_13595.1_kg/m^3*mm*ga
-    (word_p) & system_unit_names[173], (word_p) & one_bint,   // 'mol'=1 (base unit)
-    (word_p) & system_unit_names[312], (word_p) & system_unit_defs[922],      // 'gmol=1_mol
-    (word_p) & system_unit_names[314], (word_p) & system_unit_defs[1244],     // 'lbmol=453.59237_mol
-    (word_p) & system_unit_names[175], (word_p) & system_unit_defs[655],      // 'mph'=1_mi/h
-    (word_p) & system_unit_names[177], (word_p) & system_unit_defs[665],      // 'N'=1_kg*m/s^2
-    (word_p) & system_unit_names[179], (word_p) & system_unit_defs[679],      // 'nmi'=1852_m
-    (word_p) & system_unit_names[181], (word_p) & system_unit_defs[685],      // 'Ω'= 1_V/A
-    (word_p) & system_unit_names[183], (word_p) & system_unit_defs[695],      // 'oz'= 437.5_grain
-    (word_p) & system_unit_names[185], (word_p) & system_unit_defs[704],      // 'ozfl'= 1/128_gal
-    (word_p) & system_unit_names[187], (word_p) & system_unit_defs[712],      // 'ozt'= 480_grain
-    (word_p) & system_unit_names[189], (word_p) & system_unit_defs[719],      // 'ozUK'= 1/160_galUK
-    (word_p) & system_unit_names[302], (word_p) & system_unit_defs[1210],     // 'ozC'= 1/160_galC
-    (word_p) & system_unit_names[191], (word_p) & system_unit_defs[728],      // 'P'=0.1_Pa*s
-    (word_p) & system_unit_names[193], (word_p) & system_unit_defs[740],      // 'Pa'=1_N/m^2 = 1_kg/m/s^2
-    (word_p) & system_unit_names[195], (word_p) & system_unit_defs[754],      // 'pc'=648000/pi_au
-    (word_p) & system_unit_names[197], (word_p) & system_unit_defs[766],      // 'pdl'= 1_lb*ft/s^2
-    (word_p) & system_unit_names[199], (word_p) & system_unit_defs[780],      // 'ph'= 1_lm/cm^2
-    (word_p) & system_unit_names[201], (word_p) & system_unit_defs[790],      // 'pk'=1/4_bu
-    (word_p) & system_unit_names[310], (word_p) & system_unit_defs[1231],     // 'pkC'=1/4_buC
-    (word_p) & system_unit_names[308], (word_p) & system_unit_defs[1237],     // 'pkUK'=1/4_buUK
-    (word_p) & system_unit_names[203], (word_p) & system_unit_defs[798],      // 'psi'=1_lbf/in^2
-    (word_p) & system_unit_names[205], (word_p) & system_unit_defs[808],      // 'pt'=1/8_gal
-    (word_p) & system_unit_names[298], (word_p) & system_unit_defs[880],      // 'ptC'=1/8_galC
-    (word_p) & system_unit_names[224], (word_p) & system_unit_defs[1192],     // 'ptUK'=1/8_galUK
-    (word_p) & system_unit_names[207], (word_p) & system_unit_defs[816],      // 'qt'=1/4_gal
-    (word_p) & system_unit_names[300], (word_p) & system_unit_defs[888],      // 'qtC'=1/4_galC
-    (word_p) & system_unit_names[226], (word_p) & system_unit_defs[1201],     // 'qtUK'=1/4_galUK
-    (word_p) & system_unit_names[209], (word_p) & one_real,   // 'r'=1 (non-dimensional)
-    (word_p) & system_unit_names[211], (word_p) & system_unit_defs[824],      // 'R'=2.58e-4_C/kg
-    (word_p) & system_unit_names[213], (word_p) & system_unit_defs[836],      // '°R'=5/9_K
-    (word_p) & system_unit_names[215], (word_p) & system_unit_defs[846],      // 'Δ°R'=5/9_ΔK
-    (word_p) & system_unit_names[218], (word_p) & system_unit_defs[856],      // 'rad'=0.01_Gy
-    (word_p) & system_unit_names[220], (word_p) & system_unit_defs[864],      // 'rd'=16.5_ft
-    (word_p) & system_unit_names[222], (word_p) & system_unit_defs[872],      // 'rdUS'=16.5_ftUS
-    (word_p) & system_unit_names[226], (word_p) & system_unit_defs[888],      // 'qtUK'=1/4_galUK
+const const word_p system_unit_dir[] = {
+    (word_p) &system_unit_names[0],
+    (word_p) &one_bint, // 'm'=1
+    (word_p) &system_unit_names[2],
+    (word_p) &one_bint, // 'kg'=1
+    (word_p) &system_unit_names[4],
+    (word_p) &one_bint, // 's'=1
+    (word_p) &system_unit_names[6],
+    (word_p) &system_unit_defs[0], // 'a'=1_m^2
+    (word_p) &system_unit_names[282],
+    (word_p) &system_unit_defs[1120], // 'ha'=100_a
+    (word_p) &system_unit_names[284],
+    (word_p) &system_unit_defs[1126], // 'ca'=0.01_a
+    (word_p) &system_unit_names[8],
+    (word_p) &system_unit_defs[6], // 'Å'=1e-10_m
+    (word_p) &system_unit_names[10],
+    (word_p) &one_bint, // 'A'=1
+    (word_p) &system_unit_names[12],
+    (word_p) &system_unit_defs[14], // 'acre'=4840_yd^2
+    (word_p) &system_unit_names[14],
+    (word_p) &system_unit_defs[20], // 'acreUS'=4840_ydUS^2
+    (word_p) &system_unit_names[17],
+    (word_p) &system_unit_defs[26], // 'arcmin'=3*(180^-2)*pi_r
+    (word_p) &system_unit_names[20],
+    (word_p) &system_unit_defs[40], // 'arcs'=9*(180^-3)*pi_r
+    (word_p) &system_unit_names[22],
+    (word_p) &system_unit_defs[54], // 'atm'=101325_Pa
+    (word_p) &system_unit_names[24],
+    (word_p) &system_unit_defs[60], // 'au'=149597870700_m
+    (word_p) &system_unit_names[26],
+    (word_p) &system_unit_defs[68], // 'b'=1e-28_m^2
+    (word_p) &system_unit_names[28],
+    (word_p) &system_unit_defs[76], // 'bar'=1e5_Pa
+    (word_p) &system_unit_names[30],
+    (word_p) &system_unit_defs[82], // 'bbl'=42_gal
+    (word_p) &system_unit_names[32],
+    (word_p) &system_unit_defs[88], // 'Bq'=1_1/s
+    (word_p) &system_unit_names[34],
+    (word_p) &system_unit_defs[1164], // 'Btu'=1055.056_J
+    (word_p) &system_unit_names[291],
+    (word_p) &system_unit_defs[94], // 'BtuIT'=1055.05585262_J
+    (word_p) &system_unit_names[36],
+    (word_p) &system_unit_defs[103], // 'bu'=2150.42_in^3
+    (word_p) &system_unit_names[306],
+    (word_p) &system_unit_defs[1218], // 'buC'=8_galC
+    (word_p) &system_unit_names[304],
+    (word_p) &system_unit_defs[1224], // 'buUK'=8_galUK
+    (word_p) &system_unit_names[38],
+    (word_p) &one_bint, // '°C' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS
+                        // SPECIAL CASES
+    (word_p) &system_unit_names[40],
+    (word_p) &system_unit_defs[111], // 'Δ°C'=1_ΔK
+    (word_p) &system_unit_names[43],
+    (word_p) &system_unit_defs[117], // 'c'=299792458_m/s
+    (word_p) &system_unit_names[45],
+    (word_p) &system_unit_defs[129], // 'C'=1_A*s
+    (word_p) &system_unit_names[47],
+    (word_p) &system_unit_defs[477], // 'cal'=4.184_J
+    (word_p) &system_unit_names[288],
+    (word_p) &system_unit_defs[139], // 'calIT'=4.1868_J
+    (word_p) &system_unit_names[49],
+    (word_p) &system_unit_defs[147], // 'kcal'=1000_cal
+    (word_p) &system_unit_names[51],
+    (word_p) &one_bint, // 'cd'=1
+    (word_p) &system_unit_names[53],
+    (word_p) &system_unit_defs[153], // 'chain'=66_ftUS
+    (word_p) &system_unit_names[56],
+    (word_p) &system_unit_defs[159], // 'Ci'=3.7e10_Bq
+    (word_p) &system_unit_names[58],
+    (word_p) &system_unit_defs[167], // 'ct'=200_mg
+    (word_p) &system_unit_names[60],
+    (word_p) &system_unit_defs[173], // 'cu'=1/16_gal (US cup)
+    (word_p) &system_unit_names[62],
+    (word_p) &system_unit_defs[181], // '°'=pi/180_r
+    (word_p) &system_unit_names[64],
+    (word_p) &system_unit_defs[195], // 'd'=86400_s
+    (word_p) &system_unit_names[294],
+    (word_p) &one_real, // 'dB'=1 (non-dimensional)
+    (word_p) &system_unit_names[66],
+    (word_p) &system_unit_defs[201], // 'dyn'=1_g*cm/s^2
+    (word_p) &system_unit_names[68],
+    (word_p) &system_unit_defs[215], // 'erg'=1_g*cm^2/s^2
+    (word_p) &system_unit_names[70],
+    (word_p) &system_unit_defs[229], // 'eV'=1.602176634e-19_J
+    (word_p) &system_unit_names[72],
+    (word_p) &system_unit_defs[238], // 'F'=1_C/V
+    (word_p) &system_unit_names[74],
+    (word_p) &one_bint, // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS
+                        // SPECIAL CASES
+    (word_p) &system_unit_names[76],
+    (word_p) &system_unit_defs[248], // 'Δ°F'=1_Δ°R
+    (word_p) &system_unit_names[79],
+    (word_p) &system_unit_defs[255], // 'fath'=6_ftUS
+    (word_p) &system_unit_names[81],
+    (word_p) &system_unit_defs[261], // 'fbm'=144_in^3
+    (word_p) &system_unit_names[83],
+    (word_p) &system_unit_defs[267], // 'fc'=1_lm/ft^2
+    (word_p) &system_unit_names[85],
+    (word_p) &system_unit_defs[277], // 'Fdy'=96485.3321233100184_C (exact per
+                                     // 2019 SI redefinition)
+    (word_p) &system_unit_names[87],
+    (word_p) &system_unit_defs[303], // 'fermi'=1_fm
+    (word_p) &system_unit_names[90],
+    (word_p) &system_unit_defs[309], // 'flam'=1/pi_cd/ft^2
+    (word_p) &system_unit_names[92],
+    (word_p) &system_unit_defs[323], // 'ft'=12_in'
+    (word_p) &system_unit_names[94],
+    (word_p) &system_unit_defs[329], // 'ftUS'=1200/3937_m
+    (word_p) &system_unit_names[96],
+    (word_p) &system_unit_defs[339], // 'g'=0.001_kg
+    (word_p) &system_unit_names[98],
+    (word_p) &system_unit_defs[347], // 'ga'=9.80665_m/s^2
+    (word_p) &system_unit_names[100],
+    (word_p) &system_unit_defs[359], // 'gal'=231_in^3
+    (word_p) &system_unit_names[102],
+    (word_p) &system_unit_defs[365], // 'galC'='galUK'=0.00454609_m^3
+    (word_p) &system_unit_names[104],
+    (word_p) &system_unit_defs[365], // 'galC'='galUK'=0.00454609_m^3
+    (word_p) &system_unit_names[107],
+    (word_p) &system_unit_defs[373], // 'gf'=1_g*ga
+    (word_p) &system_unit_names[109],
+    (word_p) &system_unit_defs[383], // 'grad'=pi/200_r
+    (word_p) &system_unit_names[111],
+    (word_p) &system_unit_defs[395], // 'grain'=0.00006479891
+    (word_p) &system_unit_names[114],
+    (word_p) &system_unit_defs[403], // 'Gy'=1_J/kg
+    (word_p) &system_unit_names[116],
+    (word_p) &system_unit_defs[413], // 'H'=1_Wb/A
+    (word_p) &system_unit_names[118],
+    (word_p) &system_unit_defs[423], // 'h'=3600_s
+    (word_p) &system_unit_names[120],
+    (word_p) &system_unit_defs[429], // 'hp'=550_ft*lbf/s
+    (word_p) &system_unit_names[122],
+    (word_p) &system_unit_defs[443], // 'Hz'=1/s
+    (word_p) &system_unit_names[124],
+    (word_p) &system_unit_defs[449], // 'in'=0.0254_m
+    (word_p) &system_unit_names[126],
+    (word_p) &system_unit_defs[457], // 'inHg'=13595.1_kg/m^3*in*ga (at 0°C)
+    (word_p) &system_unit_names[128],
+    (word_p) &system_unit_defs[1134], // 'inH2O'=999.972_kg/m^3*in*ga (at 4°C)
+    (word_p) &system_unit_names[131],
+    (word_p) &system_unit_defs[896], // 'J'=1_N*m
+    (word_p) &system_unit_names[133],
+    (word_p) &one_bint, // 'K'=1
+    (word_p) &system_unit_names[135],
+    (word_p) &system_unit_defs[1114], // 'ΔK'=1_K
+    (word_p) &system_unit_names[137],
+    (word_p) &system_unit_defs[485], // 'kip'=1000_lbf
+    (word_p) &system_unit_names[139],
+    (word_p) &system_unit_defs[491], // 'knot'=1_nmi/h
+    (word_p) &system_unit_names[141],
+    (word_p) &system_unit_defs[501], // 'kph'=1_km/h
+    (word_p) &system_unit_names[143],
+    (word_p) &system_unit_defs[511], // 'l'=1_dm^3
+    (word_p) &system_unit_names[145],
+    (word_p) &system_unit_defs[517], // 'lam'=10000/pi_cd/m^2
+    (word_p) &system_unit_names[147],
+    (word_p) &system_unit_defs[531], // 'lb'=7000_grain
+    (word_p) &system_unit_names[149],
+    (word_p) &system_unit_defs[538], // 'lbf'=1_lb*ga
+    (word_p) &system_unit_names[151],
+    (word_p) &system_unit_defs[548], // 'lbt'=5760_grain
+    (word_p) &system_unit_names[153],
+    (word_p) &system_unit_defs[555], // 'lm'=1_cd*sr
+    (word_p) &system_unit_names[155],
+    (word_p) &system_unit_defs[565], // 'lx'=1_lm/m^2
+    (word_p) &system_unit_names[157],
+    (word_p) &system_unit_defs[575], // 'lyr'=365.25_d*c
+    (word_p) &system_unit_names[159],
+    (word_p) &system_unit_defs[593], // 'µ'=1_µm
+    (word_p) &system_unit_names[161],
+    (word_p) &system_unit_defs[599], // 'mho'=1_A/V
+    (word_p) &system_unit_names[163],
+    (word_p) &system_unit_defs[609], // 'mi'=5280_ft
+    (word_p) &system_unit_names[165],
+    (word_p) &system_unit_defs[615], // 'mil'=0.001_in
+    (word_p) &system_unit_names[167],
+    (word_p) &system_unit_defs[623], // 'min'=60_s
+    (word_p) &system_unit_names[169],
+    (word_p) &system_unit_defs[629], // 'miUS'=5280_ftUS
+    (word_p) &system_unit_names[171],
+    (word_p) &system_unit_defs[635], // 'mmHg'=1_13595.1_kg/m^3*mm*ga
+    (word_p) &system_unit_names[173],
+    (word_p) &one_bint, // 'mol'=1 (base unit)
+    (word_p) &system_unit_names[312],
+    (word_p) &system_unit_defs[922], // 'gmol=1_mol
+    (word_p) &system_unit_names[314],
+    (word_p) &system_unit_defs[1244], // 'lbmol=453.59237_mol
+    (word_p) &system_unit_names[175],
+    (word_p) &system_unit_defs[655], // 'mph'=1_mi/h
+    (word_p) &system_unit_names[177],
+    (word_p) &system_unit_defs[665], // 'N'=1_kg*m/s^2
+    (word_p) &system_unit_names[179],
+    (word_p) &system_unit_defs[679], // 'nmi'=1852_m
+    (word_p) &system_unit_names[181],
+    (word_p) &system_unit_defs[685], // 'Ω'= 1_V/A
+    (word_p) &system_unit_names[183],
+    (word_p) &system_unit_defs[695], // 'oz'= 437.5_grain
+    (word_p) &system_unit_names[185],
+    (word_p) &system_unit_defs[704], // 'ozfl'= 1/128_gal
+    (word_p) &system_unit_names[187],
+    (word_p) &system_unit_defs[712], // 'ozt'= 480_grain
+    (word_p) &system_unit_names[189],
+    (word_p) &system_unit_defs[719], // 'ozUK'= 1/160_galUK
+    (word_p) &system_unit_names[302],
+    (word_p) &system_unit_defs[1210], // 'ozC'= 1/160_galC
+    (word_p) &system_unit_names[191],
+    (word_p) &system_unit_defs[728], // 'P'=0.1_Pa*s
+    (word_p) &system_unit_names[193],
+    (word_p) &system_unit_defs[740], // 'Pa'=1_N/m^2 = 1_kg/m/s^2
+    (word_p) &system_unit_names[195],
+    (word_p) &system_unit_defs[754], // 'pc'=648000/pi_au
+    (word_p) &system_unit_names[197],
+    (word_p) &system_unit_defs[766], // 'pdl'= 1_lb*ft/s^2
+    (word_p) &system_unit_names[199],
+    (word_p) &system_unit_defs[780], // 'ph'= 1_lm/cm^2
+    (word_p) &system_unit_names[201],
+    (word_p) &system_unit_defs[790], // 'pk'=1/4_bu
+    (word_p) &system_unit_names[310],
+    (word_p) &system_unit_defs[1231], // 'pkC'=1/4_buC
+    (word_p) &system_unit_names[308],
+    (word_p) &system_unit_defs[1237], // 'pkUK'=1/4_buUK
+    (word_p) &system_unit_names[203],
+    (word_p) &system_unit_defs[798], // 'psi'=1_lbf/in^2
+    (word_p) &system_unit_names[205],
+    (word_p) &system_unit_defs[808], // 'pt'=1/8_gal
+    (word_p) &system_unit_names[298],
+    (word_p) &system_unit_defs[880], // 'ptC'=1/8_galC
+    (word_p) &system_unit_names[224],
+    (word_p) &system_unit_defs[1192], // 'ptUK'=1/8_galUK
+    (word_p) &system_unit_names[207],
+    (word_p) &system_unit_defs[816], // 'qt'=1/4_gal
+    (word_p) &system_unit_names[300],
+    (word_p) &system_unit_defs[888], // 'qtC'=1/4_galC
+    (word_p) &system_unit_names[226],
+    (word_p) &system_unit_defs[1201], // 'qtUK'=1/4_galUK
+    (word_p) &system_unit_names[209],
+    (word_p) &one_real, // 'r'=1 (non-dimensional)
+    (word_p) &system_unit_names[211],
+    (word_p) &system_unit_defs[824], // 'R'=2.58e-4_C/kg
+    (word_p) &system_unit_names[213],
+    (word_p) &system_unit_defs[836], // '°R'=5/9_K
+    (word_p) &system_unit_names[215],
+    (word_p) &system_unit_defs[846], // 'Δ°R'=5/9_ΔK
+    (word_p) &system_unit_names[218],
+    (word_p) &system_unit_defs[856], // 'rad'=0.01_Gy
+    (word_p) &system_unit_names[220],
+    (word_p) &system_unit_defs[864], // 'rd'=16.5_ft
+    (word_p) &system_unit_names[222],
+    (word_p) &system_unit_defs[872], // 'rdUS'=16.5_ftUS
+    (word_p) &system_unit_names[226],
+    (word_p) &system_unit_defs[888], // 'qtUK'=1/4_galUK
 
-    (word_p) & system_unit_names[228], (word_p) & system_unit_defs[910],      // 'rem'=0.01_m^2/s^2
-    (word_p) & system_unit_names[230], (word_p) & system_unit_defs[1182],     // 'rpm'=1_tr/min
-    (word_p) & system_unit_names[232], (word_p) & system_unit_defs[599],      // 'S'=1_A/V
-    (word_p) & system_unit_names[234], (word_p) & system_unit_defs[928],      // 'sb'=10000_cd/m^2
-    (word_p) & system_unit_names[236], (word_p) & system_unit_defs[938],      // 'slug'=1_lb*s^2/ft*ga
-    (word_p) & system_unit_names[238], (word_p) & one_real,   // 'sr'=1 (non-dimensional)
-    (word_p) & system_unit_names[317], (word_p) & system_unit_defs[1252],     // 'spat'=4*pi_sr
-    (word_p) & system_unit_names[240], (word_p) & system_unit_defs[956],      // 'st'=1_m^3
-    (word_p) & system_unit_names[242], (word_p) & system_unit_defs[962],      // 'St'=0.0001_m^2/s
-    (word_p) & system_unit_names[244], (word_p) & system_unit_defs[974],      // 'Sv'=1_m^2/s^2
-    (word_p) & system_unit_names[246], (word_p) & system_unit_defs[984],      // 't'=1000_kg
-    (word_p) & system_unit_names[248], (word_p) & system_unit_defs[990],      // 'T'=1_kg/A/s^2
-    (word_p) & system_unit_names[250], (word_p) & system_unit_defs[1004],     // 'tbsp'=0.5_ozfl
-    (word_p) & system_unit_names[252], (word_p) & system_unit_defs[1012],     // 'therm'=100000_Btu
-    (word_p) & system_unit_names[255], (word_p) & system_unit_defs[1018],     // 'ton'=2000_lb
-    (word_p) & system_unit_names[257], (word_p) & system_unit_defs[1024],     // 'tonUK'=2240_lb
-    (word_p) & system_unit_names[260], (word_p) & system_unit_defs[1154],     // 'Torr'=1/760_atm
-    (word_p) & system_unit_names[296], (word_p) & system_unit_defs[1172],     // 'tr'=2*pi_r
+    (word_p) &system_unit_names[228],
+    (word_p) &system_unit_defs[910], // 'rem'=0.01_m^2/s^2
+    (word_p) &system_unit_names[230],
+    (word_p) &system_unit_defs[1182], // 'rpm'=1_tr/min
+    (word_p) &system_unit_names[232],
+    (word_p) &system_unit_defs[599], // 'S'=1_A/V
+    (word_p) &system_unit_names[234],
+    (word_p) &system_unit_defs[928], // 'sb'=10000_cd/m^2
+    (word_p) &system_unit_names[236],
+    (word_p) &system_unit_defs[938], // 'slug'=1_lb*s^2/ft*ga
+    (word_p) &system_unit_names[238],
+    (word_p) &one_real, // 'sr'=1 (non-dimensional)
+    (word_p) &system_unit_names[317],
+    (word_p) &system_unit_defs[1252], // 'spat'=4*pi_sr
+    (word_p) &system_unit_names[240],
+    (word_p) &system_unit_defs[956], // 'st'=1_m^3
+    (word_p) &system_unit_names[242],
+    (word_p) &system_unit_defs[962], // 'St'=0.0001_m^2/s
+    (word_p) &system_unit_names[244],
+    (word_p) &system_unit_defs[974], // 'Sv'=1_m^2/s^2
+    (word_p) &system_unit_names[246],
+    (word_p) &system_unit_defs[984], // 't'=1000_kg
+    (word_p) &system_unit_names[248],
+    (word_p) &system_unit_defs[990], // 'T'=1_kg/A/s^2
+    (word_p) &system_unit_names[250],
+    (word_p) &system_unit_defs[1004], // 'tbsp'=0.5_ozfl
+    (word_p) &system_unit_names[252],
+    (word_p) &system_unit_defs[1012], // 'therm'=100000_Btu
+    (word_p) &system_unit_names[255],
+    (word_p) &system_unit_defs[1018], // 'ton'=2000_lb
+    (word_p) &system_unit_names[257],
+    (word_p) &system_unit_defs[1024], // 'tonUK'=2240_lb
+    (word_p) &system_unit_names[260],
+    (word_p) &system_unit_defs[1154], // 'Torr'=1/760_atm
+    (word_p) &system_unit_names[296],
+    (word_p) &system_unit_defs[1172], // 'tr'=2*pi_r
 
-    (word_p) & system_unit_names[262], (word_p) & system_unit_defs[1030],     // 'tsp'=1/6_ozfl
-    (word_p) & system_unit_names[264], (word_p) & system_unit_defs[1040],     // 'u'= 1.6605390666050E-27_kg
-    (word_p) & system_unit_names[266], (word_p) & system_unit_defs[1049],     // 'V'=1_kg*m^2/A/s^3
-    (word_p) & system_unit_names[268], (word_p) & system_unit_defs[1067],     // 'W'=1_J/s=1_kg*m^2/s^3
-    (word_p) & system_unit_names[270], (word_p) & system_unit_defs[1081],     // 'Wb'=1_kg*m^2/A/s^2
-    (word_p) & system_unit_names[272], (word_p) & system_unit_defs[1099],     // 'yd'=3_ft
-    (word_p) & system_unit_names[274], (word_p) & system_unit_defs[1105],     // 'yr'=31556925.9747_s (tropical year per 1952 ephemeris time definition)
+    (word_p) &system_unit_names[262],
+    (word_p) &system_unit_defs[1030], // 'tsp'=1/6_ozfl
+    (word_p) &system_unit_names[264],
+    (word_p) &system_unit_defs[1040], // 'u'= 1.6605390666050E-27_kg
+    (word_p) &system_unit_names[266],
+    (word_p) &system_unit_defs[1049], // 'V'=1_kg*m^2/A/s^3
+    (word_p) &system_unit_names[268],
+    (word_p) &system_unit_defs[1067], // 'W'=1_J/s=1_kg*m^2/s^3
+    (word_p) &system_unit_names[270],
+    (word_p) &system_unit_defs[1081], // 'Wb'=1_kg*m^2/A/s^2
+    (word_p) &system_unit_names[272],
+    (word_p) &system_unit_defs[1099], // 'yd'=3_ft
+    (word_p) &system_unit_names[274],
+    (word_p) &system_unit_defs[1105], // 'yr'=31556925.9747_s (tropical year per
+                                      // 1952 ephemeris time definition)
 
-    (word_p) & system_unit_names[276], (word_p) & system_unit_defs[587],      // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
-    (word_p) & system_unit_names[278], (word_p) & system_unit_defs[588],      // '?CDG'=180 (NON-DIMENSIONAL)
-    (word_p) & system_unit_names[280], (word_p) & system_unit_defs[589],      // '?CFT'=3937 (NON-DIMENSIONAL)
-    (word_p) & system_unit_names[286], (word_p) & system_unit_defs[590],      // '?CTO'=760 (NON-DIMENSIONAL)
+    (word_p) &system_unit_names[276],
+    (word_p) &system_unit_defs[587], // 'π'= π0 = 3.141592..... (VARIABLE
+                                     // PRECISION)
+    (word_p) &system_unit_names[278],
+    (word_p) &system_unit_defs[588], // '?CDG'=180 (NON-DIMENSIONAL)
+    (word_p) &system_unit_names[280],
+    (word_p) &system_unit_defs[589], // '?CFT'=3937 (NON-DIMENSIONAL)
+    (word_p) &system_unit_names[286],
+    (word_p) &system_unit_defs[590], // '?CTO'=760 (NON-DIMENSIONAL)
 
-    (word_p) & system_unit_names[319], (word_p) & system_unit_defs[1262],     // 'ydUS'= 3_ftUS
-    (word_p) & system_unit_names[321], (word_p) & system_unit_defs[1268],     // 'Da'= 1.6605390666050E-27_kg
-    (word_p) & system_unit_names[323], (word_p) & system_unit_defs[1277],     // 'ksi'= 1000_psi
+    (word_p) &system_unit_names[319],
+    (word_p) &system_unit_defs[1262], // 'ydUS'= 3_ftUS
+    (word_p) &system_unit_names[321],
+    (word_p) &system_unit_defs[1268], // 'Da'= 1.6605390666050E-27_kg
+    (word_p) &system_unit_names[323],
+    (word_p) &system_unit_defs[1277], // 'ksi'= 1000_psi
 
-    (word_p) & system_unit_names[325], (word_p) & system_unit_defs[1283],     // 'B'= 8_bit (one byte)
-    (word_p) & system_unit_names[327], (word_p) & one_bint,   // 'bit'=1 (base unit)
+    (word_p) &system_unit_names[325],
+    (word_p) &system_unit_defs[1283], // 'B'= 8_bit (one byte)
+    (word_p) &system_unit_names[327],
+    (word_p) &one_bint, // 'bit'=1 (base unit)
 
-    (word_p) & system_unit_names[329], (word_p) & system_unit_defs[1289],     // 'KiB'= (2^10)_B
-    (word_p) & system_unit_names[331], (word_p) & system_unit_defs[1295],     // 'MiB'= (2^20)_B
-    (word_p) & system_unit_names[333], (word_p) & system_unit_defs[1303],     // 'GiB'= (2^30)_B
-    (word_p) & system_unit_names[335], (word_p) & system_unit_defs[1311],     // 'TiB'= (2^40)_B
-    (word_p) & system_unit_names[337], (word_p) & system_unit_defs[1319],     // 'PiB'= (2^50)_B
-    (word_p) & system_unit_names[339], (word_p) & system_unit_defs[1327],     // 'EiB'= (2^60)_B
-    (word_p) & system_unit_names[341], (word_p) & system_unit_defs[1335],     // 'ZiB'= (2^70)_B
-    (word_p) & system_unit_names[343], (word_p) & system_unit_defs[1345],     // 'YiB'= (2^80)_B
+    (word_p) &system_unit_names[329],
+    (word_p) &system_unit_defs[1289], // 'KiB'= (2^10)_B
+    (word_p) &system_unit_names[331],
+    (word_p) &system_unit_defs[1295], // 'MiB'= (2^20)_B
+    (word_p) &system_unit_names[333],
+    (word_p) &system_unit_defs[1303], // 'GiB'= (2^30)_B
+    (word_p) &system_unit_names[335],
+    (word_p) &system_unit_defs[1311], // 'TiB'= (2^40)_B
+    (word_p) &system_unit_names[337],
+    (word_p) &system_unit_defs[1319], // 'PiB'= (2^50)_B
+    (word_p) &system_unit_names[339],
+    (word_p) &system_unit_defs[1327], // 'EiB'= (2^60)_B
+    (word_p) &system_unit_names[341],
+    (word_p) &system_unit_defs[1335], // 'ZiB'= (2^70)_B
+    (word_p) &system_unit_names[343],
+    (word_p) &system_unit_defs[1345], // 'YiB'= (2^80)_B
 
-    (word_p) & system_unit_names[345], (word_p) & system_unit_defs[1356],     // 'Kibit'= (2^10)_bit
-    (word_p) & system_unit_names[348], (word_p) & system_unit_defs[1362],     // 'Mibit'= (2^20)_bit
-    (word_p) & system_unit_names[351], (word_p) & system_unit_defs[1370],     // 'Gibit'= (2^30)_bit
-    (word_p) & system_unit_names[354], (word_p) & system_unit_defs[1378],     // 'Tibit'= (2^40)_bit
-    (word_p) & system_unit_names[357], (word_p) & system_unit_defs[1386],     // 'Pibit'= (2^50)_bit
-    (word_p) & system_unit_names[360], (word_p) & system_unit_defs[1394],     // 'Eibit'= (2^60)_bit
-    (word_p) & system_unit_names[363], (word_p) & system_unit_defs[1402],     // 'Zibit'= (2^70)_bit
-    (word_p) & system_unit_names[366], (word_p) & system_unit_defs[1412],     // 'Yibit'= (2^80)_bit
+    (word_p) &system_unit_names[345],
+    (word_p) &system_unit_defs[1356], // 'Kibit'= (2^10)_bit
+    (word_p) &system_unit_names[348],
+    (word_p) &system_unit_defs[1362], // 'Mibit'= (2^20)_bit
+    (word_p) &system_unit_names[351],
+    (word_p) &system_unit_defs[1370], // 'Gibit'= (2^30)_bit
+    (word_p) &system_unit_names[354],
+    (word_p) &system_unit_defs[1378], // 'Tibit'= (2^40)_bit
+    (word_p) &system_unit_names[357],
+    (word_p) &system_unit_defs[1386], // 'Pibit'= (2^50)_bit
+    (word_p) &system_unit_names[360],
+    (word_p) &system_unit_defs[1394], // 'Eibit'= (2^60)_bit
+    (word_p) &system_unit_names[363],
+    (word_p) &system_unit_defs[1402], // 'Zibit'= (2^70)_bit
+    (word_p) &system_unit_names[366],
+    (word_p) &system_unit_defs[1412], // 'Yibit'= (2^80)_bit
 
-    (word_p) & system_unit_names[369], (word_p) & system_unit_defs[1423],     // 'kat'= 1_mol/s (katal = unit of catalytic activity)
-    (word_p) & system_unit_names[371], (word_p) & system_unit_defs[1433],     // 'annum'= 365.25_d (Julian year)
+    (word_p) &system_unit_names[369],
+    (word_p) &system_unit_defs[1423], // 'kat'= 1_mol/s (katal = unit of
+                                      // catalytic activity)
+    (word_p) &system_unit_names[371],
+    (word_p) &system_unit_defs[1433], // 'annum'= 365.25_d (Julian year)
 
-    (word_p) & system_unit_names[374], (word_p) & system_unit_defs[1441],     // 'psf'= 1_lbf/ft^2 (US Customary)
-    (word_p) & system_unit_names[376], (word_p) & system_unit_defs[1451],     // 'U'= 0.000001_mol/min (unit of catalytic activity)
+    (word_p) &system_unit_names[374],
+    (word_p) &system_unit_defs[1441], // 'psf'= 1_lbf/ft^2 (US Customary)
+    (word_p) &system_unit_names[376],
+    (word_p) &system_unit_defs[1451], // 'U'= 0.000001_mol/min (unit of
+                                      // catalytic activity)
 
-    0, 0        // NULL TERMINATED LIST
+    0,
+    0 // NULL TERMINATED LIST
 };
 
 // THESE ARE SPECIAL UNITS THAT NEED TO BE REPLACED
 // °C AND °F, AND THE REPLACEMENT IS DONE BY ADDING A CONSTANT RATHER THAN MULTIPLYING
 // IT EFFECTIVELY CONVERTS °C INTO K, AND °F INTO °R
 
-const word_p const system_unit_special[] = {
-    // SPECIAL UNIT NAME ,     DELTA UNIT NAME      ,   ABSOLUTE UNIT EQUIVALENT OF THE ZERO IN THE SCALE
-    (word_p) & system_unit_names[38], (word_p) & system_unit_names[40],
-            (word_p) & system_unit_defs[287],
-    (word_p) & system_unit_names[74], (word_p) & system_unit_names[76],
-            (word_p) & system_unit_defs[295],
-    (word_p) & system_unit_names[133], (word_p) & system_unit_names[135], 0,
-    (word_p) & system_unit_names[213], (word_p) & system_unit_names[215], 0,
+const const word_p system_unit_special[] = {
+    // SPECIAL UNIT NAME ,     DELTA UNIT NAME      ,   ABSOLUTE UNIT EQUIVALENT
+    // OF THE ZERO IN THE SCALE
+    (word_p) &system_unit_names[38],
+    (word_p) &system_unit_names[40],
+    (word_p) &system_unit_defs[287],
+    (word_p) &system_unit_names[74],
+    (word_p) &system_unit_names[76],
+    (word_p) &system_unit_defs[295],
+    (word_p) &system_unit_names[133],
+    (word_p) &system_unit_names[135],
+    0,
+    (word_p) &system_unit_names[213],
+    (word_p) &system_unit_names[215],
+    0,
 
     // ADD HERE RANKINE AND KELVIN FOR CONVERSION TO THEIR DELTA TYPES
-    0, 0, 0
+    0,
+    0,
+    0
 };
 
 // EXPLODES THE UNIT OBJECT IN THE STACK
@@ -1903,29 +2098,9 @@ const char *const siprefix_text[] = {
 
 // EXPONENT MODIFICATION DUE TO SI PREFIX
 
-const int32_t const siprefix_exp[] = {
-    0,
-    24,
-    21,
-    18,
-    15,
-    12,
-    9,
-    6,
-    3,
-    2,
-    1,
-    -1,
-    -2,
-    -3,
-    -6,
-    -9,
-    -12,
-    -15,
-    -18,
-    -21,
-    -24
-};
+const const int32_t siprefix_exp[] = { 0,  24, 21,  18,  15,  12,  9,
+                                       6,  3,  2,   1,   -1,  -2,  -3,
+                                       -6, -9, -12, -15, -18, -21, -24 };
 
 // RETURN THE INDEX TO A SI PREFIX
 
@@ -2016,6 +2191,15 @@ int32_t rplUnitCompare(word_p ident, word_p baseident)
 
 }
 
+static inline word_p rplUnitsDirectory()
+{
+    static const BYTE name[] = "UNITS";
+    utf8_p            start  = (utf8_p) name;
+    utf8_p            end    = start + sizeof(name) - 1;
+    word_p            obj    = rplGetSettingsbyName(start, end);
+    return obj;
+}
+
 // GET THE DEFINITION OF A UNIT FROM ITS IDENTIFIER
 // FIRST IT STRIPS ANY SI PREFIXES AND SEARCHES FOR
 // BOTH THE ORIGINAL UNIT AND THE STRIPPED ONE
@@ -2029,14 +2213,10 @@ int32_t rplUnitCompare(word_p ident, word_p baseident)
 
 word_p *rplUnitFind(word_p ident, int32_t * siindex)
 {
-    static const BYTE const unitdir_name[] = "UNITS";
-
-    word_p unitdir_obj =
-            rplGetSettingsbyName((byte_p) unitdir_name,
-            (byte_p) unitdir_name + 5);
-    word_p baseid;
+    word_p  baseid;
     int32_t result;
     word_p *entry;
+    word_p  unitdir_obj = rplUnitsDirectory();
 
     if(unitdir_obj) {
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
@@ -2098,11 +2278,7 @@ word_p *rplUnitFind(word_p ident, int32_t * siindex)
 
 word_p *rplUnitFindCustom(word_p ident, int32_t * siindex)
 {
-    static const BYTE const unitdir_name[] = "UNITS";
-
-    word_p unitdir_obj =
-            rplGetSettingsbyName((byte_p) unitdir_name,
-            (byte_p) unitdir_name + 5);
+    word_p unitdir_obj = rplUnitsDirectory();
     word_p baseid;
     int32_t result;
     word_p *entry;

@@ -62,7 +62,7 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_M] = KH(sto),
     [KB_N] = KH(eval),
     [KB_O] = KH(ticks),
-    [KB_P] = KH(mainmenu),
+    [KB_P] = KH(MainMenu),
     [KB_Q] = KH(pow),
     [KB_R] = KH(sqrt),
     [KB_S] = KH(sin),
@@ -70,7 +70,7 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_U] = KH(tan),
     [KB_V] = KH(eex),
     [KB_W] = KH(chs),
-    [KB_X] = KH(keyx),
+    [KB_X] = KH(eqnVar),
     [KB_Y] = KH(inv),
 };
 
@@ -82,11 +82,11 @@ static const  key_handler_fn keymap_left_shift[64] =
 {
     // Numeric keypad
     [KB_0] = KH(infinity),
-    [KB_1] = KH(arithmenu),
+    [KB_1] = KH(ArithmeticMenu),
     [KB_2] = KH(fact),
     [KB_3] = KH(hash),
     [KB_6] = KH(convert),
-    [KB_9] = KH(financemenu),
+    [KB_9] = KH(FinanceMenu),
     [KB_DOT] = KH(tag),
     [KB_ADD] = KH(curlyBracket),
     [KB_SUB] = KH(parenBracket),
@@ -101,7 +101,7 @@ static const  key_handler_fn keymap_left_shift[64] =
     // Cursor keys
     [KB_LF] = KH(startSelection),
     [KB_RT] = KH(endSelection),
-    [KB_UP] = KH(updir),
+    [KB_UP] = KH(UPDIR),
     [KB_DN] = KH(endSelection),
 
     // Soft menu keys
@@ -120,7 +120,7 @@ static const  key_handler_fn keymap_left_shift[64] =
 
     // Regular keys
     [KB_M] = KH(rcl),
-    [KB_N] = KH(prgmenu),
+    [KB_N] = KH(ProgramMenu),
     [KB_Q] = KH(exp),
     [KB_R] = KH(sq),
     [KB_S] = asinKeyHandler,
@@ -153,12 +153,12 @@ static const  key_handler_fn keymap_right_shift[64] =
 {
     // Numeric keypad
     [KB_0] = KH(arrow),
-    [KB_1] = KH(cplxmenu),
-    [KB_2] = KH(libsmenu),
-    [KB_3] = KH(basemenu),
-    [KB_6] = KH(unitmenu),
-    [KB_7] = KH(numsolvermenu),
-    [KB_9] = KH(timemenu),
+    [KB_1] = KH(ComplexMenu),
+    [KB_2] = KH(LibrariesMenu),
+    [KB_3] = KH(BasesMenu),
+    [KB_6] = KH(UnitsMenu),
+    [KB_7] = KH(SolverMenu),
+    [KB_9] = KH(TimeMenu),
     [KB_DOT] = KH(newline),
     [KB_ADD] = KH(secoBracket),
     [KB_SUB] = KH(underscore),
@@ -191,9 +191,9 @@ static const  key_handler_fn keymap_right_shift[64] =
     [KB_L] = KH(softmenu6_2),
 
     // Regular keys
-    [KB_M] = KH(varsmenu),
-    [KB_N] = KH(arithmenu),
-    [KB_O] = KH(prgmenu),
+    [KB_M] = KH(VariablesMenu),
+    [KB_N] = KH(ArithmeticMenu),
+    [KB_O] = KH(ProgramMenu),
     [KB_Q] = KH(ln),
     [KB_R] = KH(xroot),
     [KB_V] = KH(log),
@@ -313,8 +313,8 @@ static const key_handler_fn keymap_on_hold[64] =
 
     [KB_ADD] = KH(increaseContrast),
     [KB_SUB] = KH(decreaseContrast),
-    [KB_MUL] = KH(previousScientificFormat),
-    [KB_DIV] = KH(nextScientificFormat),
+    [KB_MUL] = KH(previousScale),
+    [KB_DIV] = KH(nextScale),
     [KB_DOT] = KH(cycleLocale),
     [KB_SPC] = KH(cycleFormat)
 };

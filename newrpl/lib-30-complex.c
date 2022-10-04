@@ -7094,7 +7094,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             uint64_t Locale = rplGetSystemLocale();
 
-            rplDecompAppendString((byte_p) "(");
+            rplDecompAppendString("(");
 
             // POINT TO THE REAL PART
             DecompileObject++;
@@ -7112,7 +7112,7 @@ void LIB_HANDLER()
             if(libhan)
                 (*libhan) ();
 
-            rplDecompAppendString((byte_p) ")");
+            rplDecompAppendString(")");
 
             RetNum = OK_CONTINUE;
 

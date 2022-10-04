@@ -81,20 +81,18 @@ INCLUDE_ROMOBJECT(lib24_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
-    (word_p) lib24_menu,
-    (word_p) empty_string,
-    0
-};
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
+                                      (word_p) lib24_menu,
+                                      (word_p) empty_string,
+                                      0 };
 
 // COMPUTE THE STRING LENGTH IN CODE POINTS
 int32_t rplStrLenCp(word_p string)
 {
     if(ISSTRING(*string)) {
         int32_t len = STRLEN(*string);
-        byte_p start = (byte_p) (string + 1);
+        utf8_p start = (utf8_p) (string + 1);
         return utf8nlen((char *)start, (char *)(start + len));
     }
     return 0;
@@ -105,7 +103,7 @@ int32_t rplStrLen(word_p string)
 {
     if(ISSTRING(*string)) {
         int32_t len = STRLEN(*string);
-        byte_p start = (byte_p) (string + 1);
+        utf8_p start = (utf8_p) (string + 1);
         return utf8nlenst((char *)start, (char *)(start + len));
     }
     return 0;
@@ -168,7 +166,7 @@ int32_t rplStringGetLinePtr(word_p str, int32_t line)
 {
     if(!ISSTRING(*str))
         return -1;
-    byte_p start = (byte_p) (str + 1), ptr;
+    utf8_p start = (utf8_p) (str + 1), ptr;
     int32_t len = STRLEN(*str);
     int32_t count = 1;
 
@@ -192,7 +190,7 @@ int32_t rplStringGetNextLine(word_p str, int32_t prevlineoff)
 {
     if(!ISSTRING(*str))
         return -1;
-    byte_p start = (byte_p) (str + 1), ptr;
+    utf8_p start = (utf8_p) (str + 1), ptr;
     int32_t len = STRLEN(*str);
 
     if(prevlineoff >= len)
@@ -214,7 +212,7 @@ int32_t rplStringCountLines(word_p str)
 {
     if(!ISSTRING(*str))
         return -1;
-    byte_p start = (byte_p) (str + 1), ptr;
+    utf8_p start = (utf8_p) (str + 1), ptr;
     int32_t len = STRLEN(*str);
     int32_t count = 1;
 
@@ -232,7 +230,7 @@ int32_t rplStringCountLines(word_p str)
 // CREATE A NEW STRING OBEJCT AND RETURN ITS ADDRESS
 // RETURNS NULL IF ANY ERRORS
 // USES SCRATCHPOINTER1 IN CASE text IS IN TEMPOB
-word_p rplCreateString(byte_p text, byte_p textend)
+word_p rplCreateString(utf8_p text, utf8_p textend)
 {
     int32_t lenbytes = textend - text;
     int32_t len = (lenbytes + 3) >> 2;
@@ -241,7 +239,7 @@ word_p rplCreateString(byte_p text, byte_p textend)
     ScratchPointer1 = (word_p) text;
     word_p newstring = rplAllocTempOb(len);
     if(newstring) {
-        text = (byte_p) ScratchPointer1;
+        text = (utf8_p) ScratchPointer1;
         textend = text + lenbytes;
         byte_p ptr = (byte_p) (newstring + 1);
         while(text != textend)
@@ -276,14 +274,14 @@ word_p rplCreateStringBySize(int32_t lenbytes)
 
 // SKIP ANY SEPARATOR CHARACTERS AT start. ANY CHARACTER IN sepstart/end
 // IS CONSIDERED A SEPARATOR AND WILL BE SKIPPED
-byte_p rplSkipSep(byte_p start, byte_p end, byte_p sepstart, byte_p sepend)
+utf8_p rplSkipSep(utf8_p start, utf8_p end, utf8_p sepstart, utf8_p sepend)
 {
-    byte_p sepptr, sepnext, ptr;
+    utf8_p sepptr, sepnext, ptr;
 
     while(start != end) {
         sepptr = sepstart;
         while(sepptr != sepend) {
-            sepnext = (byte_p) utf8skipst((char *)sepptr, (char *)sepend);
+            sepnext = (utf8_p) utf8skipst((char *)sepptr, (char *)sepend);
             ptr = start;
             while(sepptr != sepnext) {
                 if(*ptr != *sepptr)
@@ -312,14 +310,14 @@ byte_p rplSkipSep(byte_p start, byte_p end, byte_p sepstart, byte_p sepend)
 
 // SKIP ANY NON-SEPARATOR CHARACTERS AT start. ANY CHARACTER IN sepstart/end
 // IS CONSIDERED A SEPARATOR AND WILL STOP THE SEARCH
-byte_p rplNextSep(byte_p start, byte_p end, byte_p sepstart, byte_p sepend)
+utf8_p rplNextSep(utf8_p start, utf8_p end, utf8_p sepstart, utf8_p sepend)
 {
-    byte_p sepptr, sepnext, ptr;
+    utf8_p sepptr, sepnext, ptr;
 
     while(start != end) {
         sepptr = sepstart;
         while(sepptr != sepend) {
-            sepnext = (byte_p) utf8skipst((char *)sepptr, (char *)sepend);
+            sepnext = (utf8_p) utf8skipst((char *)sepptr, (char *)sepend);
             ptr = start;
             while(sepptr != sepnext) {
                 if(*ptr != *sepptr)
@@ -335,7 +333,7 @@ byte_p rplNextSep(byte_p start, byte_p end, byte_p sepstart, byte_p sepend)
         // THERE WAS NO MATCH
 
         // KEEP GOING
-        start = (byte_p) utf8skipst((char *)start, (char *)end);
+        start = (utf8_p) utf8skipst((char *)start, (char *)end);
     }
 
     // THERE WERE NO SEPARATORS UNTIL THE END
@@ -343,13 +341,13 @@ byte_p rplNextSep(byte_p start, byte_p end, byte_p sepstart, byte_p sepend)
     return start;
 }
 
-int32_t rplCountTokens(byte_p start, byte_p end, byte_p sepstart,
-        byte_p sepend)
+int32_t rplCountTokens(utf8_p start, utf8_p end, utf8_p sepstart,
+        utf8_p sepend)
 {
     int32_t count = 0;
 
-    byte_p token = rplSkipSep(start, end, sepstart, sepend);
-    byte_p nextblank;
+    utf8_p token = rplSkipSep(start, end, sepstart, sepend);
+    utf8_p nextblank;
 
     while(token != end) {
         nextblank = rplNextSep(token, end, sepstart, sepend);
@@ -472,7 +470,7 @@ void LIB_HANDLER()
         word_p strobj = rplPeekData(1);
         ScratchPointer1 = (strobj + 1);
         ScratchPointer2 =
-                (word_p) (((byte_p) ScratchPointer1) + STRLEN(*strobj) - 1);
+                (word_p) (((utf8_p) ScratchPointer1) + STRLEN(*strobj) - 1);
 
         int32_t utfchar, count = 0;
 
@@ -481,7 +479,7 @@ void LIB_HANDLER()
             utfchar =
                     utf82cp((char *)ScratchPointer1,
                     ((char *)ScratchPointer2) + 1);
-            rplNewint32_tPush(utfchar, HEXBINT);
+            rplNewBINTPush(utfchar, HEXBINT);
             ++count;
             if(Exceptions)
                 return;
@@ -491,7 +489,7 @@ void LIB_HANDLER()
                     ((char *)ScratchPointer2) + 1);
         }
 
-        rplNewint32_tPush(count, DECBINT);
+        rplNewBINTPush(count, DECBINT);
         rplCreateList();
 
         rplOverwriteData(2, rplPeekData(1));
@@ -573,7 +571,7 @@ void LIB_HANDLER()
             return;
         }
         int32_t length = STRLEN(*string);
-        word_p newobj = rplCompile((byte_p) (string + 1), length, 1);
+        word_p newobj = rplCompile((utf8_p) (string + 1), length, 1);
 
         if(!newobj) {
             ExceptionPointer = IPtr;    // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
@@ -611,17 +609,16 @@ void LIB_HANDLER()
 
         newobj[0] = oldobj[0];  // BOTH STRINGS WILL BE THE EXACT SAME SIZE
 
-        byte_p newptr, oldptr, endptr;
-        oldptr = (byte_p) (oldobj + 1);        // START OF STRING
-        endptr = oldptr + STRLEN(*oldobj);
+        utf8_p oldptr = (utf8_p) (oldobj + 1);        // START OF STRING
+        utf8_p endptr = oldptr + STRLEN(*oldobj);
 
-        newptr = (byte_p) (newobj + 1);
+        byte_p newptr = (byte_p) (newobj + 1);
         newptr += STRLEN(*oldobj);      // END OF STRING
 
         int32_t nbytes;
-        while(oldptr != endptr) {
-            nbytes = (byte_p) utf8skipst((char *)oldptr,
-                    (char *)endptr) - oldptr;
+        while(oldptr != endptr)
+        {
+            nbytes = utf8skipst(oldptr, endptr) - oldptr;
             newptr -= nbytes;
             memcpyb(newptr, oldptr, nbytes);
             oldptr += nbytes;
@@ -649,20 +646,20 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p strstart, strend;
-        byte_p sepstart, sepend;
+        utf8_p strstart, strend;
+        utf8_p sepstart, sepend;
 
-        strstart = (byte_p) (rplPeekData(2) + 1);
+        strstart = (utf8_p) (rplPeekData(2) + 1);
         strend = strstart + STRLEN(*rplPeekData(2));
 
-        sepstart = (byte_p) (rplPeekData(1) + 1);
+        sepstart = (utf8_p) (rplPeekData(1) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(1));
 
         int32_t count = rplCountTokens(strstart, strend, sepstart, sepend);
 
         rplDropData(2);
 
-        rplNewint32_tPush(count, DECBINT);
+        rplNewBINTPush(count, DECBINT);
 
         return;
 
@@ -690,13 +687,13 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p strstart, strend;
-        byte_p sepstart, sepend;
+        utf8_p strstart, strend;
+        utf8_p sepstart, sepend;
 
-        strstart = (byte_p) (rplPeekData(3) + 1);
+        strstart = (utf8_p) (rplPeekData(3) + 1);
         strend = strstart + STRLEN(*rplPeekData(3));
 
-        sepstart = (byte_p) (rplPeekData(2) + 1);
+        sepstart = (utf8_p) (rplPeekData(2) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(2));
 
         int32_t n = rplReadNumberAsInt64(rplPeekData(1));
@@ -749,13 +746,13 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p strstart, strend;
-        byte_p sepstart, sepend;
+        utf8_p strstart, strend;
+        utf8_p sepstart, sepend;
 
-        strstart = (byte_p) (rplPeekData(3) + 1);
+        strstart = (utf8_p) (rplPeekData(3) + 1);
         strend = strstart + STRLEN(*rplPeekData(3));
 
-        sepstart = (byte_p) (rplPeekData(2) + 1);
+        sepstart = (utf8_p) (rplPeekData(2) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(2));
 
         int32_t n = rplReadNumberAsInt64(rplPeekData(1));
@@ -781,16 +778,16 @@ void LIB_HANDLER()
         else {
 
             pos = 1;
-            byte_p ptr = (byte_p) (rplPeekData(3) + 1);
+            utf8_p ptr = (utf8_p) (rplPeekData(3) + 1);
             while(ptr != strstart) {
-                ptr = (byte_p) utf8skipst((char *)ptr, (char *)strend);
+                ptr = (utf8_p) utf8skipst((char *)ptr, (char *)strend);
                 ++pos;
             }
 
         }
 
         rplDropData(3);
-        rplNewint32_tPush(pos, DECBINT);
+        rplNewBINTPush(pos, DECBINT);
         return;
 
     }
@@ -814,16 +811,16 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p strstart, strend;
-        byte_p sepstart, sepend;
+        utf8_p strstart, strend;
+        utf8_p sepstart, sepend;
 
-        strstart = (byte_p) (rplPeekData(2) + 1);
+        strstart = (utf8_p) (rplPeekData(2) + 1);
         strend = strstart + STRLEN(*rplPeekData(2));
 
-        sepstart = (byte_p) (rplPeekData(1) + 1);
+        sepstart = (utf8_p) (rplPeekData(1) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(1));
 
-        byte_p lastsep = 0, nextsep;
+        utf8_p lastsep = 0, nextsep;
 
         while((strstart != strend)) {
             lastsep = strstart;
@@ -843,7 +840,7 @@ void LIB_HANDLER()
             return;     // NOTHING TO TRIM
         }
 
-        byte_p ptr = (byte_p) (rplPeekData(2) + 1);
+        utf8_p ptr = (utf8_p) (rplPeekData(2) + 1);
 
         word_p newstr = rplCreateString(ptr, lastsep);
         if(!newstr)
@@ -874,16 +871,16 @@ void LIB_HANDLER()
             return;
         }
 
-        byte_p strstart, strend;
-        byte_p sepstart, sepend;
+        utf8_p strstart, strend;
+        utf8_p sepstart, sepend;
 
-        strstart = (byte_p) (rplPeekData(2) + 1);
+        strstart = (utf8_p) (rplPeekData(2) + 1);
         strend = strstart + STRLEN(*rplPeekData(2));
 
-        sepstart = (byte_p) (rplPeekData(1) + 1);
+        sepstart = (utf8_p) (rplPeekData(1) + 1);
         sepend = sepstart + STRLEN(*rplPeekData(1));
 
-        byte_p firsttok;
+        utf8_p firsttok;
 
         firsttok = rplSkipSep(strstart, strend, sepstart, sepend);
 
@@ -920,7 +917,7 @@ void LIB_HANDLER()
 
         word_p string = rplPeekData(1);
         rplDropData(1);
-        rplNewint32_tPush(rplStrLen(string), DECBINT);
+        rplNewBINTPush(rplStrLen(string), DECBINT);
 
         return;
     }
@@ -944,7 +941,7 @@ void LIB_HANDLER()
 
         word_p string = rplPeekData(1);
         rplDropData(1);
-        rplNewint32_tPush(rplStrLenCp(string), DECBINT);
+        rplNewBINTPush(rplStrLenCp(string), DECBINT);
 
         return;
 
@@ -969,12 +966,11 @@ void LIB_HANDLER()
         word_p newstring = rplCreateStringBySize(4);   // NEW STRING AT THE END OF TEMPOB
         if(!newstring)
             return;
-        byte_p start = (byte_p) (rplPeekData(1) + 1);
-        byte_p end = start + rplStrSize(rplPeekData(1));
-        byte_p nstrptr;
+        utf8_p start = (utf8_p) (rplPeekData(1) + 1);
+        utf8_p end = start + rplStrSize(rplPeekData(1));
         int32_t totalsize = 4, size = 0;
         int32_t nbytes, k;
-        nstrptr = (byte_p) (newstring + 1);
+        byte_p nstrptr = (byte_p) (newstring + 1);
 
         while(start < end) {
             nbytes = utf82NFC((char *)start, (char *)end);
@@ -984,16 +980,16 @@ void LIB_HANDLER()
                 uint32_t cp = cp2utf8(unicodeBuffer[k]);
 
                 while(cp & 0xff) {
-
-                    if(size == totalsize) {
+                    if (size == totalsize)
+                    {
                         ScratchPointer1 = newstring;
                         ScratchPointer2 = (word_p) start;
                         ScratchPointer3 = (word_p) (end - 1);
                         rplResizeLastObject(1);
                         totalsize += 4;
                         newstring = ScratchPointer1;
-                        start = (byte_p) ScratchPointer2;
-                        end = ((byte_p) ScratchPointer3) + 1;
+                        start = (utf8_p) ScratchPointer2;
+                        end = ((utf8_p) ScratchPointer3) + 1;
                         nstrptr = (byte_p) (newstring + 1);
                     }
 
@@ -1039,7 +1035,7 @@ void LIB_HANDLER()
 
         int32_t lenstr1, lenfind, lenfindcp, pos, maxpos, sizestr1, sizefind,
                 sizerepl;
-        byte_p str1, find, repl, end1;
+        utf8_p str1, find, repl, end1;
 
         pos = 1;
 
@@ -1062,11 +1058,11 @@ void LIB_HANDLER()
         word_p newstring = rplCreateStringBySize(1);
         int32_t newsize = 0, rcount = 0;
 
-        repl = (byte_p) (rplPeekData(1) + 1);
-        find = (byte_p) (rplPeekData(2) + 1);
-        str1 = (byte_p) (rplPeekData(3) + 1);
+        repl = (utf8_p) (rplPeekData(1) + 1);
+        find = (utf8_p) (rplPeekData(2) + 1);
+        str1 = (utf8_p) (rplPeekData(3) + 1);
         end1 = str1 + sizestr1;
-        byte_p nextchar = str1;
+        utf8_p nextchar = str1;
 
         // DO SEARCH AND REPLACE
 
@@ -1085,17 +1081,16 @@ void LIB_HANDLER()
                                     3) >> 2));
                     if(Exceptions)
                         return;
-                    str1 = (byte_p) ScratchPointer1;
-                    find = (byte_p) ScratchPointer2;
-                    repl = (byte_p) ScratchPointer3;
+                    str1 = (utf8_p) ScratchPointer1;
+                    find = (utf8_p) ScratchPointer2;
+                    repl = (utf8_p) ScratchPointer3;
                     newstring = ScratchPointer4;
                     end1 = str1 + endoff;
                 }
 
-                memmoveb(((byte_p) (newstring + 1)) + newsize, str1,
-                        nextchar - str1);
-                memmoveb(((byte_p) (newstring + 1)) + newsize + (nextchar -
-                            str1), repl, sizerepl);
+                byte_p text = (byte_p) (newstring + 1);
+                memmoveb(text + newsize, str1, nextchar - str1);
+                memmoveb(text + newsize + (nextchar - str1), repl, sizerepl);
 
                 newsize = newsize2;
 
@@ -1105,7 +1100,7 @@ void LIB_HANDLER()
                 ++rcount;
             }
             else {
-                nextchar = (byte_p) utf8skipst((char *)nextchar, (char *)end1);
+                nextchar = utf8skipst((char *)nextchar, (char *)end1);
             }
 
         }
@@ -1122,9 +1117,9 @@ void LIB_HANDLER()
             rplResizeLastObject(((newsize2 + 3) >> 2) - ((newsize + 3) >> 2));
             if(Exceptions)
                 return;
-            str1 = (byte_p) ScratchPointer1;
-            find = (byte_p) ScratchPointer2;
-            repl = (byte_p) ScratchPointer3;
+            str1 = (utf8_p) ScratchPointer1;
+            find = (utf8_p) ScratchPointer2;
+            repl = (utf8_p) ScratchPointer3;
             newstring = ScratchPointer4;
             end1 = str1 + endoff;
         }
@@ -1134,7 +1129,7 @@ void LIB_HANDLER()
             rplSetStringLength(newstring, newsize2);
             rplDropData(3);
             rplPushDataNoGrow(newstring);
-            rplNewint32_tPush(rcount, DECBINT);
+            rplNewBINTPush(rcount, DECBINT);
             return;
         }
         rplDropData(2);
@@ -1306,7 +1301,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if(*((byte_p) TokenStart) == '\"') {
+        if(*((utf8_p) TokenStart) == '\"') {
             // START A STRING
 
             ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
@@ -1320,11 +1315,11 @@ void LIB_HANDLER()
             } temp;
 
             int32_t count = 0, escape = 0, code = 0;
-            byte_p ptr = (byte_p) TokenStart;
+            utf8_p ptr = (utf8_p) TokenStart;
             ++ptr;      // SKIP THE QUOTE
             do {
                 while(count < 4) {
-                    if(ptr == (byte_p) NextTokenStart) {
+                    if(ptr == (utf8_p) NextTokenStart) {
                         // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
                         if(escape > 1) {
                             // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
@@ -1339,7 +1334,7 @@ void LIB_HANDLER()
                                     //  WE HAVE A COMPLETE WORD HERE
                                     ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                     rplCompileAppend(temp.word);
-                                    ptr = (byte_p) ScratchPointer1;
+                                    ptr = (utf8_p) ScratchPointer1;
                                     count = 0;
                                 }
                             }
@@ -1375,7 +1370,7 @@ void LIB_HANDLER()
                                     //  WE HAVE A COMPLETE WORD HERE
                                     ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                     rplCompileAppend(temp.word);
-                                    ptr = (byte_p) ScratchPointer1;
+                                    ptr = (utf8_p) ScratchPointer1;
                                     count = 0;
                                 }
                             }
@@ -1385,7 +1380,7 @@ void LIB_HANDLER()
 
                         // END OF STRING!
                         ++ptr;
-                        if(ptr != (byte_p) BlankStart) {
+                        if(ptr != (utf8_p) BlankStart) {
                             // QUOTE IN THE MIDDLE OF THE TOKEN IS A SYNTAX ERROR
                             RetNum = ERR_INVALID;
                             return;
@@ -1426,7 +1421,7 @@ void LIB_HANDLER()
                                 //  WE HAVE A COMPLETE WORD HERE
                                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (byte_p) ScratchPointer1;
+                                ptr = (utf8_p) ScratchPointer1;
                                 count = 0;
                             }
                         }
@@ -1466,7 +1461,7 @@ void LIB_HANDLER()
                                 //  WE HAVE A COMPLETE WORD HERE
                                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (byte_p) ScratchPointer1;
+                                ptr = (utf8_p) ScratchPointer1;
                                 count = 0;
                             }
                         }
@@ -1500,7 +1495,7 @@ void LIB_HANDLER()
                 //  WE HAVE A COMPLETE WORD HERE
                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                 rplCompileAppend(temp.word);
-                ptr = (byte_p) ScratchPointer1;
+                ptr = (utf8_p) ScratchPointer1;
 
                 count = 0;
 
@@ -1532,11 +1527,11 @@ void LIB_HANDLER()
             --CompileEnd;
             temp.word = *CompileEnd;    // GET LAST WORD
         }
-        byte_p ptr = (byte_p) TokenStart;
+        utf8_p ptr = (utf8_p) TokenStart;
 
         do {
             while(count < 4) {
-                if(ptr == (byte_p) NextTokenStart) {
+                if(ptr == (utf8_p) NextTokenStart) {
                     // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
                     if(escape > 1) {
                         // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
@@ -1551,7 +1546,7 @@ void LIB_HANDLER()
                                 //  WE HAVE A COMPLETE WORD HERE
                                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (byte_p) ScratchPointer1;
+                                ptr = (utf8_p) ScratchPointer1;
                                 count = 0;
                             }
                         }
@@ -1587,7 +1582,7 @@ void LIB_HANDLER()
                                 //  WE HAVE A COMPLETE WORD HERE
                                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                                 rplCompileAppend(temp.word);
-                                ptr = (byte_p) ScratchPointer1;
+                                ptr = (utf8_p) ScratchPointer1;
                                 count = 0;
                             }
                         }
@@ -1597,7 +1592,7 @@ void LIB_HANDLER()
 
                     // END OF STRING!
                     ++ptr;
-                    if(ptr != (byte_p) BlankStart) {
+                    if(ptr != (utf8_p) BlankStart) {
                         // QUOTE IN THE MIDDLE OF THE TOKEN IS A SYNTAX ERROR
                         RetNum = ERR_INVALID;
                         return;
@@ -1636,7 +1631,7 @@ void LIB_HANDLER()
                             //  WE HAVE A COMPLETE WORD HERE
                             ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                             rplCompileAppend(temp.word);
-                            ptr = (byte_p) ScratchPointer1;
+                            ptr = (utf8_p) ScratchPointer1;
                             count = 0;
                         }
                     }
@@ -1675,7 +1670,7 @@ void LIB_HANDLER()
                             //  WE HAVE A COMPLETE WORD HERE
                             ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                             rplCompileAppend(temp.word);
-                            ptr = (byte_p) ScratchPointer1;
+                            ptr = (utf8_p) ScratchPointer1;
                             count = 0;
                         }
                     }
@@ -1708,7 +1703,7 @@ void LIB_HANDLER()
             //  WE HAVE A COMPLETE WORD HERE
             ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
             rplCompileAppend(temp.word);
-            ptr = (byte_p) ScratchPointer1;
+            ptr = (utf8_p) ScratchPointer1;
 
             count = 0;
 
@@ -1727,11 +1722,11 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendChar('\"');
-            byte_p start = (byte_p) (DecompileObject + 1);
-            byte_p end =
+            utf8_p start = (utf8_p) (DecompileObject + 1);
+            utf8_p end =
                     start + (OBJSIZE(*DecompileObject) << 2) -
                     (LIBNUM(*DecompileObject) & 3);
-            byte_p ptr;
+            utf8_p ptr;
             for(ptr = start; ptr < end; ++ptr) {
                 if(*ptr == '\\') {
                     rplDecompAppendString2(start, ptr - start);
@@ -1747,7 +1742,7 @@ void LIB_HANDLER()
                 }
                 if(*ptr == 0) {
                     rplDecompAppendString2(start, ptr - start);
-                    rplDecompAppendString((byte_p) "\\U0000");
+                    rplDecompAppendString("\\U0000");
                     start = ptr + 1;
                     continue;
                 }
@@ -1776,7 +1771,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendChar('\"');
-            rplDecompAppendString2((byte_p) (DecompileObject + 1),
+            rplDecompAppendString2((utf8_p) (DecompileObject + 1),
                     (OBJSIZE(*DecompileObject) << 2) -
                     (LIBNUM(*DecompileObject) & 3));
             rplDecompAppendChar('\"');

@@ -310,7 +310,7 @@ void rplSymbRuleApply()
     }
 
     firstrule[-1] = rplPeekData(1);     // REPLACE ORIGINAL EXPRESSION WITH RESULT
-    firstrule[0] = rplNewint32_t(totalreplacements, DECBINT);
+    firstrule[0] = rplNewBINT(totalreplacements, DECBINT);
     DSTop = savestk;
     return;
 
@@ -361,7 +361,7 @@ void rplSymbRuleApply1()
     // WE APPLIED ALL RULES
 
     firstrule[-1] = rplPeekData(1);     // REPLACE ORIGINAL EXPRESSION WITH RESULT
-    firstrule[0] = rplNewint32_t(totalreplacements, DECBINT);
+    firstrule[0] = rplNewBINT(totalreplacements, DECBINT);
     DSTop = savestk;
 
 }
@@ -1465,7 +1465,7 @@ void LIB_HANDLER()
                             || (Opcode == CMD_LISTOPENBRACKET)
                             || (Opcode == CMD_CLISTOPENBRACKET)) {
                         // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                        rplNewint32_tPush(newdepth, DECBINT);
+                        rplNewBINTPush(newdepth, DECBINT);
 
                     }
 
@@ -1872,7 +1872,7 @@ void LIB_HANDLER()
                         || (Opcode == CMD_LISTOPENBRACKET)
                         || (Opcode == CMD_CLISTOPENBRACKET)) {
                     // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                    rplNewint32_tPush(newdepth, DECBINT);
+                    rplNewBINTPush(newdepth, DECBINT);
                 }
 
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
@@ -2066,7 +2066,7 @@ void LIB_HANDLER()
                         || (Opcode == CMD_LISTOPENBRACKET)
                         || (Opcode == CMD_CLISTOPENBRACKET)) {
                     // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
-                    rplNewint32_tPush(newdepth, DECBINT);
+                    rplNewBINTPush(newdepth, DECBINT);
                 }
 
                 if((Opcode == CMD_OVR_MUL) || (Opcode == CMD_OVR_ADD)) {
@@ -2247,7 +2247,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                rplNewint32_tPush(numlams, DECBINT);
+                rplNewBINTPush(numlams, DECBINT);
                 rplCreateList();
                 if(Exceptions) {
                     rplCleanupLAMs(0);
@@ -2262,7 +2262,7 @@ void LIB_HANDLER()
             rplCleanupLAMs(0);
             --nsolutions;
         }
-        rplNewint32_tPush(nsol2, DECBINT);
+        rplNewBINTPush(nsol2, DECBINT);
         return;
 
     }
@@ -2540,7 +2540,7 @@ void LIB_HANDLER()
            if(Exceptions) return;
 
            if(B!=1) {
-           rplNewint32_tPush(B,DECBINT);
+           rplNewBINTPush(B,DECBINT);
            if(Exceptions) { rplDropData(1); return; }
            rplSymbApplyOperator(CMD_OVR_DIV,2);
            if(Exceptions) return;

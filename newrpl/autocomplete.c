@@ -9,8 +9,10 @@
 #include "newrpl.h"
 #include "sysvars.h"
 
-WORD rplGetNextSuggestion(WORD suggestion, word_p suggobject, byte_p start,
-        byte_p end)
+WORD rplGetNextSuggestion(WORD   suggestion,
+                          word_p suggobject,
+                          utf8_p start,
+                          utf8_p end)
 {
 
     int32_t libcnt;
@@ -67,8 +69,10 @@ WORD rplGetNextSuggestion(WORD suggestion, word_p suggobject, byte_p start,
     return 0;
 }
 
-WORD rplGetPrevSuggestion(WORD suggestion, word_p suggobject, byte_p start,
-        byte_p end)
+WORD rplGetPrevSuggestion(WORD   suggestion,
+                          word_p suggobject,
+                          utf8_p start,
+                          utf8_p end)
 {
 
     int32_t libcnt;
@@ -133,8 +137,10 @@ WORD rplGetPrevSuggestion(WORD suggestion, word_p suggobject, byte_p start,
 }
 
 // UPDATE THE SUGGESTION
-WORD rplUpdateSuggestion(WORD suggestion, word_p suggobject, byte_p start,
-        byte_p end)
+WORD rplUpdateSuggestion(WORD   suggestion,
+                         word_p suggobject,
+                         utf8_p start,
+                         utf8_p end)
 {
     return rplGetNextSuggestion(suggestion, suggobject, start, end);
 }

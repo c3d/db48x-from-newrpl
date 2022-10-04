@@ -223,8 +223,8 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 
 #define MIN_SINT    -131072
 #define MAX_SINT    +131071
-#define MAX_int32_t    +9223372036854775807LL
-#define MIN_int32_t    (-9223372036854775807LL-1LL)
+#define MAX_BINT    +9223372036854775807LL
+#define MIN_BINT    (-9223372036854775807LL-1LL)
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
 #define SECO          9

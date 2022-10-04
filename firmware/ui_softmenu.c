@@ -289,25 +289,24 @@ word_p uiGetMenuItemHelp(word_p item)
 
 }
 
-static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
+
+int uiMenuItemName(word_p        item,
+                   menu_flags_t *flags,
+                   utf8_p       *textP,
+                   utf8_p       *endP)
 // ----------------------------------------------------------------------------
-//   Draw a single item in the current clipping box, does not clear background
+//   Check if a menu item has a known name, if so return it
 // ----------------------------------------------------------------------------
-// flags & 1  == is directory
-// flags & 2  == inverted
-// flags & 4  == use help colors
-// flags & 8  == flag menu
-// flags & 16 == flag value for flag menu
 {
     if (!item)
-        return;
+        return 0;
 
     word_p  ptr;
     if (ISLIST(*item))
     {
         ptr = item + 1;
         if (ptr >= rplSkipOb(item) - 1)
-            return;
+            return 0;
 
         if (*ptr == CMD_ENDLIST)
             ptr = item;
@@ -343,14 +342,14 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
             {
                 ptr = ptr + 1;
                 if (ptr >= rplSkipOb(item) - 1)
-                    return;
+                    return 0;
                 if (*ptr == CMD_ENDLIST)
                     ptr = item;
                 else
                 {
                     word_p next = rplSkipOb(ptr);
                     if (ISint32_t(*next))
-                        flags = rplReadint32_t(next);
+                        *flags = rplReadint32_t(next);
                 }
             }
         }
@@ -372,7 +371,7 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
         ptr++;
         text = (utf8_p) (ptr+1);
         end =  text + rplGetIdentLength(ptr);
-        flags |= 1;             // Show as directory
+        *flags |= MENU_IS_DIRECTORY;             // Show as directory
     }
     else if (ISIDENT(*ptr))
     {
@@ -381,9 +380,9 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
         if (var)
         {
             if (ISDIR(*var[1]))
-                flags |= 1;     // Directory: Show as directory
+                *flags |= MENU_IS_DIRECTORY;
             if ((rplGetIdentAttr(var[0]) & IDATTR_DEFN) == 0)
-                flags |= 2;     // Undefined: Invert
+                *flags |= MENU_INVERT; // Invert undefined entries
         }
         text = (utf8_p) (ptr + 1);
         end =  text + rplGetIdentLength(ptr);
@@ -456,6 +455,29 @@ static void uiDrawMenuItemInternal(gglsurface *scr, word_p item, uint32_t flags)
         }
     }
 
+    *textP = text;
+    *endP = end;
+    return 1;
+}
+
+
+static void uiDrawMenuItemInternal(gglsurface  *scr,
+                                   word_p       item,
+                                   menu_flags_t flags)
+// ----------------------------------------------------------------------------
+//   Draw a single item in the current clipping box, does not clear background
+// ----------------------------------------------------------------------------
+// flags & 1  == is directory
+// flags & 2  == inverted
+// flags & 4  == use help colors
+// flags & 8  == flag menu
+// flags & 16 == flag value for flag menu
+{
+    utf8_p    text = "";
+    utf8_p    end  = "";
+    if (!uiMenuItemName(item, &flags, &text, &end))
+        return;
+
     // Select display colors
     int       directory = (flags & 1) != 0;
     int       inverted  = (flags & 2) != 0;
@@ -527,7 +549,7 @@ void uiDrawMenuItem(gglsurface   *scr, word_p item)
 //   Draw a regular menu item
 // ----------------------------------------------------------------------------
 {
-    uiDrawMenuItemInternal(scr, item, 0);
+    uiDrawMenuItemInternal(scr, item, MENU_NORMAL);
 }
 
 
@@ -536,5 +558,5 @@ void uiDrawHelpMenuItem(gglsurface   *scr, word_p item)
 //   Draw a regular menu item
 // ----------------------------------------------------------------------------
 {
-    uiDrawMenuItemInternal(scr, item, 4);
+    uiDrawMenuItemInternal(scr, item, MENU_HELP);
 }

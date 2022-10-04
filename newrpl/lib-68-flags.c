@@ -217,40 +217,25 @@ ROMOBJECT screenconfig_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
+const const word_p ROMPTR_TABLE[] = {
+    (word_p) LIB_MSGTABLE,        (word_p) LIB_HELPTABLE,
 
-    (word_p) sysmenu_2_main,
-    (word_p) sysmenu_3_prog,
-    (word_p) sysmenu_4_math,
-    (word_p) sysmenu_5_symb,
-    (word_p) sysmenu_6_system,
-    (word_p) sysmenu_7_flags,
-    (word_p) sysmenu_8_menu,
-    (word_p) sysmenu_9_clipboard,
-    (word_p) sysmenu_10_settings,
-    (word_p) sysmenu_11_namedflags,
+    (word_p) sysmenu_2_main,      (word_p) sysmenu_3_prog,
+    (word_p) sysmenu_4_math,      (word_p) sysmenu_5_symb,
+    (word_p) sysmenu_6_system,    (word_p) sysmenu_7_flags,
+    (word_p) sysmenu_8_menu,      (word_p) sysmenu_9_clipboard,
+    (word_p) sysmenu_10_settings, (word_p) sysmenu_11_namedflags,
     (word_p) sysmenu_12_keys,
 
-    (word_p) dotsettings_ident,
-    (word_p) flags_ident,
-    (word_p) locale_ident,
-    (word_p) numfmt_ident,
-    (word_p) menu1_ident,
-    (word_p) menu2_ident,
-    (word_p) menu1hist_ident,
-    (word_p) menu2hist_ident,
-    (word_p) menuhistory_ident,
-    (word_p) savedcmdline_ident,
-    (word_p) customkey_ident,
-    (word_p) savedflags_ident,
-    (word_p) userflags_ident,
-    (word_p) stksave_ident,
-    (word_p) editwidth_ident,
-    (word_p) currentform_ident,
-    (word_p) screenconfig_ident,
-    0
+    (word_p) dotsettings_ident,   (word_p) flags_ident,
+    (word_p) locale_ident,        (word_p) numfmt_ident,
+    (word_p) menu1_ident,         (word_p) menu2_ident,
+    (word_p) menu1hist_ident,     (word_p) menu2hist_ident,
+    (word_p) menuhistory_ident,   (word_p) savedcmdline_ident,
+    (word_p) customkey_ident,     (word_p) savedflags_ident,
+    (word_p) userflags_ident,     (word_p) stksave_ident,
+    (word_p) editwidth_ident,     (word_p) currentform_ident,
+    (word_p) screenconfig_ident,  0
 };
 
 typedef struct
@@ -259,39 +244,40 @@ typedef struct
     unsigned char flags[8];
 } systemflag;
 
-const systemflag const flags_names[] = {
-    // EACH OF THE 8 CHARS CONTAINS: BITS 0-6:= FLAG NUMBER (1-127),
-    // BIT 7= VALUE (ON/OFF) TO USE WITH SET FLAG, ASSUMED ALWAYS 0 FOR CLEAR FLAG.
+const const systemflag flags_names[] = {
+  // EACH OF THE 8 CHARS CONTAINS: BITS 0-6:= FLAG NUMBER (1-127),
+  // BIT 7= VALUE (ON/OFF) TO USE WITH SET FLAG, ASSUMED ALWAYS 0 FOR CLEAR
+  // FLAG.
 
-    {"DEG", {(-FL_ANGLEMODE1), (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0}},
-    {"RAD", {0x80 | (-FL_ANGLEMODE1), (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0}},
-    {"GRAD", {(-FL_ANGLEMODE1), 0X80 | (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0}},
-    {"DMS", {0x80 | (-FL_ANGLEMODE1), 0x80 | (-FL_ANGLEMODE2), 0, 0, 0, 0, 0,
-                        0}},
-    {"COMMENTS", {0x80 | (-FL_STRIPCOMMENTS), 0, 0, 0, 0, 0, 0, 0}},
-    {"ACTIVEMENU1", {(-FL_ACTIVEMENU), 0, 0, 0, 0, 0, 0, 0}},
-    {"ACTIVEMENU2", {0X80 | (-FL_ACTIVEMENU), 0, 0, 0, 0, 0, 0, 0}},
-    {"DATEDMY", {0X80 | (-FL_DATEFORMAT), 0, 0, 0, 0, 0, 0, 0}},
-    {"DATEMDY", {(-FL_DATEFORMAT), 0, 0, 0, 0, 0, 0, 0}},
-    {"TIME12", {(-FL_TIMEFORMAT), 0, 0, 0, 0, 0, 0, 0}},
-    {"TIME24", {0x80 | (-FL_TIMEFORMAT), 0, 0, 0, 0, 0, 0, 0}},
-    {"BEEPON", {(-FL_ERRORBEEP), 0, 0, 0, 0, 0, 0, 0}},
-    {"BEEPOFF", {0x80 | (-FL_ERRORBEEP), 0, 0, 0, 0, 0, 0, 0}},
-    {"ALMBEEPON", {(-FL_ALARMBEEP), 0, 0, 0, 0, 0, 0, 0}},
-    {"ALMBEEPOFF", {0x80 | (-FL_ALARMBEEP), 0, 0, 0, 0, 0, 0, 0}},
-    {"SAVEALM", {0x80 | (-FL_SAVACKALRM), 0, 0, 0, 0, 0, 0, 0}},
-    {"RESCALM", {(-FL_RESRPTALRM), 0, 0, 0, 0, 0, 0, 0}},
-    {"AUTOINDENT", {(-FL_AUTOINDENT), 0, 0, 0, 0, 0, 0, 0}},
-    {"NOINDENT", {0x80 | (-FL_AUTOINDENT), 0, 0, 0, 0, 0, 0, 0}},
-    {"DECOMPDISP", {(-FL_DECOMPEDIT), 0, 0, 0, 0, 0, 0, 0}},
-    {"DECOMPEDIT", {0x80 | (-FL_DECOMPEDIT), 0, 0, 0, 0, 0, 0, 0}},
-    {"CPLX", {0x80 | (-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0}},
-    {"REAL", {(-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0}},
-    {"APPROX.", {(-FL_APPROXSIGN) }},
-    {"APPROX~", {0x80 | (-FL_APPROXSIGN) }},
+    {        "DEG",{ (-FL_ANGLEMODE1), (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0 }                   },
+    {        "RAD", { 0x80 | (-FL_ANGLEMODE1), (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0 }},
+    {       "GRAD", { (-FL_ANGLEMODE1), 0X80 | (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0 }},
+    {        "DMS",
+     { 0x80 | (-FL_ANGLEMODE1), 0x80 | (-FL_ANGLEMODE2), 0, 0, 0, 0, 0, 0 }        },
+    {   "COMMENTS",             { 0x80 | (-FL_STRIPCOMMENTS), 0, 0, 0, 0, 0, 0, 0 }},
+    {"ACTIVEMENU1",                       { (-FL_ACTIVEMENU), 0, 0, 0, 0, 0, 0, 0 }},
+    {"ACTIVEMENU2",                { 0X80 | (-FL_ACTIVEMENU), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "DATEDMY",                { 0X80 | (-FL_DATEFORMAT), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "DATEMDY",                       { (-FL_DATEFORMAT), 0, 0, 0, 0, 0, 0, 0 }},
+    {     "TIME12",                       { (-FL_TIMEFORMAT), 0, 0, 0, 0, 0, 0, 0 }},
+    {     "TIME24",                { 0x80 | (-FL_TIMEFORMAT), 0, 0, 0, 0, 0, 0, 0 }},
+    {     "BEEPON",                        { (-FL_ERRORBEEP), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "BEEPOFF",                 { 0x80 | (-FL_ERRORBEEP), 0, 0, 0, 0, 0, 0, 0 }},
+    {  "ALMBEEPON",                        { (-FL_ALARMBEEP), 0, 0, 0, 0, 0, 0, 0 }},
+    { "ALMBEEPOFF",                 { 0x80 | (-FL_ALARMBEEP), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "SAVEALM",                { 0x80 | (-FL_SAVACKALRM), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "RESCALM",                       { (-FL_RESRPTALRM), 0, 0, 0, 0, 0, 0, 0 }},
+    { "AUTOINDENT",                       { (-FL_AUTOINDENT), 0, 0, 0, 0, 0, 0, 0 }},
+    {   "NOINDENT",                { 0x80 | (-FL_AUTOINDENT), 0, 0, 0, 0, 0, 0, 0 }},
+    { "DECOMPDISP",                       { (-FL_DECOMPEDIT), 0, 0, 0, 0, 0, 0, 0 }},
+    { "DECOMPEDIT",                { 0x80 | (-FL_DECOMPEDIT), 0, 0, 0, 0, 0, 0, 0 }},
+    {       "CPLX",               { 0x80 | (-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0 }},
+    {       "REAL",                      { (-FL_COMPLEXMODE), 0, 0, 0, 0, 0, 0, 0 }},
+    {    "APPROX.",                                            { (-FL_APPROXSIGN) }},
+    {    "APPROX~",                                     { 0x80 | (-FL_APPROXSIGN) }},
 
-// TODO: ADD MORE FLAG NAMES HERE
-    {NULL, {0, 0, 0, 0, 0, 0, 0, 0}}
+ // TODO: ADD MORE FLAG NAMES HERE
+    {         NULL,                                      { 0, 0, 0, 0, 0, 0, 0, 0 }}
 };
 
 int32_t rplSetUserFlag(int32_t flag)
@@ -429,7 +415,7 @@ int32_t rplClrSystemFlag(int32_t flag)
     return 0;
 }
 
-int32_t rplSetSystemFlagByName(byte_p name, byte_p nameend)
+int32_t rplSetSystemFlagByName(utf8_p name, utf8_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -469,7 +455,7 @@ int32_t rplSetSystemFlagByName(byte_p name, byte_p nameend)
     return -1;
 }
 
-int32_t rplClrSystemFlagByName(byte_p name, byte_p nameend)
+int32_t rplClrSystemFlagByName(utf8_p name, utf8_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -531,7 +517,7 @@ int32_t rplTestSystemFlag(int32_t flag)
 // RETURN -1 IF THE NAME IS NOT VALID
 // RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
 
-int32_t rplTestSystemFlagByName(byte_p name, byte_p nameend)
+int32_t rplTestSystemFlagByName(utf8_p name, utf8_p nameend)
 {
     if(!ISBINDATA(*SystemFlags))
         return -2;
@@ -572,19 +558,19 @@ int32_t rplTestSystemFlagByName(byte_p name, byte_p nameend)
 
 int32_t rplSetSystemFlagByIdent(word_p ident)
 {
-    byte_p text = (byte_p) (ident + 1);
+    utf8_p text = (utf8_p) (ident + 1);
     return rplSetSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
 int32_t rplClrSystemFlagByIdent(word_p ident)
 {
-    byte_p text = (byte_p) (ident + 1);
+    utf8_p text = (utf8_p) (ident + 1);
     return rplClrSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
 int32_t rplTestSystemFlagByIdent(word_p ident)
 {
-    byte_p text = (byte_p) (ident + 1);
+    utf8_p text = (utf8_p) (ident + 1);
     return rplTestSystemFlagByName(text, text + rplGetIdentLength(ident));
 }
 
@@ -598,22 +584,22 @@ uint64_t rplGetSystemLocale()
             // EXPAND THE STRING INTO FOUR UNICODE CODEPOINTS
             if(localestring && (ISSTRING(*localestring))) {
                 uint64_t result;
-                byte_p locptr = (byte_p) (localestring + 1), locend =
-                        (byte_p) rplSkipOb(localestring);
+                utf8_p locptr = (utf8_p) (localestring + 1), locend =
+                        (utf8_p) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
 
                 return result;
             }
@@ -637,22 +623,22 @@ void rplGetSystemNumberFormat(NUMFORMAT * fmt)
             word_p localestring = rplGetListElement(systemlist, 1);
             if(localestring && (ISSTRING(*localestring))) {
                 uint64_t result;
-                byte_p locptr = (byte_p) (localestring + 1), locend =
-                        (byte_p) rplSkipOb(localestring);
+                utf8_p locptr = (utf8_p) (localestring + 1), locend =
+                        (utf8_p) rplSkipOb(localestring);
                 result = utf82cp((char *)locptr, (char *)locend);
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 16;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 32;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
                 result |=
                         ((uint64_t) (utf82cp((char *)locptr,
                                 (char *)locend) & 0xffff)) << 48;
-                locptr = (byte_p) utf8skip((char *)locptr, (char *)locend);
+                locptr = (utf8_p) utf8skip((char *)locptr, (char *)locend);
 
                 fmt->Locale = result;
             }
@@ -738,8 +724,8 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
 
     // MAKE THE LOCALE STRING
 
-    BYTE locbase[16];   // 4 BYTES PER UNICODE CHARACTER MAXIMUM
-    byte_p locstr = locbase;
+    BYTE    locbase[16]; // 4 BYTES PER UNICODE CHARACTER MAXIMUM
+    byte_p  locstr = locbase;
 
     WORD uchar;
 
@@ -767,22 +753,22 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         uchar >>= 8;
     }
 
-    word_p item = rplCreateString(locbase, locstr);
+    word_p item = rplCreateStringFromBytes(locbase, locstr);
     if(!item)
         return;
 
     rplPushData(item);
-    rplNewint32_tPush(fmt->SmallFmt, DECBINT);
+    rplNewBINTPush(fmt->SmallFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewint32_tPush(fmt->MiddleFmt, DECBINT);
+    rplNewBINTPush(fmt->MiddleFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewint32_tPush(fmt->BigFmt, DECBINT);
+    rplNewBINTPush(fmt->BigFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -949,9 +935,8 @@ word_p rplNumFormat2String(int32_t fmtbits)
         }
     }
 
-    // STRING IS READY
-
-    return rplCreateString(str, str + offset);
+    // String is ready
+    return rplCreateStringFromBytes(str, str + offset);
 
 }
 
@@ -960,8 +945,8 @@ word_p rplNumFormat2String(int32_t fmtbits)
 
 int32_t rplNumFormatFromString(word_p string)
 {
-    byte_p str = (byte_p) (string + 1);
-    byte_p end = str + rplStrSize(string);
+    utf8_p str = (utf8_p) (string + 1);
+    utf8_p end = str + rplStrSize(string);
 
     int32_t fmt = FMT_NOTRAILDOT | FMT_USECAPITALS;
 
@@ -1324,7 +1309,7 @@ void rplSaveMenuHistory(int32_t menu)
     else {
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
         // THIS CAN TRIGGER A GC!
-        msetting = rplNewint32_t(oldmcode, HEXBINT);
+        msetting = rplNewBINT(oldmcode, HEXBINT);
     }
 
     if(!msetting)
@@ -1546,13 +1531,13 @@ const BYTE const modiftable[] = {
 
 WORD rplKeyName2Msg(word_p keyname)
 {
-    byte_p ptr, tblptr;
+    utf8_p ptr, tblptr;
     int32_t key, shifts, msg, len;
 
     if(!ISSTRING(*keyname))
         return 0;
 
-    ptr = (byte_p) (keyname + 1);
+    ptr = (utf8_p) (keyname + 1);
     len = rplStrSize(keyname);
 
     // IDENTIFY KEY NAME FIRST
@@ -1585,7 +1570,7 @@ WORD rplKeyName2Msg(word_p keyname)
         }
     }
 
-    tblptr = (byte_p) keytable;
+    tblptr = (utf8_p) keytable;
 
     while(*tblptr) {
         if((tblptr[0] == (key & 0xff)) && (tblptr[1] == ((key >> 8) & 0xff))) {
@@ -1652,7 +1637,7 @@ WORD rplKeyName2Msg(word_p keyname)
 
         if(shifts) {
 
-            tblptr = (byte_p) modiftable;
+            tblptr = (utf8_p) modiftable;
 
             while(*tblptr) {
                 if((tblptr[0] == (shifts & 0xff))
@@ -1710,122 +1695,134 @@ WORD rplKeyName2Msg(word_p keyname)
 
 word_p rplMsg2KeyName(WORD keymsg)
 {
-
-    byte_p tblptr = (byte_p) keytable, keyptr;
     BYTE keytext[16];
+    utf8_p tblptr = (utf8_p) keytable;
+    byte_p keyptr = keytext;
 
-    keyptr = keytext;
-
-    if(KM_MESSAGE(keymsg)==KM_TOUCH) {
-        *keyptr++='T';
-        *keyptr++=KM_TOUCH_FINGER(keymsg)+'0';
-        switch(KM_TOUCH_EVENT(keymsg))
+    if (KM_MESSAGE(keymsg) == KM_TOUCH)
+    {
+        *keyptr++ = 'T';
+        *keyptr++ = KM_TOUCH_FINGER(keymsg) + '0';
+        switch (KM_TOUCH_EVENT(keymsg))
         {
-        case KM_FINGER_DOWN:
-            *keyptr++='D';
-            break;
-        case KM_FINGER_MOVE:
-            *keyptr++='M';
-            break;
-        case KM_FINGER_UP:
-            *keyptr++='U';
+        case KM_FINGER_DOWN: *keyptr++ = 'D'; break;
+        case KM_FINGER_MOVE: *keyptr++ = 'M'; break;
+        case KM_FINGER_UP: *keyptr++ = 'U';
         }
-        *keyptr++='.';
+        *keyptr++ = '.';
 
         int x=KM_TOUCH_X(keymsg),startnum=0;
 
-        if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
-        if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
-        if((x>=10)||startnum) { *keyptr++='0'+(x/10); x%=10; startnum=1; }
-        *keyptr++='0'+x;
-
-        *keyptr++='.';
-        startnum=0;
-        x=KM_TOUCH_Y(keymsg);
-        if(x>=1000) { *keyptr++='0'+(x/1000); x%=1000; startnum=1; }
-        if((x>=100)||startnum) { *keyptr++='0'+(x/100); x%=100; startnum=1; }
-        if((x>=10)||startnum) { *keyptr++='0'+(x/10); x%=10; startnum=1; }
-        *keyptr++='0'+x;
-
-
-    }
-
-
-    else {
-
-
-    while(*tblptr) {
-        if(tblptr[2] == (KM_KEY(keymsg))) {
-            *keyptr++ = tblptr[0];
-            if(tblptr[1])
-                *keyptr++ = tblptr[1];
-            break;
+        if (x >= 1000)
+        {
+            *keyptr++ = '0' + (x / 1000);
+            x %= 1000;
+            startnum = 1;
         }
-        tblptr += 3;
-    }
-    // EMPTY KEY VALUE IS OK FOR PURE KM_SHIFT CHANGE MESSAGES
-    /*
-    if(!*tblptr) {
-        rplError(ERR_INVALIDKEYNAME);
-        return 0;
-    }
-    */
+        if ((x >= 100) || startnum)
+        {
+            *keyptr++ = '0' + (x / 100);
+            x %= 100;
+            startnum = 1;
+        }
+        if ((x >= 10) || startnum)
+        {
+            *keyptr++ = '0' + (x / 10);
+            x %= 10;
+            startnum = 1;
+        }
+        *keyptr++ = '0' + x;
 
-    if(KM_SHIFT(keymsg)) {
         *keyptr++ = '.';
-
-        tblptr = (byte_p) modiftable;
-
-        while(*tblptr) {
-            if(tblptr[3] == (KM_SHIFT(keymsg) >> KSHIFT_BITS)) {
+        startnum  = 0;
+        x         = KM_TOUCH_Y(keymsg);
+        if (x >= 1000)
+        {
+            *keyptr++ = '0' + (x / 1000);
+            x %= 1000;
+            startnum = 1;
+        }
+        if ((x >= 100) || startnum)
+        {
+            *keyptr++ = '0' + (x / 100);
+            x %= 100;
+            startnum = 1;
+        }
+        if ((x >= 10) || startnum)
+        {
+            *keyptr++ = '0' + (x / 10);
+            x %= 10;
+            startnum = 1;
+        }
+        *keyptr++ = '0' + x;
+    }
+    else
+    {
+        while (*tblptr)
+        {
+            if (tblptr[2] == (KM_KEY(keymsg)))
+            {
                 *keyptr++ = tblptr[0];
-                if(tblptr[1])
+                if (tblptr[1])
                     *keyptr++ = tblptr[1];
-                if(tblptr[2])
-                    *keyptr++ = tblptr[2];
                 break;
             }
-            tblptr += 4;
+            tblptr += 3;
         }
+        // EMPTY KEY VALUE IS OK FOR PURE KM_SHIFT CHANGE MESSAGES
+        /*
         if(!*tblptr) {
             rplError(ERR_INVALIDKEYNAME);
             return 0;
         }
+        */
 
-    }
-
-    if(KM_MESSAGE(keymsg) != KM_PRESS) {
-
-        if(!KM_SHIFT(keymsg))
+        if (KM_SHIFT(keymsg))
+        {
             *keyptr++ = '.';
 
-        *keyptr++ = '.';
+            tblptr    = (utf8_p) modiftable;
 
-        switch (KM_MESSAGE(keymsg)) {
-        case KM_LONG_PRESS:
-            *keyptr++ = 'L';
-            break;
-        case KM_KEYUP:
-            *keyptr++ = 'U';
-            break;
-        case KM_KEYDN:
-            *keyptr++ = 'D';
-            break;
-        case KM_REPEAT:
-            *keyptr++ = 'R';
-            break;
-        case KM_LONG_OR_REPEAT:
-            *keyptr++ = 'T';
-            break;
+            while (*tblptr)
+            {
+                if (tblptr[3] == (KM_SHIFT(keymsg) >> KSHIFT_BITS))
+                {
+                    *keyptr++ = tblptr[0];
+                    if (tblptr[1])
+                        *keyptr++ = tblptr[1];
+                    if (tblptr[2])
+                        *keyptr++ = tblptr[2];
+                    break;
+                }
+                tblptr += 4;
+            }
+            if (!*tblptr)
+            {
+                rplError(ERR_INVALIDKEYNAME);
+                return 0;
+            }
         }
 
+        if (KM_MESSAGE(keymsg) != KM_PRESS)
+        {
+            if (!KM_SHIFT(keymsg))
+                *keyptr++ = '.';
+
+            *keyptr++ = '.';
+
+            switch (KM_MESSAGE(keymsg))
+            {
+            case KM_LONG_PRESS: *keyptr++ = 'L'; break;
+            case KM_KEYUP: *keyptr++ = 'U'; break;
+            case KM_KEYDN: *keyptr++ = 'D'; break;
+            case KM_REPEAT: *keyptr++ = 'R'; break;
+            case KM_LONG_OR_REPEAT: *keyptr++ = 'T'; break;
+            }
+        }
     }
-    }
 
-    // NOW BUILD A STRING OBJECT AND RETURN
-
-    return rplCreateString(keytext, keyptr);
-
+    // Now build a string object and return
+    return rplCreateStringFromBytes(keytext, keyptr);
 }
 
 void LIB_HANDLER()
@@ -1902,9 +1899,9 @@ void LIB_HANDLER()
         rplGetSystemNumberFormat(&fmt);
 
         // EXTRACT ALL 4 CODE POINTS
-        byte_p locstring, strend;
-        strend = (byte_p) (rplPeekData(1) + 1) + rplStrSize(rplPeekData(1));
-        locstring = (byte_p) (rplPeekData(1) + 1);
+        utf8_p locstring, strend;
+        strend = (utf8_p) (rplPeekData(1) + 1) + rplStrSize(rplPeekData(1));
+        locstring = (utf8_p) (rplPeekData(1) + 1);
         uint64_t newlocale;
 
         int32_t cp = utf82cp((char *)locstring, (char *)strend);
@@ -1916,7 +1913,7 @@ void LIB_HANDLER()
 
         newlocale = cp;
 
-        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (utf8_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1927,7 +1924,7 @@ void LIB_HANDLER()
 
         newlocale |= (((uint64_t) cp) << 16);
 
-        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (utf8_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -1938,7 +1935,7 @@ void LIB_HANDLER()
 
         newlocale |= (((uint64_t) cp) << 32);
 
-        locstring = (byte_p) utf8skipst((char *)locstring, (char *)strend);
+        locstring = (utf8_p) utf8skipst((char *)locstring, (char *)strend);
 
         cp = utf82cp((char *)locstring, (char *)strend);
 
@@ -2543,7 +2540,7 @@ void LIB_HANDLER()
 
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
 
-        rplNewint32_tPush((int64_t) mcode, HEXBINT);
+        rplNewBINTPush((int64_t) mcode, HEXBINT);
         return;
 
     }
@@ -2673,8 +2670,8 @@ void LIB_HANDLER()
         }
 
         rplDropData(2);
-        rplNewint32_tPush(keycode, HEXBINT);
-        rplNewint32_tPush(context, HEXBINT);
+        rplNewBINTPush(keycode, HEXBINT);
+        rplNewBINTPush(context, HEXBINT);
         if(Exceptions)
             return;
 
@@ -2878,7 +2875,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewint32_tPush((TypeInfo / 100) + (istag ? 10000 : 0), DECBINT);
+                rplNewBINTPush((TypeInfo / 100) + (istag ? 10000 : 0), DECBINT);
                 return;
             }
         }
@@ -2917,7 +2914,7 @@ void LIB_HANDLER()
                     rplNewRealFromRRegPush(0);
                 }
                 else
-                    rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
+                    rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0),
                             DECBINT);
                 return;
             }
@@ -2939,7 +2936,7 @@ void LIB_HANDLER()
 
         // MAKE THE LOCALE STRING
 
-        BYTE locbase[16];       // 4 BYTES PER UNICODE CHARACTER MAXIMUM
+        BYTE   locbase[16]; // 4 BYTES PER UNICODE CHARACTER MAXIMUM
         byte_p locstr = locbase;
 
         WORD uchar;
@@ -2968,7 +2965,7 @@ void LIB_HANDLER()
             uchar >>= 8;
         }
 
-        word_p item = rplCreateString(locbase, locstr);
+        word_p item = rplCreateStringFromBytes(locbase, locstr);
         if(!item)
             return;
 
@@ -3173,7 +3170,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0), DECBINT);
+                rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0), DECBINT);
                 return;
             }
         }
@@ -3235,7 +3232,7 @@ void LIB_HANDLER()
                     rplNewRealFromRRegPush(0);
                 }
                 else
-                    rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
+                    rplNewBINTPush(TypeInfo / 100 + (istag ? 10000 : 0),
                             DECBINT);
                 return;
             }

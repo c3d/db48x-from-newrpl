@@ -14,7 +14,7 @@
 extern "C" void rplShowRuntimeState(void);
 
 /*
-byte_p testprogram=(byte_p)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
+byte_p testprogram="<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO << A 'A' LAMSTO >> A 'A' LAMSTO >> " // UNIT TEST: LAMS ACROSS SECONDARY BOUNDARIES ARE SEARCHED BY NAME, NOT GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO 1 A FOR i A i + 'A' LAMSTO NEXT A 'A' LAMSTO 'i' LAMSTO i >> " // UNIT TEST: LAMS ACROSS FOR LOOPS ARE OK AS GETLAM/PUTLAM, LOOP VARS DISSAPPEAR AFTER NEXT/STEP
                              "<< 1 'A' LAMSTO << 1 'B' LAMSTO A B C >> A B C >> " // UNIT TEST: LAMS AFTER SECONDARIES ARE CLEANED UP PROPERLY
@@ -22,7 +22,7 @@ byte_p testprogram=(byte_p)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALRE
                             ;
 */
 /*
-byte_p testprogram=(byte_p)"<< 1 'A' LAMSTO DO A A 1 + 'A' LAMSTO UNTIL A 10 == END \"END!\" >> EVAL " // UNIT TEST: DO/UNTIL TEST WITH LAMS
+byte_p testprogram="<< 1 'A' LAMSTO DO A A 1 + 'A' LAMSTO UNTIL A 10 == END \"END!\" >> EVAL " // UNIT TEST: DO/UNTIL TEST WITH LAMS
                             ;
 */
 /*
@@ -31,20 +31,20 @@ byte_p testprogram=(byte_p)//"<< 1 'A' LAMSTO WHILE A 10 <= REPEAT A A 1 + 'A' L
                             ;
 */
 /*
-byte_p testprogram=(byte_p) "<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL";
+byte_p testprogram="<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL";
 */
 /*
-byte_p testprogram=(byte_p) "DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG";
+byte_p testprogram="DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG";
 */
 /*
-byte_p testprogram=(byte_p) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG";
+byte_p testprogram="1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG";
 */
 /*
- byte_p testprogram=(byte_p) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
+ byte_p testprogram="{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
 */
 
 // N-QUEENS WITH ALL CONSTANT NUMBERS AS REALS
-byte_p testprogram = (byte_p) "<< 8. 0. 0. 0. { } -> R S X Y A "
+byte_p testprogram = "<< 8. 0. 0. 0. { } -> R S X Y A "
         "  << "
         " 1. R START 0. NEXT R ->LIST 'A' STO "
         " DO "
@@ -70,7 +70,7 @@ byte_p testprogram = (byte_p) "<< 8. 0. 0. 0. { } -> R S X Y A "
 
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
 /*
-byte_p testprogram=(byte_p) "<< 8 0 0 0 { } -> R S X Y A "
+byte_p testprogram="<< 8 0 0 0 { } -> R S X Y A "
                 "  << "
                " 1 R START 0 NEXT R ->LIST 'A' STO "
                " DO "
@@ -125,13 +125,13 @@ const byte_p nq_new = (const byte_p)"<< 1 -> X RES << " " IF X 1 > THEN " " X PI
         ;
 
 /*
-byte_p testprogram=(byte_p) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
+byte_p testprogram="1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
 */
 
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=1*10^-N
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -155,7 +155,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=2*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL PRECISION
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -168,7 +168,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=5*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -180,7 +180,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(COS(ALPHAi))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=0,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 "2.0 "
                                 "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 + * NEXT "
                                 "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 + DUP * * NEXT "
@@ -193,7 +193,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE TRANSCENDENTALS TABLE WITH CONSTANTS 2*PI, PI, PI/2, PI/4 AT MAX. SYSTEM PRECISION
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 1 'SIGN' LAMSTO 0.0 1200 0 FOR k "
                                 " -32  4 k * 1 + / "
                                 "      4 k * 3 + INV - "
@@ -215,21 +215,21 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(1*10^-x)
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 'X' LAMSTO 0.0 1 2025 K / IP 2 + FOR I X I ^ I / + 2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
 */
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(2*10^-x)
 /*
- byte_p testprogram=(byte_p) "2025 SETPREC "
+ byte_p testprogram="2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 2 * 'X' LAMSTO 0.0 4000 K 3 / - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
 */
 // HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(5*10^-x)
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 'K' LAMSTO 10 K NEG ^ 5 * 'X' LAMSTO 0.0 8000 K - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
                                 "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
                                 ;
@@ -238,7 +238,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
- byte_p testprogram=(byte_p) "2025 SETPREC "
+ byte_p testprogram="2025 SETPREC "
                                  "1.0 "
                                  "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 - * NEXT "
                                  "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 - DUP * * NEXT "
@@ -248,7 +248,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 
 */
 /*
-byte_p testprogram=(byte_p) "2016 SETPREC "
+byte_p testprogram="2016 SETPREC "
                               " 1.0 CEXP "
                             " 0.5 CEXP "
                             " 0.2 CEXP "
@@ -262,13 +262,13 @@ byte_p testprogram=(byte_p) "2016 SETPREC "
 
 // GENERATE THE CONSTANT LN(10)
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << DUP 1 - SWAP / 'X' LAMSTO -1 'SIGN' LAMSTO 0.0 50000 1 FOR I X I ^ I / + -1 STEP >> 'MYLN' STO "
                                 " 10 MYLN DUP TRANSCENTABLE WRITETABLE "
                                 ;
 */
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
                                 " << 1 CEXP DUP DUP * * / 'Z' LAMSTO -0.7 'X' LAMSTO DO X CEXP DUP Z - SWAP / X SWAP - X SWAP DUP 'X' STO UNTIL - ABS 1E-2016 < END X >> 'MYLN' STO "
                                 " 10 MYLN 3 + 2 / DUP TRANSCENTABLE WRITETABLE "
                                 ;
@@ -277,7 +277,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE CONSTANT Khyp = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
 
         " 1.0 "
         " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 - * "
@@ -290,7 +290,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1+alphai^2))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-byte_p testprogram=(byte_p) "2025 SETPREC "
+byte_p testprogram="2025 SETPREC "
 
         " 1.0 "
         " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 + * "
@@ -302,7 +302,7 @@ byte_p testprogram=(byte_p) "2025 SETPREC "
 */
 
 /*
-byte_p testprogram=(byte_p) "<< \"\" SWAP "
+byte_p testprogram="<< \"\" SWAP "
         "WHILE DUP 0 > REPEAT "
            "CASE "
               "DUP 1000 >= THEN 1000 \"M\"  END "

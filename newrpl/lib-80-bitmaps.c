@@ -75,15 +75,15 @@ const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
 
                                       0 };
 
-const char *const bitmap_modes[] = {
+const utf8_p const bitmap_modes[] = {
     "MONO",
     "16GR",
     "256G",
     "64KC",
     "ARGB",
     "OTHR",
-    "INVA",
-    "INVA"
+    "Invalid Bitmap Type 6",
+    "Invalid Bitmap Type 7",
 };
 
 // CONVERT RGB 0-255 TO GRAY 0-255 PER BT.709 HDTV FORMULA FOR LUMINANCE
@@ -129,6 +129,7 @@ word_p rplBmpToDisplay(word_p bitmap)
         return 0;
 
     int32_t npixels = width * height;
+    UNUSED(npixels);
 
     // THIS IS FOR THE 50G HARDWARE, BUT FUTURE-PROOF FOR 16-BIT COLOR DISPLAYS AS WELL
 
@@ -1049,11 +1050,10 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE BITMAP
 
-            rplDecompAppendString((byte_p) "BITMAPDATA ");
+            rplDecompAppendString("BITMAPDATA ");
 
             // TYPE
-            rplDecompAppendString((byte_p)
-                    bitmap_modes[LIBNUM(*DecompileObject) & 7]);
+            rplDecompAppendString(bitmap_modes[LIBNUM(*DecompileObject) & 7]);
 
             rplDecompAppendChar(' ');
 
@@ -1063,14 +1063,14 @@ void LIB_HANDLER()
                     rplIntToString((int64_t) DecompileObject[1], DECBINT, buffer,
                     buffer + 50);
 
-            rplDecompAppendString2(buffer, len);
+            rplDecompAppendString2((utf8_p) buffer, len);
 
             rplDecompAppendChar(' ');
 
             len = rplIntToString((int64_t) DecompileObject[2], DECBINT, buffer,
                     buffer + 50);
 
-            rplDecompAppendString2(buffer, len);
+            rplDecompAppendString2((utf8_p) buffer, len);
 
             rplDecompAppendChar(' ');
 
@@ -1119,7 +1119,7 @@ void LIB_HANDLER()
                 }
 
                 ScratchPointer1 = ptr;
-                rplDecompAppendString(encoder);
+                rplDecompAppendString((utf8_p) encoder);
                 if(Exceptions) {
                     RetNum = ERR_INVALID;
                     return;

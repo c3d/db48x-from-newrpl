@@ -1612,7 +1612,7 @@ void LIB_HANDLER()
                 rplOverwriteData(f, rplPeekData(nitems + 1 - f));
                 rplOverwriteData(nitems + 1 - f, obj);
             }
-            rplNewint32_tPush(nitems, DECBINT);
+            rplNewBINTPush(nitems, DECBINT);
             rplCreateList();
         }
         if(Exceptions)
@@ -1638,7 +1638,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((word_p) empty_list);
         else {
-            rplNewint32_tPush(nitems, DECBINT);
+            rplNewBINTPush(nitems, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1670,7 +1670,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((word_p) empty_list);
         else {
-            rplNewint32_tPush(nitems, DECBINT);
+            rplNewBINTPush(nitems, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -2949,7 +2949,7 @@ void LIB_HANDLER()
             if(LIBNUM(*DecompileObject) == LIBRARY_NUMBER) {
                 // IT'S A DIRECTORY OBJECT
 
-                rplDecompAppendString((byte_p) "DIR<");
+                rplDecompAppendString("DIR<");
 
                 word_p *dir = rplFindDirbyHandle(DecompileObject);
                 if(dir) {
@@ -2957,7 +2957,7 @@ void LIB_HANDLER()
                     int32_t lvlcount = rplGetFullPath(dir, path, 16);
 
                     if(lvlcount == 16)
-                        rplDecompAppendString((byte_p) "...");
+                        rplDecompAppendString("...");
 
                     while(lvlcount > 0) {
                         rplDecompAppendChar('/');
@@ -2966,16 +2966,16 @@ void LIB_HANDLER()
                     }
                 }
                 else
-                    rplDecompAppendString((byte_p) "*unlinked*");
+                    rplDecompAppendString("*unlinked*");
 
-                rplDecompAppendString((byte_p) ">");
+                rplDecompAppendString(">");
                 RetNum = OK_CONTINUE;
                 return;
             }
 
             // OTHERWISE IT'S A PACKED DIRECTORY OBJECT
 
-            rplDecompAppendString((byte_p) "DIRECTORY");
+            rplDecompAppendString("DIRECTORY");
             int32_t depth = 0, needseparator;
 
             needseparator =
@@ -2990,7 +2990,7 @@ void LIB_HANDLER()
             while(offset <= endoffset) {
                 if(offset == innerendoffset) {
                     rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
-                    rplDecompAppendString((byte_p) "ENDDIR");
+                    rplDecompAppendString("ENDDIR");
                     if(Exceptions) {
                         RetNum = ERR_INVALID;
                         return;
@@ -3030,7 +3030,7 @@ void LIB_HANDLER()
                 if(ISPACKEDDIR(DecompileObject[offset])) {
 
                     //rplDecompDoHintsWidth(HINT_NLAFTER);
-                    rplDecompAppendString((byte_p) "DIRECTORY");
+                    rplDecompAppendString("DIRECTORY");
                     needseparator =
                             !rplDecompDoHintsWidth(HINT_NLAFTER |
                             HINT_ADDINDENTAFTER);

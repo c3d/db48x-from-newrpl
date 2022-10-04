@@ -91,7 +91,7 @@ void rplCreateLAMEnvironment(word_p owner)
     rplCreateLAM((word_p) lam_baseseco_bint, owner);
 }
 
-int32_t rplCompareIDENTByName(word_p id1, byte_p name, byte_p nameend)
+int32_t rplCompareIDENTByName(word_p id1, utf8_p name, utf8_p nameend)
 {
     int32_t len = nameend - name;
     int32_t nwords = (len + 3) >> 2;
@@ -100,7 +100,7 @@ int32_t rplCompareIDENTByName(word_p id1, byte_p name, byte_p nameend)
             && (((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENTATTR,
                     nwords + 1)))
         return 0;
-    byte_p ptr = (byte_p) (id1 + 1);
+    utf8_p ptr = (utf8_p) (id1 + 1);
     while(len) {
         if(*ptr != *name)
             return 0;
@@ -208,7 +208,7 @@ int32_t rplCompareObjects(word_p id1, word_p id2)
 // FINDS A LAM, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE LAM ENVIRONMENT
 // DOES NOT STOP FOR CURRENT SECONDARY
 
-word_p *rplFindLAMbyName(byte_p name, int32_t len, int32_t scanparents)
+word_p *rplFindLAMbyName(utf8_p name, int32_t len, int32_t scanparents)
 {
     word_p *ltop = LAMTop, *stop =
             scanparents ? LAMs : (nLAMBase ? nLAMBase : LAMs);
@@ -523,31 +523,31 @@ void rplClearLAMs()
     LAMTop = nLAMBase = LAMs;
 }
 
-void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend)
+void rplCompileIDENT(int32_t libnum, utf8_p tok, utf8_p tokend)
 {
     // CHECK IF THERE'S SUBSCRIPT ATTRIBUTES TO THIS IDENT
     WORD attr = 0;
-    byte_p lastchar = (byte_p) utf8rskipst((char *)tokend, (char *)tok);
+    utf8_p lastchar = (utf8_p) utf8rskipst((char *)tokend, (char *)tok);
 
-    byte_p subs = (byte_p) subscriptChars;
+    utf8_p subs = (utf8_p) subscriptChars;
 
-    while(subs - (byte_p) subscriptChars < 30) {
+    while(subs - (utf8_p) subscriptChars < 30) {
 
         if(!utf8ncmp((char *)lastchar, (char *)tokend, (char *)subs,
                     subscriptChars + 30, 1)) {
             // HAS ATTRIBUTE
             attr <<= 4;
-            attr |= ((subs - (byte_p) subscriptChars) / 3);
-            subs = (byte_p) subscriptChars;
+            attr |= ((subs - (utf8_p) subscriptChars) / 3);
+            subs = (utf8_p) subscriptChars;
             if(lastchar == tok)
                 break;
-            lastchar = (byte_p) utf8rskipst((char *)lastchar, (char *)tok);
+            lastchar = (utf8_p) utf8rskipst((char *)lastchar, (char *)tok);
             continue;
         }
-        subs = (byte_p) utf8skip((char *)subs, (char *)subscriptChars + 30);
+        subs = (utf8_p) utf8skip((char *)subs, (char *)subscriptChars + 30);
     }
 
-    tokend = (byte_p) utf8skipst((char *)lastchar, (char *)tokend);
+    tokend = (utf8_p) utf8skipst((char *)lastchar, (char *)tokend);
 
     // CHECK IF THERE'S MNEMONIC ATTRIBUTES
 
@@ -576,13 +576,13 @@ void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend)
     }
     rplCompileAppend(MKPROLOG(libnum, lenwords));
     WORD nextword;
-    tok = (byte_p) ScratchPointer1;
+    tok = (utf8_p) ScratchPointer1;
     while(len > 3) {
         // WARNING: THIS IS LITTLE ENDIAN ONLY!
         nextword = tok[0] + (tok[1] << 8) + (tok[2] << 16) + (tok[3] << 24);
         ScratchPointer1 = (word_p) tok;
         rplCompileAppend(nextword);
-        tok = (byte_p) ScratchPointer1;
+        tok = (utf8_p) ScratchPointer1;
         tok += 4;
         len -= 4;
     }
@@ -609,7 +609,7 @@ void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend)
 // RETURNS NULL ON ERROR, DOESN'T CHECK IF IDENT IS VALID!
 // USER MUST CALL rplIsValidIdent() BEFORE CALLING THIS FUNCTION
 
-word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend)
+word_p rplCreateIDENT(int32_t libnum, utf8_p tok, utf8_p tokend)
 {
     // CREATE THE OBJECT
     int32_t lenwords = (tokend - tok + 3) >> 2;
@@ -624,7 +624,7 @@ word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend)
     *newptr = MKPROLOG(libnum, lenwords);
     ++newptr;
     WORD nextword;
-    tok = (byte_p) ScratchPointer1;
+    tok = (utf8_p) ScratchPointer1;
     while(len > 3) {
         // WARNING: THIS IS LITTLE ENDIAN ONLY!
         nextword = tok[0] + (tok[1] << 8) + (tok[2] << 16) + (tok[3] << 24);
@@ -671,7 +671,7 @@ word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend)
 // ≤0
 // <0
 
-int32_t rplDecodeAttrib(byte_p st, byte_p end)
+int32_t rplDecodeAttrib(utf8_p st, utf8_p end)
 {
     int32_t attr = 0;
     if(st >= end)
@@ -715,7 +715,7 @@ int32_t rplDecodeAttrib(byte_p st, byte_p end)
 
     if(!utf8ncmp2((char *)st, (char *)end, "∞", 1)) {
         // SKIP THE INFINITY MODIFIER
-        st = (byte_p) utf8skipst((char *)st, (char *)end);
+        st = (utf8_p) utf8skipst((char *)st, (char *)end);
     }
     else if(attr & (IDATTR_ISINFCPLX | IDATTR_ISINFREAL))
         attr |= IDATTR_ISNOTINF;
@@ -729,15 +729,15 @@ int32_t rplDecodeAttrib(byte_p st, byte_p end)
 
     if(!utf8ncmp2((char *)st, (char *)end, "≥", 1)) {
         attr |= IDATTR_GTEZERO;
-        st = (byte_p) utf8skipst((char *)st, (char *)end);
+        st = (utf8_p) utf8skipst((char *)st, (char *)end);
     }
     else if(!utf8ncmp2((char *)st, (char *)end, "≤", 1)) {
         attr |= IDATTR_LTEZERO;
-        st = (byte_p) utf8skipst((char *)st, (char *)end);
+        st = (utf8_p) utf8skipst((char *)st, (char *)end);
     }
     else if(!utf8ncmp2((char *)st, (char *)end, "≠", 1)) {
         attr |= IDATTR_NOTZERO;
-        st = (byte_p) utf8skipst((char *)st, (char *)end);
+        st = (utf8_p) utf8skipst((char *)st, (char *)end);
     }
     else if(*st == '>') {
         attr |= IDATTR_GTEZERO | IDATTR_NOTZERO;
@@ -755,12 +755,12 @@ int32_t rplDecodeAttrib(byte_p st, byte_p end)
 
 }
 
-int32_t rplIsValidIdent(byte_p tok, byte_p tokend)
+int32_t rplIsValidIdent(utf8_p tok, utf8_p tokend)
 {
-    byte_p ptr;
+    utf8_p ptr;
     int32_t char1, char2;
     int32_t argsep;
-    byte_p attribend, attribst;
+    utf8_p attribend, attribst;
 
     if(tokend <= tok)
         return 0;
@@ -797,20 +797,20 @@ int32_t rplIsValidIdent(byte_p tok, byte_p tokend)
 
     // OR CONTAIN ANY OF THE FORBIDDEN CHARACTERS
     while(tok != tokend) {
-        ptr = (byte_p) forbiddenChars;
+        ptr = (utf8_p) forbiddenChars;
         char1 = utf82cp((char *)tok, (char *)tokend);
         do {
             char2 = utf82cp((char *)ptr, (char *)ptr + 4);
             if(char1 == char2)
                 return 0;
-            ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
+            ptr = (utf8_p) utf8skip((char *)ptr, (char *)ptr + 4);
         }
         while(*ptr);
 
         if(char1 == argsep)
             return 0;   // DON'T ALLOW THE ARGUMENT SEPARATOR
 
-        tok = (byte_p) utf8skip((char *)tok, (char *)tokend);
+        tok = (utf8_p) utf8skip((char *)tok, (char *)tokend);
     }
     return 1;
 }

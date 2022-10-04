@@ -58,7 +58,7 @@ word_p rplPolyEvalDerivEx(int32_t deriv, word_p * first, int32_t degree,
     rplPushData(first[0]);
     for(c = degree, j = 1; j < deriv; ++j)
         c *= (c - j);
-    rplNewint32_tPush(c, DECBINT);
+    rplNewBINTPush(c, DECBINT);
     if(Exceptions)
         return 0;
     rplCallOvrOperator(CMD_OVR_MUL);
@@ -73,7 +73,7 @@ word_p rplPolyEvalDerivEx(int32_t deriv, word_p * first, int32_t degree,
         rplPushData(first[k]);
         for(c = degree - k, j = 1; j < deriv; ++j)
             c *= (c - j);
-        rplNewint32_tPush(c, DECBINT);
+        rplNewBINTPush(c, DECBINT);
         if(Exceptions)
             return 0;
         rplCallOvrOperator(CMD_OVR_MUL);
@@ -258,7 +258,7 @@ word_p rplPolyRootEx(word_p * first, int32_t degree)
 
         // HERE WE HAVE pk, G, G^2 AND H ON THE STACK
 
-        rplNewint32_tPush(degree, DECBINT);
+        rplNewBINTPush(degree, DECBINT);
         if(Exceptions) {
             Context.precdigits = oldprec;
             return 0;
@@ -275,7 +275,7 @@ word_p rplPolyRootEx(word_p * first, int32_t degree)
             return 0;
         }
 
-        rplNewint32_tPush(1 - degree, DECBINT);    // -(n-1) = (1-n)
+        rplNewBINTPush(1 - degree, DECBINT);    // -(n-1) = (1-n)
         if(Exceptions) {
             Context.precdigits = oldprec;
             return 0;

@@ -165,7 +165,7 @@ void LIB_HANDLER()
             while(ptr != end) {
                 if(ISPROGRAM(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECBINT);
+                    rplNewBINTPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -178,7 +178,7 @@ void LIB_HANDLER()
                 }
                 if(ISLIST(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECBINT);
+                    rplNewBINTPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -245,7 +245,7 @@ void LIB_HANDLER()
                 if(ISPROGRAM(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECBINT);
+                    rplNewBINTPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -261,7 +261,7 @@ void LIB_HANDLER()
                 if(ISLIST(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECBINT);
+                    rplNewBINTPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -324,7 +324,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if(*((byte_p) TokenStart) == '@') {
+        if(*((utf8_p) TokenStart) == '@') {
             // START A STRING
 
             ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
@@ -338,7 +338,7 @@ void LIB_HANDLER()
             } temp;
 
             int32_t count = 0, mode = 1, endmark = 0;
-            byte_p ptr = (byte_p) TokenStart;
+            utf8_p ptr = (utf8_p) TokenStart;
             ++ptr;      // SKIP THE INITIAL AT
 
             // mode==1 MEANS JUST A STANDARD COMMENT
@@ -347,7 +347,7 @@ void LIB_HANDLER()
 
             do {
                 while(count < 4) {
-                    if(ptr == (byte_p) NextTokenStart) {
+                    if(ptr == (utf8_p) NextTokenStart) {
                         // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                         // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -384,7 +384,7 @@ void LIB_HANDLER()
                                 MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
 
-                        if(ptr < (byte_p) BlankStart) {
+                        if(ptr < (utf8_p) BlankStart) {
                             //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
                             TokenStart = (word_p) ptr;
                             RetNum = OK_SPLITTOKEN;
@@ -408,7 +408,7 @@ void LIB_HANDLER()
                 //  WE HAVE A COMPLETE WORD HERE
                 ScratchPointer1 = (word_p) ptr;        // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
                 rplCompileAppend(temp.word);
-                ptr = (byte_p) ScratchPointer1;
+                ptr = (utf8_p) ScratchPointer1;
 
                 count = 0;
 
@@ -454,10 +454,10 @@ void LIB_HANDLER()
         }
         else
             temp.word = 0;
-        byte_p ptr = (byte_p) TokenStart;
+        utf8_p ptr = (utf8_p) TokenStart;
         do {
             while(count < 4) {
-                if(ptr == (byte_p) NextTokenStart) {
+                if(ptr == (utf8_p) NextTokenStart) {
                     // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
 
                     // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
@@ -494,7 +494,7 @@ void LIB_HANDLER()
                             MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
 
-                    if(ptr < (byte_p) BlankStart) {
+                    if(ptr < (utf8_p) BlankStart) {
                         //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
                         TokenStart = (word_p) ptr;
                         RetNum = OK_SPLITTOKEN;
@@ -519,7 +519,7 @@ void LIB_HANDLER()
             //  WE HAVE A COMPLETE WORD HERE
             ScratchPointer1 = (word_p) ptr;    // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
             rplCompileAppend(temp.word);
-            ptr = (byte_p) ScratchPointer1;
+            ptr = (utf8_p) ScratchPointer1;
 
             count = 0;
 
@@ -541,7 +541,7 @@ void LIB_HANDLER()
             int32_t len =
                     (OBJSIZE(*DecompileObject) << 2) -
                     (LIBNUM(*DecompileObject) & 3);
-            byte_p string = (byte_p) (DecompileObject + 1);
+            utf8_p string = (utf8_p) (DecompileObject + 1);
             /*
                if(string[len-1]=='\n') {
                // COMMENT ENDS IN NEWLINE

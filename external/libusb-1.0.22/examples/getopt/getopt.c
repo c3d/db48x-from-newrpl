@@ -767,7 +767,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 		fprintf (stderr, _("%s: unrecognized option `%c%s'\n"),
 			 argv[0], argv[optind][0], nextchar);
 	    }
-	  nextchar = (char *) "";
+	  nextchar = "";
 	  optind++;
 	  optopt = 0;
 	  return '?';

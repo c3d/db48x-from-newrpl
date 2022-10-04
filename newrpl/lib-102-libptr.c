@@ -121,21 +121,19 @@ INCLUDE_ROMOBJECT(lib102_menu);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
-    (word_p) LIB_MSGTABLE,
-    (word_p) LIB_HELPTABLE,
-    (word_p) lib102_menu,
-    (word_p) library_dirname,
-    (word_p) libdata_dirname,
-    (word_p) libid_ident,
-    (word_p) title_ident,
-    (word_p) libmenu_ident,
-    (word_p) visible_ident,
-    (word_p) ignore_ident,
-    (word_p) handler_ident,
-    (word_p) defhandler_seco,
-    0
-};
+const const word_p ROMPTR_TABLE[] = { (word_p) LIB_MSGTABLE,
+                                      (word_p) LIB_HELPTABLE,
+                                      (word_p) lib102_menu,
+                                      (word_p) library_dirname,
+                                      (word_p) libdata_dirname,
+                                      (word_p) libid_ident,
+                                      (word_p) title_ident,
+                                      (word_p) libmenu_ident,
+                                      (word_p) visible_ident,
+                                      (word_p) ignore_ident,
+                                      (word_p) handler_ident,
+                                      (word_p) defhandler_seco,
+                                      0 };
 
 /* LIBRARY OBJECT FORMAT:
  *
@@ -328,7 +326,7 @@ word_p rplGetLibPtrHelp(WORD libid, WORD libcmd)
 // FIND A COMMAND BY NAME WITHIN A LIBRARY, RETURN ITS INDEX IN THE HIGH WORD, LIBRARY NAME IN ITS LOW WORD
 // OR -1 IF NOT FOUND
 
-int64_t rplFindLibPtrIndex(byte_p start, byte_p end)
+int64_t rplFindLibPtrIndex(utf8_p start, utf8_p end)
 {
 
     word_p libdir = rplGetSettings((word_p) library_dirname);
@@ -385,7 +383,7 @@ int64_t rplFindLibPtrIndex(byte_p start, byte_p end)
 // AT THE BEGINNING OF THE TOKEN (USED FOR PROBING)
 // ALSO SETS *cmdinfo TO THE COMMAND INFORMATION LIST (NAME / TOKENINFO / HELPINFO / OBJECT)
 
-int64_t rplProbeLibPtrIndex(byte_p start, byte_p end, word_p * cmdinfo)
+int64_t rplProbeLibPtrIndex(utf8_p start, utf8_p end, word_p * cmdinfo)
 {
 
     word_p libdir = rplGetSettings((word_p) library_dirname);
@@ -570,24 +568,24 @@ void LIB_HANDLER()
                 libid = object[1][1];
 
                 byte_p ptr = (byte_p) (object[1] + 1);
-                while(ptr < (byte_p) (object[1] + 2)) {
-                    if(((*ptr >= 'A') && (*ptr <= 'Z')) || ((*ptr >= 'a')
-                                && (*ptr <= 'z')) || ((*ptr >= '0')
-                                && (*ptr <= '9')))
+                byte_p end = (byte_p) (object[1] + 2);
+                while (ptr < end)
+                    if (((*ptr >= 'A') && (*ptr <= 'Z')) ||
+                        ((*ptr >= 'a') && (*ptr <= 'z')) ||
+                        ((*ptr >= '0') && (*ptr <= '9')))
                         ++ptr;
                     else
                         break;
-                }
-                while(ptr < (byte_p) (object[1] + 2)) {
-                    if(*ptr) {
+                while (ptr < end)
+                {
+                    if (*ptr)
+                    {
                         libid = 0;
                         break;
                     }
                     ++ptr;
                 }
-
             }
-
         }
 
         if(!libid) {
@@ -1181,7 +1179,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        word_p newmenu = rplNewint32_t(mcode, HEXBINT);
+        word_p newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
             return;
 
@@ -1225,7 +1223,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        word_p newmenu = rplNewint32_t(mcode, HEXBINT);
+        word_p newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
             return;
 
@@ -1525,7 +1523,7 @@ void LIB_HANDLER()
         // COMPILE COMMANDS FOR ALL OTHER REGISTERED LIBRARIES
 
         int64_t libidx =
-                rplFindLibPtrIndex((byte_p) TokenStart, (byte_p) BlankStart);
+                rplFindLibPtrIndex((utf8_p) TokenStart, (utf8_p) BlankStart);
 
         if(libidx >= 0) {
             // FOUND A MATCH
@@ -1554,14 +1552,14 @@ void LIB_HANDLER()
             while(ptr < (byte_p) BlankStart) {
                 if(*ptr == '.')
                     break;
-                cp = utf82cp((char *)ptr, (char *)BlankStart);
+                cp = utf82cp((utf8_p)ptr, (utf8_p)BlankStart);
                 if(((cp >= 'A') && (cp <= 'Z')) || ((cp >= 'a') && (cp <= 'z'))
                         || ((cp >= '0') && (cp <= '9'))) {
                     libid |= cp << rot;
                     rot += 8;
                     if(rot >= 32) {
-                        ptr = (byte_p) utf8skip((char *)ptr,
-                                (char *)BlankStart);
+                        ptr = (byte_p) utf8skip((utf8_p) ptr,
+                                                (utf8_p) BlankStart);
                         break;
                     }
                 }
@@ -1570,7 +1568,7 @@ void LIB_HANDLER()
                     return;
                 }
 
-                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((utf8_p)ptr, (utf8_p)BlankStart);
             }
 
             libcmd = 0;
@@ -1586,7 +1584,7 @@ void LIB_HANDLER()
                 }
                 libcmd *= 10;
                 libcmd += cp;
-                ptr = (byte_p) utf8skip((char *)ptr, (char *)BlankStart);
+                ptr = (byte_p) utf8skip((utf8_p)ptr, (utf8_p)BlankStart);
             }
 
             rplCompileAppend(libid);
@@ -1599,7 +1597,7 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if((int32_t) TokenLen != (byte_p) BlankStart - (byte_p) TokenStart) {
+            if((int32_t) TokenLen != (utf8_p) BlankStart - (utf8_p) TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1736,7 +1734,7 @@ void LIB_HANDLER()
 
                 if(!name || (*name == CMD_NULLLAM)) {
                     // LIBPTRS WITHOUT A PROPER LIBRARY INSTALLED
-                    rplDecompAppendString((byte_p) "LIBPTR ");
+                    rplDecompAppendString("LIBPTR ");
 
                     byte_p ptr = (byte_p) (DecompileObject + 1);
                     if(*ptr != 0)
@@ -1764,7 +1762,7 @@ void LIB_HANDLER()
                 }
                 else {
                     // NAMED COMMAND
-                    rplDecompAppendString2((byte_p) (name + 1),
+                    rplDecompAppendString2((utf8_p) (name + 1),
                             rplGetIdentLength(name));
                 }
 
@@ -1775,7 +1773,7 @@ void LIB_HANDLER()
 
             // DECOMPILE LIBRARY
 
-            rplDecompAppendString((byte_p) "LIBRARY ");
+            rplDecompAppendString("LIBRARY ");
             int32_t size = OBJSIZE(*DecompileObject);
             int32_t k, zero = 1, nibble;
             for(k = 4; k >= 0; --k) {
@@ -1834,7 +1832,7 @@ void LIB_HANDLER()
                 }
 
                 ScratchPointer1 = ptr;
-                rplDecompAppendString(encoder);
+                rplDecompAppendString((utf8_p) encoder);
                 if(Exceptions) {
                     RetNum = ERR_INVALID;
                     return;
@@ -1895,14 +1893,14 @@ void LIB_HANDLER()
         // PROBE LIBRARY COMMANDS FIRST
         word_p cmdinfo;
         int64_t libptr =
-                rplProbeLibPtrIndex((byte_p) TokenStart, (byte_p) BlankStart,
+                rplProbeLibPtrIndex((utf8_p) TokenStart, (utf8_p) BlankStart,
                 &cmdinfo);
 
         if(libptr >= 0) {
             // FOUND A MATCH!
             int32_t len =
-                    utf8nlenst((char *)(cmdinfo + 1),
-                    ((char *)(cmdinfo + 1)) + rplGetIdentLength(cmdinfo));
+                    utf8nlenst((utf8_p)(cmdinfo + 1),
+                    ((utf8_p)(cmdinfo + 1)) + rplGetIdentLength(cmdinfo));
             int32_t nargs = OPCODE(*rplSkipOb(cmdinfo));
             int32_t allow = nargs & 1;
 
@@ -1949,8 +1947,8 @@ void LIB_HANDLER()
                     int32_t len;
 
                     if(ISIDENT(*cmdinfo))
-                        len = utf8nlenst((char *)(cmdinfo + 1),
-                                (char *)(cmdinfo + 1) +
+                        len = utf8nlenst((utf8_p)(cmdinfo + 1),
+                                (utf8_p)(cmdinfo + 1) +
                                 rplGetIdentLength(cmdinfo));
                     else
                         len = 0;
@@ -2061,11 +2059,11 @@ void LIB_HANDLER()
                             if(ISIDENT(*nameptr)) {
                                 // COMPARE IDENT WITH THE GIVEN TOKEN
                                 int32_t len, idlen = rplGetIdentLength(nameptr);   // LENGTH IN BYTES
-                                len = utf8nlen((char *)(nameptr + 1), (char *)(nameptr + 1) + idlen);   // LENGTH IN UNICODE CHARACTERS
+                                len = utf8nlen((utf8_p)(nameptr + 1), (utf8_p)(nameptr + 1) + idlen);   // LENGTH IN UNICODE CHARACTERS
                                 if((len >= (int32_t) TokenLen)
-                                        && (!utf8ncmp2((char *)TokenStart,
-                                                (char *)BlankStart,
-                                                (char *)(nameptr + 1),
+                                        && (!utf8ncmp2((utf8_p)TokenStart,
+                                                (utf8_p)BlankStart,
+                                                (utf8_p)(nameptr + 1),
                                                 TokenLen))) {
                                     // WE HAVE A MATCH!
                                     // CREATE A NEW LIBPTR AND RETURN IT
@@ -2085,8 +2083,8 @@ void LIB_HANDLER()
                                     return;
                                 }
                                 int32_t firstchar =
-                                        utf82cp((char *)(nameptr + 1),
-                                        (char *)(nameptr + 1) + idlen);
+                                        utf82cp((utf8_p)(nameptr + 1),
+                                        (utf8_p)(nameptr + 1) + idlen);
 
                                 // CHECK FOR NON-STANDARD STARTING CHARACTERS
                                 if(!(((firstchar >= 'A') && (firstchar <= 'Z'))
@@ -2096,11 +2094,11 @@ void LIB_HANDLER()
                                     // SKIP THE FIRST CHARACTER AND CHECK AGAIN
                                     --len;
                                     if((len >= (int32_t) TokenLen)
-                                            && (!utf8ncmp2((char *)TokenStart,
-                                                    (char *)BlankStart,
-                                                    utf8skipst((char *)(nameptr
+                                            && (!utf8ncmp2((utf8_p)TokenStart,
+                                                    (utf8_p)BlankStart,
+                                                    utf8skipst((utf8_p)(nameptr
                                                             + 1),
-                                                        (char *)(nameptr + 1) +
+                                                        (utf8_p)(nameptr + 1) +
                                                         4), TokenLen))) {
                                         // WE HAVE A MATCH!
                                         // CREATE A NEW LIBPTR AND RETURN IT

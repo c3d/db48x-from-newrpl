@@ -233,7 +233,7 @@ struct date
 
 // COMPILER FUNCTIONS IN COMPILER.C
 
-    word_p rplCompile(byte_p string, int32_t len, int32_t addwrapper);
+    word_p rplCompile(utf8_p string, int32_t len, int32_t addwrapper);
     void rplCompileAppend(WORD word);
     void rplCompileInsert(word_p position, WORD word);
     word_p rplCompileAppendWords(int32_t nwords);
@@ -251,8 +251,8 @@ struct date
     word_p rplDecompile(word_p object, int32_t flags);
     void rplDecompAppendChar(BYTE c);
     void rplDecompAppendUTF8(WORD utf8bytes);
-    void rplDecompAppendString(byte_p str);
-    void rplDecompAppendString2(byte_p str, int32_t len);
+    void rplDecompAppendString(utf8_p str);
+    void rplDecompAppendString2(utf8_p str, int32_t len);
     int32_t rplDecompDoHintsWidth(int32_t dhints);
 
 // DATA STACK FUNCTIONS IN DATASTACK.C
@@ -298,13 +298,13 @@ struct date
 
 // SYSTEM FLAGS
     int32_t rplSetSystemFlag(int32_t flag);
-    int32_t rplSetSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplSetSystemFlagByName(utf8_p name, utf8_p nameend);
     int32_t rplSetSystemFlagByIdent(word_p ident);
     int32_t rplClrSystemFlag(int32_t flag);
-    int32_t rplClrSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplClrSystemFlagByName(utf8_p name, utf8_p nameend);
     int32_t rplClrSystemFlagByIdent(word_p ident);
     int32_t rplTestSystemFlag(int32_t flag);
-    int32_t rplTestSystemFlagByName(byte_p name, byte_p nameend);
+    int32_t rplTestSystemFlagByName(utf8_p name, utf8_p nameend);
     int32_t rplTestSystemFlagByIdent(word_p ident);
 
 // USER FLAGS
@@ -330,11 +330,11 @@ struct date
 
 // SYSTEM AUTOCOMPLETE
     WORD rplGetNextSuggestion(WORD suggestion, word_p suggobject,
-            byte_p start, byte_p end);
+            utf8_p start, utf8_p end);
     WORD rplGetPrevSuggestion(WORD suggestion, word_p suggobject,
-            byte_p start, byte_p end);
-    WORD rplUpdateSuggestion(WORD suggestion, word_p suggobject, byte_p start,
-            byte_p end);
+            utf8_p start, utf8_p end);
+    WORD rplUpdateSuggestion(WORD suggestion, word_p suggobject, utf8_p start,
+            utf8_p end);
 
 // GARBAGE COLLECTION
     void rplGCollect();
@@ -354,22 +354,22 @@ struct date
     int32_t rplVerifyDirectories(int32_t fix);
 
 //IDENTIFIER FUNCTIONS
-    int32_t rplGetIdentLength(word_p ident);
-    void rplCompileIDENT(int32_t libnum, byte_p tok, byte_p tokend);
-    word_p rplCreateIDENT(int32_t libnum, byte_p tok, byte_p tokend);
-    int32_t rplIsValidIdent(byte_p tok, byte_p tokend);
-    WORD rplGetIdentAttr(word_p name);
-    word_p rplSetIdentAttr(word_p name, WORD attr, WORD attrmask);
-    WORD rplGetIdentProp(word_p ident);
-    int32_t rplDecodeAttrib(byte_p st, byte_p end);
+    int32_t     rplGetIdentLength(word_p ident);
+    void        rplCompileIDENT(int32_t libnum, utf8_p tok, utf8_p tokend);
+    word_p      rplCreateIDENT(int32_t libnum, utf8_p tok, utf8_p tokend);
+    int32_t     rplIsValidIdent(utf8_p tok, utf8_p tokend);
+    WORD        rplGetIdentAttr(word_p name);
+    word_p      rplSetIdentAttr(word_p name, WORD attr, WORD attrmask);
+    WORD        rplGetIdentProp(word_p ident);
+    int32_t     rplDecodeAttrib(utf8_p st, utf8_p end);
 
-// LAM FUNCTIONS
+    // LAM FUNCTIONS
     void growLAMs(WORD newtotalsize);
     void rplCreateLAMEnvironment(word_p owner);
     void rplDupLAMEnv();
     int32_t rplCreateLAM(word_p nameobj, word_p value);
     int32_t rplCompareIDENT(word_p id1, word_p id2);
-    int32_t rplCompareIDENTByName(word_p id1, byte_p name, byte_p nameend);
+    int32_t rplCompareIDENTByName(word_p id1, utf8_p name, utf8_p nameend);
     int32_t rplCompareObjects(word_p id1, word_p id2);
     word_p rplGetLAM(word_p nameobj);
     word_p *rplGetLAMn(int32_t idx);
@@ -380,7 +380,7 @@ struct date
     void rplCleanupLAMs(word_p currentseco);
     void rplClearLAMs();
     word_p *rplFindLAM(word_p nameobj, int32_t scanparents);
-    word_p *rplFindLAMbyName(byte_p name, int32_t len, int32_t scanparents);
+    word_p *rplFindLAMbyName(utf8_p name, int32_t len, int32_t scanparents);
     word_p *rplGetNextLAMEnv(word_p * startpoint);
     int32_t rplNeedNewLAMEnv();
     int32_t rplNeedNewLAMEnvCompiler();
@@ -410,9 +410,9 @@ struct date
     int32_t rplGetDirSize(word_p * directory);
     void rplPackDirinPlace(word_p * directory, word_p where);
 // VARIOUS WAYS TO RCL GLOBAL VARIABLES
-    word_p *rplFindGlobalbyNameInDir(byte_p name, byte_p nameend,
+    word_p *rplFindGlobalbyNameInDir(utf8_p name, utf8_p nameend,
             word_p * parent, int32_t scanparents);
-    word_p *rplFindGlobalbyName(byte_p name, byte_p nameend,
+    word_p *rplFindGlobalbyName(utf8_p name, utf8_p nameend,
             int32_t scanparents);
     word_p *rplFindGlobalByIndexInDir(int32_t idx, word_p * directory);
     word_p *rplFindGlobalByIndex(int32_t idx);
@@ -448,9 +448,9 @@ struct date
 // FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY
     void rplPurgeSettings(word_p nameobj);
     void rplStoreSettings(word_p nameobject, word_p object);
-    void rplStoreSettingsbyName(byte_p name, byte_p nameend, word_p object);
+    void rplStoreSettingsbyName(utf8_p name, utf8_p nameend, word_p object);
     word_p rplGetSettings(word_p nameobject);
-    word_p rplGetSettingsbyName(byte_p name, byte_p nameend);
+    word_p rplGetSettingsbyName(utf8_p name, utf8_p nameend);
 
 // AUTOMATIC EVALUATION
     void rplDoAutoEval(word_p varname, word_p * indir);
@@ -471,9 +471,9 @@ struct date
 
 // int32_t FUNCTIONS
     word_p rplNewSINT(int num, int base);
-    word_p rplNewint32_t(int64_t num, int base);
+    word_p rplNewBINT(int64_t num, int base);
     void rplNewSINTPush(int num, int base);
-    void rplNewint32_tPush(int64_t num, int base);
+    void rplNewBINTPush(int64_t num, int base);
     int64_t rplReadint32_t(word_p ptr);
     word_p rplWriteint32_t(int64_t num, int base, word_p dest);
     void rplCompileint32_t(int64_t num, int base);
@@ -525,15 +525,17 @@ struct date
     int rplNormalizeComplex(REAL * real, REAL * imag, int32_t angmode);
 
 // GENERIC FUNCTIONS FOR int32_tS AND REALS
-    void rplNumberToRReg(int num, word_p number);
-    int64_t rplReadNumberAsInt64(word_p number);
-    void rplReadNumberAsReal(word_p number, REAL * dec);
-    void rplLoadInt64AsReal(int64_t number, REAL * dec);
-    int32_t rplIsNegative(word_p objptr);
-    int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer,
-            byte_p endbuffer);
+    void        rplNumberToRReg(int num, word_p number);
+    int64_t     rplReadNumberAsInt64(word_p number);
+    void        rplReadNumberAsReal(word_p number, REAL *dec);
+    void        rplLoadInt64AsReal(int64_t number, REAL *dec);
+    int32_t     rplIsNegative(word_p objptr);
+    int32_t     rplIntToString(int64_t number,
+                               int32_t base,
+                               byte_p  buffer,
+                               byte_p  endbuffer);
 
-// CONSTANTS
+    // CONSTANTS
     word_p rplConstant2Number(word_p object);
     int32_t rplConstant2NumberDirect(word_p object);
 
@@ -638,7 +640,7 @@ struct date
 
     int32_t rplStringCountLines(word_p str);
     int32_t rplStringCompare(word_p str1, word_p str2);
-    word_p rplCreateString(byte_p text, byte_p textend);
+    word_p rplCreateString(utf8_p text, utf8_p textend);
     word_p rplCreateStringBySize(int32_t lenbytes);
 
 // MATRIX
@@ -751,7 +753,7 @@ struct date
 // FONT FUNCTIONS
     #define FONT_IDENTS_ROMPTR_INDEX 4
     #define START_ROMPTR_INDEX 16    // START OF THE ROM FONTS TABLE
-    word_p const *rplGetFontRomPtrTableAddress(void);
+    const word_p *rplGetFontRomPtrTableAddress(void);
     word_p rplGetCurrentFont(int32_t area);
     void rplSetCurrentFont(int32_t area, word_p ident);
     void rplAddSystemFont(word_p ident, word_p font);
@@ -766,6 +768,17 @@ struct date
 // TAG FUNCTIONS
     int32_t rplStripTagStack(int32_t nlevels);
     word_p rplStripTag(word_p object);
+
+// INLINE ADJUSTERS FOR BYTES
+    static inline int32_t rplIsValidBytesIdent(byte_p tok, byte_p tokend)
+    {
+        return rplIsValidIdent((utf8_p) tok, (utf8_p) tokend);
+    }
+    static inline word_p rplCreateStringFromBytes(byte_p text, byte_p textend)
+    {
+        return rplCreateString((utf8_p) text, (utf8_p) textend);
+    }
+
 
 // ANGULAR MODES
 #define ANGLENONE    -1

@@ -259,7 +259,7 @@ void uiCloseCmdLine()
     halScreen.CursorState &= 0xff0000ff;
     halScreen.XVisible = 0;
     if(halScreen.CmdLineState & CMDSTATE_ACACTIVE)
-        halScreen.DirtyFlag |= STAREA_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY;
     halScreen.CmdLineState = 0;
     halScreen.ACSuggestion = 0;
     SuggestedObject = 0;
@@ -322,14 +322,13 @@ void uiSetCurrentLine(int32_t line)
 
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
 // RETURNS THE NUMBER OF LINES ADDED TO THE TEXT (IF ANY)
-int32_t uiInsertCharacters(byte_p string)
+int32_t uiInsertCharacters(utf8_p string)
 {
-    byte_p end = string + stringlen((char *)string);
-
+    utf8_p end = string + stringlen(string);
     return uiInsertCharactersN(string, end);
 }
 
-int32_t uiInsertCharactersN(byte_p string, byte_p endstring)
+int32_t uiInsertCharactersN(utf8_p string, utf8_p endstring)
 {
     if(endstring <= string)
         return 0;
@@ -665,7 +664,7 @@ void uiSeparateToken()
     byte_p lastchar = start + halScreen.CursorPosition - 1;
     if(lastchar >= start) {
         if(*lastchar != ' ')
-            uiInsertCharacters((byte_p) " ");
+            uiInsertCharacters(" ");
     }
 }
 
@@ -1227,27 +1226,28 @@ void uiCursorPageDown()
 }
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
-byte_p uiFindNumberStart(byte_p * endofnum, int32_t * flagsptr)
+utf8_p uiFindNumberStart(utf8_p * endofnum, int32_t * flagsptr)
 {
-    if(halScreen.LineIsModified < 0) {
+    if (halScreen.LineIsModified < 0)
+    {
         uiExtractLine(halScreen.LineCurrent);
 
-        if(Exceptions) {
+        if (Exceptions)
+        {
             throw_dbgexception("No memory for command line",
-                    EX_CONT | EX_WARM | EX_RESET);
+                               EX_CONT | EX_WARM | EX_RESET);
             // CLEAN UP AND RETURN
             uiOpenCmdLine(0);
 
-            //CmdLineText=(word_p)empty_string;
-            //CmdLineCurrentLine=(word_p)empty_string;
-            //CmdLineUndoList=(word_p)empty_list;
+            // CmdLineText=(word_p)empty_string;
+            // CmdLineCurrentLine=(word_p)empty_string;
+            // CmdLineUndoList=(word_p)empty_list;
             return NULL;
         }
-
     }
 
-    byte_p line = (byte_p) (CmdLineCurrentLine + 1);
-    byte_p end, start, ptr;
+    utf8_p line = (utf8_p) (CmdLineCurrentLine + 1);
+    utf8_p end, start, ptr;
     int32_t len = rplStrSize(CmdLineCurrentLine);
     int32_t flags, minbase = 2, countE = 0;
 
@@ -1497,9 +1497,9 @@ void uiAutocompleteUpdate()
 
     }
 
-    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
-    byte_p end = start + halScreen.CursorPosition;
-    byte_p ptr, tokptr = (byte_p) utf8rskipst((char *)end, (char *)start);
+    utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
+    utf8_p end = start + halScreen.CursorPosition;
+    utf8_p ptr, tokptr = utf8rskipst(end, start);
     int32_t char1, char2;
     // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
     static const char const forbiddenChars[] = "{}[]()#;:, \"\'_`@|«»";       // OUTSIDE OF ALG. MODE
@@ -1510,15 +1510,15 @@ void uiAutocompleteUpdate()
             'A') ? algforbiddenChars : forbiddenChars;
 
     while(tokptr >= start) {
-        ptr = (byte_p) forbstring;
-        char1 = utf82cp((char *)tokptr, (char *)end);
+        ptr = (utf8_p) forbstring;
+        char1 = utf82cp(tokptr, end);
         do {
-            char2 = utf82cp((char *)ptr, (char *)ptr + 4);
+            char2 = utf82cp(ptr, ptr + 4);
             if(char1 == char2) {
-                tokptr = (byte_p) utf8skip((char *)tokptr, (char *)end);
+                tokptr = utf8skip(tokptr, end);
                 break;
             }
-            ptr = (byte_p) utf8skip((char *)ptr, (char *)ptr + 4);
+            ptr = utf8skip(ptr, ptr + 4);
         }
         while(*ptr);
         if(*ptr) {
@@ -1526,7 +1526,7 @@ void uiAutocompleteUpdate()
             break;
         }
         if(tokptr > start)
-            tokptr = (byte_p) utf8rskipst((char *)tokptr, (char *)start);
+            tokptr = utf8rskipst(tokptr, start);
         else
             --tokptr;
 
@@ -1545,7 +1545,7 @@ void uiAutocompleteUpdate()
     halScreen.ACSuggestion = rplGetNextSuggestion(-1, 0, tokptr, end);
 
     if(oldstate || (oldstate != (halScreen.CmdLineState & CMDSTATE_ACACTIVE)))
-        halScreen.DirtyFlag |= STAREA_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY;
 
 }
 
@@ -1570,15 +1570,15 @@ void uiAutocompNext()
 
         }
 
-        byte_p start = (byte_p) (CmdLineCurrentLine + 1);
-        byte_p end = start + halScreen.CursorPosition;
+        utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
+        utf8_p end = start + halScreen.CursorPosition;
 
         halScreen.ACSuggestion =
                 rplGetNextSuggestion(halScreen.ACSuggestion, SuggestedObject,
                 start + halScreen.ACTokenStart, end);
 
         halScreen.CmdLineState |= CMDSTATE_ACUPDATE;
-        halScreen.DirtyFlag |= STAREA_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY;
     }
 
 }
@@ -1604,15 +1604,15 @@ void uiAutocompPrev()
 
         }
 
-        byte_p start = (byte_p) (CmdLineCurrentLine + 1);
-        byte_p end = start + halScreen.CursorPosition;
+        utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
+        utf8_p end = start + halScreen.CursorPosition;
 
         halScreen.ACSuggestion =
                 rplGetPrevSuggestion(halScreen.ACSuggestion, SuggestedObject,
                 start + halScreen.ACTokenStart, end);
 
         halScreen.CmdLineState |= CMDSTATE_ACUPDATE;
-        halScreen.DirtyFlag |= STAREA_DIRTY;
+        halScreen.DirtyFlag |= STATUS_DIRTY;
     }
 
 }
@@ -1622,15 +1622,15 @@ void uiAutocompPrev()
 void uiAutocompInsert()
 {
     if(halScreen.ACSuggestion != 0) {
-        byte_p tokstart = uiAutocompStringStart();
-        byte_p tokend = uiAutocompStringEnd();
+        utf8_p tokstart = uiAutocompStringStart();
+        utf8_p tokend = uiAutocompStringEnd();
 
         word_p cmdname =
                 rplDecompile(((ISPROLOG(halScreen.
                             ACSuggestion)) ? SuggestedObject : (&halScreen.
                         ACSuggestion)), DECOMP_NOHINTS);
-        byte_p namest = (byte_p) (cmdname + 1);
-        byte_p nameend = namest + rplStrSize(cmdname);
+        utf8_p namest = (utf8_p) (cmdname + 1);
+        utf8_p nameend = namest + rplStrSize(cmdname);
 
         if((!cmdname) || Exceptions) {
             // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
@@ -1642,7 +1642,7 @@ void uiAutocompInsert()
         int32_t nchars = 0;
         while(tokstart != tokend) {
             ++nchars;
-            tokstart = (byte_p) utf8skipst((char *)tokstart, (char *)tokend);
+            tokstart = utf8skipst(tokstart, tokend);
         }
 
         uiCursorLeft(nchars);
@@ -1653,7 +1653,7 @@ void uiAutocompInsert()
 
 }
 
-byte_p uiAutocompStringStart()
+utf8_p uiAutocompStringStart()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1671,12 +1671,12 @@ byte_p uiAutocompStringStart()
 
     }
 
-    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+    utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
 
     return start + halScreen.ACTokenStart;
 }
 
-byte_p uiAutocompStringEnd()
+utf8_p uiAutocompStringEnd()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1694,13 +1694,13 @@ byte_p uiAutocompStringEnd()
 
     }
 
-    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
-    byte_p end = start + halScreen.CursorPosition;
+    utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
+    utf8_p end = start + halScreen.CursorPosition;
 
     return end;
 }
 
-byte_p uiAutocompStringTokEnd()
+utf8_p uiAutocompStringTokEnd()
 {
     if(halScreen.LineIsModified < 0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1718,12 +1718,12 @@ byte_p uiAutocompStringTokEnd()
 
     }
 
-    byte_p start = (byte_p) (CmdLineCurrentLine + 1);
+    utf8_p start = (utf8_p) (CmdLineCurrentLine + 1);
     int32_t len = rplStrSize(CmdLineCurrentLine);
-    byte_p end = start + len, ptr = start + halScreen.CursorPosition;
+    utf8_p end = start + len, ptr = start + halScreen.CursorPosition;
 
-    while((ptr < end) && (*((char *)ptr) != ' ') && (*((char *)ptr) != '\t')
-            && (*((char *)ptr) != '\n') && (*((char *)ptr) != '\r'))
+    while((ptr < end) && (*(ptr) != ' ') && (*(ptr) != '\t')
+            && (*(ptr) != '\n') && (*(ptr) != '\r'))
         ++ptr;
     return ptr;
 }
@@ -1807,8 +1807,8 @@ word_p uiExtractSelection()
 
     // HERE WE NEED TO CREATE A NEW OBJECT
     word_p newstr =
-            rplCreateString((byte_p) (CmdLineText + 1) + selst,
-            (byte_p) (CmdLineText + 1) + selend);
+        rplCreateString((utf8_p) (CmdLineText + 1) + selst,
+                        (utf8_p) (CmdLineText + 1) + selend);
 
     return newstr;
 }
@@ -1844,8 +1844,8 @@ int32_t uiDeleteSelection()
 
     uiSetCurrentLine(halScreen.SelStartLine);
     uiMoveCursor(halScreen.SelStart);
-    uiRemoveCharacters(utf8nlen((char *)(CmdLineText + 1) + selst,
-                (char *)(CmdLineText + 1) + selend));
+    utf8_p cmdline = (utf8_p) (CmdLineText+1);
+    uiRemoveCharacters(utf8nlen(cmdline + selst, cmdline + selend));
 
     // NOW MOVE BACK TO THE PREVIOUS CURSOR POSITION
     if(cursorpos > selend)
@@ -1888,43 +1888,43 @@ word_p halSaveCmdLine()
     rplPushData(CmdLineUndoList);
 
     // SCREEN PRESENTATION
-    rplNewint32_tPush(halScreen.CmdLine, DECBINT);
+    rplNewBINTPush(halScreen.CmdLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.CmdLineState, DECBINT);
+    rplNewBINTPush(halScreen.CmdLineState, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.LineCurrent, DECBINT);
+    rplNewBINTPush(halScreen.LineCurrent, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.LineVisible, DECBINT);
+    rplNewBINTPush(halScreen.LineVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.NumLinesVisible, DECBINT);
+    rplNewBINTPush(halScreen.NumLinesVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.XVisible, DECBINT);
+    rplNewBINTPush(halScreen.XVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.CursorPosition, DECBINT);
+    rplNewBINTPush(halScreen.CursorPosition, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1933,7 +1933,7 @@ word_p halSaveCmdLine()
     // LOCK CURSOR
     halScreen.CursorState |= 0x4000;
 
-    rplNewint32_tPush(halScreen.CursorState, DECBINT);
+    rplNewBINTPush(halScreen.CursorState, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1943,25 +1943,25 @@ word_p halSaveCmdLine()
     halScreen.CursorState &= ~0xc000;
 
     // SELECTION
-    rplNewint32_tPush(halScreen.SelStart, DECBINT);
+    rplNewBINTPush(halScreen.SelStart, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelStartLine, DECBINT);
+    rplNewBINTPush(halScreen.SelStartLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelEnd, DECBINT);
+    rplNewBINTPush(halScreen.SelEnd, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelEndLine, DECBINT);
+    rplNewBINTPush(halScreen.SelEndLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1971,13 +1971,13 @@ word_p halSaveCmdLine()
     if(SuggestedObject)
         rplPushData(SuggestedObject);
     else
-        rplNewint32_tPush(halScreen.ACSuggestion, DECBINT);
+        rplNewBINTPush(halScreen.ACSuggestion, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.ACTokenStart, DECBINT);
+    rplNewBINTPush(halScreen.ACTokenStart, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -2148,7 +2148,7 @@ int32_t halRestoreCmdLine(word_p data)
 
 }
 
-void uiOpenAndInsertTextN(byte_p start, byte_p end)
+void uiOpenAndInsertTextN(utf8_p start, utf8_p end)
 {
     if(!(halGetContext() & CONTEXT_INEDITOR)) {
 
@@ -2156,8 +2156,8 @@ void uiOpenAndInsertTextN(byte_p start, byte_p end)
         halSetCmdLineHeight(CMDLINE_HEIGHT);
         halSetContext(halGetContext() | CONTEXT_INEDITOR);
         uiOpenCmdLine('D');
-        end = ((byte_p) ScratchPointer1) + (end - start);
-        start = (byte_p) ScratchPointer1;
+        end = ((utf8_p) ScratchPointer1) + (end - start);
+        start = (utf8_p) ScratchPointer1;
     }
 
     uiInsertCharactersN(start, end);

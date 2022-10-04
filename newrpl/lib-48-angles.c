@@ -1884,7 +1884,7 @@ void LIB_HANDLER()
         // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((byte_p) "∡");
+            rplDecompAppendString("∡");
 
             // THIS IS A BASE-10 NUMBER
             // CONVERT TO STRING
@@ -1955,7 +1955,7 @@ void LIB_HANDLER()
                 rplDecompAppendChar('g');
                 break;
             case ANGLEDEG:
-                rplDecompAppendString((byte_p) "°");
+                rplDecompAppendString("°");
                 break;
             case ANGLEDMS:
                 rplDecompAppendChar('d');

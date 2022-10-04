@@ -142,7 +142,7 @@ word_p         halSaveCmdLine();
 int32_t        halRestoreCmdLine(word_p data);
 
 // Insert text, open new commandline if needed
-void           uiOpenAndInsertTextN(byte_p start, byte_p end);
+void           uiOpenAndInsertTextN(utf8_p start, utf8_p end);
 
 extern int32_t ui_visibleline, ui_nlines;
 extern int32_t ui_currentline, ui_prevline;
@@ -156,14 +156,14 @@ int32_t        uiGetCmdLineState();
 void           uiEnsureCursorVisible();
 void           uiModifyLine(int dontaddnewline);
 void           uiExtractLine(int32_t line);
-byte_p         uiFindNumberStart(byte_p *endofnum, int32_t *flagsptr);
+utf8_p         uiFindNumberStart(utf8_p *endofnum, int32_t *flagsptr);
 word_p         uiGetCmdLineText();
 int32_t        uiSetCmdLineText(word_p text);
 void           uiOpenCmdLine(int32_t mode);
 void           uiCloseCmdLine();
 void           uiSetCurrentLine(int32_t line);
-int32_t        uiInsertCharacters(byte_p string);
-int32_t        uiInsertCharactersN(byte_p string, byte_p end);
+int32_t        uiInsertCharacters(utf8_p string);
+int32_t        uiInsertCharactersN(utf8_p string, utf8_p end);
 void           uiRemoveCharacters(int32_t length);
 
 void           uiStretchCmdLine(int32_t addition);
@@ -172,9 +172,9 @@ void           uiAutocompNext();
 void           uiAutocompPrev();
 void           uiAutocompInsert();
 
-byte_p         uiAutocompStringStart();
-byte_p         uiAutocompStringEnd();
-byte_p         uiAutocompStringTokEnd();
+utf8_p         uiAutocompStringStart();
+utf8_p         uiAutocompStringEnd();
+utf8_p         uiAutocompStringTokEnd();
 
 void           uiSetSelectionStart();
 void           uiSetSelectionEnd();
@@ -199,6 +199,19 @@ void           uiCursorPageUp();
 void           uiCursorPageDown();
 void           uiCursorPageRight();
 
+typedef enum menu_flags
+// ----------------------------------------------------------------------------
+//   Flags for soft menus
+// ----------------------------------------------------------------------------
+{
+    MENU_NORMAL         = 0,
+    MENU_IS_DIRECTORY   = (1<<0),
+    MENU_INVERT         = (1<<1),
+    MENU_IS_FLAG        = (1<<2),
+    MENU_FLAG_SET       = (1<<3),
+    MENU_HELP           = (1<<4),
+} menu_flags_t;
+
 // Soft menus
 int32_t        uiCountMenuItems(WORD MenuCode, word_p menu);
 word_p         uiGetLibMenu(int64_t MenuCode);
@@ -207,6 +220,10 @@ word_p         uiGetMenuItemAction(word_p item, int32_t shift);
 word_p         uiGetMenuItemHelp(word_p item);
 void           uiDrawMenuItem(gglsurface *scr, word_p item);
 void           uiDrawHelpMenuItem(gglsurface *scr, word_p item);
+int            uiMenuItemName(word_p        item,
+                              menu_flags_t *flags,
+                              utf8_p       *begin,
+                              utf8_p       *end);
 word_p         uiGetLibHelp(word_p Object);
 
 word_p         uiGetLibMsg(WORD MsgCode);

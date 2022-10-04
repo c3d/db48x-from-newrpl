@@ -1580,7 +1580,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             if(CurrentConstruct != CMD_XEQSECO)
-                rplDecompAppendString((byte_p) "«");
+                rplDecompAppendString("«");
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1590,12 +1590,12 @@ void LIB_HANDLER()
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
             if(!(ISPROLOG(CurrentConstruct)
                         && (LIBNUM(CurrentConstruct) == LIBRARY_NUMBER))) {
-                rplDecompAppendString((byte_p) "»");
+                rplDecompAppendString("»");
                 RetNum = OK_CONTINUE;
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplDecompAppendString((byte_p) "»");
+            rplDecompAppendString("»");
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -1605,7 +1605,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FOR)) {
 
-            rplDecompAppendString((byte_p) "FOR");
+            rplDecompAppendString("FOR");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1620,7 +1620,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORUP)) {
 
-            rplDecompAppendString((byte_p) "FORUP");
+            rplDecompAppendString("FORUP");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1635,7 +1635,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORDN)) {
 
-            rplDecompAppendString((byte_p) "FORDN");
+            rplDecompAppendString("FORDN");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1650,7 +1650,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, START)) {
 
-            rplDecompAppendString((byte_p) "START");
+            rplDecompAppendString("START");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1670,11 +1670,11 @@ void LIB_HANDLER()
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((byte_p) "NEXT");
+                rplDecompAppendString("NEXT");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((byte_p) "NEXT");
+            rplDecompAppendString("NEXT");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1687,11 +1687,11 @@ void LIB_HANDLER()
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
                     || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((byte_p) "STEP");
+                rplDecompAppendString("STEP");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((byte_p) "STEP");
+            rplDecompAppendString("STEP");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1701,7 +1701,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, DO)) {
 
-            rplDecompAppendString((byte_p) "DO");
+            rplDecompAppendString("DO");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1714,11 +1714,11 @@ void LIB_HANDLER()
             // ENDDO
             if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, DO)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((byte_p) "END");
+                rplDecompAppendString("END");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1728,7 +1728,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
 
-            rplDecompAppendString((byte_p) "WHILE");
+            rplDecompAppendString("WHILE");
 
             // CREATE A NEW ENVIRONMENT
             rplCreateLAMEnvironment(DecompileObject);
@@ -1742,11 +1742,11 @@ void LIB_HANDLER()
 
             if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplDecompAppendString((byte_p) "END");
+                rplDecompAppendString("END");
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
 
@@ -1755,37 +1755,37 @@ void LIB_HANDLER()
         // TODO: ADD A FLAG TO CONTROL IF USER WANTS ENDIF INSTEAD OF END, ETC.
 
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENERR)) {
-            rplDecompAppendString((byte_p) "THEN");
+            rplDecompAppendString("THEN");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENCASE)) {
-            rplDecompAppendString((byte_p) "THEN");
+            rplDecompAppendString("THEN");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDIF)) {
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDERR)) {
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDTHEN)) {
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDCASE)) {
-            rplDecompAppendString((byte_p) "END");
+            rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
         if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ELSEERR)) {
-            rplDecompAppendString((byte_p) "ELSE");
+            rplDecompAppendString("ELSE");
             RetNum = OK_CONTINUE;
             return;
         }
@@ -1798,8 +1798,8 @@ void LIB_HANDLER()
     case OPCODE_COMPILECONT:
         // COMPILE THE IDENT IMMEDIATELY AFTER A FOR LOOP
     {
-        byte_p tokst = (byte_p) TokenStart;
-        byte_p tokend = (byte_p) BlankStart;
+        utf8_p tokst = (utf8_p) TokenStart;
+        utf8_p tokend = (utf8_p) BlankStart;
 
         if(*tokst == '\'') {
             // IT'S A QUOTED IDENT

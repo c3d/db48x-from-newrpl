@@ -96,8 +96,10 @@ void LIB_HANDLER()
             ++tok;
             len -= 2;
 
-            if(!rplIsValidIdent(tok, ((byte_p) BlankStart) - 1)) {
-
+            utf8_p start = (utf8_p) tok;
+            utf8_p end = (utf8_p) BlankStart - 1;
+            if(!rplIsValidIdent(start, end))
+            {
                 // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
                 rplCompileAppend(MKPROLOG(DOSYMB, 0));
 
@@ -108,15 +110,14 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplCompileIDENT(DOIDENT, tok, ((byte_p) BlankStart) - 1);
-
+            rplCompileIDENT(DOIDENT, start, end);
             RetNum = OK_CONTINUE;
             return;
         }
 
         // UNQUOTED IDENTS
 
-        if(!rplIsValidIdent(tok, (byte_p) BlankStart)) {
+        if(!rplIsValidIdent((utf8_p) tok, (utf8_p) BlankStart)) {
 
             // DISABLE IMPLICIT MULTIPLICATION, DOESN'T WORK IN SYMBOLICS ANYWAY
             /*
@@ -167,33 +168,27 @@ void LIB_HANDLER()
             return;
         }
 
+        utf8_p start = (utf8_p) tok;
+        utf8_p end   = (utf8_p) BlankStart;
         if(LIBNUM(CurrentConstruct) == LIBNUM(CMD_NEWLOCALENV)) {
-            // INSIDE THIS CONSTRUCT WE NEED TO QUOTE ALL
-            // IDENTS
-
-            rplCompileIDENT(DOIDENT, tok, (byte_p) BlankStart);
-
+            // INSIDE THIS CONSTRUCT WE NEED TO QUOTE ALL IDENTS
+            rplCompileIDENT(DOIDENT, start, end);
             RetNum = OK_CONTINUE;
             return;
         }
         if(CurrentConstruct == MKPROLOG(DOSYMB, 0)) {
             // INSIDE SYMBOLICS, ALL IDENTS ARE UNQUOTED
-
-            rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
-
+            rplCompileIDENT(DOIDENTEVAL, start, end);
             RetNum = OK_CONTINUE;
             return;
         }
 
-        // CHECK IF IT'S A LAM, COMPILE TO A GETLAM OPCODE IF IT IS
+        // Check if it's a LAM, compile to a GETLAM opcode if it is
 
-        word_p *LAMptr = rplFindLAMbyName(tok, len, 1);
-
+        word_p *LAMptr = rplFindLAMbyName((utf8_p) tok, len, 1);
         if(LAMptr < LAMTopSaved) {
-            // THIS IS NOT A VALID LAM, COMPILE AS AN UNQUOTED IDENT
-
-            rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
-
+            // This is not a valid LAM, compile as an unquoted ident
+            rplCompileIDENT(DOIDENTEVAL, start, end);
             RetNum = OK_CONTINUE;
             return;
         }
@@ -210,8 +205,7 @@ void LIB_HANDLER()
                 prolog = **(env + 1);   // GET THE PROLOG OF THE SECONDARY
                 if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
                     // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                    rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
-
+                    rplCompileIDENT(DOIDENTEVAL, start, end);
                     RetNum = OK_CONTINUE;
                     return;
                 }
@@ -238,7 +232,7 @@ void LIB_HANDLER()
                 // FOUND INNERMOST SECONDARY
                 if(*scanenv > *(nLAMBase + 1)) {
                     // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                    rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
+                    rplCompileIDENT(DOIDENTEVAL, start, end);
 
                     RetNum = OK_CONTINUE;
                     return;
@@ -253,8 +247,7 @@ void LIB_HANDLER()
         // BUT ONLY IF WE ARE NOT INSIDE A COMPOSITE (LIST, ARRAY, ETC)
         if((CurrentConstruct == MKPROLOG(DOLIST, 0)) || (CurrentConstruct == MKPROLOG(DOMATRIX, 0))     // ADD HERE ARRAYS LATER
                 ) {
-            rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
-
+            rplCompileIDENT(DOIDENTEVAL, start, end);
             RetNum = OK_CONTINUE;
             return;
         }
@@ -265,7 +258,7 @@ void LIB_HANDLER()
                         GETLAMNEVAL + (Offset & 0xffff)));
         }
         else {
-            rplCompileIDENT(DOIDENTEVAL, tok, (byte_p) BlankStart);
+            rplCompileIDENT(DOIDENTEVAL, start, end);
         }
 
         RetNum = OK_CONTINUE;
@@ -325,7 +318,7 @@ void LIB_HANDLER()
                     ++tokattr;
 
                 if((tokattr < tokend)
-                        && (rplIsValidIdent((byte_p) tokstart, tokattr + 1))) {
+                        && (rplIsValidBytesIdent(tokstart, tokattr + 1))) {
                     // ABSORB ATTRIBUTES, THEY ARE VALID
                     tokptr = tokattr + 1;
                     maxlen = tokptr - (byte_p) TokenStart;
@@ -335,7 +328,7 @@ void LIB_HANDLER()
 
             }
 
-            if(!rplIsValidIdent((byte_p) tokstart, tokptr))
+            if(!rplIsValidBytesIdent(tokstart, tokptr))
                 break;
             maxlen = len;
             lastgood = tokptr;

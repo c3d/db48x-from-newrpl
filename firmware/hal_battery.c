@@ -169,7 +169,7 @@ void battery_handler()
 
         if(battery==0x400) {
             // Battery is charging - display charging icon
-            DrawTextBk(&scr, LCD_W-StringWidth((char *)"C", Font_Notifications)-1, LCD_H-1-FONT_Notifications.BitmapHeight, (char *)"C",
+            DrawTextBk(&scr, LCD_W-StringWidth("C", Font_Notifications)-1, LCD_H-1-FONT_Notifications.BitmapHeight, "C",
                        Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
         }
         else {
@@ -194,14 +194,14 @@ void battery_handler()
 
             // Display battery percentage
             int percentwidth=StringWidthN((char *)&text,((char *)&text)+(rot>>3)+1,Font_10A);
-            int batwidth=StringWidth((char *)"D",Font_Notifications);
+            int batwidth=StringWidth("D",Font_Notifications);
             if(percentwidth>batwidth) {
                 batwidth=(percentwidth+batwidth)/2;
             } else percentwidth=(percentwidth+batwidth)/2;
 
             DrawTextBk(&scr, LCD_W-percentwidth,LCD_H-FONT_10A.BitmapHeight-1,(cstring)&text,Font_10A,PAL_STA_BAT, PAL_STA_BG);
 
-            DrawTextBk(&scr, LCD_W-batwidth, LCD_H-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, (char *)"D",
+            DrawTextBk(&scr, LCD_W-batwidth, LCD_H-2-FONT_10A.BitmapHeight-Font_Notifications->BitmapHeight, "D",
                        Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
             halScreenUpdated();
         }
@@ -220,7 +220,7 @@ void busy_handler()
     {
         gglsurface scr;
         ggl_init_screen(&scr);
-        DrawTextBk(&scr, LCD_W-StringWidth((char *)"W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, (char *)"W",
+        DrawTextBk(&scr, LCD_W-StringWidth("W", Font_Notifications)-1, LCD_H-3-FONT_10A.BitmapHeight-2*FONT_Notifications.BitmapHeight, "W",
                    Font_Notifications, PAL_STA_BAT, PAL_STA_BG);
 
     }
@@ -286,7 +286,7 @@ void halPreparePowerOff()
 
     // TODO: ADD OTHER POWEROF PROCEDURES
 
-    saved = rplNewint32_t(halFlags, DECBINT);
+    saved = rplNewBINT(halFlags, DECBINT);
     if(!saved)
         saved = (word_p) zero_bint;
     rplStoreSettings((word_p) savedflags_ident, saved);
@@ -404,6 +404,6 @@ void halWakeUp()
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
 
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | CMDLINE_ALLDIRTY | MENU2_DIRTY | STAREA_DIRTY;    // UPDATE EVERYTHING
+    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | CMDLINE_ALLDIRTY | MENU2_DIRTY | STATUS_DIRTY;    // UPDATE EVERYTHING
 
 }

@@ -26,7 +26,7 @@ int32_t rplExplodeList(word_p composite)
         ScratchPointer1 = rplSkipOb(ScratchPointer1);
         ++count;
     }
-    rplNewint32_tPush(count, DECBINT);
+    rplNewBINTPush(count, DECBINT);
     return count;
 }
 

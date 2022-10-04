@@ -819,7 +819,7 @@ word_p *rplSymbExplodeCanonicalForm(word_p object, int32_t for_display)
             int64_t num = rplReadint32_t(sobj);
             if(num < 0) {
                 num = -num;
-                rplNewint32_tPush(num, LIBNUM(*sobj));
+                rplNewBINTPush(num, LIBNUM(*sobj));
                 if(Exceptions) {
                     DSTop = endofstk + 1;
                     return 0;
@@ -1661,7 +1661,7 @@ int32_t rplFractionSimplify()
         int64_t num;
         if(isintegerReal(&RReg[5]) && inint64_tRange(&RReg[5])) {
             num = getint64_tReal(&RReg[5]);
-            rplNewint32_tPush(num, DECBINT | isapprox);
+            rplNewBINTPush(num, DECBINT | isapprox);
         }
         else {
             rplNewRealFromRRegPush(5);
@@ -1671,7 +1671,7 @@ int32_t rplFractionSimplify()
             return 0;
         if(isintegerReal(&RReg[6]) && inint64_tRange(&RReg[6])) {
             num = getint64_tReal(&RReg[6]);
-            rplNewint32_tPush(num, DECBINT | isapprox);
+            rplNewBINTPush(num, DECBINT | isapprox);
         }
         else {
             rplNewRealFromRRegPush(6);
@@ -1743,10 +1743,10 @@ int32_t rplFractionSimplify()
     if(numneg ^ denneg)
         bnum = -bnum;
 
-    rplNewint32_tPush(bnum, DECBINT);
+    rplNewBINTPush(bnum, DECBINT);
     if(Exceptions)
         return 0;
-    rplNewint32_tPush(bden, DECBINT);
+    rplNewBINTPush(bden, DECBINT);
     if(Exceptions) {
         rplDropData(1);
         return 0;
@@ -2316,7 +2316,7 @@ word_p rplSymbNumericReduce(word_p object)
                             if(nnum < 0) {
                                 neg ^= 1;
                                 // KEEP THE NUMERATOR POSITIVE
-                                word_p newnum = rplNewint32_t(-nnum, DECBINT);
+                                word_p newnum = rplNewBINT(-nnum, DECBINT);
                                 if(!newnum) {
                                     DSTop = endofstk + 1;
                                     return 0;
@@ -3152,17 +3152,17 @@ static void reloadLAMs(word_p * orgrule, TRACK_STATE * ptr)
 static void updateCounters(TRACK_STATE * ptr)
 {
     ptr->right[1] =
-            rplNewint32_t((((int64_t) ptr->leftdepth) << 32) + ptr->leftidx,
+            rplNewBINT((((int64_t) ptr->leftdepth) << 32) + ptr->leftidx,
             DECBINT);
     if(Exceptions)
         return;
     ptr->right[2] =
-            rplNewint32_t((((int64_t) ptr->rightdepth) << 32) + ptr->rightidx,
+            rplNewBINT((((int64_t) ptr->rightdepth) << 32) + ptr->rightidx,
             DECBINT);
     if(Exceptions)
         return;
     ptr->right[3] =
-            rplNewint32_t((((int64_t) ptr->lrotbase) << 32) + ptr->leftrot,
+            rplNewBINT((((int64_t) ptr->lrotbase) << 32) + ptr->leftrot,
             DECBINT);
     if(Exceptions)
         return;
@@ -3797,7 +3797,7 @@ int32_t rplSymbRuleMatch()
                             s.leftrot = s.lrotbase = 0;
                             s.nlams = 0;
                             // PUSH NEW INDEX
-                            rplNewint32_tPush(((int64_t) s.leftdepth) << 32,
+                            rplNewBINTPush(((int64_t) s.leftdepth) << 32,
                                     DECBINT);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
@@ -3806,7 +3806,7 @@ int32_t rplSymbRuleMatch()
                                 nLAMBase = lamcurrent;
                                 return 0;
                             }
-                            rplNewint32_tPush(((int64_t) s.rightdepth) << 32,
+                            rplNewBINTPush(((int64_t) s.rightdepth) << 32,
                                     DECBINT);
                             if(Exceptions) {
                                 rplCleanupSnapshots(stkbottom);
@@ -5341,7 +5341,7 @@ int32_t rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewint32_tPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5349,7 +5349,7 @@ int32_t rplSymbRuleMatch()
                         nLAMBase = lamcurrent;
                         return 0;
                     }
-                    rplNewint32_tPush(((int64_t) s.rightdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.rightdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -5843,7 +5843,7 @@ int32_t rplSymbRuleMatch()
                     s.right = DSTop - 1;
 
                     // LEFTARG AND RIGHTARG
-                    rplNewint32_tPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
+                    rplNewBINTPush(((int64_t) s.leftdepth + 1) << 32, DECBINT);
                     if(Exceptions) {
                         rplCleanupSnapshots(stkbottom);
                         DSTop = expression;
@@ -6985,7 +6985,7 @@ int32_t rplSymbGetAttr(word_p object)
 
     rplPushDataNoGrow(object);
     rplPushDataNoGrow(object);
-    rplNewint32_tPush(rattr, DECBINT);
+    rplNewBINTPush(rattr, DECBINT);
     if(Exceptions) {
         DSTop = stksave;
         return 0;
@@ -7022,7 +7022,7 @@ int32_t rplSymbGetAttr(word_p object)
             rplPushDataNoGrow(object);
             rplPushDataNoGrow(rplSkipOb(ptr));
             ScratchPointer1 = ptr;
-            rplNewint32_tPush(rattr, DECBINT);
+            rplNewBINTPush(rattr, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return 0;
@@ -7110,7 +7110,7 @@ int32_t rplSymbGetAttr(word_p object)
                 rplPushDataNoGrow(object);
                 rplPushDataNoGrow(rplSkipOb(ptr));
                 ScratchPointer1 = ptr;
-                rplNewint32_tPush(rattr, DECBINT);
+                rplNewBINTPush(rattr, DECBINT);
                 if(Exceptions) {
                     DSTop = stksave;
                     return 0;

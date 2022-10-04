@@ -134,7 +134,8 @@ enum halFonts
 #define CMDLINE_ALLDIRTY        (4 + 8 + 16)
 #define MENU1_DIRTY             32
 #define MENU2_DIRTY             64
-#define STAREA_DIRTY            128
+#define STATUS_DIRTY            128
+#define HELP_DIRTY              256
 #define BUFFER_LOCK             16384
 #define BUFFER_ALT              32768
 
@@ -151,7 +152,8 @@ typedef struct
     int            CmdLine;
     int            Menu1;
     int            Menu2;
-    int            HelpMode;  // SOFT MENU ON-SCREEN HELP
+    utf8_p         HelpMessage;
+    utf8_p         ShortHelpMessage;
     int            DirtyFlag; // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT         SAreaTimer, CursorTimer;
     UNIFONT const *FontArray[FONTS_NUM]; // POINTERS TO FONTS

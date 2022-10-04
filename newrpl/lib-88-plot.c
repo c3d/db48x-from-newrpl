@@ -2013,7 +2013,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE PLOT OBJECT
 
-            rplDecompAppendString((byte_p) "PLOTDATA ");
+            rplDecompAppendString("PLOTDATA ");
 
             int64_t Locale = rplGetSystemLocale();
             byte_p ptr = (byte_p) (DecompileObject + 1);
@@ -2053,7 +2053,7 @@ void LIB_HANDLER()
                         rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
                     else
                         needscomma = 1;
-                    rplDecompAppendString2(tmpbuffer, nbytes);
+                    rplDecompAppendString2((utf8_p) tmpbuffer, nbytes);
 
                     ptr = ((byte_p) DecompileObject) + off;
 
@@ -2068,7 +2068,7 @@ void LIB_HANDLER()
                     else
                         needscomma = 1;
                     rplDecompAppendChar('\"');
-                    rplDecompAppendString2(ptr + 3, len);
+                    rplDecompAppendString2((utf8_p) ptr + 3, len);
                     rplDecompAppendChar('\"');
                     ptr = ((byte_p) DecompileObject) + off;
 
@@ -2078,7 +2078,7 @@ void LIB_HANDLER()
 
             }
 
-            rplDecompAppendString((byte_p) " ENDPLOT");
+            rplDecompAppendString(" ENDPLOT");
 
             RetNum = OK_CONTINUE;
             return;

@@ -277,11 +277,9 @@ int main(int argc, char *argv[])
     // COMPILE ALL CHUNKS
 
     int k;
-    char *start, *end;
     for(k = 0; k < numchunks; ++k) {
-
-        start = chunkstart[k];
-        end = chunkstart[k + 1];
+        utf8_p start = chunkstart[k];
+        utf8_p end   = chunkstart[k + 1];
 
         if(!utf8ncmp2(start, end, "@#name", 6)) {
             // SKIP TO THE NEXT LINE FOR THE REAL DATA
@@ -293,7 +291,7 @@ int main(int argc, char *argv[])
 
         if(end > start) {
 
-            word_p newobject = rplCompile((byte_p) start, end - start, 1);
+            word_p newobject = rplCompile(start, end - start, 1);
 
             if(Exceptions) {
                 compShowErrorMsg(inputfile, mainbuffer, stderr);
@@ -357,13 +355,13 @@ int main(int argc, char *argv[])
 
                             if(textoffset > 0) {
 
-                                char *foundtext = end - textoffset, *endtext;
+                                utf8_p foundtext = end - textoffset;
                                 if(foundtext >= start) {
                                     // IT'S A VALID POINTER INTO THE TEXT!
 
                                     // FIND THE END OF THE TEXT
                                     givenwords = 1;
-                                    endtext = foundtext;
+                                    utf8_p endtext = foundtext;
                                     while(endtext < end) {
                                         if(*endtext == ',')
                                             ++givenwords;

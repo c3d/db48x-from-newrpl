@@ -2587,7 +2587,7 @@ void LIB_HANDLER()
             // TANH(+/-Inf)=+/- 1
             rplDropData(1);
             if(re.flags & F_NEGATIVE)
-                rplNewint32_tPush(-1, DECBINT);
+                rplNewBINTPush(-1, DECBINT);
             else
                 rplPushData((word_p) one_bint);
             return;
@@ -2619,7 +2619,7 @@ void LIB_HANDLER()
             switch (cmpReal(&im, &pi2)) {
             case 1:    // ARG(Z)> PI/2
                 rplDropData(1);
-                rplNewint32_tPush(-1, DECBINT);
+                rplNewBINTPush(-1, DECBINT);
                 return;
             case -1:
                 rplOverwriteData(1, (word_p) one_bint);

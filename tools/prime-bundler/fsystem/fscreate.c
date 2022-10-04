@@ -48,7 +48,7 @@ int FSCreate(char *name, int attr, FS_FILE ** fileptr)
     nptr = (unsigned char *)name;
 // OBTAIN DIRECTORY
     if(ntype & (FSNAME_HASPATH | FSNAME_HASVOL)) {
-        nptr = (unsigned char *)fsfindcharrev(name, NULL, (char *)"/\\:");
+        nptr = (unsigned char *)fsfindcharrev(name, NULL, "/\\:");
 
 // nptr CAN'T BE NULL HERE, SO NO NEED TO CHECK
         path = simpmallocb((int)(nptr - (unsigned char *)name) + 2);

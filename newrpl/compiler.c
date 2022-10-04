@@ -159,7 +159,7 @@ static int32_t rplInfixApply(WORD opcode, int32_t nargs)
 // IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
 // (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
 
-word_p rplCompile(byte_p string, int32_t length, int32_t addwrapper)
+word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
 {
     // COMPILATION USES TEMPOB
     CompileEnd = TempObEnd;
@@ -197,11 +197,11 @@ word_p rplCompile(byte_p string, int32_t length, int32_t addwrapper)
 
     // FIND THE START OF NEXT TOKEN
     while((NextTokenStart < CompileStringEnd)
-            && ((*((byte_p) NextTokenStart) == ' ')
-                || (*((byte_p) NextTokenStart) == '\t')
-                || (*((byte_p) NextTokenStart) == '\n')
-                || (*((byte_p) NextTokenStart) == '\r')))
-        NextTokenStart = (word_p) (((byte_p) NextTokenStart) + 1);
+            && ((*((utf8_p) NextTokenStart) == ' ')
+                || (*((utf8_p) NextTokenStart) == '\t')
+                || (*((utf8_p) NextTokenStart) == '\n')
+                || (*((utf8_p) NextTokenStart) == '\r')))
+        NextTokenStart = (word_p) (((utf8_p) NextTokenStart) + 1);
 
     do {
         if(!splittoken) {
@@ -225,7 +225,7 @@ word_p rplCompile(byte_p string, int32_t length, int32_t addwrapper)
             splittoken = 0;
 
         TokenLen = (int32_t) utf8nlen((char *)TokenStart, (char *)BlankStart);
-        BlankLen = (int32_t) ((byte_p) NextTokenStart - (byte_p) BlankStart);
+        BlankLen = (int32_t) ((utf8_p) NextTokenStart - (utf8_p) BlankStart);
         CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
         ValidateHandler = rplGetLibHandler(LIBNUM(CurrentConstruct));
         LastCompiledObject = CompileEnd;
@@ -514,8 +514,8 @@ word_p rplCompile(byte_p string, int32_t length, int32_t addwrapper)
                             (int32_t) utf8nlen((char *)TokenStart,
                             (char *)BlankStart);
                     BlankLen =
-                            (int32_t) ((byte_p) NextTokenStart -
-                            (byte_p) BlankStart);
+                            (int32_t) ((utf8_p) NextTokenStart -
+                            (utf8_p) BlankStart);
                     CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);       // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject = CompileEnd;
 
@@ -984,15 +984,16 @@ void rplDecompAppendChar(BYTE c)
 {
 
     *((byte_p) DecompStringEnd) = c;
-    DecompStringEnd = (word_p) (((byte_p) DecompStringEnd) + 1);
+    DecompStringEnd = (word_p) (((utf8_p) DecompStringEnd) + 1);
 
     if(!(((intptr_t) DecompStringEnd) & 3)) {
         if(((word_p) ((((intptr_t) DecompStringEnd) +
                             3) & ~((intptr_t) 3))) + TEMPOBSLACK >=
                 TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((((((byte_p) DecompStringEnd) + 3 -
-                                (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
+            growTempOb(
+                (((((utf8_p) DecompStringEnd) + 3 - (utf8_p) TempOb)) >> 2) +
+                TEMPOBSLACK);
         }
     }
 
@@ -1011,14 +1012,15 @@ void rplDecompAppendUTF8(WORD utf8bytes)
                             3) & ~((intptr_t) 3))) + TEMPOBSLACK >=
                 TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
-            growTempOb((((((byte_p) DecompStringEnd) + 3 -
-                                (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
+            growTempOb(
+                (((((byte_p) DecompStringEnd) + 3 - (byte_p) TempOb)) >> 2) +
+                TEMPOBSLACK);
         }
     }
 
 }
 
-void rplDecompAppendString(byte_p str)
+void rplDecompAppendString(utf8_p str)
 {
     int32_t len = stringlen((char *)str);
 
@@ -1028,8 +1030,8 @@ void rplDecompAppendString(byte_p str)
         rplPushDataNoGrow((word_p) str);
         // ENLARGE TEMPOB AS NEEDED
         growTempOb((((((byte_p) DecompStringEnd) + len + 3 -
-                            (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
-        str = (byte_p) rplPopData();
+                      (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
+        str = (utf8_p) rplPopData();
         // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
         if(Exceptions & EX_OUTOFMEM)
             return;
@@ -1037,7 +1039,8 @@ void rplDecompAppendString(byte_p str)
 
     byte_p ptr = (byte_p) DecompStringEnd;
 
-    while(*str != 0) {
+    while(*str != 0)
+    {
         *ptr = *str;
         ++ptr;
         ++str;
@@ -1048,17 +1051,17 @@ void rplDecompAppendString(byte_p str)
 // APPEND A STRING OF A GIVEN LENGTH
 // IF PASSED POINTER IS NULL, MEMORY IS RESERVED BUT NOTHING IS COPIED
 
-void rplDecompAppendString2(byte_p str, int32_t len)
+void rplDecompAppendString2(utf8_p str, int32_t len)
 {
     if(((word_p) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {
         if(str)
             rplPushDataNoGrow((word_p) str);
         // ENLARGE TEMPOB AS NEEDED
-        growTempOb((((((byte_p) DecompStringEnd) + len + 3 -
-                            (byte_p) TempOb)) >> 2) + TEMPOBSLACK);
+        growTempOb((((((utf8_p) DecompStringEnd) + len + 3 -
+                      (utf8_p) TempOb)) >> 2) + TEMPOBSLACK);
         if(str)
-            str = (byte_p) rplPopData();
+            str = (utf8_p) rplPopData();
 
         // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
         if(Exceptions & EX_OUTOFMEM)
@@ -1066,11 +1069,12 @@ void rplDecompAppendString2(byte_p str, int32_t len)
 
     }
 
-    if(str) {
-
+    if (str)
+    {
         byte_p ptr = (byte_p) DecompStringEnd;
 
-        while(len) {
+        while (len)
+        {
             *ptr = *str;
             ++ptr;
             ++str;
@@ -1078,10 +1082,9 @@ void rplDecompAppendString2(byte_p str, int32_t len)
         }
 
         DecompStringEnd = (word_p) ptr;
-
     }
     else {
-        byte_p ptr = (byte_p) DecompStringEnd;
+        utf8_p ptr = (utf8_p) DecompStringEnd;
         ptr += len;
         DecompStringEnd = (word_p) ptr;
     }
@@ -1191,9 +1194,9 @@ word_p rplDecompile(word_p object, int32_t flags)
 
            // BACKTRACK THE TEXT TO FIND THE START OF LINE AND COUNT THE NUMBER OF CHARACTERS
 
-           byte_p dstring=(byte_p)CompileEnd;
-           byte_p end=(byte_p)DecompStringEnd;
-           byte_p ptr=end-1;
+           utf8_p dstring=(utf8_p)CompileEnd;
+           utf8_p end=(utf8_p)DecompStringEnd;
+           utf8_p ptr=end-1;
            while( (ptr>dstring)&&(*ptr!='\n')) --ptr;
 
            if(*ptr=='\n') ++ptr;
@@ -1218,7 +1221,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     // WE NEED TO REDUCE THE INDENT
                     if(indent >= 2)
                         DecompStringEnd =
-                                (word_p) (((byte_p) DecompStringEnd) - 2);
+                                (word_p) (((utf8_p) DecompStringEnd) - 2);
                     indent -= 2;
 
                 }
@@ -1378,7 +1381,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 infixmode = INFIX_STARTSYMBOLIC;
             break;
         default:
-            rplDecompAppendString((byte_p) "INVALID_COMMAND");
+            rplDecompAppendString("INVALID_COMMAND");
             ++DecompileObject;
             break;
         }
@@ -1529,7 +1532,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((byte_p) "##INVALID##");
+                            rplDecompAppendString("##INVALID##");
 
                             /*
                                rplError(ERR_INVALIDOPERATORINSYMBOLIC);
@@ -1584,7 +1587,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         DecompileObject = rplPopRet();  // RESTORE THE NEXT OBJECT
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((byte_p) "##INVALID##");
+                            rplDecompAppendString("##INVALID##");
                         }
                         rplDecompAppendChar('(');
                         ++DecompileObject;
@@ -1632,7 +1635,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((byte_p) "##INVALID##");
+                            rplDecompAppendString("##INVALID##");
                         }
 
                         ++DecompileObject;
@@ -1662,7 +1665,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         }
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((byte_p) "##INVALID##");
+                            rplDecompAppendString("##INVALID##");
                         }
                         rplDecompAppendChar('(');
                         ++DecompileObject;
@@ -1772,7 +1775,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     DecompileObject = SavedDecompObject;
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum != OK_CONTINUE) {
-                        rplDecompAppendString((byte_p) "##INVALID##");
+                        rplDecompAppendString("##INVALID##");
                     }
                 }
 
@@ -1855,7 +1858,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     DecompileObject = SavedDecompObject;
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum != OK_CONTINUE) {
-                        rplDecompAppendString((byte_p) "##INVALID##");
+                        rplDecompAppendString("##INVALID##");
                     }
                 }
 
@@ -1993,7 +1996,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 DecompileObject = SavedDecompObject;
                 // IGNORE THE RESULT OF DECOMPILATION
                 if(RetNum != OK_CONTINUE) {
-                    rplDecompAppendString((byte_p) "##INVALID##");
+                    rplDecompAppendString("##INVALID##");
                 }
 
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
@@ -2102,7 +2105,7 @@ word_p rplDecompile(word_p object, int32_t flags)
 
                         // IGNORE THE RESULT OF DECOMPILATION
                         if(RetNum != OK_CONTINUE) {
-                            rplDecompAppendString((byte_p) "##INVALID##");
+                            rplDecompAppendString("##INVALID##");
                         }
                     }
                     else
@@ -2168,8 +2171,8 @@ word_p rplDecompile(word_p object, int32_t flags)
 
             // UPDATE LAST NEWLINE
 
-            byte_p start = (((byte_p) CompileEnd) + lastnloffset), ptr =
-                    (byte_p) DecompStringEnd;
+            utf8_p start = (((utf8_p) CompileEnd) + lastnloffset), ptr =
+                    (utf8_p) DecompStringEnd;
 
             if(!(flags & DECOMP_NOHINTS)) {
                 do {
@@ -2179,7 +2182,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 }
                 while(ptr > start);
 
-                lastnloffset = ptr - ((byte_p) CompileEnd);
+                lastnloffset = ptr - ((utf8_p) CompileEnd);
                 if(*ptr == '\n')
                     ++lastnloffset;
             }
@@ -2187,7 +2190,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 lastnloffset = 0;
 
             // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
-            if(((byte_p) DecompStringEnd) - (((byte_p) CompileEnd) +
+            if(((utf8_p) DecompStringEnd) - (((utf8_p) CompileEnd) +
                         lastnloffset) > maxwidth)
                 dhints |= HINT_NLAFTER;
 
@@ -2220,8 +2223,8 @@ word_p rplDecompile(word_p object, int32_t flags)
 
     // REMOVE END NEWLINE AND INDENT IF PRESENT
     if(lastnewline && !Exceptions) {
-        byte_p start = (((byte_p) CompileEnd) + lastnloffset), ptr =
-                (byte_p) DecompStringEnd;
+        utf8_p start = (((utf8_p) CompileEnd) + lastnloffset), ptr =
+                (utf8_p) DecompStringEnd;
         do {
             --ptr;
             if(*ptr == '\n')
@@ -2316,7 +2319,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
     if(!infixmode && !(flags & DECOMP_NOHINTS)) {
         int32_t indent = GET_INDENT(DecompHints);
 
-        byte_p start = (byte_p) CompileEnd, ptr = (byte_p) DecompStringEnd;
+        utf8_p start = (utf8_p) CompileEnd, ptr = (utf8_p) DecompStringEnd;
 
         do {
             --ptr;
@@ -2329,19 +2332,19 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
             ++ptr;
 
         // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
-        if(((byte_p) DecompStringEnd) - ptr > DECOMP_GETMAXWIDTH(flags))
+        if(((utf8_p) DecompStringEnd) - ptr > DECOMP_GETMAXWIDTH(flags))
             dhints |= HINT_NLAFTER;
 
         if(dhints & HINT_SUBINDENTBEFORE) {
             int32_t currentindent = 0;
 
             // SET THE INDENTATION OF THE CURRENT LINE
-            while((ptr < (byte_p) DecompStringEnd) && (*ptr == ' ')) {
+            while((ptr < (utf8_p) DecompStringEnd) && (*ptr == ' ')) {
                 ++currentindent;
                 ++ptr;
             }
 
-            if(ptr == (byte_p) DecompStringEnd) {
+            if(ptr == (utf8_p) DecompStringEnd) {
                 // ONLY CHANGE INDENTING IF THE CURRENT LINE HASN'T STARTED YET
                 indent -= 2;
                 if(indent < 0)
@@ -2350,7 +2353,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
 
                 if(currentindent > indent)
                     DecompStringEnd =
-                            (word_p) (((byte_p) DecompStringEnd) -
+                            (word_p) (((utf8_p) DecompStringEnd) -
                             (currentindent - indent));
                 else {
                     while(currentindent < indent) {
@@ -2378,7 +2381,7 @@ int32_t rplDecompDoHintsWidth(int32_t dhints)
 
                 // DETERMINE THE INDENT OF THE CURRENT LINE
 
-                //while( (ptr<(byte_p)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
+                //while( (ptr<(utf8_p)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
 
                 rplDecompAppendChar('\n');
                 int k;

@@ -2678,28 +2678,28 @@ void LIB_HANDLER()
             if(operator> ASM_POW) {
                 switch (operator) {
                 case ASM_CMP:
-                    rplDecompAppendString((byte_p) "CMP.");
+                    rplDecompAppendString("CMP.");
                     break;
                 case ASM_POP:
-                    rplDecompAppendString((byte_p) "POP.");
+                    rplDecompAppendString("POP.");
                     break;
 
                 case ASM_RPOP:
-                    rplDecompAppendString((byte_p) "RPOP.");
+                    rplDecompAppendString("RPOP.");
                     break;
 
                 case ASM_PUSH:
-                    rplDecompAppendString((byte_p) "PUSH.");
+                    rplDecompAppendString("PUSH.");
                     break;
                 case ASM_RPUSH:
-                    rplDecompAppendString((byte_p) "RPUSH.");
+                    rplDecompAppendString("RPUSH.");
                     break;
 
                 case ASM_GET:
-                    rplDecompAppendString((byte_p) "GET.");
+                    rplDecompAppendString("GET.");
                     break;
                 case ASM_PUT:
-                    rplDecompAppendString((byte_p) "PUT.");
+                    rplDecompAppendString("PUT.");
                     break;
                 case ASM_MATH:
                 {
@@ -2708,65 +2708,65 @@ void LIB_HANDLER()
                     int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH_IP:
-                        rplDecompAppendString((byte_p) "IP");
+                        rplDecompAppendString("IP");
                         break;
                     case ASM_MATH_LN:
-                        rplDecompAppendString((byte_p) "LN");
+                        rplDecompAppendString("LN");
                         break;
                     case ASM_MATH_EXP:
-                        rplDecompAppendString((byte_p) "EXP");
+                        rplDecompAppendString("EXP");
                         break;
 
                     case ASM_MATH_SQRT:
-                        rplDecompAppendString((byte_p) "SQRT");
+                        rplDecompAppendString("SQRT");
                         break;
 
                     case ASM_MATH_SIN:
-                        rplDecompAppendString((byte_p) "SIN");
+                        rplDecompAppendString("SIN");
                         break;
 
                     case ASM_MATH_COS:
-                        rplDecompAppendString((byte_p) "COS");
+                        rplDecompAppendString("COS");
                         break;
 
                     case ASM_MATH_TAN:
-                        rplDecompAppendString((byte_p) "TAN");
+                        rplDecompAppendString("TAN");
                         break;
 
                     case ASM_MATH_ASIN:
-                        rplDecompAppendString((byte_p) "ASIN");
+                        rplDecompAppendString("ASIN");
                         break;
 
                     case ASM_MATH_ACOS:
-                        rplDecompAppendString((byte_p) "ACOS");
+                        rplDecompAppendString("ACOS");
                         break;
 
                     case ASM_MATH_ATAN:
-                        rplDecompAppendString((byte_p) "ATAN");
+                        rplDecompAppendString("ATAN");
                         break;
 
                     case ASM_MATH_SINH:
-                        rplDecompAppendString((byte_p) "SINH");
+                        rplDecompAppendString("SINH");
                         break;
 
                     case ASM_MATH_COSH:
-                        rplDecompAppendString((byte_p) "COSH");
+                        rplDecompAppendString("COSH");
                         break;
 
                     case ASM_MATH_TANH:
-                        rplDecompAppendString((byte_p) "TANH");
+                        rplDecompAppendString("TANH");
                         break;
 
                     case ASM_MATH_ASINH:
-                        rplDecompAppendString((byte_p) "ASINH");
+                        rplDecompAppendString("ASINH");
                         break;
 
                     case ASM_MATH_ACOSH:
-                        rplDecompAppendString((byte_p) "ACOSH");
+                        rplDecompAppendString("ACOSH");
                         break;
 
                     case ASM_MATH_ATANH:
-                        rplDecompAppendString((byte_p) "ATANH");
+                        rplDecompAppendString("ATANH");
                         break;
 
                     }
@@ -2780,19 +2780,19 @@ void LIB_HANDLER()
                     int32_t y = (op >> 4) & 0xf;
                     switch (y) {
                     case ASM_MATH2_FP:
-                        rplDecompAppendString((byte_p) "FP");
+                        rplDecompAppendString("FP");
                         break;
                     case ASM_MATH2_ABS:
-                        rplDecompAppendString((byte_p) "ABS");
+                        rplDecompAppendString("ABS");
                         break;
                     case ASM_MATH2_ARG:
-                        rplDecompAppendString((byte_p) "ARG");
+                        rplDecompAppendString("ARG");
                         break;
                     case ASM_MATH2_RE:
-                        rplDecompAppendString((byte_p) "RE");
+                        rplDecompAppendString("RE");
                         break;
                     case ASM_MATH2_IM:
-                        rplDecompAppendString((byte_p) "IM");
+                        rplDecompAppendString("IM");
                         break;
 
                     }
@@ -2802,47 +2802,47 @@ void LIB_HANDLER()
                 case ASM_LOOP:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((byte_p) "LOOP.");
+                    rplDecompAppendString("LOOP.");
                     break;
 
                 case ASM_SKIP:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((byte_p) "SKIP.");
+                    rplDecompAppendString("SKIP.");
                     break;
 
                 case ASM_CHK:
                     noz = 1;
                     yflags = 1;
-                    rplDecompAppendString((byte_p) "CHK.");
+                    rplDecompAppendString("CHK.");
                     break;
                 case ASM_MIN:
-                    rplDecompAppendString((byte_p) "MIN.");
+                    rplDecompAppendString("MIN.");
                     break;
                 case ASM_MAX:
-                    rplDecompAppendString((byte_p) "MAX.");
+                    rplDecompAppendString("MAX.");
                     break;
                 case ASM_RND:
-                    rplDecompAppendString((byte_p) "RND.");
+                    rplDecompAppendString("RND.");
                     break;
                 case ASM_AND:
-                    rplDecompAppendString((byte_p) "AND.");
+                    rplDecompAppendString("AND.");
                     break;
                 case ASM_OR:
-                    rplDecompAppendString((byte_p) "OR.");
+                    rplDecompAppendString("OR.");
                     break;
                 case ASM_XOR:
-                    rplDecompAppendString((byte_p) "XOR.");
+                    rplDecompAppendString("XOR.");
                     break;
                 case ASM_CLR:
-                    rplDecompAppendString((byte_p) "CLR.");
+                    rplDecompAppendString("CLR.");
                     break;
                 case ASM_SGET:
                     noz = 1;
-                    rplDecompAppendString((byte_p) "SGET.");
+                    rplDecompAppendString("SGET.");
                     break;
                 case ASM_SPUT:
-                    rplDecompAppendString((byte_p) "SPUT.");
+                    rplDecompAppendString("SPUT.");
                     break;
 
                 }
@@ -2855,28 +2855,28 @@ void LIB_HANDLER()
                     if(yflags) {
                         switch (y & 7) {
                         case ASMF_AL:  // (always)
-                            rplDecompAppendString((byte_p) "AL");
+                            rplDecompAppendString("AL");
                             break;
                         case ASMF_LT:  // (NEG flag)
-                            rplDecompAppendString((byte_p) "LT");
+                            rplDecompAppendString("LT");
                             break;
                         case ASMF_EQ:  // (ZERO flag)
-                            rplDecompAppendString((byte_p) "EQ");
+                            rplDecompAppendString("EQ");
                             break;
                         case ASMF_LTE: // (NEG || ZERO)
-                            rplDecompAppendString((byte_p) "LTE");
+                            rplDecompAppendString("LTE");
                             break;
                         case ASMF_NA:  // (NOT ALWAYS = NEVER)
-                            rplDecompAppendString((byte_p) "NV");
+                            rplDecompAppendString("NV");
                             break;
                         case ASMF_GTE: // (NOT LT)
-                            rplDecompAppendString((byte_p) "GTE");
+                            rplDecompAppendString("GTE");
                             break;
                         case ASMF_NE:  // (NOT EQ)
-                            rplDecompAppendString((byte_p) "NE");
+                            rplDecompAppendString("NE");
                             break;
                         case ASMF_GT:  // (NOT LTE)
-                            rplDecompAppendString((byte_p) "GT");
+                            rplDecompAppendString("GT");
                             break;
 
                         }
