@@ -686,62 +686,14 @@
 #define SCREEN_BUFFERS 2
 
 // Prime menu organization constants
-#define MENU1_ENDX  ((44*LCD_W)/131)
-#define MENU2_STARTX 0
-#define MENU2_ENDX   LCD_SCANLINE
-#define MENU2_COUNT  3
-
-#undef  STATUSAREA_X
-#define STATUSAREA_X  (MENU2_ENDX+1)
+#define MENU1_ENDX          ((44 * LCD_W) / 131)
+#define MENU2_STARTX        (MENU1_ENDX + 1)
+#define MENU2_ENDX          (1 + (80 * LCD_W) / 131)
+#define MENU2_COUNT         2
+#define STATUSAREA_X        (MENU2_ENDX + 1)
 
 
 // CONSTANTS THAT CHANGE WITH DIFFERENT TARGETS
-#define RAM_BASE_PHYSICAL 0x30000000
-#define RAM_END_PHYSICAL  0x31f00000
-
-#define MEM_PHYS_SCREEN  0x31f00000
-#define MEM_VIRT_SCREEN  MEM_PHYS_SCREEN
-
-#define MEM_DSTKMMU      0x31fe8000
-
-#define MEM_RSTKMMU      0x31fe0000
-
-#define MEM_LAMMMU       0x31fd8000
-
-#define MEM_DIRMMU       0x31fd0000
-
-#define MEM_TEMPBLKMMU   0x31fc8000
-
-#define MEM_TEMPOBMMU    0x31fc0000
-
-#define MEM_REVERSEMMU   0x31fb8000
-
-
-
-#define MEM_PHYSTACK    0x40010ffc      // PHYSICAL LOCATION OF THE "C" STACK (TOP OF STACK, DECREASES DOWN TO 0x40000000)
-#define MEM_DSTK        0x02000000      // DATA STACK VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_RSTK        0x04000000      // RETURN STACK VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_LAM         0x06000000      // LOCAL VARIABLES VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_DIRS        0x08000000      // GLOBAL DIRECTORIES VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_TEMPBLOCKS  0x0a000000      // BLOCK INDEX FOR TEMPOB VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_TEMPOB      0x10000000      // GLOBAL OBJECT ALLOCATION MEMORY VIRTUAL LOCATION (UP TO 32 MB)
-#define MEM_SYSTEM      0x30000000      // SYSTEM RAM (FIXED AMOUNT, MAPPED AT THE BEGINNING OF THE PHYSICAL RAM)
-#define MEM_SRAM        0x00000000      // ON-CHIP SRAM
-#define MEM_HARDWARE    0x48000000      // HARDWARE AND PERIPHERALS
-
-
-// newRPL for HP Prime G1 VIRTUAL memory map:
-
-// 0x00010000 - 64 kbytes SRAM for exception handlers and CPU stack
-// 0x02000000 - Data Stack
-// 0x04000000 - Return Stack
-// 0x06000000 - LAMs
-// 0x08000000 - Directories
-// 0x0a000000 - TempBlocks
-// 0x10000000 - TempOb
-
-// 0x30000000 - Physical memory for persistent and temporary variables (32 MB)
-
 // Physical memory partition:
 
 // 0x30000000 - 0x30100000 - Approx. 1 MB newRPL code AND data, including all persistent and scratch areas
@@ -753,6 +705,40 @@
 // 0x31ffff00 - 0x31ffff20  - Relocated exception handler pointers
 
 // Note: Regular CPU Stack should not be here
+#define RAM_BASE_PHYSICAL   0x30000000
+#define RAM_END_PHYSICAL    0x31f00000
+#define MEM_PHYS_SCREEN     0x31f00000
+#define MEM_VIRT_SCREEN     MEM_PHYS_SCREEN
+#define MEM_DSTKMMU         0x31fe8000
+#define MEM_RSTKMMU         0x31fe0000
+#define MEM_LAMMMU          0x31fd8000
+#define MEM_DIRMMU          0x31fd0000
+#define MEM_TEMPBLKMMU      0x31fc8000
+#define MEM_TEMPOBMMU       0x31fc0000
+#define MEM_REVERSEMMU      0x31fb8000
+
+// newRPL for HP Prime G1 VIRTUAL memory map:
+// 0x00010000 - 64 kbytes SRAM for exception handlers and CPU stack
+// 0x02000000 - Data Stack
+// 0x04000000 - Return Stack
+// 0x06000000 - LAMs
+// 0x08000000 - Directories
+// 0x0a000000 - TempBlocks
+// 0x10000000 - TempOb
+// 0x30000000 - Physical memory for persistent and temporary variables (32 MB)
+
+#define MEM_PHYSTACK        0x40010ffc // C program stack top
+#define MEM_PHYSTACK_BASE   0x40000000 // C program stack limit
+#define MEM_DSTK            0x02000000 // Data stack (up to 32 MB)
+#define MEM_RSTK            0x04000000 // Return stack (up to 32 MB)
+#define MEM_LAM             0x06000000 // Local variables (up to 32 MB)
+#define MEM_DIRS            0x08000000 // Global directories (up to 32 MB)
+#define MEM_TEMPBLOCKS      0x0a000000 // Block index for tempob (UP TO 32 MB)
+#define MEM_TEMPOB          0x10000000 // Global object allocation (up to 32 MB)
+#define MEM_SYSTEM          0x30000000 // System RAM (fixed amount)
+#define MEM_SRAM            0x00000000 // On-chip SRAM
+#define MEM_HARDWARE        0x48000000 // Hardware and peripherals
+
 
 // USB RELATED DEFINITIONS
 
@@ -975,12 +961,12 @@ extern void ts_init();
 
 // Screen Update Notification
 
-#define halScreenUpdated()    ((void)0)
+#define halScreenUpdated()  ((void) 0)
 
 // DEFAULT CLOCK SPEEDS
-#define HAL_SLOWCLOCK    100000000
-#define HAL_USBCLOCK     400000000
-#define HAL_FASTCLOCK    400000000
+#define HAL_SLOWCLOCK       100000000
+#define HAL_USBCLOCK        400000000
+#define HAL_FASTCLOCK       400000000
 
 #define DEFAULT_AUTOOFFTIME 3
 /*
@@ -995,13 +981,10 @@ extern void ts_init();
 */
 
 // DEFAULT COLOR MODE OF THE SYSTEM
-#define BITS_PER_PIXEL 16
-#define DEFAULT_BITMAP_MODE   3   // SAME AS BITMAP_RGB64K
+#define BITS_PER_PIXEL      16
+#define DEFAULT_BITMAP_MODE 3 // SAME AS BITMAP_RGB64K
 
-#define ANN_X_COORD 131
-#define ANN_Y_COORD 0
-
-#define PIXELS_PER_WORD 2
+#define PIXELS_PER_WORD     2
 
 
 // LOW LEVEL TIMER FUNCTIONS FOR HARDWARE SETUP
