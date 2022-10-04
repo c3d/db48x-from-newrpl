@@ -260,10 +260,15 @@ static inline void keyb_irq_normal_keys(keymatrix hwkeys, keymatrix changes)
         keyb_msg_t msg  = key | (down ? KM_KEYDN : KM_KEYUP);
         if (!down)
         {
-            keyb_irq_post_key(key);
+            if ((keyb_flags & KFLAG_LONG_PRESS) == 0 || key != keyb_last_code)
+                keyb_irq_post_key(key);
+            else
+                keyb_flags &= ~KFLAG_LONG_PRESS;
             unshift = 1;
         }
-        keyb_irq_post_message(msg); // Will pass required flags from keyb_flags
+
+        // Will pass required flags from keyb_flags
+        keyb_irq_post_message(msg);
         keyb_last_code = key;
         relevant ^= mask;
     }
@@ -312,13 +317,14 @@ static inline void keyb_irq_check_long_presses(keymatrix hwkeys,
 //   Check if we got long presses and need to post long press or repeat
 // ----------------------------------------------------------------------------
 {
-    if (changes)
+    keymatrix longPressKeyMask = KM_MASK(keyb_last_code);
+    if (changes & ~longPressKeyMask)
     {
         // Any change in keyboard matrix state disables repeat / long-press
         keyb_duration = 0;
         keyb_flags &= ~(KFLAG_LONG_PRESS | KFLAG_REPEAT);
     }
-    else if (hwkeys & KM_MASK(keyb_last_code))
+    else if (hwkeys & longPressKeyMask)
     {
         ++keyb_duration;
 
@@ -337,8 +343,8 @@ static inline void keyb_irq_check_long_presses(keymatrix hwkeys,
             // Post long-press only the first time we see it
             if (keyb_duration >= KEYB_LONG_PRESS_TIME)
             {
-                keyb_irq_post_message(KM_LONG_PRESS | keyb_last_code);
                 keyb_flags |= KFLAG_LONG_PRESS;
+                keyb_irq_post_message(keyb_last_code);
                 keyb_duration -= KEYB_LONG_PRESS_TIME;
             }
         }

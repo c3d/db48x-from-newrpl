@@ -6660,7 +6660,7 @@ int halDoDefaultKey(keyb_msg_t keymsg)
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
 
     keyb_msg_t msg = KM_MESSAGE(keymsg);
-    if (msg == KM_PRESS)
+    if (msg == KM_PRESS || (msg & KFLAG_LONG_PRESS))
     {
         key_handler_fn handler = halDefaultKeyHandler(keymsg);
         if (handler)
@@ -6738,85 +6738,12 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
         return 0;
     }
 
-    // THIS ALLOWS KEYS WITH LONG PRESS DEFINITION TO POSTPONE
-    // EXECUTION UNTIL THE KEY IS RELEASED
-    if (halLongKeyPending)
-    {
-        // THERE WAS A KEY PENDING EXECUTION
-        if ((KM_MESSAGE(keymsg) == KM_LONG_PRESS) &&
-            (KM_KEY(keymsg) == KM_KEY(halLongKeyPending)))
-        {
-            // WE RECEIVED A LONG PRESS ON THAT KEY, DISCARD THE OLD EVENT AND
-            // DO A LONG PRESS ONLY
-            halLongKeyPending = 0;
-        }
-        else
-        {
-            // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY
-            // FIRST, THEN THE NEW ONE
+    // Check if a handler takes care of the event
+    processed =
+        (dokey                           && dokey(keymsg))               ||
+        ((flags & OL_NOCUSTOMKEYS ) == 0 && halDoCustomKey(keymsg))      ||
+        ((flags & OL_NODEFAULTKEYS) == 0 && halDoDefaultKey(keymsg));
 
-            int32_t tmp       = halLongKeyPending;
-            halLongKeyPending = 0; // THIS CLEANUP IS ONLY NEEDED IN CASE THE
-                                   // KEY HANDLER CALLS A KEYBOARD LOOP
-
-            if (dokey)
-                processed = (*dokey)(tmp);
-            else
-                processed = 0;
-
-            if (!(flags & OL_NOCUSTOMKEYS))
-                if (!processed)
-                    processed = halDoCustomKey(tmp);
-            if (!(flags & OL_NODEFAULTKEYS))
-                if (!processed)
-                    processed = halDoDefaultKey(tmp);
-
-            if (processed < 0)
-                return 1; // DON'T EXECUTE THE NEW KEY IF THIS ONE WANTS TO END
-                          // THE LOOP
-        }
-    }
-
-    // BEFORE EXECUTING, CHECK IF THIS KEY HAS A LONG PRESS ASSIGNMENT
-    // AND IF SO, DELAY EXECUTION
-    keyb_msg_t msg = KM_MESSAGE(keymsg);
-    if (msg == KM_PRESS)
-    {
-        if (flags & OL_LONGPRESS)
-        {
-            // ALL KEYS WAIT FOR A LONG PRESS EVENT
-            halLongKeyPending = keymsg;
-            return 0;
-        }
-        else
-        {
-            // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE
-            // EXECUTE IMMEDIATELY
-            int32_t longmsg = KM_LONG_PRESS | KM_SHIFTED_KEY(keymsg);
-
-            if (halCustomKeyExists(longmsg))
-            {
-                halLongKeyPending = keymsg;
-                return 0;
-            }
-            if (halDefaultKeyHandler(longmsg))
-            {
-                halLongKeyPending = keymsg;
-                return 0;
-            }
-        }
-    }
-
-    if (dokey)
-        processed = (*dokey)(keymsg);
-    else
-        processed = 0;
-    if (!(flags & OL_NOCUSTOMKEYS))
-        if (!processed)
-            processed = halDoCustomKey(keymsg);
-    if (!(flags & OL_NODEFAULTKEYS))
-        if (!processed)
-            processed = halDoDefaultKey(keymsg);
 
     if (RECORDER_TWEAK(keys_debug))
     {

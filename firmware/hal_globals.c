@@ -20,8 +20,7 @@ void (*halProcesses[3])(void)SYSTEM_GLOBAL;
 HEVENT halBusyEvent SYSTEM_GLOBAL;
 HEVENT halTimeoutEvent SYSTEM_GLOBAL;
 
-// HIGH LEVEL KEYBOARD HANDLER
-int32_t halLongKeyPending SYSTEM_GLOBAL;
+// High level keyboard handler
 int32_t halKeyMenuSwitch  SYSTEM_GLOBAL;
 
 // RENDER CACHE
