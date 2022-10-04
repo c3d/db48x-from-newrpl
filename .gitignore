@@ -37,3 +37,6 @@
 /tools/fonts/ttf2font/ttf2font
 /tools/fonts/ttf2font/ttf2font.mak
 /tools/fonts/ttf2font/ttf2font.o
+/tools/extractcmd/extractcmd.mak
+/tools/extractcmd/main.o
+/tools/extractcmd/extractcmd

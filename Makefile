@@ -58,6 +58,15 @@ tools-bin/ttf2font: tools/fonts/ttf2font/ttf2font.mak tools/fonts/ttf2font/ttf2f
 tools/fonts/ttf2font/ttf2font.mak: tools/fonts/ttf2font/ttf2font.pro
 	cd tools/fonts/ttf2font && qmake $(<F) -o $(@F)
 
+docs doc: tools/extractcmd/extractcmd
+	$< newrpl -m doc
+
+tools/extractcmd/extractcmd: tools/extractcmd/extractcmd.mak tools/extractcmd/main.c
+	cd tools/extractcmd && $(MAKE) -f extractcmd.mak
+tools/extractcmd/extractcmd.mak: tools/extractcmd/extractcmd.pro
+	cd tools/extractcmd && qmake $(<F) -o $(@F)
+
+
 %-sim %-simulator: %-simulator-$(TAG).mak compiler recorder .ALWAYS
 	$(MAKE) -f $<
 %-fw %-firmware: %-firmware-$(TAG).mak compiler elf2rom .ALWAYS

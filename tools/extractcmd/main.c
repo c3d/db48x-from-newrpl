@@ -38,7 +38,9 @@ int main(int argc, char *argv[])
         printf("NewRPL command extract - Version 1.0\n");
         printf("Usage: extractcmd <path-to-sources> [-d <output-path>]\n");
         printf("\nOptions:\n");
-        printf("\t\t-d <output-path>\tSpecify the directory where the output file will be created (by default, same as the source file)\n\n\n");
+        printf("\t-d <output-path>\tSpecify the directory where the output file will be created (by default, same as the source file)\n\n\n");
+        printf("\t-c <output-path>\tOutput as C source file\n");
+        printf("\t-c <output-path>\tOutput as markdown\n");
         return 0;
     }
 
@@ -46,22 +48,48 @@ int main(int argc, char *argv[])
     int needoutputpath = 0;
     int needcleanup = 0;
     int nameoffset, namelen;
+    int cfile = 0;
+    int mdfile = 0;
     char *outputfile = NULL;
     char *outputpath = NULL;
     char *inputpath = NULL;
-    while(argidx < argc) {
+
+    while (argidx < argc)
+    {
         if(needoutputpath) {
             outputpath = argv[argidx];
             needoutputpath = 0;
         }
-        else if((argv[argidx][0] == '-') && (argv[argidx][1] == 'd')) {
-            if(argv[argidx][2] == 0)
-                needoutputpath = 1;
-            else
-                outputpath = argv[argidx] + 2;
+        else if (argv[argidx][0] == '-')
+        {
+            if (argv[argidx][1] == 'd')
+            {
+                if (argv[argidx][2] == 0)
+                    needoutputpath = 1;
+                else
+                    outputpath = argv[argidx] + 2;
+            }
+            if (argv[argidx][1] == 'c')
+            {
+                if (argv[argidx][2] == 0)
+                    needoutputpath = 1;
+                else
+                    outputpath = argv[argidx] + 2;
+                cfile = 1;
+            }
+            if (argv[argidx][1] == 'm')
+            {
+                if (argv[argidx][2] == 0)
+                    needoutputpath = 1;
+                else
+                    outputpath = argv[argidx] + 2;
+                mdfile = 1;
+            }
         }
         else
+        {
             inputpath = argv[argidx];
+        }
 
         ++argidx;
     }
@@ -119,7 +147,8 @@ int main(int argc, char *argv[])
                     outputfile[nameoffset++] = '/';
             }
             memmove(outputfile + nameoffset, libname, namelen);
-            strcpy(outputfile + nameoffset + namelen, ".txt");
+            strcpy(outputfile + nameoffset + namelen,
+                   cfile ? ".c" : mdfile ? ".md" : ".txt");
 
             // HERE WE HAVE THE SECTION NAME AT outputfile[nameoffset]..outputfile[nameoffset+namelen-1]
 
@@ -378,60 +407,103 @@ int main(int argc, char *argv[])
                     return 1;
                 }
 
-                int j;
-
-                char buffer[1024];
-
                 int nnew = 0;
-                for(j = 0; j < ncmd; ++j)
+                for(int j = 0; j < ncmd; ++j)
                     nnew += cmdflags[j] & 1;
 
                 // OUTPUT THE PREAMBLE FOR THE WIKI
+                if (cfile)
+                {
+                    if(libtitle)
+                        fprintf(f,
+                                "\"# %.*s\\n\"\n",
+                                libtitlelen,
+                                libtitle);
 
-                fprintf(f, "<button collapse=\"");
-                fwrite(outputfile + nameoffset, namelen, 1, f);
-                fprintf(f, "-commands\" block=\"true\" >**");
-                if(libtitle)
-                    fwrite(libtitle, libtitlelen, 1, f);
-                if(!nnew)
-                    fprintf(f,
-                            "**  <badge>%d</badge></button>\n<collapse id=\"",
-                            ncmd);
-                else if(ncmd != nnew)
-                    fprintf(f,
-                            "**  <badge>%d</badge> <badge>%d NEW</badge></button>\n<collapse id=\"",
-                            ncmd, nnew);
+                    // Output the complete list of commands
+                    for (k = 0; k < ncmd; ++k)
+                    {
+                        fprintf(f,
+                                "\n\"\\n## %.*s\\n\"\n",
+                                cmdnamelen[k],
+                                cmdname[k]);
+                        if (cmddesclen[k])
+                            fprintf(f, "\"%.*s\\n\"\n",
+                                    cmddesclen[k], cmddesc[k]);
+                        fprintf(f, "\"\\n\"\n\n");
+                    }
+                }
+                else if (mdfile)
+                {
+                    if(libtitle)
+                        fprintf(f,
+                                "# %.*s\n",
+                                libtitlelen,
+                                libtitle);
+
+                    // Output the complete list of commands
+                    for (k = 0; k < ncmd; ++k)
+                    {
+                        fprintf(f,
+                                "\n## %.*s\n",
+                                cmdnamelen[k],
+                                cmdname[k]);
+                        if (cmddesclen[k])
+                            fprintf(f, "%.*s\n",
+                                    cmddesclen[k], cmddesc[k]);
+                        fprintf(f, "\n");
+                    }
+                }
                 else
-                    fprintf(f,
-                            "**  <badge>%d NEW</badge></button>\n<collapse id=\"",
-                            ncmd);
-                fwrite(outputfile + nameoffset, namelen, 1, f);
-                fprintf(f, "-commands\" collapsed=\"true\">\n");
-                fprintf(f, "\n^ Command  ^ Short Description ^  ^\n");
+                {
+                    char buffer[1024];
 
-                // OUTPUT THE COMPLETE LIST OF COMMANDS
-
-                for(k = 0; k < ncmd; ++k) {
-                    fprintf(f, "| **[[manual:chapter6:");
+                    fprintf(f, "<button collapse=\"");
                     fwrite(outputfile + nameoffset, namelen, 1, f);
-                    fprintf(f, ":cmd_");
-                    for(j = 0; j < cmdnamelen[k]; ++j)
-                        buffer[j] = tolower(cmdname[k][j]);
-                    fwrite(buffer, cmdnamelen[k], 1, f);
-                    fprintf(f, "|");
-                    fwrite(cmdstring[k], cmdstrlen[k], 1, f);
-                    fprintf(f, "]]** | ");
-                    if(cmddesclen[k])
-                        fwrite(cmddesc[k], cmddesclen[k], 1, f);
-                    if(cmdflags[k] == 1)
-                        fprintf(f, " | <badge>NEW</badge> |\n");
-                    else if(cmdflags[k] == 2)
-                        fprintf(f, " | <badge>CHANGED</badge> |\n");
+                    fprintf(f, "-commands\" block=\"true\" >**");
+                    if(libtitle)
+                        fwrite(libtitle, libtitlelen, 1, f);
+                    if(!nnew)
+                        fprintf(f,
+                                "**  <badge>%d</badge></button>\n<collapse id=\"",
+                                ncmd);
+                    else if(ncmd != nnew)
+                        fprintf(f,
+                                "**  <badge>%d</badge> <badge>%d NEW</badge></button>\n<collapse id=\"",
+                                ncmd, nnew);
                     else
-                        fprintf(f, " |  |\n");
+                        fprintf(f,
+                                "**  <badge>%d NEW</badge></button>\n<collapse id=\"",
+                                ncmd);
+                    fwrite(outputfile + nameoffset, namelen, 1, f);
+                    fprintf(f, "-commands\" collapsed=\"true\">\n");
+                    fprintf(f, "\n^ Command  ^ Short Description ^  ^\n");
+
+                    // OUTPUT THE COMPLETE LIST OF COMMANDS
+
+                    for(int k = 0; k < ncmd; ++k) {
+                        fprintf(f, "| **[[manual:chapter6:");
+                        fwrite(outputfile + nameoffset, namelen, 1, f);
+                        fprintf(f, ":cmd_");
+                        for(int j = 0; j < cmdnamelen[k]; ++j)
+                            buffer[j] = tolower(cmdname[k][j]);
+                        fwrite(buffer, cmdnamelen[k], 1, f);
+                        fprintf(f, "|");
+                        fwrite(cmdstring[k], cmdstrlen[k], 1, f);
+                        fprintf(f, "]]** | ");
+                        if(cmddesclen[k])
+                            fwrite(cmddesc[k], cmddesclen[k], 1, f);
+                        if(cmdflags[k] == 1)
+                            fprintf(f, " | <badge>NEW</badge> |\n");
+                        else if(cmdflags[k] == 2)
+                            fprintf(f, " | <badge>CHANGED</badge> |\n");
+                        else
+                            fprintf(f, " |  |\n");
+                    }
+
+                    fprintf(f, "</collapse>\n");
                 }
 
-                fprintf(f, "</collapse>\n");
                 // CLOSE THE OUTPUT FILE
                 if(needcleanup) {
                     free(outputfile);
