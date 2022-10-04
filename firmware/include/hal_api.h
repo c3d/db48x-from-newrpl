@@ -136,6 +136,7 @@ enum halFonts
 #define MENU2_DIRTY             64
 #define STATUS_DIRTY            128
 #define HELP_DIRTY              256
+#define ALL_DIRTY               ~0U;
 #define BUFFER_LOCK             16384
 #define BUFFER_ALT              32768
 

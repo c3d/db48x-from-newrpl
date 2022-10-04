@@ -138,7 +138,7 @@ static inline utf8_p halHelpMessage(utf8_p command)
                 halScreen.ShortHelpMessage = NULL;                      \
             halScreen.HelpMessage = NULL;                               \
             halCancelPopup();                                           \
-            halScreen.DirtyFlag |= STATUS_DIRTY | HELP_DIRTY;           \
+            halScreen.DirtyFlag |= HELP_DIRTY;                          \
             return;                                                     \
         }                                                               \
         if (msg & KFLAG_LONG_PRESS)                                     \
@@ -1229,7 +1229,7 @@ utf8_p halCommandName(word_p item)
     if (!uiMenuItemName(item, &flags, &text, &end))
         return NULL;
 
-    // Copy in a local buffer, since the original may be a string (GC)
+    // Copy in a local buffer, since the original may be subject to GC
     static char name[32] = { 0 };
     size_t size = end - text;
     if (size > sizeof(name)-1)

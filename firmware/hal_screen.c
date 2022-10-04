@@ -824,21 +824,27 @@ void halRedrawHelp(gglsurface *scr)
     utf8_p text = halScreen.HelpMessage;
     if (text)
     {
-        coord ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        coord ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-        const UNIFONT *font = FONT_HLPTITLE;
+        // coord ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
+        // coord ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+        coord          ytop   = 0;
+        coord          ybot   = LCD_H - 1;
+        coord          xleft  = 0;
+        coord          xright = LCD_W - 1;
+        const UNIFONT *font   = FONT_HLPTITLE;
 
-        // Clear menu2 and status area
-        ggl_cliprect(scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
-
-        // Do some decorative elements
-        ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_HLP_LINES);
+        // Clear help area and add some decorative elements
+        ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_LINES);
+        xleft += 1;
+        xright -= 1;
+        ytop += 1;
+        ybot -= 1;
+        ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_BG);
 
         coord y = ytop + 2;
         coord x = 3;
 
         // Display until end of help or next markdown section title
-        while(*text && (text[0] != '\n' || text[1] != '#') && ytop < LCD_H)
+        while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
         {
             utf8_p end = text;
 
@@ -847,10 +853,10 @@ void halRedrawHelp(gglsurface *scr)
                 end++;
 
             // Check if word fits. If not, skip to new line
-            size width = StringWidthN(text, end, font);
-            if (x + width >= LCD_W - 3)
+            coord right = x + StringWidthN(text, end, font);
+            if (right >= xright - 1)
             {
-                x = 3;
+                x = xleft;
                 y += font->BitmapHeight;
             }
 
@@ -865,20 +871,21 @@ void halRedrawHelp(gglsurface *scr)
             text = end;
             if (*text == '\n')
             {
-                x = 3;
+                x = xleft;
                 y += font->BitmapHeight;
                 text++;
-            }
 
-            // Switch to regular help font for the rest of the display
-            font = FONT_HLPTEXT;
+                // Switch to regular help font for the rest of the display
+                font = FONT_HLPTEXT;
+            }
         }
         halScreen.DirtyFlag &= ~HELP_DIRTY;
     }
     else
     {
+        // Help covers the whole screen, need to redraw everything
+        halScreen.DirtyFlag |= ALL_DIRTY;
         halScreen.DirtyFlag &= ~HELP_DIRTY;
-        halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
         halRedrawAll(scr);
     }
 }
@@ -1974,7 +1981,8 @@ void halRedrawCmdLine(gglsurface *scr)
                          PAL_CMD_BG);
         }
 
-        if (halScreen.DirtyFlag & CMDLINE_CURSORDIRTY)
+        if (!halScreen.HelpMessage &&
+            halScreen.DirtyFlag & CMDLINE_CURSORDIRTY)
         {
             // Draw the cursor
             coord xcoord  = halScreen.CursorX - halScreen.XVisible;
@@ -2201,7 +2209,7 @@ void halSwapBuffer(gglsurface *scr)
 
 void halForceRedrawAll(gglsurface *scr)
 {
-    halScreen.DirtyFlag = ~0U;
+    halScreen.DirtyFlag = ALL_DIRTY;
     halRedrawAll(scr);
 }
 

@@ -52,7 +52,7 @@
 // Theme colors for help and popup messages
 #define THEME_HLP_BG              THEME_GRAY0
 #define THEME_HLP_TEXT            THEME_GRAY15
-#define THEME_HLP_LINES           THEME_GRAY8
+#define THEME_HLP_LINES           60, 120, 250
 
 // Theme colors for Forms
 #define THEME_FORMBACKGROUND      THEME_GRAY0
