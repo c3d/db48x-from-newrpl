@@ -636,6 +636,13 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
     for (index = 0; index < FONTS_NUM; index++)
         if (fontarray[index] == 0)
             fontarray[index] = halGetSystemFontbyHeight(defaultHeight[index]);
+
+#if LCD_W > 131
+    fontarray[FONT_INDEX_HLPTEXT]  = Font_8B;
+    fontarray[FONT_INDEX_HLPTITLE] = Font_18;
+    fontarray[FONT_INDEX_MENU]     = Font_10A;
+#endif
+
     return;
 }
 
@@ -2153,11 +2160,15 @@ void halUpdateFonts()
                     halSetMenu2Height(MENU2_HEIGHT);
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
                 break;
-            case FONT_INDEX_STATUS: halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY; break;
+            case FONT_INDEX_STATUS:
+                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
+                break;
             case FONT_INDEX_PLOT: halScreen.DirtyFlag |= FORM_DIRTY; break;
             case FONT_INDEX_FORMS: halScreen.DirtyFlag |= FORM_DIRTY; break;
             case FONT_INDEX_HLPTITLE:
-            case FONT_INDEX_HLPTEXT: break;
+            case FONT_INDEX_HLPTEXT:
+                halScreen.DirtyFlag |= HELP_DIRTY;
+                break;
             }
         }
         else
