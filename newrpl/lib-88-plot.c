@@ -1153,7 +1153,7 @@ void LIB_HANDLER()
 
         int k;
         for(k = 0; k < RSTATUS_SIZE; ++k) {
-            rstatus[k * 3 + 1] = MKPROLOG(DECint32_t, 2);
+            rstatus[k * 3 + 1] = MKPROLOG(DECBINT, 2);
             rstatus[k * 3 + 2] = 0;
             rstatus[k * 3 + 3] = 0;
         }
@@ -2045,7 +2045,7 @@ void LIB_HANDLER()
                     BYTE tmpbuffer[12]; // 2^36 USES 10 DIGITS + SIGN MAX.
 
                     int32_t nbytes =
-                            rplIntToString(num, DECint32_t, tmpbuffer,
+                            rplIntToString(num, DECBINT, tmpbuffer,
                             tmpbuffer + 12);
 
                     int32_t off = ptr - (byte_p) DecompileObject;

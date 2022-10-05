@@ -42,9 +42,9 @@
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS \
-            DECint32_t,BINint32_t,OCTint32_t,HEXint32_t, \
-            DECint32_t|APPROX_BIT,BINint32_t|APPROX_BIT, \
-            OCTint32_t|APPROX_BIT,HEXint32_t|APPROX_BIT
+            DECBINT,BINBINT,OCTBINT,HEXBINT, \
+            DECBINT|APPROX_BIT,BINBINT|APPROX_BIT, \
+            OCTBINT|APPROX_BIT,HEXBINT|APPROX_BIT
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
@@ -58,9 +58,9 @@
 // MACRO TO GET NUMBER OF BITS IN THE BASE
 // 1= BINARY, 3=OCTAL, 4=HEX, AND 2=DECIMAL
 
-#define GETBASE(libnum) (((libnum)-(BINint32_t-2))>>1)
+#define GETBASE(libnum) (((libnum)-(BINBINT-2))>>1)
 
-#define LIBFROMBASE(base) ((base<<1)+(BINint32_t-2))
+#define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
 
 const uint64_t const powersof10[20] = {
     1000000000000000000LL,
@@ -495,7 +495,7 @@ static int rpl_log2(int64_t number, int bits)
 int32_t rplIntToString(int64_t number, int32_t base, byte_p buffer, byte_p endbuffer)
 {
 
-    base -= DOint32_t;
+    base -= DOBINT;
 
     if(base == 2) {
         // THIS IS A BASE-10 NUMBER
@@ -604,7 +604,7 @@ void LIB_HANDLER()
         REAL rop1, rop2;
         int op1type = 0, op2type = 0;
         int op1app = 0, op2app = 0;
-        int op1base = DECint32_t;
+        int op1base = DECBINT;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
 #define arg1 ScratchPointer1
@@ -705,7 +705,7 @@ void LIB_HANDLER()
                     rplint32_tToRReg(1, op1);
 
                     addReal(&RReg[0], &RReg[1], &rop2);
-                    if(op1base != DECint32_t) {
+                    if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                             rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
@@ -776,7 +776,7 @@ void LIB_HANDLER()
 
                     subReal(&RReg[0], &RReg[1], &rop2);
 
-                    if(op1base != DECint32_t) {
+                    if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                             rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
@@ -848,7 +848,7 @@ void LIB_HANDLER()
 
                     mulReal(&RReg[0], &RReg[1], &rop2);
 
-                    if(op1base != DECint32_t) {
+                    if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                             rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
@@ -941,7 +941,7 @@ void LIB_HANDLER()
                             RReg[0].flags |= F_UNDINFINITY;
                     }
 
-                    if(op1base != DECint32_t) {
+                    if(op1base != DECBINT) {
                         if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                             rplNewint32_tPush(getint64_tReal(&RReg[0]),
                                     op1base | ((op1app
@@ -1160,7 +1160,7 @@ void LIB_HANDLER()
                     int64_t result = getint64_tReal(&RReg[8]);
                     int32_t base;
                     if(op1type)
-                        base = DECint32_t;
+                        base = DECBINT;
                     else
                         base = LIBNUM(*arg1);
                     rplNewint32_tPush(result, base | (LIBNUM(*arg2) & APPROX_BIT));
@@ -1548,7 +1548,7 @@ void LIB_HANDLER()
             // COMPILE RETURNS:
             // RetNum =  enum CompileErrors
         {
-            if(LIBNUM(CurOpcode) != DOint32_t) {
+            if(LIBNUM(CurOpcode) != DOBINT) {
                 // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
                 RetNum = ERR_NOTMINE;
                 return;
@@ -1560,7 +1560,7 @@ void LIB_HANDLER()
             strptr = (byte_p) TokenStart;
             strend = (byte_p) BlankStart;
             base = 10;
-            libbase = DECint32_t;
+            libbase = DECBINT;
             neg = 0;
             argnum1 = TokenLen; // LOCAL COPY
 
@@ -1604,19 +1604,19 @@ void LIB_HANDLER()
                 }
                 if((basechr == 'h') || (basechr == 'H')) {
                     base = 16;
-                    libbase = HEXint32_t | (libbase & APPROX_BIT);
+                    libbase = HEXBINT | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
                 if((basechr == 'o') || (basechr == 'O')) {
                     base = 8;
-                    libbase = OCTint32_t | (libbase & APPROX_BIT);
+                    libbase = OCTBINT | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
                 if((basechr == 'b') || (basechr == 'B')) {
                     base = 2;
-                    libbase = BINint32_t | (libbase & APPROX_BIT);
+                    libbase = BINBINT | (libbase & APPROX_BIT);
                     --argnum1;
                     --strend;
                 }
@@ -1861,7 +1861,7 @@ void LIB_HANDLER()
             result = 0;
             strptr = (byte_p) TokenStart;
             base = 10;
-            libbase = DECint32_t;
+            libbase = DECBINT;
             neg = 0;
             argnum1 = TokenLen; // LOCAL COPY
 
@@ -1871,7 +1871,7 @@ void LIB_HANDLER()
                else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
              */
 
-            if(LIBNUM(CurOpcode) != DOint32_t) {
+            if(LIBNUM(CurOpcode) != DOBINT) {
                 // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
                 RetNum = ERR_NOTMINE;
                 return;

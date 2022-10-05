@@ -231,15 +231,15 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 #define DOCOL         8
 #define DOREAL       10
 #define DOREALAPP    (DOREAL|APPROX_BIT)
-#define DOint32_t       12 // JUST A GENERIC ALIAS
-#define BINint32_t      12
-#define DECint32_t      14
-#define OCTint32_t      16
-#define HEXint32_t      18
-#define BINint32_tAPP   (BINint32_t|APPROX_BIT)
-#define DECint32_tAPP   (DECint32_t|APPROX_BIT)
-#define OCTint32_tAPP   (OCTint32_t|APPROX_BIT)
-#define HEXint32_tAPP   (HEXint32_t|APPROX_BIT)
+#define DOBINT       12 // JUST A GENERIC ALIAS
+#define BINBINT      12
+#define DECBINT      14
+#define OCTBINT      16
+#define HEXBINT      18
+#define BINBINTAPP   (BINBINT|APPROX_BIT)
+#define DECBINTAPP   (DECBINT|APPROX_BIT)
+#define OCTBINTAPP   (OCTBINT|APPROX_BIT)
+#define HEXBINTAPP   (HEXBINT|APPROX_BIT)
 
 #define DOCOMMENT   20  // LIBRARIES 20,21,22, 23 ARE COMMENTS
 
@@ -306,7 +306,7 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 #define ISHIDDENIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&HIDDEN_BIT) )
 #define ISLOCKEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&READONLY_BIT) )
 #define ISREALIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&REALASSUME_BIT))
-#define ISint32_t(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINint32_t) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXint32_t)))
+#define ISint32_t(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~1)==DOLIST))
 #define ISAUTOEXPLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST+1))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
@@ -351,17 +351,17 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (int32_t)(LIBNUM(prolog)&3):(int32_t)ANGLENONE) )
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE int32_t0 OR THE REAL0
-#define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTint32_t))
+#define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
-#define MAKESINT(a) MKOPCODE(DECint32_t,(a)&0x3ffff)
-#define MAKESINTH(a) MKOPCODE(HEXint32_t,(a)&0x3ffff)
-#define MAKEint64_t(a) MKPROLOG(DECint32_t,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
+#define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
+#define MAKESINTH(a) MKOPCODE(HEXBINT,(a)&0x3ffff)
+#define MAKESINT64(a) MKPROLOG(DECBINT,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
-#define MAKEMSG(lib,num) MKOPCODE(DECint32_t, (((lib)&0xfff)<<7) | ((num)&0x7f))
+#define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 #define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
 #define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)

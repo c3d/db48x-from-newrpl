@@ -197,7 +197,7 @@ void LIB_HANDLER()
                 LIB_NUMBEROFCMDS);
         if(RetNum == OK_CONTINUE) {
             // ENCAPSULATE THE OPCODE INSIDE AN OBJECT
-            rplCompileAppend(MKOPCODE(DECint32_t, OPCODE(*(CompileEnd - 1))));
+            rplCompileAppend(MKOPCODE(DECBINT, OPCODE(*(CompileEnd - 1))));
             if(CompileEnd[-2] & 1) {
                 // THIS IS A COMPLEX CONSTANT, JUST REPEAT THE OPCODE
                 rplCompileAppend(*(CompileEnd - 1));

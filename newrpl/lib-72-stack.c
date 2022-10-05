@@ -184,7 +184,7 @@ void LIB_HANDLER()
         return;
     case DEPTH:
         //@SHORT_DESC=Get the current stack depth
-        rplNewint32_tPush(rplDepthData(), DECint32_t);
+        rplNewint32_tPush(rplDepthData(), DECBINT);
         return;
     case DROP:
         //@SHORT_DESC=Remove an object from the stack
@@ -295,7 +295,7 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
         }
-        rplNewint32_tPush(count, DECint32_t);
+        rplNewint32_tPush(count, DECBINT);
         return;
     }
     case NIP:
@@ -667,7 +667,7 @@ void LIB_HANDLER()
 
         int32_t depth = rplDepthSnapshot(snap);
 
-        word_p newbint = rplNewint32_t(depth, DECint32_t);
+        word_p newbint = rplNewint32_t(depth, DECBINT);
         if(!newbint)
             return;
         rplOverwriteData(1, newbint);

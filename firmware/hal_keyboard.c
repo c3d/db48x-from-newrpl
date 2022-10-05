@@ -1267,7 +1267,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1312,7 +1312,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1355,7 +1355,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -1515,7 +1515,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 int64_t libmcode =
                         (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
                         0, 0);
-                word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                 if(!numobject || Exceptions)
                     return;
@@ -1747,7 +1747,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     int64_t libmcode =
                             (((int64_t) action[2]) << 32) | MKMENUCODE(0,
                             DOLIBPTR, 0, 0);
-                    word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                    word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                     if(!numobject || Exceptions)
                         return;
@@ -2134,7 +2134,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 // SHOW THE LIBRARY MENU
                 int64_t libmcode = (((int64_t) action[2]) << 32) |
                                    MKMENUCODE(0, DOLIBPTR, 0, 0);
-                word_p numobject = rplNewint32_t(libmcode, HEXint32_t);
+                word_p numobject = rplNewint32_t(libmcode, HEXBINT);
 
                 if (!numobject || Exceptions)
                     return;
@@ -4260,7 +4260,7 @@ void KH(increaseContrast)(keyb_msg_t keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    word_p contrast = rplNewSINT(lcd_contrast, DECint32_t);
+    word_p contrast = rplNewSINT(lcd_contrast, DECBINT);
     if(contrast)
         rplStoreSettings((word_p) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -4280,7 +4280,7 @@ void KH(decreaseContrast)(keyb_msg_t keymsg)
     lcd_setcontrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
-    word_p contrast = rplNewSINT(lcd_contrast, DECint32_t);
+    word_p contrast = rplNewSINT(lcd_contrast, DECBINT);
     if(contrast)
         rplStoreSettings((word_p) screenconfig_ident, contrast);
     Exceptions = savedex;
@@ -4799,7 +4799,7 @@ void changemenuKeyHandler(keyb_msg_t keymsg, int64_t menucode)
 {
     UNUSED(keymsg);
 
-    word_p numobject = rplNewint32_t(menucode, HEXint32_t);
+    word_p numobject = rplNewint32_t(menucode, HEXBINT);
 
     if(!numobject || Exceptions)
         return;

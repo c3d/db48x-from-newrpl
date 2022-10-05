@@ -772,17 +772,17 @@ void rplSetSystemNumberFormat(NUMFORMAT * fmt)
         return;
 
     rplPushData(item);
-    rplNewint32_tPush(fmt->SmallFmt, DECint32_t);
+    rplNewint32_tPush(fmt->SmallFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewint32_tPush(fmt->MiddleFmt, DECint32_t);
+    rplNewint32_tPush(fmt->MiddleFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
     }
-    rplNewint32_tPush(fmt->BigFmt, DECint32_t);
+    rplNewint32_tPush(fmt->BigFmt, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return;
@@ -1324,7 +1324,7 @@ void rplSaveMenuHistory(int32_t menu)
     else {
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
         // THIS CAN TRIGGER A GC!
-        msetting = rplNewint32_t(oldmcode, HEXint32_t);
+        msetting = rplNewint32_t(oldmcode, HEXBINT);
     }
 
     if(!msetting)
@@ -2543,7 +2543,7 @@ void LIB_HANDLER()
 
         // NOTHING CUSTOM, JUST RETURN THE MENU CODE
 
-        rplNewint32_tPush((int64_t) mcode, HEXint32_t);
+        rplNewint32_tPush((int64_t) mcode, HEXBINT);
         return;
 
     }
@@ -2673,8 +2673,8 @@ void LIB_HANDLER()
         }
 
         rplDropData(2);
-        rplNewint32_tPush(keycode, HEXint32_t);
-        rplNewint32_tPush(context, HEXint32_t);
+        rplNewint32_tPush(keycode, HEXBINT);
+        rplNewint32_tPush(context, HEXBINT);
         if(Exceptions)
             return;
 
@@ -2878,7 +2878,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewint32_tPush((TypeInfo / 100) + (istag ? 10000 : 0), DECint32_t);
+                rplNewint32_tPush((TypeInfo / 100) + (istag ? 10000 : 0), DECBINT);
                 return;
             }
         }
@@ -2918,7 +2918,7 @@ void LIB_HANDLER()
                 }
                 else
                     rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
-                            DECint32_t);
+                            DECBINT);
                 return;
             }
         }
@@ -3173,7 +3173,7 @@ void LIB_HANDLER()
 
             if(RetNum > OK_TOKENINFO) {
                 rplDropData(1);
-                rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0), DECint32_t);
+                rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0), DECBINT);
                 return;
             }
         }
@@ -3236,7 +3236,7 @@ void LIB_HANDLER()
                 }
                 else
                     rplNewint32_tPush(TypeInfo / 100 + (istag ? 10000 : 0),
-                            DECint32_t);
+                            DECBINT);
                 return;
             }
         }

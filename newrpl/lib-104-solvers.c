@@ -298,7 +298,7 @@ void LIB_HANDLER()
             DSTop = dstkptr;
             return;
         }
-        rplNewSINTPush(12, DECint32_t);
+        rplNewSINTPush(12, DECBINT);
         rplCallOvrOperator(CMD_OVR_DIV);
 
         // MAIN LOOP NEEDS: ERR A B C FA FB FC AREA H_12
@@ -425,7 +425,7 @@ void LIB_HANDLER()
                 DSTop = dstkptr;
                 return;
             }
-            rplNewSINTPush(15, DECint32_t);
+            rplNewSINTPush(15, DECBINT);
             rplCallOvrOperator(CMD_OVR_DIV);
             if(Exceptions) {
                 DSTop = dstkptr;
@@ -1080,7 +1080,7 @@ void LIB_HANDLER()
 
                 weight += j - 2;
                 //++weight;
-                rplNewint32_tPush(j - 2, DECint32_t);
+                rplNewint32_tPush(j - 2, DECBINT);
                 if(Exceptions) {
                     DSTop = stksave;
                     return;
@@ -1096,7 +1096,7 @@ void LIB_HANDLER()
                     return;
                 }
             }
-            rplNewint32_tPush(weight, DECint32_t);
+            rplNewint32_tPush(weight, DECBINT);
             rplRunAtomic(CMD_OVR_DIV);
             if(Exceptions) {
                 DSTop = stksave;

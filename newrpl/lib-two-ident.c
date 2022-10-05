@@ -149,7 +149,7 @@ void LIB_HANDLER()
                }
 
                if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
-               rplCompileint32_t(getint64_tReal(&RReg[0]),(RReg[0].flags&F_APPROX)? DECint32_tAPP:DECint32_t);
+               rplCompileint32_t(getint64_tReal(&RReg[0]),(RReg[0].flags&F_APPROX)? DECBINTAPP:DECBINT);
                }
                else rplCompileReal(&RReg[0]);
                tok=((byte_p)TokenStart)+splitoff;

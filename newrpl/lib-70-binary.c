@@ -171,7 +171,7 @@ void LIB_HANDLER()
 
         int32_t wsize = (low64[0] >> 4) & 0x3f;
 
-        rplNewint32_tPush(wsize, DECint32_t);
+        rplNewint32_tPush(wsize, DECBINT);
 
         return;
     }

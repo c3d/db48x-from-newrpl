@@ -1060,14 +1060,14 @@ void LIB_HANDLER()
             // SIZE
             BYTE buffer[50];
             int32_t len =
-                    rplIntToString((int64_t) DecompileObject[1], DECint32_t, buffer,
+                    rplIntToString((int64_t) DecompileObject[1], DECBINT, buffer,
                     buffer + 50);
 
             rplDecompAppendString2(buffer, len);
 
             rplDecompAppendChar(' ');
 
-            len = rplIntToString((int64_t) DecompileObject[2], DECint32_t, buffer,
+            len = rplIntToString((int64_t) DecompileObject[2], DECBINT, buffer,
                     buffer + 50);
 
             rplDecompAppendString2(buffer, len);

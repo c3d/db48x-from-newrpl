@@ -1888,43 +1888,43 @@ word_p halSaveCmdLine()
     rplPushData(CmdLineUndoList);
 
     // SCREEN PRESENTATION
-    rplNewint32_tPush(halScreen.CmdLine, DECint32_t);
+    rplNewint32_tPush(halScreen.CmdLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.CmdLineState, DECint32_t);
+    rplNewint32_tPush(halScreen.CmdLineState, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.LineCurrent, DECint32_t);
+    rplNewint32_tPush(halScreen.LineCurrent, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.LineVisible, DECint32_t);
+    rplNewint32_tPush(halScreen.LineVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.NumLinesVisible, DECint32_t);
+    rplNewint32_tPush(halScreen.NumLinesVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.XVisible, DECint32_t);
+    rplNewint32_tPush(halScreen.XVisible, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.CursorPosition, DECint32_t);
+    rplNewint32_tPush(halScreen.CursorPosition, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1933,7 +1933,7 @@ word_p halSaveCmdLine()
     // LOCK CURSOR
     halScreen.CursorState |= 0x4000;
 
-    rplNewint32_tPush(halScreen.CursorState, DECint32_t);
+    rplNewint32_tPush(halScreen.CursorState, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1943,25 +1943,25 @@ word_p halSaveCmdLine()
     halScreen.CursorState &= ~0xc000;
 
     // SELECTION
-    rplNewint32_tPush(halScreen.SelStart, DECint32_t);
+    rplNewint32_tPush(halScreen.SelStart, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelStartLine, DECint32_t);
+    rplNewint32_tPush(halScreen.SelStartLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelEnd, DECint32_t);
+    rplNewint32_tPush(halScreen.SelEnd, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.SelEndLine, DECint32_t);
+    rplNewint32_tPush(halScreen.SelEndLine, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
@@ -1971,13 +1971,13 @@ word_p halSaveCmdLine()
     if(SuggestedObject)
         rplPushData(SuggestedObject);
     else
-        rplNewint32_tPush(halScreen.ACSuggestion, DECint32_t);
+        rplNewint32_tPush(halScreen.ACSuggestion, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;
     }
 
-    rplNewint32_tPush(halScreen.ACTokenStart, DECint32_t);
+    rplNewint32_tPush(halScreen.ACTokenStart, DECBINT);
     if(Exceptions) {
         DSTop = savestk;
         return 0;

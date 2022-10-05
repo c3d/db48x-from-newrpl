@@ -533,7 +533,7 @@ void LIB_HANDLER()
             }
         }
 
-        rplNewSINTPush(msgcode, HEXint32_t);
+        rplNewSINTPush(msgcode, HEXBINT);
         return;
 
     }

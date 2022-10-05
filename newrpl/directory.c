@@ -740,7 +740,7 @@ void rplWipeDir(word_p * directory)
         return;
 
     // PUSH THE HANDLE TO PURGE LATER
-    rplNewint32_tPush(direntry - directory, DECint32_t);
+    rplNewint32_tPush(direntry - directory, DECBINT);
     rplPushData(directory[1]);
     if(Exceptions) {
         DSTop = Stacksave;
@@ -768,7 +768,7 @@ void rplWipeDir(word_p * directory)
                 if(dirsize) {
                     // NON-EMPTY DIR, RECURSE INTO IT
                     ScratchPointer1 = *(direntry + 1);  // PROTECT THE HANDLE FROM GC
-                    rplNewint32_tPush(direntry + 2 - directory, DECint32_t);  // RESUME AT THE FOLLOWING ENTRY
+                    rplNewint32_tPush(direntry + 2 - directory, DECBINT);  // RESUME AT THE FOLLOWING ENTRY
                     rplPushData(directory[1]);
                     if(Exceptions) {
                         DSTop = Stacksave;

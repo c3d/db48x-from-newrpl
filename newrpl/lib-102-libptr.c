@@ -1181,7 +1181,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        word_p newmenu = rplNewint32_t(mcode, HEXint32_t);
+        word_p newmenu = rplNewint32_t(mcode, HEXBINT);
         if(!newmenu)
             return;
 
@@ -1225,7 +1225,7 @@ void LIB_HANDLER()
 
         mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
                 MENUNUMBER(mcode), MENUPAGE(mcode));
-        word_p newmenu = rplNewint32_t(mcode, HEXint32_t);
+        word_p newmenu = rplNewint32_t(mcode, HEXBINT);
         if(!newmenu)
             return;
 
@@ -1753,7 +1753,7 @@ void LIB_HANDLER()
                     ++ptr;
                     rplDecompAppendChar('.');
                     BYTE buffer[22];
-                    int32_t n = rplIntToString(DecompileObject[2], DECint32_t, buffer,
+                    int32_t n = rplIntToString(DecompileObject[2], DECBINT, buffer,
                             buffer + 22);
                     ptr = buffer;
                     while(n--) {

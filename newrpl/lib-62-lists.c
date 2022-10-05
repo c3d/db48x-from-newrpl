@@ -836,7 +836,7 @@ void LIB_HANDLER()
 
         rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        word_p newb = rplNewint32_t(nlists, DECint32_t);
+        word_p newb = rplNewint32_t(nlists, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -849,7 +849,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newb = rplNewint32_t(length, DECint32_t);
+        newb = rplNewint32_t(length, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -862,7 +862,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newb = rplNewint32_t(1, DECint32_t);
+        newb = rplNewint32_t(1, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -944,7 +944,7 @@ void LIB_HANDLER()
         if(idx < length) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            word_p newbint = rplNewint32_t(idx, DECint32_t);
+            word_p newbint = rplNewint32_t(idx, DECBINT);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                 if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -970,7 +970,7 @@ void LIB_HANDLER()
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-        rplNewint32_tPush(newdepth, DECint32_t);
+        rplNewint32_tPush(newdepth, DECBINT);
         if(Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -1107,7 +1107,7 @@ void LIB_HANDLER()
 
         rplCreateLAM((word_p) nulllam_ident, rplPeekData(1));  // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
-        word_p newb = rplNewint32_t(nvalues, DECint32_t);
+        word_p newb = rplNewint32_t(nvalues, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -1120,7 +1120,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newb = rplNewint32_t(maxpos, DECint32_t);
+        newb = rplNewint32_t(maxpos, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -1133,7 +1133,7 @@ void LIB_HANDLER()
             return;
         }
 
-        newb = rplNewint32_t(1, DECint32_t);
+        newb = rplNewint32_t(1, DECBINT);
         if(!newb) {
             rplCleanupLAMs(0);
             return;
@@ -1211,7 +1211,7 @@ void LIB_HANDLER()
         if(idx < endsub) {
             // NEED TO DO ONE MORE LOOP
             ++idx;
-            word_p newbint = rplNewint32_t(idx, DECint32_t);
+            word_p newbint = rplNewint32_t(idx, DECBINT);
             if(Exceptions) {
                 DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
 
@@ -1234,7 +1234,7 @@ void LIB_HANDLER()
 
         int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-        rplNewint32_tPush(newdepth, DECint32_t);
+        rplNewint32_tPush(newdepth, DECBINT);
         if(Exceptions) {
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
@@ -1429,7 +1429,7 @@ void LIB_HANDLER()
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
                     int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewint32_tPush(nelements, DECint32_t);
+                    rplNewint32_tPush(nelements, DECBINT);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
@@ -1671,7 +1671,7 @@ void LIB_HANDLER()
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
                     int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewint32_tPush(nelements, DECint32_t);
+                    rplNewint32_tPush(nelements, DECBINT);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
@@ -2149,7 +2149,7 @@ void LIB_HANDLER()
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewint32_tPush(newdepth, DECint32_t);
+            rplNewint32_tPush(newdepth, DECBINT);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -2198,7 +2198,7 @@ void LIB_HANDLER()
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewint32_tPush(newdepth, DECint32_t);
+            rplNewint32_tPush(newdepth, DECBINT);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -2755,7 +2755,7 @@ void LIB_HANDLER()
 
             int32_t newdepth = (int32_t) (DSTop - prevDStk);
 
-            rplNewint32_tPush(newdepth, DECint32_t);
+            rplNewint32_tPush(newdepth, DECBINT);
             if(Exceptions) {
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
@@ -3001,7 +3001,7 @@ void LIB_HANDLER()
                         --stkptr;       // FIND THE NEXT MARKER ON THE STACK
                     int32_t nelements = (int32_t) (DSTop - stkptr) - 1;
 
-                    rplNewint32_tPush(nelements, DECint32_t);
+                    rplNewint32_tPush(nelements, DECBINT);
                     if(Exceptions) {
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {

@@ -313,7 +313,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get the current system precision
         //@NEW
-        rplNewint32_tPush(getPrecision(), DECint32_t);
+        rplNewint32_tPush(getPrecision(), DECBINT);
         return;
     }
 
@@ -478,7 +478,7 @@ void LIB_HANDLER()
         ipReal(&RReg[0], &num, 1);
         word_p newnum;
         if(inint64_tRange(&RReg[0]))
-            newnum = rplNewint32_t(getint64_tReal(&RReg[0]), DECint32_t);
+            newnum = rplNewint32_t(getint64_tReal(&RReg[0]), DECBINT);
         else
             newnum = rplNewRealFromRReg(0);
 
@@ -597,7 +597,7 @@ void LIB_HANDLER()
         if(result < 0)
             rplNewRealFromRRegPush(0);
         else
-            rplNewint32_tPush(result, DECint32_t);
+            rplNewint32_tPush(result, DECBINT);
         return;
 
     }
@@ -693,7 +693,7 @@ void LIB_HANDLER()
 
             int64_t next = nextprimeint32_t(n);
             if(next > 0) {
-                rplNewint32_tPush(next, DECint32_t);
+                rplNewint32_tPush(next, DECBINT);
                 if(Exceptions)
                     return;
                 word_p ptr = rplPopData();
@@ -759,7 +759,7 @@ void LIB_HANDLER()
             do {
                 next = nextprimeint32_t(prev);
                 if((next > n) && previsprime) {
-                    rplNewint32_tPush(prev, DECint32_t);
+                    rplNewint32_tPush(prev, DECBINT);
                     if(Exceptions)
                         return;
                     word_p ptr = rplPopData();
@@ -849,7 +849,7 @@ void LIB_HANDLER()
                 if(m < 2)
                     m = 2;
                 rplStoreSettingsbyName((byte_p) modulo_name,
-                        (byte_p) (modulo_name + 3), rplNewint32_t(m, DECint32_t));
+                        (byte_p) (modulo_name + 3), rplNewint32_t(m, DECBINT));
                 rplDropData(1);
 
                 return;
@@ -894,7 +894,7 @@ void LIB_HANDLER()
         }
         if(ISint32_t(*mod)) {
             int64_t m = rplReadint32_t(mod);
-            rplNewint32_tPush(m, DECint32_t);
+            rplNewint32_tPush(m, DECBINT);
             return;
         }
         REAL m;
@@ -976,7 +976,7 @@ void LIB_HANDLER()
 
                     rplDropData(2);
 
-                    rplNewint32_tPush(r, DECint32_t);
+                    rplNewint32_tPush(r, DECBINT);
                     return;
                 }
             }
@@ -1118,10 +1118,10 @@ void LIB_HANDLER()
                 if(!isunit) {
                     rplDropData(2);
                     if(OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
-                        rplNewint32_tPush(q, DECint32_t);
+                        rplNewint32_tPush(q, DECBINT);
                     }
                     if(OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == MOD) {
-                        rplNewint32_tPush(r, DECint32_t);
+                        rplNewint32_tPush(r, DECBINT);
                     }
                     return;
                 }
@@ -1132,7 +1132,7 @@ void LIB_HANDLER()
                     switch (OPCODE(CurOpcode)) {
                     default:
                     case IDIV2:
-                        newvalue = rplNewint32_t(q, DECint32_t);
+                        newvalue = rplNewint32_t(q, DECBINT);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1152,7 +1152,7 @@ void LIB_HANDLER()
                         }
                         // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
 
-                        newvalue = rplNewint32_t(r, DECint32_t);
+                        newvalue = rplNewint32_t(r, DECBINT);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(3));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1163,7 +1163,7 @@ void LIB_HANDLER()
                         rplOverwriteData(2, rplPopData());
                         return;
                     case IQUOT:
-                        newvalue = rplNewint32_t(q, DECint32_t);
+                        newvalue = rplNewint32_t(q, DECBINT);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1186,7 +1186,7 @@ void LIB_HANDLER()
                         rplDropData(2);
                         return;
                     case MOD:
-                        newvalue = rplNewint32_t(r, DECint32_t);
+                        newvalue = rplNewint32_t(r, DECBINT);
                         if(!newvalue)
                             return;
                         newvalue = rplUnitApply(newvalue, rplPeekData(2));      // APPLY THE UNITS OF THE ARGUMENT
@@ -1465,7 +1465,7 @@ void LIB_HANDLER()
         digits += rnum.exp - 1;
 
         rplDropData(1);
-        rplNewint32_tPush(digits, DECint32_t);
+        rplNewint32_tPush(digits, DECBINT);
         return;
 
     }
@@ -1771,7 +1771,7 @@ void LIB_HANDLER()
                 DSTop = stksave;
                 return;
             }
-            rplNewint32_tPush(100, DECint32_t);
+            rplNewint32_tPush(100, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1847,7 +1847,7 @@ void LIB_HANDLER()
             word_p *stksave = DSTop;
 
             rplPushDataNoGrow(new_val);
-            rplNewint32_tPush(100, DECint32_t);
+            rplNewint32_tPush(100, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -2030,39 +2030,39 @@ void LIB_HANDLER()
                 if(cleanup)
                     DSTop = cleanup;
                 rplDropData(2);
-                rplNewint32_tPush(gcd, DECint32_t);
+                rplNewint32_tPush(gcd, DECBINT);
             }
             else if(isIEGCD) {
                 if(cleanup)
                     DSTop = cleanup;
                 rplDropData(2);
-                rplNewint32_tPush(gcd, DECint32_t);
+                rplNewint32_tPush(gcd, DECBINT);
                 if(!swapped) {
                     if(chs1) {
-                        rplNewint32_tPush(-s, DECint32_t);
+                        rplNewint32_tPush(-s, DECBINT);
                     }
                     else {
-                        rplNewint32_tPush(s, DECint32_t);
+                        rplNewint32_tPush(s, DECBINT);
                     }
                     if(chs2) {
-                        rplNewint32_tPush(-t, DECint32_t);
+                        rplNewint32_tPush(-t, DECBINT);
                     }
                     else {
-                        rplNewint32_tPush(t, DECint32_t);
+                        rplNewint32_tPush(t, DECBINT);
                     }
                 }
                 else {
                     if(chs1) {
-                        rplNewint32_tPush(-t, DECint32_t);
+                        rplNewint32_tPush(-t, DECBINT);
                     }
                     else {
-                        rplNewint32_tPush(t, DECint32_t);
+                        rplNewint32_tPush(t, DECBINT);
                     }
                     if(chs2) {
-                        rplNewint32_tPush(-s, DECint32_t);
+                        rplNewint32_tPush(-s, DECBINT);
                     }
                     else {
-                        rplNewint32_tPush(s, DECint32_t);
+                        rplNewint32_tPush(s, DECBINT);
                     }
                 }
             }
@@ -2543,8 +2543,8 @@ void LIB_HANDLER()
                 s *= q;
                 t *= q;
                 rplDropData(6);
-                rplNewint32_tPush(s, DECint32_t);
-                rplNewint32_tPush(t, DECint32_t);
+                rplNewint32_tPush(s, DECBINT);
+                rplNewint32_tPush(t, DECBINT);
             }
             else {
                 // ERROR: no soluton
@@ -3540,7 +3540,7 @@ void LIB_HANDLER()
             if(isintegerReal(&RReg[0])) {
                 if(inint64_tRange(&RReg[0])) {
                     int64_t res = getint64_tReal(&RReg[0]);
-                    newresult = rplNewint32_t(res, DECint32_t);
+                    newresult = rplNewint32_t(res, DECBINT);
                 }
                 else
                     newresult = rplNewRealFromRReg(0);
@@ -3665,7 +3665,7 @@ void LIB_HANDLER()
                     if(isintegerReal(&RReg[0])) {
                         if(inint64_tRange(&RReg[0])) {
                             int64_t res = getint64_tReal(&RReg[0]);
-                            newresult = rplNewint32_t(res, DECint32_t);
+                            newresult = rplNewint32_t(res, DECBINT);
                         }
                         else
                             newresult = rplNewRealFromRReg(0);
@@ -3828,7 +3828,7 @@ void LIB_HANDLER()
         rplDropData(3);
         if(inint64_tRange(&RReg[1])) {
             start = getint64_tReal(&RReg[1]);
-            rplNewint32_tPush(start, DECint32_t);
+            rplNewint32_tPush(start, DECBINT);
         }
         else
             rplNewRealFromRRegPush(1);
@@ -4350,8 +4350,8 @@ void LIB_HANDLER()
 
                     swapReal(&RReg[6], &RReg[1]);
                     if(count > 0) {
-                        rplNewint32_tPush(k, DECint32_t);
-                        rplNewint32_tPush(count, DECint32_t);
+                        rplNewint32_tPush(k, DECBINT);
+                        rplNewint32_tPush(count, DECBINT);
                     }
                     k = nextprimeint32_t(k);
                 }
@@ -4371,8 +4371,8 @@ void LIB_HANDLER()
 
                     inum = prev;
                     if(count > 0) {
-                        rplNewint32_tPush(k, DECint32_t);
-                        rplNewint32_tPush(count, DECint32_t);
+                        rplNewint32_tPush(k, DECBINT);
+                        rplNewint32_tPush(count, DECBINT);
                         if(Exceptions) {
                             DSTop = savestk;
                             Context.precdigits = prec;
@@ -4427,7 +4427,7 @@ void LIB_HANDLER()
                         rplPushData((word_p) zero_bint);
                         break;  // TERMINATE, WE GAVE UP
                     }
-                    rplNewint32_tPush(onefactor, DECint32_t);
+                    rplNewint32_tPush(onefactor, DECBINT);
                     if(onefactor == inum) {
                         rplPushData((word_p) one_bint);
                         break;
@@ -4454,7 +4454,7 @@ void LIB_HANDLER()
 
                     swapReal(&RReg[1], &RReg[6]);
 
-                    rplNewint32_tPush(count, DECint32_t);
+                    rplNewint32_tPush(count, DECBINT);
 
                     if(inint64_tRange(&RReg[6]))
                         inum = getint64_tReal(&RReg[6]);
@@ -4470,7 +4470,7 @@ void LIB_HANDLER()
                     while(inum * onefactor == prev);
 
                     inum = prev;
-                    rplNewint32_tPush(count, DECint32_t);
+                    rplNewint32_tPush(count, DECBINT);
 
                     newRealFromint64_t(&RReg[6], inum, 0);
                 }
@@ -4571,7 +4571,7 @@ void LIB_HANDLER()
                             nfactors * sizeof(word_p) / sizeof(WORD));
                     ++DSTop;
                     rplOverwriteData(nfactors + 1, (word_p) two_bint); // ADD FACTOR 2
-                    rplNewint32_tPush(exponent, DECint32_t);
+                    rplNewint32_tPush(exponent, DECBINT);
                     ++nfactors;
                 }
                 if(!factor5done) {
@@ -4586,7 +4586,7 @@ void LIB_HANDLER()
                             nfactors * sizeof(word_p) / sizeof(WORD));
                     ++DSTop;
                     rplOverwriteData(nfactors + 1, (word_p) five_bint);        // ADD FACTOR 5
-                    rplNewint32_tPush(exponent, DECint32_t);
+                    rplNewint32_tPush(exponent, DECBINT);
                     ++nfactors;
                 }
             }

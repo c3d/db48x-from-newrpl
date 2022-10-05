@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     if(outputtype == OUTPUT_BINARY) {
         // WRITE THE BINARY FILE MARKER
         WORD marker[3] = {
-            MKPROLOG(HEXint32_t, 2),       // PROLOG OF A 64-BIT int32_t
+            MKPROLOG(HEXBINT, 2),       // PROLOG OF A 64-BIT int32_t
             0x4c50526e, // STRING "nRPL"
             1   // VERSION OF THE newRPL BINARY FORMAT
         };

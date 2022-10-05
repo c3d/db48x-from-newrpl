@@ -1612,7 +1612,7 @@ void LIB_HANDLER()
                 rplOverwriteData(f, rplPeekData(nitems + 1 - f));
                 rplOverwriteData(nitems + 1 - f, obj);
             }
-            rplNewint32_tPush(nitems, DECint32_t);
+            rplNewint32_tPush(nitems, DECBINT);
             rplCreateList();
         }
         if(Exceptions)
@@ -1638,7 +1638,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((word_p) empty_list);
         else {
-            rplNewint32_tPush(nitems, DECint32_t);
+            rplNewint32_tPush(nitems, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;
@@ -1670,7 +1670,7 @@ void LIB_HANDLER()
         if(nitems == 0)
             rplPushData((word_p) empty_list);
         else {
-            rplNewint32_tPush(nitems, DECint32_t);
+            rplNewint32_tPush(nitems, DECBINT);
             if(Exceptions) {
                 DSTop = stksave;
                 return;

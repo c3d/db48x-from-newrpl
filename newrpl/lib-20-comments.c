@@ -165,7 +165,7 @@ void LIB_HANDLER()
             while(ptr != end) {
                 if(ISPROGRAM(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECint32_t);
+                    rplNewint32_tPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -178,7 +178,7 @@ void LIB_HANDLER()
                 }
                 if(ISLIST(*ptr)) {
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECint32_t);
+                    rplNewint32_tPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -245,7 +245,7 @@ void LIB_HANDLER()
                 if(ISPROGRAM(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECint32_t);
+                    rplNewint32_tPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;
@@ -261,7 +261,7 @@ void LIB_HANDLER()
                 if(ISLIST(*ptr)) {
                     rplPushDataNoGrow(ScratchPointer2);
                     rplPushData(ptr);   // PUSH THE CURRENT OBJECT
-                    rplNewint32_tPush(newsize, DECint32_t);
+                    rplNewint32_tPush(newsize, DECBINT);
                     if(Exceptions) {
                         DSTop = Stacksave;
                         return;

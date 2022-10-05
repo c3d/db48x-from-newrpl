@@ -696,7 +696,7 @@ void LIB_HANDLER()
         ptr += srcoffset;
 
         for(k = 0; k < nwords; ++k, ++ptr) {
-            newobj[3 * k + 1] = MKPROLOG(HEXint32_t, 2);
+            newobj[3 * k + 1] = MKPROLOG(HEXBINT, 2);
             newobj[3 * k + 2] = *ptr;
             newobj[3 * k + 3] = 0;
         }

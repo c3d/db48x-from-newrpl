@@ -1844,7 +1844,7 @@ void LIB_HANDLER()
 
             if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                 int64_t num = getint64_tReal(&RReg[0]);
-                rplCompileint32_t(num, DECint32_t | isapprox);
+                rplCompileint32_t(num, DECBINT | isapprox);
             }
 
             else {

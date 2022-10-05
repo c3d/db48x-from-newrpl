@@ -481,7 +481,7 @@ void LIB_HANDLER()
             utfchar =
                     utf82cp((char *)ScratchPointer1,
                     ((char *)ScratchPointer2) + 1);
-            rplNewint32_tPush(utfchar, HEXint32_t);
+            rplNewint32_tPush(utfchar, HEXBINT);
             ++count;
             if(Exceptions)
                 return;
@@ -491,7 +491,7 @@ void LIB_HANDLER()
                     ((char *)ScratchPointer2) + 1);
         }
 
-        rplNewint32_tPush(count, DECint32_t);
+        rplNewint32_tPush(count, DECBINT);
         rplCreateList();
 
         rplOverwriteData(2, rplPeekData(1));
@@ -662,7 +662,7 @@ void LIB_HANDLER()
 
         rplDropData(2);
 
-        rplNewint32_tPush(count, DECint32_t);
+        rplNewint32_tPush(count, DECBINT);
 
         return;
 
@@ -790,7 +790,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(3);
-        rplNewint32_tPush(pos, DECint32_t);
+        rplNewint32_tPush(pos, DECBINT);
         return;
 
     }
@@ -920,7 +920,7 @@ void LIB_HANDLER()
 
         word_p string = rplPeekData(1);
         rplDropData(1);
-        rplNewint32_tPush(rplStrLen(string), DECint32_t);
+        rplNewint32_tPush(rplStrLen(string), DECBINT);
 
         return;
     }
@@ -944,7 +944,7 @@ void LIB_HANDLER()
 
         word_p string = rplPeekData(1);
         rplDropData(1);
-        rplNewint32_tPush(rplStrLenCp(string), DECint32_t);
+        rplNewint32_tPush(rplStrLenCp(string), DECBINT);
 
         return;
 
@@ -1134,7 +1134,7 @@ void LIB_HANDLER()
             rplSetStringLength(newstring, newsize2);
             rplDropData(3);
             rplPushDataNoGrow(newstring);
-            rplNewint32_tPush(rcount, DECint32_t);
+            rplNewint32_tPush(rcount, DECBINT);
             return;
         }
         rplDropData(2);

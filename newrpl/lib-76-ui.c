@@ -373,7 +373,7 @@ void LIB_HANDLER()
             }
 
         }
-        rplNewint32_tPush(knum, DECint32_t);
+        rplNewint32_tPush(knum, DECBINT);
 
         return;
 

@@ -1170,8 +1170,8 @@ void LIB_HANDLER()
         DSTop--;
 
         if(rows)
-            rplNewint32_tPush(rows, DECint32_t);
-        rplNewint32_tPush(cols, DECint32_t);
+            rplNewint32_tPush(rows, DECBINT);
+        rplNewint32_tPush(cols, DECBINT);
         rplPushData((word_p) ((rows) ? two_bint : one_bint));
         rplCreateList();
 
@@ -1216,7 +1216,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewint32_tPush(cols, DECint32_t);
+        rplNewint32_tPush(cols, DECBINT);
 
         return;
 
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplNewint32_tPush(nrows, DECint32_t);
+        rplNewint32_tPush(nrows, DECBINT);
 
         return;
 
@@ -2366,14 +2366,14 @@ void LIB_HANDLER()
                     for(j = 1; j <= cols; ++j) {
                         rplPushData(rplMatrixFastGet(*mat, i, j));
                     }
-                    rplNewint32_tPush(cols, DECint32_t);
+                    rplNewint32_tPush(cols, DECBINT);
                     rplCreateList();
                     if(Exceptions) {
                         DSTop = mat + 1;
                         return;
                     }
                 }
-                rplNewint32_tPush(rows, DECint32_t);
+                rplNewint32_tPush(rows, DECBINT);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -2384,7 +2384,7 @@ void LIB_HANDLER()
                 for(j = 1; j <= cols; ++j) {
                     rplPushData(rplMatrixFastGet(*mat, 1, j));
                 }
-                rplNewint32_tPush(cols, DECint32_t);
+                rplNewint32_tPush(cols, DECBINT);
                 rplCreateList();
                 if(Exceptions) {
                     DSTop = mat + 1;
@@ -3395,7 +3395,7 @@ void LIB_HANDLER()
                     // CREATE THE FRACTION IN CANONICAL FORM TO SAVE THE AUTOSIMPLIFY STEP
                     rplPushData((word_p) one_bint);
                     if(i + j - 1 > 1) {
-                        rplNewint32_tPush(i + j - 1, DECint32_t);
+                        rplNewint32_tPush(i + j - 1, DECBINT);
                         if(Exceptions) {
                             DSTop = savestk;
                             return;
@@ -4363,7 +4363,7 @@ void LIB_HANDLER()
         }
 
         DSTop = savestk;
-        word_p rankobj = rplNewint32_t(rank, DECint32_t);
+        word_p rankobj = rplNewint32_t(rank, DECBINT);
         if(!rankobj)
             return;
 
@@ -4468,7 +4468,7 @@ void LIB_HANDLER()
         int32_t random;
         for(k = 0; k < nelem; ++k) {
             random = (rplRandomNext() >> 8) % 19;
-            rplNewint32_tPush(random - 9, DECint32_t);
+            rplNewint32_tPush(random - 9, DECBINT);
             if(Exceptions) {
                 DSTop = first;
                 return;
@@ -5652,11 +5652,11 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            word_p number = rplNewint32_t(row + 1, DECint32_t);
+            word_p number = rplNewint32_t(row + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(4, number);
-            number = rplNewint32_t(col + 1, DECint32_t);
+            number = rplNewint32_t(col + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(5, number);
@@ -5677,7 +5677,7 @@ void LIB_HANDLER()
             row = index / cols;
             col = index - cols * row;
 
-            word_p number = rplNewint32_t(row + 1, DECint32_t);
+            word_p number = rplNewint32_t(row + 1, DECBINT);
             if(!number)
                 return;
 
@@ -5688,7 +5688,7 @@ void LIB_HANDLER()
             if(Exceptions)
                 return;
 
-            number = rplNewint32_t(col + 1, DECint32_t);
+            number = rplNewint32_t(col + 1, DECBINT);
             if(!number)
                 return;
             // CREATE RULE TO SUBSTITUTE COLUMN
@@ -5747,7 +5747,7 @@ void LIB_HANDLER()
         if(index < nelem - 1) {
             // LEAVE THE CURRENT RESULT ON THE STACK
             // INCREASE THE INDEX
-            word_p number = rplNewint32_t(index + 1, DECint32_t);
+            word_p number = rplNewint32_t(index + 1, DECBINT);
             if(!number)
                 return;
             rplPutLAMn(3, number);

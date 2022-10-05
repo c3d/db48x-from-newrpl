@@ -414,7 +414,7 @@ void rplDecimalToHMS(REAL * dec, REAL * hms)
 
     /*
        if (RReg[5].flags&F_APPROX) {
-       //rplNewint32_tPush(0,DECint32_t);
+       //rplNewint32_tPush(0,DECBINT);
        roundReal(&RReg[5], &RReg[5], RReg[5].len);
        RReg[5].flags &= ~F_APPROX;
        } */
@@ -588,12 +588,12 @@ static void PushSysAlarm(struct alarm *alrm)
     word_p *Stacksave = DSTop;
 
     alrm_obj = alrm->obj;
-    rplNewint32_tPush(alrm->time, DECint32_t);
-    rplNewint32_tPush((int64_t) alrm->rpt, DECint32_t);
-    rplNewint32_tPush((int64_t) alrm->flags, DECint32_t);
+    rplNewint32_tPush(alrm->time, DECBINT);
+    rplNewint32_tPush((int64_t) alrm->rpt, DECBINT);
+    rplNewint32_tPush((int64_t) alrm->flags, DECBINT);
     rplPushData(alrm_obj);
 
-    rplNewint32_tPush(4, DECint32_t);
+    rplNewint32_tPush(4, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
 
@@ -639,7 +639,7 @@ static int32_t AddSysAlarm(struct alarm *new_alrm)
             break;
     }
 
-    rplNewint32_tPush((nalarms - id) + 1, DECint32_t);
+    rplNewint32_tPush((nalarms - id) + 1, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
     rplCallOperator(CMD_ROLLD);
@@ -651,10 +651,10 @@ static int32_t AddSysAlarm(struct alarm *new_alrm)
         first_due_id++;
     if(id <= past_due_id)
         past_due_id++;
-    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECint32_t));
-    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECint32_t));
+    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECBINT));
+    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECBINT));
 
-    rplNewint32_tPush(nalarms + 2, DECint32_t);
+    rplNewint32_tPush(nalarms + 2, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
     rplCreateList();
@@ -717,7 +717,7 @@ static int32_t DelSysAlarm(int32_t id)
     if((id > nalarms) || Exceptions)
         goto rtn_cleanup;
 
-    rplNewint32_tPush((nalarms - id) + 1, DECint32_t);
+    rplNewint32_tPush((nalarms - id) + 1, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
     rplCallOperator(CMD_ROLL);
@@ -735,10 +735,10 @@ static int32_t DelSysAlarm(int32_t id)
         past_due_id--;
     else if(id == past_due_id)
         past_due_id = (id > nalarms) ? nalarms : id;
-    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECint32_t));
-    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECint32_t));
+    rplOverwriteData(nalarms + 2, rplNewint32_t(first_due_id, DECBINT));
+    rplOverwriteData(nalarms + 1, rplNewint32_t(past_due_id, DECBINT));
 
-    rplNewint32_tPush(nalarms + 2, DECint32_t);
+    rplNewint32_tPush(nalarms + 2, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
     rplCreateList();
@@ -864,7 +864,7 @@ static void SetFirstAlarmId(int32_t type, int32_t id)
     if(Exceptions)
         goto rtn_cleanup;
 
-    rplOverwriteData((nitems + 1) - type, rplNewint32_t(id, DECint32_t));
+    rplOverwriteData((nitems + 1) - type, rplNewint32_t(id, DECBINT));
     rplCreateList();
     if(Exceptions)
         goto rtn_cleanup;
@@ -1062,7 +1062,7 @@ int32_t rplTriggerAlarm()
         if(!new_id)
             new_id = ReplaceSysAlarm(id, &alrm);
 
-        rplNewint32_tPush(new_id, DECint32_t);
+        rplNewint32_tPush(new_id, DECBINT);
         rplPushData(alrm_obj);
         if(Exceptions)
             DSTop = Stacksave;
@@ -1334,9 +1334,9 @@ void rplPushAlarm(struct alarm *alrm)
 
     rplPushData(alrm_obj);
 
-    rplNewint32_tPush(alrm->rpt, DECint32_t);
+    rplNewint32_tPush(alrm->rpt, DECBINT);
 
-    rplNewint32_tPush(4, DECint32_t);
+    rplNewint32_tPush(4, DECBINT);
     if(Exceptions)
         goto rtn_cleanup;
 
@@ -1435,7 +1435,7 @@ void LIB_HANDLER()
         //@INCOMPAT
     {
         int64_t ticks = halTicks();
-        rplNewint32_tPush(ticks, DECint32_t);
+        rplNewint32_tPush(ticks, DECBINT);
         return;
     }
     case DATE:
@@ -1601,7 +1601,7 @@ void LIB_HANDLER()
         ddays -= rplDateToDays(dt);
 
         rplDropData(2);
-        rplNewint32_tPush((int64_t) ddays, DECint32_t);
+        rplNewint32_tPush((int64_t) ddays, DECBINT);
 
         return;
     }
@@ -1919,7 +1919,7 @@ void LIB_HANDLER()
         alarm_id = rplAddAlarm(&alrm);
 
         rplDropData(1);
-        rplNewint32_tPush(alarm_id, DECint32_t);
+        rplNewint32_tPush(alarm_id, DECBINT);
 
         return;
     }
@@ -1981,7 +1981,7 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(arg_dt, &r_dt);
                 if(iszeroReal(&r_dt)) {
                     rplDropData(1);
-                    rplNewint32_tPush(GetFirstAlarmId(PASTDUE_ALM), DECint32_t);
+                    rplNewint32_tPush(GetFirstAlarmId(PASTDUE_ALM), DECBINT);
                     return;
                 }
             }
@@ -2036,7 +2036,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
         sec = rplDateToSeconds(dt, tm);
-        rplNewint32_tPush(FindNextAlarm(sec, &alrm), DECint32_t);
+        rplNewint32_tPush(FindNextAlarm(sec, &alrm), DECBINT);
 
         return;
     }
@@ -2055,7 +2055,7 @@ void LIB_HANDLER()
             return;
 
         alrm_obj = alrm.obj;
-        rplNewint32_tPush(id, DECint32_t);
+        rplNewint32_tPush(id, DECBINT);
 
         msg_start = (char *)(alrm_obj + 1);
         msg_end = msg_start + rplStrSize(alrm_obj);
@@ -2073,7 +2073,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Get available memory in bytes
         rplGCollect();
-        rplNewint32_tPush((int64_t) rplGetFreeMemory(), DECint32_t);
+        rplNewint32_tPush((int64_t) rplGetFreeMemory(), DECBINT);
 
         return;
     }
@@ -2089,8 +2089,8 @@ void LIB_HANDLER()
         int32_t size = rplObjSize(rplPeekData(1));
         int64_t cksum = rplObjChecksum(rplPeekData(1));
         rplDropData(1);
-        rplNewint32_tPush(cksum, HEXint32_t);
-        rplNewint32_tPush(size * sizeof(WORD), DECint32_t);
+        rplNewint32_tPush(cksum, HEXBINT);
+        rplNewint32_tPush(size * sizeof(WORD), DECBINT);
         return;
     }
     case PEEK:
@@ -2125,7 +2125,7 @@ void LIB_HANDLER()
             word_p data = NUMBER2PTR(addr & 0xffffffff);
             addr = data[0];
         }
-        rplNewint32_tPush(addr, HEXint32_t);
+        rplNewint32_tPush(addr, HEXBINT);
 
         return;
     }

@@ -266,7 +266,7 @@ void LIB_HANDLER()
         // REINIT FILE SYSTEM
         int error = FSRestart();
         if(error != FS_OK) {
-            rplNewint32_tPush((int64_t) FSystem.CurrentVolume, HEXint32_t);
+            rplNewint32_tPush((int64_t) FSystem.CurrentVolume, HEXBINT);
             rplError(rplFSError2Error(error));
         }
         return;
@@ -812,7 +812,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
+        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -878,7 +878,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
+        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -942,7 +942,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
+        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1006,7 +1006,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
+        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1397,7 +1397,7 @@ void LIB_HANDLER()
         int64_t pos = FSTell(handle);
 
         rplDropData(1);
-        rplNewint32_tPush(pos, DECint32_t);
+        rplNewint32_tPush(pos, DECBINT);
 
         return;
     }
@@ -1431,7 +1431,7 @@ void LIB_HANDLER()
         int64_t len = FSFileLength(handle);
 
         rplDropData(1);
-        rplNewint32_tPush(len, DECint32_t);
+        rplNewint32_tPush(len, DECBINT);
 
         return;
     }
@@ -1530,7 +1530,7 @@ void LIB_HANDLER()
 
         rplDropData(1);
 
-        rplNewint32_tPush(FSGetHandle(handle), HEXint32_t);
+        rplNewint32_tPush(FSGetHandle(handle), HEXBINT);
 
         return;
 
@@ -1629,7 +1629,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECint32_t);
+        rplNewint32_tPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1745,7 +1745,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECint32_t);
+        rplNewint32_tPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1882,7 +1882,7 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         // FILE SIZE
-        rplNewint32_tPush(entry.FileSize, DECint32_t);
+        rplNewint32_tPush(entry.FileSize, DECBINT);
         if(Exceptions) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -2208,7 +2208,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplNewint32_tPush(size * 512, DECint32_t);
+        rplNewint32_tPush(size * 512, DECBINT);
 
         return;
     }
@@ -2402,7 +2402,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplNewint32_tPush(cvol + 3, DECint32_t);
+        rplNewint32_tPush(cvol + 3, DECBINT);
         return;
     }
 

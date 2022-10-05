@@ -721,7 +721,7 @@ void LIB_HANDLER()
                 rplCheckResultAndError(&RReg[0]);
                 return;
             }
-            rplNewSINTPush(cmpReal(&Darg1, &Darg2), DECint32_t);
+            rplNewSINTPush(cmpReal(&Darg1, &Darg2), DECBINT);
             return;
         case OVR_INV:
             if(iszeroReal(&Darg1)) {

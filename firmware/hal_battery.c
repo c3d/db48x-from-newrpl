@@ -286,7 +286,7 @@ void halPreparePowerOff()
 
     // TODO: ADD OTHER POWEROF PROCEDURES
 
-    saved = rplNewint32_t(halFlags, DECint32_t);
+    saved = rplNewint32_t(halFlags, DECBINT);
     if(!saved)
         saved = (word_p) zero_bint;
     rplStoreSettings((word_p) savedflags_ident, saved);

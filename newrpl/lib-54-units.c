@@ -2727,7 +2727,7 @@ void LIB_HANDLER()
                                     // EXPONENT IS AN INTEGER
                                     int64_t finalexp = getint64_tReal(&RReg[2]);
                                     // COMPILE AS A int32_t OR A SINT
-                                    rplCompileint32_t(finalexp, DECint32_t);
+                                    rplCompileint32_t(finalexp, DECBINT);
                                     if(Exceptions) {
                                         RetNum = ERR_INVALID;
                                         return;
@@ -2750,7 +2750,7 @@ void LIB_HANDLER()
                                     int64_t finalexp = getint64_tReal(&RReg[3]);
 
                                     // COMPILE AS A int32_t OR A SINT
-                                    rplCompileint32_t(finalexp, DECint32_t);
+                                    rplCompileint32_t(finalexp, DECBINT);
                                     if(Exceptions) {
                                         RetNum = ERR_INVALID;
                                         return;
@@ -2950,7 +2950,7 @@ void LIB_HANDLER()
                                     finalexp = -finalexp;
 
                                 // COMPILE AS A int32_t OR A SINT
-                                rplCompileint32_t(finalexp, DECint32_t);
+                                rplCompileint32_t(finalexp, DECBINT);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
@@ -2978,7 +2978,7 @@ void LIB_HANDLER()
                                 int64_t finalexp = getint64_tReal(&RReg[1]);
 
                                 // COMPILE AS A int32_t OR A SINT
-                                rplCompileint32_t(finalexp, DECint32_t);
+                                rplCompileint32_t(finalexp, DECBINT);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
@@ -3045,7 +3045,7 @@ void LIB_HANDLER()
                                     finalexp = -finalexp;
 
                                 // COMPILE AS A int32_t OR A SINT
-                                rplCompileint32_t(finalexp, DECint32_t);
+                                rplCompileint32_t(finalexp, DECBINT);
                                 if(Exceptions) {
                                     RetNum = ERR_INVALID;
                                     return;
