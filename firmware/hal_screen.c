@@ -840,8 +840,13 @@ void halRedrawHelp(gglsurface *scr)
         ybot -= 1;
         ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_BG);
 
+        // Center the header
+        utf8_p hend = text;
+        while (*hend && *hend != '\n')
+            hend++;
+        coord x = (LCD_W - StringWidthN(text, hend, font)) / 2;
         coord y = ytop + 2;
-        coord x = 3;
+
 
         // Display until end of help or next markdown section title
         while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
@@ -856,7 +861,7 @@ void halRedrawHelp(gglsurface *scr)
             coord right = x + StringWidthN(text, end, font);
             if (right >= xright - 1)
             {
-                x = xleft;
+                x = xleft + 2;
                 y += font->BitmapHeight;
             }
 
@@ -871,7 +876,7 @@ void halRedrawHelp(gglsurface *scr)
             text = end;
             if (*text == '\n')
             {
-                x = xleft;
+                x = xleft + 2;
                 y += font->BitmapHeight;
                 text++;
 

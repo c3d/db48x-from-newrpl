@@ -96,12 +96,31 @@ static int rplGetDecompiledStringWithoutTickmarks(word_p  object,
 }
 
 
-static inline utf8_p halHelpMessage(utf8_p command)
+static inline utf8_p halHelpMessage(utf8_p topic)
 // ----------------------------------------------------------------------------
 //   Find the help message associated with the topic
 // ----------------------------------------------------------------------------
 {
-    return command;
+    static const char helpfile[] = {
+#include "helpfile.inc"
+    };
+    size_t len = strlen(topic);
+    for (utf8_p ptr = helpfile; *ptr; ptr++)
+    {
+        if (ptr[0] == '\n' && ptr[1] == '#')
+        {
+            utf8_p help = ptr + 2;
+            while (*help && (*help == '#' || *help == ' '))
+                help++;
+            if (strncmp(help, topic, len) == 0 && help[len] == '\n')
+                return help;
+        }
+    }
+
+    // Help topic not found - Say so
+    static char buffer[32];
+    snprintf(buffer, sizeof(buffer), "No help for %s", topic);
+    return buffer;
 }
 
 

@@ -40,3 +40,4 @@
 /tools/extractcmd/extractcmd.mak
 /tools/extractcmd/main.o
 /tools/extractcmd/extractcmd
+/firmware/helpfile.inc
