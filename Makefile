@@ -62,13 +62,14 @@ doc docs: tools/extractcmd/extractcmd
 	$< newrpl -m doc/commands/
 
 helpfile: firmware/helpfile.inc
-firmware/helpfile.inc: $(wildcard doc/*.md doc/commands/*.md)
-	cat doc/*.md doc/commands/*md |		\
+firmware/helpfile.inc: $(wildcard doc/calc-help/*.md doc/commands/*.md)
+	cat $^ |				\
 	sed > $@				\
 	    -e 's/"/\\"/g'			\
-	    -e 's/^#\(.*\)$$/#\1\\n/g'		\
-	    -e 's/^[ ]*$$/\\n/g'		\
-	    -e 's/^\(.*\)$$/"\1"/g'
+	    -e 's/^\*\(.*\)$$/"·\1\\n"/g;t'	\
+	    -e 's/^#\(.*\)$$/"#\1\\n"/g;t'	\
+	    -e 's/^[ ]*$$/"\\n"/g;t'		\
+	    -e 's/^\(.*\)$$/"\1 "/g'
 
 tools/extractcmd/extractcmd: tools/extractcmd/extractcmd.mak tools/extractcmd/main.c
 	cd tools/extractcmd && $(MAKE) -f extractcmd.mak

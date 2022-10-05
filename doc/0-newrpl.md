@@ -5,7 +5,7 @@ Welcome to newRPL!
 This chapter will introduce you to what newRPL is and how to install it on your
 HP50g, HP39g+, HP39gs or HP40gs.
 
-A [brief introduction to RPL]( quickly presents userRPL, the predecessor of newRPL
+A brief introduction to RPL quickly presents userRPL, the predecessor of newRPL
 installed on most recent HP calcualtors, whether based on the HP Saturn or ARM
 processor.
 
