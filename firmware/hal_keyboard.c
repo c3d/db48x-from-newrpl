@@ -1250,11 +1250,11 @@ utf8_p halCommandName(word_p item)
 
     // Copy in a local buffer, since the original may be subject to GC
     static char name[32] = { 0 };
-    size_t size = end - text;
-    if (size > sizeof(name)-1)
-        size = sizeof(name)-1;
-    strncpy(name, text, size);
-    name[size] = 0;
+    int         size     = end - text;
+    int         isdir    = (flags & MENU_IS_DIRECTORY) != 0;
+    int         isflg    = (flags & MENU_IS_FLAG) != 0;
+    utf8_p      menu     = isdir ? " menu" : isflg ? " flag" : "";
+    snprintf(name, sizeof(name), "%.*s%s", size, text, menu);
     return name;
 
 #if 0
