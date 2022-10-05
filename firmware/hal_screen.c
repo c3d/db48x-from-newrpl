@@ -738,6 +738,17 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
     { THEME_HLP_BG },
     { THEME_HLP_TEXT },
     { THEME_HLP_LINES },
+    { THEME_HLP_TITLE },
+    { THEME_HLP_BOLD },
+    { THEME_HLP_ITALIC },
+
+    // Forms
+    { THEME_FORM_BG },
+    { THEME_FORM_TEXT },
+    { THEME_FORM_SELTEXT },
+    { THEME_FORM_SEL_BG },
+    { THEME_FORM_CURSOR },
+
 };
 
 
@@ -838,6 +849,7 @@ void halRedrawHelp(gglsurface *scr)
         coord          xleft  = 0;
         coord          xright = LCD_W - 1;
         const UNIFONT *font   = FONT_HLPTITLE;
+        pattern_t      color  = PAL_HLP_TITLE;
 
         // Clear help area and add some decorative elements
         ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_LINES);
@@ -858,14 +870,46 @@ void halRedrawHelp(gglsurface *scr)
         // Display until end of help or next markdown section title
         while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
         {
-            utf8_p end = text;
+            utf8_p    end       = text;
+            pattern_t nextColor = color;
 
             // Find end of word
             while (*end && *end != ' ' && *end != '\n')
                 end++;
 
+            // Check bold and italic
+            utf8_p       last   = end - 1;
+            const utf8_p bullet = "·";
+            int          isdot  = text[0] == bullet[0] && text[1] == bullet[1];
+            if (last - text > 2 || isdot)
+            {
+                if (*text == '*')
+                {
+                    text++;
+                    color = PAL_HLP_BOLD;
+                    nextColor = PAL_HLP_BOLD;
+                }
+                else if (isdot)
+                {
+                    color = PAL_HLP_BOLD;
+                    nextColor = PAL_HLP_BOLD;
+                }
+                else if (*text == '_')
+                {
+                    text++;
+                    color = PAL_HLP_ITALIC;
+                    nextColor = PAL_HLP_ITALIC;
+                }
+                else if (*last == '*' || *last == '_' || *last == ':')
+                {
+                    nextColor = PAL_HLP_TEXT;
+                    if (*last != ':')
+                        last--;
+                }
+            }
+
             // Check if word fits. If not, skip to new line
-            coord right = x + StringWidthN(text, end, font);
+            coord right = x + StringWidthN(text, last+1, font);
             if (right >= xright - 1)
             {
                 x = xleft + 2;
@@ -873,11 +917,16 @@ void halRedrawHelp(gglsurface *scr)
             }
 
             // Include space in what we draw
-            if (*end == ' ')
-                end++;
+            int needspace = (*end == ' ');
 
             // Draw next word
-            x = DrawTextN(scr, x, y, text, end, font, PAL_HLP_TEXT);
+            x = DrawTextN(scr, x, y, text, last+1, font, color);
+            color = nextColor;
+            if (needspace)
+            {
+                x += StringWidth(" ", font);
+                end++;
+            }
 
             // Check if we need to skip to end of line
             text = end;
@@ -889,6 +938,7 @@ void halRedrawHelp(gglsurface *scr)
 
                 // Switch to regular help font for the rest of the display
                 font = FONT_HLPTEXT;
+                color = PAL_HLP_TEXT;
             }
         }
         halScreen.DirtyFlag &= ~HELP_DIRTY;

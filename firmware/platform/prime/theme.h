@@ -53,12 +53,15 @@
 #define THEME_HLP_BG              THEME_GRAY0
 #define THEME_HLP_TEXT            THEME_GRAY15
 #define THEME_HLP_LINES           60, 120, 250
+#define THEME_HLP_TITLE           60, 20, 150
+#define THEME_HLP_BOLD            20, 150, 20
+#define THEME_HLP_ITALIC          150, 20, 0
 
 // Theme colors for Forms
-#define THEME_FORMBACKGROUND      THEME_GRAY0
-#define THEME_FORMTEXT            THEME_GRAY15
-#define THEME_FORMSELTEXT         THEME_GRAY15
-#define THEME_FORMSEL_BG          THEME_GRAY6
-#define THEME_FORMCURSOR          THEME_GRAY15
+#define THEME_FORM_BG             THEME_GRAY0
+#define THEME_FORM_TEXT           THEME_GRAY15
+#define THEME_FORM_SELTEXT        THEME_GRAY15
+#define THEME_FORM_SEL_BG         THEME_GRAY5
+#define THEME_FORM_CURSOR         THEME_GRAY15
 
 #endif // THEME_H

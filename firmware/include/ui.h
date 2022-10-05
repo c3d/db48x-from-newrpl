@@ -80,16 +80,20 @@
 #define PAL_STA_UFLAG0        ggl_color(46)
 #define PAL_STA_UFLAG1        ggl_color(47)
 
+// Colors for help display
 #define PAL_HLP_BG            ggl_color(48)
 #define PAL_HLP_TEXT          ggl_color(49)
 #define PAL_HLP_LINES         ggl_color(50)
+#define PAL_HLP_TITLE         ggl_color(51)
+#define PAL_HLP_BOLD          ggl_color(52)
+#define PAL_HLP_ITALIC        ggl_color(53)
 
-
-#define PAL_FORM_BG           ggl_color(51)
-#define PAL_FORM_TEXT         ggl_color(52)
-#define PAL_FORM_SELTEXT      ggl_color(53)
-#define PAL_FORM_SEL_BG       ggl_color(54)
-#define PAL_FORM_CURSOR       ggl_color(55)
+// Colors for forms
+#define PAL_FORM_BG           ggl_color(54)
+#define PAL_FORM_TEXT         ggl_color(55)
+#define PAL_FORM_SELTEXT      ggl_color(56)
+#define PAL_FORM_SEL_BG       ggl_color(57)
+#define PAL_FORM_CURSOR       ggl_color(58)
 
 
 

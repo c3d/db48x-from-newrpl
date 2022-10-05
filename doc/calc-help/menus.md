@@ -5,8 +5,8 @@ Here are the main menus in newRPL, in alphabetical order.
 
 ## Main menu
 
-The Main menu gives access to all the functions in your calculator, sorted by
-cathegory. It includes the following submenus:
+The *Main menu* gives access to _all_ the functions in your calculator, sorted
+by cathegory. It includes the following submenus:
 
 * Math: Mathematical operations
 * Symb: Symbolc operations
@@ -18,7 +18,7 @@ cathegory. It includes the following submenus:
 
 ## Math menu
 
-The Math menu gives access to mathematical functions in your calculator. It
+The *Math menu* gives access to mathematical functions in your calculator. It
 includes the following submenus:
 
 * Arith: Arithmetic functions
@@ -31,8 +31,8 @@ includes the following submenus:
 
 ## Arithmetic menu
 
-THe Arithmetic menu gives access to arithmetic functions in your calculator. It
-includes the following submenus:
+THe *Arithmetic menu* gives access to arithmetic functions in your
+calculator. It includes the following submenus:
 
 * Real: Operations on real numbers
 * Integer: Operation on integer numnbers
