@@ -42,14 +42,6 @@ struct compact_tm
     int tm_year; // int     years since 1900
 };
 
-enum keyContext
-{
-    IN_STACK = 0,
-    IN_CMDLINE,
-    IN_FORM,
-    IN_USER = 16 // use IN_USER+NNN FOR CUSTOM KEY CONTEXT FOR APPLICATIONS
-};
-
 enum halFlagsEnum
 {
     HAL_FASTMODE       = 1,
@@ -180,7 +172,7 @@ typedef struct
 
     // VARIABLES FOR USER INTERFACE
     int            StkUndolevels, StkCurrentLevel;
-    int            KeyContext;
+    unsigned       KeyContext;
 
     // INTERACTIVE STACK VARIABLES
     int            StkPointer, StkVisibleLvl, StkSelStart, StkSelEnd;
@@ -193,22 +185,23 @@ typedef struct
 
 extern HALSCREEN halScreen;
 
-// CALCULATOR CONTEXT IDENTIFIERS
-enum
+typedef enum keyboard_context
+// ----------------------------------------------------------------------------
+// Keyboard context
+// ----------------------------------------------------------------------------
 {
-    // FIRST NUMBERS, UP TO 32 ARE BIT-FIELDS AND CAN BE ACTIVATED WITHIN
-    // OTHER CONTEXTS
-    CONTEXT_ANY      = 0,
-    CONTEXT_INEDITOR = 1,
-    CONTEXT_STACK    = 2,
-    CONTEXT_INTSTACK = 4,
-    CONTEXT_PLOT     = 8,
-    CONTEXT_PICT     = 16,
+    CONTEXT_ANY               = 0,        // Any context
+    CONTEXT_EDITOR            = (1 << 0), // Command line is active
+    CONTEXT_STACK             = (1 << 1), // Editing
+    CONTEXT_INTERACTIVE_STACK = (1 << 2), // Interactive stack manipulation
+    CONTEXT_PLOT              = (1 << 3),
+    CONTEXT_PICT              = (1 << 4),
+    CONTEXT_FORM              = (1 << 5),
+    CONTEXT_SYSTEM            = (1 << 6), // Some other system context
+    CONTEXT_USER              = 1024, // User contexts are above CONTEXT_USER
+    CONTEXT_SYSTEM_MASK       = CONTEXT_USER - 1,
+} keyboard_context_t;
 
-    // CONTEXT NUMBERS ABOVE 32 ARE JUST NUMBERS (MUST BE MULTIPLE OF 32)
-    CONTEXT_FORM     = 32
-    // ADD MORE SYSTEM CONTEXTS HERE
-};
 
 #define CMDSTATE_OPEN       0x100
 #define CMDSTATE_FULLSCREEN 0x200
@@ -664,20 +657,35 @@ void          halSetFormHeight(int h);
 void          halSetMenu1Height(int h);
 void          halSetMenu2Height(int h);
 
-// ERROR REPORTING AND MESSAGES
-word_p       halGetCommandName(word_p NameObject);
+static inline void halRefresh(unsigned area)
+{
+    halScreen.DirtyFlag |= area;
+}
+static inline void halRepainted(unsigned area)
+{
+    halScreen.DirtyFlag &= ~area;
+}
 
-// HIGHER LEVEL UI
-int32_t          halGetContext();
-void          halSetContext(int32_t KeyContext);
-void          halSetCmdLineMode(BYTE mode);
-BYTE          halGetCmdLineMode();
-void          halForceAlphaModeOn();
-void          halForceAlphaModeOff();
+static inline int halDirty(unsigned area)
+{
+    return (halScreen.DirtyFlag & area) != 0;
+}
 
-// FORMS, PLOTS AND OTHER SCREENS
-void          halSwitch2Form();
-void          halSwitch2Stack();
+// Error reporting and messages
+word_p             halGetCommandName(word_p NameObject);
+
+// Higher level UI
+keyboard_context_t halContext(keyboard_context_t mask);
+void               halSetContext(keyboard_context_t KeyContext);
+void               halExitContext(keyboard_context_t KeyContext);
+void               halSetCmdLineMode(BYTE mode);
+BYTE               halGetCmdLineMode();
+void               halForceAlphaModeOn();
+void               halForceAlphaModeOff();
+
+// Forms, plots and other screens
+void               halSwitch2Form();
+void               halSwitch2Stack();
 
 // OUTER LOOP FLAGS
 #define OL_NOEXIT        1   // DON'T POLL EXTERNAL EXIT FUNCTION DURING OUTER POL

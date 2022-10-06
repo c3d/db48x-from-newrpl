@@ -2150,11 +2150,11 @@ int32_t halRestoreCmdLine(word_p data)
 
 void uiOpenAndInsertTextN(utf8_p start, utf8_p end)
 {
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+    if(!(halContext(CONTEXT_EDITOR))) {
 
         ScratchPointer1 = (word_p) start;
         halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
+        halSetContext(CONTEXT_EDITOR);
         uiOpenCmdLine('D');
         end = ((utf8_p) ScratchPointer1) + (end - start);
         start = (utf8_p) ScratchPointer1;

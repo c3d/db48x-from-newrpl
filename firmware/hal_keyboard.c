@@ -171,6 +171,40 @@ static inline utf8_p halHelpMessage(utf8_p topic)
     } while (0)
 
 
+#define halOpenCmdLine(keymsg, cursorstart)                             \
+/* ----------------------------------------------------------------- */ \
+/*  Shared code for opening a command line                           */ \
+/* ----------------------------------------------------------------- */ \
+/*  Key down   : Show the short help (name of the command)           */ \
+/*  Key up     : Clear the help and cancel execution                 */ \
+/*  Long Press : Show the extended help message (and cancel)         */ \
+    do                                                                  \
+    {                                                                   \
+        halSetCmdLineHeight(CMDLINE_HEIGHT);                            \
+        halSetContext(CONTEXT_EDITOR);                                  \
+        int alpha = KM_SHIFT(keymsg) & KSHIFT_ALPHA;                    \
+        uiOpenCmdLine(alpha ? 'X' : (cursorstart));                     \
+    } while(0);
+
+
+#define halKeyOpensEditor(keymsg)                                       \
+/* ----------------------------------------------------------------- */ \
+/*  Shared code for keys that open the editor                        */ \
+/* ----------------------------------------------------------------- */ \
+/*  Key down   : Show the short help (name of the command)           */ \
+/*  Key up     : Clear the help and cancel execution                 */ \
+/*  Long Press : Show the extended help message (and cancel)         */ \
+    do                                                                  \
+    {                                                                   \
+        if (!halContext(CONTEXT_EDITOR))                                \
+        {                                                               \
+            if (halContext(CONTEXT_FORM | CONTEXT_INTERACTIVE_STACK))   \
+                return;                                                 \
+            halOpenCmdLine(keymsg, 'D');                                \
+        }                                                               \
+    } while (0)
+
+
 static void keybTimeoutHandler()
 // ----------------------------------------------------------------------------
 //   Handler that simply records the timeout and does nothing else
@@ -259,29 +293,32 @@ keyb_msg_t halWaitForKey()
 }
 
 
-
-
-// SYSTEM CONTEXT VARIABLE
-// STORES THE CONTEXT ID
-// ID=0 MEANS ANY CONTEXT
-// ID BIT 0 --> SET TO 1 WHEN THE COMMAND LINE IS ACTIVE OR TEXT IS BEING EDITED
-// ID BITS 1 AND BIT 2 ARE RESERVED FOR FUTURE USE AND SHOULD BE ZERO
-// ID=8 IS THE STACK
-// ID=16 IS PICT
-// ID N*8 WITH N<100 ARE RESERVED FOR THE SYSTEM APPLICATIONS (SOLVER, ETC)
-// ID= N*8 --> USER CONTEXTS FROM N=100 AND UP TO 16250 ARE FREE TO USE
-
-// SET THE KEYBOARD CONTEXT
-void halSetContext(int32_t KeyContext)
+inline void halSetContext(keyboard_context_t KeyContext)
+// ----------------------------------------------------------------------------
+//  Set a given context bit
+// ----------------------------------------------------------------------------
 {
-    halScreen.KeyContext = KeyContext;
+    halScreen.KeyContext |= KeyContext;
 }
 
-// AND RETRIEVE
-int32_t halGetContext()
+
+inline void halExitContext(keyboard_context_t KeyContext)
+// ----------------------------------------------------------------------------
+//  Clear a given context bit
+// ----------------------------------------------------------------------------
 {
-    return halScreen.KeyContext;
+    halScreen.KeyContext &= ~KeyContext;
 }
+
+
+inline keyboard_context_t halContext(keyboard_context_t mask)
+// ----------------------------------------------------------------------------
+//   Check which context we are in
+// ----------------------------------------------------------------------------
+{
+    return halScreen.KeyContext & mask;
+}
+
 
 void halSwapCmdLineMode(int32_t isalpha)
 // ----------------------------------------------------------------------------
@@ -424,7 +461,7 @@ int32_t endCmdLineAndCompile()
             }
             uiCloseCmdLine();
             halSetCmdLineHeight(0);
-            halSetContext(halGetContext() & (~CONTEXT_INEDITOR));
+            halExitContext(CONTEXT_EDITOR);
             // RUN THE OBJECT
 
             rplSetEntryPoint(newobject);
@@ -582,7 +619,7 @@ int32_t endCmdLineAndCompile()
         // AND COMMAND LINE
         uiCloseCmdLine();
         halSetCmdLineHeight(0);
-        halSetContext(halGetContext() & (~CONTEXT_INEDITOR));
+        halExitContext(CONTEXT_EDITOR);
 
         return 1;
     }
@@ -599,48 +636,44 @@ void endCmdLine()
     // CLOSE COMMAND LINE DISCARDING CONTENTS
     uiCloseCmdLine();
     halSetCmdLineHeight(0);
-    halSetContext(halGetContext() & (~CONTEXT_INEDITOR));
+    halExitContext(CONTEXT_EDITOR);
 }
 
-// **************************************************************************
-// *******************    DEFAULT KEY HANDLERS     **************************
-// **************************************************************************
+
+
+// ============================================================================
+//
+//    Default key handlers
+//
+// ============================================================================
 
 void KH(number)(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   Number keys
+// ----------------------------------------------------------------------------
 {
-    halKeyHelp(keymsg, "Numbers");
     record(keys, "number key handler %08X key %d msg %x shift %x ",
            keymsg, KM_KEY(keymsg), KM_MESSAGE(keymsg), KM_SHIFT(keymsg));
-    int32_t number;
+
+    halKeyHelp(keymsg, "Numbers");
+    halKeyOpensEditor(keymsg);
+
+    char number[2] = { 0 };
     switch (KM_KEY(keymsg))
     {
-    case KB_1: number = '1'; break;
-    case KB_2: number = '2'; break;
-    case KB_3: number = '3'; break;
-    case KB_4: number = '4'; break;
-    case KB_5: number = '5'; break;
-    case KB_6: number = '6'; break;
-    case KB_7: number = '7'; break;
-    case KB_8: number = '8'; break;
-    case KB_9: number = '9'; break;
-    case KB_0: number = '0'; break;
+    case KB_1: number[0] = '1'; break;
+    case KB_2: number[0] = '2'; break;
+    case KB_3: number[0] = '3'; break;
+    case KB_4: number[0] = '4'; break;
+    case KB_5: number[0] = '5'; break;
+    case KB_6: number[0] = '6'; break;
+    case KB_7: number[0] = '7'; break;
+    case KB_8: number[0] = '8'; break;
+    case KB_9: number[0] = '9'; break;
+    case KB_0: number[0] = '0'; break;
     }
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() >> 5)
-            return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-    }
-    uiInsertCharactersN((utf8_p) &number, ((utf8_p) &number) + 1);
+    uiInsertCharactersN(number, number + 1);
     uiAutocompleteUpdate();
-
 }
 
 void uiCmdRun(WORD Opcode)
@@ -1121,11 +1154,14 @@ void uiStackRedo()
 
 void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
 {
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if (!halContext(CONTEXT_EDITOR))
+    {
+        if (halContext(CONTEXT_STACK))
+        {
             // ACTION WHEN IN THE STACK
             uiCmdRun(Opcode);
-            if(Exceptions) {
+            if (Exceptions)
+            {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
                 Exceptions = 0;
@@ -1133,11 +1169,10 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
             else
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
-
         }
-
     }
-    else {
+    else
+    {
         // ACTION INSIDE THE EDITOR
         switch (halScreen.CursorState & 0xff) {
 
@@ -1206,11 +1241,14 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
 
 void transpcmdKeyHandler(WORD Opcode)
 {
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if (!halContext(CONTEXT_EDITOR))
+    {
+        if (halContext(CONTEXT_STACK))
+        {
             // ACTION WHEN IN THE STACK
             uiCmdRun(Opcode);
-            if(Exceptions) {
+            if (Exceptions)
+            {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
                 Exceptions = 0;
@@ -1219,12 +1257,13 @@ void transpcmdKeyHandler(WORD Opcode)
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
-
     }
-    else {
+    else
+    {
         // ACTION INSIDE THE EDITOR
         uiCmdRun(Opcode);
-        if(Exceptions) {
+        if (Exceptions)
+        {
             // TODO: SHOW ERROR MESSAGE
             halShowErrorMsg();
             Exceptions = 0;
@@ -1233,7 +1272,6 @@ void transpcmdKeyHandler(WORD Opcode)
             halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
         halScreen.DirtyFlag |= STACK_DIRTY;
     }
-
 }
 
 
@@ -1301,10 +1339,13 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
     halKeyHelp(keymsg, halMenuCommandName(menunum, varnum));
 
-    // DEFAULT PRESS MESSAGE
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(!(halGetContext() & (CONTEXT_INTSTACK | CONTEXT_PICT |
-                        CONTEXT_PLOT))) {
+    // Default press message
+    if (!halContext(CONTEXT_EDITOR))
+    {
+        if (!(halContext(CONTEXT_INTERACTIVE_STACK |
+                         CONTEXT_PICT |
+                         CONTEXT_PLOT)))
+        {
             // ACTION WHEN IN THE STACK
             int64_t mcode = rplGetMenuCode(menunum);
             word_p menu = uiGetLibMenu(mcode);
@@ -1493,7 +1534,6 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
         }
-
     }
     else {
         // ACTION INSIDE THE EDITOR
@@ -2401,19 +2441,7 @@ void symbolKeyHandler(keyb_msg_t keymsg, utf8_p symbol, int32_t separate)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, symbol);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() >> 5)
-            return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-    }
+    halKeyOpensEditor(keymsg);
 
     if(separate && ((halScreen.CursorState & 0xff) == 'P'))
         uiSeparateToken();
@@ -2427,23 +2455,12 @@ void symbolKeyHandler(keyb_msg_t keymsg, utf8_p symbol, int32_t separate)
 }
 
 void alphasymbolKeyHandler(keyb_msg_t keymsg, utf8_p Lsymbol, utf8_p Csymbol)
+// ----------------------------------------------------------------------------
+//   Shared handler for alpha keys
+// ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, Csymbol);
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() >> 5)
-            return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-    }
+    halKeyOpensEditor(keymsg);
 
     if(halGetCmdLineMode() == 'L')
         uiInsertCharacters(Lsymbol);
@@ -2480,21 +2497,7 @@ void KH(newline)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "New line");
-
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() >> 5)
-            return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-
-    }
+    halKeyOpensEditor(keymsg);
 
     // INCREASE THE HEIGHT ON-SCREEN UP TO THE MAXIMUM
     uiStretchCmdLine(1);
@@ -2518,21 +2521,6 @@ void KH(decimalDot)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Decimal separator");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() >> 5)
-            return;     // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-    }
-
     uint64_t Locale = rplGetSystemLocale();
 
     WORD ucode = cp2utf8(DECIMAL_DOT(Locale));
@@ -2553,9 +2541,9 @@ void KH(enter)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "ENTER");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+    if(!halContext(CONTEXT_EDITOR)) {
         // PERFORM DUP
-        if(halGetContext() & CONTEXT_STACK) {
+        if(halContext(CONTEXT_STACK)) {
             // PERFORM DUP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData() > 0)
@@ -2563,7 +2551,7 @@ void KH(enter)(keyb_msg_t keymsg)
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
 
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             // COPY THE ELEMENT TO LEVEL ONE (PICK)
             if((halScreen.StkPointer > 0)
                     && (halScreen.StkPointer <= rplDepthData())) {
@@ -2606,8 +2594,8 @@ void KH(cut)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Cut");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRunTransparent(CMD_CUTCLIP, 1, 1);
             if(Exceptions) {
@@ -2620,7 +2608,7 @@ void KH(cut)(keyb_msg_t keymsg)
             halScreen.DirtyFlag |= STACK_DIRTY;
             return;
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             int32_t selst, selend;
             switch (halScreen.StkSelStatus) {
             case 0:    // NO ITEMS SELECTED
@@ -2668,8 +2656,8 @@ void KH(cut)(keyb_msg_t keymsg)
 
                 if(rplDepthData() < 1) {
                     // END INTERACTIVE STACK
-                    halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                            CONTEXT_STACK);
+                    halExitContext(CONTEXT_INTERACTIVE_STACK);
+                    halSetContext(CONTEXT_STACK);
                     halScreen.StkVisibleLvl = 1;
                     halScreen.StkVisibleOffset = 0;
                     halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -2711,8 +2699,8 @@ void KH(cut)(keyb_msg_t keymsg)
 
             if(rplDepthData() < 1) {
                 // END INTERACTIVE STACK
-                halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                        CONTEXT_STACK);
+                halExitContext(CONTEXT_INTERACTIVE_STACK);
+                halSetContext(CONTEXT_STACK);
                 halScreen.StkVisibleLvl = 1;
                 halScreen.StkVisibleOffset = 0;
                 halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -2763,8 +2751,8 @@ void KH(copy)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Copy");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRunTransparent(CMD_COPYCLIP, 1, 1);
             if(Exceptions) {
@@ -2776,7 +2764,7 @@ void KH(copy)(keyb_msg_t keymsg)
                 halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             int32_t selst, selend;
             switch (halScreen.StkSelStatus) {
             case 0:    // NO ITEMS SELECTED
@@ -2877,8 +2865,8 @@ void KH(paste)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Paste");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRun(CMD_PASTECLIP);
             if(Exceptions) {
@@ -2890,7 +2878,7 @@ void KH(paste)(keyb_msg_t keymsg)
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
 
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             int32_t depth = rplDepthData();
             int32_t clevel =
                     (halScreen.StkPointer >
@@ -2972,9 +2960,9 @@ void KH(backsp)(keyb_msg_t keymsg)
 {
     halRepeatingKey(keymsg);
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+    if(!halContext(CONTEXT_EDITOR)) {
         // DO DROP
-        if(halGetContext() & CONTEXT_STACK) {
+        if(halContext(CONTEXT_STACK)) {
             // PERFORM DROP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData() > 0)
@@ -2982,7 +2970,7 @@ void KH(backsp)(keyb_msg_t keymsg)
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
 
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             // SELECTION MODE
             switch (halScreen.StkSelStatus) {
             case 0:
@@ -2994,8 +2982,8 @@ void KH(backsp)(keyb_msg_t keymsg)
                     rplDropData(1);
 
                     // END INTERACTIVE STACK
-                    halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                            CONTEXT_STACK);
+                    halExitContext(CONTEXT_INTERACTIVE_STACK);
+                    halSetContext(CONTEXT_STACK);
                     halScreen.StkVisibleLvl = 1;
                     halScreen.StkVisibleOffset = 0;
                     halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -3030,8 +3018,8 @@ void KH(backsp)(keyb_msg_t keymsg)
                         rplClearData();
 
                         // END INTERACTIVE STACK
-                        halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                                CONTEXT_STACK);
+                        halExitContext(CONTEXT_INTERACTIVE_STACK);
+                        halSetContext(CONTEXT_STACK);
                         halScreen.StkVisibleLvl = 1;
                         halScreen.StkVisibleOffset = 0;
                         halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -3057,8 +3045,8 @@ void KH(backsp)(keyb_msg_t keymsg)
                         rplClearData();
 
                         // END INTERACTIVE STACK
-                        halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                                CONTEXT_STACK);
+                        halExitContext(CONTEXT_INTERACTIVE_STACK);
+                        halSetContext(CONTEXT_STACK);
                         halScreen.StkVisibleLvl = 1;
                         halScreen.StkVisibleOffset = 0;
                         halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -3096,8 +3084,8 @@ void KH(backsp)(keyb_msg_t keymsg)
                     rplClearData();
 
                     // END INTERACTIVE STACK
-                    halSetContext((halGetContext() & ~CONTEXT_INTSTACK) |
-                            CONTEXT_STACK);
+                    halExitContext(CONTEXT_INTERACTIVE_STACK);
+                    halSetContext(CONTEXT_STACK);
                     halScreen.StkVisibleLvl = 1;
                     halScreen.StkVisibleOffset = 0;
                     halScreen.StkSelStart = halScreen.StkSelEnd =
@@ -3143,7 +3131,7 @@ void KH(del)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    if((halGetContext() & CONTEXT_INEDITOR)) {
+    if((halContext(CONTEXT_EDITOR))) {
         // REMOVE CHARACTERS FROM THE COMMAND LINE
         uiRemoveCharacters(1);
     }
@@ -3163,15 +3151,15 @@ void KH(left)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // PERFORM UNDO IN THE STACK
             uiStackUndo();
             halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
             return;
 
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             switch (halScreen.StkSelStatus) {
             case 0:
                 // NO ITEM SELECTED, ROT WITH LEVEL 1
@@ -3331,8 +3319,8 @@ void KH(right)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
 
             if(rplDepthData() > 1) {
                 uiCmdRun(CMD_SWAP);
@@ -3340,7 +3328,7 @@ void KH(right)(keyb_msg_t keymsg)
             }
 
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             switch (halScreen.StkSelStatus) {
             case 0:
             {
@@ -3493,8 +3481,8 @@ void KH(up)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // START INTERACTIVE STACK MANIPULATION HERE
 
             if(rplDepthData() > 0) {
@@ -3506,8 +3494,8 @@ void KH(up)(keyb_msg_t keymsg)
                     rplTakeSnapshot();
                 halScreen.StkCurrentLevel = 0;
 
-                halSetContext((halGetContext() & ~CONTEXT_STACK) |
-                        CONTEXT_INTSTACK);
+                halExitContext(CONTEXT_STACK);
+                halSetContext(CONTEXT_INTERACTIVE_STACK);
 
                 halScreen.StkPointer = 1;
                 halScreen.StkSelStart = halScreen.StkSelEnd = -1;
@@ -3518,7 +3506,7 @@ void KH(up)(keyb_msg_t keymsg)
             }
             return;
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             if(halScreen.StkPointer <= rplDepthData()) {
                 ++halScreen.StkPointer;
                 halScreen.StkVisibleLvl = -1;
@@ -3544,8 +3532,8 @@ void KH(down)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
 
             if(rplDepthData() >= 1) {
                 word_p prefwidth = rplGetSettings((word_p) editwidth_ident);
@@ -3577,13 +3565,8 @@ void KH(down)(keyb_msg_t keymsg)
                 if(ISLIST(*ptr))
                     cursorstart = 'P';
 
-                // OPEN THE COMMAND LINE
-                halSetCmdLineHeight(CMDLINE_HEIGHT);
-                halSetContext(halGetContext() | CONTEXT_INEDITOR);
-                if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-                    uiOpenCmdLine('X');
-                else
-                    uiOpenCmdLine(cursorstart);
+                // Open the command line
+                halOpenCmdLine(keymsg, cursorstart);
                 int32_t lines = uiSetCmdLineText(text);
                 if(lines > 1) {
                     uiStretchCmdLine(lines - 1);
@@ -3597,7 +3580,7 @@ void KH(down)(keyb_msg_t keymsg)
 
         }
 
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             if(halScreen.StkPointer > 0) {
                 --halScreen.StkPointer;
                 halScreen.StkVisibleLvl = -1;
@@ -3625,7 +3608,7 @@ void KH(upOrLeft)(keyb_msg_t keymsg)
 {
     keyb_msg_t key     = KM_KEY(keymsg);
     unsigned   shifted = (key & KSHIFT_LEFT) != 0;
-    unsigned   editing = (halGetContext() & CONTEXT_INEDITOR) != 0;
+    unsigned   editing = (halContext(CONTEXT_EDITOR)) != 0;
     if (shifted ^ editing)
         leftKeyHandler(keymsg);
     else
@@ -3640,7 +3623,7 @@ void KH(downOrRight)(keyb_msg_t keymsg)
 {
     keyb_msg_t key     = KM_KEY(keymsg);
     unsigned   shifted = (key & KSHIFT_LEFT) != 0;
-    unsigned   editing = (halGetContext() & CONTEXT_INEDITOR) != 0;
+    unsigned   editing = (halContext(CONTEXT_EDITOR)) != 0;
     if (shifted ^ editing)
         rightKeyHandler(keymsg);
     else
@@ -3654,8 +3637,8 @@ void KH(startOfLine)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Start of line");
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // REDO ACTION
             uiStackRedo();
             halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
@@ -3675,8 +3658,8 @@ void KH(endOfLine)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "End of line");
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
@@ -3695,13 +3678,13 @@ void KH(startOfText)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Start of text");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
         }
-        if (halGetContext() & CONTEXT_INTSTACK)
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
             if (halScreen.StkPointer != rplDepthData())
             {
@@ -3730,13 +3713,13 @@ void KH(endOfText)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "End of text");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: ??
         }
-        if (halGetContext() & CONTEXT_INTSTACK)
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
             if (halScreen.StkPointer > 1)
             {
@@ -3766,9 +3749,9 @@ void KH(pageLeft)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Page left");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // REDO ACTION
             uiStackRedo();
@@ -3789,9 +3772,9 @@ void KH(pageRight)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Page right");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
@@ -3810,13 +3793,13 @@ void KH(pageUp)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Page up"); // REVISIT: Is it more useful to repeat?
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
         }
-        if (halGetContext() & CONTEXT_INTSTACK)
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
             if (halScreen.StkPointer < rplDepthData())
             {
@@ -3846,13 +3829,13 @@ void KH(pageDown)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Page down");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: ??
         }
-        if (halGetContext() & CONTEXT_INTSTACK)
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
             if (halScreen.StkPointer > 1)
             {
@@ -3882,9 +3865,9 @@ void KH(startSelection)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Start selection");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
@@ -3902,9 +3885,9 @@ void KH(endSelection)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "End selection");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // NOT SURE WHAT TO DO WITH THIS KEY
         }
@@ -3922,9 +3905,9 @@ void KH(autoComplete)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Auto-complete");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: ??
         }
@@ -3945,9 +3928,9 @@ void KH(autoCompleteNext)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Next completion");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: ??
         }
@@ -3966,9 +3949,9 @@ void KH(autoCompletePrevious)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Previous completion");
-    if (!(halGetContext() & CONTEXT_INEDITOR))
+    if (!halContext(CONTEXT_EDITOR))
     {
-        if (halGetContext() & CONTEXT_STACK)
+        if (halContext(CONTEXT_STACK))
         {
             // TODO: ??
         }
@@ -3994,8 +3977,8 @@ void KH(chs)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "NEG");
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRun((CMD_OVR_NEG));
             if(Exceptions) {
@@ -4005,7 +3988,7 @@ void KH(chs)(keyb_msg_t keymsg)
             }
             halScreen.DirtyFlag |= STACK_DIRTY;
         }
-        if(halGetContext() & CONTEXT_INTSTACK) {
+        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             // SELECTION MODE
             switch (halScreen.StkSelStatus) {
             case 0:
@@ -4252,14 +4235,9 @@ void KH(eex)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Exponent");
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
-            halSetCmdLineHeight(CMDLINE_HEIGHT);
-            halSetContext(halGetContext() | CONTEXT_INEDITOR);
-            if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-                uiOpenCmdLine('X');
-            else
-                uiOpenCmdLine('D');
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
+            halOpenCmdLine(keymsg, 'D');
             NUMFORMAT config;
 
             rplGetSystemNumberFormat(&config);
@@ -4361,19 +4339,9 @@ void bracketKeyHandler(keyb_msg_t keymsg, utf8_p string)
 // Common function for all brackets (parenthese, curly braces, etc)
 // ----------------------------------------------------------------------------
 {
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_INTSTACK)
-            return;     // DO NOTHING
-
-        halSetCmdLineHeight(CMDLINE_HEIGHT);
-        halSetContext(halGetContext() | CONTEXT_INEDITOR);
-        if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-            uiOpenCmdLine('X');
-        else
-            uiOpenCmdLine('D');
-    }
+    halKeyOpensEditor(keymsg);
     if(((halScreen.CursorState & 0xff) == 'D')
-            || ((halScreen.CursorState & 0xff) == 'P'))
+       || ((halScreen.CursorState & 0xff) == 'P'))
         uiSeparateToken();
 
     utf8_p end = string + stringlen(string);
@@ -5123,7 +5091,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
     }
 
     // DEFAULT MESSAGE
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
+    if(!halContext(CONTEXT_EDITOR)) {
         // ACTION WHEN IN THE STACK OR SUBCONTEXTS OTHER THAN THE EDITOR
         WORD Opcode = 0;
         int32_t hideargument = 1;
@@ -5143,19 +5111,13 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
         else if(ISSTRING(*action) && inlist) {
             // A STRING TO INSERT INTO THE EDITOR
             // OPEN AN EDITOR AND INSERT THE STRING
-            halSetCmdLineHeight(CMDLINE_HEIGHT);
-            halSetContext(halGetContext() | CONTEXT_INEDITOR);
-            if(KM_SHIFT(keymsg) & KSHIFT_ALPHA)
-                uiOpenCmdLine('X');
-            else
-                uiOpenCmdLine('D');
+            halOpenCmdLine(keymsg, 'D');
 
-            int32_t nlines =
-                    uiInsertCharactersN((utf8_p) (action + 1),
-                    (utf8_p) (action + 1) + rplStrSize(action));
+            utf8_p  start = (utf8_p) (action + 1);
+            utf8_p  end   = start + rplStrSize(action);
+            int32_t nlines = uiInsertCharactersN(start, end);
             if(nlines)
                 uiStretchCmdLine(nlines);
-
             uiAutocompleteUpdate();
 
         }
@@ -5504,10 +5466,10 @@ void KH(formswitcher)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Switch form");
 
-    if(halGetContext() >= CONTEXT_FORM) {
-        // THE USER IS RUNNING A FORM OR OTHER CONTEXT, JUST CLOSE IT
-
-        //uiCloseFormEvent();
+    if (halContext(CONTEXT_FORM))
+    {
+        // The user is running a form or other context, just close it
+        // uiCloseFormEvent();
         halSwitch2Stack();
         return;
     }
@@ -5536,8 +5498,8 @@ void KH(basecycle)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Cycle base");
 
-    if(!(halGetContext() & CONTEXT_INEDITOR)) {
-        if(halGetContext() & CONTEXT_STACK) {
+    if(!halContext(CONTEXT_EDITOR)) {
+        if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK, CYCLE THROUGH DIFFERENT BASES
 
             rplPushDataNoGrow((word_p) lib70_basecycle);
@@ -5915,7 +5877,7 @@ void KH(underscore)(keyb_msg_t keymsg)
 void KH(spc)(keyb_msg_t keymsg)
 {
     halRepeatingKey(keymsg);
-    if(halGetContext() & CONTEXT_INTSTACK) {
+    if(halContext(CONTEXT_INTERACTIVE_STACK)) {
 
         // SELECTION MODE
         switch (halScreen.StkSelStatus) {
@@ -6641,14 +6603,15 @@ void KH(cancel)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Cancel");
 
-    if((halGetContext() & CONTEXT_INEDITOR)) {
+    if((halContext(CONTEXT_EDITOR))) {
         // END THE COMMAND LINE
         endCmdLine();
     }
 
-    if((halGetContext() & CONTEXT_INTSTACK)) {
+    if((halContext(CONTEXT_INTERACTIVE_STACK))) {
         // END INTERACTIVE STACK
-        halSetContext((halGetContext() & ~CONTEXT_INTSTACK) | CONTEXT_STACK);
+        halExitContext(CONTEXT_INTERACTIVE_STACK);
+        halSetContext(CONTEXT_STACK);
         halScreen.StkVisibleLvl = 1;
         halScreen.StkVisibleOffset = 0;
         halScreen.StkSelStart = halScreen.StkSelEnd = halScreen.StkSelStatus =
@@ -6701,9 +6664,12 @@ int halDoCustomKey(keyb_msg_t keymsg)
     if(!ISLIST(*keytable))
         return 0;       // INVALID KEY DEFINITION
 
-    word_p ptr = keytable + 1, endoftable = rplSkipOb(keytable), action = 0;
-    int32_t ctx, keepgoing, hanoffset;
-    WORD msg;
+    word_p             ptr        = keytable + 1;
+    word_p             endoftable = rplSkipOb(keytable);
+    word_p             action     = 0;
+    keyboard_context_t ctx;
+    int                keepgoing, hanoffset;
+    WORD               msg;
 
     // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
     rplClrSystemFlag(FL_DODEFAULTKEY);
@@ -6730,26 +6696,28 @@ int halDoCustomKey(keyb_msg_t keymsg)
             if(ptr >= endoftable)
                 return 0;
 
-            if(msg == keymsg) {
-                if(ctx == 0) {
+            if (msg == keymsg)
+            {
+                if (ctx == CONTEXT_ANY)
+                {
                     action = ptr;
                     break;
                 }
-                if(!(ctx & 0x1f)) {
-                    if(ctx == (halScreen.KeyContext & ~0x1f)) {
+                if (!(ctx & CONTEXT_SYSTEM_MASK))
+                {
+                    if (ctx == halContext(CONTEXT_SYSTEM_MASK))
+                    {
                         action = ptr;
                         break;
                     }
                 }
-                else {
-                    if(ctx == halScreen.KeyContext) {
-                        action = ptr;
-                        break;
-                    }
+                else if (ctx == halScreen.KeyContext)
+                {
+                    action = ptr;
+                    break;
                 }
             }
             ptr = rplSkipOb(ptr);
-
         }
 
         if(action) {
@@ -6822,9 +6790,9 @@ int halCustomKeyExists(keyb_msg_t keymsg)
     if(!ISLIST(*keytable))
         return 0;       // INVALID KEY DEFINITION
 
-    word_p ptr = keytable + 1, endoftable = rplSkipOb(keytable);
-    int32_t ctx;
-    WORD msg;
+    word_p             ptr = keytable + 1, endoftable = rplSkipOb(keytable);
+    keyboard_context_t ctx;
+    WORD               msg;
 
     while(ptr < endoftable) {
         msg = rplReadNumberAsInt64(ptr);
@@ -6842,20 +6810,23 @@ int halCustomKeyExists(keyb_msg_t keymsg)
             rplClearErrors();
             return 0;
         }
-        if(msg == keymsg) {
-            if(ctx == 0)
+        if (msg == keymsg)
+        {
+            if (ctx == 0)
                 return 1;
-            if(!(ctx & 0x1f)) {
-                if(ctx == (halScreen.KeyContext & ~0x1f))
+            if (!(ctx & CONTEXT_SYSTEM_MASK))
+            {
+                if (ctx == halContext(CONTEXT_SYSTEM_MASK))
                     return 1;
             }
-            else {
-                if(ctx == halScreen.KeyContext)
+            else
+            {
+                if (ctx == halScreen.KeyContext)
                     return 1;
             }
         }
         ptr = rplSkipOb(ptr);
-        if(ptr >= endoftable)
+        if (ptr >= endoftable)
             return 0;
         ptr = rplSkipOb(ptr);
     }

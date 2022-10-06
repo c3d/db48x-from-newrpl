@@ -388,7 +388,7 @@ void halWakeUp()
     saved = rplGetSettings((word_p) savedcmdline_ident);
     if(saved) {
         if(halRestoreCmdLine(saved))
-            halSetContext(halGetContext() | CONTEXT_INEDITOR);
+            halSetContext(CONTEXT_EDITOR);
         rplPurgeSettings((word_p) savedcmdline_ident);
     }
 

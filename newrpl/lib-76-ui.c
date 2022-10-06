@@ -454,7 +454,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
@@ -484,7 +484,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
@@ -514,7 +514,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
@@ -545,7 +545,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
@@ -575,7 +575,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         int64_t nchars = rplReadNumberAsInt64(rplPeekData(1));
@@ -594,7 +594,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Move cursor to the start of text in the editor
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         uiCursorStartOfText();
@@ -607,7 +607,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Move cursor to the end of text in the editor
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         uiCursorEndOfText();
@@ -621,7 +621,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Move cursor to the start of current line in the editor
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         uiCursorStartOfLine();
@@ -634,7 +634,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Move cursor to the end of current line in the editor
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         uiCursorEndOfLine();
@@ -648,7 +648,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Extract one full word at the cursor location in the editor
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         utf8_p start = uiAutocompStringStart();
@@ -670,7 +670,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Extract one word at the left of cursor location (suitable for autocomplete)
         //@NEW
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         utf8_p start = uiAutocompStringStart();
@@ -704,7 +704,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!(halGetContext() & CONTEXT_INEDITOR))
+        if(!(halContext(CONTEXT_EDITOR)))
             return;     // DO NOTHING UNLESS AN EDITOR IS OPEN
 
         byte_p str = (byte_p) (rplPeekData(1) + 1);

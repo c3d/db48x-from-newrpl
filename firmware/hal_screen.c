@@ -385,7 +385,7 @@ void halRedrawStack(gglsurface *screen)
 
     // Estimate number width at 75% of the font height
     size stknum_w  = (FONT_HEIGHT(FONT_STACK) * 192) / 256;
-    if (halScreen.KeyContext & CONTEXT_INTSTACK)
+    if (halContext(CONTEXT_INTERACTIVE_STACK))
     {
         // Ensure the stack pointer is completely inside the screen
         if (halScreen.StkVisibleLvl < 0)
@@ -493,7 +493,7 @@ void halRedrawStack(gglsurface *screen)
         clipped.top    = (ytop < 0) ? 0 : ytop;
         clipped.bottom = (y > yend) ? yend - 1 : y - 1;
 
-        if (halScreen.KeyContext & CONTEXT_INTSTACK)
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
             // Highlight selected items
             switch (halScreen.StkSelStatus)
@@ -792,25 +792,27 @@ void halInitScreen()
     for (k = 0; k < FONTS_NUM; ++k)
         halScreen.FontHash[k] = 0;
 
-    halFlags        = 0;
-    halProcesses[0] = halProcesses[1] = halProcesses[2] = 0;
-    halScreen.HelpMessage                               = NULL;
-    halScreen.ShortHelpMessage                          = NULL;
-    halScreen.CmdLine                                   = 0;
-    halScreen.Menu1                                     = MENU1_HEIGHT;
-    halScreen.Menu2                                     = MENU2_HEIGHT;
-    halScreen.Stack                                     = 1;
-    halSetFormHeight(0);
-    halScreen.DirtyFlag   = STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-    halScreen.SAreaTimer  = 0;
-    halScreen.CursorTimer = -1;
-    halScreen.KeyContext  = CONTEXT_STACK;
+    halFlags                   = 0;
+    halProcesses[0]            = 0;
+    halProcesses[1]            = 0;
+    halProcesses[2]            = 0;
+    halScreen.HelpMessage      = NULL;
+    halScreen.ShortHelpMessage = NULL;
+    halScreen.CmdLine          = 0;
+    halScreen.Menu1            = MENU1_HEIGHT;
+    halScreen.Menu2            = MENU2_HEIGHT;
+    halScreen.Stack            = 1;
+    halScreen.DirtyFlag        = ALL_DIRTY;
+    halScreen.SAreaTimer       = 0;
+    halScreen.CursorTimer      = -1;
+    halScreen.KeyContext       = CONTEXT_STACK;
     halSetNotification(N_LEFT_SHIFT, 0);
     halSetNotification(N_RIGHT_SHIFT, 0);
     halSetNotification(N_ALPHA, 0);
     halSetNotification(N_LOWBATTERY, 0);
     halSetNotification(N_HOURGLASS, 0);
     halSetNotification(N_DATARECVD, 0);
+    halSetFormHeight(0);
 
     // NOT NECESSARILY PART OF HALSCREEN, BUT INITIALIZE THE COMMAND LINE
     uiCloseCmdLine();
@@ -2657,7 +2659,7 @@ void halShowMsg(utf8_p Text)
 // CHANGE THE CONTEXT AND DISPLAY THE CURRENT FORM
 void halSwitch2Form()
 {
-    if (halGetContext() & CONTEXT_INEDITOR)
+    if (halContext(CONTEXT_EDITOR))
     {
         // CLOSE THE EDITOR FIRST
         uiCloseCmdLine();
@@ -2679,7 +2681,7 @@ void halSwitch2Form()
 // CHANGE THE CONTEXT AND DISPLAY THE STACK
 void halSwitch2Stack()
 {
-    if (halGetContext() & CONTEXT_INEDITOR)
+    if (halContext(CONTEXT_EDITOR))
     {
         // CLOSE THE EDITOR FIRST
         uiCloseCmdLine();
