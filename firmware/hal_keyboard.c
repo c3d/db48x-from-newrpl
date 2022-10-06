@@ -133,7 +133,9 @@ static inline utf8_p halHelpMessage(utf8_p topic)
         keyb_msg_t msg = KM_MESSAGE(keymsg);                            \
         if (msg & KFLAG_LONG_PRESS)                                     \
             keyb_flags |= KFLAG_REPEAT;                                 \
-        if (msg & KFLAG_CHANGED)                                        \
+        /* Repeating keys act on keydown, not on key press */           \
+        if (msg == KM_PRESS ||                                          \
+            (msg & KFLAG_CHANGED) && (msg & KFLAG_PRESSED) == 0)        \
             return;                                                     \
     } while (0)
 

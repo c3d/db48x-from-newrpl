@@ -263,7 +263,7 @@ static inline void keyb_irq_normal_keys(keymatrix hwkeys, keymatrix changes)
             if ((keyb_flags & KFLAG_LONG_PRESS) == 0 || key != keyb_last_code)
                 keyb_irq_post_key(key);
             else
-                keyb_flags &= ~KFLAG_LONG_PRESS;
+                keyb_flags &= ~(KFLAG_LONG_PRESS | KFLAG_REPEAT);
             unshift = 1;
         }
 
