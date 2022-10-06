@@ -150,6 +150,10 @@ void processFont(cstring fontName,
     int       descend        = face->descender;
     int       faceHeight     = ascend - descend;
     int       bitmapHeight   = SCALED(faceHeight) / pixelSize;
+    int       renderFlag     = FT_LOAD_RENDER;
+    if (!threshold)
+        renderFlag |= FT_LOAD_TARGET_MONO;
+
 
     // Count number of glyphs
     unsigned  numberOfGlyphs = face->num_glyphs;
@@ -163,7 +167,7 @@ void processFont(cstring fontName,
          charCode          = FT_Get_Next_Char(face, charCode, &glyphIndex))
     {
         *curCharCode++      = charCode;
-        error               = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
+        error               = FT_Load_Glyph(face, glyphIndex, renderFlag);
         if (error != FT_Err_Ok)
         {
             fprintf(stderr, "warning: failed to load glyph 0x%04lX\n", charCode);
@@ -233,7 +237,7 @@ void processFont(cstring fontName,
             continue;
         }
 
-        error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
+        error = FT_Load_Glyph(face, glyphIndex, renderFlag);
         if (error != FT_Err_Ok)
         {
             fprintf(stderr, "warning: failed to load glyph 0x%04lX\n", charCode);
@@ -307,13 +311,24 @@ void processFont(cstring fontName,
 
         // Copy the bits from the bitmap
         unsigned char *buffer = face->glyph->bitmap.buffer;
-        unsigned gwidth = face->glyph->bitmap.width;
+        unsigned       pitch  = face->glyph->bitmap.pitch;
+        unsigned       bwidth = face->glyph->bitmap.width;
         for (int y = 0; y < rowsGlyph; y++)
         {
             int by = y + rowsAboveGlyph;
             for (int x = 0; x < colsGlyph; x++)
             {
-                int bit = buffer[y * gwidth + x] >= threshold;
+                int bit = 0;
+                if (threshold)
+                {
+                    int bo = y * bwidth + x;
+                    bit = buffer[bo] >= threshold;
+                }
+                else
+                {
+                    int bo = y * pitch + x/8;
+                    bit = (buffer[bo] >> (7 - x % 8)) & 1;
+                }
                 if (verbose)
                     putchar(bit ? '#' : '.');
 
@@ -462,8 +477,7 @@ void usage(cstring prog)
            "  output: C source file to be generated\n"
            "  -h: Display this usage message\n"
            "  -v: Verbose output\n"
-           "  -s <size>: Force font size to s pixels\n"
-           "  -t <threshold>: Black/white threshold\n", prog);
+           "  -s <size>: Force font size to s pixels\n", prog);
 }
 
 
@@ -475,7 +489,7 @@ int main(int argc, char *argv[])
     // Process options
     int opt;
     int fontSize = 0;
-    int threshold = 96;
+    int threshold = 0;
     while ((opt = getopt(argc, argv, "hs:t:v")) != -1)
     {
         switch (opt)
