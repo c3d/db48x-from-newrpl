@@ -97,17 +97,48 @@ release-% %-release:
 debug: debug-sim
 release: release-all
 
-FONTLIST=firmware/include/fontlist.h
-fonts: bmpfonts ttffonts firmware/include/fontlist.h
+FONT_LIST=firmware/include/fontlist.h
+FONT_BITMAP_LIST=bitmap/fonts/fontlist.h
+fonts: bmpfonts ttffonts $(FONT_LIST)
 bmpfonts: bmp2font
 	cd bitmap/fonts && ./doallfonts.sh
 	mv bitmap/fonts/*.c firmware/sys/
-ttffonts: ttf2font
-	tools-bin/ttf2font FONT_18 fonts/C43StandardFont.ttf firmware/sys/Font18.c
-	tools-bin/ttf2font -s24 FONT_24 fonts/C43SNumericFont.ttf firmware/sys/Font24.c
-	tools-bin/ttf2font -s32 FONT_32 fonts/C43SNumericFont.ttf firmware/sys/Font32.c
-firmware/include/fontlist.h: bitmap/fonts/fontlist.h
-	(cat $< ;  sed -e 's/_24/_32/g;t' -e d $< ) > $@
+$(FONT_BITMAP_LIST): bmpfonts
+
+# Sizes from the base font, and variant fonts we will build
+FONT_SIZES=14 18 24 32
+FONT_VARIANTS=HelpTitle Help HelpBold HelpItalic HelpCode Menus
+
+FONT_NAMES=$(FONT_SIZES:%=Font%.c) $(FONT_VARIANTS:%=%FontData.c)
+FONT_FILES=$(FONT_NAMES:%=firmware/sys/%)
+ttffonts: ttf2font $(FONT_FILES)
+
+# Basic font (for stack, etc)
+FONT_BASE=fonts/C43SNumericFont.ttf
+# Alternate: fonts/adamina/Adamina-Regular.ttf
+# Alternate: fonts/C43StandardFont.ttf
+firmware/sys/Font%.c: $(FONT_BASE) $(FONT_BITMAP_LIST) $(MAKEFILE_LIST) tools-bin/ttf2font
+	tools-bin/ttf2font -t64 -s $* FONT_$* $(FONT_BASE) $@
+
+# Help fonts
+FONT_BASE_Help=fonts/PixelOperator.ttf
+FONT_SIZE_Help=16
+FONT_BASE_HelpTitle=fonts/PixelOperator-Bold.ttf
+FONT_SIZE_HelpTitle=24
+FONT_BASE_HelpBold=fonts/PixelOperator-Bold.ttf
+FONT_SIZE_HelpBold=16
+FONT_BASE_HelpItalic=fonts/Gibberesque.ttf
+FONT_SIZE_HelpItalic=16
+FONT_BASE_HelpCode=fonts/PixelOperatorMono.ttf
+FONT_SIZE_HelpCode=16
+FONT_BASE_Menus=fonts/PixelOperator.ttf
+FONT_SIZE_Menus=16
+
+firmware/sys/%FontData.c: $(FONT_BASE_%) $(MAKEFILE_LIST) tools-bin/ttf2font
+	tools-bin/ttf2font -s $(FONT_SIZE_$*) FONT_$* $(FONT_BASE_$*) $@
+
+$(FONT_LIST): $(FONT_BITMAP_LIST)
+	tools/build-font-list.sh > $@ $< $(FONT_SIZES) $(FONT_VARIANTS)
 
 FILES=$(shell git ls-files '*.c' '*.h' '*.cpp')
 reformat clang-format: $(FILES:%=%.clang-format)

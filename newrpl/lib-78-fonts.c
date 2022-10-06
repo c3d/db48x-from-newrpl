@@ -643,10 +643,10 @@ void rplSetCurrentFont(int32_t area, word_p ident)
     case FONT_INDEX_FORMS:
         fntid = (word_p) fontform_ident;
         break;
-    case FONT_INDEX_HLPTEXT:
+    case FONT_INDEX_HELP_TEXT:
         fntid = (word_p) fonthelp_ident;
         break;
-    case FONT_INDEX_HLPTITLE:
+    case FONT_INDEX_HELP_TITLE:
         fntid = (word_p) fonthelptitle_ident;
         break;
 
@@ -686,10 +686,10 @@ word_p rplGetCurrentFont(int32_t area)
     case FONT_INDEX_FORMS:
         fntid = (word_p) fontform_ident;
         break;
-    case FONT_INDEX_HLPTEXT:
+    case FONT_INDEX_HELP_TEXT:
         fntid = (word_p) fonthelp_ident;
         break;
-    case FONT_INDEX_HLPTITLE:
+    case FONT_INDEX_HELP_TITLE:
         fntid = (word_p) fonthelptitle_ident;
         break;
     default:
@@ -1065,7 +1065,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help
         //@NEW
-        word_p fntid = rplGetCurrentFont(FONT_INDEX_HLPTEXT);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_HELP_TEXT);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1074,7 +1074,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for help title
         //@NEW
-        word_p fntid = rplGetCurrentFont(FONT_INDEX_HLPTITLE);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_HELP_TITLE);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -1095,7 +1095,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_INDEX_HLPTEXT, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_HELP_TEXT, rplPeekData(1));
         rplDropData(1);
         return;
     }
@@ -1114,7 +1114,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_INDEX_HLPTITLE, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_HELP_TITLE, rplPeekData(1));
         rplDropData(1);
         return;
     }

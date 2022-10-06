@@ -161,10 +161,6 @@ SOURCES += \
 
 # System
 SOURCES += \
-        firmware/sys/Font10A.c \
-        firmware/sys/Font18.c \
-        firmware/sys/Font24.c \
-        firmware/sys/Font32.c \
         firmware/sys/Font5A.c \
         firmware/sys/Font5B.c \
         firmware/sys/Font5C.c \
@@ -175,7 +171,18 @@ SOURCES += \
         firmware/sys/Font8B.c \
         firmware/sys/Font8C.c \
         firmware/sys/Font8D.c \
+        firmware/sys/Font10A.c \
         firmware/sys/FontNotification.c \
+        firmware/sys/Font14.c \
+        firmware/sys/Font18.c \
+        firmware/sys/Font24.c \
+        firmware/sys/Font32.c \
+        firmware/sys/MenusFontData.c \
+        firmware/sys/HelpFontData.c \
+        firmware/sys/HelpTitleFontData.c \
+        firmware/sys/HelpBoldFontData.c \
+        firmware/sys/HelpItalicFontData.c \
+        firmware/sys/HelpCodeFontData.c \
         firmware/sys/fsystem/fatconvert.c \
         firmware/sys/fsystem/fsallocator.c \
         firmware/sys/fsystem/fsattr.c \

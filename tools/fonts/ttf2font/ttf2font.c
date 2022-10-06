@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
     // Process options
     int opt;
     int fontSize = 0;
-    int threshold = 128;
+    int threshold = 96;
     while ((opt = getopt(argc, argv, "hs:t:v")) != -1)
     {
         switch (opt)

@@ -12,6 +12,6 @@ echo "#include <unifont.h>" > fontlist.h
 ../../tools-bin/bmp2font Font8_StyleC.bmp Font8_StyleC.txt Font8C.c 8C
 ../../tools-bin/bmp2font Font8_StyleD.bmp Font8_StyleD.txt Font8D.c 8D
 ../../tools-bin/bmp2font Font10_StyleA.bmp Font10_StyleA.txt Font10A.c 10A
-../../tools-bin/bmp2font Liberation-sans-24.bmp Font10_StyleA.txt Font24.c 24
-../../tools-bin/bmp2font Liberation-sans-18.bmp Font10_StyleA.txt Font18.c 18
+#../../tools-bin/bmp2font Liberation-sans-24.bmp Font10_StyleA.txt Font24.c 24
+#../../tools-bin/bmp2font Liberation-sans-18.bmp Font10_StyleA.txt Font18.c 18
 ../../tools-bin/bmp2font Notification.bmp Notification.txt FontNotification.c Notifications

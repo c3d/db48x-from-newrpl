@@ -108,8 +108,11 @@ enum halFonts
     FONT_INDEX_STATUS,
     FONT_INDEX_PLOT,
     FONT_INDEX_FORMS,
-    FONT_INDEX_HLPTEXT,
-    FONT_INDEX_HLPTITLE,
+    FONT_INDEX_HELP_TEXT,
+    FONT_INDEX_HELP_TITLE,
+    FONT_INDEX_HELP_BOLD,
+    FONT_INDEX_HELP_ITALIC,
+    FONT_INDEX_HELP_CODE,
     FONTS_NUM
 };
 
@@ -122,8 +125,11 @@ enum halFonts
 #define FONT_STATUS             FONT(STATUS)
 #define FONT_PLOT               FONT(PLOT)
 #define FONT_FORMS              FONT(FORMS)
-#define FONT_HLPTEXT            FONT(HLPTEXT)
-#define FONT_HLPTITLE           FONT(HLPTITLE)
+#define FONT_HELP_TEXT          FONT(HELP_TEXT)
+#define FONT_HELP_TITLE         FONT(HELP_TITLE)
+#define FONT_HELP_BOLD          FONT(HELP_BOLD)
+#define FONT_HELP_ITALIC        FONT(HELP_ITALIC)
+#define FONT_HELP_CODE          FONT(HELP_CODE)
 #define FONT_HEIGHT(F)          ((F)->BitmapHeight)
 
 #define FORM_DIRTY              1

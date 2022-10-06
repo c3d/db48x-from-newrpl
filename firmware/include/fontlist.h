@@ -1,3 +1,5 @@
+#ifndef FONTLIST_H
+#define FONTLIST_H
 #include <unifont.h>
 
 extern const UNIFONT FONT_5A;
@@ -33,13 +35,26 @@ extern const UNIFONT FONT_8D;
 extern const UNIFONT FONT_10A;
 #define Font_10A (&FONT_10A)
 
-extern const UNIFONT FONT_24;
-#define Font_24 (&FONT_24)
-
-extern const UNIFONT FONT_18;
-#define Font_18 (&FONT_18)
-
 extern const UNIFONT FONT_Notifications;
 #define Font_Notifications (&FONT_Notifications)
+extern const UNIFONT FONT_14;
+#define Font_14 (&FONT_14)
+extern const UNIFONT FONT_18;
+#define Font_18 (&FONT_18)
+extern const UNIFONT FONT_24;
+#define Font_24 (&FONT_24)
 extern const UNIFONT FONT_32;
 #define Font_32 (&FONT_32)
+extern const UNIFONT FONT_HelpTitle;
+#define Font_HelpTitle (&FONT_HelpTitle)
+extern const UNIFONT FONT_Help;
+#define Font_Help (&FONT_Help)
+extern const UNIFONT FONT_HelpBold;
+#define Font_HelpBold (&FONT_HelpBold)
+extern const UNIFONT FONT_HelpItalic;
+#define Font_HelpItalic (&FONT_HelpItalic)
+extern const UNIFONT FONT_HelpCode;
+#define Font_HelpCode (&FONT_HelpCode)
+extern const UNIFONT FONT_Menus;
+#define Font_Menus (&FONT_Menus)
+#endif // FONTLIST_H

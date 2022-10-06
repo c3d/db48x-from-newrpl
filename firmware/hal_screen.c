@@ -565,33 +565,6 @@ void halRedrawStack(gglsurface *screen)
 
 #define MABS(a) (((a) < 0) ? -(a) : (a))
 
-// FIND THE CLOSEST MATCHING SYSTEM FONT FOR A GIVEN HEIGHT
-// DOES NOT SEARCH USER INSTALLED FONTS
-UNIFONT const *halGetSystemFontbyHeight(int height)
-{
-    int                  k;
-    int                  howclose = height;
-    const UNIFONT       *ptr;
-    const UNIFONT       *selection = NULL;
-    const const word_p  *romtable  = rplGetFontRomPtrTableAddress();
-
-    for (k = START_ROMPTR_INDEX; k < ROMLIB_MAX_SIZE; k += 2)
-    {
-        ptr = (const UNIFONT *) romtable[k + 1];
-        if (ptr == NULL)
-            break;
-        if (MABS(ptr->BitmapHeight - height) < howclose)
-        {
-            howclose  = MABS(ptr->BitmapHeight - height);
-            selection = ptr;
-        }
-        if (!howclose)
-            break;
-    }
-
-    return selection;
-}
-
 // UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
 // NEEDS TO BE FAST
 void halUpdateFontArray(const UNIFONT *fontarray[])
@@ -625,23 +598,43 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
     }
 
     // UNCONFIGURED FONTS GET DEFAULTS
-    static const unsigned defaultHeight[FONTS_NUM] = {
-        DEF_FNT_STK_HEIGHT,  DEF_FNT_1STK_HEIGHT, DEF_FNT_CMDL_HEIGHT,
-        DEF_FNT_CURS_HEIGHT, DEF_FNT_MENU_HEIGHT, DEF_FNT_STAT_HEIGHT,
-        DEF_FNT_PLOT_HEIGHT, DEF_FNT_FORM_HEIGHT, DEF_FNT_HLPT_HEIGHT,
-        DEF_FNT_HELP_HEIGHT,
+    static const UNIFONT *defaultFont[FONTS_NUM] = {
+#if LCD_W <= 131
+        // HP50-G and the like
+        Font_7A,                // Stack
+        Font_8A,                // Stack level 1
+        Font_10A,               // Command line
+        Font_10A,               // Cursor
+        Font_6m,                // Menu
+        Font_7A,                // Status
+        Font_6A,                // Plot
+        Font_6A,                // Forms
+        Font_6m,                // Help text
+        Font_8B,                // Help title
+        Font_6A,                // Help bold
+        Font_6A,                // Help italic
+        Font_6m,                // Help code
+#else
+        // Prime and DM42
+        Font_18,                 // Stack
+        Font_24,                // Stack level 1
+        Font_32,                // Command line
+        Font_32,                // Cursor
+        Font_Menus,             // Menus
+        Font_14,                // Status
+        Font_14,                // Plot
+        Font_14,                // Forms
+        Font_Help,              // Help
+        Font_HelpTitle,         // Help title
+        Font_HelpBold,          // Bold text in help
+        Font_HelpItalic,        // Italic text in help
+        Font_HelpCode,          // Code in help
+#endif
     };
 
-    unsigned              index;
-    for (index = 0; index < FONTS_NUM; index++)
+    for (int index = 0; index < FONTS_NUM; index++)
         if (fontarray[index] == 0)
-            fontarray[index] = halGetSystemFontbyHeight(defaultHeight[index]);
-
-#if LCD_W > 131
-    fontarray[FONT_INDEX_HLPTEXT]  = Font_8B;
-    fontarray[FONT_INDEX_HLPTITLE] = Font_18;
-    fontarray[FONT_INDEX_MENU]     = Font_10A;
-#endif
+            fontarray[index] = defaultFont[index];
 
     return;
 }
@@ -848,7 +841,7 @@ void halRedrawHelp(gglsurface *scr)
         coord          ybot   = LCD_H - 1;
         coord          xleft  = 0;
         coord          xright = LCD_W - 1;
-        const UNIFONT *font   = FONT_HLPTITLE;
+        const UNIFONT *font   = FONT_HELP_TITLE;
         pattern_t      color  = PAL_HLP_TITLE;
 
         // Clear help area and add some decorative elements
@@ -937,7 +930,7 @@ void halRedrawHelp(gglsurface *scr)
                 text++;
 
                 // Switch to regular help font for the rest of the display
-                font = FONT_HLPTEXT;
+                font = FONT_HELP_TEXT;
                 color = PAL_HLP_TEXT;
             }
         }
@@ -1798,7 +1791,7 @@ void halRedrawStatus(gglsurface *scr)
             halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
         coord x = STATUS_AREA_X + 12;
         coord y = ytop + 1;
-        DrawTextBk(scr, x, y, help, FONT_HLPTEXT, PAL_STA_BG, PAL_HLP_TEXT);
+        DrawTextBk(scr, x, y, help, FONT_HELP_TEXT, PAL_STA_BG, PAL_HLP_TEXT);
     }
 
     halScreen.DirtyFlag &= ~STATUS_DIRTY;
@@ -2215,8 +2208,8 @@ void halUpdateFonts()
                 break;
             case FONT_INDEX_PLOT: halScreen.DirtyFlag |= FORM_DIRTY; break;
             case FONT_INDEX_FORMS: halScreen.DirtyFlag |= FORM_DIRTY; break;
-            case FONT_INDEX_HLPTITLE:
-            case FONT_INDEX_HLPTEXT:
+            case FONT_INDEX_HELP_TITLE:
+            case FONT_INDEX_HELP_TEXT:
                 halScreen.DirtyFlag |= HELP_DIRTY;
                 break;
             }
@@ -2452,7 +2445,7 @@ void halShowErrorMsg()
     // CLEAR MENU2 AND STATUS AREA
     ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
     // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + FONT_HEIGHT(FONT_HLPTITLE) + 1, 0, LCD_W - 1, PAL_HLP_LINES);
+    ggl_cliphline(&scr, ytop + FONT_HEIGHT(FONT_HELP_TITLE) + 1, 0, LCD_W - 1, PAL_HLP_LINES);
     // ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,LCD_W-1,8);
     ggl_cliprect(&scr, 0, ytop, 4, ybot, PAL_HLP_LINES);
 
@@ -2473,17 +2466,17 @@ void halShowErrorMsg()
                 utf8_p start = (utf8_p) (cmdname + 1);
                 utf8_p end   = start + rplStrSize(cmdname);
 
-                xstart += StringWidthN(start, end, FONT_HLPTITLE);
+                xstart += StringWidthN(start, end, FONT_HELP_TITLE);
                 DrawTextN(&scr, scr.left + 6,
                           scr.top + 1,
                           start,
                           end,
-                          FONT_HLPTITLE,
+                          FONT_HELP_TITLE,
                           PAL_HLP_TEXT);
                 xstart += 4;
             }
         }
-        DrawText(&scr, xstart, scr.top + 1, "Exception:", FONT_HLPTITLE, PAL_HLP_TEXT);
+        DrawText(&scr, xstart, scr.top + 1, "Exception:", FONT_HELP_TITLE, PAL_HLP_TEXT);
 
         int32_t ecode;
         for (errbit = 0; errbit < 8; ++errbit) // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -2500,10 +2493,10 @@ void halShowErrorMsg()
                     utf8_p msgend   = msgstart + rplStrSize(message);
 
                     DrawTextN(&scr, scr.left + 6,
-                              scr.top + 3 + FONT_HEIGHT(FONT_HLPTEXT),
+                              scr.top + 3 + FONT_HEIGHT(FONT_HELP_TEXT),
                               msgstart,
                               msgend,
-                              FONT_HLPTEXT,
+                              FONT_HELP_TEXT,
                               PAL_HLP_TEXT);
                 }
                 break;
@@ -2522,17 +2515,17 @@ void halShowErrorMsg()
                 utf8_p start = (utf8_p) (cmdname + 1);
                 utf8_p end   = start + rplStrSize(cmdname);
 
-                xstart += StringWidthN(start, end, FONT_HLPTITLE);
+                xstart += StringWidthN(start, end, FONT_HELP_TITLE);
                 DrawTextN(&scr, scr.left + 6,
                           scr.top + 1,
                           start,
                           end,
-                          FONT_HLPTITLE,
+                          FONT_HELP_TITLE,
                           PAL_HLP_TEXT);
                 xstart += 4;
             }
         }
-        DrawText(&scr, xstart, scr.top + 1, "Error:", FONT_HLPTITLE, PAL_HLP_TEXT);
+        DrawText(&scr, xstart, scr.top + 1, "Error:", FONT_HELP_TITLE, PAL_HLP_TEXT);
         // GET NEW TRANSLATABLE MESSAGES
 
         word_p message = uiGetLibMsg(ErrorCode);
@@ -2544,10 +2537,10 @@ void halShowErrorMsg()
             utf8_p msgend   = msgstart + rplStrSize(message);
 
             DrawTextN(&scr, scr.left + 6,
-                      scr.top + 3 + FONT_HEIGHT(FONT_HLPTITLE),
+                      scr.top + 3 + FONT_HEIGHT(FONT_HELP_TITLE),
                       msgstart,
                       msgend,
-                      FONT_HLPTEXT,
+                      FONT_HELP_TEXT,
                       PAL_HLP_TEXT);
         }
     }
@@ -2580,7 +2573,7 @@ void halShowMsgN(utf8_p Text, utf8_p End)
 
     // SHOW MESSAGE
 
-    DrawTextN(&scr, 3, ytop + 3, Text, End, FONT_HLPTEXT, PAL_HLP_TEXT);
+    DrawTextN(&scr, 3, ytop + 3, Text, End, FONT_HELP_TEXT, PAL_HLP_TEXT);
 }
 
 void halShowMsg(utf8_p Text)

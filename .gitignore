@@ -41,3 +41,4 @@
 /tools/extractcmd/main.o
 /tools/extractcmd/extractcmd
 /firmware/helpfile.inc
+/bitmap/fonts/fontlist.h
