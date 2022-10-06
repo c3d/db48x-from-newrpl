@@ -50,12 +50,14 @@
 #define THEME_STA_UFLAG1          THEME_GRAY15
 
 // Theme colors for help and popup messages
-#define THEME_HLP_BG              THEME_GRAY2
+#define THEME_HLP_BG              THEME_GRAY1
 #define THEME_HLP_TEXT            THEME_GRAY10
 #define THEME_HLP_LINES           THEME_GRAY8
 #define THEME_HLP_TITLE           THEME_GRAY12
 #define THEME_HLP_BOLD            THEME_GRAY15
 #define THEME_HLP_ITALIC          THEME_GRAY6
+#define THEME_HLP_CODE            THEME_GRAY15
+#define THEME_HLP_CODE_BG         THEME_GRAY4
 
 
 // Theme colors for Forms

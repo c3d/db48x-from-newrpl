@@ -87,13 +87,15 @@
 #define PAL_HLP_TITLE         ggl_color(51)
 #define PAL_HLP_BOLD          ggl_color(52)
 #define PAL_HLP_ITALIC        ggl_color(53)
+#define PAL_HLP_CODE          ggl_color(54)
+#define PAL_HLP_CODE_BG       ggl_color(55)
 
 // Colors for forms
-#define PAL_FORM_BG           ggl_color(54)
-#define PAL_FORM_TEXT         ggl_color(55)
-#define PAL_FORM_SELTEXT      ggl_color(56)
-#define PAL_FORM_SEL_BG       ggl_color(57)
-#define PAL_FORM_CURSOR       ggl_color(58)
+#define PAL_FORM_BG           ggl_color(56)
+#define PAL_FORM_TEXT         ggl_color(57)
+#define PAL_FORM_SELTEXT      ggl_color(58)
+#define PAL_FORM_SEL_BG       ggl_color(59)
+#define PAL_FORM_CURSOR       ggl_color(60\)
 
 
 

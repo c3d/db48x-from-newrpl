@@ -66,7 +66,7 @@ firmware/helpfile.inc: $(wildcard doc/calc-help/*.md doc/commands/*.md)
 	cat $^ |				\
 	sed > $@				\
 	    -e 's/"/\\"/g'			\
-	    -e 's/^\*\(.*\)$$/"·\1\\n"/g;t'	\
+	    -e 's/^\*[ ]*\(.*\)$$/"* \1\\n"/g;t'\
 	    -e 's/^#\(.*\)$$/"#\1\\n"/g;t'	\
 	    -e 's/^[ ]*$$/"\\n"/g;t'		\
 	    -e 's/^\(.*\)$$/"\1 "/g'
@@ -118,7 +118,7 @@ FONT_BASE=fonts/C43SNumericFont.ttf
 # Alternate: fonts/adamina/Adamina-Regular.ttf
 # Alternate: fonts/C43StandardFont.ttf
 firmware/sys/Font%.c: $(FONT_BASE) $(FONT_BITMAP_LIST) $(MAKEFILE_LIST) tools-bin/ttf2font
-	tools-bin/ttf2font -t64 -s $* FONT_$* $(FONT_BASE) $@
+	tools-bin/ttf2font -t96 -s $* FONT_$* $(FONT_BASE) $@
 
 # Help fonts
 FONT_BASE_Help=fonts/PixelOperator.ttf
@@ -127,7 +127,7 @@ FONT_BASE_HelpTitle=fonts/PixelOperator-Bold.ttf
 FONT_SIZE_HelpTitle=24
 FONT_BASE_HelpBold=fonts/PixelOperator-Bold.ttf
 FONT_SIZE_HelpBold=16
-FONT_BASE_HelpItalic=fonts/Gibberesque.ttf
+FONT_BASE_HelpItalic=fonts/PixelOperator-Bold.ttf
 FONT_SIZE_HelpItalic=16
 FONT_BASE_HelpCode=fonts/PixelOperatorMono.ttf
 FONT_SIZE_HelpCode=16

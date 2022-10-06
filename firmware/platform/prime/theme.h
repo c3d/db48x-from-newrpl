@@ -52,10 +52,12 @@
 // Theme colors for help and popup messages
 #define THEME_HLP_BG              THEME_GRAY0
 #define THEME_HLP_TEXT            THEME_GRAY15
-#define THEME_HLP_LINES           60, 120, 250
-#define THEME_HLP_TITLE           60, 20, 150
-#define THEME_HLP_BOLD            20, 150, 20
-#define THEME_HLP_ITALIC          150, 20, 0
+#define THEME_HLP_LINES            60, 120, 250
+#define THEME_HLP_TITLE            60, 20,  150
+#define THEME_HLP_BOLD             20, 150,  20
+#define THEME_HLP_ITALIC          150,  20,   0
+#define THEME_HLP_CODE             50,  50, 150
+#define THEME_HLP_CODE_BG         THEME_GRAY1
 
 // Theme colors for Forms
 #define THEME_FORM_BG             THEME_GRAY0

@@ -734,6 +734,8 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
     { THEME_HLP_TITLE },
     { THEME_HLP_BOLD },
     { THEME_HLP_ITALIC },
+    { THEME_HLP_CODE },
+    { THEME_HLP_CODE_BG },
 
     // Forms
     { THEME_FORM_BG },
@@ -822,6 +824,9 @@ void halInitScreen()
 void halRedrawMenu1(gglsurface *scr);
 void halRedrawMenu2(gglsurface *scr);
 void halRedrawHelp(gglsurface *scr)
+// ----------------------------------------------------------------------------
+//   Redraw contextual help on the whole screen
+// ----------------------------------------------------------------------------
 {
     if (!halScreen.Menu2)
     {
@@ -841,8 +846,32 @@ void halRedrawHelp(gglsurface *scr)
         coord          ybot   = LCD_H - 1;
         coord          xleft  = 0;
         coord          xright = LCD_W - 1;
-        const UNIFONT *font   = FONT_HELP_TITLE;
-        pattern_t      color  = PAL_HLP_TITLE;
+
+        enum style
+        {
+            TITLE,
+            NORMAL,
+            BULLETS,
+            BOLD,
+            ITALIC,
+            CODE,
+            NUM_STYLES
+        } style = TITLE;
+
+        struct
+        {
+            const UNIFONT *font;
+            pattern_t      color;
+            pattern_t      background;
+        } styles[NUM_STYLES] =
+        {
+            { FONT_HELP_TITLE,  PAL_HLP_TITLE,  PAL_HLP_BG },
+            { FONT_HELP_TEXT,   PAL_HLP_TEXT,   PAL_HLP_BG },
+            { FONT_HELP_BOLD,   PAL_HLP_BOLD,   PAL_HLP_CODE_BG },
+            { FONT_HELP_BOLD,   PAL_HLP_BOLD,   PAL_HLP_BG },
+            { FONT_HELP_ITALIC, PAL_HLP_ITALIC, PAL_HLP_BG },
+            { FONT_HELP_CODE,   PAL_HLP_CODE,   PAL_HLP_CODE_BG },
+        };
 
         // Clear help area and add some decorative elements
         ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_LINES);
@@ -852,87 +881,130 @@ void halRedrawHelp(gglsurface *scr)
         ybot -= 1;
         ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_BG);
 
+        const UNIFONT *font  = styles[style].font;
         // Center the header
         utf8_p hend = text;
         while (*hend && *hend != '\n')
             hend++;
-        coord x = (LCD_W - StringWidthN(text, hend, font)) / 2;
-        coord y = ytop + 2;
-
+        coord x     = (LCD_W - StringWidthN(text, hend, font)) / 2;
+        coord y     = ytop + 2;
+        int   hadcr = 1;
 
         // Display until end of help or next markdown section title
         while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
         {
-            utf8_p    end       = text;
-            pattern_t nextColor = color;
+            utf8_p         end   = text;
+            int            reset = 0;
 
             // Find end of word
             while (*end && *end != ' ' && *end != '\n')
                 end++;
 
             // Check bold and italic
-            utf8_p       last   = end - 1;
-            const utf8_p bullet = "·";
-            int          isdot  = text[0] == bullet[0] && text[1] == bullet[1];
-            if (last - text > 2 || isdot)
+            utf8_p first = text;
+            utf8_p last  = end - 1;
+
+            // Check if we need to append a space in what we draw
+            int needspace = *end == ' ';
+
+            if (hadcr && text[0] == '*' && text[1] == ' ')
+            {
+                const char bullet[] = "•";
+                x += 2;
+                first = bullet;
+                last = bullet + sizeof(bullet) - 2;
+                reset = -1;
+                text += 2;
+                end = text - 1; // Compensate for the +1 from needspace
+                needspace = 1;
+            }
+            else if (last - text > 2)
             {
                 if (*text == '*')
                 {
-                    text++;
-                    color = PAL_HLP_BOLD;
-                    nextColor = PAL_HLP_BOLD;
-                }
-                else if (isdot)
-                {
-                    color = PAL_HLP_BOLD;
-                    nextColor = PAL_HLP_BOLD;
+                    // Bold text, as in: *Hello World*
+                    first++;
+                    style = BOLD;
                 }
                 else if (*text == '_')
                 {
-                    text++;
-                    color = PAL_HLP_ITALIC;
-                    nextColor = PAL_HLP_ITALIC;
+                    // Italic text, as in: _Hello World_
+                    first++;
+                    style = ITALIC;
                 }
-                else if (*last == '*' || *last == '_' || *last == ':')
+                else if (*text == '`')
                 {
-                    nextColor = PAL_HLP_TEXT;
-                    if (*last != ':')
-                        last--;
+                    // Code text, as in: `SIN`
+                    first++;
+                    style = CODE;
+                }
+                if (*last == '*' || *last == '_' || *last == ':' ||
+                    *last == '`')
+                {
+                    // End marker: switch back to normal text after render
+                    reset = 1;
+                    if (*last == ':' )
+                        end--;
+                    last--;
+                    needspace = 0;
                 }
             }
 
+            // Select font and color based on style
+            pattern_t      color = styles[style].color;
+            pattern_t      bg    = styles[style].background;
+            const UNIFONT *font  = styles[style].font;
+
             // Check if word fits. If not, skip to new line
-            coord right = x + StringWidthN(text, last+1, font);
+            coord right = x + StringWidthN(first, last+1, font);
+            size  height = font->BitmapHeight;
             if (right >= xright - 1)
             {
                 x = xleft + 2;
-                y += font->BitmapHeight;
+                y += height;
             }
 
-            // Include space in what we draw
-            int needspace = (*end == ' ');
+#if BITS_PER_PIXEL == 1
+            // Draw a decoration
+            if (style == BULLETS || style == CODE)
+            {
+                size width = StringWidthN(first, last+1, font);
+                ggl_hline(scr, y + height - 1, x, x + width - 1, bg);
+                if (style == CODE)
+                {
+                    ggl_hline(scr, y, x, x + width - 1, bg);
+                    ggl_vline(scr, x, y, y + height - 1, bg);
+                    ggl_vline(scr, x + width - 1, y, y + height - 1, bg);
+                }
+            }
 
             // Draw next word
-            x = DrawTextN(scr, x, y, text, last+1, font, color);
-            color = nextColor;
+            x = DrawTextN(scr, x, y, first, last+1, font, color);
+#else
+            // Draw next word
+            x = DrawTextBkN(scr, x, y, first, last+1, font, color, bg);
+#endif
             if (needspace)
             {
-                x += StringWidth(" ", font);
+                // Force a thin space in help text, it looks better
+                unsigned sw = style == TITLE ? 4 : 2;
+                ggl_cliprect(scr, x, y, x + sw -1, y + height - 1, bg);
+                x += sw;
                 end++;
             }
 
             // Check if we need to skip to end of line
             text = end;
-            if (*text == '\n')
+            hadcr = *text == '\n';
+            if (hadcr)
             {
                 x = xleft + 2;
-                y += font->BitmapHeight;
+                y += height;
                 text++;
-
-                // Switch to regular help font for the rest of the display
-                font = FONT_HELP_TEXT;
-                color = PAL_HLP_TEXT;
+                style = NORMAL;
             }
+            if (reset)
+                style = reset < 0 ? BULLETS : NORMAL;
         }
         halScreen.DirtyFlag &= ~HELP_DIRTY;
     }

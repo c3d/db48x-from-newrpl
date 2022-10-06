@@ -1,4 +1,4 @@
-# Main menus in newRPL
+s# Main menus in newRPL
 
 Here are the main menus in newRPL, in alphabetical order.
 
@@ -18,16 +18,16 @@ by cathegory. It includes the following submenus:
 
 ## Math menu
 
-The *Math menu* gives access to mathematical functions in your calculator. It
-includes the following submenus:
+The *Math menu* gives access to mathematical functions like `SIN` in your
+calculator. It includes the following submenus:
 
 * Arith: Arithmetic functions
-* Base: Operation on based numbers
+* Base: Based numbers
 * Trans: Transcendental functions
-* Stats: Statistical functions
-* Lists: Operations on lists
-* Matrix: Operations on matrices and vectors
-* Solve: The numerical solver
+* Stats: Statistics
+* Lists: List operations
+* Matrix: Matrices and vectors
+* Solve: Numerical solver
 
 ## Arithmetic menu
 
