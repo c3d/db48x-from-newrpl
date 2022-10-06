@@ -1,5 +1,5 @@
 @#name newrpl_version
 ::
   "newRPL Build " ##1,MAKESINT(NEWRPL_BUILDNUM) +
-  "(c) 2014-2021 The newRPL Team"
+  " © 2014-2022 The newRPL Team" +
 ;

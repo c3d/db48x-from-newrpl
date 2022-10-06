@@ -28,6 +28,7 @@ CONFIG += newrpl_$$PLATFORM newrpl_$$HOST
 
 # Record build number
 DEFINES += "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
+DEFINES += "NEWRPL_VERSION=$$system(tools/version.sh)"
 DEFINES += PLATFORM_$$PLATFORM
 DEFINES += HOST_$$HOST
 

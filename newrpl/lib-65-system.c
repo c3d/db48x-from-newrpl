@@ -2194,9 +2194,9 @@ void LIB_HANDLER()
     case VERSION:
     {
         //@SHORT_DESC=Get newRPL version string
-        rplPushData((word_p) newrpl_version);
-        rplCallOvrOperator(CMD_OVR_EVAL);
-
+        const char version[] = {  NEWRPL_VERSION  };
+        word_p str =  rplCreateString(version, version + sizeof(version) -1);
+        rplPushData(str);
         return;
     }
     case GARBAGE:
