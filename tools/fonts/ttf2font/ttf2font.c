@@ -72,7 +72,8 @@ int sortCharCodes(const void *a, const void *b)
 void processFont(cstring fontName,
                  cstring ttfName,
                  cstring cSourceName,
-                 int     fontSize)
+                 int     fontSize,
+                 int     threshold)
 // ----------------------------------------------------------------------------
 //   Process a font and generate the C source file from it
 // ----------------------------------------------------------------------------
@@ -156,19 +157,32 @@ void processFont(cstring fontName,
     FT_ULong *curCharCode    = charCodes;
     FT_UInt   glyphIndex     = 0;
     unsigned  glyphCount     = 0;
-    for (FT_ULong charCode = FT_Get_First_Char(face, &glyphIndex); glyphIndex;
+    int       minRowsBelow   = 0;
+    for (FT_ULong charCode = FT_Get_First_Char(face, &glyphIndex);
+         glyphIndex;
          charCode          = FT_Get_Next_Char(face, charCode, &glyphIndex))
     {
         *curCharCode++      = charCode;
-        error               = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+        error               = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
         if (error != FT_Err_Ok)
         {
             fprintf(stderr, "warning: failed to load glyph 0x%04lX\n", charCode);
             fprintf(stderr, "Error %d : %s\n", error, getErrorMessage(error));
         }
+        FT_Glyph_Metrics *m = &face->glyph->metrics;
+        FT_Bitmap        *b = &face->glyph->bitmap;
+        int rowsGlyph       = b->rows;
+        int rowsDescend     = SCALED(descend) / pixelSize;
+        int rowsBelowGlyph  = m->horiBearingY / 64 - rowsDescend - rowsGlyph;
+        if (rowsBelowGlyph < minRowsBelow)
+            minRowsBelow = rowsBelowGlyph;
+
         bitmapWidth += face->glyph->metrics.horiAdvance / 64;
         glyphCount++;
     }
+
+    if (minRowsBelow < 0)
+        bitmapHeight -= minRowsBelow;
 
     if (verbose || glyphCount > numberOfGlyphs)
     {
@@ -201,12 +215,12 @@ void processFont(cstring fontName,
     FT_Set_Transform(face, NULL, &pen);
 
     // Start on the left of the bitmap
-    uint32_t bitmapX = 0;
-    uint32_t *offset = offsets;
-    uint32_t *range = ranges;
-    uint32_t firstCode = 0;
-    uint32_t currentCode = 0;
-    uint32_t widthOffsetIndex = 0;
+    uint32_t  bitmapX          = 0;
+    uint32_t *offset           = offsets;
+    uint32_t *range            = ranges;
+    uint32_t  firstCode        = 0;
+    uint32_t  currentCode      = 0;
+    uint32_t  widthOffsetIndex = 0;
 
     // Loop on all glyphs
     for (unsigned g = 0; g < glyphCount; g++)
@@ -243,9 +257,11 @@ void processFont(cstring fontName,
 
         // Rows in the glyph
         int rowsAboveGlyph = SCALED(ascend) / pixelSize - m->horiBearingY / 64;
+        int rowsAboveSave  = rowsAboveGlyph;
         int rowsGlyph      = b->rows;
         int rowsDescend    = SCALED(descend) / pixelSize;
         int rowsBelowGlyph = m->horiBearingY / 64 - rowsDescend - rowsGlyph;
+        int rowsBelowSave  = rowsBelowGlyph;
         if (rowsAboveGlyph < 0)
         {
             rowsGlyph += rowsAboveGlyph;
@@ -275,7 +291,7 @@ void processFont(cstring fontName,
             {
                 utf8[0] = utf8[1] = utf8[2] = '-';
             }
-            printf("Glyph %04lu '%s' width %u"
+            printf("Glyph %4lu '%s' width %u"
                    "  Columns: %d %d %d"
                    "  Rows: %d %d %d\n",
                    charCode,
@@ -284,9 +300,9 @@ void processFont(cstring fontName,
                    colsBeforeGlyph,
                    colsGlyph,
                    colsAfterGlyph,
-                   rowsAboveGlyph,
+                   rowsAboveSave,
                    rowsGlyph,
-                   rowsBelowGlyph);
+                   rowsBelowSave);
         }
 
         // Copy the bits from the bitmap
@@ -297,7 +313,7 @@ void processFont(cstring fontName,
             int by = y + rowsAboveGlyph;
             for (int x = 0; x < colsGlyph; x++)
             {
-                int bit = buffer[y * gwidth + x] >= 128;
+                int bit = buffer[y * gwidth + x] >= threshold;
                 if (verbose)
                     putchar(bit ? '#' : '.');
 
@@ -446,7 +462,8 @@ void usage(cstring prog)
            "  output: C source file to be generated\n"
            "  -h: Display this usage message\n"
            "  -v: Verbose output\n"
-           "  -s <size>: Force font size to s pixels\n", prog);
+           "  -s <size>: Force font size to s pixels\n"
+           "  -t <threshold>: Black/white threshold\n", prog);
 }
 
 
@@ -458,7 +475,8 @@ int main(int argc, char *argv[])
     // Process options
     int opt;
     int fontSize = 0;
-    while ((opt = getopt(argc, argv, "hs:v")) != -1)
+    int threshold = 128;
+    while ((opt = getopt(argc, argv, "hs:t:v")) != -1)
     {
         switch (opt)
         {
@@ -467,6 +485,9 @@ int main(int argc, char *argv[])
             break;
         case 's':
             fontSize = atoi(optarg);
+            break;
+        case 't':
+            threshold = atoi(optarg);
             break;
         case 'h':
             usage(argv[0]);
@@ -485,7 +506,7 @@ int main(int argc, char *argv[])
     argv += optind;
 
     // Generate the C source code
-    processFont(argv[0], argv[1], argv[2], fontSize);
+    processFont(argv[0], argv[1], argv[2], fontSize, threshold);
 
     return 0;
 }
