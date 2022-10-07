@@ -202,7 +202,16 @@ static void screen_layout       (gglsurface *, layout_p , rect_t *);
 static void stack_layout        (gglsurface *, layout_p , rect_t *);
 static void cmdline_layout      (gglsurface *, layout_p , rect_t *);
 static void status_area_layout  (gglsurface *, layout_p , rect_t *);
-static void annunciators_layout (gglsurface *, layout_p , rect_t *);
+static void angle_mode_layout   (gglsurface *, layout_p , rect_t *);
+static void complex_flag_layout (gglsurface *, layout_p , rect_t *);
+static void halted_flag_layout  (gglsurface *, layout_p , rect_t *);
+static void alarm_flag_layout   (gglsurface *, layout_p , rect_t *);
+static void receive_flag_layout (gglsurface *, layout_p , rect_t *);
+static void sdcard_layout       (gglsurface *, layout_p , rect_t *);
+static void lshift_layout       (gglsurface *, layout_p , rect_t *);
+static void rshift_layout       (gglsurface *, layout_p , rect_t *);
+static void alpha_layout        (gglsurface *, layout_p , rect_t *);
+static void busy_flag_layout    (gglsurface *, layout_p, rect_t *);
 static void user_flags_layout   (gglsurface *, layout_p , rect_t *);
 static void message_layout      (gglsurface *, layout_p , rect_t *);
 static void autocomplete_layout (gglsurface *, layout_p , rect_t *);
@@ -814,7 +823,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_8A,                // Stack level 1
         Font_10A,               // Command line
         Font_10A,               // Cursor
-        Font_6m,                // Menu
+        Font_6A,                // Menu
         Font_7A,                // Status
         Font_6A,                // Plot
         Font_6A,                // Forms
@@ -831,7 +840,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_32,                // Command line
         Font_32,                // Cursor
         Font_Menus,             // Menus
-        Font_14,                // Status
+        Font_10A,               // Status
         Font_14,                // Plot
         Font_14,                // Forms
         Font_Help,              // Errors
@@ -1220,33 +1229,28 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 }
 
 
-static coord text_layout(gglsurface    *scr,
-                         layout_p       layout,
-                         rect_t        *rect,
-                         utf8_p         message,
-                         unsigned       length,
-                         const UNIFONT *font,
-                         pattern_t      color,
-                         pattern_t      bg)
+static inline void text_layout(gglsurface    *scr,
+                               layout_p       layout,
+                               rect_t        *rect,
+                               utf8_p         msg,
+                               unsigned       len,
+                               const UNIFONT *font,
+                               pattern_t      color)
 // ----------------------------------------------------------------------------
 //    Display a text
 // ----------------------------------------------------------------------------
 {
     // Compute the size for the layout
-    size width  = message ? LCD_W : 0;
-    size height = message ? font->BitmapHeight : 0;
+    size height = msg ? font->BitmapHeight                     : 0;
+    size width  = msg ? StringWidthN(msg, msg + len, font) + 3 : 0;
     clip_layout(scr, layout, rect, width, height);
-    if (!message)
-        return rect->left;
-
-    // Redraw the given message
-    size twidth = StringWidthN(message, message + length, font);
-    if (twidth > width)
-        twidth = width;
-    coord x = (rect->left + rect->right - twidth) / 2;
-    coord y = rect->top;
-    x = DrawTextBkN(scr, x, y, message, message + length, font, color, bg);
-    return x;
+    if (msg)
+    {
+        // Redraw the given message
+        coord x = (rect->left + rect->right - width + 1) / 2;
+        coord y = rect->top;
+        DrawTextN(scr, x, y, msg, msg + len, font, color);
+    }
 }
 
 
@@ -1279,9 +1283,21 @@ static void message_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     utf8_p         msg   = halScreen.ShortHelpMessage;
     unsigned       len   = msg ? strlen(msg) : 0;
     const UNIFONT *font  = FONT_HELP_CODE;
-    pattern_t      color = PAL_HELP_BG;
-    pattern_t      bg    = PAL_HELP_TEXT;
-    text_layout(scr, layout, rect, msg, len, font, color, bg);
+
+    // Compute the size for the layout
+    size height = msg ? font->BitmapHeight                 : 0;
+    size width  = msg ? StringWidthN(msg, msg + len, font) : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (msg)
+    {
+        pattern_t      color = PAL_HELP_BG;
+        pattern_t      bg    = PAL_HELP_TEXT;
+
+        // Redraw the given message
+        coord x = (rect->left + rect->right - width) / 2;
+        coord y = rect->top;
+        DrawTextBkN(scr, x, y, msg, msg + len, font, color, bg);
+    }
 }
 
 
@@ -1323,8 +1339,7 @@ static void autocomplete_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
     const UNIFONT *font  = FONT_HELP_CODE;
     pattern_t      color = PAL_STA_TEXT;
-    pattern_t      bg    = PAL_STA_BG;
-    text_layout(scr, layout, rect, info, len, font, color, bg);
+    text_layout(scr, layout, rect, info, len, font, color);
     halRepainted(STATUS_DIRTY);
 }
 
@@ -1361,104 +1376,190 @@ static void path_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 }
 
 
-static void annunciators_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+static void angle_mode_layout(gglsurface *s, layout_p l, rect_t *r)
 // ----------------------------------------------------------------------------
-//   Draw the various annunciators (should be split)
+//   Draw the angle mode indicator
 // ----------------------------------------------------------------------------
 {
-    clip_layout(scr, layout, rect, LCD_W, LCD_H);
-
-    const UNIFONT *font  = FONT_STATUS;
-    pattern_t      color = PAL_STA_TEXT;
-    pattern_t      bg    = PAL_STA_BG;
-    coord          x     = rect->left;
-    coord          y     = rect->top;
-
-    // Draw angle mode
-    int anglemode             = rplTestSystemFlag(FL_ANGLEMODE1) |
-                    (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
+    // Draw angle mode characters
+    int               a1      = rplTestSystemFlag(FL_ANGLEMODE1);
+    int               a2      = rplTestSystemFlag(FL_ANGLEMODE2);
+    int               mode    = a1 | (a2 << 1);
     const char *const name[4] = { "∡°", "∡r", "∡g", "∡d" };
-    x                         = DrawTextBk(scr, x, y, name[anglemode], font, color, bg);
+    utf8_p            msg     = name[mode];
+    unsigned          len     = strlen(msg);
+    text_layout(s, l, r, msg, len, FONT_STATUS, PAL_STA_TEXT);
+}
 
-    // Complex mode indicator
-    if (rplTestSystemFlag(FL_COMPLEXMODE))
-        x = DrawTextBk(scr, x, y, "C", font, color, bg);
 
-    // Halted program indicator
-    if (halFlags & HAL_HALTED)
-        x = DrawTextBk(scr, x, y, "H", font, color, bg);
+static void flag_layout(gglsurface *scr,
+                        layout_p    layout,
+                        rect_t     *rect,
+                        utf8_p      name,
+                        int         flag)
+// ----------------------------------------------------------------------------
+//   Shared code to display all flags
+// ----------------------------------------------------------------------------
+{
+    pattern_t color = flag ? PAL_STA_UFLAG1 : PAL_STA_UFLAG0;
+    text_layout(scr, layout, rect, name, strlen(name), FONT_STATUS, color);
+}
 
-    // Notification icons! only one will be displayed at a time
-    utf8_p text = NULL;
-    if (halGetNotification(N_ALARM))
-        text = "ALM";
-    else if (halGetNotification(N_DATARECVD))
-        text = "RX";
+
+static void complex_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the complex flag display
+// ----------------------------------------------------------------------------
+{
+    flag_layout(scr, layout, rect, "C", rplTestSystemFlag(FL_COMPLEXMODE));
+}
+
+
+static void halted_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the halted flag display
+// ----------------------------------------------------------------------------
+{
+    flag_layout(scr, layout, rect, "H", halFlags & HAL_HALTED);
+}
+
+
+static void sdcard_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Display the alarm flag
+// ----------------------------------------------------------------------------
+{
 #ifndef CONFIG_NO_FSYSTEM
-    // SD CARD INSERTED INDICATOR
-    if (FSCardInserted())
-        text = "SD";
+    char type[] = { 'S', 'D', '-', '-', 0};
+
+    // SD card inserted indicator
+    int inserted = FSCardInserted();
     if (FSIsInit())
     {
+        if (FSCardIsSDHC())
+        {
+            type[0] = 'H';
+            type[1] = 'C';
+        }
         if (FSVolumeMounted(FSGetCurrentVolume()))
-            color = PAL_GRAY15;
-        if (!FSCardInserted())
-            text = "SD?";
-        else if (FSCardIsSDHC())
-            text = "HC";
+            type[2] = '+';
         int dirty = FSIsDirty();
         if (dirty == 1)
-            text = "HC!";
+            type[3] = '!';
         else if (dirty == 2)
-            text = "HC>";
+            type[3] = '>';
     }
-#endif // CONFIG_NO_FSYSTEM
+    flag_layout(scr, layout, rect, type, inserted);
+#endif // CONFIG_NO_FSYSTEM}
+}
 
-    if (text)
-        x = DrawTextBk(scr, x, y, text, font, color, bg);
 
+static void shift_mode_layout(gglsurface *scr,
+                              layout_p    layout,
+                              rect_t     *rect,
+                              utf8_p      name,
+                              int         flag)
+// ----------------------------------------------------------------------------
+//   Shared code to display all shift-mode annunciators
+// ----------------------------------------------------------------------------
+{
 #if !defined(ANN_X_COORD) || !defined(ANN_Y_COORD)
-    // Notification icons when there is no physical annunciator.
-    // Only one will be displayed at a time
-    unsigned highlightFlags =
-        ((halGetNotification(N_DATARECVD) != 0)     << 1)   |
-        (((keyb_flags & KHOLD_LEFT)       != 0)     << 2)   |
-        (((keyb_flags & KHOLD_RIGHT)      != 0)     << 3)   |
-        (((keyb_flags & KHOLD_ALPHA)      != 0)     << 4);
+    // This test is for physical annunciators
+    pattern_t color = flag == 2 ? PAL_STA_ANNPRESS
+                    : flag == 1 ? PAL_STA_ANN
+                                : PAL_STA_BG;
 
-    static struct annunciator
+    // Compute the size for the layout
+    const UNIFONT *font   = Font_Notifications;
+    unsigned       length = strlen(name);
+    size           height = font->BitmapHeight;
+    size           width  = StringWidthN(name, name + length, font);
+    clip_layout(scr, layout, rect, width, height);
+    if (flag)
     {
-        int    id;
-        int    highlight;
-        utf8_p label;
-    } annunciators[] = {
-        {      N_ALARM, 0, "X"},
-        { N_CONNECTION, 1, "U"},
-        { N_LEFT_SHIFT, 2, "L"},
-        {N_RIGHT_SHIFT, 3, "R"},
-        {      N_ALPHA, 4, "A"},
-        {  N_HOURGLASS, 0, "W"},
-    };
-
-    record(annunciators, "Annunciators highlight=%X\n", highlightFlags);
-    const unsigned count = sizeof(annunciators)/sizeof(annunciators[0]);
-    for (unsigned k = 0; k < count; k++)
-    {
-        if (halGetNotification(annunciators[k].id))
-        {
-            pattern_t fg = PAL_STA_ANN;
-            pattern_t bg = PAL_STA_BG;
-
-            record(annunciators, "  %d: highlight=%d",
-                   k, (highlightFlags >> annunciators[k].highlight) & 1);
-            if ((highlightFlags >> annunciators[k].highlight) & 1)
-                fg = PAL_STA_ANNPRESS;
-            utf8_p label = annunciators[k].label;
-            x = DrawTextBk(scr, x, y, label, Font_Notifications, fg, bg);
-        }
+        // Redraw the given message
+        coord x = (rect->left + rect->right - width) / 2;
+        coord y = rect->top;
+        DrawTextN(scr, x, y, name, name + length, font, color);
     }
-#endif // No physical annunciators
-    halRepainted(STATUS_DIRTY);
+#else
+    // Physical annunciators are rendered directly in halSetNotification
+    UNUSED(scr);
+    UNUSED(layout);
+    UNUSED(rect);
+    UNUSED(name);
+    UNUSED(flag);
+#endif // Physical annunciators
+}
+
+
+static void lshift_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the left-shift annunciator
+// ----------------------------------------------------------------------------
+{
+    int status = keyb_flags & KHOLD_LEFT  ? 2
+               : keyb_flags & KSHIFT_LEFT ? 1
+                                          : 0;
+    shift_mode_layout(scr, layout, rect, "L", status);\
+}
+
+
+static void rshift_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the right-shift annunciator
+// ----------------------------------------------------------------------------
+{
+    int status = keyb_flags & KHOLD_RIGHT  ? 2
+               : keyb_flags & KSHIFT_RIGHT ? 1
+                                           : 0;
+    shift_mode_layout(scr, layout, rect, "R", status);\
+}
+
+
+static void alpha_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the alpha mode annunciator
+// ----------------------------------------------------------------------------
+{
+    if (keyb_flags & KFLAG_ALPHA_LOWER)
+        text_layout(scr, layout, rect, "a", 1, FONT_STATUS, PAL_STA_ANN);
+    int status = keyb_flags & KHOLD_ALPHA  ? 2
+               : keyb_flags & KSHIFT_ALPHA ? 1
+                                           : 0;
+    shift_mode_layout(scr, layout, rect, "A", status);
+}
+
+
+static void busy_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the left-shift annunciator
+// ----------------------------------------------------------------------------
+{
+    int status = halGetNotification(N_HOURGLASS);
+    shift_mode_layout(scr, layout, rect, "W", status);\
+}
+
+
+static void alarm_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Display the alarm flag
+// ----------------------------------------------------------------------------
+{
+    int status = halGetNotification(N_ALARM);
+    shift_mode_layout(scr, layout, rect, "X", status);
+}
+
+
+static void receive_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Display the alarm flag
+// ----------------------------------------------------------------------------
+{
+    int status = halGetNotification(N_DATARECVD)  ? 2
+               : halGetNotification(N_CONNECTION) ? 1
+                                                  : 0;
+    flag_layout(scr, layout, rect, "U", status);
 }
 
 

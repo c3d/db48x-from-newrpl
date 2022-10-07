@@ -9,4 +9,65 @@
  * This a sorted list of items to draw, in order
  */
 
-#include <platform/50g/layout.h>
+#define M       ((MENU_TAB_SPACE + 1))
+
+// clang-format off
+//      Item                    Position                Reference       DX / DY
+{
+    {   screen_layout,          CENTER_IN,              NULL,           0, 0, },
+
+    // The second menu is at the bottom, matches layout of G/H/I/J/K/L
+    {   menu2_4_layout,         BOTTOM_LEFT_IN,         screen_layout,  0, 0, },
+    {   menu2_5_layout,         BOTTOM_RIGHT_OF,        menu2_4_layout, M, 0, },
+    {   menu2_6_layout,         BOTTOM_RIGHT_OF,        menu2_5_layout, M, 0, },
+
+    // Second row is above the previous one
+    {  menu2_1_layout,          ABOVE_LEFT,             menu2_4_layout, 0, M, },
+    {  menu2_2_layout,          ABOVE_LEFT,             menu2_5_layout, 0, M, },
+    {  menu2_3_layout,          ABOVE_LEFT,             menu2_6_layout, 0, M, },
+
+    // Primary menu
+    {  menu1_1_layout,          ABOVE_LEFT,             menu2_1_layout, 0, M, },
+    {  menu1_2_layout,          BOTTOM_RIGHT_OF,        menu1_1_layout, M, 0, },
+    {  menu1_3_layout,          BOTTOM_RIGHT_OF,        menu1_2_layout, M, 0, },
+    {  menu1_4_layout,          BOTTOM_RIGHT_OF,        menu1_3_layout, M, 0, },
+    {  menu1_5_layout,          BOTTOM_RIGHT_OF,        menu1_4_layout, M, 0, },
+    {  menu1_6_layout,          BOTTOM_RIGHT_OF,        menu1_5_layout, M, 0, },
+
+    // Status area
+    {  status_area_layout,      TOP_RIGHT_OF,           menu2_3_layout, 1, 0, },
+
+    // Command line
+    {  cmdline_layout,          ABOVE_LEFT,             menu1_1_layout, 0, 0, },
+    {  stack_layout,            ABOVE_LEFT,             cmdline_layout, 0, 0, },
+
+    // Annunciators
+    { angle_mode_layout,        TOP_LEFT_IN,        status_area_layout, 4, 0, },
+    { complex_flag_layout,      TOP_RIGHT_OF,        angle_mode_layout, 3, 0, },
+    { busy_flag_layout,         TOP_RIGHT_OF,      complex_flag_layout, 3, 0, },
+    { halted_flag_layout,       TOP_RIGHT_OF,         busy_flag_layout, 3, 0, },
+    { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 3, 0, },
+    { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 3, 0, },
+    { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 3, 0, },
+    { lshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
+    { rshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
+    { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 3, 0, },
+    { message_layout,           CENTER_IN,          status_area_layout, 0, 0, },
+    { autocomplete_layout,      BOTTOM_CENTER_IN,   status_area_layout, 0, 0, },
+    { path_layout,              CENTER_IN,          status_area_layout, 0, 0, },
+    { battery_layout,           BOTTOM_RIGHT_IN,    status_area_layout, 0, 0, },
+    { user_flags_layout,        TOP_RIGHT_IN,       status_area_layout, 0, 0, },
+
+    // Display form
+    {  form_layout,             ABOVE_LEFT,             cmdline_layout, 0, 0, },
+
+    // Help covers the whole screen_layout_layout, erasses the stack
+    { help_layout,              CENTER_IN,              screen_layout,  0, 0, },
+
+    // Errors displayed on top of everything else
+    { errors_layout,            CENTER_IN,              screen_layout,  5, 0, },
+}
+
+#undef M
+
+// clang-format on
