@@ -1911,7 +1911,7 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 {
     const UNIFONT *iconFont   = Font_Notifications;
-    const UNIFONT *labelFont  = Font_8A;
+    const UNIFONT *labelFont  = FONT(BATTERY);
     coord          width  = StringWidth("100%", labelFont) + 3;
     coord          height = labelFont->BitmapHeight + iconFont->BitmapHeight;
     layout_clip(scr, layout, rect, width, height);
@@ -1927,22 +1927,28 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     }
     else
     {
+        int battery = battery_level();
+
         // Draw the battery icon
         pattern_t color = PAL_STA_BAT;
         if (battery_low())
             color = PAL_ERROR;
 
-        coord iconWidth = StringWidth("D", iconFont);
-        DrawText(scr, x - iconWidth/2, y, "D", iconFont, color);
-        y += iconFont->BitmapHeight;
+        coord batH = 10;
+        coord batW =  2;
+        coord batC = battery * batH / 100;
+        ggl_cliprect(scr, x-batW, y+batH-batC, x+batW, y+batH, PAL_STA_BAT);
+        ggl_cliprect(scr, x, y, x, y, PAL_STA_BAT);
+        ggl_cliprect(scr, x-batW, y+1, x-batW, y+batH, PAL_STA_BAT);
+        ggl_cliprect(scr, x+batW, y+1, x+batW, y+batH, PAL_STA_BAT);
+        ggl_cliprect(scr, x-batW, y+1, x+batW, y+1,    PAL_STA_BAT);
+        ggl_cliprect(scr, x-batW, y+batH, x+batW, y+batH, PAL_STA_BAT);
 
         // Display Battery percentage below battery icon
         char buf[8];
-        int battery = battery_level();
         snprintf(buf, sizeof(buf), "%3d%%", battery);
-
         coord labelWidth = StringWidth(buf, labelFont);
-        DrawText(scr, x - labelWidth / 2, y, buf, labelFont, color);
+        DrawText(scr, x - labelWidth / 2, y + batH + 2, buf, labelFont, color);
     }
 }
 

@@ -8,6 +8,15 @@
 #include <recorder.h>
 
 
+// This is a recorder tweak (see https://github.com/c3d/recorder)
+// This makes it possible to control the battery level externally, using the
+// recorder_scope application. Instructions:
+// - Start the simulator with an environment variable RECORDER_SHARE pointing to
+//   some temporary data file, e.g.:
+//     RECORDER_SHARE=/tmp/sim.rec /path/to/simulator -tkeys=a,b,c
+// - Start the recorder_scope with a slider to control the battery:
+//     RECORDER_SHARE=/tmp/sim.rec /path/to/recorder_scope -sbattery=0:0:110
+// - Tweak the battery level at runtime using the slider
 RECORDER_TWEAK_DEFINE(battery, 25, "Battery level");
 
 
