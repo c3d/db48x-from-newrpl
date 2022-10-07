@@ -34,9 +34,6 @@ void removestackobject(int level, int nitems)
 {
     if(rplDepthData() >= level + nitems - 1)
         rplRemoveAtData(level, nitems);
-    halScreen.DirtyFlag |=
-            CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STATUS_DIRTY;
 
 }
 
@@ -69,9 +66,6 @@ void pushobject(char *data, int sizebytes)
         return;
     memmoveb((char *)newobj, data, sizebytes);
     rplPushData(newobj);
-    halScreen.DirtyFlag |=
-            CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STATUS_DIRTY;
 }
 
 // PUSH A TEXT OBJECT IN THE STACK
@@ -84,10 +78,6 @@ void pushtext(char *data, int sizebytes)
     memmoveb((char *)(newobj + 1), data, sizebytes);
 
     rplPushData(newobj);
-    halScreen.DirtyFlag |=
-            CMDLINE_ALLDIRTY | FORM_DIRTY | STACK_DIRTY | MENU1_DIRTY |
-            MENU2_DIRTY | STATUS_DIRTY;
-
 }
 
 // COMPILE OBJECT AT LEVEL 1 OF THE STACK
@@ -296,7 +286,6 @@ int change_autorcv(int newfl)
 void fullscreenupdate()
 {
     uiClearRenderCache();
-    halScreen.DirtyFlag|=FORM_DIRTY|STACK_DIRTY|CMDLINE_ALLDIRTY|MENU1_DIRTY|MENU2_DIRTY|STATUS_DIRTY;
 }
 
 // Make a list with the color theme palette values (64 int32_ts) size contains

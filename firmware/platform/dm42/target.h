@@ -24,20 +24,18 @@
 
 #include <stdint.h>
 
+// Screen size
 #define LCD_W 320
 #define LCD_H 240
 #define LCD_SCANLINE 320
 #define LCD_H 240
 #define SCREEN_BUFFERS 2
 
-// Prime menu organization constants
-#define MENU1_ENDX  ((44*LCD_W)/131)
-#define MENU2_STARTX 0
-#define MENU2_ENDX   LCD_SCANLINE
-#define MENU2_COUNT  3
-
-#undef  STATUSAREA_X
-#define STATUSAREA_X  (MENU2_ENDX+1)
+// Soft menu tab size
+#define MENU_TAB_SPACE      1
+#define MENU_TAB_INSET      2
+#define MENU_TAB_WIDTH      ((LCD_W - 5 * MENU_TAB_SPACE) / 6)
+#define MENU_TAB_HEIGHT     (FONT_HEIGHT(FONT_MENU) + 2 * MENU_TAB_INSET)
 
 // Special constants for proper compilation of firmware image
 #define SYSTEM_GLOBAL  __attribute__((section(".system_globals")))

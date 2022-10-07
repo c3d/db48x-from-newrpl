@@ -66,4 +66,9 @@
 #define THEME_FORM_SEL_BG         THEME_GRAY5
 #define THEME_FORM_CURSOR         THEME_GRAY15
 
+// Theme color for errors
+#define THEME_ERROR               THEME_GRAY15
+#define THEME_ERROR_BG            THEME_GRAY2
+#define THEME_ERROR_LINE          THEME_GRAY8
+
 #endif // THEME_H

@@ -100,6 +100,7 @@ enum halFonts
     FONT_INDEX_STATUS,
     FONT_INDEX_PLOT,
     FONT_INDEX_FORMS,
+    FONT_INDEX_ERRORS,
     FONT_INDEX_HELP_TEXT,
     FONT_INDEX_HELP_TITLE,
     FONT_INDEX_HELP_BOLD,
@@ -117,6 +118,7 @@ enum halFonts
 #define FONT_STATUS             FONT(STATUS)
 #define FONT_PLOT               FONT(PLOT)
 #define FONT_FORMS              FONT(FORMS)
+#define FONT_ERRORS             FONT(ERRORS)
 #define FONT_HELP_TEXT          FONT(HELP_TEXT)
 #define FONT_HELP_TITLE         FONT(HELP_TITLE)
 #define FONT_HELP_BOLD          FONT(HELP_BOLD)
@@ -127,14 +129,17 @@ enum halFonts
 #define FORM_DIRTY              1
 #define STACK_DIRTY             2
 #define CMDLINE_DIRTY           4
-#define CMDLINE_LINEDIRTY       8
-#define CMDLINE_CURSORDIRTY     16
-#define CMDLINE_ALLDIRTY        (4 + 8 + 16)
+#define CMDLINE_LINE_DIRTY       8
+#define CMDLINE_CURSOR_DIRTY    16
+#define CMDLINE_ALL_DIRTY       (4 + 8 + 16)
 #define MENU1_DIRTY             32
 #define MENU2_DIRTY             64
+#define MENU_DIRTY              (MENU1_DIRTY | MENU2_DIRTY)
 #define STATUS_DIRTY            128
 #define HELP_DIRTY              256
-#define ALL_DIRTY               ~0U;
+#define ERROR_DIRTY             512
+#define BACKGROUND_DIRTY        1024
+#define ALL_DIRTY               ~0U
 #define BUFFER_LOCK             16384
 #define BUFFER_ALT              32768
 
@@ -153,8 +158,10 @@ typedef struct
     int            Menu2;
     utf8_p         HelpMessage;
     utf8_p         ShortHelpMessage;
-    int            DirtyFlag; // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
-    HEVENT         SAreaTimer, CursorTimer;
+    utf8_p         ErrorMessage;
+    unsigned       ErrorMessageLength;
+    int            DirtyFlag;
+    HEVENT         CursorTimer;
     UNIFONT const *FontArray[FONTS_NUM]; // POINTERS TO FONTS
     WORD           FontHash[FONTS_NUM];  // HASH TO DETECT FONT CHANGES
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
@@ -637,12 +644,11 @@ void          halGetSystemDateTime(struct date *dt, struct time *tm);
 void          halDisableSystemAlarm();
 int           halCheckSystemAlarm();
 
-// SCREEN FUNCTIONS
+// Screen functions
 void          halInitScreen();
 void          halSetupTheme(color16_t *palette);
 void          halSetNotification(enum halNotification type, unsigned color);
 unsigned      halGetNotification(enum halNotification type);
-void          halShowErrorMsg();
 void          halShowMsg(utf8_p Text);
 void          halShowMsgN(utf8_p Text, utf8_p End);
 void          halSetCmdLineHeight(int h);

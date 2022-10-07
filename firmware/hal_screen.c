@@ -12,12 +12,380 @@
 #include <ui.h>
 
 RECORDER(annunciators, 16, "Annunciators");
+RECORDER(layout, 16, "Layout and redrawing");
 
-// THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
-// SET TO SHOW/HIDE THE NOTIFICATION ICON
+
+// ============================================================================
+//
+//   Layout management
+//
+// ============================================================================
+
+typedef struct rect
+// ----------------------------------------------------------------------------
+//   Rectangle with the coordinates of a given surface
+// ----------------------------------------------------------------------------
+{
+    coord       left, right;
+    coord       top, bottom;
+} rect_t;
+
+
+typedef struct layout layout_t;
+typedef const layout_t *layout_p;
+typedef void (*redraw_fn)(gglsurface *s, layout_p layout, rect_t *rect);
+
+
+typedef enum anchor
+// ----------------------------------------------------------------------------
+//   Position relative to the reference item
+// ----------------------------------------------------------------------------
+//   The order in this enum matters, see the layout() function
+//   Bits are used as follows:                         m i      s      n j
+//    0: anchor right vs. left                          +---------------+
+//    1: anchor bottom vs. top                         e|a      q      f|b
+//    2: to-left vs. to-right horizontally              |               |
+//    3: above vs. below vertically                    w|u      z      x|v
+//    4: Center horizontally                            |               |
+//    5: Center vertically                             o|k      t      p|l
+//                                                      +---------------+
+//                                                     g c      r      h d
+//
+{
+    TOP_LEFT_IN,                                        // a
+    TOP_RIGHT_OF,                                       // b
+    BELOW_BOTTOM_LEFT,                                  // c
+    BELOW_RIGHT_OF,                                     // d
+    TOP_LEFT_OF,                                        // e
+    TOP_RIGHT_IN,                                       // f
+    BELOW_LEFT_OF,                                      // g
+    BELOW_RIGHT,                                        // h
+
+    ABOVE_LEFT,                                         // i
+    ABOVE_RIGHT_OF,                                     // j
+    BOTTOM_LEFT_IN,                                     // k
+    BOTTOM_RIGHT_OF,                                    // l
+    ABOVE_LEFT_OF,                                      // m
+    ABOVE_RIGHT,                                        // n
+    BOTTOM_LEFT_OF,                                     // o
+    BOTTOM_RIGHT_IN,                                    // p
+
+    TOP_CENTER_IN       = (1<<4),                       // q
+    BELOW_CENTER_OF     = (1<<4) | (1<<1),              // r
+    ABOVE_CENTER_OF     = (1<<4) |          (1<<3),     // s
+    BOTTOM_CENTER_IN    = (1<<4) | (1<<1) | (1<<3),     // t
+
+    CENTER_LEFT_IN      = (1<<5),                       // u
+    CENTER_RIGHT_OF     = (1<<5) | (1<<0),              // v
+    CENTER_LEFT_OF      = (1<<5) |          (1<<2),     // w
+    CENTER_RIGHT_IN     = (1<<5) | (1<<0) | (1<<2),     // x
+
+    CENTER_IN           = (1<<4) | (1<<5),
+
+} anchor_t;
+
+
+typedef struct layout
+// ----------------------------------------------------------------------------
+//   An enumeration for the items we can put on the screen
+// ----------------------------------------------------------------------------
+{
+    redraw_fn   draw;           // Draw the given layout
+    anchor_t    position;       // Relative location to other layout
+    redraw_fn   base;           // Reference layout
+    coord       dx;             // Horizontal offset for the layout
+    coord       dy;             // Vertical offset for the layout
+} layout_t;
+
+
+static void clip_layout(gglsurface *s,
+                        layout_p    layout,
+                        rect_t     *rect,
+                        coord       width,
+                        coord       height)
+// ----------------------------------------------------------------------------
+//   Apply a layout, return old clipping rectangle
+// ----------------------------------------------------------------------------
+//   On input, the rectangle is set to the reference
+//   On output, we resize that rectangle to at most width and height
+{
+    anchor_t pos    = layout->position;
+    coord    dx     = layout->dx;
+    coord    dy     = layout->dy;
+    coord    left   = rect->left;
+    coord    top    = rect->top;
+    coord    right  = rect->right;
+    coord    bottom = rect->bottom;
+
+    // Case where we request a 0,0 size with an offset of 1
+    if (width < dx)
+        dx = 0;
+    if (height < dy)
+        dy = 0;
+
+    if (pos & (1 << 4))
+    {
+        coord x = (left + right) / 2;
+        if (width >= right - left)
+            width = right - left - 1;
+        width -= 2 * dx;
+        left  = x - width / 2;
+        right = left + width - 1;
+    }
+    else
+    {
+        coord x = pos & (1 << 0) ? right : left;
+        if (pos & (1 << 2))
+        {
+            x -= dx;
+            left = x - width + 1;
+            right = x;
+        }
+        else
+        {
+            x += dx;
+            left = x;
+            right = x + width - 1;
+        }
+    }
+    if (pos & (1 << 5))
+    {
+        coord y = (top + bottom) / 2;
+        if (height >= bottom - top)
+            height = bottom - top - 1;
+        height -= 2 * dy;
+        top = y - height / 2;
+        bottom = top + height - 1;
+    }
+    else
+    {
+        coord y = pos & (1 << 1) ? bottom : top;
+        if (pos & (1 << 3))
+        {
+            y -= dy;
+            top = y - height + 1;
+            bottom = y;
+        }
+        else
+        {
+            y += dy;
+            top = y;
+            bottom = y + height - 1;
+        }
+    }
+
+    // Clip resulting rectangle
+    if (left < s->left)
+        left = s->left;
+    if (top < s->top)
+        top = s->top;
+    if (right > s->right)
+        right = s->right;
+    if (bottom > s->bottom)
+        bottom = s->bottom;
+
+    // Store the resulting coordinates
+    rect->left   = left;
+    rect->top    = top;
+    rect->right  = right;
+    rect->bottom = bottom;
+    s->left      = left;
+    s->top       = top;
+    s->right     = right;
+    s->bottom    = bottom;
+}
+
+
+// Actual rendering of the various panels
+static void screen_layout       (gglsurface *, layout_p , rect_t *);
+static void stack_layout        (gglsurface *, layout_p , rect_t *);
+static void cmdline_layout      (gglsurface *, layout_p , rect_t *);
+static void status_area_layout  (gglsurface *, layout_p , rect_t *);
+static void annunciators_layout (gglsurface *, layout_p , rect_t *);
+static void user_flags_layout   (gglsurface *, layout_p , rect_t *);
+static void message_layout      (gglsurface *, layout_p , rect_t *);
+static void autocomplete_layout (gglsurface *, layout_p , rect_t *);
+static void path_layout         (gglsurface *, layout_p , rect_t *);
+static void battery_layout      (gglsurface *, layout_p , rect_t *);
+static void form_layout         (gglsurface *, layout_p , rect_t *);
+static void help_layout         (gglsurface *, layout_p , rect_t *);
+static void errors_layout       (gglsurface *, layout_p , rect_t *);
+static void menu1_1_layout      (gglsurface *, layout_p , rect_t *);
+static void menu1_2_layout      (gglsurface *, layout_p , rect_t *);
+static void menu1_3_layout      (gglsurface *, layout_p , rect_t *);
+static void menu1_4_layout      (gglsurface *, layout_p , rect_t *);
+static void menu1_5_layout      (gglsurface *, layout_p , rect_t *);
+static void menu1_6_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_1_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_2_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_3_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_4_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_5_layout      (gglsurface *, layout_p , rect_t *);
+static void menu2_6_layout      (gglsurface *, layout_p , rect_t *);
+
+
+static void render_layouts(gglsurface *scr)
+// ----------------------------------------------------------------------------
+//   Render all the layouts in order
+// ----------------------------------------------------------------------------
+{
+    // Per-target layout definition
+    static const layout_t layouts[] =
+#include <layout.h>
+        ;
+
+    int    NUM_LAYOUTS = sizeof(layouts) / sizeof(layouts[0]);
+    rect_t rects[NUM_LAYOUTS];
+
+    for (int l = 0; l < NUM_LAYOUTS; l++)
+    {
+        const layout_p layout = layouts + l;
+        rect_t *r = rects + l;
+
+        // Initialize rectangle, notably useful for screen
+        r->left   = 0;
+        r->right  = LCD_W - 1;
+        r->top    = 0;
+        r->bottom = LCD_H - 1;
+
+        // Search the layout reference, and if so, update rectangle
+        redraw_fn base = layout->base;
+        if (base)
+        {
+            // Find the reference layout referenced by this layout
+            for (int ref = l - 1; ref >= 0; ref--)
+            {
+                if (layouts[ref].draw == base)
+                {
+                    *r = rects[ref];
+                    break;
+                }
+            }
+        }
+
+        // Call the renderer with the rectangle that we found
+        coord     left   = scr->left;
+        coord     top    = scr->top;
+        coord     right  = scr->right;
+        coord     bottom = scr->bottom;
+        redraw_fn draw   = layout->draw;
+        draw(scr, layout, r);
+
+        // Restore clipping after draw
+        scr->left   = left;
+        scr->top    = top;
+        scr->right  = right;
+        scr->bottom = bottom;
+    }
+}
+
+
+
+// ============================================================================
+//
+//   Redraw functions
+//
+// ============================================================================
+
+static void screen_layout(gglsurface *s, layout_p l, rect_t *r)
+// ----------------------------------------------------------------------------
+//   Size the screen for other components to layout inside
+// ----------------------------------------------------------------------------
+{
+    record(layout, "Redrawing screen %p, layout %p, rectangle %p", s, l, r);
+    if (halDirty(BACKGROUND_DIRTY))
+    {
+        ggl_rect(s, 0, 0, LCD_W - 1, LCD_H - 1, PAL_GRAY8);
+        halRepainted(BACKGROUND_DIRTY);
+    }
+}
+
+
+static void menu_item_layout(gglsurface *scr,
+                             layout_p    layout,
+                             rect_t     *rect,
+                             int         menu,
+                             int         index)
+// ----------------------------------------------------------------------------
+//   Redraw a menu at the given index
+// ----------------------------------------------------------------------------
+{
+    // Check active menu
+    int active = menu == 2 ? halScreen.Menu2 : halScreen.Menu1;
+
+    // Compute the size for the layout
+    size width  = active ? MENU_TAB_WIDTH  : 0;
+    size height = active ? MENU_TAB_HEIGHT : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (!active)
+        return;
+
+    int       invertMenu = rplTestSystemFlag(FL_MENU1WHITE);
+    pattern_t bcolor     = invertMenu ? PAL_MENU_TEXT : PAL_MENU_BG;
+    pattern_t background = PAL_STK_BG;
+
+    // Draw the button
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+
+    ggl_cliprect(scr, left, top, right, bottom, background);
+    ggl_cliprect(scr, left + 1, top + 0, right - 1, bottom - 0, bcolor);
+    ggl_cliprect(scr, left + 0, top + 1, right - 0, bottom - 1, bcolor);
+
+    int64_t  menuCode = rplGetMenuCode(menu);
+    word_p   menuObj  = uiGetLibMenu(menuCode);
+    unsigned nitems   = uiCountMenuItems(menuCode, menuObj);
+
+    // Validity check: Commands may have rendered the page number invalid,
+    // for example by purging variables
+    if (MENUPAGE(menuCode) >= nitems || nitems <= 6)
+    {
+        menuCode = SETMENUPAGE(menuCode, 0);
+        rplSetMenuCode(menu, menuCode);
+    }
+
+    int64_t menuId = MENUPAGE(menuCode) + index - 1;
+    word_p item = uiGetMenuItem(menuCode, menuObj, menuId);
+
+    // Inset before drawing text
+    scr->top       = top + MENU_TAB_INSET;
+    scr->bottom    = bottom - MENU_TAB_INSET;
+    uiDrawMenuItem(scr, item);
+}
+
+
+#define DRAW_MENU_BUTTON(m, id)                                         \
+static void menu##m##_##id##_layout(gglsurface *scr,                    \
+                                    layout_p    layout,                 \
+                                    rect_t     *rect)                   \
+/* ---------------------------------------------------------------- */  \
+/*   Generate a menu button                                         */  \
+/* ---------------------------------------------------------------- */  \
+{                                                                       \
+    menu_item_layout(scr, layout, rect, m, id);                         \
+}
+
+DRAW_MENU_BUTTON(1, 1);
+DRAW_MENU_BUTTON(1, 2);
+DRAW_MENU_BUTTON(1, 3);
+DRAW_MENU_BUTTON(1, 4);
+DRAW_MENU_BUTTON(1, 5);
+DRAW_MENU_BUTTON(1, 6);
+DRAW_MENU_BUTTON(2, 1);
+DRAW_MENU_BUTTON(2, 2);
+DRAW_MENU_BUTTON(2, 3);
+DRAW_MENU_BUTTON(2, 4);
+DRAW_MENU_BUTTON(2, 5);
+DRAW_MENU_BUTTON(2, 6);
+
 
 void halSetNotification(enum halNotification type, unsigned color)
+// ----------------------------------------------------------------------------
+//  Show/hide the notification icon
+// ----------------------------------------------------------------------------
 {
     int old = halFlags & (1 << (16 + type));
     if (color)
@@ -40,244 +408,93 @@ void halSetNotification(enum halNotification type, unsigned color)
     }
 #endif /* has physical annunciators */
 
-    // DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
+    // Draw custom icons into the status area for all other annunciators
     if ((halFlags ^ old) & (1 << (16 + type)))
-        halScreen.DirtyFlag |= STATUS_DIRTY; // REDRAW STATUS AS SOON AS POSSIBLE
+        halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
 }
 
+
 unsigned halGetNotification(enum halNotification type)
+// ----------------------------------------------------------------------------
+//   Return a given notification
+// ----------------------------------------------------------------------------
 {
     if (halFlags & (1 << (16 + type)))
         return 1;
     return 0;
 }
 
-void halSetStackHeight(int h)
-{
-    int total;
-    halScreen.Stack = h;
-    total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    if (total != LCD_H)
-    {
-        if (halScreen.Form)
-        {
-            halScreen.Form += LCD_H - total;
-            halScreen.DirtyFlag |= FORM_DIRTY;
-        }
 
-        else
-            halScreen.Stack = LCD_H - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
-        if (halScreen.Form < 0)
-        {
-            halScreen.Stack += halScreen.Form;
-            halScreen.Form = 0;
-        }
-    }
-    halScreen.DirtyFlag |= STACK_DIRTY;
+void halSetStackHeight(int h)
+// ----------------------------------------------------------------------------
+//   Adjust the height of the stack
+// ----------------------------------------------------------------------------
+{
+    halScreen.Stack = h > 0 ? h : 0;
+    halRefresh(STACK_DIRTY);
 }
+
 
 void halSetFormHeight(int h)
+// ----------------------------------------------------------------------------
+//   Adjust the height of a form
+// ----------------------------------------------------------------------------
 {
-    int total;
-    if (h < 0)
-        h = 0;
-    halScreen.Form = h;
-    total          = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    if (total != LCD_H)
-    {
-        if (halScreen.Stack)
-        {
-            halScreen.Stack += LCD_H - total;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-        }
-
-        else
-            halScreen.Form = LCD_H - halScreen.CmdLine - halScreen.Menu1 - halScreen.Menu2;
-        if (halScreen.Stack < 0)
-        {
-            halScreen.Form += halScreen.Stack;
-            halScreen.Stack = 0;
-        }
-    }
-    halScreen.DirtyFlag |= FORM_DIRTY;
+    halScreen.Form = h > 0 ? h : 0;
+    halRefresh(FORM_DIRTY);
 }
 
-// MENU1 AREA IS USUALLY FIXED TO 1 LINE, BUT THIS IS GENERIC CODE
+
 void halSetMenu1Height(int h)
+// ----------------------------------------------------------------------------
+//   Set the height of menu 1, which we use to identify if menu is active
+// ----------------------------------------------------------------------------
 {
-    int total;
-    if (h < 0)
-        h = 0;
-    halScreen.Menu1 = h;
-    total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != LCD_H)
-    {
-        // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
-
-        if (halScreen.Stack)
-        {
-            halScreen.Stack += LCD_H - total;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-
-            if (halScreen.Stack < 0)
-                halScreen.Stack = 0;
-        }
-        else
-        {
-            halScreen.Form += LCD_H - total;
-            halScreen.DirtyFlag |= FORM_DIRTY;
-
-            if (halScreen.Form < 0)
-            {
-                halScreen.Menu1 += halScreen.Form;
-                halScreen.Form = 0;
-            }
-        }
-        total = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    }
-    halScreen.DirtyFlag |= MENU1_DIRTY | CMDLINE_ALLDIRTY;
+    halScreen.Menu1 = h > 0 ? h : 0;
+    halRefresh(MENU1_DIRTY);
 }
+
 
 void halSetMenu2Height(int h)
+// ----------------------------------------------------------------------------
+//  Set the height of the second menu
+// ----------------------------------------------------------------------------
 {
-    int total;
-    if (h < 0)
-        h = 0;
-    halScreen.Menu2 = h;
-    total           = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != LCD_H)
-    {
-        // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
-
-        if (halScreen.Stack > 1)
-        {
-            halScreen.Stack += LCD_H - total;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-            if (halScreen.Stack < 1)
-                halScreen.Stack = 1;
-        }
-        else
-        {
-            if (halScreen.Form > 1)
-            {
-                halScreen.Form += LCD_H - total;
-                halScreen.DirtyFlag |= FORM_DIRTY;
-                if (halScreen.Form < 1)
-                    halScreen.Form = 1;
-            }
-            else
-            {
-                if (halScreen.CmdLine > 1)
-                {
-                    int newcmdht  = halScreen.CmdLine + LCD_H - total;
-                    int newnlines = (newcmdht - 2) / FONT_HEIGHT(FONT_CMDLINE);
-                    if (newnlines < 1)
-                    {
-                        // THERE'S NO ROOM AT ALL, VANISH THE MENU REGARDLESS
-                        halScreen.Menu2 = 0;
-                    }
-                    else
-                    {
-                        if (newnlines != halScreen.NumLinesVisible)
-                        {
-                            // WE ARE CHANGING THE COMMAND LINE HEIGHT
-                            uiStretchCmdLine(newnlines - halScreen.NumLinesVisible);
-                            uiEnsureCursorVisible();
-                        }
-                        halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
-                    }
-                }
-            }
-        }
-        total = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    }
-    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY | CMDLINE_ALLDIRTY;
+    halScreen.Menu2 = h > 0 ? h : 0;
+    halRefresh(MENU2_DIRTY);
 }
+
 
 void halSetCmdLineHeight(int h)
+// ----------------------------------------------------------------------------
+//   Set the height of the command line
+// ----------------------------------------------------------------------------
 {
-    int total;
-    if (h < 0)
-        h = 0;
-    halScreen.CmdLine = h;
-    total             = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    while (total != LCD_H)
-    {
-        // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
-
-        if (halScreen.Stack > 1)
-        {
-            halScreen.Stack += LCD_H - total;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-
-            if (halScreen.Stack < 1)
-                halScreen.Stack = 1;
-        }
-        else
-        {
-            if (halScreen.Form > 1)
-            {
-                halScreen.Form += LCD_H - total;
-                halScreen.DirtyFlag |= FORM_DIRTY;
-
-                if (halScreen.Form < 1)
-                    halScreen.Form = 1;
-            }
-            else
-            {
-                // STACK AND FORMS ARE AT MINIMUM
-                if (total > LCD_H)
-                {
-                    unsigned height = FONT_HEIGHT(FONT_CMDLINE);
-                    halScreen.CmdLine =
-                        LCD_H - 2 - (halScreen.Form + halScreen.Stack + halScreen.Menu1 + halScreen.Menu2);
-                    halScreen.CmdLine /= height;
-                    if (halScreen.CmdLine < 1)
-                        halScreen.CmdLine = 1;
-                    halScreen.CmdLine *= height;
-                    halScreen.CmdLine += 2;
-                }
-                else
-                {
-                    // ENLARGE STACK
-                    if (halScreen.Stack > 0)
-                    {
-                        halScreen.Stack += LCD_H - total;
-                        halScreen.DirtyFlag |= STACK_DIRTY;
-                    }
-                    else
-                    {
-                        // IF THE STACK IS CLOSED, THEN IT HAS TO BE A FORM!
-
-                        halScreen.Form += LCD_H - total;
-                        halScreen.DirtyFlag |= FORM_DIRTY;
-                    }
-                }
-            }
-        }
-        total = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1 + halScreen.Menu2;
-    }
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halScreen.CmdLine = h > 0 ? h : 0;
+    halRefresh(CMDLINE_ALL_DIRTY);
 }
 
-// COMPUTE HEIGHT AND WIDTH OF OBJECT TO DISPLAY ON STACK
 
 int32_t halGetDispObjectHeight(word_p object, UNIFONT *font)
+// ----------------------------------------------------------------------------
+// Compute height and width of object to display on stack
+// ----------------------------------------------------------------------------
 {
     UNUSED(object);
-    // TODO: ADD MULTILINE OBJECTS, ETC.
 
+    // TODO: Add multiline objects, etc.
     return font->BitmapHeight;
 }
 
 extern const const uint64_t powersof10[20];
 
-// CONVERT INTEGER NUMBER INTO STRING FOR STACK LEVEL
-// str MUST CONTAIN AT LEAST 15: BYTES "-1,345,789,123[NULL]"
-void                       halInt2String(int num, char *str)
+void halInt2String(int num, char *str)
+// ----------------------------------------------------------------------------
+//  Convert integer number into string for stack level
+// ----------------------------------------------------------------------------
+// Str must contain at least 15: bytes "-1,345,789,123[NULL]"
 {
-    int   pow10idx = 9; // START WITH 10^10
-    int   digit, firstdigit;
+    int   pow10idx = 9; // Start with 10^10
     char *ptr = str;
     if (num < 0)
     {
@@ -285,10 +502,10 @@ void                       halInt2String(int num, char *str)
         num    = -num;
     }
 
-    firstdigit = 1;
+    int firstdigit = 1;
     do
     {
-        digit = 0;
+        int digit = 0;
         while ((uint64_t) num >= powersof10[pow10idx])
         {
             ++digit;
@@ -315,76 +532,75 @@ void                       halInt2String(int num, char *str)
     *ptr = 0;
 }
 
-void halRedrawForm(gglsurface *scr)
+
+
+static void form_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Redraw a form
+// ----------------------------------------------------------------------------
 {
-    if (halScreen.Form == 0)
-    {
-        halScreen.DirtyFlag &= ~FORM_DIRTY;
+    int active = halScreen.Form != 0;
+
+    // Compute the size for the layout
+    size width  = active ? LCD_W : 0;
+    size height = active ? LCD_H : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (!active)
         return;
-    }
 
-    halScreenUpdated();
+    // Redraw the contents of the current form
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+    ggl_cliprect(scr, left, top, right, bottom, PAL_FORM_BG);
 
-    // REDRAW THE CONTENTS OF THE CURRENT FORM
-    coord ystart = 0;
-    coord yend = ystart + halScreen.Form;
-
+    // Check the current form
     word_p form = rplGetSettings((word_p) currentform_ident);
-    if (!form)
+    if (form)
     {
-        ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, PAL_FORM_BG); // CLEAR RECTANGLE
-        halScreen.DirtyFlag &= ~FORM_DIRTY;
-        return;
+        word_p bmp = uiFindCacheEntry(form, FONT_FORMS);
+        if (bmp)
+        {
+            gglsurface viewport = ggl_grob(bmp);
+            ggl_copy(scr, &viewport, LCD_W, LCD_H);
+        }
     }
-
-    word_p bmp = uiFindCacheEntry(form, FONT_FORMS);
-    if (!bmp)
-    {
-        ggl_cliprect(scr, scr->left, ystart, scr->right, yend - 1, PAL_FORM_BG); // CLEAR RECTANGLE
-        halScreen.DirtyFlag &= ~FORM_DIRTY;
-        return;
-    }
-
-    gglsurface viewport = ggl_grob(bmp);
-    if (yend > viewport.bottom + 1)
-    {
-        // CLEAR THE BACKGROUND
-        ggl_cliprect(scr,
-                     scr->left,
-                     viewport.bottom + 1,
-                     scr->right,
-                     yend - 1,
-                     PAL_FORM_BG); // CLEAR RECTANGLE
-    }
-
-    // DRAW THE VIEWPORT
-    ggl_copy(scr, &viewport, LCD_W, yend);
-    halScreen.DirtyFlag &= ~FORM_DIRTY;
+    halRepainted(FORM_DIRTY);
 }
 
-void halRedrawStack(gglsurface *screen)
+
+static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Redraw the stack
+// ----------------------------------------------------------------------------
 {
-    if (halScreen.Stack == 0)
-    {
-        halScreen.DirtyFlag &= ~STACK_DIRTY;
+    int active = halScreen.Stack != 0;
+
+    // Compute the size for the layout
+    size twidth  = active ? LCD_W : 0;
+    size theight = active ? LCD_H : 0;
+    clip_layout(scr, layout, rect, twidth, theight);
+    if (!active)
         return;
-    }
 
-    halScreenUpdated();
+    // Redraw the contents of the stack
+    coord left   = rect->left;
+    coord top    = rect->top;
+    coord right  = rect->right;
+    coord bottom = rect->bottom;
+    coord height = bottom - top;
+    coord width  = right - left;
+    int   depth  = rplDepthData();
+    int   level  = 1;
+    char  num[16];
 
-    gglsurface     clipped = *screen;
-    coord          ystart  = halScreen.Form;
-    coord          yend    = ystart + halScreen.Stack;
-    int            depth   = rplDepthData();
-    int            level   = 1;
-    int            objheight, ytop, y, numwidth, xright;
-    size           width, height;
-    char           num[16];
-    const UNIFONT *levelfnt;
-    word_p         object;
+    ggl_cliprect(scr, left, top, right, bottom, PAL_STK_BG);
+
 
     // Estimate number width at 75% of the font height
-    size stknum_w  = (FONT_HEIGHT(FONT_STACK) * 192) / 256;
+    size stknum_w = (FONT_HEIGHT(FONT_STACK) * 192) / 256;
+    size xright   = stknum_w;
     if (halContext(CONTEXT_INTERACTIVE_STACK))
     {
         // Ensure the stack pointer is completely inside the screen
@@ -397,16 +613,16 @@ void halRedrawStack(gglsurface *screen)
             if (k > depth)
                 k = depth;
 
-            levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
-            object   = uiRenderObject(rplPeekData(k), levelfnt);
+            const UNIFONT *levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
+            word_p         object   = uiRenderObject(rplPeekData(k), levelfnt);
 
             // Get the size of the object
             size objh = object ? object[2] : levelfnt->BitmapHeight;
-            coord ypref = ystart + (yend - ystart) / 4 + objh / 2;
-            if (ypref > yend)
-                ypref = yend - objh;
-            if (ypref < ystart)
-                ypref = ystart;
+            coord ypref = top + height / 4 + objh / 2;
+            if (ypref > bottom)
+                ypref = bottom - objh;
+            if (ypref < top)
+                ypref = top;
 
             for (; k > 0; --k)
             {
@@ -415,11 +631,11 @@ void halRedrawStack(gglsurface *screen)
 
                 // Get the size of the object
                 int stkheight = object ? object[2] : levelfnt->BitmapHeight;
-                if (ypref + stkheight > yend)
+                if (ypref + stkheight > bottom)
                 {
-                    y                          = ypref + stkheight;
+                    coord y                    = ypref + stkheight;
                     halScreen.StkVisibleLvl    = k;
-                    halScreen.StkVisibleOffset = yend - y;
+                    halScreen.StkVisibleOffset = bottom - y;
                     break;
                 }
             }
@@ -431,25 +647,23 @@ void halRedrawStack(gglsurface *screen)
         }
         xright = 2 * stknum_w;
     }
-    else
-    {
-        xright = stknum_w;
-    }
 
-    level = halScreen.StkVisibleLvl;
-    y     = yend - halScreen.StkVisibleOffset;
+    level   = halScreen.StkVisibleLvl;
+    coord y = bottom - halScreen.StkVisibleOffset;
 
     for (int mul = 10; depth >= mul; mul *= 10)
         xright += stknum_w;
 
     // Clear the stack index area, the stack display area, and draw
-    ggl_cliprect(&clipped, 0, ystart, xright - 1, yend - 1, PAL_STK_IDX_BG);
-    ggl_cliprect(&clipped, xright + 1, ystart, LCD_W - 1, yend - 1, PAL_STK_BG);
-    ggl_clipvline(&clipped, xright, ystart, yend - 1, PAL_STK_VLINE);
+    ggl_cliprect(scr, 0, top, xright - 1, bottom - 1, PAL_STK_IDX_BG);
+    ggl_cliprect(scr, xright + 1, top, LCD_W - 1, bottom - 1, PAL_STK_BG);
+    ggl_clipvline(scr, xright, top, bottom - 1, PAL_STK_VLINE);
 
-    while (y > ystart)
+    while (y > top)
     {
-        levelfnt = level == 1 ? FONT_STACKLVL1 : FONT_STACK;
+        const UNIFONT *levelfnt  = level == 1 ? FONT_STACKLVL1 : FONT_STACK;
+        size           objheight = 0;
+        word_p         object    = NULL;
 
         // Get Object size
         if (level <= depth)
@@ -485,13 +699,7 @@ void halRedrawStack(gglsurface *screen)
             width     = 0;
         }
 
-        ytop           = y - objheight;
-
-        // Set clipping region
-        clipped.left   = 0;
-        clipped.right  = LCD_W - 1;
-        clipped.top    = (ytop < 0) ? 0 : ytop;
-        clipped.bottom = (y > yend) ? yend - 1 : y - 1;
+        coord ytop = y - objheight;
 
         if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
@@ -506,82 +714,83 @@ void halRedrawStack(gglsurface *screen)
                 // Start was selected, paint all levels between start and current position
                 if (halScreen.StkSelStart > halScreen.StkPointer)
                 {
-                    if ((level >= halScreen.StkPointer) && (level <= halScreen.StkSelStart))
-                        ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
+                    if (level >= halScreen.StkPointer && level <= halScreen.StkSelStart)
+                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
                     if (level == halScreen.StkSelStart)
-                        DrawText(&clipped, 2, ytop, "▶", FONT_STACK, PAL_STK_CURSOR);
+                        DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
                 }
                 else
                 {
-                    if ((level >= halScreen.StkSelStart) && (level <= halScreen.StkPointer))
-                        ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
+                    if (level >= halScreen.StkSelStart && level <= halScreen.StkPointer)
+                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
                     if (level == halScreen.StkSelStart)
-                        DrawText(&clipped, 2, ytop, "▶", FONT_STACK, PAL_STK_CURSOR);
+                        DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
                 }
                 break;
             case 2:
                 // Both start and end selected
-                if ((level >= halScreen.StkSelStart) && (level <= halScreen.StkSelEnd))
-                    ggl_cliprect(&clipped, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
+                if (level >= halScreen.StkSelStart && level <= halScreen.StkSelEnd)
+                    ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
                 if (level == halScreen.StkSelStart)
-                    DrawText(&clipped, 2, ytop, "▶", FONT_STACK, PAL_STK_CURSOR);
+                    DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
                 if (level == halScreen.StkSelEnd)
-                    DrawText(&clipped, 2, ytop, "▶", FONT_STACK, PAL_STK_CURSOR);
+                    DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
                 break;
             }
 
             // Draw the pointer
-            if ((level <= depth) && (level == halScreen.StkPointer))
-                DrawText(&clipped, 0, ytop, "▶", FONT_STACK, PAL_STK_CURSOR);
-            else if ((level == 1) && (halScreen.StkPointer == 0))
-                DrawText(&clipped, 0, ytop + levelfnt->BitmapHeight / 2, "▶", FONT_STACK, PAL_STK_CURSOR);
-            else if ((level == depth) && (halScreen.StkPointer > depth))
-                DrawText(&clipped, 0, ytop - levelfnt->BitmapHeight / 2 + 1, "▶", FONT_STACK, PAL_STK_CURSOR);
+            coord fnth = levelfnt->BitmapHeight / 2;
+            if (level <= depth && level == halScreen.StkPointer)
+                DrawText(scr, 0, ytop, "▶", Font_8A, PAL_STK_CURSOR);
+            else if (level == 1 && halScreen.StkPointer == 0)
+                DrawText(scr, 0, ytop + fnth, "▶", Font_8A, PAL_STK_CURSOR);
+            else if (level == depth && halScreen.StkPointer > depth)
+                DrawText(scr, 0, ytop - fnth + 1, "▶", FONT_STACK, PAL_STK_CURSOR);
         }
 
         if (level <= depth)
         {
             // Draw the stack level number
             halInt2String(level, num);
-            numwidth = StringWidth(num, FONT_STACK);
-            DrawText(&clipped, xright - numwidth, ytop, num, FONT_STACK, PAL_STK_INDEX);
+            size numwidth = StringWidth(num, FONT_STACK);
+            DrawText(scr, right - numwidth, ytop, num, Font_8A, PAL_STK_INDEX);
 
             // Do proper layout: right justify unless it does not fit
             coord x = LCD_W - width;
-            if (x < xright + 1)
-                x = xright + 1;
+            if (x < right + 1)
+                x = right + 1;
 
             // Display the item
-            clipped.left = xright + 1;
-            uiDrawBitmap(&clipped, x, ytop, object);
+            coord oldLeft = scr->left;
+            scr->left = xright + 1;
+            uiDrawBitmap(scr, x, ytop, object);
+            scr->left = oldLeft;
         }
 
         y = ytop;
         ++level;
     }
-
-    halScreen.DirtyFlag &= ~STACK_DIRTY;
+    halRepainted(STACK_DIRTY);
 }
+
 
 #define MABS(a) (((a) < 0) ? -(a) : (a))
 
-// UPDATE AN ARRAY WITH ALL FONTS_NUM FONT POINTERS
-// NEEDS TO BE FAST
 void halUpdateFontArray(const UNIFONT *fontarray[])
+// ----------------------------------------------------------------------------
+//   Update an array with all the fonts pointers
+// ----------------------------------------------------------------------------
 {
-    // SET ALL POINTERS TO 0
-
+    // Set all pointers to 0
     for (int i = 0; i < FONTS_NUM; ++i)
         fontarray[i] = NULL;
 
-    // SET CONFIGURED FONTS
+    // Set configured fonts
     if (!ISDIR(*SettingsDir))
         return;
 
-    word_p       *var;
-    const word_p *romtable  = rplGetFontRomPtrTableAddress();
-    var                     = rplFindFirstByHandle(SettingsDir);
-
+    const word_p *romtable = rplGetFontRomPtrTableAddress();
+    word_p       *var      = rplFindFirstByHandle(SettingsDir);
     while (var)
     {
         unsigned index;
@@ -597,7 +806,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         var = rplFindNext(var);
     }
 
-    // UNCONFIGURED FONTS GET DEFAULTS
+    // Unconfigured fonts get defaults
     static const UNIFONT *defaultFont[FONTS_NUM] = {
 #if LCD_W <= 131
         // HP50-G and the like
@@ -609,6 +818,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_7A,                // Status
         Font_6A,                // Plot
         Font_6A,                // Forms
+        Font_8B,                // Errors
         Font_6m,                // Help text
         Font_8B,                // Help title
         Font_6A,                // Help bold
@@ -616,7 +826,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_6m,                // Help code
 #else
         // Prime and DM42
-        Font_18,                 // Stack
+        Font_18,                // Stack
         Font_24,                // Stack level 1
         Font_32,                // Command line
         Font_32,                // Cursor
@@ -624,6 +834,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_14,                // Status
         Font_14,                // Plot
         Font_14,                // Forms
+        Font_Help,              // Errors
         Font_Help,              // Help
         Font_HelpTitle,         // Help title
         Font_HelpBold,          // Bold text in help
@@ -744,6 +955,10 @@ static struct rgb { uint8_t red, green, blue; } defaultTheme[PALETTE_SIZE] =
     { THEME_FORM_SEL_BG },
     { THEME_FORM_CURSOR },
 
+    // Errors
+    { THEME_ERROR },
+    { THEME_ERROR_BG },
+    { THEME_ERROR_LINE },
 };
 
 
@@ -792,20 +1007,21 @@ void halInitScreen()
     for (k = 0; k < FONTS_NUM; ++k)
         halScreen.FontHash[k] = 0;
 
-    halFlags                   = 0;
-    halProcesses[0]            = 0;
-    halProcesses[1]            = 0;
-    halProcesses[2]            = 0;
-    halScreen.HelpMessage      = NULL;
-    halScreen.ShortHelpMessage = NULL;
-    halScreen.CmdLine          = 0;
-    halScreen.Menu1            = MENU1_HEIGHT;
-    halScreen.Menu2            = MENU2_HEIGHT;
-    halScreen.Stack            = 1;
-    halScreen.DirtyFlag        = ALL_DIRTY;
-    halScreen.SAreaTimer       = 0;
-    halScreen.CursorTimer      = -1;
-    halScreen.KeyContext       = CONTEXT_STACK;
+    halFlags                     = 0;
+    halProcesses[0]              = 0;
+    halProcesses[1]              = 0;
+    halProcesses[2]              = 0;
+    halScreen.HelpMessage        = NULL;
+    halScreen.ShortHelpMessage   = NULL;
+    halScreen.ErrorMessage       = NULL;
+    halScreen.ErrorMessageLength = 0;
+    halScreen.CmdLine            = 0;
+    halScreen.Menu1              = MENU1_HEIGHT;
+    halScreen.Menu2              = MENU2_HEIGHT;
+    halScreen.Stack              = 1;
+    halScreen.DirtyFlag          = ALL_DIRTY;
+    halScreen.CursorTimer        = -1;
+    halScreen.KeyContext         = CONTEXT_STACK;
     halSetNotification(N_LEFT_SHIFT, 0);
     halSetNotification(N_RIGHT_SHIFT, 0);
     halSetNotification(N_ALPHA, 0);
@@ -823,1424 +1039,740 @@ void halInitScreen()
     halScreen.StkVisibleOffset = 0;
 }
 
-void halRedrawMenu1(gglsurface *scr);
-void halRedrawMenu2(gglsurface *scr);
-void halRedrawHelp(gglsurface *scr)
+
+static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 //   Redraw contextual help on the whole screen
 // ----------------------------------------------------------------------------
 {
-    if (!halScreen.Menu2)
+    // Compute the size for the layout
+    utf8_p text   = halScreen.HelpMessage;
+    size   width  = text ? LCD_W : 0;
+    size   height = text ? LCD_H : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (!text)
+        return;
+
+    coord ytop   = rect->top;
+    coord ybot   = rect->bottom;
+    coord xleft  = rect->left;
+    coord xright = rect->right;
+
+    enum style {
+        TITLE,
+        NORMAL,
+        BULLETS,
+        BOLD,
+        ITALIC,
+        CODE,
+        NUM_STYLES
+    } style = TITLE;
+
+    struct
     {
-        // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
-        halSetMenu2Height(MENU2_HEIGHT);
-        halRedrawAll(scr); // THIS CALL WILL CALL HERE RECURSIVELY
-        return;            // SO IT'S BEST TO RETURN DIRECTLY
-    }
-
-    halScreenUpdated();
-    utf8_p text = halScreen.HelpMessage;
-    if (text)
-    {
-        // coord ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        // coord ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-        coord          ytop   = 0;
-        coord          ybot   = LCD_H - 1;
-        coord          xleft  = 0;
-        coord          xright = LCD_W - 1;
-
-        enum style
+        const UNIFONT *font;
+        pattern_t      color;
+        pattern_t      background;
+    } styles[NUM_STYLES] =
         {
-            TITLE,
-            NORMAL,
-            BULLETS,
-            BOLD,
-            ITALIC,
-            CODE,
-            NUM_STYLES
-        } style = TITLE;
-
-        struct
-        {
-            const UNIFONT *font;
-            pattern_t      color;
-            pattern_t      background;
-        } styles[NUM_STYLES] =
-        {
-            { FONT_HELP_TITLE,  PAL_HLP_TITLE,  PAL_HLP_BG },
-            { FONT_HELP_TEXT,   PAL_HLP_TEXT,   PAL_HLP_BG },
-            { FONT_HELP_BOLD,   PAL_HLP_BOLD,   PAL_HLP_CODE_BG },
-            { FONT_HELP_BOLD,   PAL_HLP_BOLD,   PAL_HLP_BG },
-            { FONT_HELP_ITALIC, PAL_HLP_ITALIC, PAL_HLP_BG },
-            { FONT_HELP_CODE,   PAL_HLP_CODE,   PAL_HLP_CODE_BG },
+            { FONT_HELP_TITLE,  PAL_HELP_TITLE,  PAL_HELP_BG },
+            { FONT_HELP_TEXT,   PAL_HELP_TEXT,   PAL_HELP_BG },
+            { FONT_HELP_BOLD,   PAL_HELP_BOLD,   PAL_HELP_CODE_BG },
+            { FONT_HELP_BOLD,   PAL_HELP_BOLD,   PAL_HELP_BG },
+            { FONT_HELP_ITALIC, PAL_HELP_ITALIC, PAL_HELP_BG },
+            { FONT_HELP_CODE,   PAL_HELP_CODE,   PAL_HELP_CODE_BG },
         };
 
-        // Clear help area and add some decorative elements
-        ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_LINES);
-        xleft += 1;
-        xright -= 1;
-        ytop += 1;
-        ybot -= 1;
-        ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HLP_BG);
+    // Clear help area and add some decorative elements
+    ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HELP_LINES);
+    xleft += 1;
+    xright -= 1;
+    ytop += 1;
+    ybot -= 1;
+    ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HELP_BG);
 
-        const UNIFONT *font  = styles[style].font;
-        // Center the header
-        utf8_p hend = text;
-        while (*hend && *hend != '\n')
-            hend++;
-        coord x     = (LCD_W - StringWidthN(text, hend, font)) / 2;
-        coord y     = ytop + 2;
-        int   hadcr = 1;
+    const UNIFONT *font  = styles[style].font;
+    // Center the header
+    utf8_p hend = text;
+    while (*hend && *hend != '\n')
+        hend++;
+    coord x     = (LCD_W - StringWidthN(text, hend, font)) / 2;
+    coord y     = ytop + 2;
+    int   hadcr = 1;
 
-        // Display until end of help or next markdown section title
-        while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
+    // Display until end of help or next markdown section title
+    while(*text && (text[0] != '\n' || text[1] != '#') && y < ybot)
+    {
+        utf8_p         end   = text;
+        int            reset = 0;
+
+        // Find end of word
+        while (*end && *end != ' ' && *end != '\n')
+            end++;
+
+        // Check bold and italic
+        utf8_p first = text;
+        utf8_p last  = end - 1;
+
+        // Check if we need to append a space in what we draw
+        int needspace = *end == ' ';
+
+        if (hadcr && text[0] == '*' && text[1] == ' ')
         {
-            utf8_p         end   = text;
-            int            reset = 0;
-
-            // Find end of word
-            while (*end && *end != ' ' && *end != '\n')
-                end++;
-
-            // Check bold and italic
-            utf8_p first = text;
-            utf8_p last  = end - 1;
-
-            // Check if we need to append a space in what we draw
-            int needspace = *end == ' ';
-
-            if (hadcr && text[0] == '*' && text[1] == ' ')
+            const char bullet[] = "•";
+            x += 2;
+            first = bullet;
+            last = bullet + sizeof(bullet) - 2;
+            reset = -1;
+            text += 2;
+            end = text - 1; // Compensate for the +1 from needspace
+            needspace = 1;
+        }
+        else if (last - text > 2)
+        {
+            if (*text == '*')
             {
-                const char bullet[] = "•";
-                x += 2;
-                first = bullet;
-                last = bullet + sizeof(bullet) - 2;
-                reset = -1;
-                text += 2;
-                end = text - 1; // Compensate for the +1 from needspace
-                needspace = 1;
+                // Bold text, as in: *Hello World*
+                first++;
+                style = BOLD;
             }
-            else if (last - text > 2)
+            else if (*text == '_')
             {
-                if (*text == '*')
-                {
-                    // Bold text, as in: *Hello World*
-                    first++;
-                    style = BOLD;
-                }
-                else if (*text == '_')
-                {
-                    // Italic text, as in: _Hello World_
-                    first++;
-                    style = ITALIC;
-                }
-                else if (*text == '`')
-                {
-                    // Code text, as in: `SIN`
-                    first++;
-                    style = CODE;
-                }
-                if (*last == '*' || *last == '_' || *last == ':' ||
-                    *last == '`')
-                {
-                    // End marker: switch back to normal text after render
-                    reset = 1;
-                    if (*last == ':' )
-                        end--;
-                    last--;
-                    needspace = 0;
-                }
+                // Italic text, as in: _Hello World_
+                first++;
+                style = ITALIC;
             }
-
-            // Select font and color based on style
-            pattern_t      color = styles[style].color;
-            pattern_t      bg    = styles[style].background;
-            const UNIFONT *font  = styles[style].font;
-
-            // Check if word fits. If not, skip to new line
-            coord right = x + StringWidthN(first, last+1, font);
-            size  height = font->BitmapHeight;
-            if (right >= xright - 1)
+            else if (*text == '`')
             {
-                x = xleft + 2;
-                y += height;
+                // Code text, as in: `SIN`
+                first++;
+                style = CODE;
             }
+            if (*last == '*' || *last == '_' || *last == ':' ||
+                *last == '`')
+            {
+                // End marker: switch back to normal text after render
+                reset = 1;
+                if (*last == ':' )
+                    end--;
+                last--;
+                needspace = 0;
+            }
+        }
+
+        // Select font and color based on style
+        pattern_t      color = styles[style].color;
+        pattern_t      bg    = styles[style].background;
+        const UNIFONT *font  = styles[style].font;
+
+        // Check if word fits. If not, skip to new line
+        coord right = x + StringWidthN(first, last+1, font);
+        size  height = font->BitmapHeight;
+        if (right >= xright - 1)
+        {
+            x = xleft + 2;
+            y += height;
+        }
 
 #if BITS_PER_PIXEL == 1
-            // Draw a decoration
-            if (style == BULLETS || style == CODE)
+        // Draw a decoration
+        if (style == BULLETS || style == CODE)
+        {
+            size width = StringWidthN(first, last+1, font);
+            ggl_hline(scr, y + height - 1, x, x + width - 1, bg);
+            if (style == CODE)
             {
-                size width = StringWidthN(first, last+1, font);
-                ggl_hline(scr, y + height - 1, x, x + width - 1, bg);
-                if (style == CODE)
-                {
-                    ggl_hline(scr, y, x, x + width - 1, bg);
-                    ggl_vline(scr, x, y, y + height - 1, bg);
-                    ggl_vline(scr, x + width - 1, y, y + height - 1, bg);
-                }
+                ggl_hline(scr, y, x, x + width - 1, bg);
+                ggl_vline(scr, x, y, y + height - 1, bg);
+                ggl_vline(scr, x + width - 1, y, y + height - 1, bg);
             }
+        }
 
-            // Draw next word
-            x = DrawTextN(scr, x, y, first, last+1, font, color);
+        // Draw next word
+        x = DrawTextN(scr, x, y, first, last+1, font, color);
 #else
-            // Draw next word
-            x = DrawTextBkN(scr, x, y, first, last+1, font, color, bg);
+        // Draw next word
+        x = DrawTextBkN(scr, x, y, first, last+1, font, color, bg);
 #endif
-            if (needspace)
-            {
-                // Force a thin space in help text, it looks better
-                unsigned sw = style == TITLE ? 4 : 2;
-                ggl_cliprect(scr, x, y, x + sw -1, y + height - 1, bg);
-                x += sw;
-                end++;
-            }
-
-            // Check if we need to skip to end of line
-            text = end;
-            hadcr = *text == '\n';
-            if (hadcr)
-            {
-                x = xleft + 2;
-                y += height;
-                text++;
-                style = NORMAL;
-            }
-            if (reset)
-                style = reset < 0 ? BULLETS : NORMAL;
+        if (needspace)
+        {
+            // Force a thin space in help text, it looks better
+            unsigned sw = style == TITLE ? 4 : 2;
+            ggl_cliprect(scr, x, y, x + sw -1, y + height - 1, bg);
+            x += sw;
+            end++;
         }
-        halScreen.DirtyFlag &= ~HELP_DIRTY;
+
+        // Check if we need to skip to end of line
+        text = end;
+        hadcr = *text == '\n';
+        if (hadcr)
+        {
+            x = xleft + 2;
+            y += height;
+            text++;
+            style = NORMAL;
+        }
+        if (reset)
+            style = reset < 0 ? BULLETS : NORMAL;
     }
-    else
-    {
-        // Help covers the whole screen, need to redraw everything
-        halScreen.DirtyFlag |= ALL_DIRTY;
-        halScreen.DirtyFlag &= ~HELP_DIRTY;
-        halRedrawAll(scr);
-    }
+    halRepainted(HELP_DIRTY);
 }
 
-// REDRAW THE VARS MENU
-void halRedrawMenu1(gglsurface *scr)
+
+static coord text_layout(gglsurface    *scr,
+                         layout_p       layout,
+                         rect_t        *rect,
+                         utf8_p         message,
+                         unsigned       length,
+                         const UNIFONT *font,
+                         pattern_t      color,
+                         pattern_t      bg)
+// ----------------------------------------------------------------------------
+//    Display a text
+// ----------------------------------------------------------------------------
 {
-    if (halScreen.HelpMessage)
-    {
-        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
-        halRedrawHelp(scr);
-        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
-        return;
-    }
-    if (halScreen.Menu1 == 0)
-    {
-        halScreen.DirtyFlag &= ~MENU1_DIRTY;
-        return;
-    }
+    // Compute the size for the layout
+    size width  = message ? LCD_W : 0;
+    size height = message ? font->BitmapHeight : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (!message)
+        return rect->left;
 
-    halScreenUpdated();
-
-    int invMenu = rplTestSystemFlag(FL_MENU1WHITE);
-    pattern_t mcolor  = invMenu ? PAL_MENU_BG   : PAL_MENU_TEXT;
-    pattern_t bcolor  = invMenu ? PAL_MENU_TEXT : PAL_MENU_BG;
-
-    int ytop, ybottom;
-    int oldleft, oldright, oldtop, oldbottom;
-
-#ifndef TARGET_PRIME
-    ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-    ybottom = ytop + halScreen.Menu1 - 1;
-    // DRAW BACKGROUND
-    ggl_cliprect(scr, 0, ytop + 1, LCD_W - 1, ybottom - 1, bcolor);
-    ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_MENU_HLINE);
-    ggl_cliphline(scr, ybottom, 0, LCD_W - 1, PAL_MENU_HLINE);
-
-    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* ! TARGET_PRIME */
-
-    oldleft  = scr->left;
-    oldright = scr->right;
-    oldtop  = scr->top;
-    oldbottom = scr->bottom;
-
-#ifndef TARGET_PRIME
-    int64_t m1code  = rplGetMenuCode(1);
-    word_p  MenuObj = uiGetLibMenu(m1code);
-    int32_t nitems  = uiCountMenuItems(m1code, MenuObj);
-    int32_t k;
-    word_p  item;
-
-    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-    // FOR EXAMPLE BY PURGING VARIABLES
-    if ((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6))
-    {
-        m1code = SETMENUPAGE(m1code, 0);
-        rplSetMenuCode(1, m1code);
-    }
-
-    // FIRST ROW
-    scr->top  = ytop + 1;
-    scr->bottom = ytop + MENU1_HEIGHT - 2;
-    for (k = 0; k < 5; ++k)
-    {
-        scr->left  = MENU_TAB_WIDTH * k;
-        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-        item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-        uiDrawMenuItem(scr, item);
-    }
-
-    // NOW DO THE NXT KEY
-    scr->left  = MENU_TAB_WIDTH * k;
-    scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-
-    if (nitems == 6)
-    {
-        item = uiGetMenuItem(m1code, MenuObj, 5);
-        uiDrawMenuItem(scr, item);
-        if (nitems > 6)
-            DrawText(scr,
-                     scr->left + 1,
-                     scr->top + 1,
-                     "NXT...",
-                     FONT_MENU,
-                     mcolor);
-    }
-
-#else  /* TARGET_PRIME */
-    if (halScreen.Menu2 == 0)
-    {
-        // Draw a one-line horizontal menu with no status area when Menu2 is disabled
-        ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        ybottom = ytop + halScreen.Menu1 - 1;
-        // DRAW BACKGROUND
-        ggl_cliprect(scr, 0, ytop + 1, LCD_W - 1, ybottom - 1, bcolor);
-        ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_MENU_HLINE);
-        ggl_cliphline(scr, ybottom, 0, LCD_W - 1, PAL_MENU_HLINE);
-
-        int64_t  m1code  = rplGetMenuCode(1);
-        word_p MenuObj = uiGetLibMenu(m1code);
-        int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
-        int32_t    k;
-        word_p item;
-
-        // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-        // FOR EXAMPLE BY PURGING VARIABLES
-        if ((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6))
-        {
-            m1code = SETMENUPAGE(m1code, 0);
-            rplSetMenuCode(1, m1code);
-        }
-
-        // FIRST ROW
-
-        scr->top  = ytop + 1;
-        scr->bottom = ytop + MENU1_HEIGHT - 2;
-
-        for (k = 0; k < 5; ++k)
-        {
-            scr->left  = MENU_TAB_WIDTH * k;
-            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-            item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-            uiDrawMenuItem(scr, item);
-        }
-
-        // NOW DO THE NXT KEY
-        scr->left  = MENU_TAB_WIDTH * k;
-        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-        if (nitems == 6)
-        {
-            item = uiGetMenuItem(m1code, MenuObj, 5);
-            uiDrawMenuItem(scr, item);
-        }
-        else
-        {
-            if (nitems > 6)
-                DrawText(scr, scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor);
-        }
-    }
-    else
-    {
-        // Draw a three-line menu with centered status area when Menu2 is enabled
-
-        ytop         = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-        ybottom      = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-        pattern_t selcolor = halKeyMenuSwitch ? PAL_MENU_HLINE : PAL_MENU_FOCUS_HLINE;
-        // DRAW BACKGROUND
-        ggl_cliprect(scr, 0, ytop, MENU1_ENDX - 1, ybottom, bcolor);
-        ggl_cliphline(scr, ytop, 0, MENU1_ENDX - 1, PAL_MENU_HLINE);
-        ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, 0, MENU1_ENDX - 1, selcolor);
-        ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, 0, MENU1_ENDX - 1, selcolor);
-        ggl_cliphline(scr, ybottom, 0, MENU1_ENDX - 1, selcolor);
-
-        // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-
-        int64_t  m1code  = rplGetMenuCode(1);
-        word_p MenuObj = uiGetLibMenu(m1code);
-        int32_t    nitems  = uiCountMenuItems(m1code, MenuObj);
-        int32_t    k;
-        word_p item;
-
-        // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-        // FOR EXAMPLE BY PURGING VARIABLES
-        if ((MENUPAGE(m1code) >= (WORD) nitems) || (nitems <= 6))
-        {
-            m1code = SETMENUPAGE(m1code, 0);
-            rplSetMenuCode(1, m1code);
-        }
-        // FIRST ROW
-
-        scr->top  = ytop + 1;
-        scr->bottom = ytop + MENU1_HEIGHT - 2;
-
-
-        for (k = 0; k < 2; ++k)
-        {
-            scr->left  = MENU_TAB_WIDTH * k;
-            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-            item        = uiGetMenuItem(m1code, MenuObj, k + MENUPAGE(m1code));
-            uiDrawMenuItem(scr, item);
-        }
-
-        // SECOND ROW
-
-
-        scr->top  = ytop + MENU1_HEIGHT;
-        scr->bottom = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 2;
-
-        for (k = 0; k < 2; ++k)
-        {
-            scr->left  = MENU_TAB_WIDTH * k;
-            scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-            item        = uiGetMenuItem(m1code, MenuObj, k + 2 + MENUPAGE(m1code));
-            uiDrawMenuItem(scr, item);
-        }
-
-        // THIRD ROW
-
-        scr->top  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
-        scr->bottom = ybottom - 1;
-
-        k           = 0;
-        scr->left  = MENU_TAB_WIDTH * k;
-        scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-        item        = uiGetMenuItem(m1code, MenuObj, k + 4 + MENUPAGE(m1code));
-        uiDrawMenuItem(scr, item);
-
-        // NOW DO THE NXT KEY
-        scr->left  = MENU_TAB_WIDTH;
-        scr->right = MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
-
-        if (nitems == 6)
-        {
-            item = uiGetMenuItem(m1code, MenuObj, 5);
-            uiDrawMenuItem(scr, item);
-        }
-        else
-        {
-            if (nitems > 6)
-                DrawText(scr, scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor);
-        }
-    }
-#endif /* TARGET_PRIME */
-
-    scr->left  = oldleft;
-    scr->right = oldright;
-    scr->top  = oldtop;
-    scr->bottom = oldbottom;
-
-    halScreen.DirtyFlag &= ~MENU1_DIRTY;
+    // Redraw the given message
+    size twidth = StringWidthN(message, message + length, font);
+    if (twidth > width)
+        twidth = width;
+    coord x = (rect->left + rect->right - twidth) / 2;
+    coord y = rect->top;
+    x = DrawTextBkN(scr, x, y, message, message + length, font, color, bg);
+    return x;
 }
 
-// REDRAW THE OTHER MENU
-void halRedrawMenu2(gglsurface *scr)
+
+static void status_area_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//  Clear status area
+// ----------------------------------------------------------------------------
 {
-    if (halScreen.HelpMessage)
-    {
-        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
-        halRedrawHelp(scr);
-        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
-        return;
-    }
+    // Compute the size for the layout
+    const UNIFONT *font   = FONT_STATUS;
+    coord          width  = LCD_W;
+    coord          height = 3 * font->BitmapHeight;
+    clip_layout(scr, layout, rect, width, height);
 
-    if (halScreen.Menu2 == 0)
-    {
-        halScreen.DirtyFlag &= ~MENU2_DIRTY;
-        return;
-    }
-
-    halScreenUpdated();
-
-    int invMenu = rplTestSystemFlag(FL_MENU1WHITE);
-    pattern_t mcolor = invMenu ? PAL_MENU_BG   : PAL_MENU_TEXT;
-    pattern_t bcolor = invMenu ? PAL_MENU_TEXT : PAL_MENU_BG;
-
-    int ytop, ybottom;
-    int oldleft, oldright, oldtop, oldbottom;
-
-#ifndef TARGET_PRIME
-    ytop    = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
-    ybottom = ytop + halScreen.Menu2 - 1;
-    // DRAW BACKGROUND
-    ggl_cliprect(scr, 0, ytop, STATUS_AREA_X - 1, ybottom, bcolor);
-    // ggl_clipvline(scr,21,ytop+1,ybottom,ggl_color(0x8));
-    // ggl_clipvline(scr,43,ytop+1,ybottom,ggl_color(0x8));
-    // ggl_clipvline(scr,STATUS_AREA_X-1,ytop+1,ybottom,ggl_color(0x8));
-    //    ggl_clipvline(scr,87,ytop,ybottom,0);
-    //    ggl_clipvline(scr,109,ytop,ybottom,0);
-    // ggl_cliphline(scr,ytop,0,LCD_W-1,ggl_color(0x8));
-    ggl_cliphline(scr, ytop + MENU2_HEIGHT / 2 - 1, 0, STATUS_AREA_X - 2, PAL_MENU_HLINE);
-    ggl_cliphline(scr, ybottom, 0, STATUS_AREA_X - 2, PAL_MENU_HLINE);
-
-    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* ! TARGET_PRIME */
-
-    oldleft  = scr->left;
-    oldright = scr->right;
-    oldtop  = scr->top;
-    oldbottom = scr->bottom;
-
-#ifdef TARGET_PRIME
-    // Draw a three-line menu with centered status area when Menu2 is enabled
-    ytop         = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-    ybottom      = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-    pattern_t selcolor = halKeyMenuSwitch ? PAL_MENU_FOCUS_HLINE : PAL_MENU_HLINE;
-
-    // DRAW BACKGROUND
-    ggl_cliprect(scr, MENU2_STARTX, ytop, MENU2_ENDX - 1, ybottom, bcolor);
-    ggl_cliphline(scr, ytop, MENU2_STARTX, MENU2_ENDX - 1, PAL_MENU_HLINE);
-    ggl_cliphline(scr, ytop + halScreen.Menu1 - 1, MENU2_STARTX, MENU2_ENDX - 1, selcolor);
-    ggl_cliphline(scr, ytop + halScreen.Menu1 + MENU2_HEIGHT / 2 - 1, MENU2_STARTX, MENU2_ENDX - 1, selcolor);
-    ggl_cliphline(scr, ybottom, MENU2_STARTX, MENU2_ENDX - 1, selcolor);
-
-    ggl_clipvline(scr, MENU2_ENDX, ytop, ybottom, PAL_MENU_HLINE);
-    ggl_clipvline(scr, MENU2_STARTX - 1, ytop, ybottom, PAL_MENU_HLINE);
-
-    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
-#endif /* TARGET_PRIME */
-
-    int64_t  m2code  = rplGetMenuCode(2);
-    word_p MenuObj = uiGetLibMenu(m2code);
-    int32_t    nitems  = uiCountMenuItems(m2code, MenuObj);
-    int32_t    k;
-    word_p item;
-
-    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
-    // FOR EXAMPLE BY PURGING VARIABLES
-    if ((MENUPAGE(m2code) >= (WORD) nitems) || (nitems <= 6))
-    {
-        m2code = SETMENUPAGE(m2code, 0);
-        rplSetMenuCode(2, m2code);
-    }
-
-    // FIRST ROW
-#ifndef TARGET_PRIME
-    scr->top  = ytop;
-    scr->bottom = ytop + MENU2_HEIGHT / 2 - 2;
-#else  /* TARGET_PRIME */
-    scr->top  = ytop + 1;
-    scr->bottom = ytop + MENU1_HEIGHT - 2;
-#endif /* TARGET_PRIME */
-
-    for (k = 0; k < MENU2_COUNT; ++k)
-    {
-        scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-        scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-        item        = uiGetMenuItem(m2code, MenuObj, k + MENUPAGE(m2code));
-        uiDrawMenuItem(scr, item);
-    }
-
-    // SECOND ROW
-#ifndef TARGET_PRIME
-    scr->top  = ytop + MENU2_HEIGHT / 2;
-    scr->bottom = ybottom - 1;
-#else  /* TARGET_PRIME */
-    scr->top  = ytop + MENU1_HEIGHT;
-    scr->bottom = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2 - 3;
-#endif /* TARGET_PRIME */
-
-    for (k = 0; k < 2; ++k)
-    {
-        scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-        scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-        item        = uiGetMenuItem(m2code, MenuObj, k + 2 + MENUPAGE(m2code));
-        uiDrawMenuItem(scr, item);
-    }
-
-#ifdef TARGET_PRIME
-
-    // THIRD ROW
-    scr->top  = ytop + MENU1_HEIGHT + MENU2_HEIGHT / 2;
-    scr->bottom = ybottom - 1;
-
-    k           = 0;
-    scr->left  = MENU2_STARTX + MENU_TAB_WIDTH * k;
-    scr->right = MENU2_STARTX + MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-    item        = uiGetMenuItem(m2code, MenuObj, k + 4 + MENUPAGE(m2code));
-    uiDrawMenuItem(scr, item);
-#endif /* TARGET_PRIME */
-
-    // NOW DO THE NXT KEY
-#ifndef TARGET_PRIME
-    scr->left  = MENU_TAB_WIDTH * k;
-    scr->right = MENU_TAB_WIDTH * k + (MENU_TAB_WIDTH - 2);
-#else  /* TARGET_PRIME */
-    scr->left  = MENU2_STARTX + MENU_TAB_WIDTH;
-    scr->right = MENU2_STARTX + MENU_TAB_WIDTH + (MENU_TAB_WIDTH - 2);
-#endif /* TARGET_PRIME */
-
-    if (nitems == 6)
-    {
-        item = uiGetMenuItem(m2code, MenuObj, 5);
-        uiDrawMenuItem(scr, item);
-    }
-    else
-    {
-        if (nitems > 6)
-            DrawText(scr, scr->left + 1, scr->top + 1, "NXT...", FONT_MENU, mcolor);
-    }
-
-    scr->left  = oldleft;
-    scr->right = oldright;
-    scr->top  = oldtop;
-    scr->bottom = oldbottom;
-
-    halScreen.DirtyFlag &= ~MENU2_DIRTY;
+    // Draw the background
+    pattern_t background = PAL_STA_BG;
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+    ggl_cliprect(scr, left, top, right, bottom, background);
 }
 
-void halRedrawStatus(gglsurface *scr)
+
+static void message_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the message
+// ----------------------------------------------------------------------------
 {
-    if (halScreen.HelpMessage)
+    utf8_p         msg   = halScreen.ShortHelpMessage;
+    unsigned       len   = msg ? strlen(msg) : 0;
+    const UNIFONT *font  = FONT_HELP_CODE;
+    pattern_t      color = PAL_HELP_BG;
+    pattern_t      bg    = PAL_HELP_TEXT;
+    text_layout(scr, layout, rect, msg, len, font, color, bg);
+}
+
+
+static void autocomplete_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the auto-complete
+// ----------------------------------------------------------------------------
+{
+    utf8_p   info = NULL;
+    unsigned len  = 0;
+
+    // Autocomplete
+    if (halScreen.CmdLineState & CMDSTATE_ACACTIVE)
     {
-        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
-        halRedrawHelp(scr);
-        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
-        halScreen.DirtyFlag &= ~(MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY);
-        return;
-    }
-
-    halScreenUpdated();
-
-    if (halScreen.Menu2)
-    {
-#ifndef TARGET_PRIME
-        int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
-        ggl_cliprect(scr, STATUS_AREA_X, ytop, LCD_W - 1, ytop + halScreen.Menu2 - 1, PAL_STA_BG);
-#else  /* TARGET_PRIME */
-        int ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine;
-
-        ggl_hline(scr, ytop, STATUS_AREA_X, LCD_W - 1, PAL_MENU_HLINE);
-        ggl_cliprect(scr,
-                     STATUS_AREA_X,
-                     ytop + 1,
-                     LCD_W - 1,
-                     ytop + halScreen.Menu1 + halScreen.Menu2 - 1,
-                     PAL_STA_BG);
-#endif /* TARGET_PRIME */
-        int32_t xc, yc;
-        xc         = scr->left;
-        yc         = scr->top;
-        scr->left = STATUS_AREA_X;
-        scr->top = ytop;
-
-#ifdef TARGET_PRIME
-        ytop++;
-#endif // TARGET_PRIME
-
-        // AUTOCOMPLETE
-        if (halScreen.CmdLineState & CMDSTATE_ACACTIVE)
+        if (halScreen.ACSuggestion != 0)
         {
-            byte_p namest;
-            byte_p nameend;
-            if (halScreen.ACSuggestion != 0)
+            // Display the currently selected autocomplete command
+            if (!Exceptions)
             {
-                // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
-                // SECOND LINE
-                if (!Exceptions)
+                // Only if there were no errors
+                word_p cmdname = rplDecompile(
+                    ((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
+                         ? SuggestedObject
+                         : (&halScreen.ACSuggestion)),
+                    DECOMP_NOHINTS);
+                if (!cmdname || Exceptions)
                 {
-                    // BUT ONLY IF THERE WERE NO ERRORS
-                    int32_t    y       = ytop + 1 + FONT_STATUS->BitmapHeight;
-
-                    // FOR NOW JUST DISPLAY THE SELECTED TOKEN
-                    word_p cmdname = rplDecompile(((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
-                                                        ? SuggestedObject
-                                                        : (&halScreen.ACSuggestion)),
-                                                   DECOMP_NOHINTS);
-                    if ((!cmdname) || Exceptions)
-                    {
-                        // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
-                        Exceptions = 0;
-                        halScreen.DirtyFlag &= ~STATUS_DIRTY;
-                        return;
-                    }
-
-                    namest  = (byte_p) (cmdname + 1);
-                    nameend = namest + rplStrSize(cmdname);
-                    DrawTextBkN(scr, STATUS_AREA_X + 2,
-                                y,
-                                (char *) namest,
-                                (char *) nameend,
-                                FONT_STATUS,
-                                PAL_STA_TEXT,
-                                PAL_STA_BG);
-                }
-            }
-        }
-        else
-        {
-            // SHOW CURRENT PATH ON SECOND LINE
-            int32_t    nnames, j, width, xst;
-            word_p pathnames[8], lastword;
-            byte_p start, end;
-            int32_t    y = ytop + 1 + FONT_HEIGHT(FONT_STATUS);
-
-            nnames    = rplGetFullPath(CurrentDir, pathnames, 8);
-
-            // COMPUTE THE WIDTH OF ALL NAMES
-            width     = 0;
-            for (j = nnames - 1; j >= 0; --j)
-            {
-                if (ISIDENT(*pathnames[j]))
-                {
-                    start    = (byte_p) (pathnames[j] + 1);
-                    lastword = rplSkipOb(pathnames[j]) - 1;
-                    if (*lastword & 0xff000000)
-                    {
-                        end = (byte_p) (lastword + 1);
-                        width += StringWidthN((char *) start, (char *) end, FONT_STATUS);
-                    }
-                    else
-                        width += StringWidth((char *) start, FONT_STATUS);
-                }
-            }
-            // ADD WIDTH OF SYMBOLS
-            width += 4 * nnames;
-            if (width > LCD_W - STATUS_AREA_X)
-                xst = LCD_W - width;
-            else
-                xst = STATUS_AREA_X;
-
-            // NOW DRAW THE PATH
-            for (j = nnames - 1; j >= 0; --j)
-            {
-                if (ISIDENT(*pathnames[j]))
-                {
-                    start    = (byte_p) (pathnames[j] + 1);
-                    lastword = rplSkipOb(pathnames[j]) - 1;
-                    xst = DrawTextBk(scr, xst, y, "/", FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
-                    if (*lastword & 0xff000000)
-                    {
-                        end = (byte_p) (lastword + 1);
-                        xst = DrawTextBkN(scr, xst,
-                                          y,
-                                          (char *) start,
-                                          (char *) end,
-                                          FONT_STATUS,
-                                          PAL_STA_TEXT,
-                                          PAL_STA_BG);
-                    }
-                    else
-                        xst = DrawTextBk(scr, xst,
-                                         y,
-                                         (char *) start,
-                                         FONT_STATUS,
-                                         PAL_STA_TEXT,
-                                         PAL_STA_BG);
-
-                }
-            }
-#if 0
-            if(width > LCD_W - STATUS_AREA_X) {
-                // FADE THE TEXT OUT
-
-                scr->x = STATUS_AREA_X;
-                ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0xA, &ggl_fltlighten);
-                scr->x += 2;
-                ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0x6, &ggl_fltlighten);
-                scr->x += 2;
-                ggl_filter(scr, 2, FONT_HEIGHT(FONT_STATUS), 0x4, &ggl_fltlighten);
-
-            }
-
-            if (width > LCD_W - STATUS_AREA_X)
-            {
-                int rf, rb, gf, gb, bf, bb;
-
-                rf              = RGBRED(ggl_color(PAL_STA_TEXT));
-                rb              = RGBRED(ggl_color(PAL_STA_BG));
-                gf              = RGBGREEN(ggl_color(PAL_STA_TEXT));
-                gb              = RGBGREEN(ggl_color(PAL_STA_BG));
-                bf              = RGBBLUE(ggl_color(PAL_STA_TEXT));
-                bb              = RGBBLUE(ggl_color(PAL_STA_BG));
-
-                // CREATE 3 INTERPOLATED COLORS: (3F+B)/4, (F+B)/2 AND (F+3B)/4
-                int vanishwidth = MENU_TAB_WIDTH / 16;
-
-                scr->x          = STATUS_AREA_X;
-
-                ggl_filter(scr,
-                           vanishwidth,
-                           FONT_HEIGHT(FONT_STATUS),
-                           RGB_TO_RGB16((rf + 3 * rb) >> 2, (gf + 3 * gb) >> 2, (bf + 3 * bb) >> 2).value |
-                               (ggl_color(PAL_STA_TEXT).value << 16),
-                           &ggl_fltreplace);
-                scr->x += vanishwidth;
-                ggl_filter(scr,
-                           vanishwidth,
-                           FONT_HEIGHT(FONT_STATUS),
-                           RGB_TO_RGB16((rf + rb) >> 1, (gf + gb) >> 1, (bf + bb) >> 1).value |
-                               (ggl_color(PAL_STA_TEXT).value << 16),
-                           &ggl_fltreplace);
-                scr->x += vanishwidth;
-                ggl_filter(scr,
-                           vanishwidth,
-                           FONT_HEIGHT(FONT_STATUS),
-                           RGB_TO_RGB16((3 * rf + rb) >> 2, (3 * gf + gb) >> 2, (3 * bf + bb) >> 2).value |
-                               (ggl_color(PAL_STA_TEXT).value << 16),
-                           &ggl_fltreplace);
-            }
-#endif /* Disabled code */
-        }
-
-        int xctracker = 0; // TRACK THE WIDTH OF THE INDICATORS TO MAKE SURE THEY ALL FIT
-
-        // ANGLE MODE INDICATOR
-        {
-            int32_t              anglemode = rplTestSystemFlag(FL_ANGLEMODE1) | (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
-            const char *const name[4]   = { "∡°", "∡r", "∡g", "∡d" };
-
-            DrawTextBk(scr,
-                       STATUS_AREA_X + 1,
-                       ytop + 1,
-                       name[anglemode],
-                       FONT_STATUS,
-                       PAL_STA_TEXT,
-                       PAL_STA_BG);
-            xctracker += 4 + StringWidth((char *) name[anglemode], FONT_STATUS);
-        }
-
-        // COMPLEX MODE INDICATOR
-
-        if (rplTestSystemFlag(FL_COMPLEXMODE))
-        {
-            DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                       ytop + 1,
-                       "C",
-                       FONT_STATUS,
-                       PAL_STA_TEXT,
-                       PAL_STA_BG);
-            xctracker += 4 + StringWidth("C", FONT_STATUS);
-        }
-
-        // HALTED PROGRAM INDICATOR
-        if (halFlags & HAL_HALTED)
-        {
-            DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                       ytop + 1,
-                       "H",
-                       FONT_STATUS,
-                       PAL_STA_TEXT,
-                       PAL_STA_BG);
-            xctracker += 4 + StringWidth("H", FONT_STATUS);
-        }
-
-        // FIRST 6 USER FLAGS
-        {
-            uint64_t *flags = rplGetUserFlagsLow();
-            if (flags)
-            {
-                ggl_rect(scr,
-                         STATUS_AREA_X + 1 + xctracker,
-                         ytop + 1,
-                         STATUS_AREA_X + 6 + xctracker,
-                         ytop + 6,
-                         PAL_STA_UFLAG0);
-
-                if (*flags & 4)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 1 + xctracker,
-                             ytop + 1,
-                             STATUS_AREA_X + 2 + xctracker,
-                             ytop + 3,
-                             PAL_STA_UFLAG1);
-                if (*flags & 2)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 3 + xctracker,
-                             ytop + 1,
-                             STATUS_AREA_X + 4 + xctracker,
-                             ytop + 3,
-                             PAL_STA_UFLAG1);
-                if (*flags & 1)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 5 + xctracker,
-                             ytop + 1,
-                             STATUS_AREA_X + 6 + xctracker,
-                             ytop + 3,
-                             PAL_STA_UFLAG1);
-
-                if (*flags & 32)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 1 + xctracker,
-                             ytop + 4,
-                             STATUS_AREA_X + 2 + xctracker,
-                             ytop + 6,
-                             PAL_STA_UFLAG1);
-                if (*flags & 16)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 3 + xctracker,
-                             ytop + 4,
-                             STATUS_AREA_X + 4 + xctracker,
-                             ytop + 6,
-                             PAL_STA_UFLAG1);
-                if (*flags & 8)
-                    ggl_rect(scr,
-                             STATUS_AREA_X + 5 + xctracker,
-                             ytop + 4,
-                             STATUS_AREA_X + 6 + xctracker,
-                             ytop + 6,
-                             PAL_STA_UFLAG1);
-
-                xctracker += 7;
-            }
-        }
-
-#ifndef TARGET_PRIME
-        // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
-        if (halGetNotification(N_ALARM))
-        {
-            char txt[4];
-            txt[0] = 'A';
-            txt[1] = 'L';
-            txt[2] = 'M';
-            txt[3] = 0;
-            DrawTextBk(scr, STATUS_AREA_X + xctracker,
-                       ytop + 1,
-                       txt,
-                       FONT_STATUS,
-                       PAL_STA_TEXT,
-                       PAL_STA_BG);
-            xctracker += 2 + StringWidth(txt, FONT_STATUS);
-        }
-        else if (halGetNotification(N_DATARECVD))
-        {
-            char txt[4];
-            txt[0] = 'R';
-            txt[1] = 'X';
-            txt[2] = ' ';
-            txt[3] = 0;
-            DrawTextBk(scr, STATUS_AREA_X + xctracker,
-                       ytop + 1,
-                       txt,
-                       FONT_STATUS,
-                       PAL_STA_TEXT,
-                       PAL_STA_BG);
-            xctracker += 2 + StringWidth(txt, FONT_STATUS);
-        }
-#endif // TARGET_PRIME
-
-#ifndef CONFIG_NO_FSYSTEM
-        // SD CARD INSERTED INDICATOR
-        {
-            char txt[4];
-            int color;
-            txt[0] = 'S';
-            txt[1] = 'D';
-            txt[2] = ' ';
-            txt[3] = 0;
-            if (FSCardInserted())
-                color = 6;
-            else
-                color = 0;
-            if (FSIsInit())
-            {
-                if (FSVolumeMounted(FSGetCurrentVolume()))
-                    color = 0xf;
-                if (!FSCardInserted())
-                {
-                    txt[2] = '?';
-                    color  = 6;
-                }
-                else if (FSCardIsSDHC())
-                {
-                    txt[0] = 'H';
-                    txt[1] = 'C';
-                }
-                int k = FSIsDirty();
-                if (k == 1)
-                    color = -1; // 1 =  DIRTY FS NEEDS FLUSH
-                if (k == 2)
-                    color = -2; // 2 =  FS IS FLUSHED BUT THERE'S OPEN FILES
-            }
-
-            if (color)
-            {
-                if (color == -1)
-                {
-                    DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                               ytop + 1,
-                               txt,
-                               FONT_STATUS,
-                               PAL_STA_BG,
-                               PAL_STA_TEXT);
+                    // Just ignore, clear exceptions and return;
+                    Exceptions = 0;
                 }
                 else
                 {
-                    if (color == -2)
-                        DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                                   ytop + 1,
-                                   txt,
-                                   FONT_STATUS,
-                                   PAL_STA_BG,
-                                   PAL_STA_TEXT);
-                    else
-                        DrawTextBk(scr, STATUS_AREA_X + 1 + xctracker,
-                                   ytop + 1,
-                                   txt,
-                                   FONT_STATUS,
-                                   PAL_STA_TEXT,
-                                   PAL_STA_BG);
+                    info  = (utf8_p) (cmdname + 1);
+                    len = rplStrSize(cmdname);
                 }
-                xctracker += 4 + StringWidth(txt, FONT_STATUS);
             }
         }
-#endif // CONFIG_NO_FSYSTEM
-
-#if !defined(ANN_X_COORD) || !defined(ANN_Y_COORD)
-        // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
-        xctracker = 4;
-        ytop      = LCD_H - 1 - Font_Notifications->BitmapHeight;
-
-        unsigned highlightFlags =
-            ((halGetNotification(N_DATARECVD) != 0)     << 1)   |
-            (((keyb_flags & KHOLD_LEFT)       != 0)     << 2)   |
-            (((keyb_flags & KHOLD_RIGHT)      != 0)     << 3)   |
-            (((keyb_flags & KHOLD_ALPHA)      != 0)     << 4);
-
-        static struct annunciator
-        {
-            int id;
-            int highlight;
-            utf8_p label;
-        } annunciators[] = {
-            {      N_ALARM, 0, "X"},
-            { N_CONNECTION, 1, "U"},
-            { N_LEFT_SHIFT, 2, "L"},
-            {N_RIGHT_SHIFT, 3, "R"},
-            {      N_ALPHA, 4, "A"},
-            {  N_HOURGLASS, 0, "W"},
-        };
-
-        record(annunciators, "Annunciators highlight=%X\n", highlightFlags);
-        const unsigned count = sizeof(annunciators)/sizeof(annunciators[0]);
-        for (unsigned k = 0; k < count; k++)
-        {
-            if (halGetNotification(annunciators[k].id))
-            {
-                pattern_t fg = PAL_STA_ANN;
-                pattern_t bg = PAL_STA_BG;
-
-                record(annunciators, "  %d: highlight=%d",
-                       k, (highlightFlags >> annunciators[k].highlight) & 1);
-                if ((highlightFlags >> annunciators[k].highlight) & 1)
-                    fg = PAL_STA_ANNPRESS;
-                DrawTextBk(scr,
-                           STATUS_AREA_X + 1 + xctracker,
-                           ytop + 1,
-                           annunciators[k].label,
-                           Font_Notifications,
-                           fg,
-                           bg);
-                xctracker += 4 + StringWidth("X", Font_Notifications);
-            }
-        }
-#endif // No physical annunciators
-
-        // ADD OTHER INDICATORS HERE
-        scr->left = xc;
-        scr->top = yc;
     }
 
-    utf8_p help = halScreen.ShortHelpMessage;
-    if (help)
-    {
-        coord ytop =
-            halScreen.Form + halScreen.Stack + halScreen.CmdLine + halScreen.Menu1;
-        coord x = STATUS_AREA_X + 12;
-        coord y = ytop + 1;
-        DrawTextBk(scr, x, y, help, FONT_HELP_TEXT, PAL_STA_BG, PAL_HLP_TEXT);
-    }
-
-    halScreen.DirtyFlag &= ~STATUS_DIRTY;
+    const UNIFONT *font  = FONT_HELP_CODE;
+    pattern_t      color = PAL_STA_TEXT;
+    pattern_t      bg    = PAL_STA_BG;
+    text_layout(scr, layout, rect, info, len, font, color, bg);
+    halRepainted(STATUS_DIRTY);
 }
 
-void halRedrawCmdLine(gglsurface *scr)
+
+static void path_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Show the current path
+// ----------------------------------------------------------------------------
 {
-    halScreenUpdated();
+    clip_layout(scr, layout, rect, LCD_W, LCD_H);
 
-    if (halScreen.CmdLine)
+    word_p         pathnames[8];
+    unsigned       count  = sizeof(pathnames) / sizeof(pathnames[0]);
+    int32_t        nnames = rplGetFullPath(CurrentDir, pathnames, count);
+    coord          x      = rect->left;
+    coord          y      = rect->top;
+    pattern_t      color  = PAL_STA_TEXT;
+    pattern_t      bg     = PAL_STA_BG;
+    const UNIFONT *font   = FONT_STATUS;
+
+    // Redraw the given paths
+    for (int j = nnames - 1; j >= 0; --j)
     {
-        int  ytop = halScreen.Form + halScreen.Stack;
-        size rowh = FONT_HEIGHT(FONT_CMDLINE);
-
-        if ((halScreen.DirtyFlag & CMDLINE_ALLDIRTY) == CMDLINE_ALLDIRTY)
+        if (ISIDENT(*pathnames[j]))
         {
-            ggl_cliphline(scr, ytop, 0, LCD_W - 1, PAL_DIV_LINE);
-            ggl_cliphline(scr, ytop + 1, 0, LCD_W - 1, PAL_CMD_BG);
+            utf8_p start = (utf8_p) (pathnames[j] + 1);
+            word_p last  = rplSkipOb(pathnames[j]) - 1;
+            int    hasZ  = (*last & 0xff000000) != 0;
+            utf8_p end   = hasZ ? start + strlen(start) : (utf8_p) (last + 1);
+            x            = DrawTextBk(scr, x, y, "/", font, color, bg);
+            x            = DrawTextBkN(scr, x, y, start, end, font, color, bg);
         }
+    }
+}
 
-        size   rows    = halScreen.LineCurrent - halScreen.LineVisible;
-        coord  y       = rows * rowh;
-        utf8_p cmdline = (utf8_p) (CmdLineCurrentLine + 1);
-        size_t nchars  = rplStrSize(CmdLineCurrentLine);
 
-        if (halScreen.DirtyFlag & CMDLINE_DIRTY)
+static void annunciators_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the various annunciators (should be split)
+// ----------------------------------------------------------------------------
+{
+    clip_layout(scr, layout, rect, LCD_W, LCD_H);
+
+    const UNIFONT *font  = FONT_STATUS;
+    pattern_t      color = PAL_STA_TEXT;
+    pattern_t      bg    = PAL_STA_BG;
+    coord          x     = rect->left;
+    coord          y     = rect->top;
+
+    // Draw angle mode
+    int anglemode             = rplTestSystemFlag(FL_ANGLEMODE1) |
+                    (rplTestSystemFlag(FL_ANGLEMODE2) << 1);
+    const char *const name[4] = { "∡°", "∡r", "∡g", "∡d" };
+    x                         = DrawTextBk(scr, x, y, name[anglemode], font, color, bg);
+
+    // Complex mode indicator
+    if (rplTestSystemFlag(FL_COMPLEXMODE))
+        x = DrawTextBk(scr, x, y, "C", font, color, bg);
+
+    // Halted program indicator
+    if (halFlags & HAL_HALTED)
+        x = DrawTextBk(scr, x, y, "H", font, color, bg);
+
+    // Notification icons! only one will be displayed at a time
+    utf8_p text = NULL;
+    if (halGetNotification(N_ALARM))
+        text = "ALM";
+    else if (halGetNotification(N_DATARECVD))
+        text = "RX";
+#ifndef CONFIG_NO_FSYSTEM
+    // SD CARD INSERTED INDICATOR
+    if (FSCardInserted())
+        text = "SD";
+    if (FSIsInit())
+    {
+        if (FSVolumeMounted(FSGetCurrentVolume()))
+            color = PAL_GRAY15;
+        if (!FSCardInserted())
+            text = "SD?";
+        else if (FSCardIsSDHC())
+            text = "HC";
+        int dirty = FSIsDirty();
+        if (dirty == 1)
+            text = "HC!";
+        else if (dirty == 2)
+            text = "HC>";
+    }
+#endif // CONFIG_NO_FSYSTEM
+
+    if (text)
+        x = DrawTextBk(scr, x, y, text, font, color, bg);
+
+#if !defined(ANN_X_COORD) || !defined(ANN_Y_COORD)
+    // Notification icons when there is no physical annunciator.
+    // Only one will be displayed at a time
+    unsigned highlightFlags =
+        ((halGetNotification(N_DATARECVD) != 0)     << 1)   |
+        (((keyb_flags & KHOLD_LEFT)       != 0)     << 2)   |
+        (((keyb_flags & KHOLD_RIGHT)      != 0)     << 3)   |
+        (((keyb_flags & KHOLD_ALPHA)      != 0)     << 4);
+
+    static struct annunciator
+    {
+        int    id;
+        int    highlight;
+        utf8_p label;
+    } annunciators[] = {
+        {      N_ALARM, 0, "X"},
+        { N_CONNECTION, 1, "U"},
+        { N_LEFT_SHIFT, 2, "L"},
+        {N_RIGHT_SHIFT, 3, "R"},
+        {      N_ALPHA, 4, "A"},
+        {  N_HOURGLASS, 0, "W"},
+    };
+
+    record(annunciators, "Annunciators highlight=%X\n", highlightFlags);
+    const unsigned count = sizeof(annunciators)/sizeof(annunciators[0]);
+    for (unsigned k = 0; k < count; k++)
+    {
+        if (halGetNotification(annunciators[k].id))
         {
-            // Show other lines here except the current edited line
-            coord startoff = -1;
-            coord endoff = -1;
-            for (int k = 0; k < halScreen.NumLinesVisible; ++k)
+            pattern_t fg = PAL_STA_ANN;
+            pattern_t bg = PAL_STA_BG;
+
+            record(annunciators, "  %d: highlight=%d",
+                   k, (highlightFlags >> annunciators[k].highlight) & 1);
+            if ((highlightFlags >> annunciators[k].highlight) & 1)
+                fg = PAL_STA_ANNPRESS;
+            utf8_p label = annunciators[k].label;
+            x = DrawTextBk(scr, x, y, label, Font_Notifications, fg, bg);
+        }
+    }
+#endif // No physical annunciators
+    halRepainted(STATUS_DIRTY);
+}
+
+
+static void user_flags_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//  Show first six user flags
+// ----------------------------------------------------------------------------
+{
+    const UNIFONT *font   = FONT_STATUS;
+    coord          width  = StringWidth("012345", font);
+    coord          height = font->BitmapHeight;
+    clip_layout(scr, layout, rect, width, height);
+
+    pattern_t      off     = PAL_STA_UFLAG0;
+    pattern_t      on      = PAL_STA_UFLAG1;
+    coord          x       = rect->left;
+    coord          y       = rect->top;
+
+    // First 6 user flags
+    uint64_t *flags_p = rplGetUserFlagsLow();
+    if (flags_p)
+    {
+        uint64_t flags = *flags_p;
+        for (int i = 0; i < 6; i++)
+        {
+            pattern_t color = ((flags >> i) & 1) ? on : off;
+            char buffer[2] = { 0 };
+            buffer[0] = '0' + i;
+            x = DrawTextN(scr, x, y, buffer, buffer + 1, font, color);
+        }
+    }
+}
+
+
+static void cmdline_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Layout of the command line
+// ----------------------------------------------------------------------------
+{
+    if (!halScreen.CmdLine)
+    {
+        clip_layout(scr, layout, rect, 0, 0);
+        return;
+    }
+
+    // Draw the command line
+    size  rowh   = FONT_HEIGHT(FONT_CMDLINE);
+    coord height = halScreen.CmdLine;
+    coord width  = LCD_W;
+    clip_layout(scr, layout, rect, width, height);
+
+    const UNIFONT *font   = FONT_CMDLINE;
+    pattern_t      color  = PAL_CMD_TEXT;
+    pattern_t      bg     = PAL_CMD_BG;
+    pattern_t      selcol = PAL_CMD_SELTEXT;
+    pattern_t      selbg  = PAL_CMD_SEL_BG;
+
+    // Decoration
+    coord          top    = rect->top;
+    coord          left   = rect->left;
+    coord          right  = rect->right;
+    coord          bottom = rect->bottom;
+    ggl_cliphline(scr, top, left, right, PAL_DIV_LINE);
+    ggl_cliphline(scr, top + 1, left, right, bg);
+    ggl_cliphline(scr, bottom, left, right, PAL_DIV_LINE);
+
+    size   rows    = halScreen.LineCurrent - halScreen.LineVisible;
+    coord  stkh    = rows * rowh;
+    utf8_p cmdline = (utf8_p) (CmdLineCurrentLine + 1);
+    size_t nchars = rplStrSize(CmdLineCurrentLine);
+
+    if (halScreen.DirtyFlag & CMDLINE_DIRTY)
+    {
+        // Show other lines here except the current edited line
+        coord startoff = -1;
+        coord endoff   = -1;
+        for (int k     = 0; k < halScreen.NumLinesVisible; ++k)
+        {
+            int row = halScreen.LineVisible + k;
+
+            // Update the line
+            if (row < 1)
+                continue;
+
+            if (row == halScreen.LineCurrent)
             {
-                int row = halScreen.LineVisible + k;
-
-                // Update the line
-                if (row < 1)
+                if (startoff < 0)
                     continue;
-
-                if (row == halScreen.LineCurrent)
-                {
-                    if (startoff < 0)
-                        continue;
-                    startoff = endoff;
-                    endoff = startoff < 0
-                        ? -1
-                        : rplStringGetNextLine(CmdLineText, startoff);
-                    continue;
-                }
-                startoff = startoff < 0
-                    ? rplStringGetLinePtr(CmdLineText, row)
-                    : endoff;
-
-                endoff = startoff < 0
+                startoff = endoff;
+                endoff   = startoff < 0
                     ? -1
                     : rplStringGetNextLine(CmdLineText, startoff);
+                continue;
+            }
+            startoff = startoff < 0
+                ? rplStringGetLinePtr(CmdLineText, row)
+                : endoff;
 
-                coord xcoord  = -halScreen.XVisible;
-                coord ycoord  = ytop + 2 + k * rowh;
-                coord ybottom = ycoord + rowh - 1;
-                if (startoff >= 0 || endoff >= 0)
+            endoff = startoff < 0
+                ? -1
+                : rplStringGetNextLine(CmdLineText, startoff);
+
+            coord x       = -halScreen.XVisible;
+            coord y       = top + 2 + k * rowh;
+            coord bottom = y + rowh - 1;
+            if (startoff >= 0 || endoff >= 0)
+            {
+                utf8_p string = (utf8_p) (CmdLineText + 1) + startoff;
+                utf8_p strend = (startoff >= 0 && endoff < 0)
+                    ? (utf8_p) (CmdLineText + 1) + rplStrSize(CmdLineText)
+                    : (utf8_p) (CmdLineText + 1) + endoff;
+                utf8_p selst  = strend;
+                utf8_p selend = strend;
+                coord  tail   = 0;
+
+                if (halScreen.SelStartLine < row)
                 {
-                    utf8_p string = (utf8_p) (CmdLineText + 1) + startoff;
-                    utf8_p strend = (startoff >= 0 && endoff < 0)
-                        ? (utf8_p) (CmdLineText + 1) + rplStrSize(CmdLineText)
-                        : (utf8_p) (CmdLineText + 1) + endoff;
-                    utf8_p selst  = strend;
-                    utf8_p selend = strend;
-                    coord  tail   = 0;
-
-                    if (halScreen.SelStartLine < row)
-                    {
-                        selst = string;
-                        tail  = 1;
-                    }
-                    if (halScreen.SelStartLine == row)
-                    {
-                        selst = string + halScreen.SelStart;
-                        tail  = 1;
-                    }
-                    if (halScreen.SelEndLine < row)
-                    {
-                        selend = string;
-                        tail   = 0;
-                    }
-                    if (halScreen.SelEndLine == row)
-                    {
-                        selend = string + halScreen.SelEnd;
-                        tail   = 0;
-                    }
-
-                    if (selend <= selst)
-                        selend = selst = string;
-
-                    // Draw the line split in 3 sections:
-                    // - string to selst
-                    // - selst to selend
-                    // - selend to strend
-                    if (selst > string)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             string,
-                                             selst,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_TEXT,
-                                             PAL_CMD_BG);
-                    }
-                    if (selend > selst)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             selst,
-                                             selend,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_SELTEXT,
-                                             PAL_CMD_SEL_BG);
-                    }
-                    if (strend > selend)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             selend,
-                                             strend,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_TEXT,
-                                             PAL_CMD_BG);
-                    }
-                    if (tail)
-                    {
-                        ggl_cliprect(scr,
-                                     xcoord,
-                                     ycoord,
-                                     xcoord + 3,
-                                     ybottom,
-                                     PAL_CMD_SEL_BG);
-                        xcoord += 3;
-                    }
+                    selst = string;
+                    tail  = 1;
+                }
+                if (halScreen.SelStartLine == row)
+                {
+                    selst = string + halScreen.SelStart;
+                    tail = 1;
+                }
+                if (halScreen.SelEndLine < row)
+                {
+                    selend = string;
+                    tail   = 0;
+                }
+                if (halScreen.SelEndLine == row)
+                {
+                    selend = string + halScreen.SelEnd;
+                    tail   = 0;
                 }
 
-                // Clear up to end of line
-                ggl_cliprect(scr,
-                             xcoord,
-                             ycoord,
-                             LCD_SCANLINE - 1,
-                             ybottom,
-                             PAL_CMD_BG);
-            }
-        }
+                if (selend <= selst)
+                    selend  = selst = string;
 
-        if (halScreen.DirtyFlag & CMDLINE_LINEDIRTY)
-        {
-            // Update the current line
-            utf8_p string = cmdline;
-            utf8_p strend = cmdline + nchars;
-            utf8_p selst  = strend;
-            utf8_p selend = strend;
-            coord  tail   = 0;
-            if (halScreen.SelStartLine < halScreen.LineCurrent)
-            {
-                selst = string;
-                tail  = 1;
-            }
-            if (halScreen.SelStartLine == halScreen.LineCurrent)
-            {
-                selst = string + halScreen.SelStart;
-                tail  = 1;
-            }
-            if (halScreen.SelEndLine < halScreen.LineCurrent)
-            {
-                selend = string;
-                tail   = 0;
-            }
-            if (halScreen.SelEndLine == halScreen.LineCurrent)
-            {
-                selend = string + halScreen.SelEnd;
-                tail   = 0;
-            }
-
-            if (selend <= selst)
-                selend = selst = string;
-
-            // Draw the line split in 3 sections:
-            // - string to selst,
-            // - selst to selend,
-            // - selend to strend
-            coord xcoord  = -halScreen.XVisible;
-            coord ycoord  = ytop + 2 + y;
-            coord ybottom = ycoord + rowh - 1;
-            if (selst > string)
-            {
-                xcoord = DrawTextBkN(scr,
-                                     xcoord,
-                                     ycoord,
-                                     string,
-                                     selst,
-                                     FONT_CMDLINE,
-                                     PAL_CMD_TEXT,
-                                     PAL_CMD_BG);
-            }
-            if (selend > selst)
-            {
-                xcoord = DrawTextBkN(scr,
-                                     xcoord,
-                                     ycoord,
-                                     selst,
-                                     selend,
-                                     FONT_CMDLINE,
-                                     PAL_CMD_SELTEXT,
-                                     PAL_CMD_SEL_BG);
-            }
-            if (strend > selend)
-            {
-                xcoord = DrawTextBkN(scr,
-                                     xcoord,
-                                     ycoord,
-                                     selend,
-                                     strend,
-                                     FONT_CMDLINE,
-                                     PAL_CMD_TEXT,
-                                     PAL_CMD_BG);
-            }
-            if (tail)
-            {
-                ggl_cliprect(scr,
-                             xcoord,
-                             ycoord,
-                             xcoord + 3,
-                             ybottom,
-                             PAL_CMD_SEL_BG);
-                xcoord += 3;
+                // Draw the line split in 3 sections:
+                // - string to selst
+                // - selst to selend
+                // - selend to strend
+                if (selst > string)                    x = DrawTextBkN(scr, x, y, string, selst, font, color, bg);
+                if (selend > selst)
+                    x = DrawTextBkN(scr, x, y, selst, selend, font, selcol, selbg);
+                if (strend > selend)
+                    x = DrawTextBkN(scr, x, y, selend, strend, font, color, bg);
+                if (tail)
+                {
+                    ggl_cliprect(scr, x, y, x + 3, bottom, bg);
+                    x += 3;
+                }
             }
 
             // Clear up to end of line
-            ggl_cliprect(scr,
-                         xcoord,
-                         ycoord,
-                         LCD_SCANLINE - 1,
-                         ybottom,
-                         PAL_CMD_BG);
-        }
-
-        if (!halScreen.HelpMessage &&
-            halScreen.DirtyFlag & CMDLINE_CURSORDIRTY)
-        {
-            // Draw the cursor
-            coord xcoord  = halScreen.CursorX - halScreen.XVisible;
-            coord ycoord  = ytop + 2 + y;
-            coord ybottom = ycoord + rowh - 1;
-            if (!(halScreen.CursorState & 0x8000))
-            {
-                DrawTextBkN(scr,
-                            xcoord,
-                            ycoord,
-                            (utf8_p) &halScreen.CursorState,
-                            (utf8_p) (&halScreen.CursorState) + 1,
-                            FONT_CURSOR,
-                            PAL_CMD_CURSOR,
-                            PAL_CMD_CURSOR_BG);
-            }
-            else
-            {
-                scr->left  = xcoord;
-
-                 // Hard code maximum width of the cursor
-                scr->right = min(scr->left + rowh + 4, LCD_W - 1);
-
-                // Redraw the portion of command line under the cursor
-                if (!(halScreen.DirtyFlag & CMDLINE_LINEDIRTY))
-                {
-                    // Update the current line
-                    utf8_p string = cmdline;
-                    utf8_p strend = cmdline + nchars;
-                    coord  tail   = 0;
-                    utf8_p selst  = strend;
-                    utf8_p selend = selend;
-                    if (halScreen.SelStartLine < halScreen.LineCurrent)
-                    {
-                        selst = string;
-                        tail  = 1;
-                    }
-                    if (halScreen.SelStartLine == halScreen.LineCurrent)
-                    {
-                        selst = string + halScreen.SelStart;
-                        tail  = 1;
-                    }
-                    if (halScreen.SelEndLine < halScreen.LineCurrent)
-                    {
-                        selend = string;
-                        tail   = 0;
-                    }
-                    if (halScreen.SelEndLine == halScreen.LineCurrent)
-                    {
-                        selend = string + halScreen.SelEnd;
-                        tail   = 0;
-                    }
-
-                    if (selend <= selst)
-                        selend = selst = string;
-
-                    // Draw the line split in 3 sections:
-                    // - string to selst,
-                    // - selst to selend,
-                    // - selend to strend
-                    xcoord = -halScreen.XVisible;
-                    if (selst > string)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             string,
-                                             selst,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_TEXT,
-                                             PAL_CMD_BG);
-                    }
-                    if (selend > selst)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             selst,
-                                             selend,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_SELTEXT,
-                                             PAL_CMD_SEL_BG);
-                    }
-                    if (strend > selend)
-                    {
-                        xcoord = DrawTextBkN(scr,
-                                             xcoord,
-                                             ycoord,
-                                             selend,
-                                             strend,
-                                             FONT_CMDLINE,
-                                             PAL_CMD_TEXT,
-                                             PAL_CMD_BG);
-                    }
-
-                    if (tail)
-                    {
-                        ggl_cliprect(scr,
-                                     xcoord,
-                                     ycoord,
-                                     xcoord + 3,
-                                     ybottom,
-                                     PAL_CMD_SEL_BG);
-                        xcoord += 3;
-                    }
-
-                    // Clear up to end of line
-                    ggl_cliprect(scr,
-                                 xcoord,
-                                 ycoord,
-                                 LCD_SCANLINE - 1,
-                                 ybottom,
-                                 PAL_CMD_BG);
-                }
-
-                // Reset the clipping rectangle back to whole screen
-                scr->left  = 0;
-                scr->right = scr->width - 1;
-                scr->top  = 0;
-                scr->bottom = scr->height - 1;
-            }
+            ggl_cliprect(scr, x, y, LCD_SCANLINE - 1, bottom, bg);
         }
     }
 
-    halScreen.DirtyFlag &= ~CMDLINE_ALLDIRTY;
+    if (halScreen.DirtyFlag & CMDLINE_LINE_DIRTY)
+    {
+        // Update the current line
+        utf8_p string = cmdline;
+        utf8_p strend = cmdline + nchars;
+        utf8_p selst  = strend;
+        utf8_p selend = strend;
+        coord  tail   = 0;
+        if (halScreen.SelStartLine < halScreen.LineCurrent)
+        {
+            selst = string;
+            tail  = 1;
+        }
+        if (halScreen.SelStartLine == halScreen.LineCurrent)
+        {
+            selst = string + halScreen.SelStart;
+            tail  = 1;
+        }
+        if (halScreen.SelEndLine < halScreen.LineCurrent)
+        {
+            selend = string;
+            tail   = 0;
+        }
+        if (halScreen.SelEndLine == halScreen.LineCurrent)
+        {
+            selend = string + halScreen.SelEnd;
+            tail   = 0;
+        }
+
+        if (selend <= selst)
+            selend  = selst = string;
+
+        // Draw the line split in 3 sections:
+        // - string to selst,
+        // - selst to selend,
+        // - selend to strend
+        coord x      = -halScreen.XVisible;
+        coord y      = top + 2 + stkh;
+        coord bottom = y + rowh - 1;
+        if (selst > string)
+            x = DrawTextBkN(scr, x, y, string, selst, font, color, bg);
+        if (selend > selst)
+            x = DrawTextBkN(scr, x, y, selst, selend, font, selcol, selbg);
+        if (strend > selend)
+            x = DrawTextBkN(scr, x, y, selend, strend, font, color, bg);
+        if (tail)
+        {
+            ggl_cliprect(scr, x, y, x + 3, bottom, selbg);
+            x += 3;
+        }
+
+        // Clear up to end of line
+        ggl_cliprect(scr, x, y, LCD_SCANLINE - 1, bottom, bg);
+    }
+
+    if (halScreen.DirtyFlag & CMDLINE_CURSOR_DIRTY)
+    {
+        // Draw the cursor
+        coord x      = halScreen.CursorX - halScreen.XVisible;
+        coord y      = top + 2 + stkh;
+        coord bottom = y + rowh - 1;
+        if (!(halScreen.CursorState & 0x8000))
+        {
+            const UNIFONT *font   = FONT_CURSOR;
+            utf8_p         cursor = (utf8_p) &halScreen.CursorState;
+            pattern_t      color  = PAL_CMD_CURSOR;
+            pattern_t      bg     = PAL_CMD_CURSOR_BG;
+            DrawTextBkN(scr, x, y, cursor, cursor + 1, font, color, bg);
+        }
+        else
+        {
+            coord saveLeft = scr->left;
+            coord saveRight = scr->left;
+            scr->left      = x;
+
+            // Hard code maximum width of the cursor
+            scr->right = min(scr->left + rowh + 4, LCD_W - 1);
+
+            // Redraw the portion of command line under the cursor
+            if (!(halScreen.DirtyFlag & CMDLINE_LINE_DIRTY))
+            {
+                // Update the current line
+                utf8_p string = cmdline;
+                utf8_p strend = cmdline + nchars;
+                coord  tail   = 0;
+                utf8_p selst  = strend;
+                utf8_p selend = selend;
+                if (halScreen.SelStartLine < halScreen.LineCurrent)
+                {
+                    selst = string;
+                    tail  = 1;
+                }
+                if (halScreen.SelStartLine == halScreen.LineCurrent)
+                {
+                    selst = string + halScreen.SelStart;
+                    tail = 1;
+                }
+                if (halScreen.SelEndLine < halScreen.LineCurrent)
+                {
+                    selend = string;
+                    tail   = 0;
+                }
+                if (halScreen.SelEndLine == halScreen.LineCurrent)
+                {
+                    selend = string + halScreen.SelEnd;
+                    tail   = 0;
+                }
+
+                if (selend <= selst)
+                    selend  = selst = string;
+
+                // Draw the line split in 3 sections:
+                // - string to selst,
+                // - selst to selend,
+                // - selend to strend
+                x = -halScreen.XVisible;
+                if (selst > string)
+                    x = DrawTextBkN(scr, x, y, string, selst, font, color, bg);
+                if (selend > selst)
+                    x = DrawTextBkN(scr, x, y, selst, selend, font, selcol, selbg);
+                if (strend > selend)
+                    x = DrawTextBkN(scr, x, y, selend, strend, font, color, bg);
+                if (tail)
+                {
+                    ggl_cliprect(scr, x, y, x + 3, bottom, bg);
+                    x += 3;
+                }
+
+                // Clear up to end of line
+                ggl_cliprect(scr, x, y, LCD_SCANLINE - 1, bottom, bg);
+            }
+
+            // Reset the clipping rectangle back to whole screen
+            scr->left  = saveLeft;
+            scr->right = saveRight;
+        }
+    }
+    halRepainted(CMDLINE_ALL_DIRTY);
 }
 
-// GET NEW FONT DATA FROM THE RPL ENVIRONMENT
+
+static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the battery indicator
+// ----------------------------------------------------------------------------
+{
+    clip_layout(scr, layout, rect, 0, 0);
+}
+
+
 void halUpdateFonts()
+// ----------------------------------------------------------------------------
+// Get new font data from the rpl environment
+// ----------------------------------------------------------------------------
 {
     UNIFONT const *tmparray[FONTS_NUM];
     WORD           hash;
@@ -2260,41 +1792,48 @@ void halUpdateFonts()
             case FONT_INDEX_STACK:
             case FONT_INDEX_STACKLVL1:
                 uiClearRenderCache();
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             case FONT_INDEX_CMDLINE:
             case FONT_INDEX_CURSOR:
                 if (halScreen.CmdLine)
-                {
-                    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
                     uiStretchCmdLine(0);
-                }
+                halRefresh(CMDLINE_ALL_DIRTY);
                 break;
             case FONT_INDEX_MENU:
                 if (halScreen.Menu1)
                     halSetMenu1Height(MENU1_HEIGHT);
                 if (halScreen.Menu2)
                     halSetMenu2Height(MENU2_HEIGHT);
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
+                halRefresh(MENU_DIRTY);
                 break;
             case FONT_INDEX_STATUS:
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
+                halRefresh(STATUS_DIRTY);
                 break;
-            case FONT_INDEX_PLOT: halScreen.DirtyFlag |= FORM_DIRTY; break;
-            case FONT_INDEX_FORMS: halScreen.DirtyFlag |= FORM_DIRTY; break;
+            case FONT_INDEX_PLOT:
+                halRefresh(ALL_DIRTY);
+                break;
+            case FONT_INDEX_FORMS:
+                halRefresh(FORM_DIRTY);
+                break;
             case FONT_INDEX_HELP_TITLE:
             case FONT_INDEX_HELP_TEXT:
-                halScreen.DirtyFlag |= HELP_DIRTY;
+                halRefresh(HELP_DIRTY);
                 break;
             }
         }
         else
+        {
             halScreen.FontArray[f] = tmparray[f];
+        }
     }
 }
 
-// PREPARE TO DRAW ON THE ALTERNATIVE BUFFER
+
 void halPrepareBuffer(gglsurface *scr)
+// ----------------------------------------------------------------------------
+// Prepare to draw on the alternative buffer
+// ----------------------------------------------------------------------------
 {
 #ifndef TARGET_PRIME
     UNUSED(scr);
@@ -2320,7 +1859,11 @@ void halPrepareBuffer(gglsurface *scr)
 #endif /* TARGET_PRIME */
 }
 
+
 void halSwapBuffer(gglsurface *scr)
+// ----------------------------------------------------------------------------
+//  Draw on alternative buffer
+// ----------------------------------------------------------------------------
 {
 #ifndef TARGET_PRIME
     UNUSED(scr);
@@ -2341,122 +1884,49 @@ void halSwapBuffer(gglsurface *scr)
 }
 
 void halForceRedrawAll(gglsurface *scr)
+// ----------------------------------------------------------------------------
+//   Force an entire screen redraw
+// ----------------------------------------------------------------------------
 {
     halScreen.DirtyFlag = ALL_DIRTY;
     halRedrawAll(scr);
 }
 
+
 void halRedrawAll(gglsurface *scr)
+// ----------------------------------------------------------------------------
+//   Redraw the whole screen using the layout engine
+// ----------------------------------------------------------------------------
 {
     unsigned dirty = halScreen.DirtyFlag;
     if (dirty)
     {
         halUpdateFonts();
         halPrepareBuffer(scr);
-
-        if (dirty & FORM_DIRTY)
-            halRedrawForm(scr);
-        if (dirty & STACK_DIRTY)
-            halRedrawStack(scr);
-        if (dirty & CMDLINE_ALLDIRTY)
-            halRedrawCmdLine(scr);
-        if (dirty & MENU1_DIRTY)
-            halRedrawMenu1(scr);
-        if (!halScreen.SAreaTimer)
-        {
-            // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
-#ifdef TARGET_PRIME
-            if (dirty & MENU1_DIRTY)
-                halRedrawMenu1(scr);
-#endif /* TARGET_PRIME */
-            if (dirty & MENU2_DIRTY)
-                halRedrawMenu2(scr);
-            if (dirty & STATUS_DIRTY)
-                halRedrawStatus(scr);
-        }
-        if (dirty & HELP_DIRTY)
-            halRedrawHelp(scr);
+        render_layouts(scr);
         halSwapBuffer(scr);
+        halScreen.DirtyFlag = 0;
+        halScreenUpdated();
     }
 }
 
-// MARK STATUS AREA FOR IMMEDIATE UPDATE
 void halUpdateStatus()
+// ----------------------------------------------------------------------------
+// Mark status area for immediate update
+// ----------------------------------------------------------------------------
 {
-    halScreen.DirtyFlag |= STATUS_DIRTY;
+    halRefresh(STATUS_DIRTY);
 }
 
-void status_popup_handler()
-{
-    if (rplTestSystemFlag(FL_HIDEMENU2))
-    {
-        halSetMenu2Height(0);
-    }
-    else
-    {
-#ifdef TARGET_PRIME
-        halScreen.DirtyFlag |= STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
-#else  // !TARGET_PRIME
-        gglsurface scr;
-        ggl_init_screen(&scr);
-        halRedrawMenu1(&scr);
-        halRedrawMenu2(&scr);
-        halRedrawStatus(&scr);
-#endif // TARGET_PRIME
-    }
-    halScreen.SAreaTimer = 0;
-}
 
-// WILL KEEP THE STATUS AREA AS-IS FOR 5 SECONDS, THEN REDRAW IT
-// TO CLEAN UP POP-UP MESSAGES
-void halStatusAreaPopup()
-{
-    if (halScreen.SAreaTimer)
-    {
-        tmr_eventkill(halScreen.SAreaTimer);
-        status_popup_handler();
-        // tmr_eventpause(halScreen.SAreaTimer);
-        // tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 5 SECOND COUNT
-        // return;
-    }
-    halScreen.SAreaTimer = tmr_eventcreate(&status_popup_handler, 3000, 0);
-}
+const WORD const text_editor_string[] = {
+    MAKESTRING(12),
+    TEXT2WORD('C', 'o', 'm', 'm'),
+    TEXT2WORD('a', 'n', 'd', ' '),
+    TEXT2WORD('L', 'i', 'n', 'e')
+};
 
-void halCancelPopup()
-{
-    if (halScreen.SAreaTimer)
-    {
-        tmr_eventkill(halScreen.SAreaTimer);
-        // MARK DIRTY BUT DON'T REDRAW YET
-        halScreen.DirtyFlag |= STATUS_DIRTY | MENU2_DIRTY;
-        halScreen.SAreaTimer = 0;
-    }
-    if (rplTestSystemFlag(FL_HIDEMENU2))
-        halSetMenu2Height(0);
-}
-
-// WILL KEEP THE STATUS AREA AS-IS FOR 5 SECONDS, THEN REDRAW IT
-// TO CLEAN UP POP-UP MESSAGES
-void halErrorPopup()
-{
-    if (halScreen.SAreaTimer)
-    {
-        tmr_eventkill(halScreen.SAreaTimer);
-        status_popup_handler();
-        // tmr_eventpause(halScreen.SAreaTimer);
-        // tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 3 SECOND COUNT
-        // return;
-    }
-    halScreen.SAreaTimer = tmr_eventcreate(&status_popup_handler, 3000, 0);
-}
-
-// DECOMPILE THE OPCODE NAME IF POSSIBLE
-const WORD const text_editor_string[] = { MAKESTRING(12),
-                                          TEXT2WORD('C', 'o', 'm', 'm'),
-                                          TEXT2WORD('a', 'n', 'd', ' '),
-                                          TEXT2WORD('L', 'i', 'n', 'e') };
-
-word_p          halGetCommandName(word_p NameObject)
+word_p halGetCommandName(word_p NameObject)
 {
     WORD Opcode = NameObject ? *NameObject : 0;
 
@@ -2493,171 +1963,176 @@ word_p          halGetCommandName(word_p NameObject)
     return opname;
 }
 
-// DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
-// USES ERROR CODE FROM SYSTEM Exceptions
-void halShowErrorMsg()
+
+static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   Draw the last error message
+// ----------------------------------------------------------------------------
 {
-    int errbit;
-    if (!Exceptions)
+    // Check if there is an error
+    WORD     error   = Exceptions;
+    utf8_p   message = halScreen.ErrorMessage;
+    unsigned length  = halScreen.ErrorMessageLength;
+    size     width   = error ? LCD_W : 0;
+    size     height  = error ? LCD_H : 0;
+    clip_layout(scr, layout, rect, width, height);
+    if (!error)
         return;
 
-    halErrorPopup();
+    // Color schemes
+    pattern_t color      = PAL_ERROR;
+    pattern_t line       = PAL_ERROR_LINE;
+    pattern_t bg         = PAL_ERROR_BG;
 
-    gglsurface scr;
-    ggl_init_screen(&scr);
+    // Draw the error outline and erase background
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+    ggl_cliprect(scr, left, top, right, bottom, line);
 
-    if (!halScreen.Menu2)
+    coord inset = 3;
+    left   += inset;
+    right  -= inset;
+    top    += inset;
+    bottom -= inset;
+    ggl_cliprect(scr, left, top, right, bottom, bg);
+
+    // Buffers to keep copy of error in case of GC
+    static char error_cmd[64];
+    static char error_message[256];
+
+    // Update message from exceptions if needed
+    if (error)
     {
-        // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
-        halSetMenu2Height(MENU2_HEIGHT);
-        halRedrawAll(&scr);
-    }
+        // Clear Exceptions, we generate / display the message
+        Exceptions = 0;
 
-    int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
-    int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
+        // Clear short help message
+        halScreen.ShortHelpMessage = NULL;
 
-    // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
-    // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + FONT_HEIGHT(FONT_HELP_TITLE) + 1, 0, LCD_W - 1, PAL_HLP_LINES);
-    // ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,LCD_W-1,8);
-    ggl_cliprect(&scr, 0, ytop, 4, ybot, PAL_HLP_LINES);
-
-    scr.left  = 1;
-    scr.right = LCD_W - 2;
-    scr.top  = ytop;
-    scr.bottom = ybot - 1;
-    // SHOW ERROR MESSAGE
-
-    if (Exceptions != EX_ERRORCODE)
-    {
-        int32_t xstart = scr.left + 6;
-        if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
+        // Check if there is a command to blame
+        if (ExceptionPointer != 0)
         {
             word_p cmdname = halGetCommandName(ExceptionPointer);
             if (cmdname)
             {
+                // Save a copy of the command name in case of GC
                 utf8_p start = (utf8_p) (cmdname + 1);
-                utf8_p end   = start + rplStrSize(cmdname);
+                int    size  = rplStrSize(cmdname);
 
-                xstart += StringWidthN(start, end, FONT_HELP_TITLE);
-                DrawTextN(&scr, scr.left + 6,
-                          scr.top + 1,
-                          start,
-                          end,
-                          FONT_HELP_TITLE,
-                          PAL_HLP_TEXT);
-                xstart += 4;
+                snprintf(error_cmd, sizeof(error_cmd),
+                         "%.*s", size, start);
+                halScreen.ShortHelpMessage = error_cmd;
             }
         }
-        DrawText(&scr, xstart, scr.top + 1, "Exception:", FONT_HELP_TITLE, PAL_HLP_TEXT);
 
-        int32_t ecode;
-        for (errbit = 0; errbit < 8; ++errbit) // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
+        // Check if we have an exception
+        if (error != EX_ERRORCODE)
         {
-            if (Exceptions & (1 << errbit))
+            // Check exception
+            int32_t ecode = 0;
+            for (int errbit = 0; errbit < 8; ++errbit)
             {
-                ecode           = MAKEMSG(0, errbit);
-                word_p message = uiGetLibMsg(ecode);
-                if (!message)
-                    message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
-                if (message)
+                if (error & (1 << errbit))
                 {
-                    utf8_p msgstart = (utf8_p) (message + 1);
-                    utf8_p msgend   = msgstart + rplStrSize(message);
+                    ecode           = MAKEMSG(0, errbit);
+                    word_p emsg = uiGetLibMsg(ecode);
+                    if (!emsg)
+                        emsg = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
+                    if (emsg)
+                    {
+                        utf8_p etext = (utf8_p) (emsg + 1);
+                        int msglen = rplStrSize(emsg);
 
-                    DrawTextN(&scr, scr.left + 6,
-                              scr.top + 3 + FONT_HEIGHT(FONT_HELP_TEXT),
-                              msgstart,
-                              msgend,
-                              FONT_HELP_TEXT,
-                              PAL_HLP_TEXT);
+                        snprintf(error_message, sizeof(error_message),
+                                 "Exception: %.*s", msglen, etext);
+
+                        // Update for later display
+                        message = error_message;
+                        length = msglen;
+                    }
                 }
                 break;
             }
         }
-    }
-    else
-    {
-        // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-        int32_t xstart = scr.left + 6;
-        if (ExceptionPointer != 0) // ONLY IF THERE'S A VALID COMMAND TO BLAME
+        else
         {
-            word_p cmdname = halGetCommandName(ExceptionPointer);
-            if (cmdname)
+            // Regular error code
+            word_p emsg = uiGetLibMsg(ErrorCode);
+            if (!emsg)
+                emsg = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
+            if (emsg)
             {
-                utf8_p start = (utf8_p) (cmdname + 1);
-                utf8_p end   = start + rplStrSize(cmdname);
+                utf8_p etext = (utf8_p) (emsg + 1);
+                int msglen   = rplStrSize(emsg);
 
-                xstart += StringWidthN(start, end, FONT_HELP_TITLE);
-                DrawTextN(&scr, scr.left + 6,
-                          scr.top + 1,
-                          start,
-                          end,
-                          FONT_HELP_TITLE,
-                          PAL_HLP_TEXT);
-                xstart += 4;
+                snprintf(error_message, sizeof(error_message),
+                         "Error: %.*s", msglen, etext);
+
+                // Update for later display
+                message = error_message;
+                length = msglen;
             }
         }
-        DrawText(&scr, xstart, scr.top + 1, "Error:", FONT_HELP_TITLE, PAL_HLP_TEXT);
-        // GET NEW TRANSLATABLE MESSAGES
 
-        word_p message = uiGetLibMsg(ErrorCode);
-        if (!message)
-            message = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
-        if (message)
-        {
-            utf8_p msgstart = (utf8_p) (message + 1);
-            utf8_p msgend   = msgstart + rplStrSize(message);
+        // Update the persistent message
+        halScreen.ErrorMessage = message;
+        halScreen.ErrorMessageLength = length;
+    }
 
-            DrawTextN(&scr, scr.left + 6,
-                      scr.top + 3 + FONT_HEIGHT(FONT_HELP_TITLE),
-                      msgstart,
-                      msgend,
-                      FONT_HELP_TEXT,
-                      PAL_HLP_TEXT);
-        }
+    // Draw the command if we have it
+    utf8_p cmd = halScreen.ShortHelpMessage;
+    if (cmd)
+    {
+        const UNIFONT *font = FONT_HELP_CODE;
+        DrawText(scr, left, top, cmd, font, color);
+        top += FONT_HEIGHT(font);
+    }
+
+    // Draw the command if we have it
+    if (message)
+    {
+        const UNIFONT *font = FONT_ERRORS;
+        DrawTextN(scr, left, top, message, message + length, font, color);
     }
 }
+
 
 void halShowMsgN(utf8_p Text, utf8_p End)
+// ----------------------------------------------------------------------------
+//   Show an error message
+// ----------------------------------------------------------------------------
 {
-    halErrorPopup();
-
-    gglsurface scr;
-    ggl_init_screen(&scr);
-
-    if (!halScreen.Menu2)
-    {
-        // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
-        halSetMenu2Height(MENU2_HEIGHT);
-        halRedrawAll(&scr);
-    }
-
-    int32_t ytop = halScreen.Form + halScreen.Stack + halScreen.CmdLine + 1;
-    int32_t ybot = ytop + halScreen.Menu1 + halScreen.Menu2 - 1;
-
-    // CLEAR MENU2 AND STATUS AREA
-    ggl_cliprect(&scr, 0, ytop, LCD_W - 1, ybot, PAL_HLP_BG);
-    // DO SOME DECORATIVE ELEMENTS
-    ggl_cliphline(&scr, ytop + 1, 1, LCD_W - 2, PAL_HLP_LINES);
-    ggl_cliphline(&scr, ybot, 1, LCD_W - 2, PAL_HLP_LINES);
-    ggl_clipvline(&scr, 1, ytop + 2, ybot - 1, PAL_HLP_LINES);
-    ggl_clipvline(&scr, LCD_W - 2, ytop + 2, ybot - 1, PAL_HLP_LINES);
-
-    // SHOW MESSAGE
-
-    DrawTextN(&scr, 3, ytop + 3, Text, End, FONT_HELP_TEXT, PAL_HLP_TEXT);
+    halScreen.ErrorMessage = Text;
+    halScreen.ErrorMessageLength = End - Text;
 }
 
+
 void halShowMsg(utf8_p Text)
+// ----------------------------------------------------------------------------
+//   Show a static message
+// ----------------------------------------------------------------------------
 {
     utf8_p End = StringEnd(Text);
     halShowMsgN(Text, End);
 }
 
-// CHANGE THE CONTEXT AND DISPLAY THE CURRENT FORM
+
+void halCancelPopup()
+// ----------------------------------------------------------------------------
+//   Cancel error messages
+// ----------------------------------------------------------------------------
+{
+    halScreen.ErrorMessage = NULL;
+    halScreen.ErrorMessageLength = 0;
+}
+
+
 void halSwitch2Form()
+// ----------------------------------------------------------------------------
+// Change the context and display the current form
+// ----------------------------------------------------------------------------
 {
     if (halContext(CONTEXT_EDITOR))
     {
@@ -2672,14 +2147,13 @@ void halSwitch2Form()
     halSetFormHeight(halScreen.Stack);
     // AND ELIMINATE THE STACK
     halSetStackHeight(0);
-
-    // uiFormEnterEvent();
-
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 }
 
-// CHANGE THE CONTEXT AND DISPLAY THE STACK
+
 void halSwitch2Stack()
+// ----------------------------------------------------------------------------
+// Change the context and display the stack
+// ----------------------------------------------------------------------------
 {
     if (halContext(CONTEXT_EDITOR))
     {
@@ -2698,6 +2172,4 @@ void halSwitch2Stack()
     // uiFormExitEvent();
 
     uiClearRenderCache();
-
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
 }

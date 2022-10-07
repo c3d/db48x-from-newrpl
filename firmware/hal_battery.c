@@ -401,9 +401,4 @@ void halWakeUp()
     keyb_set_shift_plane(KSHIFT_NONE);
 
     halSetNotification(N_ALARM, rplCheckAlarms() ? 0xf : 0);
-
-// TODO: ADD OTHER WAKEUP PROCEDURES
-
-    halScreen.DirtyFlag |= STACK_DIRTY | FORM_DIRTY | CMDLINE_ALLDIRTY | MENU2_DIRTY | STATUS_DIRTY;    // UPDATE EVERYTHING
-
 }

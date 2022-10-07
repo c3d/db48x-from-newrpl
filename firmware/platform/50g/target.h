@@ -283,19 +283,26 @@
 #define UND_MODE            0x1b
 #define SYS_MODE            0x1f
 
-// VIDEO MODE CONSTANTS
+// Video mode constants
 #define MODE_MONO           0
 #define MODE_4GRAY          1
 #define MODE_16GRAY         2
 
-// USABLE SCREEN SIZE
+// Usable screen size
 #define LCD_W               131
 #define LCD_H               80
 #define PIXELS_PER_WORD     8
 
-#define MENU2_STARTX        0
-#define MENU2_ENDX          (1 + (88 * LCD_W) / 131)
-#define MENU2_COUNT         2
+// Physical annunciators
+#define ANN_X_COORD         131
+#define ANN_Y_COORD         0
+
+
+// Menu button size
+#define MENU_TAB_SPACE      1
+#define MENU_TAB_INSET      1
+#define MENU_TAB_WIDTH      ((LCD_W - 5 * MENU_TAB_SPACE) / 6)
+#define MENU_TAB_HEIGHT     (FONT_HEIGHT(FONT_MENU) + 2 * MENU_TAB_INSET)
 
 // DEFAULT COLOR MODE OF THE SYSTEM
 #define BITS_PER_PIXEL      4
@@ -306,16 +313,6 @@
 // PHYSICAL SCREEN SIZE
 #define LCD_SCANLINE        160
 #define LCD_H               80
-#define ANN_X_COORD         131
-#define ANN_Y_COORD         0
-
-// STYLE DEFINITION CONSTANTS
-#define CAPTIONHEIGHT       7
-#define SOFTMENUHEIGHT      6
-#define SCROLLBARWIDTH      3
-#define BORDERWIDTH         1
-
-#define CURSORBLINKSPEED    40000
 
 // SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
 #define SYSTEM_GLOBAL       __attribute__((section(".system_globals")))

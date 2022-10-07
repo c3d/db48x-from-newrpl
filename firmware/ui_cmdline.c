@@ -117,8 +117,7 @@ int32_t uiSetCmdLineText(word_p text)
     }
 
     uiEnsureCursorVisible();
-
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
     return nl;
 
@@ -171,7 +170,7 @@ void uiEnsureCursorVisible()
     }
 
     if(scrolled)
-        halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+        halRefresh(CMDLINE_ALL_DIRTY);
 
 }
 
@@ -180,10 +179,7 @@ void uicursorupdate()
     if(halScreen.CursorState & 0x4000)
         return; // DON'T UPDATE IF LOCKED
     halScreen.CursorState ^= 0x8000;    // FLIP STATE BIT
-    halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
-    gglsurface scr;
-    ggl_init_screen(&scr);
-    halRedrawCmdLine(&scr);
+    halRefresh(CMDLINE_CURSOR_DIRTY | CMDLINE_LINE_DIRTY);
 }
 
 // OPEN AN EMPTY COMMAND LINE
@@ -235,7 +231,7 @@ void uiOpenCmdLine(int32_t mode)
 
     halScreen.XVisible = 0;
     halScreen.CursorTimer = tmr_eventcreate(&uicursorupdate, 700, 1);
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
 }
 
@@ -259,11 +255,11 @@ void uiCloseCmdLine()
     halScreen.CursorState &= 0xff0000ff;
     halScreen.XVisible = 0;
     if(halScreen.CmdLineState & CMDSTATE_ACACTIVE)
-        halScreen.DirtyFlag |= STATUS_DIRTY;
+        halRefresh(STATUS_DIRTY);
     halScreen.CmdLineState = 0;
     halScreen.ACSuggestion = 0;
     SuggestedObject = 0;
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
 }
 
@@ -316,7 +312,7 @@ void uiSetCurrentLine(int32_t line)
     // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
 }
 
@@ -508,7 +504,7 @@ int32_t uiInsertCharactersN(utf8_p string, utf8_p endstring)
 
     }
 
-    halScreen.DirtyFlag |= CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
 
     uiEnsureCursorVisible();
 // UNLOCK CURSOR
@@ -631,9 +627,9 @@ void uiRemoveCharacters(int32_t length)
     while(length > 0);
 
     if(!numlines)
-        halScreen.DirtyFlag |= CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+        halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
     else
-        halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+        halRefresh(CMDLINE_ALL_DIRTY);
 // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;
 
@@ -863,7 +859,7 @@ void uiMoveCursor(int32_t offset)
 
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
 }
 
 // MOVE THE CURSOR LEFT, NCHARS IS GIVEN IN UNICODE CODEPOINTS
@@ -950,7 +946,7 @@ void uiCursorLeft(int32_t nchars)
 
             halScreen.CursorState &= ~0xc000;
 
-            halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+            halRefresh(CMDLINE_ALL_DIRTY);
 
             uiEnsureCursorVisible();
 
@@ -966,7 +962,7 @@ void uiCursorLeft(int32_t nchars)
 
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
 
     uiEnsureCursorVisible();
 }
@@ -1056,7 +1052,7 @@ void uiCursorRight(int32_t nchars)
 
             halScreen.CursorState &= ~0xc000;
 
-            halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+            halRefresh(CMDLINE_ALL_DIRTY);
 
             uiEnsureCursorVisible();
 
@@ -1074,7 +1070,7 @@ void uiCursorRight(int32_t nchars)
 
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
 
     uiEnsureCursorVisible();
 
@@ -1159,7 +1155,7 @@ void uiCursorPageRight()
 // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY | CMDLINE_LINEDIRTY;
+    halRefresh(CMDLINE_CURSOR_DIRTY | CMDLINE_LINE_DIRTY);
 
 }
 
@@ -1199,7 +1195,7 @@ void uiCursorPageLeft()
 // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;
 
-    halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY | CMDLINE_LINEDIRTY;
+    halRefresh(CMDLINE_CURSOR_DIRTY | CMDLINE_LINE_DIRTY);
 
 }
 
@@ -1545,7 +1541,7 @@ void uiAutocompleteUpdate()
     halScreen.ACSuggestion = rplGetNextSuggestion(-1, 0, tokptr, end);
 
     if(oldstate || (oldstate != (halScreen.CmdLineState & CMDSTATE_ACACTIVE)))
-        halScreen.DirtyFlag |= STATUS_DIRTY;
+        halRefresh(STATUS_DIRTY);
 
 }
 
@@ -1578,7 +1574,7 @@ void uiAutocompNext()
                 start + halScreen.ACTokenStart, end);
 
         halScreen.CmdLineState |= CMDSTATE_ACUPDATE;
-        halScreen.DirtyFlag |= STATUS_DIRTY;
+        halRefresh(STATUS_DIRTY);
     }
 
 }
@@ -1612,7 +1608,7 @@ void uiAutocompPrev()
                 start + halScreen.ACTokenStart, end);
 
         halScreen.CmdLineState |= CMDSTATE_ACUPDATE;
-        halScreen.DirtyFlag |= STATUS_DIRTY;
+        halRefresh(STATUS_DIRTY);
     }
 
 }
@@ -1747,7 +1743,7 @@ void uiSetSelectionStart()
         }
     }
 
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
 }
 
@@ -1774,7 +1770,7 @@ void uiSetSelectionEnd()
         }
     }
 
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 }
 
 // CREATE A NEW RPL STRING WITH THE TEXT SELECTED IN THE EDITOR
@@ -2142,7 +2138,7 @@ int32_t halRestoreCmdLine(word_p data)
 
     uiMoveCursor(halScreen.CursorPosition);
 
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 
     return 1;
 
@@ -2162,5 +2158,5 @@ void uiOpenAndInsertTextN(utf8_p start, utf8_p end)
 
     uiInsertCharactersN(start, end);
     uiAutocompleteUpdate();
-    halScreen.DirtyFlag |= CMDLINE_ALLDIRTY;
+    halRefresh(CMDLINE_ALL_DIRTY);
 }

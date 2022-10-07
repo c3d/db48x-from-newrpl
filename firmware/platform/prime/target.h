@@ -683,19 +683,18 @@
 #define BPPMODE_18BPP       0x8
 #define BPPMODE_24BPP       0xb // rgb
 
+// Screen size
 #define LCD_W               320
 #define LCD_H               240
 #define LCD_SCANLINE        320
 #define LCD_H               240
 #define SCREEN_BUFFERS      2
 
-// Prime menu organization constants
-#define MENU1_ENDX          ((44 * LCD_W) / 131)
-#define MENU2_STARTX        (MENU1_ENDX + 1)
-#define MENU2_ENDX          (1 + (80 * LCD_W) / 131)
-#define MENU2_COUNT         2
-#define STATUSAREA_X        (MENU2_ENDX + 1)
-
+// Soft menu tab size
+#define MENU_TAB_SPACE      1
+#define MENU_TAB_INSET      2
+#define MENU_TAB_WIDTH      ((LCD_W - 5 * MENU_TAB_SPACE) / 6)
+#define MENU_TAB_HEIGHT     (FONT_HEIGHT(FONT_MENU) + 2 * MENU_TAB_INSET)
 
 // CONSTANTS THAT CHANGE WITH DIFFERENT TARGETS
 // Physical memory partition:

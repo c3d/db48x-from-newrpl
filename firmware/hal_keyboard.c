@@ -159,13 +159,13 @@ static inline utf8_p halHelpMessage(utf8_p topic)
                 halScreen.ShortHelpMessage = NULL;                      \
             halScreen.HelpMessage = NULL;                               \
             halCancelPopup();                                           \
-            halScreen.DirtyFlag |= HELP_DIRTY;                          \
+            halRefresh(HELP_DIRTY);                                     \
             return;                                                     \
         }                                                               \
         if (msg & KFLAG_LONG_PRESS)                                     \
         {                                                               \
             halScreen.HelpMessage = halHelpMessage(command);            \
-            halScreen.DirtyFlag |= HELP_DIRTY;                          \
+            halRefresh(HELP_DIRTY);                                     \
             return;                                                     \
         }                                                               \
     } while (0)
@@ -354,7 +354,7 @@ void halSetCmdLineMode(BYTE mode)
     if (mode != old)
     {
         halScreen.CursorState = (halScreen.CursorState & ~0xff) | mode;
-        halScreen.DirtyFlag |= CMDLINE_CURSORDIRTY;
+        halRefresh(CMDLINE_CURSOR_DIRTY);
     }
 }
 
@@ -446,9 +446,6 @@ int32_t endCmdLineAndCompile()
 
             WORD fakeprogram = 0;
             ExceptionPointer = &fakeprogram;
-            halShowErrorMsg();
-            Exceptions = 0;
-
             return 0;
         }
         else {
@@ -597,14 +594,7 @@ int32_t endCmdLineAndCompile()
 
             }
 
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                if(!(halFlags & (HAL_RESET | HAL_HWRESET)))
-                    halShowErrorMsg();
-                Exceptions = 0;
-                return 1;
-            }
-            // EVERYTHING WENT FINE, CLOSE THE COMMAND LINE
+            // Everything went fine, close the command line
             return 1;
 
         }
@@ -1158,17 +1148,9 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
     {
         if (halContext(CONTEXT_STACK))
         {
-            // ACTION WHEN IN THE STACK
+            // Action when in the stack
             uiCmdRun(Opcode);
-            if (Exceptions)
-            {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
         }
     }
     else
@@ -1179,19 +1161,10 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
         case 'D':      // DIRECT EXECUTION
         {
 
-            if(endCmdLineAndCompile()) {
+            if(endCmdLineAndCompile())
+            {
                 uiCmdRun(Opcode);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions = 0;
-                }
-                else {
-                    if(rplTestSystemFlag(FL_LASTMENU))
-                        halScreen.DirtyFlag |=
-                                MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-                }
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             }
             break;
         }
@@ -1209,17 +1182,10 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
             if(IsFunc >= 0) {
 
                 if(IsFunc == 2) {
-                    if(endCmdLineAndCompile()) {
+                    if(endCmdLineAndCompile())
+                    {
                         uiCmdRun(Opcode);
-                        if(Exceptions) {
-                            // TODO: SHOW ERROR MESSAGE
-                            halShowErrorMsg();
-                            Exceptions = 0;
-                        }
-                        else
-                            halScreen.DirtyFlag |=
-                                    MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-                        halScreen.DirtyFlag |= STACK_DIRTY;
+                        halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
                     }
                     break;
                 }
@@ -1239,38 +1205,16 @@ void cmdKeyHandler(WORD Opcode, utf8_p Progmode, int32_t IsFunc)
     }
 }
 
+
 void transpcmdKeyHandler(WORD Opcode)
+// ----------------------------------------------------------------------------
+//   Transpose command
+// ----------------------------------------------------------------------------
 {
-    if (!halContext(CONTEXT_EDITOR))
+    if (halContext(CONTEXT_STACK | CONTEXT_EDITOR))
     {
-        if (halContext(CONTEXT_STACK))
-        {
-            // ACTION WHEN IN THE STACK
-            uiCmdRun(Opcode);
-            if (Exceptions)
-            {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-        }
-    }
-    else
-    {
-        // ACTION INSIDE THE EDITOR
         uiCmdRun(Opcode);
-        if (Exceptions)
-        {
-            // TODO: SHOW ERROR MESSAGE
-            halShowErrorMsg();
-            Exceptions = 0;
-        }
-        else
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY;
+        halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
     }
 }
 
@@ -1372,7 +1316,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 if(page < 0)
                     page = 0;
                 rplSetMenuCode(menunum, SETMENUPAGE(mcode, page));
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
+                halRefresh(MENU_DIRTY);
                 return;
             }
             // THIS IS A REGULAR VAR KEY
@@ -1418,12 +1362,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     rplPushDataNoGrow(numobject);
                     rplSaveMenuHistory(menunum);
                     rplChangeMenu(menunum, rplPopData());
-
-                    if(menunum == 1)
-                        halScreen.DirtyFlag |= MENU1_DIRTY;
-                    else
-                        halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                    halRefresh(MENU_DIRTY);
                     break;
                 }
                 // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
@@ -1463,12 +1402,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     rplPushDataNoGrow(numobject);
                     rplSaveMenuHistory(menunum);
                     rplChangeMenu(menunum, rplPopData());
-
-                    if(menunum == 1)
-                        halScreen.DirtyFlag |= MENU1_DIRTY;
-                    else
-                        halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                    halRefresh(MENU_DIRTY);
                     break;
                 }
                 // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
@@ -1506,12 +1440,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     rplPushDataNoGrow(numobject);
                     rplSaveMenuHistory(menunum);
                     rplChangeMenu(menunum, rplPopData());
-
-                    if(menunum == 1)
-                        halScreen.DirtyFlag |= MENU1_DIRTY;
-                    else
-                        halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                    halRefresh(MENU_DIRTY);
                     break;
                 }
 
@@ -1525,14 +1454,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
             if(Opcode)
                 uiCmdRunHide(Opcode, hideargument);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
         }
     }
     else {
@@ -1562,7 +1484,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             if(page < 0)
                 page = 0;
             rplSetMenuCode(menunum, SETMENUPAGE(mcode, page));
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
+            halRefresh(MENU_DIRTY);
             return;
         }
         // THIS IS A REGULAR VAR KEY
@@ -1669,12 +1591,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 rplPushDataNoGrow(numobject);
                 rplSaveMenuHistory(menunum);
                 rplChangeMenu(menunum, rplPopData());
-
-                if(menunum == 1)
-                    halScreen.DirtyFlag |= MENU1_DIRTY;
-                else
-                    halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                halRefresh(MENU_DIRTY);
                 break;
             }
 
@@ -1911,12 +1828,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     rplPushDataNoGrow(numobject);
                     rplSaveMenuHistory(menunum);
                     rplChangeMenu(menunum, rplPopData());
-
-                    if(menunum == 1)
-                        halScreen.DirtyFlag |= MENU1_DIRTY;
-                    else
-                        halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                    halRefresh(MENU_DIRTY);
                     break;
                 }
                 case 'A':
@@ -2301,12 +2213,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 rplPushDataNoGrow(numobject);
                 rplSaveMenuHistory(menunum);
                 rplChangeMenu(menunum, rplPopData());
-
-                if (menunum == 1)
-                    halScreen.DirtyFlag |= MENU1_DIRTY;
-                else
-                    halScreen.DirtyFlag |= MENU2_DIRTY;
-
+                halRefresh(MENU_DIRTY);
                 break;
             }
 
@@ -2422,15 +2329,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
         if (Opcode)
             uiCmdRunHide(Opcode, hideargument);
-        if (Exceptions)
-        {
-            // TODO: SHOW ERROR MESSAGE
-            halShowErrorMsg();
-            Exceptions = 0;
-        }
-        else
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+        halRefresh(MENU_DIRTY);
     }
 }
 
@@ -2548,7 +2447,7 @@ void KH(enter)(keyb_msg_t keymsg)
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData() > 0)
                 uiCmdRun(CMD_DUP);
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
         }
 
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
@@ -2558,7 +2457,7 @@ void KH(enter)(keyb_msg_t keymsg)
                 rplPushData(rplPeekData(halScreen.StkPointer));
                 ++halScreen.StkPointer;
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
         }
 
@@ -2570,8 +2469,7 @@ void KH(enter)(keyb_msg_t keymsg)
         halScreen.StkCurrentLevel = 0;
 
         if(endCmdLineAndCompile()) {
-            halScreen.DirtyFlag |=
-                    STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             if(!(halFlags & (HAL_HWRESET | HAL_RESET))) {
                 rplRemoveSnapshot(halScreen.StkUndolevels + 2);
                 rplRemoveSnapshot(halScreen.StkUndolevels + 1);
@@ -2598,14 +2496,7 @@ void KH(cut)(keyb_msg_t keymsg)
         if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRunTransparent(CMD_CUTCLIP, 1, 1);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             return;
         }
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
@@ -2644,14 +2535,7 @@ void KH(cut)(keyb_msg_t keymsg)
                 // SINGLE OBJECT, JUST PUT IN THE CLIPBOARD
                 rplPushData(rplPeekData(selst));
                 uiCmdRunTransparent(CMD_CUTCLIP, 1, 1);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions = 0;
-                }
-                else
-                    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 rplRemoveAtData(selst, 1);
 
                 if(rplDepthData() < 1) {
@@ -2686,16 +2570,8 @@ void KH(cut)(keyb_msg_t keymsg)
 
             rplPushData(newlist);
             uiCmdRunTransparent(CMD_CUTCLIP, 1, 1);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-
             rplRemoveAtData(selst, selend - selst + 1);
+            halRefresh(STACK_DIRTY);
 
             if(rplDepthData() < 1) {
                 // END INTERACTIVE STACK
@@ -2729,16 +2605,8 @@ void KH(cut)(keyb_msg_t keymsg)
         if(string) {
             rplPushData(string);
             uiCmdRunTransparent(CMD_CUTCLIP, 1, 0);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-
             uiDeleteSelection();
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
         }
 
     }
@@ -2752,17 +2620,11 @@ void KH(copy)(keyb_msg_t keymsg)
     halKeyHelp(keymsg, "Copy");
 
     if(!halContext(CONTEXT_EDITOR)) {
-        if(halContext(CONTEXT_STACK)) {
-            // ACTION WHEN IN THE STACK
+        if(halContext(CONTEXT_STACK))
+        {
+            // Action when in the stack
             uiCmdRunTransparent(CMD_COPYCLIP, 1, 1);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY | MENU_DIRTY);
         }
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             int32_t selst, selend;
@@ -2801,14 +2663,7 @@ void KH(copy)(keyb_msg_t keymsg)
                 rplPushData(rplPeekData(selst));
                 uiCmdRunTransparent(CMD_COPYCLIP, 1, 1);
                 rplDropData(1);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions = 0;
-                }
-                else
-                    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 return;
 
             }
@@ -2823,16 +2678,7 @@ void KH(copy)(keyb_msg_t keymsg)
             rplPushData(newlist);
             uiCmdRunTransparent(CMD_COPYCLIP, 1, 1);
             rplDropData(1);
-
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             return;
 
         }
@@ -2845,14 +2691,7 @@ void KH(copy)(keyb_msg_t keymsg)
         if(string) {
             rplPushData(string);
             uiCmdRunTransparent(CMD_CUTCLIP, 1, 0);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
         }
 
     }
@@ -2866,18 +2705,12 @@ void KH(paste)(keyb_msg_t keymsg)
     halKeyHelp(keymsg, "Paste");
 
     if(!halContext(CONTEXT_EDITOR)) {
-        if(halContext(CONTEXT_STACK)) {
-            // ACTION WHEN IN THE STACK
+        if(halContext(CONTEXT_STACK))
+        {
+            // Action when in the stack
             uiCmdRun(CMD_PASTECLIP);
-            if(Exceptions) {
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
         }
-
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             int32_t depth = rplDepthData();
             int32_t clevel =
@@ -2885,25 +2718,16 @@ void KH(paste)(keyb_msg_t keymsg)
                     depth) ? depth : halScreen.StkPointer;
 
             uiCmdRun(CMD_PASTECLIP);
-            int32_t nitems = rplDepthData() - depth;
-            if(Exceptions) {
-                halShowErrorMsg();
-                Exceptions = 0;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
+            if(Exceptions)
                 return;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
 
-            // NOW MOVE THE NEW OBJECT TO THE CURRENT LEVEL
-
+            // Now move the new object to the current level
+            int32_t nitems = rplDepthData() - depth;
             rplExpandStack(nitems);
 
-            if(Exceptions) {
-                halShowErrorMsg();
-                Exceptions = 0;
+            if(Exceptions)
                 return;
-            }
 
             // MAKE ROOM
             memmovew(DSTop - clevel, DSTop - clevel - nitems,
@@ -2934,13 +2758,11 @@ void KH(paste)(keyb_msg_t keymsg)
             word_p object = rplPeekData(nitems);
             if(!ISSTRING(*object)) {
                 object = rplDecompile(object, DECOMP_EDIT);
-                if(!object || Exceptions) {
-                    halShowErrorMsg();
-                    Exceptions = 0;
+                if(!object || Exceptions)
                     return;
-                }
+
                 if(((halScreen.CursorState & 0xff) == 'P')
-                        || ((halScreen.CursorState & 0xff) == 'D'))
+                   || ((halScreen.CursorState & 0xff) == 'D'))
                     uiSeparateToken();
             }
 
@@ -2967,7 +2789,7 @@ void KH(backsp)(keyb_msg_t keymsg)
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData() > 0)
                 uiCmdRun(CMD_DROP);
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
         }
 
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
@@ -2988,8 +2810,7 @@ void KH(backsp)(keyb_msg_t keymsg)
                     halScreen.StkVisibleOffset = 0;
                     halScreen.StkSelStart = halScreen.StkSelEnd =
                             halScreen.StkSelStatus = 0;
-                    halScreen.DirtyFlag |= STACK_DIRTY;
-
+                    halRefresh(STACK_DIRTY);
                     return;
                 }
                 if(halScreen.StkPointer <= 0)
@@ -3002,8 +2823,7 @@ void KH(backsp)(keyb_msg_t keymsg)
                         halScreen.StkPointer = rplDepthData();
                 }
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
-
+                halRefresh(STACK_DIRTY);
                 break;
             case 1:
                 // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
@@ -3024,8 +2844,7 @@ void KH(backsp)(keyb_msg_t keymsg)
                         halScreen.StkVisibleOffset = 0;
                         halScreen.StkSelStart = halScreen.StkSelEnd =
                                 halScreen.StkSelStatus = 0;
-                        halScreen.DirtyFlag |= STACK_DIRTY;
-
+                        halRefresh(STACK_DIRTY);
                         return;
 
                     }
@@ -3047,14 +2866,13 @@ void KH(backsp)(keyb_msg_t keymsg)
                         // END INTERACTIVE STACK
                         halExitContext(CONTEXT_INTERACTIVE_STACK);
                         halSetContext(CONTEXT_STACK);
-                        halScreen.StkVisibleLvl = 1;
+                        halScreen.StkVisibleLvl    = 1;
                         halScreen.StkVisibleOffset = 0;
-                        halScreen.StkSelStart = halScreen.StkSelEnd =
-                                halScreen.StkSelStatus = 0;
-                        halScreen.DirtyFlag |= STACK_DIRTY;
-
+                        halScreen.StkSelStart      = 0;
+                        halScreen.StkSelEnd        = 0;
+                        halScreen.StkSelStatus     = 0;
+                        halRefresh(STACK_DIRTY);
                         return;
-
                     }
 
                     if(halScreen.StkPointer <= 1) {
@@ -3072,8 +2890,7 @@ void KH(backsp)(keyb_msg_t keymsg)
                     halScreen.StkVisibleLvl = -1;
 
                 }
-
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             case 2:
             {
@@ -3086,14 +2903,13 @@ void KH(backsp)(keyb_msg_t keymsg)
                     // END INTERACTIVE STACK
                     halExitContext(CONTEXT_INTERACTIVE_STACK);
                     halSetContext(CONTEXT_STACK);
-                    halScreen.StkVisibleLvl = 1;
+                    halScreen.StkVisibleLvl    = 1;
                     halScreen.StkVisibleOffset = 0;
-                    halScreen.StkSelStart = halScreen.StkSelEnd =
-                            halScreen.StkSelStatus = 0;
-                    halScreen.DirtyFlag |= STACK_DIRTY;
-
+                    halScreen.StkSelStart      = 0;
+                    halScreen.StkSelEnd        = 0;
+                    halScreen.StkSelStatus     = 0;
+                    halRefresh(STACK_DIRTY);
                     return;
-
                 }
 
                 int32_t count = halScreen.StkSelEnd - halScreen.StkSelStart + 1;
@@ -3106,8 +2922,7 @@ void KH(backsp)(keyb_msg_t keymsg)
                     halScreen.StkPointer = rplDepthData();
                 halScreen.StkSelStatus = 0;
                 halScreen.StkVisibleLvl = -1;
-
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             }
             }
@@ -3153,9 +2968,9 @@ void KH(left)(keyb_msg_t keymsg)
     halRepeatingKey(keymsg);
     if(!halContext(CONTEXT_EDITOR)) {
         if(halContext(CONTEXT_STACK)) {
-            // PERFORM UNDO IN THE STACK
+            // Perform undo in the stack
             uiStackUndo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             return;
 
         }
@@ -3297,7 +3112,7 @@ void KH(left)(keyb_msg_t keymsg)
             }
 
             }
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
             return;
 
         }
@@ -3322,11 +3137,11 @@ void KH(right)(keyb_msg_t keymsg)
     if(!halContext(CONTEXT_EDITOR)) {
         if(halContext(CONTEXT_STACK)) {
 
-            if(rplDepthData() > 1) {
+            if(rplDepthData() > 1)
+            {
                 uiCmdRun(CMD_SWAP);
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
-
         }
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             switch (halScreen.StkSelStatus) {
@@ -3460,7 +3275,7 @@ void KH(right)(keyb_msg_t keymsg)
             }
 
             }
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
             return;
 
         }
@@ -3497,20 +3312,23 @@ void KH(up)(keyb_msg_t keymsg)
                 halExitContext(CONTEXT_STACK);
                 halSetContext(CONTEXT_INTERACTIVE_STACK);
 
-                halScreen.StkPointer = 1;
-                halScreen.StkSelStart = halScreen.StkSelEnd = -1;
-                halScreen.StkVisibleLvl = 1;
+                halScreen.StkPointer       = 1;
+                halScreen.StkSelStart      = -1;
+                halScreen.StkSelEnd        = -1;
+                halScreen.StkVisibleLvl    = 1;
                 halScreen.StkVisibleOffset = 0;
-                halScreen.DirtyFlag |= STACK_DIRTY;
-                halScreen.StkSelStatus = 0;
+                halScreen.StkSelStatus     = 0;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
-        if(halContext(CONTEXT_INTERACTIVE_STACK)) {
-            if(halScreen.StkPointer <= rplDepthData()) {
+        if (halContext(CONTEXT_INTERACTIVE_STACK))
+        {
+            if (halScreen.StkPointer <= rplDepthData())
+            {
                 ++halScreen.StkPointer;
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3549,11 +3367,9 @@ void KH(down)(keyb_msg_t keymsg)
                 word_p ptr = rplPeekData(1);
                 word_p text =
                         rplDecompile(ptr, DECOMP_EDIT | DECOMP_MAXWIDTH(width));
-                if(Exceptions) {
-                    halShowErrorMsg();
-                    Exceptions = 0;
+                if(Exceptions)
                     return;
-                }
+
                 BYTE cursorstart = 'D';
 
                 if(ISPROGRAM(*ptr))
@@ -3584,7 +3400,7 @@ void KH(down)(keyb_msg_t keymsg)
             if(halScreen.StkPointer > 0) {
                 --halScreen.StkPointer;
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3641,7 +3457,7 @@ void KH(startOfLine)(keyb_msg_t keymsg)
         if(halContext(CONTEXT_STACK)) {
             // REDO ACTION
             uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             return;
         }
 
@@ -3690,7 +3506,7 @@ void KH(startOfText)(keyb_msg_t keymsg)
             {
                 halScreen.StkPointer    = rplDepthData();
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3726,7 +3542,7 @@ void KH(endOfText)(keyb_msg_t keymsg)
                 halScreen.StkPointer       = 1;
                 halScreen.StkVisibleLvl    = 1;
                 halScreen.StkVisibleOffset = 0;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3753,9 +3569,10 @@ void KH(pageLeft)(keyb_msg_t keymsg)
     {
         if (halContext(CONTEXT_STACK))
         {
-            // REDO ACTION
+            // REVISIT: Knowledge of key mapping within key handler
+            // Redo action
             uiStackRedo();
-            halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+            halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
             return;
         }
     }
@@ -3807,7 +3624,7 @@ void KH(pageUp)(keyb_msg_t keymsg)
                 if (halScreen.StkPointer >= rplDepthData())
                     halScreen.StkPointer = rplDepthData();
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3843,7 +3660,7 @@ void KH(pageDown)(keyb_msg_t keymsg)
                 if (halScreen.StkPointer < 1)
                     halScreen.StkPointer = 1;
                 halScreen.StkVisibleLvl = -1;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
             }
             return;
         }
@@ -3981,12 +3798,7 @@ void KH(chs)(keyb_msg_t keymsg)
         if(halContext(CONTEXT_STACK)) {
             // ACTION WHEN IN THE STACK
             uiCmdRun((CMD_OVR_NEG));
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
         }
         if(halContext(CONTEXT_INTERACTIVE_STACK)) {
             // SELECTION MODE
@@ -3999,7 +3811,7 @@ void KH(chs)(keyb_msg_t keymsg)
                     halScreen.StkSelStart = rplDepthData();
                 halScreen.StkSelEnd = halScreen.StkSelStart;
                 halScreen.StkSelStatus += 2;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             case 1:
                 // START WAS SELECTED
@@ -4015,7 +3827,7 @@ void KH(chs)(keyb_msg_t keymsg)
                         halScreen.StkSelEnd = rplDepthData();
                 }
                 ++halScreen.StkSelStatus;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             case 2:
                 // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
@@ -4024,7 +3836,7 @@ void KH(chs)(keyb_msg_t keymsg)
                 if(halScreen.StkSelStart > rplDepthData())
                     halScreen.StkSelStart = rplDepthData();
                 halScreen.StkSelEnd = halScreen.StkSelStart;
-                halScreen.DirtyFlag |= STACK_DIRTY;
+                halRefresh(STACK_DIRTY);
                 break;
             }
 
@@ -4046,16 +3858,14 @@ void KH(chs)(keyb_msg_t keymsg)
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
                     uiInsertCharacters("-");
-                    halScreen.DirtyFlag |=
-                            CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+                    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
                     return;
                 }
                 if(startnum[-1] == '-') {
                     uiCursorLeft(1);
                     uiRemoveCharacters(1);
                     uiInsertCharacters("+");
-                    halScreen.DirtyFlag |=
-                            CMDLINE_LINEDIRTY | CMDLINE_CURSORDIRTY;
+                    halRefresh(CMDLINE_LINE_DIRTY | CMDLINE_CURSOR_DIRTY);
                     return;
                 }
                 if((startnum[-1] == 'E') || (startnum[-1] == 'e')) {
@@ -4084,16 +3894,11 @@ void KH(chs)(keyb_msg_t keymsg)
 
             if((halScreen.CursorState & 0xff) == 'D') {
                 // COMPILE AND EXECUTE NEG
-                if(endCmdLineAndCompile()) {
+                if(endCmdLineAndCompile())
+                {
                     uiCmdRun((CMD_OVR_NEG));
-                    if(Exceptions) {
-                        // TODO: SHOW ERROR MESSAGE
-                        halShowErrorMsg();
-                        Exceptions = 0;
-                    }
-                    halScreen.DirtyFlag |= STACK_DIRTY;
+                    halRefresh(STACK_DIRTY);
                 }
-
                 return;
             }
 
@@ -4470,6 +4275,7 @@ static void contrastPattern()
         ggl_rect(&scr, STATUS_AREA_X + 1 + 3 * j, ytop,
                  STATUS_AREA_X + 1 + 3 * j + 2, ytop + 5, ggl_color(15 - j));
     }
+    halRefresh(ALL_DIRTY);
 }
 
 
@@ -4479,7 +4285,6 @@ void KH(increaseContrast)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    halStatusAreaPopup();
     contrastPattern();
 
     // Increase contrast
@@ -4496,13 +4301,13 @@ void KH(increaseContrast)(keyb_msg_t keymsg)
     Exceptions = savedex;
 }
 
+
 void KH(decreaseContrast)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 //   Decrease contrast
 // ----------------------------------------------------------------------------
 {
     halRepeatingKey(keymsg);
-    halStatusAreaPopup();
     contrastPattern();
 
     // Decrease contrast
@@ -4525,6 +4330,7 @@ void KH(cycleLocale)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 {
     halKeyHelp(keymsg, "Cycle locale");
+    halRefresh(ALL_DIRTY);
 
     // CYCLE BETWEEN VARIOUS OPTIONS
     const char *const options[] = {
@@ -4554,8 +4360,6 @@ void KH(cycleLocale)(keyb_msg_t keymsg)
     ++option;
     if(option > 11)
         option = 0;
-
-    halStatusAreaPopup();
 
     gglsurface scr;
     ggl_init_screen(&scr);
@@ -4671,8 +4475,7 @@ void KH(cycleLocale)(keyb_msg_t keymsg)
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
-    halScreen.DirtyFlag |= STACK_DIRTY;
-
+    halRefresh(STACK_DIRTY);
 }
 
 
@@ -4703,8 +4506,6 @@ void KH(cycleFormat)(keyb_msg_t keymsg)
     ++option;
     if(option > 3)
         option = 0;
-
-    halStatusAreaPopup();
 
     gglsurface scr;
     ggl_init_screen(&scr);
@@ -4769,8 +4570,7 @@ void KH(cycleFormat)(keyb_msg_t keymsg)
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
-    halScreen.DirtyFlag |= STACK_DIRTY;
-
+    halRefresh(ALL_DIRTY);
 }
 
 const const char *const onMulDivKeyHandler_options[] = {
@@ -4811,8 +4611,6 @@ static void formatChange(keyb_msg_t keymsg)
     if(option > 15)
         option = 0;
 
-    halStatusAreaPopup();
-
     gglsurface scr;
     ggl_init_screen(&scr);
     int ytop =
@@ -4849,8 +4647,7 @@ static void formatChange(keyb_msg_t keymsg)
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
-    halScreen.DirtyFlag |= STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
-
+    halRefresh(ALL_DIRTY);
 }
 
 void KH(nextScale)(keyb_msg_t keymsg)
@@ -4911,8 +4708,6 @@ void KH(onDigit)(keyb_msg_t keymsg)
     if(digits==0xfff) digits= TEXT2WORD('A','l','l',0);
       else digits += '0';
 
-    halStatusAreaPopup();
-
     gglsurface scr;
     ggl_init_screen(&scr);
     int ytop =
@@ -4930,8 +4725,7 @@ void KH(onDigit)(keyb_msg_t keymsg)
 
     rplSetSystemNumberFormat(&fmt);
     uiClearRenderCache();
-    halScreen.DirtyFlag |= STACK_DIRTY | MENU1_DIRTY | MENU2_DIRTY;
-
+    halRefresh(ALL_DIRTY);
 }
 
 void KH(SetPrecision)(keyb_msg_t keymsg)
@@ -4983,8 +4777,6 @@ void KH(SetPrecision)(keyb_msg_t keymsg)
         digits_string[2] = empty;
     digits_string[3] = precision + '0';
 
-    halStatusAreaPopup();
-
     gglsurface scr;
     ggl_init_screen(&scr);
     int ytop =
@@ -4999,9 +4791,7 @@ void KH(SetPrecision)(keyb_msg_t keymsg)
     DrawTextBk(&scr, STATUS_AREA_X + 1,
                ytop + 1 + FONT_HEIGHT(FONT_STATUS),
                digits_string, FONT_STATUS, PAL_STA_TEXT, PAL_STA_BG);
-
-    halScreen.DirtyFlag |= STACK_DIRTY;
-
+    halRefresh(STACK_DIRTY);
 }
 
 void KH(SkipNextAlarm)(keyb_msg_t keymsg)
@@ -5029,12 +4819,7 @@ void SelectMenuKeyHandler(keyb_msg_t keymsg, int64_t menucode, utf8_p help)
     rplPushDataNoGrow(numobject);
     rplSaveMenuHistory(menu);
     rplChangeMenu(menu, rplPopData());
-
-    if(menu == 1)
-        halScreen.DirtyFlag |= MENU1_DIRTY;
-    else
-        halScreen.DirtyFlag |= MENU2_DIRTY;
-
+    halRefresh(MENU_DIRTY);
 }
 
 static int backMenuKeyHandler(int menu)
@@ -5058,7 +4843,7 @@ void KH(backmenu1)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Previous menu");
     backMenuKeyHandler(1);
-    halScreen.DirtyFlag |= MENU1_DIRTY;
+    halRefresh(MENU1_DIRTY);
 }
 
 void KH(backmenu2)(keyb_msg_t keymsg)
@@ -5068,7 +4853,7 @@ void KH(backmenu2)(keyb_msg_t keymsg)
 {
     halKeyHelp(keymsg, "Previous secondary menu");
     backMenuKeyHandler(2);
-    halScreen.DirtyFlag |= MENU2_DIRTY;
+    halRefresh(MENU1_DIRTY);
 }
 
 
@@ -5129,15 +4914,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
         if(Opcode)
             uiCmdRunHide(Opcode, hideargument);
-        if(Exceptions) {
-            // TODO: SHOW ERROR MESSAGE
-            halShowErrorMsg();
-            Exceptions = 0;
-        }
-        else
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
-
+        halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
     }
     else {
         // ACTION INSIDE THE EDITOR
@@ -5447,14 +5224,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
         if(Opcode)
             uiCmdRunHide(Opcode, hideargument);
-        if(Exceptions) {
-            // TODO: SHOW ERROR MESSAGE
-            halShowErrorMsg();
-            Exceptions = 0;
-        }
-        else
-            halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-        halScreen.DirtyFlag |= STACK_DIRTY | STATUS_DIRTY;
+        halRefresh(MENU_DIRTY | STATUS_DIRTY | STACK_DIRTY);
     }
 
 }
@@ -5485,9 +5255,8 @@ void KH(switchmenukeys)(keyb_msg_t keymsg)
     halKeyHelp(keymsg, "Switch menus");
 
     // TODO: Just toggle a flag for the key handlers
-    halKeyMenuSwitch^=1;
-    halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY;
-
+    halKeyMenuSwitch ^= 1;
+    halRefresh(MENU_DIRTY);
     return;
 }
 
@@ -5504,15 +5273,7 @@ void KH(basecycle)(keyb_msg_t keymsg)
 
             rplPushDataNoGrow((word_p) lib70_basecycle);
             uiCmdRunHide(CMD_OVR_XEQ, 1);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions = 0;
-            }
-            else
-                halScreen.DirtyFlag |= MENU1_DIRTY | MENU2_DIRTY | STATUS_DIRTY;
-            halScreen.DirtyFlag |= STACK_DIRTY;
-
+            halRefresh(STACK_DIRTY);
         }
 
     }
@@ -5888,7 +5649,7 @@ void KH(spc)(keyb_msg_t keymsg)
             if(halScreen.StkSelStart > rplDepthData())
                 halScreen.StkSelStart = rplDepthData();
             ++halScreen.StkSelStatus;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
             break;
         case 1:
             // START WAS SELECTED
@@ -5905,12 +5666,12 @@ void KH(spc)(keyb_msg_t keymsg)
 
             }
             ++halScreen.StkSelStatus;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
             break;
         case 2:
             // BOTH START AND END SELECTED, JUST CLEAR THE SELECTION
             halScreen.StkSelStatus = 0;
-            halScreen.DirtyFlag |= STACK_DIRTY;
+            halRefresh(STACK_DIRTY);
             break;
         }
 
@@ -6043,7 +5804,7 @@ void KH(tolist)(keyb_msg_t keymsg)
     }
 
     }
-    halScreen.DirtyFlag |= STACK_DIRTY;
+    halRefresh(STACK_DIRTY);
     return;
 }
 
@@ -6167,7 +5928,7 @@ void KH(tomat)(keyb_msg_t keymsg)
     }
 
     }
-    halScreen.DirtyFlag |= STACK_DIRTY;
+    halRefresh(STACK_DIRTY);
     return;
 }
 
@@ -6333,7 +6094,6 @@ void KH(tocplx)(keyb_msg_t keymsg)
     }
 
     }
-    halScreen.DirtyFlag |= STACK_DIRTY;
     return;
 }
 
@@ -6584,8 +6344,7 @@ void KH(explode)(keyb_msg_t keymsg)
         halScreen.StkSelStatus = 2;
     halScreen.StkPointer = halScreen.StkSelEnd;
     halScreen.StkVisibleLvl = -1;
-
-    halScreen.DirtyFlag |= STACK_DIRTY;
+    halRefresh(STACK_DIRTY);
     return;
 }
 
@@ -6608,17 +6367,18 @@ void KH(cancel)(keyb_msg_t keymsg)
         endCmdLine();
     }
 
-    if((halContext(CONTEXT_INTERACTIVE_STACK))) {
-        // END INTERACTIVE STACK
+    if ((halContext(CONTEXT_INTERACTIVE_STACK)))
+    {
+        // End interactive stack
         halExitContext(CONTEXT_INTERACTIVE_STACK);
         halSetContext(CONTEXT_STACK);
-        halScreen.StkVisibleLvl = 1;
+        halScreen.StkVisibleLvl    = 1;
         halScreen.StkVisibleOffset = 0;
-        halScreen.StkSelStart = halScreen.StkSelEnd = halScreen.StkSelStatus =
-                0;
-        halScreen.DirtyFlag |= STACK_DIRTY;
+        halScreen.StkSelStart      = 0;
+        halScreen.StkSelEnd        = 0;
+        halScreen.StkSelStatus     = 0;
+        halRefresh(STACK_DIRTY);
     }
-
 }
 
 
@@ -6945,7 +6705,7 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
     if (keymsg & KFLAG_SHIFTS_CHANGED)
     {
         halScreenUpdated();
-        halScreen.DirtyFlag |= STATUS_DIRTY;
+        halRefresh(STACK_DIRTY);
 
         // There was a change in shift plane, update annunciators
         halSetNotification(N_LEFT_SHIFT,
@@ -6980,6 +6740,8 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
         ((flags & OL_NOCUSTOMKEYS ) == 0 && halDoCustomKey(keymsg))      ||
         ((flags & OL_NODEFAULTKEYS) == 0 && halDoDefaultKey(keymsg));
 
+    if (Exceptions)
+        halRefresh(ERROR_DIRTY);
 
     if (RECORDER_TWEAK(keys_debug))
     {
@@ -7144,19 +6906,13 @@ void halOuterLoop(int32_t timeoutms,
             halFlags &= ~HAL_FASTAUTORESUME;
             uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION BEFORE
                                 // PROCESSING ANY KEYS
-            halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                   STATUS_DIRTY | MENU1_DIRTY | MENU2_DIRTY |
-                                   FORM_DIRTY;
+            halRefresh(ALL_DIRTY);
             continue;
         }
 
         if (Exceptions)
-        {
             if (flags & OL_EXITONERROR)
                 break;
-            halShowErrorMsg();
-            Exceptions = 0;
-        }
 
         keymsg    = halWaitForKeyTimeout(timeoutms);
         timeoutms = 0;
@@ -7194,9 +6950,7 @@ void halOuterLoop(int32_t timeoutms,
                     if (!rplTestSystemFlag(FL_NOAUTORECV))
                     {
                         uiCmdRun(CMD_USBAUTORCV);
-                        halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                               STATUS_DIRTY | MENU1_DIRTY |
-                                               MENU2_DIRTY | FORM_DIRTY;
+                        halRefresh(ALL_DIRTY);
                         continue;
                     }
                 }
@@ -7251,9 +7005,7 @@ void halOuterLoop(int32_t timeoutms,
                 jobdone = isidle = 0;
                 uiCmdRun(CMD_CONT); // AUTOMATICALLY CONTINUE EXECUTION AFTER 10
                                     // IDLE CYCLES
-                halScreen.DirtyFlag |= CMDLINE_ALLDIRTY | STACK_DIRTY |
-                                       STATUS_DIRTY | MENU1_DIRTY |
-                                       MENU2_DIRTY | FORM_DIRTY;
+                halRefresh(ALL_DIRTY);
                 continue;
             }
 

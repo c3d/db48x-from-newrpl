@@ -483,14 +483,13 @@ static void uiDrawMenuItemInternal(gglsurface  *scr,
     int       inverted  = (flags & 2) != 0;
     int       help_menu = (flags & 4) != 0;
     int       flag_menu = (flags & 8) != 0;
-    pattern_t color_1   = help_menu ? PAL_HLP_TEXT
+    pattern_t color_1   = help_menu ? PAL_HELP_TEXT
                         : directory ? PAL_MENU_DIR
                                     : PAL_MENU_TEXT;
-    pattern_t color_2   = help_menu ? PAL_HLP_BG
+    pattern_t color_2   = help_menu ? PAL_HELP_BG
                         : directory ? PAL_MENU_DIR_BG
                                     : PAL_MENU_BG;
     pattern_t fg        = inverted ? color_2 : color_1;
-    pattern_t bg        = inverted ? color_1 : color_2;
 
     size      height    = scr->bottom - scr->top;
     size      width     = StringWidthN(text, end, FONT_MENU);
@@ -498,9 +497,6 @@ static void uiDrawMenuItemInternal(gglsurface  *scr,
     coord     pos       = (width >= swidth)
         ? 1 + scr->left
         : (1 + scr->right + scr->left - width) >> 1;
-
-    // Draw the background
-    ggl_cliprect(scr, scr->left, scr->top, scr->right, scr->bottom, bg);
 
     // Draw a marker to indicate directories
     if (directory)
@@ -538,6 +534,7 @@ static void uiDrawMenuItemInternal(gglsurface  *scr,
 
     // Draw the text for the menu
     scr->right -= height * flag_menu;
+    pos += MENU_TAB_INSET;
     DrawTextN(scr, pos, scr->top + 1, text, end, FONT_MENU, fg);
     scr->right += height * flag_menu;
 
