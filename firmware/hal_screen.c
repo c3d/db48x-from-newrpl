@@ -81,7 +81,9 @@ typedef enum anchor
     CENTER_LEFT_OF      = (1<<5) |          (1<<2),     // w
     CENTER_RIGHT_IN     = (1<<5) | (1<<0) | (1<<2),     // x
 
-    CENTER_IN           = (1<<4) | (1<<5),
+    CENTER_IN           = (1<<4) | (1<<5),              // z
+
+    CLIPPING            = (1<<6),                       // Keep clipping rect
 
 } anchor_t;
 
@@ -99,7 +101,7 @@ typedef struct layout
 } layout_t;
 
 
-static void clip_layout(gglsurface *s,
+static void layout_clip(gglsurface *s,
                         layout_p    layout,
                         rect_t     *rect,
                         coord       width,
@@ -199,6 +201,8 @@ static void clip_layout(gglsurface *s,
 
 // Actual rendering of the various panels
 static void screen_layout       (gglsurface *, layout_p , rect_t *);
+static void spacer_layout       (gglsurface *, layout_p , rect_t *);
+static void filler_layout       (gglsurface *, layout_p , rect_t *);
 static void stack_layout        (gglsurface *, layout_p , rect_t *);
 static void cmdline_layout      (gglsurface *, layout_p , rect_t *);
 static void status_area_layout  (gglsurface *, layout_p , rect_t *);
@@ -247,16 +251,21 @@ static void render_layouts(gglsurface *scr)
     int    NUM_LAYOUTS = sizeof(layouts) / sizeof(layouts[0]);
     rect_t rects[NUM_LAYOUTS];
 
+    coord     left   = 0;
+    coord     right  = LCD_W-1;
+    coord     top    = 0;
+    coord     bottom = LCD_H-1;
+
     for (int l = 0; l < NUM_LAYOUTS; l++)
     {
         const layout_p layout = layouts + l;
         rect_t *r = rects + l;
 
-        // Initialize rectangle, notably useful for screen
-        r->left   = 0;
-        r->right  = LCD_W - 1;
-        r->top    = 0;
-        r->bottom = LCD_H - 1;
+        // Initialize rectangle, notably useful for inii
+        r->left   = left;
+        r->right  = right;
+        r->top    = top;
+        r->bottom = bottom;
 
         // Search the layout reference, and if so, update rectangle
         redraw_fn base = layout->base;
@@ -274,14 +283,17 @@ static void render_layouts(gglsurface *scr)
         }
 
         // Call the renderer with the rectangle that we found
-        coord     left   = scr->left;
-        coord     top    = scr->top;
-        coord     right  = scr->right;
-        coord     bottom = scr->bottom;
         redraw_fn draw   = layout->draw;
         draw(scr, layout, r);
 
         // Restore clipping after draw
+        if (layout->position & CLIPPING)
+        {
+            left   = scr->left;
+            right  = scr->right;
+            top    = scr->top;
+            bottom = scr->bottom;
+        }
         scr->left   = left;
         scr->top    = top;
         scr->right  = right;
@@ -308,6 +320,34 @@ static void screen_layout(gglsurface *s, layout_p l, rect_t *r)
         ggl_rect(s, 0, 0, LCD_W - 1, LCD_H - 1, PAL_GRAY8);
         halRepainted(BACKGROUND_DIRTY);
     }
+    s->left   = 0;
+    s->right  = LCD_W - 1;
+    s->top    = 0;
+    s->bottom = LCD_H - 1;
+}
+
+
+static void spacer_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   A filler makes it possible to adjust between other objects
+// ----------------------------------------------------------------------------
+{
+    layout_clip(scr, layout, rect, LCD_W, LCD_H);
+}
+
+
+static void filler_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//   A filler makes it possible to adjust between other objects
+// ----------------------------------------------------------------------------
+{
+    layout_clip(scr, layout, rect, LCD_W, LCD_H);
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+    pattern_t background = PAL_STA_BG;
+    ggl_cliprect(scr, left, top, right, bottom, background);
 }
 
 
@@ -320,13 +360,16 @@ static void menu_item_layout(gglsurface *scr,
 //   Redraw a menu at the given index
 // ----------------------------------------------------------------------------
 {
+    UNUSED(filler_layout);
+    UNUSED(spacer_layout);
+
     // Check active menu
     int active = menu == 2 ? halScreen.Menu2 : halScreen.Menu1;
 
     // Compute the size for the layout
     size width  = active ? MENU_TAB_WIDTH  : 0;
     size height = active ? MENU_TAB_HEIGHT : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (!active)
         return;
 
@@ -553,7 +596,7 @@ static void form_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     // Compute the size for the layout
     size width  = active ? LCD_W : 0;
     size height = active ? LCD_H : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (!active)
         return;
 
@@ -589,7 +632,7 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     // Compute the size for the layout
     size twidth  = active ? LCD_W : 0;
     size theight = active ? LCD_H : 0;
-    clip_layout(scr, layout, rect, twidth, theight);
+    layout_clip(scr, layout, rect, twidth, theight);
     if (!active)
         return;
 
@@ -1060,7 +1103,7 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     utf8_p text   = halScreen.HelpMessage;
     size   width  = text ? LCD_W : 0;
     size   height = text ? LCD_H : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (!text)
         return;
 
@@ -1244,7 +1287,7 @@ static inline void text_layout(gglsurface    *scr,
     // Compute the size for the layout
     size height = msg ? font->BitmapHeight                     : 0;
     size width  = msg ? StringWidthN(msg, msg + len, font) + 3 : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (msg)
     {
         // Redraw the given message
@@ -1264,7 +1307,7 @@ static void status_area_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     const UNIFONT *font   = FONT_STATUS;
     coord          width  = LCD_W;
     coord          height = 3 * font->BitmapHeight;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
 
     // Draw the background
     pattern_t background = PAL_STA_BG;
@@ -1288,7 +1331,7 @@ static void message_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     // Compute the size for the layout
     size height = msg ? font->BitmapHeight                 : 0;
     size width  = msg ? StringWidthN(msg, msg + len, font) : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (msg)
     {
         pattern_t      color = PAL_HELP_BG;
@@ -1350,7 +1393,7 @@ static void path_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 //   Show the current path
 // ----------------------------------------------------------------------------
 {
-    clip_layout(scr, layout, rect, LCD_W, LCD_H);
+    layout_clip(scr, layout, rect, LCD_W, LCD_H);
 
     word_p         pathnames[8];
     unsigned       count  = sizeof(pathnames) / sizeof(pathnames[0]);
@@ -1475,7 +1518,7 @@ static void shift_mode_layout(gglsurface *scr,
     unsigned       length = strlen(name);
     size           height = font->BitmapHeight;
     size           width  = StringWidthN(name, name + length, font);
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (flag)
     {
         // Redraw the given message
@@ -1572,7 +1615,7 @@ static void user_flags_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     const UNIFONT *font   = FONT_STATUS;
     coord          width  = StringWidth("012345", font);
     coord          height = font->BitmapHeight;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
 
     pattern_t      off     = PAL_STA_UFLAG0;
     pattern_t      on      = PAL_STA_UFLAG1;
@@ -1602,7 +1645,7 @@ static void cmdline_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 {
     if (!halScreen.CmdLine)
     {
-        clip_layout(scr, layout, rect, 0, 0);
+        layout_clip(scr, layout, rect, 0, 0);
         return;
     }
 
@@ -1610,7 +1653,7 @@ static void cmdline_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     size  rowh   = FONT_HEIGHT(FONT_CMDLINE);
     coord height = halScreen.CmdLine;
     coord width  = LCD_W;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
 
     const UNIFONT *font   = FONT_CMDLINE;
     pattern_t      color  = PAL_CMD_TEXT;
@@ -1871,7 +1914,7 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     const UNIFONT *labelFont  = Font_8A;
     coord          width  = StringWidth("100%", labelFont) + 3;
     coord          height = labelFont->BitmapHeight + iconFont->BitmapHeight;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
 
     // Extract draw coordinates
     coord x = (rect->left + rect->right) / 2;
@@ -2110,7 +2153,7 @@ static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     unsigned length  = halScreen.ErrorMessageLength;
     size     width   = error ? LCD_W : 0;
     size     height  = error ? LCD_H : 0;
-    clip_layout(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width, height);
     if (!error)
         return;
 

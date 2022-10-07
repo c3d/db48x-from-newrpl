@@ -17,31 +17,35 @@
     {   screen_layout,          CENTER_IN,              NULL,           0, 0, },
 
     // The second menu is at the bottom, matches layout of G/H/I/J/K/L
-    {   menu2_4_layout,         BOTTOM_LEFT_IN,         screen_layout,  0, 0, },
-    {   menu2_5_layout,         BOTTOM_RIGHT_OF,        menu2_4_layout, M, 0, },
-    {   menu2_6_layout,         BOTTOM_RIGHT_OF,        menu2_5_layout, M, 0, },
+    {  menu2_3_layout,          BOTTOM_LEFT_IN,         screen_layout,  0, 0, },
+    {  menu2_2_layout,          ABOVE_LEFT,             menu2_3_layout, 0, M, },
+    {  menu2_1_layout,          ABOVE_LEFT,             menu2_2_layout, 0, M, },
 
     // Second row is above the previous one
-    {  menu2_1_layout,          ABOVE_LEFT,             menu2_4_layout, 0, M, },
-    {  menu2_2_layout,          ABOVE_LEFT,             menu2_5_layout, 0, M, },
-    {  menu2_3_layout,          ABOVE_LEFT,             menu2_6_layout, 0, M, },
+    {  menu2_6_layout,          BOTTOM_RIGHT_IN,         screen_layout, 0, 0, },
+    {  menu2_5_layout,          ABOVE_RIGHT,            menu2_6_layout, 0, M, },
+    {  menu2_4_layout,          ABOVE_RIGHT,            menu2_5_layout, 0, M, },
 
     // Primary menu
-    {  menu1_1_layout,          ABOVE_LEFT,             menu2_1_layout, 0, M, },
-    {  menu1_2_layout,          BOTTOM_RIGHT_OF,        menu1_1_layout, M, 0, },
-    {  menu1_3_layout,          BOTTOM_RIGHT_OF,        menu1_2_layout, M, 0, },
-    {  menu1_4_layout,          BOTTOM_RIGHT_OF,        menu1_3_layout, M, 0, },
-    {  menu1_5_layout,          BOTTOM_RIGHT_OF,        menu1_4_layout, M, 0, },
-    {  menu1_6_layout,          BOTTOM_RIGHT_OF,        menu1_5_layout, M, 0, },
+    {  menu1_1_layout,          BOTTOM_RIGHT_OF,        menu2_1_layout, M, 0, },
+    {  menu1_2_layout,          BOTTOM_RIGHT_OF,        menu2_2_layout, M, 0, },
+    {  menu1_3_layout,          BOTTOM_RIGHT_OF,        menu2_3_layout, M, 0, },
+    {  menu1_4_layout,          BOTTOM_LEFT_OF,         menu2_4_layout, M, 0, },
+    {  menu1_5_layout,          BOTTOM_LEFT_OF,         menu2_5_layout, M, 0, },
+    {  menu1_6_layout,          BOTTOM_LEFT_OF,         menu2_6_layout, M, 0, },
 
     // Status area
-    {  status_area_layout,      TOP_RIGHT_OF,           menu2_3_layout, 1, 0, },
+    {  spacer_layout,           CLIPPING|TOP_RIGHT_OF,  menu1_1_layout, 1, 3, },
+    {  filler_layout,           BOTTOM_LEFT_OF,         menu1_6_layout, 0, 0, },
+    {  status_area_layout,      TOP_CENTER_IN,           filler_layout, 0, 0, },
+
+    {  screen_layout,           CLIPPING|CENTER_IN,      screen_layout, 0, 0, },
 
     // Command line
-    {  cmdline_layout,          ABOVE_LEFT,             menu1_1_layout, 0, 0, },
+    {  cmdline_layout,          ABOVE_LEFT,             menu2_1_layout, 0, 0, },
     {  stack_layout,            ABOVE_LEFT,             cmdline_layout, 0, 0, },
 
-    // Annunciators
+    // Annunciators - Top status area
     { angle_mode_layout,        TOP_LEFT_IN,        status_area_layout, 4, 0, },
     { complex_flag_layout,      TOP_RIGHT_OF,        angle_mode_layout, 3, 0, },
     { busy_flag_layout,         TOP_RIGHT_OF,      complex_flag_layout, 3, 0, },
@@ -49,11 +53,14 @@
     { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 3, 0, },
     { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 3, 0, },
     { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 3, 0, },
-    { lshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
-    { rshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
-    { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 3, 0, },
-    { message_layout,           CENTER_IN,          status_area_layout, 0, 0, },
-    { autocomplete_layout,      BOTTOM_CENTER_IN,   status_area_layout, 0, 0, },
+    { message_layout,           TOP_CENTER_IN,      status_area_layout, 0, 8, },
+
+    // Bottom status area
+    { status_area_layout,       BOTTOM_CENTER_IN,        filler_layout, 0, 0, },
+    { lshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 1, 0, },
+    { rshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 1, 0, },
+    { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 1, 0, },
+    { autocomplete_layout,      BOTTOM_CENTER_IN,   status_area_layout, 0,10, },
     { path_layout,              CENTER_IN,          status_area_layout, 0, 0, },
     { battery_layout,           BOTTOM_RIGHT_IN,    status_area_layout, 0, 0, },
     { user_flags_layout,        TOP_RIGHT_IN,       status_area_layout, 0, 0, },
