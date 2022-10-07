@@ -242,7 +242,7 @@ void main_virtual(unsigned int mode)
         gglsurface scr;
         int wascleared = 0;
 
-        bat_setup();
+        battery_setup();
 
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);

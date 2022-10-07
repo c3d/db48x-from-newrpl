@@ -5,19 +5,56 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 #include <ui.h>
+#include <recorder.h>
 
-WORD battery;
-int bat_readcnt;
 
-void bat_read()
+RECORDER_TWEAK_DEFINE(battery, 25, "Battery level");
+
+
+void battery_setup()
+// ----------------------------------------------------------------------------
+//   Setup the virtual battery
+// ----------------------------------------------------------------------------
 {
-    battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
 }
 
-// SETUP ADC CONVERTERS TO READ BATTERY VOLTAGE
-// DUMMY FUNCTION ON A PC
-void bat_setup()
+
+void battery_read()
+// ----------------------------------------------------------------------------
+//   Read the virtual battery level
+// ----------------------------------------------------------------------------
 {
-    battery = 0x350;  // DUMMY VALUE FOR WELL CHARGED BATTERIES
-    bat_readcnt=0;
+}
+
+
+int battery_level()
+// ----------------------------------------------------------------------------
+//    Return a normalized battery level
+// ----------------------------------------------------------------------------
+{
+    int battery = RECORDER_TWEAK(battery);
+    if (battery < 0)
+        battery = 0;
+    else if (battery > 100)
+        battery = 100;
+    return battery;
+}
+
+
+int battery_charging()
+// ----------------------------------------------------------------------------
+//   Checks if we are on USB
+// ----------------------------------------------------------------------------
+{
+    return RECORDER_TWEAK(battery) > 100;
+}
+
+
+int battery_low()
+// ----------------------------------------------------------------------------
+//   Return 1 if low, 2 if critical
+// ----------------------------------------------------------------------------
+{
+    int battery = RECORDER_TWEAK(battery);
+    return battery < 10 ? 2 : battery < 20 ? 1 : 0;
 }

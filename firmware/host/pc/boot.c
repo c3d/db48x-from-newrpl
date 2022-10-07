@@ -32,7 +32,7 @@ void main_virtual()
 
     do {
 
-        bat_setup();
+        battery_setup();
 
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
         HEVENT event = tmr_eventcreate(battery_handler, 500, 1);

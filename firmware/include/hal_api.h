@@ -106,6 +106,7 @@ enum halFonts
     FONT_INDEX_HELP_BOLD,
     FONT_INDEX_HELP_ITALIC,
     FONT_INDEX_HELP_CODE,
+    FONT_INDEX_BATTERY,
     FONTS_NUM
 };
 
@@ -124,6 +125,7 @@ enum halFonts
 #define FONT_HELP_BOLD          FONT(HELP_BOLD)
 #define FONT_HELP_ITALIC        FONT(HELP_ITALIC)
 #define FONT_HELP_CODE          FONT(HELP_CODE)
+#define FONT_BATTERY            FONT(BATTERY)
 #define FONT_HEIGHT(F)          ((F)->BitmapHeight)
 
 #define FORM_DIRTY              1
@@ -432,14 +434,15 @@ HEVENT      tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepe
  \sa tmr_eventcreate
 */
 
-void        tmr_eventkill(HEVENT event);
+void         tmr_eventkill(HEVENT event);
 
-// BATTERY LEVEL MEASUREMENT API
-
-void        bat_setup();
-void        battery_handler();
-// READ THE BATTERY LEVEL AND STORE IT IN battery
-void        bat_read();
+// Battery level measurement API
+void         battery_setup();
+void         battery_handler();
+void         battery_read();
+int          battery_level();    // Normalized 0% - 100%
+int          battery_charging(); // Indicate if charging (e.g. USB)
+int          battery_low();      // Returns 1 for low, 2 for critical
 
 // VARIABLE WHERE THE BATTERY STATUS IS STORED
 extern WORD battery;

@@ -7020,12 +7020,6 @@ void halOuterLoop(int32_t timeoutms,
         else
         {
             jobdone = isidle = 0;
-#ifdef TARGET_PRIME
-            // Reset count of the battery display so it only updates when idling
-            // for a while (Prime Only)
-            extern int bat_readcnt;
-            bat_readcnt = 1;
-#endif /* TARGET_PRIME */
         }
 
         halSetBusyHandler();

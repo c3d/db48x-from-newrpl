@@ -833,6 +833,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_6A,                // Help bold
         Font_6A,                // Help italic
         Font_6m,                // Help code
+        Font_5A,                // Battery level
 #else
         // Prime and DM42
         Font_18,                // Stack
@@ -849,6 +850,7 @@ void halUpdateFontArray(const UNIFONT *fontarray[])
         Font_HelpBold,          // Bold text in help
         Font_HelpItalic,        // Italic text in help
         Font_HelpCode,          // Code in help
+        Font_8A,                // Battery indicator
 #endif
     };
 
@@ -1082,15 +1084,14 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         const UNIFONT *font;
         pattern_t      color;
         pattern_t      background;
-    } styles[NUM_STYLES] =
-        {
-            { FONT_HELP_TITLE,  PAL_HELP_TITLE,  PAL_HELP_BG },
-            { FONT_HELP_TEXT,   PAL_HELP_TEXT,   PAL_HELP_BG },
-            { FONT_HELP_BOLD,   PAL_HELP_BOLD,   PAL_HELP_CODE_BG },
-            { FONT_HELP_BOLD,   PAL_HELP_BOLD,   PAL_HELP_BG },
-            { FONT_HELP_ITALIC, PAL_HELP_ITALIC, PAL_HELP_BG },
-            { FONT_HELP_CODE,   PAL_HELP_CODE,   PAL_HELP_CODE_BG },
-        };
+    } styles[NUM_STYLES] = {
+        { FONT_HELP_TITLE,  PAL_HELP_TITLE,      PAL_HELP_BG},
+        {  FONT_HELP_TEXT,   PAL_HELP_TEXT,      PAL_HELP_BG},
+        {  FONT_HELP_BOLD,   PAL_HELP_BOLD, PAL_HELP_CODE_BG},
+        {  FONT_HELP_BOLD,   PAL_HELP_BOLD,      PAL_HELP_BG},
+        {FONT_HELP_ITALIC, PAL_HELP_ITALIC,      PAL_HELP_BG},
+        {  FONT_HELP_CODE,   PAL_HELP_CODE, PAL_HELP_CODE_BG},
+    };
 
     // Clear help area and add some decorative elements
     ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HELP_LINES);
@@ -1866,7 +1867,40 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 //   Draw the battery indicator
 // ----------------------------------------------------------------------------
 {
-    clip_layout(scr, layout, rect, 0, 0);
+    const UNIFONT *iconFont   = Font_Notifications;
+    const UNIFONT *labelFont  = Font_8A;
+    coord          width  = StringWidth("100%", labelFont) + 3;
+    coord          height = labelFont->BitmapHeight + iconFont->BitmapHeight;
+    clip_layout(scr, layout, rect, width, height);
+
+    // Extract draw coordinates
+    coord x = (rect->left + rect->right) / 2;
+    coord y = rect->top;
+
+    if (battery_charging())
+    {
+        // Battery is charging - display charging icon
+        DrawTextBk(scr, x, y, "C", iconFont, PAL_STA_BAT, PAL_STA_BG);
+    }
+    else
+    {
+        // Draw the battery icon
+        pattern_t color = PAL_STA_BAT;
+        if (battery_low())
+            color = PAL_ERROR;
+
+        coord iconWidth = StringWidth("D", iconFont);
+        DrawText(scr, x - iconWidth/2, y, "D", iconFont, color);
+        y += iconFont->BitmapHeight;
+
+        // Display Battery percentage below battery icon
+        char buf[8];
+        int battery = battery_level();
+        snprintf(buf, sizeof(buf), "%3d%%", battery);
+
+        coord labelWidth = StringWidth(buf, labelFont);
+        DrawText(scr, x - labelWidth / 2, y, buf, labelFont, color);
+    }
 }
 
 
