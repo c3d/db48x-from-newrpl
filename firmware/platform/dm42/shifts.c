@@ -9,6 +9,7 @@
 
 #include <keyboard.h>
 #include <recorder.h>
+#include <stdio.h>\
 
 RECORDER(shift, 8, "Shift logic");
 
@@ -42,6 +43,10 @@ void keyb_irq_shift_logic(keyb_msg_t key, keymatrix hwkeys, keymatrix changes)
                 keyb_plane &= ~(KSHIFT_LEFT | KHOLD_LEFT);
                 keyb_plane |= KSHIFT_RIGHT | KHOLD_RIGHT;
             }
+            else if (keyb_plane & KSHIFT_RIGHT)
+            {
+                keyb_plane &= ~(KSHIFT_ANY | KHOLD_ANY);
+            }
             else
             {
                 keyb_plane &= ~(KSHIFT_RIGHT | KHOLD_RIGHT);
@@ -51,6 +56,11 @@ void keyb_irq_shift_logic(keyb_msg_t key, keymatrix hwkeys, keymatrix changes)
         else
         {
             keyb_plane &= ~KHOLD_ANY;
+            if (keyb_last_code == KB_SHIFT)
+            {
+                keyb_last_code = 0;
+                keyb_flags &= ~KFLAG_LONG_PRESS;
+            }
         }
     }
     record(shift, "Shift %x hold %d post flags=%08X", key, hold, keyb_flags);
