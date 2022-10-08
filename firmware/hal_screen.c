@@ -1495,7 +1495,7 @@ static void alpha_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 {
     if (keyb_flags & KFLAG_ALPHA_LOWER)
-        text_layout(scr, layout, rect, "a", 1, FONT_STATUS, PAL_STA_ANN);
+        text_layout(scr, layout, rect, "ab", 2, FONT_STATUS, PAL_STA_ANN);
     int status = keyb_flags & KHOLD_ALPHA  ? 2
                : keyb_flags & KSHIFT_ALPHA ? 1
                                            : 0;
@@ -1509,7 +1509,7 @@ static void busy_flag_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 {
     int status = halGetNotification(N_HOURGLASS);
-    shift_mode_layout(scr, layout, rect, "W", status);\
+    shift_mode_layout(scr, layout, rect, "W", status);
 }
 
 
