@@ -68,7 +68,7 @@
 
 // Theme color for errors
 #define THEME_ERROR               THEME_GRAY15
-#define THEME_ERROR_BG            THEME_GRAY2
+#define THEME_ERROR_BG            THEME_GRAY0
 #define THEME_ERROR_LINE          THEME_GRAY8
 
 static const UNIFONT *defaultFont[FONTS_NUM] =

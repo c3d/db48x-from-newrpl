@@ -46,7 +46,7 @@
 #define THEME_STA_ANNPRESS        THEME_GRAY8
 #define THEME_STA_ANN             THEME_GRAY15
 #define THEME_STA_BAT             THEME_GRAY15
-#define THEME_STA_UFLAG0          THEME_GRAY8
+#define THEME_STA_UFLAG0          THEME_GRAY2
 #define THEME_STA_UFLAG1          THEME_GRAY15
 
 // Theme colors for help and popup messages
