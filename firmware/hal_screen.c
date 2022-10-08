@@ -244,9 +244,7 @@ static void render_layouts(gglsurface *scr)
 // ----------------------------------------------------------------------------
 {
     // Per-target layout definition
-    static const layout_t layouts[] =
 #include <layout.h>
-        ;
 
     int    NUM_LAYOUTS = sizeof(layouts) / sizeof(layouts[0]);
     rect_t rects[NUM_LAYOUTS];

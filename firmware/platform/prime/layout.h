@@ -11,6 +11,13 @@
 
 #define M       ((MENU_TAB_SPACE + 1))
 
+static const layout_t layouts[] =
+// ----------------------------------------------------------------------------
+//    Default screen layout for the HP Prime
+// ----------------------------------------------------------------------------
+// On the HP Prime, we put the status area, so that the menu keys line up with
+// the physical menu keys. Also, layout the menu keys vertically to match
+// their physical layout
 // clang-format off
 //      Item                    Position                Reference       DX / DY
 {
@@ -73,7 +80,7 @@
 
     // Errors displayed on top of everything else
     { errors_layout,            CENTER_IN,              screen_layout,  5, 0, },
-}
+};
 
 #undef M
 

@@ -11,6 +11,15 @@
 
 #define M       ((MENU_TAB_SPACE + 1))
 
+static const layout_t layouts[] =
+// ----------------------------------------------------------------------------
+//    Default screen layout for the HP50G
+// ----------------------------------------------------------------------------
+// On the HP50G, we put the extra 6 physical menu keys on the left, to mach
+// the physical keyboard layout. The status area is on the right, below
+// the first menu, to occupy the "empty space" left by the arrow pad on the
+// physical keyboard. It extends to the left of the screen when the second
+// menu is not enabled.
 // clang-format off
 //      Item                    Position                Reference       DX / DY
 {
@@ -66,7 +75,7 @@
 
     // Errors displayed on top of everything else
     { errors_layout,            CENTER_IN,              screen_layout,  15, 0, },
-}
+};
 
 #undef M
 
