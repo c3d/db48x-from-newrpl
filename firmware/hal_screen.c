@@ -1659,7 +1659,8 @@ static void cmdline_layout(gglsurface *scr, layout_p layout, rect_t *rect)
                 // - string to selst
                 // - selst to selend
                 // - selend to strend
-                if (selst > string)                    x = DrawTextBkN(scr, x, y, string, selst, font, color, bg);
+                if (selst > string)
+                    x = DrawTextBkN(scr, x, y, string, selst, font, color, bg);
                 if (selend > selst)
                     x = DrawTextBkN(scr, x, y, selst, selend, font, selcol, selbg);
                 if (strend > selend)
@@ -1739,11 +1740,22 @@ static void cmdline_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         coord bottom = y + rowh - 1;
         if (!(halScreen.CursorState & 0x8000))
         {
-            const UNIFONT *font   = FONT_CURSOR;
+            // REVISIT - EndianBug in 'cursor'
+            const UNIFONT *cfont   = FONT_CURSOR;
             utf8_p         cursor = (utf8_p) &halScreen.CursorState;
             pattern_t      color  = PAL_CMD_CURSOR;
             pattern_t      bg     = PAL_CMD_CURSOR_BG;
-            DrawTextBkN(scr, x, y, cursor, cursor + 1, font, color, bg);
+            coord          cx     = x;
+            coord          cy     = y;
+            coord          ch     = cfont->BitmapHeight;
+            coord          th     = font->BitmapHeight;
+            if (ch < th)
+            {
+                cy += (th - ch) / 2;
+                cx += 1;
+                ggl_cliprect(scr, x, y-1, x+(LCD_W>131), y + th - 1, bg);
+            }
+            DrawTextBkN(scr, cx, cy, cursor, cursor + 1, cfont, color, bg);
         }
         else
         {
