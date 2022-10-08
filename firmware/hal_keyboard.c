@@ -32,12 +32,17 @@ const keyb_msg_t     km_keyup          = KM_KEYUP;
 
 
 static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
+// ----------------------------------------------------------------------------
+//   Decomppile an RPL object
+// ----------------------------------------------------------------------------
 {
     int32_t SavedException = Exceptions;
     int32_t SavedErrorCode = ErrorCode;
 
-    Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+     // Erase any previous error to allow the decompiler to run
+    Exceptions = 0;
+
+    // Do not save iptr because it can move
     word_p opname = rplDecompile(object, flags);
 
     Exceptions = SavedException;
@@ -46,8 +51,11 @@ static inline word_p rplDecompileAnyway(word_p object, int32_t flags)
     return opname;
 }
 
-// Sets pointers to string. Returns string length in code points
+
 static int32_t rplGetStringPointers(word_p object, utf8_p *start, utf8_p *end)
+// ----------------------------------------------------------------------------
+// Sets pointers to string. Returns string length in code points
+// ----------------------------------------------------------------------------
 {
     *start = (utf8_p) (object + 1);
     int32_t totaln = rplStrLenCp(object);
@@ -55,16 +63,20 @@ static int32_t rplGetStringPointers(word_p object, utf8_p *start, utf8_p *end)
     return totaln;
 }
 
-// Decompiles object and sets pointers to resulting string
-// Returns 0 on error with target pointers set to null
-// Returns string length in code points if ok with target pointers set
+
 static int32_t rplGetDecompiledString(word_p  object,
                                       int32_t flags,
                                       utf8_p *start,
                                       utf8_p *end)
+// ----------------------------------------------------------------------------
+// Decompiles object and sets pointers to resulting string
+// ----------------------------------------------------------------------------
+// Returns 0 on error with target pointers set to null
+// Returns string length in code points if ok with target pointers set
 {
     word_p opname = rplDecompileAnyway(object, flags);
-    if (!opname) {
+    if (!opname)
+    {
         *start = NULL;
         *end = NULL;
         return 0;
@@ -73,21 +85,25 @@ static int32_t rplGetDecompiledString(word_p  object,
     return rplGetStringPointers(opname, start, end);
 }
 
-// Decompiles object and sets pointers to resulting string with tickmarks removed
-// returns 0 on error with target pointers set to null
-// returns 1 if ok with target pointers set
+
 static int rplGetDecompiledStringWithoutTickmarks(word_p  object,
                                                   int32_t flags,
                                                   utf8_p *start,
                                                   utf8_p *end)
+// ----------------------------------------------------------------------------
+// Decompiles object to string with tickmarks removed
+// ----------------------------------------------------------------------------
+// returns 0 on error with target pointers set to null
+// returns 1 if ok with target pointers set
 {
     int32_t totaln = rplGetDecompiledString(object, flags, start, end);
     if (!totaln)
         return 0;
 
-    // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
-    // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
-    if((totaln > 2) && ((*start)[0] == '\'')) {
+    // In algebraic mode, remove the tick marks and insert without separation
+    // to allow pasting equations into other expressions
+    if ((totaln > 2) && ((*start)[0] == '\''))
+    {
         ++(*start);
         --(*end);
     }
@@ -348,7 +364,17 @@ void halSwapCmdLineMode(int32_t isalpha)
     halScreen.CursorState = state;
 }
 
+
 void halSetCmdLineMode(BYTE mode)
+// ----------------------------------------------------------------------------
+//   Change the command line mode
+// ----------------------------------------------------------------------------
+// 'A': Algebraic
+// 'C': Alphabetic capitals
+// 'D': Direct mode (i.e. key press on a function key executes it)
+// 'L': Alphabetic lowercase
+// 'P': Program mode
+// 'X': Alphabetic, use last mode
 {
     BYTE old = (BYTE) halScreen.CursorState;
     if (mode != old)
@@ -4253,6 +4279,7 @@ void KH(tag)(keyb_msg_t keymsg)
 
 }
 
+
 static void contrastPattern()
 // ----------------------------------------------------------------------------
 //   Draw a contrast pattern for the ON+ and ON- key handlers
@@ -4728,6 +4755,7 @@ void KH(onDigit)(keyb_msg_t keymsg)
     halRefresh(ALL_DIRTY);
 }
 
+
 void KH(SetPrecision)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 //    Change precision for computations
@@ -4794,6 +4822,7 @@ void KH(SetPrecision)(keyb_msg_t keymsg)
     halRefresh(STACK_DIRTY);
 }
 
+
 void KH(SkipNextAlarm)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 //   Skip next alarm
@@ -4822,6 +4851,7 @@ void SelectMenuKeyHandler(keyb_msg_t keymsg, int64_t menucode, utf8_p help)
     halRefresh(MENU_DIRTY);
 }
 
+
 static int backMenuKeyHandler(int menu)
 // ----------------------------------------------------------------------------
 //   Helper function to move back a given menu
@@ -4836,6 +4866,7 @@ static int backMenuKeyHandler(int menu)
     return oldmenu != 0;
 }
 
+
 void KH(backmenu1)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
 //   Go back on menu 1
@@ -4845,6 +4876,7 @@ void KH(backmenu1)(keyb_msg_t keymsg)
     backMenuKeyHandler(1);
     halRefresh(MENU1_DIRTY);
 }
+
 
 void KH(backmenu2)(keyb_msg_t keymsg)
 // ----------------------------------------------------------------------------
@@ -5638,8 +5670,8 @@ void KH(underscore)(keyb_msg_t keymsg)
 void KH(spc)(keyb_msg_t keymsg)
 {
     halRepeatingKey(keymsg);
-    if(halContext(CONTEXT_INTERACTIVE_STACK)) {
-
+    if(halContext(CONTEXT_INTERACTIVE_STACK))
+    {
         // SELECTION MODE
         switch (halScreen.StkSelStatus) {
         case 0:
