@@ -536,53 +536,6 @@ int32_t halGetDispObjectHeight(word_p object, UNIFONT *font)
     return font->BitmapHeight;
 }
 
-extern const const uint64_t powersof10[20];
-
-void halInt2String(int num, char *str)
-// ----------------------------------------------------------------------------
-//  Convert integer number into string for stack level
-// ----------------------------------------------------------------------------
-// Str must contain at least 15: bytes "-1,345,789,123[NULL]"
-{
-    int   pow10idx = 9; // Start with 10^10
-    char *ptr = str;
-    if (num < 0)
-    {
-        *ptr++ = '-';
-        num    = -num;
-    }
-
-    int firstdigit = 1;
-    do
-    {
-        int digit = 0;
-        while ((uint64_t) num >= powersof10[pow10idx])
-        {
-            ++digit;
-            num -= powersof10[pow10idx];
-        }
-        if (!((digit == 0) && firstdigit))
-        {
-            *ptr++     = digit + '0';
-            firstdigit = 0;
-        }
-        ++pow10idx;
-    } while (num != 0);
-
-    if (firstdigit)
-        *ptr++ = '0';
-    else
-    {
-        while (pow10idx < 19)
-        {
-            *ptr++ = '0';
-            ++pow10idx;
-        }
-    }
-    *ptr = 0;
-}
-
-
 
 static void form_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
@@ -643,7 +596,6 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     coord width  = right - left;
     int   depth  = rplDepthData();
     int   level  = 1;
-    char  num[16];
 
     ggl_cliprect(scr, left, top, right, bottom, PAL_STK_BG);
 
@@ -801,7 +753,8 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         if (level <= depth)
         {
             // Draw the stack level number
-            halInt2String(level, num);
+            char  num[16];
+            snprintf(num, sizeof(num), "%d", level);
             size numwidth = StringWidth(num, FONT_STACK);
             DrawText(scr, right - numwidth, ytop, num, Font_8A, PAL_STK_INDEX);
 
