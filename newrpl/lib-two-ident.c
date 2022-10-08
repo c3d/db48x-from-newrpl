@@ -32,8 +32,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 //#define COMMAND_LIST
-//    CMD(CMDNAME,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
-//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+//    CMD(CMDNAME,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -51,7 +51,7 @@
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
@@ -84,7 +84,7 @@ void LIB_HANDLER()
             if(*utf8nskip((char *)tok, (char *)BlankStart,
                         TokenLen - 1) != '\'') {
                 // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
-                rplCompileAppend(MKPROLOG(DOSYMB, 0));
+                rplCompileAppend(MK_PROLOG(DOSYMB, 0));
 
                 if(TokenLen > 1) {
                     NextTokenStart = (word_p) (((char *)TokenStart) + 1);
@@ -101,7 +101,7 @@ void LIB_HANDLER()
             if(!rplIsValidIdent(start, end))
             {
                 // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
-                rplCompileAppend(MKPROLOG(DOSYMB, 0));
+                rplCompileAppend(MK_PROLOG(DOSYMB, 0));
 
                 if(TokenLen > 1) {
                     NextTokenStart = (word_p) (((char *)TokenStart) + 1);
@@ -127,7 +127,7 @@ void LIB_HANDLER()
                LIBHANDLER hanreal=rplGetLibHandler(DOREAL);
                WORD saveopcode=CurOpcode;
                RetNum=-1;
-               CurOpcode=MKOPCODE(DOREAL,OPCODE_PROBETOKEN);
+               CurOpcode=MK_OPCODE(DOREAL,OPCODE_PROBETOKEN);
                (*hanreal)();
                CurOpcode=saveopcode;
 
@@ -176,7 +176,7 @@ void LIB_HANDLER()
             RetNum = OK_CONTINUE;
             return;
         }
-        if(CurrentConstruct == MKPROLOG(DOSYMB, 0)) {
+        if(CurrentConstruct == MK_PROLOG(DOSYMB, 0)) {
             // INSIDE SYMBOLICS, ALL IDENTS ARE UNQUOTED
             rplCompileIDENT(DOIDENTEVAL, start, end);
             RetNum = OK_CONTINUE;
@@ -203,7 +203,7 @@ void LIB_HANDLER()
                 if(LAMptr > env)
                     break;
                 prolog = **(env + 1);   // GET THE PROLOG OF THE SECONDARY
-                if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
+                if(IS_PROLOG(prolog) && LIBNUM(prolog) == SECO) {
                     // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
                     rplCompileIDENT(DOIDENTEVAL, start, end);
                     RetNum = OK_CONTINUE;
@@ -228,7 +228,7 @@ void LIB_HANDLER()
         word_p *scanenv = ValidateTop - 1;
 
         while(scanenv >= ValidateBottom) {
-            if((LIBNUM(**scanenv) == SECO) && (ISPROLOG(**scanenv))) {
+            if((LIBNUM(**scanenv) == SECO) && (IS_PROLOG(**scanenv))) {
                 // FOUND INNERMOST SECONDARY
                 if(*scanenv > *(nLAMBase + 1)) {
                     // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
@@ -245,7 +245,7 @@ void LIB_HANDLER()
 
         // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
         // BUT ONLY IF WE ARE NOT INSIDE A COMPOSITE (LIST, ARRAY, ETC)
-        if((CurrentConstruct == MKPROLOG(DOLIST, 0)) || (CurrentConstruct == MKPROLOG(DOMATRIX, 0))     // ADD HERE ARRAYS LATER
+        if((CurrentConstruct == MK_PROLOG(DOLIST, 0)) || (CurrentConstruct == MK_PROLOG(DOMATRIX, 0))     // ADD HERE ARRAYS LATER
                 ) {
             rplCompileIDENT(DOIDENTEVAL, start, end);
             RetNum = OK_CONTINUE;
@@ -254,7 +254,7 @@ void LIB_HANDLER()
         int32_t Offset = ((int32_t) (LAMptr - nLAMBase)) >> 1;
 
         if(Offset <= 32767 && Offset >= -32768) {
-            rplCompileAppend(MKOPCODE(DOIDENT,
+            rplCompileAppend(MK_OPCODE(DOIDENT,
                         GETLAMNEVAL + (Offset & 0xffff)));
         }
         else {
@@ -337,7 +337,7 @@ void LIB_HANDLER()
             tokptr = (byte_p) utf8skipst((char *)tokptr, (char *)tokend);
         }
         if(maxlen > 0)
-            RetNum = OK_TOKENINFO | MKTOKENINFO(utf8nlen((char *)TokenStart,
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(utf8nlen((char *)TokenStart,
                         (char *)lastgood), TITYPE_IDENT, 0, 1);
         else
             RetNum = ERR_NOTMINE;
@@ -375,7 +375,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }

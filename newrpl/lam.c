@@ -96,8 +96,8 @@ int32_t rplCompareIDENTByName(word_p id1, utf8_p name, utf8_p nameend)
     int32_t len = nameend - name;
     int32_t nwords = (len + 3) >> 2;
     int32_t extra = (nwords << 2) - len;
-    if((((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENT, nwords))
-            && (((*id1) & MKPROLOG(0xff1, 0xfffff)) != MKPROLOG(DOIDENTATTR,
+    if((((*id1) & MK_PROLOG(0xff1, 0xfffff)) != MK_PROLOG(DOIDENT, nwords))
+            && (((*id1) & MK_PROLOG(0xff1, 0xfffff)) != MK_PROLOG(DOIDENTATTR,
                     nwords + 1)))
         return 0;
     utf8_p ptr = (utf8_p) (id1 + 1);
@@ -180,7 +180,7 @@ word_p rplSetIdentAttr(word_p name, WORD attr, WORD attrmask)
     if(!newobj)
         return 0;
     // HERE WE HAVE A NEW IDENT READY TO ACCEPT ATTRIBUTES
-    newobj[0] |= MKPROLOG(HASATTR_BIT, 0);
+    newobj[0] |= MK_PROLOG(HASATTR_BIT, 0);
     newobj[OBJSIZE(*newobj)] = (newobj[OBJSIZE(*newobj)] & (~attrmask)) | attr;
     return newobj;
 }
@@ -354,7 +354,7 @@ int32_t rplNeedNewLAMEnv()
     word_p seco = 0;
 
     while(rsptr >= RStk) {
-        if(ISPROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
+        if(IS_PROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
                     || (LIBNUM(**rsptr) == DOCOL))) {
             seco = *rsptr;
             break;
@@ -364,7 +364,7 @@ int32_t rplNeedNewLAMEnv()
             // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
             break;
         }
-        if(ISPROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
+        if(IS_PROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
             // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
             break;
         }
@@ -391,7 +391,7 @@ int32_t rplNeedNewLAMEnv()
                     return 1;
                 }
             }
-            if(ISPROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
+            if(IS_PROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
                 if(*(nLAMBase + 1) != *rsptr) {
                     // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
                     return 1;
@@ -405,7 +405,7 @@ int32_t rplNeedNewLAMEnv()
     }
 
     if(nLAMBase >= LAMs && nLAMBase < LAMTop) {
-        if((ISPROLOG(**(nLAMBase + 1)) && ((LIBNUM(**(nLAMBase + 1)) == SECO)
+        if((IS_PROLOG(**(nLAMBase + 1)) && ((LIBNUM(**(nLAMBase + 1)) == SECO)
                         || (LIBNUM(**(nLAMBase + 1)) == DOCOL)))
                 || (**(nLAMBase + 1) == (CMD_OVR_EVAL))
                 || (**(nLAMBase + 1) == (CMD_OVR_EVAL1))
@@ -429,7 +429,7 @@ int32_t rplNeedNewLAMEnv()
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
             }
-            if(ISPROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
+            if(IS_PROLOG(**rsptr) && (LIBNUM(**rsptr) == DOIDENTEVAL)) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
                 return 1;
             }
@@ -460,7 +460,7 @@ int32_t rplNeedNewLAMEnvCompiler()
     word_p seco = 0;
 
     while(rsptr >= ValidateBottom) {
-        if(ISPROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
+        if(IS_PROLOG(**rsptr) && ((LIBNUM(**rsptr) == SECO)
                     || (LIBNUM(**rsptr) == DOCOL))) {
             seco = *rsptr;
             break;
@@ -482,7 +482,7 @@ int32_t rplNeedNewLAMEnvCompiler()
 
     if(nLAMBase >= LAMTopSaved && nLAMBase < LAMTop) {
 
-        if(ISPROLOG(**(nLAMBase + 1)) && ((LIBNUM(**(nLAMBase + 1)) == SECO)
+        if(IS_PROLOG(**(nLAMBase + 1)) && ((LIBNUM(**(nLAMBase + 1)) == SECO)
                     || (LIBNUM(**(nLAMBase + 1)) == DOCOL))) {
             // THIS ENVIRONMENT BELONGS TO A SECONDARY
             if(*(nLAMBase + 1) == seco) {
@@ -574,7 +574,7 @@ void rplCompileIDENT(int32_t libnum, utf8_p tok, utf8_p tokend)
         ++lenwords;
         libnum |= HASATTR_BIT;
     }
-    rplCompileAppend(MKPROLOG(libnum, lenwords));
+    rplCompileAppend(MK_PROLOG(libnum, lenwords));
     WORD nextword;
     tok = (utf8_p) ScratchPointer1;
     while(len > 3) {
@@ -621,7 +621,7 @@ word_p rplCreateIDENT(int32_t libnum, utf8_p tok, utf8_p tokend)
     if(!newobj)
         return 0;
     newptr = newobj;
-    *newptr = MKPROLOG(libnum, lenwords);
+    *newptr = MK_PROLOG(libnum, lenwords);
     ++newptr;
     WORD nextword;
     tok = (utf8_p) ScratchPointer1;

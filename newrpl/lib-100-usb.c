@@ -38,14 +38,14 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(USBSTATUS,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBRECV,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBSEND,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBOFF,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBON,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBAUTORCV,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBARCHIVE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBRESTORE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(USBSTATUS,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBRECV,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBSEND,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBOFF,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBON,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBAUTORCV,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBARCHIVE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBRESTORE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -146,7 +146,7 @@ extern int waitProcess(WORD);
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
@@ -274,7 +274,7 @@ void LIB_HANDLER()
             break;
         case 'D':      // THIS IS ARBITRARY BINARY DATA
             newobjptr = newobj + 4;
-            newobj[0] = MKPROLOG(DOBINDATA, 0); // WE DON'T KNOW THE SIZE YET
+            newobj[0] = MK_PROLOG(DOBINDATA, 0); // WE DON'T KNOW THE SIZE YET
             break;
         case 'B':      // THIS IS A BACKUP
         case 'W':      // THIS IS A FIRMWARE UPDATE
@@ -330,7 +330,7 @@ void LIB_HANDLER()
             }
             break;
         case 'D':      // THIS IS ARBITRARY BINARY DATA
-            newobj[0] = MKPROLOG(DOBINDATA, newobjptr - newobj - 1);    // FIX THE SIZE IN THE PROLOG
+            newobj[0] = MK_PROLOG(DOBINDATA, newobjptr - newobj - 1);    // FIX THE SIZE IN THE PROLOG
             break;
         default:       // UNKNOWN DATA TYPE IS INVALID - THIS IS UNREACHABLE-CAN'T HAPPEN
             break;
@@ -431,7 +431,7 @@ void LIB_HANDLER()
             break;
         case 'D':      // THIS IS ARBITRARY BINARY DATA
             newobjptr = newobj + 4;
-            newobj[0] = MKPROLOG(DOBINDATA, 0); // WE DON'T KNOW THE SIZE YET
+            newobj[0] = MK_PROLOG(DOBINDATA, 0); // WE DON'T KNOW THE SIZE YET
             break;
         case 'B':      // THIS IS A BACKUP
         case 'W':      // THIS IS A FIRMWARE UPDATE
@@ -487,7 +487,7 @@ void LIB_HANDLER()
             }
             break;
         case 'D':      // THIS IS ARBITRARY BINARY DATA
-            newobj[0] = MKPROLOG(DOBINDATA, newobjptr - newobj - 1);    // FIX THE SIZE IN THE PROLOG
+            newobj[0] = MK_PROLOG(DOBINDATA, newobjptr - newobj - 1);    // FIX THE SIZE IN THE PROLOG
             break;
         default:       // UNKNOWN DATA TYPE IS INVALID - THIS IS UNREACHABLE-CAN'T HAPPEN
             break;
@@ -716,7 +716,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -728,7 +728,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -737,10 +737,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -773,7 +773,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }
@@ -791,12 +791,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

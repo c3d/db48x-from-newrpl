@@ -31,12 +31,12 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(RE,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    CMD(IM,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    CMD(ARG,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    CMD(CONJ,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    ECMD(CPLX2REAL,"C→R",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(REAL2CPLX,"R→C",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+    CMD(RE,MK_TOKEN_INFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(IM,MK_TOKEN_INFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(ARG,MK_TOKEN_INFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(CONJ,MK_TOKEN_INFO(4,TITYPE_FUNCTION,1,2)), \
+    ECMD(CPLX2REAL,"C→R",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(REAL2CPLX,"R→C",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -320,8 +320,8 @@ word_p rplNewComplex(REAL * real, REAL * imag, int32_t angmode)
     parts = rplNewRealInPlace(real, newobject + 1);
     end = rplNewRealInPlace(imag, parts + ((angmode != ANGLENONE) ? 1 : 0));
     if(angmode != ANGLENONE)
-        parts[0] = MKPROLOG(DOANGLE + angmode, end - parts - 1);
-    newobject[0] = MKPROLOG(LIBRARY_NUMBER, end - newobject - 1);
+        parts[0] = MK_PROLOG(DOANGLE + angmode, end - parts - 1);
+    newobject[0] = MK_PROLOG(LIBRARY_NUMBER, end - newobject - 1);
 
     rplTruncateLastObject(end);
 
@@ -416,8 +416,8 @@ word_p rplRRegToComplexInPlace(int32_t real, int32_t imag, word_p dest,
     parts = rplRRegToRealInPlace(real, dest + 1);
     end = rplRRegToRealInPlace(imag, parts + ((angmode != ANGLENONE) ? 1 : 0));
     if(angmode != ANGLENONE)
-        parts[0] = MKPROLOG(DOANGLE + angmode, end - parts - 1);
-    dest[0] = MKPROLOG(LIBRARY_NUMBER, end - dest - 1);
+        parts[0] = MK_PROLOG(DOANGLE + angmode, end - parts - 1);
+    dest[0] = MK_PROLOG(LIBRARY_NUMBER, end - dest - 1);
 
     return end;
 }
@@ -498,7 +498,7 @@ int32_t rplIsZeroComplex(REAL * re, REAL * im, int32_t angmode)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // NORMAL BEHAVIOR FOR A COMPLEX IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
@@ -524,7 +524,7 @@ void LIB_HANDLER()
             // UNARY OPERATORS
             arg1 = rplPeekData(1);
             if(!ISCOMPLEX(*arg1)) {
-                if(!ISPROLOG(*arg1)) {
+                if(!IS_PROLOG(*arg1)) {
                     // ALLOW EXECUTION OF COMMANDS AS OBJECTS
                     if((OPCODE(CurOpcode) == OVR_EVAL) ||
                             (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -556,8 +556,8 @@ void LIB_HANDLER()
             if(!ISNUMBERCPLX(*arg1) || !ISNUMBERCPLX(*arg2)) {
 
                 // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-                if((OPCODE(CurOpcode) == OVR_SAME) && (!ISPROLOG(*arg1)
-                            || !ISPROLOG(*arg2))) {
+                if((OPCODE(CurOpcode) == OVR_SAME) && (!IS_PROLOG(*arg1)
+                            || !IS_PROLOG(*arg2))) {
                     if(*rplPeekData(2) == *rplPeekData(1)) {
                         rplDropData(2);
                         rplPushTrue();
@@ -6961,7 +6961,7 @@ void LIB_HANDLER()
             return;
         }
 
-        *newcplx = MKPROLOG(LIBRARY_NUMBER, sizer + sizei);
+        *newcplx = MK_PROLOG(LIBRARY_NUMBER, sizer + sizei);
         rplCopyObject(newcplx + 1, rplPeekData(2));
         rplCopyObject(newcplx + 1 + sizer, rplPeekData(1));
 
@@ -6990,7 +6990,7 @@ void LIB_HANDLER()
 
         if(*((char *)TokenStart) == '(') {
 
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER, 0));
             if(TokenLen > 1) {
                 NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_STARTCONSTRUCT;
@@ -7011,7 +7011,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 2)) {
+            if(CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 2)) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
@@ -7022,7 +7022,7 @@ void LIB_HANDLER()
         // CHECK IF THE CURRENT CONSTRUCT IS A COMPLEX NUMBER AND IT CONTAINS A COMMA
 
         if((LIBNUM(CurrentConstruct) == LIBRARY_NUMBER)
-                && ISPROLOG(CurrentConstruct)) {
+                && IS_PROLOG(CurrentConstruct)) {
             int32_t count = TokenLen;
             byte_p ptr = (byte_p) TokenStart;
             uint64_t Locale = rplGetSystemLocale();
@@ -7091,7 +7091,7 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             uint64_t Locale = rplGetSystemLocale();
 
             rplDecompAppendString("(");
@@ -7184,7 +7184,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -7196,7 +7196,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -7204,11 +7204,11 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo =
                     LIBRARY_NUMBER * 100 + rplPolarComplexMode(ObjectPTR) + 1;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_COMPLEX, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_COMPLEX, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -7241,7 +7241,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             word_p real, imag;
 
             // CHECK MINIMUM SIZE
@@ -7285,7 +7285,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

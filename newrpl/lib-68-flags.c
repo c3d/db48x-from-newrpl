@@ -42,41 +42,41 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(SETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FCTEST,"FC?",MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    ECMD(FSTEST,"FS?",MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    ECMD(FCTESTCLEAR,"FC?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FSTESTCLEAR,"FS?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
-    CMD(TMENULST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)),\
-    CMD(TMENUOTHR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)),\
-    CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MENUBK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MENUBKLST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MENUBKOTHR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RCLMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)),\
-    CMD(RCLMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)),\
-    CMD(RCLMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)),\
-    CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DMS,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ASNKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DELKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STOKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TYPE,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(TYPEE,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    CMD(GETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(GETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RCLF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VTYPE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VTYPEE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FMTSTR,"FMT→STR",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(SETLOCALE,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETNFMT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SF,MK_TOKEN_INFO(2,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CF,MK_TOKEN_INFO(2,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FCTEST,"FC?",MK_TOKEN_INFO(3,TITYPE_FUNCTION,1,2)), \
+    ECMD(FSTEST,"FS?",MK_TOKEN_INFO(3,TITYPE_FUNCTION,1,2)), \
+    ECMD(FCTESTCLEAR,"FC?C",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FSTESTCLEAR,"FS?C",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TMENU,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)),\
+    CMD(TMENULST,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)),\
+    CMD(TMENUOTHR,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)),\
+    CMD(MENUSWAP,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBK,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBKLST,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBKOTHR,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLMENU,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENULST,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENUOTHR,MK_TOKEN_INFO(11,TITYPE_NOTALLOWED,1,2)),\
+    CMD(DEG,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GRAD,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RAD,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DMS,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ASNKEY,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DELKEY,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOKEYS,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLKEYS,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TYPE,MK_TOKEN_INFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(TYPEE,MK_TOKEN_INFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(GETLOCALE,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GETNFMT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLF,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOF,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VTYPE,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VTYPEE,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FMTSTR,"FMT→STR",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -109,62 +109,62 @@ INCLUDE_ROMOBJECT(sysmenu_11_namedflags);
 INCLUDE_ROMOBJECT(sysmenu_12_keys);
 
 ROMOBJECT dotsettings_ident[] = {
-    MKPROLOG(DOIDENTHIDDEN, 3),
+    MK_PROLOG(DOIDENTHIDDEN, 3),
     TEXT2WORD('.', 'S', 'e', 't'),
     TEXT2WORD('t', 'i', 'n', 'g'),
     TEXT2WORD('s', 0, 0, 0)
 };
 
 ROMOBJECT flags_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'l', 'a', 'g'),
     TEXT2WORD('s', 0, 0, 0)
 };
 
 ROMOBJECT userflags_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('U', 'F', 'l', 'a'),
     TEXT2WORD('g', 's', 0, 0)
 };
 
 ROMOBJECT locale_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('L', 'o', 'c', 'a'),
     TEXT2WORD('l', 'e', 0, 0)
 };
 
 ROMOBJECT numfmt_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('N', 'u', 'm', 'F'),
     TEXT2WORD('m', 't', 0, 0)
 };
 
 ROMOBJECT menu1_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('1', 0, 0, 0)
 };
 
 ROMOBJECT menu1hist_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('1', 'H', 's', 't')
 };
 
 ROMOBJECT menu2_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('2', 0, 0, 0)
 };
 
 ROMOBJECT menu2hist_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('2', 'H', 's', 't')
 };
 
 ROMOBJECT menuhistory_ident[] = {
-    MKPROLOG(DOIDENT, 3),
+    MK_PROLOG(DOIDENT, 3),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('H', 'L', 'e', 'v'),
     TEXT2WORD('e', 'l', 's', 0),
@@ -172,7 +172,7 @@ ROMOBJECT menuhistory_ident[] = {
 };
 
 ROMOBJECT savedcmdline_ident[] = {
-    MKPROLOG(DOIDENT, 3),
+    MK_PROLOG(DOIDENT, 3),
     TEXT2WORD('S', 'a', 'v', 'e'),
     TEXT2WORD('d', 'C', 'm', 'd'),
     TEXT2WORD('L', 'i', 'n', 'e'),
@@ -180,37 +180,37 @@ ROMOBJECT savedcmdline_ident[] = {
 };
 
 ROMOBJECT customkey_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('.', 'C', 's', 't'),
     TEXT2WORD('K', 'e', 'y', 's')
 };
 
 ROMOBJECT stksave_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('.', 'S', 't', 'k'),
     TEXT2WORD('S', 'a', 'v', 'e')
 };
 
 ROMOBJECT savedflags_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('.', 'H', 'W', 'F'),
     TEXT2WORD('l', 'a', 'g', 's')
 };
 
 ROMOBJECT editwidth_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('E', 'd', 'W', 'i'),
     TEXT2WORD('d', 't', 'h', 0)
 };
 
 ROMOBJECT currentform_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('.', 'C', 'u', 'r'),
     TEXT2WORD('F', 'o', 'r', 'm')
 };
 
 ROMOBJECT screenconfig_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 'c', 'r', 'C'),
     TEXT2WORD('o', 'n', 'f', 0)
 };
@@ -305,7 +305,7 @@ int32_t rplSetUserFlag(int32_t flag)
     UserFlags = rplAllocTempOb(4);
     if(!UserFlags)
         return -2;
-    UserFlags[0] = MKPROLOG(DOBINDATA, 4);
+    UserFlags[0] = MK_PROLOG(DOBINDATA, 4);
     UserFlags[1] = (WORD) low64;
     UserFlags[2] = (WORD) (low64 >> 32);
     UserFlags[3] = (WORD) hi64;
@@ -341,7 +341,7 @@ int32_t rplClrUserFlag(int32_t flag)
     UserFlags = rplAllocTempOb(4);
     if(!UserFlags)
         return -2;
-    UserFlags[0] = MKPROLOG(DOBINDATA, 4);
+    UserFlags[0] = MK_PROLOG(DOBINDATA, 4);
     UserFlags[1] = (WORD) low64;
     UserFlags[2] = (WORD) (low64 >> 32);
     UserFlags[3] = (WORD) hi64;
@@ -1294,7 +1294,7 @@ void rplSaveMenuHistory(int32_t menu)
     // STORE THE OLD MENU IN THE HISTORY
     word_p msetting;
 
-    if((MENULIBRARY(oldmcode) == LIBRARY_NUMBER) && (MENUNUMBER(oldmcode) < 2)) {
+    if((MENU_LIBRARY(oldmcode) == LIBRARY_NUMBER) && (MENU_NUMBER(oldmcode) < 2)) {
         // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
         if(menu == 1)
             msetting = rplGetSettings((word_p) menu1_ident);
@@ -1379,7 +1379,7 @@ void rplChangeMenu(int32_t menu, word_p newmenu)
     if(ISLIST(*newmenu) || ISIDENT(*newmenu)) {
         // CUSTOM MENU
 
-        int64_t mcode = MKMENUCODE(0, LIBRARY_NUMBER, menu - 1, 0);
+        int64_t mcode = MK_MENU_CODE(0, LIBRARY_NUMBER, menu - 1, 0);
 
         rplSetMenuCode(menu, mcode);
 
@@ -1827,7 +1827,7 @@ word_p rplMsg2KeyName(WORD keymsg)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
@@ -2521,7 +2521,7 @@ void LIB_HANDLER()
 
         int64_t mcode = rplGetMenuCode(menu);
 
-        if((MENULIBRARY(mcode) == LIBRARY_NUMBER) && (MENUNUMBER(mcode) < 2)) {
+        if((MENU_LIBRARY(mcode) == LIBRARY_NUMBER) && (MENU_NUMBER(mcode) < 2)) {
             // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
             word_p msetting;
             if(menu == 1)
@@ -2553,10 +2553,10 @@ void LIB_HANDLER()
         int64_t m1code = rplGetMenuCode(1);
         int64_t m2code = rplGetMenuCode(2);
 
-        if((MENULIBRARY(m2code) == LIBRARY_NUMBER) && (MENUNUMBER(m2code) < 2))
-            m2code = MKMENUCODE(0, LIBRARY_NUMBER, MENUNUMBER(m2code) ^ 1, MENUPAGE(m2code));   // ALTERNATE MENU'S 1 AND 2
-        if((MENULIBRARY(m1code) == LIBRARY_NUMBER) && (MENUNUMBER(m1code) < 2))
-            m1code = MKMENUCODE(0, LIBRARY_NUMBER, MENUNUMBER(m1code) ^ 1, MENUPAGE(m1code));   // ALTERNATE MENU'S 1 AND 2
+        if((MENU_LIBRARY(m2code) == LIBRARY_NUMBER) && (MENU_NUMBER(m2code) < 2))
+            m2code = MK_MENU_CODE(0, LIBRARY_NUMBER, MENU_NUMBER(m2code) ^ 1, MENU_PAGE(m2code));   // ALTERNATE MENU'S 1 AND 2
+        if((MENU_LIBRARY(m1code) == LIBRARY_NUMBER) && (MENU_NUMBER(m1code) < 2))
+            m1code = MK_MENU_CODE(0, LIBRARY_NUMBER, MENU_NUMBER(m1code) ^ 1, MENU_PAGE(m1code));   // ALTERNATE MENU'S 1 AND 2
 
         rplSetMenuCode(1, m2code);
         rplSetMenuCode(2, m1code);
@@ -2774,7 +2774,7 @@ void LIB_HANDLER()
                     OBJSIZE(*keylist) - offend + 1);
             // NOW WRITE A NEW PROLOG
             *newlist =
-                    MKPROLOG(DOLIST, OBJSIZE(*keylist) - (offend - offstart));
+                    MK_PROLOG(DOLIST, OBJSIZE(*keylist) - (offend - offstart));
             // AND STORE THE NEW LIST
             rplStoreSettings((word_p) customkey_ident, newlist);
 
@@ -2868,7 +2868,7 @@ void LIB_HANDLER()
         if(han) {
             WORD savecurOpcode = CurOpcode;
             ObjectPTR = rplPeekData(1);
-            CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+            CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
 
             CurOpcode = savecurOpcode;
@@ -2900,7 +2900,7 @@ void LIB_HANDLER()
         if(han) {
             WORD savecurOpcode = CurOpcode;
             ObjectPTR = rplPeekData(1);
-            CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+            CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
 
             CurOpcode = savecurOpcode;
@@ -3163,7 +3163,7 @@ void LIB_HANDLER()
             WORD savecurOpcode = CurOpcode;
             int32_t istag = ISTAG(*var[1]);
             ObjectPTR = obj;
-            CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+            CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
 
             CurOpcode = savecurOpcode;
@@ -3218,7 +3218,7 @@ void LIB_HANDLER()
             WORD savecurOpcode = CurOpcode;
             int32_t istag = ISTAG(*var[1]);
             ObjectPTR = obj;
-            CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+            CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
             (*han) ();
 
             CurOpcode = savecurOpcode;
@@ -3315,7 +3315,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -3327,7 +3327,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3336,10 +3336,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -3371,7 +3371,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }
@@ -3390,7 +3390,7 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
         word_p menuobj;
-        switch (MENUNUMBER(MenuCodeArg)) {
+        switch (MENU_NUMBER(MenuCodeArg)) {
         case 0:
             menuobj = rplGetSettings((word_p) menu1_ident);
             break;
@@ -3399,8 +3399,8 @@ void LIB_HANDLER()
             break;
 
         default:
-            if((MENUNUMBER(MenuCodeArg) <= 12) && (MENUNUMBER(MenuCodeArg) > 1))
-                menuobj = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)];
+            if((MENU_NUMBER(MenuCodeArg) <= 12) && (MENU_NUMBER(MenuCodeArg) > 1))
+                menuobj = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg)];
             else
                 menuobj = 0;
         }

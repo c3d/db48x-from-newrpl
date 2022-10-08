@@ -31,17 +31,17 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(TAGDEG,"→∡°",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TAGRAD,"→∡r",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TAGGRAD,"→∡g",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TAGDMS,"→∡d",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ANGTODEG,"A→∡°",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ANGTORAD,"A→∡r",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ANGTOGRAD,"A→∡g",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ANGTODMS,"A→∡d",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TORECT,"→RECT",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOPOLAR,"→POLAR",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOSPHER,"→SPHER",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    ECMD(TAGDEG,"→∡°",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGRAD,"→∡r",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGGRAD,"→∡g",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGDMS,"→∡d",MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTODEG,"A→∡°",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTORAD,"A→∡r",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTOGRAD,"A→∡g",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTODMS,"A→∡d",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TORECT,"→RECT",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOPOLAR,"→POLAR",MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOSPHER,"→SPHER",MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2))
 
 #define ERROR_LIST \
         ERR(REALORANGLEEXPECTED,0)
@@ -64,22 +64,22 @@ INCLUDE_ROMOBJECT(lib48_menu);
 
 // OTHER ROMOBJECTS
 ROMOBJECT angle_0[] = {
-    MKPROLOG(DOANGLE | ANGLEDEG, 1),
+    MK_PROLOG(DOANGLE | ANGLEDEG, 1),
     MAKESINT(0)
 };
 
 ROMOBJECT angle_90[] = {
-    MKPROLOG(DOANGLE | ANGLEDEG, 1),
+    MK_PROLOG(DOANGLE | ANGLEDEG, 1),
     MAKESINT(90)
 };
 
 ROMOBJECT angle_180[] = {
-    MKPROLOG(DOANGLE | ANGLEDEG, 1),
+    MK_PROLOG(DOANGLE | ANGLEDEG, 1),
     MAKESINT(180)
 };
 
 ROMOBJECT angle_270[] = {
-    MKPROLOG(DOANGLE | ANGLEDEG, 1),
+    MK_PROLOG(DOANGLE | ANGLEDEG, 1),
     MAKESINT(-90)
 };
 
@@ -128,7 +128,7 @@ word_p rplNewAngleFromNumber(word_p numobj, int32_t newmode)
     if(!newobj)
         return 0;
 
-    *newobj = MKPROLOG(DOANGLE + (newmode & 3), size);
+    *newobj = MK_PROLOG(DOANGLE + (newmode & 3), size);
     memcpyw(newobj + 1, ScratchPointer1, size);
 
     return newobj;
@@ -146,7 +146,7 @@ word_p rplNewAngleFromReal(REAL * number, int32_t newmode)
 
     word_p endofobject = rplNewRealInPlace(number, newobj + 1);
 
-    *newobj = MKPROLOG(DOANGLE + (newmode & 3), endofobject - newobj - 1);
+    *newobj = MK_PROLOG(DOANGLE + (newmode & 3), endofobject - newobj - 1);
 
     rplTruncateLastObject(endofobject);
 
@@ -156,7 +156,7 @@ word_p rplNewAngleFromReal(REAL * number, int32_t newmode)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // NORMAL BEHAVIOR FOR A NUMBER IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
@@ -179,7 +179,7 @@ void LIB_HANDLER()
         }
         if(nargs == 1) {
 
-            if(!ISPROLOG(*rplPeekData(1))) {
+            if(!IS_PROLOG(*rplPeekData(1))) {
                 // COMMAND AS ARGUMENT
                 if((OPCODE(CurOpcode) == OVR_EVAL) ||
                         (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -294,8 +294,8 @@ void LIB_HANDLER()
             if(!(ISANGLE(*arg1) || ISNUMBERCPLX(*arg1)) || !(ISANGLE(*arg2)
                         || ISNUMBERCPLX(*arg2))) {
                 // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-                if((OPCODE(CurOpcode) == OVR_SAME) && (!ISPROLOG(*arg1)
-                            || !ISPROLOG(*arg2))) {
+                if((OPCODE(CurOpcode) == OVR_SAME) && (!IS_PROLOG(*arg1)
+                            || !IS_PROLOG(*arg2))) {
                     if(*rplPeekData(2) == *rplPeekData(1)) {
                         rplDropData(2);
                         rplPushTrue();
@@ -670,7 +670,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -719,7 +719,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -769,7 +769,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -819,7 +819,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -869,7 +869,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -1029,7 +1029,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -1189,7 +1189,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -1349,7 +1349,7 @@ void LIB_HANDLER()
             if(!newobj)
                 return;
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 2);
+            newobj[0] = MK_PROLOG(DOCOL, 2);
             newobj[1] = CurOpcode;
             newobj[2] = CMD_SEMI;
 
@@ -1840,7 +1840,7 @@ void LIB_HANDLER()
 
             // WRITE THE PROLOG
 
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER | angmode, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER | angmode, 0));
 
             if(isintegerReal(&RReg[0]) && inint64_tRange(&RReg[0])) {
                 int64_t num = getint64_tReal(&RReg[0]);
@@ -1848,7 +1848,7 @@ void LIB_HANDLER()
             }
 
             else {
-                rplCompileAppend(MKPROLOG(DOREAL | isapprox, 1 + RReg[0].len));
+                rplCompileAppend(MK_PROLOG(DOREAL | isapprox, 1 + RReg[0].len));
                 // PACK THE INFORMATION
                 REAL_HEADER real;
                 real.flags = RReg[0].flags & 0xf;
@@ -1883,7 +1883,7 @@ void LIB_HANDLER()
         // DecompileObject = Ptr to WORD of object to decompile
         // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             rplDecompAppendString("∡");
 
             // THIS IS A BASE-10 NUMBER
@@ -1997,7 +1997,7 @@ void LIB_HANDLER()
         // ArgNum2 = blanks length
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
     {
 
         if(LIBNUM(CurOpcode) != LIBRARY_NUMBER) {
@@ -2124,7 +2124,7 @@ void LIB_HANDLER()
                 }
             }
 
-            RetNum = OK_TOKENINFO | MKTOKENINFO(f, TITYPE_REAL, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(f, TITYPE_REAL, 0, 1);
         }
 
         return;
@@ -2134,7 +2134,7 @@ void LIB_HANDLER()
 
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -2143,10 +2143,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_REAL, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_REAL, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -2180,7 +2180,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             if(OBJSIZE(*ObjectPTR) < 1) {
                 RetNum = ERR_INVALID;
                 return;
@@ -2226,7 +2226,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

@@ -47,7 +47,7 @@
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
 
         // DO ABSOLUTELY NOTHING (IT'S JUST A MARKER)
@@ -98,9 +98,9 @@ void LIB_HANDLER()
             int32_t endoffset = ((byte_p) CompileStringEnd) - numptr;
 
             if(numwords == 1)
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, endoffset));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, endoffset));
             else {
-                rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, numwords - 1));
+                rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, numwords - 1));
 
                 rplCompileAppend(endoffset);
 

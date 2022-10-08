@@ -42,7 +42,7 @@ WORD rplGetNextSuggestion(WORD   suggestion,
 
         while(libcnt >= 0) {
             RetNum = -1;
-            CurOpcode = MKOPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
+            CurOpcode = MK_OPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
             han = rplGetLibHandler(libcnt);
             if(han)
                 (*han) ();
@@ -98,7 +98,7 @@ WORD rplGetPrevSuggestion(WORD   suggestion,
 
     while(libcnt >= 0) {
         RetNum = -1;
-        CurOpcode = MKOPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
+        CurOpcode = MK_OPCODE(libcnt, OPCODE_AUTOCOMPNEXT);
         han = rplGetLibHandler(libcnt);
         ScratchPointer1 = prevsuggobj;
         if(han)
@@ -106,8 +106,8 @@ WORD rplGetPrevSuggestion(WORD   suggestion,
         prevsuggobj = ScratchPointer1;
 
         if(RetNum == OK_CONTINUE) {
-            if((!ISPROLOG(SuggestedOpcode) && (SuggestedOpcode == suggestion))
-                    || (ISPROLOG(SuggestedOpcode) && ISPROLOG(suggestion)
+            if((!IS_PROLOG(SuggestedOpcode) && (SuggestedOpcode == suggestion))
+                    || (IS_PROLOG(SuggestedOpcode) && IS_PROLOG(suggestion)
                         && (rplCompareObjects(SuggestedObject, suggobject)))) {
                 if(prevsugg || prevsuggobj) {
                     CurOpcode = saveop;

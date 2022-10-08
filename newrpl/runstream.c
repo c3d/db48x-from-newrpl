@@ -338,7 +338,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(0) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt1Pointer)
                                         && (nextopcode <
@@ -356,7 +356,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -379,7 +379,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -398,7 +398,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(1) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt2Pointer)
                                         && (nextopcode <
@@ -416,7 +416,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -439,7 +439,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -456,7 +456,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(2) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt3Pointer)
                                         && (nextopcode <
@@ -479,7 +479,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -502,7 +502,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -532,7 +532,7 @@ int32_t rplRun(void)
                     Exceptions &= ~(EX_HWBKPOINT | EX_HWBKPTSKIP);
                     if(!Exceptions) {
                         IPtr += 1 +
-                                ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
+                                ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
                                 0);
                         continue;
                     }
@@ -556,7 +556,7 @@ int32_t rplRun(void)
                         // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                         HaltedIPtr =
                                 IPtr + 1 +
-                                ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
+                                ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
                                 0);
 
                         HaltedRSTop = RSTop;    // SAVE RETURN STACK POINTER
@@ -591,7 +591,7 @@ int32_t rplRun(void)
 
             // SKIP TO THE NEXT INSTRUCTION / OBJECT BASED ON CurOpcode
             // NOTICE THAT CurOpcode MIGHT BE MODIFIED BY A LIBRARY HANDLER TO ALTER THE FLOW
-            IPtr += 1 + ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) : 0);
+            IPtr += 1 + ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) : 0);
 
         }
         while(1);
@@ -636,7 +636,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(0) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt1Pointer)
                                         && (nextopcode <
@@ -654,7 +654,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -677,7 +677,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -696,7 +696,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(1) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt2Pointer)
                                         && (nextopcode <
@@ -714,7 +714,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -737,7 +737,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -754,7 +754,7 @@ int32_t rplRun(void)
                             if(GET_BKPOINTFLAG(2) & BKPT_LOCATION) {
                                 word_p nextopcode =
                                         IPtr + 1 +
-                                        ((ISPROLOG(CurOpcode)) ?
+                                        ((IS_PROLOG(CurOpcode)) ?
                                         OBJSIZE(CurOpcode) : 0);
                                 if((nextopcode >= BreakPt3Pointer)
                                         && (nextopcode <
@@ -777,7 +777,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -800,7 +800,7 @@ int32_t rplRun(void)
                                     // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                                     HaltedIPtr =
                                             IPtr + 1 +
-                                            ((ISPROLOG(CurOpcode)) ?
+                                            ((IS_PROLOG(CurOpcode)) ?
                                             OBJSIZE(CurOpcode) : 0);
                                     HaltedRSTop = RSTop;        // SAVE RETURN STACK POINTER
                                     HaltednLAMBase = nLAMBase;
@@ -830,7 +830,7 @@ int32_t rplRun(void)
                     Exceptions &= ~(EX_HWBKPOINT | EX_HWBKPTSKIP);
                     if(!Exceptions) {
                         IPtr += 1 +
-                                ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
+                                ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
                                 0);
                         continue;
                     }
@@ -854,7 +854,7 @@ int32_t rplRun(void)
                         // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
                         HaltedIPtr =
                                 IPtr + 1 +
-                                ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
+                                ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) :
                                 0);
 
                         HaltedRSTop = RSTop;    // SAVE RETURN STACK POINTER
@@ -910,7 +910,7 @@ int32_t rplRun(void)
 
             // SKIP TO THE NEXT INSTRUCTION / OBJECT BASED ON CurOpcode
             // NOTICE THAT CurOpcode MIGHT BE MODIFIED BY A LIBRARY HANDLER TO ALTER THE FLOW
-            IPtr += 1 + ((ISPROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) : 0);
+            IPtr += 1 + ((IS_PROLOG(CurOpcode)) ? OBJSIZE(CurOpcode) : 0);
 
         }
         while(1);
@@ -1081,19 +1081,19 @@ void rplSetEntryPoint(word_p ip)
 
 inline word_p rplSkipOb(word_p ip)
 {
-    return ip + 1 + ((ISPROLOG(*ip)) ? OBJSIZE(*ip) : 0);
+    return ip + 1 + ((IS_PROLOG(*ip)) ? OBJSIZE(*ip) : 0);
 }
 
 // SKIPS THE NEXT OBJECT IN THE RUNSTREAM
 inline void rplSkipNext()
 {
-    IPtr += 1 + ((ISPROLOG(*IPtr)) ? OBJSIZE(*IPtr) : 0);
+    IPtr += 1 + ((IS_PROLOG(*IPtr)) ? OBJSIZE(*IPtr) : 0);
 }
 
 // GET THE OBJECT SIZE IN WORDS, INCLUDING THE PROLOG
 inline WORD rplObjSize(word_p ip)
 {
-    return 1 + ((ISPROLOG(*ip)) ? OBJSIZE(*ip) : 0);
+    return 1 + ((IS_PROLOG(*ip)) ? OBJSIZE(*ip) : 0);
 }
 
 // ALLOCATES MEMORY AND MAKES AN EXACT DUPLICATE OF object
@@ -1103,7 +1103,7 @@ word_p rplMakeNewCopy(word_p object)
 {
     WORD prolog = *object;
     int32_t size = 0;
-    if(ISPROLOG(prolog))
+    if(IS_PROLOG(prolog))
         size = OBJSIZE(prolog);
     ScratchPointer1 = object;
 
@@ -1122,7 +1122,7 @@ void rplCopyObject(word_p dest, word_p src)
 {
     WORD prolog = *src;
     int32_t size;
-    if(ISPROLOG(prolog))
+    if(IS_PROLOG(prolog))
         size = OBJSIZE(prolog);
     else
         size = 0;
@@ -1140,14 +1140,14 @@ void rplResetSystemFlags()
         return;
 
     // 128 SYSTEM FLAGS
-    SystemFlags[0] = MKPROLOG(DOBINDATA, 8);    // PUT ALL SYSTEM FLAGS ON A LIST
+    SystemFlags[0] = MK_PROLOG(DOBINDATA, 8);    // PUT ALL SYSTEM FLAGS ON A LIST
     SystemFlags[1] = (63 << 4) | (1 << 29);     // FLAGS 0-31 ARE IN SystemFlags[1], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
     SystemFlags[2] = 0; // FLAGS 32-63 ARE IN SystemFlags[2]
     SystemFlags[3] = 0; // FLAGS 64-95 ARE IN SystemFlags[3]
     SystemFlags[4] = 0; // FLAGS 96-127 ARE IN SystemFlags[4]
 
-    SystemFlags[5] = MKMENUCODE(0, 68, 2, 0);   // MenuCode1 IS IN SystemFlags[5] AND INITIALIZED TO THE MAIN MENU
-    SystemFlags[6] = MKMENUCODE(1, 0, 0, 0);    // MenuCode2 IS IN SystemFlags[6] AND INITIALIZED TO VARS
+    SystemFlags[5] = MK_MENU_CODE(0, 68, 2, 0);   // MenuCode1 IS IN SystemFlags[5] AND INITIALIZED TO THE MAIN MENU
+    SystemFlags[6] = MK_MENU_CODE(1, 0, 0, 0);    // MenuCode2 IS IN SystemFlags[6] AND INITIALIZED TO VARS
     SystemFlags[7] = 0; // LIBID OF Menu1
     SystemFlags[8] = 0; // LIBID OF Menu2
 

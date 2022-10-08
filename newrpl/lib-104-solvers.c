@@ -40,10 +40,10 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2)), \
-    CMD(ROOT,MKTOKENINFO(4,TITYPE_FUNCTION,3,2)), \
-    CMD(MSOLVE,MKTOKENINFO(6,TITYPE_FUNCTION,5,2)), \
-    CMD(BISECT,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
+    CMD(NUMINT,MK_TOKEN_INFO(6,TITYPE_FUNCTION,4,2)), \
+    CMD(ROOT,MK_TOKEN_INFO(4,TITYPE_FUNCTION,3,2)), \
+    CMD(MSOLVE,MK_TOKEN_INFO(6,TITYPE_FUNCTION,5,2)), \
+    CMD(BISECT,MK_TOKEN_INFO(6,TITYPE_FUNCTION,3,2))
 
 // ADD MORE OPCODES HERE
 
@@ -82,7 +82,7 @@ const word_p const ROMPTR_TABLE[] = {
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
@@ -100,7 +100,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            if(ISPROLOG(*rplPeekData(1))) {
+            if(IS_PROLOG(*rplPeekData(1))) {
                 rplError(ERR_UNRECOGNIZEDOBJECT);
                 return;
             }
@@ -1939,7 +1939,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }
@@ -1959,7 +1959,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1971,7 +1971,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1979,10 +1979,10 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -2001,12 +2001,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 1) {
+        if(MENU_NUMBER(MenuCodeArg) > 1) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = (word_p) ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = (word_p) ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

@@ -1285,14 +1285,14 @@ utf8_p halMenuCommandName(int menu, int index)
     unsigned nitems  = uiCountMenuItems(m1code, MenuObj);
 
     // Check if the command still exists (may have been purged)
-    if (MENUPAGE(m1code) >= nitems)
+    if (MENU_PAGE(m1code) >= nitems)
     {
-        m1code = SETMENUPAGE(m1code, 0);
+        m1code = SET_MENU_PAGE(m1code, 0);
         rplSetMenuCode(menu, m1code);
     }
 
     // Get the item's name
-    word_p item = uiGetMenuItem(m1code, MenuObj, index + MENUPAGE(m1code));
+    word_p item = uiGetMenuItem(m1code, MenuObj, index + MENU_PAGE(m1code));
     return halCommandName(item);
 }
 
@@ -1320,7 +1320,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             int64_t mcode = rplGetMenuCode(menunum);
             word_p menu = uiGetLibMenu(mcode);
             int32_t nitems = uiCountMenuItems(mcode, menu);
-            int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
+            int32_t idx = MENU_PAGE(mcode) + varnum, page = MENU_PAGE(mcode);
 
             rplSetLastMenu(menunum);
 
@@ -1341,7 +1341,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 }
                 if(page < 0)
                     page = 0;
-                rplSetMenuCode(menunum, SETMENUPAGE(mcode, page));
+                rplSetMenuCode(menunum, SET_MENU_PAGE(mcode, page));
                 halRefresh(MENU_DIRTY);
                 return;
             }
@@ -1378,7 +1378,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
                     int64_t libmcode =
-                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
+                            (((int64_t) action[2]) << 32) | MK_MENU_CODE(0,
                             DOLIBPTR, 0, 0);
                     word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1418,7 +1418,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
                     int64_t libmcode =
-                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
+                            (((int64_t) action[2]) << 32) | MK_MENU_CODE(0,
                             DOLIBPTR, 0, 0);
                     word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1456,7 +1456,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 if(ISLIBRARY(*action)) {
                     // SHOW THE LIBRARY MENU
                     int64_t libmcode =
-                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
+                            (((int64_t) action[2]) << 32) | MK_MENU_CODE(0,
                             DOLIBPTR, 0, 0);
                     word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1488,7 +1488,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
         int64_t mcode = rplGetMenuCode(menunum);
         word_p menu = uiGetLibMenu(mcode);
         int32_t nitems = uiCountMenuItems(mcode, menu);
-        int32_t idx = MENUPAGE(mcode) + varnum, page = MENUPAGE(mcode);
+        int32_t idx = MENU_PAGE(mcode) + varnum, page = MENU_PAGE(mcode);
 
         rplSetLastMenu(menunum);
 
@@ -1509,7 +1509,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             }
             if(page < 0)
                 page = 0;
-            rplSetMenuCode(menunum, SETMENUPAGE(mcode, page));
+            rplSetMenuCode(menunum, SET_MENU_PAGE(mcode, page));
             halRefresh(MENU_DIRTY);
             return;
         }
@@ -1538,7 +1538,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -1569,7 +1569,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -1607,7 +1607,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
 
                 // SHOW THE LIBRARY MENU
                 int64_t libmcode =
-                        (((int64_t) action[2]) << 32) | MKMENUCODE(0, DOLIBPTR,
+                        (((int64_t) action[2]) << 32) | MK_MENU_CODE(0, DOLIBPTR,
                         0, 0);
                 word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1634,7 +1634,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             if(endCmdLineAndCompile()) {
                 // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                 menu = uiGetLibMenu(mcode);
-                item = uiGetMenuItem(mcode, menu, MENUPAGE(mcode) + varnum);
+                item = uiGetMenuItem(mcode, menu, MENU_PAGE(mcode) + varnum);
                 action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
 
                 // USER IS TRYING TO 'STO' INTO THE VARIABLE
@@ -1694,7 +1694,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -1806,7 +1806,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -1844,7 +1844,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 {
                     // SHOW THE LIBRARY MENU
                     int64_t libmcode =
-                            (((int64_t) action[2]) << 32) | MKMENUCODE(0,
+                            (((int64_t) action[2]) << 32) | MK_MENU_CODE(0,
                             DOLIBPTR, 0, 0);
                     word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
@@ -1887,7 +1887,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             if(endCmdLineAndCompile()) {
                 // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                 menu = uiGetLibMenu(mcode);
-                item = uiGetMenuItem(mcode, menu, MENUPAGE(mcode) + varnum);
+                item = uiGetMenuItem(mcode, menu, MENU_PAGE(mcode) + varnum);
                 action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
                 rplPushData(action);    // PUSH THE NAME ON THE STACK
                 Opcode = CMD_OVR_XEQ;
@@ -1918,7 +1918,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -1983,7 +1983,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -2065,7 +2065,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 }
                 break;
             }
-            if(!ISPROLOG(*action)) {
+            if(!IS_PROLOG(*action)) {
                 // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
                 switch (halScreen.CursorState & 0xff) {
                 case 'D':
@@ -2073,7 +2073,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         // FIND THE COMMAND AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu = uiGetLibMenu(mcode);
                         item = uiGetMenuItem(mcode, menu,
-                                MENUPAGE(mcode) + varnum);
+                                MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item,
                                 KM_SHIFT(keymsg));
 
@@ -2092,7 +2092,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                     if(han) {
                         WORD savecurOpcode = CurOpcode;
                         DecompileObject = action;
-                        CurOpcode = MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
+                        CurOpcode = MK_OPCODE(LIBNUM(*action), OPCODE_GETINFO);
                         (*han) ();
 
                         if(RetNum > OK_TOKENINFO) {
@@ -2133,7 +2133,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                             WORD savecurOpcode = CurOpcode;
                             DecompileObject = action;
                             CurOpcode =
-                                    MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
+                                    MK_OPCODE(LIBNUM(*action), OPCODE_GETINFO);
                             (*han) ();
 
                             if(RetNum > OK_TOKENINFO) {
@@ -2230,7 +2230,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
             {
                 // SHOW THE LIBRARY MENU
                 int64_t libmcode = (((int64_t) action[2]) << 32) |
-                                   MKMENUCODE(0, DOLIBPTR, 0, 0);
+                                   MK_MENU_CODE(0, DOLIBPTR, 0, 0);
                 word_p numobject = rplNewBINT(libmcode, HEXBINT);
 
                 if (!numobject || Exceptions)
@@ -2259,7 +2259,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                         menu   = uiGetLibMenu(mcode);
                         item   = uiGetMenuItem(mcode,
                                              menu,
-                                             MENUPAGE(mcode) + varnum);
+                                             MENU_PAGE(mcode) + varnum);
                         action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
                         rplPushData(action); // PUSH THE NAME ON THE STACK
                         Opcode = CMD_OVR_XEQ;
@@ -2276,9 +2276,9 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 {
                     // FIND THE COMMAND AGAIN, IT MIGHT'VE MOVED DUE TO GC
                     menu = uiGetLibMenu(mcode);
-                    item = uiGetMenuItem(mcode, menu, MENUPAGE(mcode) + varnum);
+                    item = uiGetMenuItem(mcode, menu, MENU_PAGE(mcode) + varnum);
                     action = uiGetMenuItemAction(item, KM_SHIFT(keymsg));
-                    if (!ISPROLOG(*action))
+                    if (!IS_PROLOG(*action))
                     {
                         Opcode       = *action; // RUN COMMANDS DIRECTLY
                         hideargument = 0;
@@ -2301,7 +2301,7 @@ void functionKeyHandler(keyb_msg_t keymsg, int32_t menunum, int32_t varnum)
                 {
                     WORD savecurOpcode = CurOpcode;
                     DecompileObject    = action;
-                    CurOpcode = MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
+                    CurOpcode = MK_OPCODE(LIBNUM(*action), OPCODE_GETINFO);
                     (*han)();
 
                     if (RetNum > OK_TOKENINFO)
@@ -4920,7 +4920,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
             rplPushData(action);        // PUSH THE NAME ON THE STACK
             Opcode = (CMD_OVR_EVAL1);
         }
-        else if((!ISPROLOG(*action)) && (!ISint32_t(*action))) {
+        else if((!IS_PROLOG(*action)) && (!ISint32_t(*action))) {
             // THIS IS AN OPCODE, EXECUTE DIRECTLY
             Opcode = *action;
             hideargument = 0;
@@ -5079,7 +5079,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
 
             }
         }
-        else if(!ISPROLOG(*action)) {
+        else if(!IS_PROLOG(*action)) {
             // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
             switch (halScreen.CursorState & 0xff) {
             case 'D':
@@ -5103,7 +5103,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                 if(han) {
                     WORD savecurOpcode = CurOpcode;
                     DecompileObject = action;
-                    CurOpcode = MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
+                    CurOpcode = MK_OPCODE(LIBNUM(*action), OPCODE_GETINFO);
                     (*han) ();
 
                     if(RetNum > OK_TOKENINFO)
@@ -5190,7 +5190,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                 int32_t result = endCmdLineAndCompile();
                 action = rplPopRet();
                 if(result) {
-                    if(!ISPROLOG(*action)) {
+                    if(!IS_PROLOG(*action)) {
                         Opcode = *action;       // RUN COMMANDS DIRECTLY
                         hideargument = 0;
                     }
@@ -5211,7 +5211,7 @@ void customKeyHandler(keyb_msg_t keymsg, word_p action)
                 if(han) {
                     WORD savecurOpcode = CurOpcode;
                     DecompileObject = action;
-                    CurOpcode = MKOPCODE(LIBNUM(*action), OPCODE_GETINFO);
+                    CurOpcode = MK_OPCODE(LIBNUM(*action), OPCODE_GETINFO);
                     (*han) ();
 
                     if(RetNum > OK_TOKENINFO)
@@ -5623,37 +5623,37 @@ TRANSP_CMD_KEY_HANDLER(UPDIR, CMD_UPDIR);
 TRANSP_CMD_KEY_HANDLER(HOME, CMD_HOME);
 TRANSP_CMD_KEY_HANDLER(MENUSWAP, CMD_MENUSWAP);
 
-MENU_KEY_HANDLER(Main,       MKMENUCODE(0, 68, 2, 0));
-MENU_KEY_HANDLER(Units,      MKMENUCODE(0, DOUNIT, 0, 0));
-MENU_KEY_HANDLER(System,     MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(Program,    MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(Stack,      MKMENUCODE(0, 68, 3, 0));
-MENU_KEY_HANDLER(Tests,      MKMENUCODE(0, 68, 3, 0));        // REVISIT
-MENU_KEY_HANDLER(Lists,      MKMENUCODE(0, 68, 3, 0));         // REVISIT
-MENU_KEY_HANDLER(Chars,      MKMENUCODE(0, 68, 3, 0));        // REVISIT
-MENU_KEY_HANDLER(Symbols,    MKMENUCODE(0, 68, 3, 0));      // REVISIT
-MENU_KEY_HANDLER(Memory,     MKMENUCODE(0, 68, 3, 0));          // REVISIT
-MENU_KEY_HANDLER(Settings,   MKMENUCODE(0, 68, 3, 0));     // REVISIT
-MENU_KEY_HANDLER(Flags,      MKMENUCODE(0, 68, 3, 0)); // REVISIT
-MENU_KEY_HANDLER(Variables,  MKMENUCODE(1, 0, 0, 0));
-MENU_KEY_HANDLER(Info,       MKMENUCODE(0, 68, 2, 0));   // REVISIT
-MENU_KEY_HANDLER(Matrix,     MKMENUCODE(0, 68, 2, 0)); // REVISIT
-MENU_KEY_HANDLER(Constants,  MKMENUCODE(0, 68, 2, 0)); // REVISIT
-MENU_KEY_HANDLER(Notes,      MKMENUCODE(0, 68, 2, 0));  // REVISIT
-MENU_KEY_HANDLER(Math,       MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(Arithmetic, MKMENUCODE(0, 64, 0, 0));
-MENU_KEY_HANDLER(Statistics, MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(Proba,      MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(Equations,  MKMENUCODE(0, 64, 0, 0)); // REVISIT
-MENU_KEY_HANDLER(Complex,    MKMENUCODE(0, 30, 0, 0));
-MENU_KEY_HANDLER(Time,       MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(Devices,    MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(Storage,    MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(Print,      MKMENUCODE(0, 65, 0, 0));
-MENU_KEY_HANDLER(Bases,      MKMENUCODE(0, 70, 0, 0));
-MENU_KEY_HANDLER(Libraries,  MKMENUCODE(2, 0, 0, 0));
-MENU_KEY_HANDLER(Solver,     MKMENUCODE(0, 104, 0, 0));
-MENU_KEY_HANDLER(Finance,    MKMENUCODE(0, 104, 1, 0));
+MENU_KEY_HANDLER(Main,       MK_MENU_CODE(0, 68, 2, 0));
+MENU_KEY_HANDLER(Units,      MK_MENU_CODE(0, DOUNIT, 0, 0));
+MENU_KEY_HANDLER(System,     MK_MENU_CODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Program,    MK_MENU_CODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Stack,      MK_MENU_CODE(0, 68, 3, 0));
+MENU_KEY_HANDLER(Tests,      MK_MENU_CODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(Lists,      MK_MENU_CODE(0, 68, 3, 0));         // REVISIT
+MENU_KEY_HANDLER(Chars,      MK_MENU_CODE(0, 68, 3, 0));        // REVISIT
+MENU_KEY_HANDLER(Symbols,    MK_MENU_CODE(0, 68, 3, 0));      // REVISIT
+MENU_KEY_HANDLER(Memory,     MK_MENU_CODE(0, 68, 3, 0));          // REVISIT
+MENU_KEY_HANDLER(Settings,   MK_MENU_CODE(0, 68, 3, 0));     // REVISIT
+MENU_KEY_HANDLER(Flags,      MK_MENU_CODE(0, 68, 3, 0)); // REVISIT
+MENU_KEY_HANDLER(Variables,  MK_MENU_CODE(1, 0, 0, 0));
+MENU_KEY_HANDLER(Info,       MK_MENU_CODE(0, 68, 2, 0));   // REVISIT
+MENU_KEY_HANDLER(Matrix,     MK_MENU_CODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(Constants,  MK_MENU_CODE(0, 68, 2, 0)); // REVISIT
+MENU_KEY_HANDLER(Notes,      MK_MENU_CODE(0, 68, 2, 0));  // REVISIT
+MENU_KEY_HANDLER(Math,       MK_MENU_CODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Arithmetic, MK_MENU_CODE(0, 64, 0, 0));
+MENU_KEY_HANDLER(Statistics, MK_MENU_CODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Proba,      MK_MENU_CODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Equations,  MK_MENU_CODE(0, 64, 0, 0)); // REVISIT
+MENU_KEY_HANDLER(Complex,    MK_MENU_CODE(0, 30, 0, 0));
+MENU_KEY_HANDLER(Time,       MK_MENU_CODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Devices,    MK_MENU_CODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Storage,    MK_MENU_CODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Print,      MK_MENU_CODE(0, 65, 0, 0));
+MENU_KEY_HANDLER(Bases,      MK_MENU_CODE(0, 70, 0, 0));
+MENU_KEY_HANDLER(Libraries,  MK_MENU_CODE(2, 0, 0, 0));
+MENU_KEY_HANDLER(Solver,     MK_MENU_CODE(0, 104, 0, 0));
+MENU_KEY_HANDLER(Finance,    MK_MENU_CODE(0, 104, 1, 0));
 
 void KH(underscore)(keyb_msg_t keymsg)
 {
@@ -6271,7 +6271,7 @@ void KH(explode)(keyb_msg_t keymsg)
                             rptr[1 + j] = rptr[1 + k];  // REUSE THE OBJECT
                     }
                     // DONE WITH THE ROW, FIX THE SIZE
-                    rptr[0] = MKPROLOG(DOMATRIX, objptr - rptr - 1);
+                    rptr[0] = MK_PROLOG(DOMATRIX, objptr - rptr - 1);
                     rptr = objptr;
                 }
 

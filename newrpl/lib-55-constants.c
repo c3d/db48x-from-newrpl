@@ -34,10 +34,10 @@
 // MAKE SURE ALL COMPLEX CONSTANTS ARE IN ODD NUMBERS IN THE LIST
 
 #define COMMAND_LIST \
-    ECMD(PICONST,"π",MKTOKENINFO(1,TITYPE_REAL,0,1)), \
-    ECMD(ICONST,"і",MKTOKENINFO(1,TITYPE_COMPLEX,0,1)), \
-    ECMD(ECONST,"е",MKTOKENINFO(1,TITYPE_REAL,0,1)), \
-    ECMD(JCONST,"ј",MKTOKENINFO(1,TITYPE_COMPLEX,0,1))
+    ECMD(PICONST,"π",MK_TOKEN_INFO(1,TITYPE_REAL,0,1)), \
+    ECMD(ICONST,"і",MK_TOKEN_INFO(1,TITYPE_COMPLEX,0,1)), \
+    ECMD(ECONST,"е",MK_TOKEN_INFO(1,TITYPE_REAL,0,1)), \
+    ECMD(JCONST,"ј",MK_TOKEN_INFO(1,TITYPE_COMPLEX,0,1))
 
 // ADD MORE OPCODES HERE
 
@@ -95,7 +95,7 @@ word_p rplConstant2Number(word_p object)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // NORMAL BEHAVIOR  ON A IDENT IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
@@ -197,14 +197,14 @@ void LIB_HANDLER()
                 LIB_NUMBEROFCMDS);
         if(RetNum == OK_CONTINUE) {
             // ENCAPSULATE THE OPCODE INSIDE AN OBJECT
-            rplCompileAppend(MKOPCODE(DECBINT, OPCODE(*(CompileEnd - 1))));
+            rplCompileAppend(MK_OPCODE(DECBINT, OPCODE(*(CompileEnd - 1))));
             if(CompileEnd[-2] & 1) {
                 // THIS IS A COMPLEX CONSTANT, JUST REPEAT THE OPCODE
                 rplCompileAppend(*(CompileEnd - 1));
-                CompileEnd[-3] = MKPROLOG(LIBRARY_NUMBER, 2);
+                CompileEnd[-3] = MK_PROLOG(LIBRARY_NUMBER, 2);
             }
             else
-                CompileEnd[-2] = MKPROLOG(LIBRARY_NUMBER, 1);
+                CompileEnd[-2] = MK_PROLOG(LIBRARY_NUMBER, 1);
         }
         return;
     case OPCODE_DECOMPEDIT:
@@ -219,7 +219,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             ++DecompileObject;
             libDecompileCmds((char **)LIB_NAMES, NULL, LIB_NUMBEROFCMDS);
             --DecompileObject;
@@ -255,7 +255,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -267,7 +267,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -276,7 +276,7 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
         // FOR CONSTANTS: TYPE=55 (CONSTANT), SUBTYPE = 0.10 = REAL, 0.11 = NEGATIVE REAL, 0.12 = INFINITE REAL, 0.20 = COMPLEX, 0.22 = INF COMPLEX, 0.30 = MATRIX, 0.40 = UNIT (ASSUMED REAL VALUE)
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
             libGetInfo2(ObjectPTR[1], (char **)LIB_NAMES,
@@ -328,7 +328,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
 
             if(OBJSIZE(*ObjectPTR) != 1) {
                 RetNum = ERR_INVALID;   // WRONG SIZE
@@ -349,7 +349,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

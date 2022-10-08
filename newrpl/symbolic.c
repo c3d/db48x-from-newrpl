@@ -25,7 +25,7 @@
  *
  * In infix mode, the compiler sends OPCODE_PROBETOKEN to all libraries.
  * Libraries must determine if the token string starts with a token provided by the library.
- * Libraries reply with OK_TOKENINFO + MKTOKENINFO(precedence,nargs,length), with length=maximum
+ * Libraries reply with OK_TOKENINFO + MK_TOKEN_INFO(precedence,nargs,length), with length=maximum
  * number of characters that the compiled token will absorb (length<=TokenLen)
  * At the same time, libraries must return the precedence of the compiled token they detected and
  * the number of arguments that this operator/function needs from the stack, and whether it is left
@@ -79,7 +79,7 @@ WORD rplSymbMainOperator(word_p symbolic)
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
         return 0;
-    if(!ISPROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
+    if(!IS_PROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
             && !ISCONSTANT(*(symbolic + 1)))
         return *(symbolic + 1);
     return 0;
@@ -94,7 +94,7 @@ word_p rplSymbMainOperatorPTR(word_p symbolic)
         ++symbolic;
     if(!ISSYMBOLIC(*symbolic))
         return 0;
-    if(!ISPROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
+    if(!IS_PROLOG(*(symbolic + 1)) && !ISint32_t(*(symbolic + 1))
             && !ISCONSTANT(*(symbolic + 1)))
         return (symbolic + 1);
     return 0;
@@ -121,7 +121,7 @@ int32_t rplIsAllowedInSymb(word_p object)
     // ARGUMENTS TO PASS TO THE HANDLER
     DecompileObject = object;
     RetNum = 0;
-    CurOpcode = MKOPCODE(LIBNUM(*object), OPCODE_GETINFO);
+    CurOpcode = MK_OPCODE(LIBNUM(*object), OPCODE_GETINFO);
     if(handler)
         (*handler) ();
 
@@ -136,7 +136,7 @@ int32_t rplIsAllowedInSymb(word_p object)
             int32_t nitems = rplListLengthFlat(object);
             word_p objflat = rplGetListElementFlat(object, 1);
             while(nitems--) {
-                CurOpcode = MKOPCODE(LIBNUM(*objflat), OPCODE_GETINFO);
+                CurOpcode = MK_OPCODE(LIBNUM(*objflat), OPCODE_GETINFO);
                 DecompileObject = objflat;
                 RetNum = 0;
                 LIBHANDLER han = rplGetLibHandler(LIBNUM(*objflat));
@@ -171,7 +171,7 @@ int32_t rplSymbGetTokenInfo(word_p object)
     // ARGUMENTS TO PASS TO THE HANDLER
     DecompileObject = object;
     RetNum = 0;
-    CurOpcode = MKOPCODE(LIBNUM(*object), OPCODE_GETINFO);
+    CurOpcode = MK_OPCODE(LIBNUM(*object), OPCODE_GETINFO);
     if(handler)
         (*handler) ();
 
@@ -195,7 +195,7 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
         obj = rplPeekData(f);
         if(ISSYMBOLIC(*obj)) {
             obj = rplSymbUnwrap(obj);
-            if(ISPROLOG(obj[1]) || ISint32_t(obj[1]))
+            if(IS_PROLOG(obj[1]) || ISint32_t(obj[1]))
                 ++obj;  // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
         }
         size += rplObjSize(obj);
@@ -206,14 +206,14 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
     if(!newobject)
         return;
 
-    newobject[0] = MKPROLOG(DOSYMB, size);
+    newobject[0] = MK_PROLOG(DOSYMB, size);
     newobject[1] = Opcode;
     ptr = newobject + 2;
     for(f = nargs; f > 0; --f) {
         obj = rplPeekData(f);
         if(ISSYMBOLIC(*obj)) {
             obj = rplSymbUnwrap(obj);
-            if(ISPROLOG(obj[1]) || ISint32_t(obj[1]))
+            if(IS_PROLOG(obj[1]) || ISint32_t(obj[1]))
                 ++obj;  // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
         }
         else {
@@ -225,7 +225,7 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
         if(ISLIST(*obj)) {
             int32_t listsize = OBJSIZE(*obj);
             memmovew(ptr + 2, obj + 1, listsize - 1);
-            ptr[0] = MKPROLOG(DOSYMB, listsize);
+            ptr[0] = MK_PROLOG(DOSYMB, listsize);
             ptr[1] = CMD_LISTOPENBRACKET;
             ptr += listsize + 1;        // OVERWRITE THE ENDLIST COMMAND IN THE LIST, NOT NEEDED IN SYMBOLICS
         }
@@ -233,7 +233,7 @@ void rplSymbApplyOperator(WORD Opcode, int32_t nargs)
             rplCopyObject(ptr, obj);
             // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
             if(ISIDENT(*ptr))
-                *ptr = SETLIBNUMBIT(*ptr, UNQUOTED_BIT);
+                *ptr = SET_LIBNUM_BIT(*ptr, UNQUOTED_BIT);
             ptr = rplSkipOb(ptr);
         }
     }
@@ -258,16 +258,16 @@ word_p rplComplexToSymb(word_p complex)
     if(!newobj)
         return 0;
     if(ispolar) {
-        newobj[0] = MKPROLOG(DOSYMB, size);
+        newobj[0] = MK_PROLOG(DOSYMB, size);
         newobj[1] = CMD_OVR_MUL;
         memmovew(newobj + 2, complex +1, resize);
-        newobj[2 + resize] = MKPROLOG(DOSYMB, imsize + 8);
+        newobj[2 + resize] = MK_PROLOG(DOSYMB, imsize + 8);
         newobj[3 + resize] = CMD_OVR_POW;
-        newobj[4 + resize] = MKPROLOG(DOCONST, 1);
+        newobj[4 + resize] = MK_PROLOG(DOCONST, 1);
         newobj[5 + resize] = MAKESINT(OPCODE(CMD_ECONST));
-        newobj[6 + resize] = MKPROLOG(DOSYMB, (imsize + 4));
+        newobj[6 + resize] = MK_PROLOG(DOSYMB, (imsize + 4));
         newobj[7 + resize] = CMD_OVR_MUL;
-        newobj[8 + resize] = MKPROLOG(DOCONST, 2);
+        newobj[8 + resize] = MK_PROLOG(DOCONST, 2);
         if(rplTestSystemFlag(FL_PREFERJ))
             newobj[9 + resize] = MAKESINT(OPCODE(CMD_JCONST));
         else
@@ -277,13 +277,13 @@ word_p rplComplexToSymb(word_p complex)
         return newobj;
     }
 
-    newobj[0] = MKPROLOG(DOSYMB, size);
+    newobj[0] = MK_PROLOG(DOSYMB, size);
     newobj[1] = CMD_OVR_ADD;
     memmovew(newobj + 2, complex +1, resize);
-    newobj[2 + resize] = MKPROLOG(DOSYMB, (imsize + 4));
+    newobj[2 + resize] = MK_PROLOG(DOSYMB, (imsize + 4));
     newobj[3 + resize] = CMD_OVR_MUL;
     memmovew(newobj + 4 + resize, rplSkipOb(complex +1), imsize);
-    newobj[4 + resize + imsize] = MKPROLOG(DOCONST, 2);
+    newobj[4 + resize + imsize] = MK_PROLOG(DOCONST, 2);
     if(rplTestSystemFlag(FL_PREFERJ))
         newobj[5 + resize + imsize] = MAKESINT(OPCODE(CMD_JCONST));
     else
@@ -297,7 +297,7 @@ word_p rplSymbWrap(word_p obj)
 {
     if(ISSYMBOLIC(*obj))
         return obj;
-    if(!ISPROLOG(*obj) && !ISint32_t(*obj) && !ISCONSTANT(*obj))
+    if(!IS_PROLOG(*obj) && !ISint32_t(*obj) && !ISCONSTANT(*obj))
         return obj;
 
     word_p firstobj, endobj, ptr, destptr;
@@ -335,7 +335,7 @@ word_p rplSymbWrap(word_p obj)
         while(ptr != endobj) {
             int32_t size = rplObjSize(ptr);
             if(!ISSYMBOLIC(*ptr)) {
-                destptr[0] = MKPROLOG(DOSYMB, size);
+                destptr[0] = MK_PROLOG(DOSYMB, size);
                 ++destptr;
 
                 // PATCH ALL HASH TABLE OFFSETS
@@ -370,7 +370,7 @@ word_p rplSymbWrap(word_p obj)
                 ++ptr;
                 continue;
             }
-            if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
+            if(!IS_PROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
                 ++ptr;
                 continue;
             }
@@ -407,14 +407,14 @@ word_p rplSymbWrap(word_p obj)
                 ++ptr;
                 continue;
             }
-            if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
+            if(!IS_PROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
                 *destptr = *ptr;
                 ++destptr;
                 ++ptr;
                 continue;
             }
             if(!ISSYMBOLIC(*ptr) && !ISMATRIX(*ptr)) {
-                destptr[0] = MKPROLOG(DOSYMB, size);
+                destptr[0] = MK_PROLOG(DOSYMB, size);
                 ++destptr;
                 --wrapcount;
             }
@@ -444,12 +444,12 @@ word_p rplSymbWrap(word_p obj)
     if(!newobject)
         return obj;
 
-    newobject[0] = MKPROLOG(DOSYMB, size);
+    newobject[0] = MK_PROLOG(DOSYMB, size);
     ptr = newobject + 1;
     memmovew(ptr, obj, size);
     // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
     if(ISIDENT(*ptr))
-        *ptr = SETLIBNUMBIT(*ptr, UNQUOTED_BIT);
+        *ptr = SET_LIBNUM_BIT(*ptr, UNQUOTED_BIT);
 
     return newobject;
 
@@ -488,7 +488,7 @@ int32_t rplSymbExplode(word_p object)
             ++ptr;
             continue;
         }
-        if(!(ISPROLOG(*ptr) || ISint32_t(*ptr) || ISCONSTANT(*ptr)))
+        if(!(IS_PROLOG(*ptr) || ISint32_t(*ptr) || ISCONSTANT(*ptr)))
             ++countops;
         ++count;
         ptr = rplSkipOb(ptr);
@@ -520,7 +520,7 @@ int32_t rplSymbExplode(word_p object)
             continue;
         }
         *sptr = object;
-        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
+        if(!(IS_PROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             numbers[countops] = MAKESINT(nargs);
             --sptr;
             *sptr = &numbers[countops];
@@ -550,7 +550,7 @@ int32_t rplSymbExplodeOneLevel(word_p object)
     ScratchPointer2 = rplSkipOb(object);
 
     while(ScratchPointer1 < ScratchPointer2) {
-        if(!(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
+        if(!(IS_PROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                     || ISCONSTANT(*ScratchPointer1))) {
             ScratchPointer3 = ScratchPointer1;
             ++countops;
@@ -588,7 +588,7 @@ word_p rplSymbImplode(word_p * exprstart)
             numobjects += OBJSIZE(**stkptr) - 1;
             addcount = 0;
         }
-        if((!ISint32_t(**stkptr)) && (!ISPROLOG(**stkptr)
+        if((!ISint32_t(**stkptr)) && (!IS_PROLOG(**stkptr)
                     && !ISCONSTANT(**stkptr))) {
             addcount = 1;
             ++numobjects;
@@ -608,9 +608,9 @@ word_p rplSymbImplode(word_p * exprstart)
     newptr = newobject;
     for(f = 0; f < numobjects; ++f) {
         object = *stkptr;
-        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
+        if(!(IS_PROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             // WE HAVE AN OPCODE, START A SYMBOLIC RIGHT HERE
-            *newptr++ = MKPROLOG(DOSYMB, 0);
+            *newptr++ = MK_PROLOG(DOSYMB, 0);
             *newptr++ = *object;        // STORE THE OPCODE
             --stkptr;
             ++f;
@@ -618,7 +618,7 @@ word_p rplSymbImplode(word_p * exprstart)
         else {
             if(ISLIST(*object)) {
                 // CONVERT THE LIST INTO A SYMBOLIC LIST CONSTRUCTOR OPERATOR
-                *newptr++ = MKPROLOG(DOSYMB, rplObjSize(object) - 1);
+                *newptr++ = MK_PROLOG(DOSYMB, rplObjSize(object) - 1);
                 if(ISAUTOEXPLIST(*object))
                     *newptr++ = CMD_CLISTOPENBRACKET;
                 else
@@ -633,7 +633,7 @@ word_p rplSymbImplode(word_p * exprstart)
                         continue;
                     }
                     if(ISLIST(*object)) {
-                        *newptr++ = MKPROLOG(DOSYMB, rplObjSize(object) - 1);
+                        *newptr++ = MK_PROLOG(DOSYMB, rplObjSize(object) - 1);
                         if(ISAUTOEXPLIST(*object))
                             *newptr++ = CMD_CLISTOPENBRACKET;
                         else
@@ -649,7 +649,7 @@ word_p rplSymbImplode(word_p * exprstart)
             else {
                 if(f == 0) {
                     // FIRST OBJECT NEEDS A SYMBOLIC WRAPPER EVEN WITHOUT AN OPCODE
-                    *newptr++ = MKPROLOG(DOSYMB, rplObjSize(object));
+                    *newptr++ = MK_PROLOG(DOSYMB, rplObjSize(object));
                 }
                 // COPY THE OBJECT
                 word_p endobj = rplSkipOb(object);
@@ -657,7 +657,7 @@ word_p rplSymbImplode(word_p * exprstart)
                 while(object != endobj)
                     *newptr++ = *object++;
                 if(ISQUOTEDIDENT(*prolog))
-                    *prolog = MKPROLOG(LIBNUM(*prolog) | UNQUOTED_BIT, OBJSIZE(*prolog));       // FORCE UNQUOTED IDENTS WITHIN A SYMBOLIC
+                    *prolog = MK_PROLOG(LIBNUM(*prolog) | UNQUOTED_BIT, OBJSIZE(*prolog));       // FORCE UNQUOTED IDENTS WITHIN A SYMBOLIC
             }
         }
 
@@ -672,14 +672,14 @@ word_p rplSymbImplode(word_p * exprstart)
     for(; f > 0; --f) {
         ++stkptr;
         object = *stkptr;
-        if(!(ISPROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
+        if(!(IS_PROLOG(*object) || ISint32_t(*object) || ISCONSTANT(*object))) {
             // FOUND AN OPERATOR, GET THE NUMBER OF ITEMS
             narg = OPCODE(**(stkptr - 1));
 
             // PATCH THE LAST SYMBOLIC WITH ZERO FOR SIZE IN THE OBJECT
             word_p scan = newobject, lastone = 0;
             while(scan < newptr) {
-                if(*scan == MKPROLOG(DOSYMB, 0)) {
+                if(*scan == MK_PROLOG(DOSYMB, 0)) {
                     lastone = scan;
                     ++scan;
                     continue;
@@ -694,7 +694,7 @@ word_p rplSymbImplode(word_p * exprstart)
             }
 
             // AND PATCH THE SIZE
-            *lastone = MKPROLOG(DOSYMB, scan - lastone - 1);
+            *lastone = MK_PROLOG(DOSYMB, scan - lastone - 1);
 
         }
 
@@ -710,7 +710,7 @@ word_p rplSymbImplode(word_p * exprstart)
 
 word_p *rplSymbSkipInStack(word_p * stkptr)
 {
-    if(ISPROLOG(**stkptr))
+    if(IS_PROLOG(**stkptr))
         return --stkptr;
     if(ISint32_t(**stkptr) || ISCONSTANT(**stkptr))
         return --stkptr;
@@ -721,7 +721,7 @@ word_p *rplSymbSkipInStack(word_p * stkptr)
     int32_t nargs = OPCODE(**stkptr) - 1;  // EXTRACT THE SINT
     --stkptr;
     while(nargs) {
-        if(ISPROLOG(**stkptr)) {
+        if(IS_PROLOG(**stkptr)) {
             --stkptr;
             --nargs;
             continue;
@@ -1488,7 +1488,7 @@ word_p *rplSymbExplodeCanonicalForm(word_p object, int32_t for_display)
         while(stkptr != endofstk) {
             sobj = *stkptr;
 
-            if(ISPROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
+            if(IS_PROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
                 --stkptr;
                 continue;
             }
@@ -2060,7 +2060,7 @@ word_p rplSymbNumericReduce(word_p object)
         while(stkptr != endofstk) {
             sobj = *stkptr;
 
-            if(ISPROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
+            if(IS_PROLOG(*sobj) || ISint32_t(*sobj) || ISCONSTANT(*sobj)) {
                 --stkptr;
                 continue;
             }
@@ -2846,7 +2846,7 @@ int32_t rplSymbIsZero(word_p ptr)
     if(ISSYMBOLIC(*obj))
         ++obj;
     while(obj != end) {
-        if(!(ISPROLOG(*obj) || ISint32_t(*obj) || ISCONSTANT(*obj))) {
+        if(!(IS_PROLOG(*obj) || ISint32_t(*obj) || ISCONSTANT(*obj))) {
             // SOME KIND OF OPERATION, THE ONLY THING ALLOWED IS UNARY PLUS OR MINUS BEFORE THE NUMBER ZERO
             switch (*obj) {
             case CMD_OVR_UMINUS:
@@ -2935,7 +2935,7 @@ void rplSymbNumericCompute()
             DSTop = stksave;
             return;
         }
-        else if(!ISPROLOG(*(*ptr + offset))) {
+        else if(!IS_PROLOG(*(*ptr + offset))) {
             if(*(*ptr + offset) == CMD_OVR_FUNCEVAL) {
                 DSTop = stksave;
                 return;
@@ -2985,7 +2985,7 @@ int32_t rplSymbExplodeOneLevel2(word_p object)
     ScratchPointer2 = rplSkipOb(object);
 
     while(ScratchPointer1 < ScratchPointer2) {
-        if(!(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
+        if(!(IS_PROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                     || ISCONSTANT(*ScratchPointer1))) {
             ScratchPointer3 = ScratchPointer1;
             ++countops;
@@ -3094,7 +3094,7 @@ static void reloadPointers(word_p * stkbase, TRACK_STATE * ptr)
     ptr->nlams = rplReadint32_t(*(stkbase - 1));
     ptr->right = stkbase - 2 * ptr->nlams - 5;  // POINT TO THE RIGHT OPERATOR
     ptr->left = ptr->right - 1;
-    if(!ISPROLOG(**(ptr->right)) && !ISint32_t(**(ptr->right))
+    if(!IS_PROLOG(**(ptr->right)) && !ISint32_t(**(ptr->right))
             && !ISCONSTANT(**(ptr->right))) {
         ptr->rightnargs = rplReadint32_t(*((ptr->right) - 1));
         ptr->left--;
@@ -3102,7 +3102,7 @@ static void reloadPointers(word_p * stkbase, TRACK_STATE * ptr)
     else
         ptr->rightnargs = 0;
     ptr->left -= ptr->rightnargs;
-    if(!ISPROLOG(**(ptr->left)) && !ISint32_t(**(ptr->left))
+    if(!IS_PROLOG(**(ptr->left)) && !ISint32_t(**(ptr->left))
             && !ISCONSTANT(**(ptr->right)))
         ptr->leftnargs = rplReadint32_t(*((ptr->left) - 1));
     else
@@ -7038,7 +7038,7 @@ int32_t rplSymbGetAttr(word_p object)
             attr = -1;
         }
 
-        if(!ISPROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
+        if(!IS_PROLOG(*ptr) && !ISint32_t(*ptr) && !ISCONSTANT(*ptr)) {
             operator=* ptr;
             ++ptr;
         }

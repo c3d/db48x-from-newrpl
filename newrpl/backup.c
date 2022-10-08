@@ -19,7 +19,7 @@ uint64_t rplConvertToRomptrID(word_p ptr)
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
-    CurOpcode = MKOPCODE(libnum, OPCODE_GETROMID);
+    CurOpcode = MK_OPCODE(libnum, OPCODE_GETROMID);
 
     while(libnum >= 0) {
         han = rplGetLibHandler(libnum);
@@ -56,7 +56,7 @@ word_p rplConvertIDToPTR(uint64_t romptrid)
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
-    CurOpcode = MKOPCODE(libnum, OPCODE_ROMID2PTR);
+    CurOpcode = MK_OPCODE(libnum, OPCODE_ROMID2PTR);
 
     han = rplGetLibHandler(libnum);
     if(!han)

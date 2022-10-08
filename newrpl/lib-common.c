@@ -24,9 +24,9 @@ void libCompileCmds(int32_t libnum, char *libnames[], WORD libopcodes[],
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         (char *)libnames[idx], len))) {
             if(libopcodes)
-                rplCompileAppend((WORD) MKOPCODE(libnum, libopcodes[idx]));
+                rplCompileAppend((WORD) MK_OPCODE(libnum, libopcodes[idx]));
             else
-                rplCompileAppend((WORD) MKOPCODE(libnum, idx));
+                rplCompileAppend((WORD) MK_OPCODE(libnum, idx));
             RetNum = OK_CONTINUE;
             return;
         }
@@ -87,7 +87,7 @@ void libProbeCmds(char *libnames[], int32_t tokeninfo[], int numcmds)
             RetNum = OK_TOKENINFO | tokeninfo[maxidx];
         }
         else
-            RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_NOTALLOWED, 0, 0);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_NOTALLOWED, 0, 0);
     }
     else
         RetNum = ERR_NOTMINE;
@@ -110,7 +110,7 @@ void libGetInfo(WORD opcode, char *libnames[], WORD libopcodes[],
             }
             else {
                 len = utf8len(libnames[idx]);
-                RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_NOTALLOWED, 0,
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_NOTALLOWED, 0,
                         0);
             }
             return;
@@ -133,12 +133,12 @@ void libGetInfo2(WORD opcode, char *libnames[], int32_t tokeninfo[], int numcmds
         }
         else {
             len = utf8len(libnames[idx]);
-            RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_NOTALLOWED, 0, 0);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_NOTALLOWED, 0, 0);
         }
         return;
 
     }
-    RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 0);
+    RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 0);
 }
 
 void libGetRomptrID(int32_t libnum, word_p * table, word_p ptr)
@@ -212,7 +212,7 @@ void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds)
     // TokenStart = token string
     // TokenLen = token length
     // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR THE PROLOG OF THE OBJECT IF SUGGESTION IS AN OBJECT
-    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF ISPROLOG(SuggestedOpcode)==True)
+    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF IS_PROLOG(SuggestedOpcode)==True)
 
     WORD Prolog = SuggestedOpcode;
 
@@ -224,7 +224,7 @@ void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds)
     }
     int32_t idx, len;
 
-    if(!ISPROLOG(Prolog) && (LIBNUM(Prolog) == (WORD) libnum))
+    if(!IS_PROLOG(Prolog) && (LIBNUM(Prolog) == (WORD) libnum))
         idx = OPCODE(Prolog) - 1;
     else
         idx = numcmds - 1;
@@ -235,7 +235,7 @@ void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         (char *)libnames[idx], TokenLen))) {
             // WE HAVE THE NEXT MATCH
-            SuggestedOpcode = MKOPCODE(libnum, idx);
+            SuggestedOpcode = MK_OPCODE(libnum, idx);
             RetNum = OK_CONTINUE;
             return;
         }
@@ -252,7 +252,7 @@ void libAutoCompleteNext(int32_t libnum, char *libnames[], int numcmds)
                             utf8skipst((char *)libnames[idx],
                                 (char *)libnames[idx] + 4), TokenLen))) {
                 // WE HAVE THE NEXT MATCH
-                SuggestedOpcode = MKOPCODE(libnum, idx);
+                SuggestedOpcode = MK_OPCODE(libnum, idx);
                 RetNum = OK_CONTINUE;
                 return;
             }
@@ -286,7 +286,7 @@ void libAutoCompletePrev(int32_t libnum,char *libnames[],int numcmds)
     int32_t idx,len;
 
     if(LIBNUM(Prolog)==libnum) {
-        if(ISPROLOG(Prolog)) idx=0;
+        if(IS_PROLOG(Prolog)) idx=0;
         else idx=OPCODE(Prolog)+1;
     }
     else idx=0;
@@ -296,7 +296,7 @@ void libAutoCompletePrev(int32_t libnum,char *libnames[],int numcmds)
         if((len>=(int32_t)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],TokenLen)))
         {
             // WE HAVE THE NEXT MATCH
-            SuggestedOpcode=MKOPCODE(libnum,idx);
+            SuggestedOpcode=MK_OPCODE(libnum,idx);
             RetNum=OK_CONTINUE;
             return;
         }
@@ -347,7 +347,7 @@ void libFindMsg(int32_t message, word_p table)
     ++table;
     while(*table != CMD_ENDLIST) {
         key = *table;
-        if(ISPROLOG(key)) {
+        if(IS_PROLOG(key)) {
             // THE KEY IS AN OBJECT, USE AN OBJECT HASH
             key = libComputeHash(table);
         }

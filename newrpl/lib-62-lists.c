@@ -37,53 +37,53 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(ENDLIST,"}",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOLIST,"→LIST",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(INNERCOMP,"LIST→",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(CMDDOLIST,"DOLIST",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOLISTPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOLISTPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOLISTERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DOSUBS,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOSUBSPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOSUBSPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DOSUBSERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MAP,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(MAPPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(MAPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(MAPERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(MAPINNERCOMP,"MAPLIST→",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(EVALPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(EVALPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(EVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STREAM,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STREAMPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STREAMPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STREAMERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(UNARYPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(UNARYPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(UNARYERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(BINARYPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(BINARYPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(BINARYERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TESTPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TESTPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TESTERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DELTALIST,"ΔLIST",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SUMLIST,"ΣLIST",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(PRODLIST,"ΠLIST",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(OPLISTPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(OPLISTPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(OPLISTERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DELTAPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DELTAPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(DELTAERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ADD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SORT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(REVLIST,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ADDROT,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SEQ,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(MAPINNERPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
+    ECMD(ENDLIST,"}",MK_TOKEN_INFO(1,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOLIST,"→LIST",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(INNERCOMP,"LIST→",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(CMDDOLIST,"DOLIST",MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOLISTPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOLISTPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOLISTERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOSUBS,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOSUBSPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOSUBSPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DOSUBSERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MAP,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(MAPPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(MAPPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(MAPERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(MAPINNERCOMP,"MAPLIST→",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(EVALPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(EVALPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(EVALERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STREAM,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STREAMPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STREAMPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STREAMERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(UNARYPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(UNARYPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(UNARYERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(BINARYPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(BINARYPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(BINARYERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TESTPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TESTPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TESTERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DELTALIST,"ΔLIST",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SUMLIST,"ΣLIST",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(PRODLIST,"ΠLIST",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(OPLISTPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(OPLISTPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(OPLISTERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DELTAPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DELTAPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(DELTAERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ADD,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SORT,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(REVLIST,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ADDROT,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SEQ,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(MAPINNERPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2))
 // ADD MORE OPCODES HERE
 
 #define ERROR_LIST \
@@ -111,118 +111,118 @@ INCLUDE_ROMOBJECT(lib62_menu_2);
 INCLUDE_ROMOBJECT(cmd_SEQ);
 
 ROMOBJECT dolist_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, DOLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, DOLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, DOLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, DOLISTERR),        // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, DOLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, DOLISTERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT dosubs_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, DOSUBSPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, DOSUBSPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, DOSUBSPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, DOSUBSERR),        // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, DOSUBSPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, DOSUBSERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT map_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, MAPPRE),   // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, MAPPRE),   // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT mapinnercomp_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, MAPINNERPRE),      // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, MAPINNERPRE),      // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, MAPPOST),  // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, MAPERR),   // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT listeval_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, EVALPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, EVALPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, EVALPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, EVALERR),  // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, EVALPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, EVALERR),  // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT stream_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, STREAMPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, STREAMPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, STREAMPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, STREAMERR),        // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, STREAMPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, STREAMERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT nsub_name[] = {
-    MKPROLOG(DOIDENT, 1),
+    MK_PROLOG(DOIDENT, 1),
     (WORD) ('N' | ('S' << 8) | ('U' << 16) | ('B' << 24))
 };
 
 ROMOBJECT endsub_name[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     (WORD) ('E' | ('N' << 8) | ('D' << 16) | ('S' << 24)),
     (WORD) ('U' | ('B' << 8))
 };
 
 ROMOBJECT unary_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, UNARYPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, UNARYPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, UNARYPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, UNARYERR), // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, UNARYPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, UNARYERR), // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT binary_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, BINARYPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, BINARYPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, BINARYPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, BINARYERR),        // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, BINARYPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, BINARYERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT testop_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, TESTPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, TESTPRE),  // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, TESTPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, TESTERR),  // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, TESTPOST), // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, TESTERR),  // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT oplist_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, OPLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, OPLISTPRE),        // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, OPLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, OPLISTERR),        // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, OPLISTPOST),       // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, OPLISTERR),        // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT deltalist_seco[] = {
-    MKPROLOG(DOCOL, 5),
-    MKOPCODE(LIBRARY_NUMBER, DELTAPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 5),
+    MK_OPCODE(LIBRARY_NUMBER, DELTAPRE), // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, DELTAPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, DELTAERR), // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, DELTAPOST),        // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, DELTAERR), // ERROR HANDLER
     CMD_SEMI
 };
 
 ROMOBJECT empty_list[] = {
-    MKPROLOG(DOLIST, 1),
-    MKOPCODE(DOLIST, ENDLIST)
+    MK_PROLOG(DOLIST, 1),
+    MK_OPCODE(DOLIST, ENDLIST)
 };
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -275,7 +275,7 @@ int32_t rplListItemCompare(word_p a, word_p b)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         rplPushData(IPtr);
         return;
@@ -283,7 +283,7 @@ void LIB_HANDLER()
 
     if(ISUNARYOP(CurOpcode)) {
         // ALL UNARY OPERATORS PASS THEIR OPERATION DIRECTLY TO EACH ELEMENT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             // COMMAND AS ARGUMENT
             if((OPCODE(CurOpcode) == OVR_EVAL) ||
                     (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -400,7 +400,7 @@ void LIB_HANDLER()
             return;
         }
 
-        program[0] = MKPROLOG(DOCOL, 2);
+        program[0] = MK_PROLOG(DOCOL, 2);
         program[1] = CurOpcode;
         program[2] = CMD_SEMI;
 
@@ -451,7 +451,7 @@ void LIB_HANDLER()
 
         if((!ISLIST(*rplPeekData(1))) && (!ISLIST(*rplPeekData(2)))) {
 
-            if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
+            if(!IS_PROLOG(*rplPeekData(2)) || !IS_PROLOG(*rplPeekData(1))) {
                 // COMMANDS AS OBJECTS, RESPOND TO THE "SAME" OPERATOR ONLY
                 if(OPCODE(CurOpcode) == OVR_SAME) {
                     if(*rplPeekData(2) == *rplPeekData(1)) {
@@ -507,7 +507,7 @@ void LIB_HANDLER()
             return;
         }
 
-        program[0] = MKPROLOG(DOCOL, 2);
+        program[0] = MK_PROLOG(DOCOL, 2);
         program[1] = CurOpcode;
         program[2] = CMD_SEMI;
 
@@ -894,7 +894,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) dolist_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -916,7 +916,7 @@ void LIB_HANDLER()
                 DSTop = rplUnprotectData();
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
                 return;
             }
         }
@@ -953,7 +953,7 @@ void LIB_HANDLER()
                 }
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
                 return;
             }
             rplPutLAMn(4, newbint);     // STORE NEW INDEX
@@ -979,7 +979,7 @@ void LIB_HANDLER()
             }
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
             return;
         }
 
@@ -992,7 +992,7 @@ void LIB_HANDLER()
             }
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
             return;
         }
 
@@ -1011,7 +1011,7 @@ void LIB_HANDLER()
         rplClrSystemFlag(FL_LISTCMDCLEANUP);
         rplCleanupLAMs(0);
         IPtr = rplPopRet();
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
         return;
     }
 
@@ -1033,7 +1033,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, CMDDOLIST);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, CMDDOLIST);
         return;
 
         // **********************************************************
@@ -1162,7 +1162,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) dosubs_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -1182,7 +1182,7 @@ void LIB_HANDLER()
                 DSTop = rplUnprotectData();
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
                 return;
             }
         }
@@ -1217,7 +1217,7 @@ void LIB_HANDLER()
 
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
                 return;
             }
             rplPutLAMn(4, newbint);     // STORE NEW INDEX
@@ -1239,7 +1239,7 @@ void LIB_HANDLER()
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
             return;
         }
 
@@ -1248,7 +1248,7 @@ void LIB_HANDLER()
             DSTop = prevDStk;   // REMOVE ALL JUNK FROM THE STACK
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
             return;
         }
         if(ISAUTOEXPLIST(**rplGetLAMn(5)))
@@ -1259,7 +1259,7 @@ void LIB_HANDLER()
 
         rplCleanupLAMs(0);
         IPtr = rplPopRet();
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
         return;
     }
 
@@ -1278,7 +1278,7 @@ void LIB_HANDLER()
         ErrorCode = TrappedErrorCode;
 
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DOSUBS);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DOSUBS);
         return;
 
         // END OF DOSUBS
@@ -1362,7 +1362,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) map_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -1389,7 +1389,7 @@ void LIB_HANDLER()
                 rplPushData((word_p) map_seco);
             }
 
-            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            while(*nextobj == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     word_p *prevDStk = rplUnprotectData();
@@ -1405,7 +1405,7 @@ void LIB_HANDLER()
                         }
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
                     if(ISAUTOEXPLIST(**rplGetLAMn(3)))
@@ -1416,7 +1416,7 @@ void LIB_HANDLER()
                     rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
                     IPtr = rplPopRet();
-                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                    CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                     return;
 
                 }
@@ -1438,7 +1438,7 @@ void LIB_HANDLER()
                         }
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
@@ -1451,7 +1451,7 @@ void LIB_HANDLER()
                         }
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
@@ -1482,7 +1482,7 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MK_OPCODE(LIBRARY_NUMBER,MAP); return; }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -1519,7 +1519,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
         return;
 
         // END OF MAP
@@ -1605,7 +1605,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) mapinnercomp_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);      // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         // REMOVE THE PROGRAM FROM THE STACK IN ORDER TO REUSE listeval_seco
         // THIS CAUSES THE PROGRAM TO DISAPPEAR FROM THE STACK IF THERE'S AN ERROR
@@ -1637,7 +1637,7 @@ void LIB_HANDLER()
                 rplPushData((word_p) listeval_seco);
             }
 
-            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            while(*nextobj == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     word_p *prevDStk = rplUnprotectData();
@@ -1649,7 +1649,7 @@ void LIB_HANDLER()
                         DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
                     if(ISAUTOEXPLIST(**rplGetLAMn(3)))
@@ -1658,7 +1658,7 @@ void LIB_HANDLER()
                     rplOverwriteData(1, newlist);
                     rplCleanupLAMs(0);
                     IPtr = rplPopRet();
-                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                    CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                     return;
 
                 }
@@ -1676,7 +1676,7 @@ void LIB_HANDLER()
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
@@ -1685,7 +1685,7 @@ void LIB_HANDLER()
                         DSTop = rplUnprotectData();     // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
                     if(ISAUTOEXPLIST(**rplGetLAMn(3)))
@@ -1719,7 +1719,7 @@ void LIB_HANDLER()
             DSTop = rplUnprotectData();
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
             return;
         }
 
@@ -1755,7 +1755,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
         return;
 
         // **********************************************************
@@ -1830,7 +1830,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) stream_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, STREAM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -1861,7 +1861,7 @@ void LIB_HANDLER()
 
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, STREAM);
             return;
         }
 
@@ -1881,7 +1881,7 @@ void LIB_HANDLER()
             DSTop = rplUnprotectData();
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
             return;
         }
 
@@ -1918,7 +1918,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, STREAM);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, STREAM);
         return;
 
         // END OF STREAM
@@ -1958,7 +1958,7 @@ void LIB_HANDLER()
                 }
             }
 
-            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            while(*nextobj == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     word_p *prevDStk = rplUnprotectData();
@@ -2130,9 +2130,9 @@ void LIB_HANDLER()
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
-        if(*nextobj1 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+        if(*nextobj1 == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
             if(ISLIST(**rplGetLAMn(5))) {
-                if(*nextobj2 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(*nextobj2 != MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                     // THE LISTS HAVE INVALID DIMENSIONS
                     rplError(ERR_INVALIDLISTSIZE);
                     DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
@@ -2179,9 +2179,9 @@ void LIB_HANDLER()
 
         }
 
-        if(*nextobj2 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+        if(*nextobj2 == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
             if(ISLIST(**rplGetLAMn(4))) {
-                if(*nextobj1 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(*nextobj1 != MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                     // THE LISTS HAVE INVALID DIMENSIONS
                     rplError(ERR_INVALIDLISTSIZE);
                     DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
@@ -2300,9 +2300,9 @@ void LIB_HANDLER()
 
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
 
-        if(*nextobj1 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+        if(*nextobj1 == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
             if(ISLIST(**rplGetLAMn(5))) {
-                if(*nextobj2 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(*nextobj2 != MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                     // THE LISTS HAVE INVALID DIMENSIONS
                     rplError(ERR_INVALIDLISTSIZE);
                     DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
@@ -2360,9 +2360,9 @@ void LIB_HANDLER()
 
         }
 
-        if(*nextobj2 == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+        if(*nextobj2 == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
             if(ISLIST(**rplGetLAMn(4))) {
-                if(*nextobj1 != MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+                if(*nextobj1 != MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                     // THE LISTS HAVE INVALID DIMENSIONS
                     rplError(ERR_INVALIDLISTSIZE);
                     DSTop = rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
@@ -2540,7 +2540,7 @@ void LIB_HANDLER()
             return;
         }
 
-        program[0] = MKPROLOG(DOCOL, 2);
+        program[0] = MK_PROLOG(DOCOL, 2);
         if(OPCODE(CurOpcode) == SUMLIST)
             program[1] = (CMD_OVR_ADD);
         if(OPCODE(CurOpcode) == PRODLIST)
@@ -2574,7 +2574,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) oplist_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, SUMLIST);  // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -2605,7 +2605,7 @@ void LIB_HANDLER()
 
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, SUMLIST);
             return;
         }
 
@@ -2624,7 +2624,7 @@ void LIB_HANDLER()
             DSTop = rplUnprotectData();
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, SUMLIST);
             return;
         }
 
@@ -2656,7 +2656,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, SUMLIST);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, SUMLIST);
         return;
 
         // END OF OPLIST
@@ -2694,7 +2694,7 @@ void LIB_HANDLER()
             return;
         }
 
-        program[0] = MKPROLOG(DOCOL, 2);
+        program[0] = MK_PROLOG(DOCOL, 2);
         program[1] = (CMD_OVR_SUB);
         program[2] = CMD_SEMI;
 
@@ -2725,7 +2725,7 @@ void LIB_HANDLER()
 
         rplPushRet(IPtr);
         IPtr = (word_p) deltalist_seco;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DELTALIST);        // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();       // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
 
@@ -2760,7 +2760,7 @@ void LIB_HANDLER()
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DELTALIST);
                 return;
             }
 
@@ -2769,7 +2769,7 @@ void LIB_HANDLER()
                 DSTop = prevDStk;       // REMOVE ALL JUNK FROM THE STACK
                 rplCleanupLAMs(0);
                 IPtr = rplPopRet();
-                CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
+                CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DELTALIST);
                 return;
             }
             if(ISAUTOEXPLIST(**rplGetLAMn(3)))
@@ -2780,7 +2780,7 @@ void LIB_HANDLER()
 
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DELTALIST);
             return;
         }
 
@@ -2800,7 +2800,7 @@ void LIB_HANDLER()
             DSTop = rplUnprotectData();
             rplCleanupLAMs(0);
             IPtr = rplPopRet();
-            CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+            CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
             return;
         }
 
@@ -2833,7 +2833,7 @@ void LIB_HANDLER()
         Exceptions = TrappedExceptions;
         ErrorCode = TrappedErrorCode;
         ExceptionPointer = IPtr;
-        CurOpcode = MKOPCODE(LIBRARY_NUMBER, DELTALIST);
+        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, DELTALIST);
         return;
 
         // END OF DELTALIST
@@ -2851,14 +2851,14 @@ void LIB_HANDLER()
         }
         int32_t size1, size2;
         word_p obj1 = rplPeekData(2), obj2 = rplPeekData(1);
-        if(ISPROLOG(*obj1))
+        if(IS_PROLOG(*obj1))
             size1 = OBJSIZE(*obj1) + 1;
         else
             size1 = 1;
         if(ISLIST(*obj1))
             size1 -= 2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
 
-        if(ISPROLOG(*obj2))
+        if(IS_PROLOG(*obj2))
             size2 = OBJSIZE(*obj2) + 1;
         else
             size2 = 1;
@@ -2869,7 +2869,7 @@ void LIB_HANDLER()
         if(!newlist) {
             return;
         }
-        *newlist = MKPROLOG(LIBRARY_NUMBER, size1 + size2 + 1);
+        *newlist = MK_PROLOG(LIBRARY_NUMBER, size1 + size2 + 1);
 
         // DO NOT REUSE obj1, COULD'VE BEEN MOVED BY GC
         if(ISLIST(*rplPeekData(2)))
@@ -2884,7 +2884,7 @@ void LIB_HANDLER()
 
         // CLOSE THE NEW LIST WITH ENDLIST
 
-        newlist[size1 + size2 + 1] = MKOPCODE(LIBRARY_NUMBER, ENDLIST);
+        newlist[size1 + size2 + 1] = MK_OPCODE(LIBRARY_NUMBER, ENDLIST);
 
         // PUSH IT ON THE STACK
         rplOverwriteData(2, newlist);
@@ -2976,7 +2976,7 @@ void LIB_HANDLER()
                 rplPushData((word_p) mapinnercomp_seco);
             }
 
-            while(*nextobj == MKOPCODE(LIBRARY_NUMBER, ENDLIST)) {
+            while(*nextobj == MK_OPCODE(LIBRARY_NUMBER, ENDLIST)) {
                 if(nextobj == endmarker) {
                     // CLOSE THE MAIN LIST AND RETURN
                     word_p *prevDStk = rplUnprotectData();
@@ -2987,7 +2987,7 @@ void LIB_HANDLER()
                     rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
                     IPtr = rplPopRet();
-                    CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                    CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                     return;
 
                 }
@@ -3010,7 +3010,7 @@ void LIB_HANDLER()
                         }
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
 
@@ -3023,7 +3023,7 @@ void LIB_HANDLER()
                         }
                         rplCleanupLAMs(0);
                         IPtr = rplPopRet();
-                        CurOpcode = MKOPCODE(LIBRARY_NUMBER, MAP);
+                        CurOpcode = MK_OPCODE(LIBRARY_NUMBER, MAP);
                         return;
                     }
                     if(ISAUTOEXPLIST(**rplGetLAMn(3)))
@@ -3053,7 +3053,7 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MK_OPCODE(LIBRARY_NUMBER,MAP); return; }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -3081,7 +3081,7 @@ void LIB_HANDLER()
 
         if(*((char *)TokenStart) == '{') {
 
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER, 0));
             if(TokenLen > 1) {
                 NextTokenStart = (word_p) (((char *)TokenStart) + 1);
                 RetNum = OK_STARTCONSTRUCT;
@@ -3094,7 +3094,7 @@ void LIB_HANDLER()
         if((TokenLen > 1) && (*((char *)TokenStart) == 'c')
                 && (((char *)TokenStart)[1] == '{')) {
 
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER + 1, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER + 1, 0));
             if(TokenLen > 2) {
                 NextTokenStart = (word_p) (((char *)TokenStart) + 2);
                 RetNum = OK_STARTCONSTRUCT;
@@ -3114,12 +3114,12 @@ void LIB_HANDLER()
                 return;
             }
 
-            if((CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0))
-                    && (CurrentConstruct != MKPROLOG(LIBRARY_NUMBER + 1, 0))) {
+            if((CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 0))
+                    && (CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER + 1, 0))) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDLIST));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDLIST));
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -3139,7 +3139,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
 
             if(!ISAUTOEXPLIST(*DecompileObject))
                 rplDecompAppendString("{");
@@ -3267,7 +3267,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         if(*((char *)TokenStart) == '}') {
@@ -3283,7 +3283,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3292,10 +3292,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_LIST, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_LIST, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -3328,7 +3328,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             // BASIC CHECKS
             word_p ptr, objend;
 
@@ -3359,12 +3359,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 1) {
+        if(MENU_NUMBER(MenuCodeArg) > 1) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 14];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 14];
         RetNum = OK_CONTINUE;
         return;
     }

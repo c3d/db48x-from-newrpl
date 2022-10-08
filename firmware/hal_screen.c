@@ -391,13 +391,13 @@ static void menu_item_layout(gglsurface *scr,
 
     // Validity check: Commands may have rendered the page number invalid,
     // for example by purging variables
-    if (MENUPAGE(menuCode) >= nitems || nitems <= 6)
+    if (MENU_PAGE(menuCode) >= nitems || nitems <= 6)
     {
-        menuCode = SETMENUPAGE(menuCode, 0);
+        menuCode = SET_MENU_PAGE(menuCode, 0);
         rplSetMenuCode(menu, menuCode);
     }
 
-    int64_t menuId = MENUPAGE(menuCode) + index - 1;
+    int64_t menuId = MENU_PAGE(menuCode) + index - 1;
     word_p item = uiGetMenuItem(menuCode, menuObj, menuId);
 
     // Inset before drawing text
@@ -1284,7 +1284,7 @@ static void autocomplete_layout(gglsurface *scr, layout_p layout, rect_t *rect)
             {
                 // Only if there were no errors
                 word_p cmdname = rplDecompile(
-                    ((ISPROLOG(halScreen.ACSuggestion) && SuggestedObject)
+                    ((IS_PROLOG(halScreen.ACSuggestion) && SuggestedObject)
                          ? SuggestedObject
                          : (&halScreen.ACSuggestion)),
                     DECOMP_NOHINTS);
@@ -2059,7 +2059,7 @@ word_p halGetCommandName(word_p NameObject)
         }
     }
 
-    if (ISPROLOG(Opcode))
+    if (IS_PROLOG(Opcode))
     {
         // ONLY ACCEPT IDENTS AND STRINGS AS COMMAND NAMES
         if (ISSTRING(Opcode))

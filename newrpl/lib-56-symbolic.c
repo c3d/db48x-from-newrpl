@@ -31,39 +31,39 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_CASBINARYOP_LEFT,2,16)), \
-    ECMD(OPENBRACKET,"(",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
-    ECMD(CLOSEBRACKET,")",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
-    ECMD(COMMA,"",MKTOKENINFO(1,TITYPE_COMMA,0,31)), \
-    ECMD(SYMBEVALPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBEVALPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBEVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBEVAL1PRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBEVAL1POST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBEVAL1ERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBNUMPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBNUMPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SYMBNUMERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(AUTOSIMPLIFY,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,2,2)), \
-    CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    ECMD(SYMBEVAL1CHK,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(EQUATIONOPERATOR,"=",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,14)), \
-    ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
-    ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
-    CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_CASBINARYOP_LEFT,2,17)), \
-    CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2)), \
-    CMD(ALLROOTS,MKTOKENINFO(8,TITYPE_CASFUNCTION,1,2)), \
-    ECMD(CLISTOPENBRACKET,"c{",MKTOKENINFO(2,TITYPE_OPENBRACKET,0,31)), \
-    ECMD(CLISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
-    CMD(RANGE,MKTOKENINFO(5,TITYPE_FUNCTION,3,2)), \
-    CMD(ASSUME,MKTOKENINFO(6,TITYPE_CASFUNCTION,2,2))
+    ECMD(RULESEPARATOR,":→",MK_TOKEN_INFO(2,TITYPE_CASBINARYOP_LEFT,2,16)), \
+    ECMD(OPENBRACKET,"(",MK_TOKEN_INFO(1,TITYPE_OPENBRACKET,0,31)), \
+    ECMD(CLOSEBRACKET,")",MK_TOKEN_INFO(1,TITYPE_CLOSEBRACKET,0,31)), \
+    ECMD(COMMA,"",MK_TOKEN_INFO(1,TITYPE_COMMA,0,31)), \
+    ECMD(SYMBEVALPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBEVALPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBEVALERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBEVAL1PRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBEVAL1POST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBEVAL1ERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBNUMPRE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBNUMPOST,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SYMBNUMERR,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(AUTOSIMPLIFY,MK_TOKEN_INFO(12,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RULEMATCH,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,2,2)), \
+    CMD(RULEAPPLY,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(TOFRACTION,"→Q",MK_TOKEN_INFO(2,TITYPE_FUNCTION,1,2)), \
+    ECMD(SYMBEVAL1CHK,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(EQUATIONOPERATOR,"=",MK_TOKEN_INFO(1,TITYPE_BINARYOP_LEFT,2,14)), \
+    ECMD(LISTOPENBRACKET,"{",MK_TOKEN_INFO(1,TITYPE_OPENBRACKET,0,31)), \
+    ECMD(LISTCLOSEBRACKET,"}",MK_TOKEN_INFO(1,TITYPE_CLOSEBRACKET,0,31)), \
+    CMD(RULEAPPLY1,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(GIVENTHAT,"|",MK_TOKEN_INFO(1,TITYPE_CASBINARYOP_LEFT,2,17)), \
+    CMD(TRIGSIN,MK_TOKEN_INFO(7,TITYPE_CASFUNCTION,1,2)), \
+    CMD(ALLROOTS,MK_TOKEN_INFO(8,TITYPE_CASFUNCTION,1,2)), \
+    ECMD(CLISTOPENBRACKET,"c{",MK_TOKEN_INFO(2,TITYPE_OPENBRACKET,0,31)), \
+    ECMD(CLISTCLOSEBRACKET,"}",MK_TOKEN_INFO(1,TITYPE_CLOSEBRACKET,0,31)), \
+    CMD(RANGE,MK_TOKEN_INFO(5,TITYPE_FUNCTION,3,2)), \
+    CMD(ASSUME,MK_TOKEN_INFO(6,TITYPE_CASFUNCTION,2,2))
 
-//    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+//    CMD(TEST,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2))
 
-//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -85,35 +85,35 @@
 // ************************************
 
 ROMOBJECT symbeval_seco[] = {
-    MKPROLOG(DOCOL, 6),
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVALPRE),      // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 6),
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVALPRE),      // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),     // DO THE EVAL
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVALPOST),     // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVALERR),      // ERROR HANDLER
-    MKOPCODE(LIBRARY_NUMBER, AUTOSIMPLIFY),     // SIMPLIFY BEFORE RETURN
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVALPOST),     // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVALERR),      // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, AUTOSIMPLIFY),     // SIMPLIFY BEFORE RETURN
     CMD_SEMI
 };
 
 ROMOBJECT symbeval1_seco[] = {
-    MKPROLOG(DOCOL, 8),
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 8),
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL1),    // DO THE EVAL1
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVAL1CHK),     // PREPARE TO CHECK IF ANY CHANGE IN THE ARGUMENTS
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVAL1CHK),     // PREPARE TO CHECK IF ANY CHANGE IN THE ARGUMENTS
     (CMD_OVR_SAME),     // CHECK FOR ANY CHANGES IN THE OBJECT
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVAL1POST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, SYMBEVAL1ERR),     // ERROR HANDLER
-    MKOPCODE(LIBRARY_NUMBER, AUTOSIMPLIFY),     // SIMPLIFY BEFORE RETURN
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVAL1POST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, SYMBEVAL1ERR),     // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, AUTOSIMPLIFY),     // SIMPLIFY BEFORE RETURN
     CMD_SEMI
 };
 
 ROMOBJECT symbnum_seco[] = {
-    MKPROLOG(DOCOL, 7),
-    MKOPCODE(LIBRARY_NUMBER, SYMBNUMPRE),       // PREPARE FOR CUSTOM PROGRAM EVAL
+    MK_PROLOG(DOCOL, 7),
+    MK_OPCODE(LIBRARY_NUMBER, SYMBNUMPRE),       // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_NUM),      // DO NUM
-    MKOPCODE(LIBRARY_NUMBER, SYMBNUMPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
-    MKOPCODE(LIBRARY_NUMBER, SYMBNUMERR),       // ERROR HANDLER
+    MK_OPCODE(LIBRARY_NUMBER, SYMBNUMPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, SYMBNUMERR),       // ERROR HANDLER
     (CMD_OVR_EVAL),     // DO EVAL ON OPERATORS
-    MKOPCODE(LIBRARY_NUMBER, SYMBNUMPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MK_OPCODE(LIBRARY_NUMBER, SYMBNUMPOST),      // POST-PROCESS RESULTS AND CLOSE THE LOOP
     CMD_SEMI
 };
 
@@ -368,7 +368,7 @@ void rplSymbRuleApply1()
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         rplPushData(IPtr);
         return;
@@ -377,7 +377,7 @@ void LIB_HANDLER()
     if((OPCODE(CurOpcode) >= MIN_OVERLOAD_OPCODE)
             && (OPCODE(CurOpcode) < MIN_RESERVED_OPCODE)) {
 
-        if(ISUNARYOP(CurOpcode) && !ISPROLOG(*rplPeekData(1))) {
+        if(ISUNARYOP(CurOpcode) && !IS_PROLOG(*rplPeekData(1))) {
             // COMMAND AS ARGUMENT
             if((OPCODE(CurOpcode) == OVR_EVAL) ||
                     (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -427,7 +427,7 @@ void LIB_HANDLER()
                 return;
             }
             if(ISSYMBOLIC(*object)) {
-                if(ISPROLOG(object[1]) || ISint32_t(object[1]))
+                if(IS_PROLOG(object[1]) || ISint32_t(object[1]))
                     ++object;   // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
             }
 
@@ -440,8 +440,8 @@ void LIB_HANDLER()
             if(!newobject)
                 return;
 
-            newobject[0] = MKPROLOG(DOSYMB, size - 1);
-            newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
+            newobject[0] = MK_PROLOG(DOSYMB, size - 1);
+            newobject[1] = MK_OPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = ScratchPointer1;   // RESTORE AS IT MIGHT'VE MOVED DURING GC
 
             word_p endptr = rplSkipOb(object);
@@ -452,7 +452,7 @@ void LIB_HANDLER()
             // REMOVE QUOTES ON ANY IDENTS
             ptr = newobject + 2;
             if(ISIDENT(*ptr))
-                *ptr = SETLIBNUMBIT(*ptr, UNQUOTED_BIT);
+                *ptr = SET_LIBNUM_BIT(*ptr, UNQUOTED_BIT);
 
             rplOverwriteData(1, newobject);
             return;
@@ -828,8 +828,8 @@ void LIB_HANDLER()
             if(!newobject)
                 return;
 
-            newobject[0] = MKPROLOG(DOSYMB, size - 1);
-            newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
+            newobject[0] = MK_PROLOG(DOSYMB, size - 1);
+            newobject[1] = MK_OPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = rplSymbUnwrap(rplPeekData(1));     // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
 
             word_p endptr = rplSkipOb(object);
@@ -1057,8 +1057,8 @@ void LIB_HANDLER()
             if(!newobject)
                 return;
 
-            newobject[0] = MKPROLOG(DOSYMB, size - 1);
-            newobject[1] = MKOPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
+            newobject[0] = MK_PROLOG(DOSYMB, size - 1);
+            newobject[1] = MK_OPCODE(LIB_OVERLOADABLE, OPCODE(CurOpcode));
             object = rplSymbUnwrap(rplPeekData(1));     // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
 
             word_p endptr = rplSkipOb(object);
@@ -1291,7 +1291,7 @@ void LIB_HANDLER()
                 while(ISSYMBOLIC(*ScratchPointer2))
                     ++ScratchPointer2;
 
-                if(ISPROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
+                if(IS_PROLOG(*ScratchPointer1) || ISint32_t(*ScratchPointer1)
                         || ISCONSTANT(*ScratchPointer1)) {
                     // COMPARE OBJECTS BY USING THE SAME OPERATOR
                     rplPushDataNoGrow(ScratchPointer1);
@@ -2842,7 +2842,7 @@ void LIB_HANDLER()
             word_p newlist = rplAllocTempOb(size), ptr;
             if(!newlist)
                 return;
-            newlist[0] = MKPROLOG(DOCASELIST, size);
+            newlist[0] = MK_PROLOG(DOCASELIST, size);
             newlist[size] = CMD_ENDLIST;
             ptr = newlist + 1;
             if(step > 0) {
@@ -2915,7 +2915,7 @@ void LIB_HANDLER()
         }
         while(cmpReal(&RReg[1], &RReg[2]) != direction);
 
-        newlist[0] = MKPROLOG(DOCASELIST, ptr - newlist);
+        newlist[0] = MK_PROLOG(DOCASELIST, ptr - newlist);
         newlist[ptr - newlist] = CMD_ENDLIST;
 
         rplOverwriteData(3, newlist);
@@ -3028,8 +3028,8 @@ void LIB_HANDLER()
         uint64_t Locale = rplGetSystemLocale();
 
         if(*tok == '(') {
-            if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, OPENBRACKET));
+            if((TokenLen == 1) && (CurrentConstruct == MK_PROLOG(DOSYMB, 0))) {
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, OPENBRACKET));
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3038,8 +3038,8 @@ void LIB_HANDLER()
         }
 
         if(*tok == ')') {
-            if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, CLOSEBRACKET));       // INDICATE THE OPENING BRACKET TO MATCH
+            if((TokenLen == 1) && (CurrentConstruct == MK_PROLOG(DOSYMB, 0))) {
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, CLOSEBRACKET));       // INDICATE THE OPENING BRACKET TO MATCH
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3047,8 +3047,8 @@ void LIB_HANDLER()
             return;
         }
         if((WORD) utf82cp((char *)tok, (char *)BlankStart) == ARG_SEP(Locale)) {
-            if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, COMMA));
+            if((TokenLen == 1) && (CurrentConstruct == MK_PROLOG(DOSYMB, 0))) {
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, COMMA));
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3057,8 +3057,8 @@ void LIB_HANDLER()
         }
 
         if((TokenLen == 2) && (*tok == 'c') && (tok[1] == '{')) {
-            if(CurrentConstruct == MKPROLOG(DOSYMB, 0)) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, CLISTOPENBRACKET));
+            if(CurrentConstruct == MK_PROLOG(DOSYMB, 0)) {
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, CLISTOPENBRACKET));
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3066,8 +3066,8 @@ void LIB_HANDLER()
             return;
         }
         if(*tok == '{') {
-            if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LISTOPENBRACKET));
+            if((TokenLen == 1) && (CurrentConstruct == MK_PROLOG(DOSYMB, 0))) {
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, LISTOPENBRACKET));
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3075,9 +3075,9 @@ void LIB_HANDLER()
             return;
         }
         if(*tok == '}') {
-            if((TokenLen == 1) && (CurrentConstruct == MKPROLOG(DOSYMB, 0))) {
+            if((TokenLen == 1) && (CurrentConstruct == MK_PROLOG(DOSYMB, 0))) {
                 // ISSUE A BUILDLIST OPERATOR
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, LISTCLOSEBRACKET));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, LISTCLOSEBRACKET));
                 RetNum = OK_CONTINUE;
             }
             else
@@ -3087,8 +3087,8 @@ void LIB_HANDLER()
 
         /*
            if( (TokenLen==2) && !utf8ncmp2((char *)tok,(char *)BlankStart,":→",2)) {
-           if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
-           rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR));
+           if(CurrentConstruct==MK_PROLOG(DOSYMB,0)) {
+           rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER,RULESEPARATOR));
            RetNum=OK_CONTINUE;
            }
            else RetNum=ERR_NOTMINE;
@@ -3097,9 +3097,9 @@ void LIB_HANDLER()
          */
         /*
            if(*tok=='|') {
-           if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+           if((TokenLen==1)&&(CurrentConstruct==MK_PROLOG(DOSYMB,0))) {
            // ISSUE A BUILDLIST OPERATOR
-           rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,GIVENTHAT));
+           rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER,GIVENTHAT));
            RetNum=OK_CONTINUE;
            }
            else RetNum=ERR_NOTMINE;
@@ -3125,12 +3125,12 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             RetNum = OK_STARTCONSTRUCT_INFIX;
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, COMMA)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, COMMA)) {
             // SPECIAL TREATMENT FOR ARGUMENT SEPARATOR DUE TO LOCALE
             uint64_t Locale = rplGetSystemLocale();
 
@@ -3170,7 +3170,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
 
@@ -3186,12 +3186,12 @@ void LIB_HANDLER()
 
         if((WORD) utf82cp((char *)TokenStart,
                     (char *)BlankStart) == ARG_SEP(Locale)) {
-            RetNum = OK_TOKENINFO | MKTOKENINFO(1, TITYPE_COMMA, 0, 31);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(1, TITYPE_COMMA, 0, 31);
             return;
         }
         /*
            if( !utf8ncmp2((char *)TokenStart,(char *)BlankStart,":→",2) ) {
-           RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
+           RetNum= OK_TOKENINFO | MK_TOKEN_INFO(2,TITYPE_BINARYOP_LEFT,2,14);
            return;
            }
          */
@@ -3206,7 +3206,7 @@ void LIB_HANDLER()
 
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3215,10 +3215,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_EXPRESSION, 0, 0);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_EXPRESSION, 0, 0);
             return;
         }
         TypeInfo = 0;   // ALL COMMANDS ARE TYPE 0
@@ -3265,12 +3265,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 4];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 4];
         RetNum = OK_CONTINUE;
         return;
     }

@@ -30,7 +30,7 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(NEWLOCALENV,"→",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2))
+    ECMD(NEWLOCALENV,"→",MK_TOKEN_INFO(1,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -50,7 +50,7 @@
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
     }
@@ -83,7 +83,7 @@ void LIB_HANDLER()
         if((TokenLen == 1)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "«",
                         1))) {
-            if((CurrentConstruct & ~0xffff) != MKOPCODE(LIBRARY_NUMBER,
+            if((CurrentConstruct & ~0xffff) != MK_OPCODE(LIBRARY_NUMBER,
                         NEWLOCALENV)) {
                 RetNum = ERR_NOTMINE;
                 return;
@@ -109,9 +109,9 @@ void LIB_HANDLER()
             // NOW REPLACE THE -> WORD FOR A STANDARD <<
 
             ScratchPointer1 = *(ValidateTop - 1);
-            *ScratchPointer1 = MKPROLOG(SECO, 0);       // STANDARD SECONDARY PROLOG SO ALL LAMS ARE CREATED INSIDE OF IT
-            CurrentConstruct = MKPROLOG(SECO, 0);
-            rplCompileAppend((WORD) MKOPCODE(DOIDENT, NEWNLOCALS + lamcount));  // OPCODE TO CREATE ALL THESE LAMS
+            *ScratchPointer1 = MK_PROLOG(SECO, 0);       // STANDARD SECONDARY PROLOG SO ALL LAMS ARE CREATED INSIDE OF IT
+            CurrentConstruct = MK_PROLOG(SECO, 0);
+            rplCompileAppend((WORD) MK_OPCODE(DOIDENT, NEWNLOCALS + lamcount));  // OPCODE TO CREATE ALL THESE LAMS
             RetNum = OK_CONTINUE;
             return;
         }
@@ -122,7 +122,7 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "→",
                         1))) {
             rplCompileAppend(CMD_XEQSECO);      // EVAL THE NEXT SECO IN THE RUNSTREAM
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, NEWLOCALENV));    // PUT A MARKER
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, NEWLOCALENV));    // PUT A MARKER
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -154,7 +154,7 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
-        if(ISPROLOG(*LastCompiledObject)) {
+        if(IS_PROLOG(*LastCompiledObject)) {
             if(ISIDENT(*LastCompiledObject)) {
                 RetNum = OK_INCARGCOUNT;
                 return;
@@ -168,10 +168,10 @@ void LIB_HANDLER()
 
                 // NOW REPLACE THE -> WORD FOR A STANDARD <<
 
-                **(ValidateTop - 1) = MKPROLOG(SECO, 0);        // STANDARD SECONDARY PROLOG SO ALL LAMS ARE CREATED INSIDE OF IT
-                CurrentConstruct = MKPROLOG(SECO, 0);
+                **(ValidateTop - 1) = MK_PROLOG(SECO, 0);        // STANDARD SECONDARY PROLOG SO ALL LAMS ARE CREATED INSIDE OF IT
+                CurrentConstruct = MK_PROLOG(SECO, 0);
 
-                rplCompileInsert(LastCompiledObject, MKOPCODE(DOIDENT,
+                rplCompileInsert(LastCompiledObject, MK_OPCODE(DOIDENT,
                             NEWNLOCALS + lamcount));
                 rplCompileAppend(CMD_OVR_EVAL1);
                 rplCompileAppend(CMD_QSEMI);
@@ -194,7 +194,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -202,10 +202,10 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -239,7 +239,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }

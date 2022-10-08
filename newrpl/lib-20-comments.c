@@ -34,8 +34,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(STRIPCOMMENTS,MKTOKENINFO(13,TITYPE_NOTALLOWED,1,2))
-//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(STRIPCOMMENTS,MK_TOKEN_INFO(13,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -66,12 +66,12 @@ void rplSetCommentLength(word_p string, int32_t length)
 {
     int32_t padding = (4 - ((length) & 3)) & 3;
 
-    *string = MKPROLOG(LIBRARY_NUMBER + padding, (length + 3) >> 2);
+    *string = MK_PROLOG(LIBRARY_NUMBER + padding, (length + 3) >> 2);
 }
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
 
         // DO ABSOLUTELY NOTHING (IT'S JUST A COMMENT)
@@ -91,7 +91,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            if(ISPROLOG(*rplPeekData(1))) {
+            if(IS_PROLOG(*rplPeekData(1))) {
                 // DO-NOTHING
                 rplPopData();
                 return;
@@ -226,7 +226,7 @@ void LIB_HANDLER()
         // SECOND PASS, COPY TO NEW OBJECT
         ptr = rplPeekData(1);
         end = rplSkipOb(ptr);
-        *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
+        *ScratchPointer2 = MK_PROLOG(LIBNUM(*ptr), 0);
         ++ScratchPointer2;
         ++ptr;
         newsize = 1;
@@ -252,7 +252,7 @@ void LIB_HANDLER()
                     }
                     ptr = rplPeekData(2);       // RE-READ POINTERS IN CASE OF GC
                     end = rplSkipOb(ptr);
-                    *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
+                    *ScratchPointer2 = MK_PROLOG(LIBNUM(*ptr), 0);
                     ++ScratchPointer2;
                     newsize = 1;
                     ++ptr;
@@ -268,7 +268,7 @@ void LIB_HANDLER()
                     }
                     ptr = rplPeekData(1);       // RE-READ POINTERS IN CASE OF GC
                     end = rplSkipOb(ptr);
-                    *ScratchPointer2 = MKPROLOG(LIBNUM(*ptr), 0);
+                    *ScratchPointer2 = MK_PROLOG(LIBNUM(*ptr), 0);
                     ++ScratchPointer2;
                     newsize = 1;
                     ++ptr;
@@ -295,7 +295,7 @@ void LIB_HANDLER()
             }
 
             // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
-            *ScratchPointer3 = MKPROLOG( LIBNUM(*ScratchPointer3), newsize - 1);
+            *ScratchPointer3 = MK_PROLOG( LIBNUM(*ScratchPointer3), newsize - 1);
 
         }
         while(DSTop != Stacksave);
@@ -329,7 +329,7 @@ void LIB_HANDLER()
 
             ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
 
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
 
             union
             {
@@ -354,7 +354,7 @@ void LIB_HANDLER()
                         if(count)
                             rplCompileAppend(temp.word);
                         *ScratchPointer4 =
-                                MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                                MK_PROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
                         RetNum = OK_NEEDMORE;
                         return;
@@ -381,7 +381,7 @@ void LIB_HANDLER()
                             rplCompileAppend(temp.word);
                         }
                         *ScratchPointer4 =
-                                MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                                MK_PROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
 
                         if(ptr < (utf8_p) BlankStart) {
@@ -464,7 +464,7 @@ void LIB_HANDLER()
                     if(count)
                         rplCompileAppend(temp.word);
                     *ScratchPointer4 =
-                            MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                            MK_PROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
                     RetNum = OK_NEEDMORE;
                     return;
@@ -491,7 +491,7 @@ void LIB_HANDLER()
                     if(count)
                         rplCompileAppend(temp.word);
                     *ScratchPointer4 =
-                            MKPROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
+                            MK_PROLOG(LIBRARY_NUMBER + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
 
                     if(ptr < (utf8_p) BlankStart) {
@@ -536,7 +536,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             rplDecompAppendChar('@');
             int32_t len =
                     (OBJSIZE(*DecompileObject) << 2) -
@@ -593,7 +593,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -605,7 +605,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -613,10 +613,10 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0

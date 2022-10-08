@@ -149,7 +149,7 @@ static int32_t rplInfixApply(WORD opcode, int32_t nargs)
     // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
     memmovew(ptr + 2, ptr, CompileEnd - ptr - 2);
 
-    ptr[0] = MKPROLOG(DOSYMB, CompileEnd - ptr - 1);
+    ptr[0] = MK_PROLOG(DOSYMB, CompileEnd - ptr - 1);
     ptr[1] = opcode;
 
     return 1;
@@ -185,7 +185,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
     CompileStringEnd = (word_p) (string + length);
 
     if(addwrapper) {
-        rplCompileAppend(MKPROLOG(DOCOL, 0));
+        rplCompileAppend(MK_PROLOG(DOCOL, 0));
         if(RStkSize <= (ValidateTop - RStk))
             growRStk(ValidateTop - RStk + RSTKSLACK);
         if(Exceptions) {
@@ -259,13 +259,13 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                 continue;
 
             if(infixmode == 1) {
-                CurOpcode = MKOPCODE(libnum, OPCODE_PROBETOKEN);
+                CurOpcode = MK_OPCODE(libnum, OPCODE_PROBETOKEN);
             }
             else {
                 if(force_libnum != -1)
-                    CurOpcode = MKOPCODE(libnum, OPCODE_COMPILECONT);
+                    CurOpcode = MK_OPCODE(libnum, OPCODE_COMPILECONT);
                 else
-                    CurOpcode = MKOPCODE(libnum, OPCODE_COMPILE);
+                    CurOpcode = MK_OPCODE(libnum, OPCODE_COMPILE);
             }
             // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
             word_p *tmpRSTop = RSTop;
@@ -305,7 +305,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                     *ValidateTop++ = CompileEnd - 1;    // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     libcnt = EXIT_LOOP;
                     force_libnum = -1;
-                    if(ISPROLOG((int32_t) ** (ValidateTop - 1)))
+                    if(IS_PROLOG((int32_t) ** (ValidateTop - 1)))
                         validate = 0;
                     else
                         validate = 1;
@@ -328,7 +328,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((int32_t) ** ValidateTop)) {
+                    if(IS_PROLOG((int32_t) ** ValidateTop)) {
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         **ValidateTop =
                                 (**ValidateTop ^ OBJSIZE(**ValidateTop)) |
@@ -436,7 +436,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((int32_t) ** ValidateTop)) {
+                    if(IS_PROLOG((int32_t) ** ValidateTop)) {
                         **ValidateTop = (**ValidateTop ^ OBJSIZE(**ValidateTop)) | (((WORD) ((intptr_t) CompileEnd - (intptr_t) * ValidateTop) >> 2) - 1);  // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
                         CurrentConstruct = (int32_t) ((ValidateTop > ValidateBottom) ? **(ValidateTop - 1) : 0);   // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
@@ -498,7 +498,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                     // COMPILE THE TOKEN
 
                     handler = rplGetLibHandler(probe_libnum);
-                    CurOpcode = MKOPCODE(probe_libnum, OPCODE_COMPILE);
+                    CurOpcode = MK_OPCODE(probe_libnum, OPCODE_COMPILE);
 
                     NextTokenStart = BlankStart =
                             (word_p) utf8nskip((char *)TokenStart,
@@ -581,7 +581,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                                 // IT'S A UNARY MINUS
                                 Opcode = (CMD_OVR_UMINUS);
                                 probe_tokeninfo =
-                                        MKTOKENINFO(1, TITYPE_PREFIXOP, 1, 4);
+                                        MK_TOKEN_INFO(1, TITYPE_PREFIXOP, 1, 4);
                                 break;
                             default:
                                 break;
@@ -604,7 +604,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                                 // IT'S A UNARY PLUS
                                 Opcode = (CMD_OVR_UPLUS);
                                 probe_tokeninfo =
-                                        MKTOKENINFO(1, TITYPE_PREFIXOP, 1, 4);
+                                        MK_TOKEN_INFO(1, TITYPE_PREFIXOP, 1, 4);
                                 break;
                             default:
                                 break;
@@ -647,7 +647,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                                 }
                                 InfixOpTop[0] = (CMD_OVR_FUNCEVAL);     // SAVE POSITION TO START COUNTING ARGUMENTS
                                 InfixOpTop[1] =
-                                        MKTOKENINFO(TI_LENGTH
+                                        MK_TOKEN_INFO(TI_LENGTH
                                         (previous_tokeninfo), TITYPE_FUNCTION,
                                         0xf, 2);
                                 InfixOpTop += 2;
@@ -859,7 +859,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
         if(validate && !infixmode) {
             if(ValidateHandler) {
                 // CALL THE LIBRARY TO SEE IF IT'S OK TO HAVE THIS OBJECT
-                CurOpcode = MKOPCODE(LIBNUM(CurrentConstruct), OPCODE_VALIDATE);
+                CurOpcode = MK_OPCODE(LIBNUM(CurrentConstruct), OPCODE_VALIDATE);
 
                 (*ValidateHandler) ();
 
@@ -881,7 +881,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
                         LAMTop = LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((int32_t) ** ValidateTop)) {
+                    if(IS_PROLOG((int32_t) ** ValidateTop)) {
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         **ValidateTop =
                                 (**ValidateTop ^ OBJSIZE(**ValidateTop)) |
@@ -922,7 +922,7 @@ word_p rplCompile(utf8_p string, int32_t length, int32_t addwrapper)
             LAMTop = LAMTopSaved;
             return 0;
         }
-        if(ISPROLOG((int32_t) ** ValidateTop))
+        if(IS_PROLOG((int32_t) ** ValidateTop))
             **ValidateTop |= ((WORD) ((intptr_t) CompileEnd - (intptr_t) * ValidateTop) >> 2) - 1;  // STORE THE SIZE OF THE COMPOSITE IN THE WORD
         rplCompileAppend(CMD_ENDOFCODE);
     }
@@ -1153,7 +1153,7 @@ word_p rplDecompile(word_p object, int32_t flags)
 
     if(!(flags & DECOMP_EMBEDDED)) {
         // CREATE EMPTY STRING AT END OF TEMPOB
-        rplCompileAppend(MKPROLOG(DOSTRING, 0));
+        rplCompileAppend(MK_PROLOG(DOSTRING, 0));
         DecompStringEnd = CompileEnd;
     }
 
@@ -1163,7 +1163,7 @@ word_p rplDecompile(word_p object, int32_t flags)
         // CALL LIBRARY HANDLER TO DECOMPILE
         han = rplGetLibHandler(LIBNUM(*DecompileObject));
 
-        CurOpcode = MKOPCODE(0, OPCODE_GETINFO);
+        CurOpcode = MK_OPCODE(0, OPCODE_GETINFO);
         DecompMode = infixmode | (flags << 16);
 
         if(!han) {
@@ -1246,7 +1246,7 @@ word_p rplDecompile(word_p object, int32_t flags)
         // NOW ACTUALLY DECOMPILE THE OBJECT
 
         CurOpcode =
-                MKOPCODE(0,
+                MK_OPCODE(0,
                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT : OPCODE_DECOMPILE);
         if(ValidateTop > ValidateBottom)
             CurrentConstruct = **(ValidateTop - 1);
@@ -1410,7 +1410,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 if(handler) {
 
                     CurOpcode =
-                            MKOPCODE(LIBNUM(*DecompileObject), OPCODE_GETINFO);
+                            MK_OPCODE(LIBNUM(*DecompileObject), OPCODE_GETINFO);
                     DecompMode = infixmode | (flags << 16);
 
                     // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
@@ -1421,7 +1421,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 }
 
                 if(RetNum < OK_TOKENINFO)
-                    RetNum = MKTOKENINFO(0, TITYPE_FUNCTION, 0, 20);    //    TREAT LIKE A NORMAL FUNCTION, THAT WILL BE CALLED [INVALID] LATER
+                    RetNum = MK_TOKEN_INFO(0, TITYPE_FUNCTION, 0, 20);    //    TREAT LIKE A NORMAL FUNCTION, THAT WILL BE CALLED [INVALID] LATER
 
                 if(TI_TYPE(RetNum) >= TITYPE_OPERATORS) {
                     // PUSH THE OPERATOR ON THE STACK
@@ -1451,7 +1451,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
                     if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                         // THERE'S AN OPERATOR IN THE STACK
-                        if(ISPROLOG(*(InfixOpTop - 6))) {
+                        if(IS_PROLOG(*(InfixOpTop - 6))) {
                             // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
                             // NO NEED FOR PARENTHESIS
                         }
@@ -1518,7 +1518,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     case TITYPE_PREFIXOP:
                         // DECOMPILE THE OPERATOR NOW!
                         CurOpcode =
-                                MKOPCODE(LIBNUM(*DecompileObject),
+                                MK_OPCODE(LIBNUM(*DecompileObject),
                                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                                 OPCODE_DECOMPILE);
                         {
@@ -1569,7 +1569,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         rplPushRet(DecompileObject);
                         DecompileObject = argList;
                         CurOpcode =
-                                MKOPCODE(LIBNUM(*argList),
+                                MK_OPCODE(LIBNUM(*argList),
                                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                                 OPCODE_DECOMPILE);
                         DecompMode = infixmode | (flags << 16);
@@ -1619,7 +1619,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     {
                         // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
                         CurOpcode =
-                                MKOPCODE(LIBNUM(*DecompileObject),
+                                MK_OPCODE(LIBNUM(*DecompileObject),
                                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                                 OPCODE_DECOMPILE);
                         DecompMode = infixmode | (flags << 16);
@@ -1649,7 +1649,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     {
                         // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
                         CurOpcode =
-                                MKOPCODE(LIBNUM(*DecompileObject),
+                                MK_OPCODE(LIBNUM(*DecompileObject),
                                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                                 OPCODE_DECOMPILE);
                         DecompMode = infixmode | (flags << 16);
@@ -1755,7 +1755,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     int32_t libnum = LIBNUM(Operator);
                     DecompileObject = &Operator;
                     CurOpcode =
-                            MKOPCODE(libnum,
+                            MK_OPCODE(libnum,
                             (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                             OPCODE_DECOMPILE);
                     DecompMode = infixmode | (flags << 16);
@@ -1839,7 +1839,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                     int32_t libnum = LIBNUM(Operator);
                     DecompileObject = &Operator;
                     CurOpcode =
-                            MKOPCODE(libnum,
+                            MK_OPCODE(libnum,
                             (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                             OPCODE_DECOMPILE);
                     DecompMode = infixmode | (flags << 16);
@@ -1866,7 +1866,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 /*
                    if( (InfixOpTop-6)>=RSTop) {
                    // THERE'S AN OPERATOR IN THE STACK
-                   if(ISPROLOG(*(InfixOpTop-6))) {
+                   if(IS_PROLOG(*(InfixOpTop-6))) {
                    // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
                    // NO NEED FOR PARENTHESIS
                    }
@@ -1914,7 +1914,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
                 if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                     // THERE'S AN OPERATOR IN THE STACK
-                    if(ISPROLOG(*(InfixOpTop - 6))) {
+                    if(IS_PROLOG(*(InfixOpTop - 6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
                         // NO NEED FOR PARENTHESIS
                     }
@@ -1977,7 +1977,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 SavedDecompObject = DecompileObject;
                 DecompileObject = InfixOpTop - 2;
                 CurOpcode =
-                        MKOPCODE(libnum,
+                        MK_OPCODE(libnum,
                         (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                         OPCODE_DECOMPILE);
                 DecompMode = infixmode | (flags << 16);
@@ -2002,7 +2002,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
                 if((InfixOpTop - 6) >= (word_p) ValidateTop) {
                     // THERE'S AN OPERATOR IN THE STACK
-                    if(ISPROLOG(*(InfixOpTop - 6))) {
+                    if(IS_PROLOG(*(InfixOpTop - 6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
                         // NO NEED FOR PARENTHESIS
                     }
@@ -2088,7 +2088,7 @@ word_p rplDecompile(word_p object, int32_t flags)
                         closebracket = *(InfixOpTop - 2) + 1;
                         DecompileObject = &closebracket;
                         CurOpcode =
-                                MKOPCODE(libnum,
+                                MK_OPCODE(libnum,
                                 (flags & DECOMP_EDIT) ? OPCODE_DECOMPEDIT :
                                 OPCODE_DECOMPILE);
                         DecompMode = infixmode | (flags << 16);
@@ -2241,7 +2241,7 @@ word_p rplDecompile(word_p object, int32_t flags)
     if(!(flags & DECOMP_EMBEDDED)) {
         // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG
         *(CompileEnd - 1) =
-                MKPROLOG(DOSTRING + ((-(intptr_t) DecompStringEnd) & 3),
+                MK_PROLOG(DOSTRING + ((-(intptr_t) DecompStringEnd) & 3),
                 ((WORD) ((intptr_t) DecompStringEnd -
                         (intptr_t) CompileEnd) + 3) >> 2);
         CompileEnd = rplSkipOb(CompileEnd - 1);

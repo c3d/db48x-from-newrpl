@@ -31,8 +31,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(MKTAG,"→TAG",MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
-    CMD(DTAG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    ECMD(MKTAG,"→TAG",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,2,2)), \
+    CMD(DTAG,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -76,7 +76,7 @@ int32_t rplStripTagStack(int32_t nlevels)
         if(ISTAG(*DSTop[-k])) {
             changed = 1;
             DSTop[-k] +=
-                    2 + ((ISPROLOG(*(DSTop[-k] + 1))) ? OBJSIZE(*(DSTop[-k] +
+                    2 + ((IS_PROLOG(*(DSTop[-k] + 1))) ? OBJSIZE(*(DSTop[-k] +
                             1)) : 0);
         }
     return changed;
@@ -85,7 +85,7 @@ int32_t rplStripTagStack(int32_t nlevels)
 word_p rplStripTag(word_p object)
 {
     if(ISTAG(*object))
-        return object + 2 + ((ISPROLOG(object[1])) ? OBJSIZE(object[1]) : 0);
+        return object + 2 + ((IS_PROLOG(object[1])) ? OBJSIZE(object[1]) : 0);
     return object;
 }
 
@@ -99,7 +99,7 @@ word_p rplStripTag(word_p object)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // JUST PUSH THE OBJECT ON THE STACK
         rplPushData(IPtr);
         return;
@@ -110,7 +110,7 @@ void LIB_HANDLER()
 
         if(OVR_GETNARGS(CurOpcode) == 1) {
 
-            if(!ISPROLOG(*rplPeekData(1))) {
+            if(!IS_PROLOG(*rplPeekData(1))) {
                 // COMMAND AS ARGUMENT
                 if((OPCODE(CurOpcode) == OVR_EVAL) ||
                         (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -178,7 +178,7 @@ void LIB_HANDLER()
         word_p newobj = rplAllocTempOb(newsize);
         if(!newobj)
             return;
-        newobj[0] = MKPROLOG(DOTAG, newsize);
+        newobj[0] = MK_PROLOG(DOTAG, newsize);
         rplCopyObject(newobj + 1, rplPeekData(2));
         rplCopyObject(newobj + 1 + rplObjSize(newobj + 1), rplPeekData(1));
         rplOverwriteData(2, newobj);
@@ -227,14 +227,14 @@ void LIB_HANDLER()
             return;
         }
         // IF WE'VE BEEN HERE BEFORE, THEN WE ARE INSIDE THE TAG ITSELF
-        if(CurrentConstruct == (uint32_t) MKPROLOG(LIBRARY_NUMBER, 0)) {
+        if(CurrentConstruct == (uint32_t) MK_PROLOG(LIBRARY_NUMBER, 0)) {
             // NEED TO MANUALLY COMPILE THE STRING
             int32_t nbytes = (byte_p) BlankStart - (byte_p) TokenStart - 1;
             int32_t lastword = nbytes & 3;
             if(lastword)
                 lastword = 4 - lastword;
             ++ptr;
-            rplCompileAppend(MKPROLOG(DOSTRING + lastword, (nbytes + 3) >> 2));
+            rplCompileAppend(MK_PROLOG(DOSTRING + lastword, (nbytes + 3) >> 2));
             while(nbytes >= 4) {
                 rplCompileAppend(TEXT2WORD(ptr[0], ptr[1], ptr[2], ptr[3]));
                 ptr += 4;
@@ -262,7 +262,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+        rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
         if(endcolon < ((byte_p) BlankStart) - 1)
             NextTokenStart = (word_p) (endcolon + 1);
         BlankStart = (word_p) endcolon;
@@ -281,7 +281,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
 
             rplDecompAppendChar(':');
             rplDecompAppendString2((utf8_p) (DecompileObject + 2),
@@ -328,7 +328,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
 
@@ -343,7 +343,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -352,10 +352,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -402,12 +402,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

@@ -31,40 +31,40 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(BEGINPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EDITPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKECOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKETYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLCOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLTYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLSTROKE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MOVETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(LINETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CIRCLE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RECTANG,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CTLNODE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CURVE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DOGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BASEPT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TRANSLATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ROTATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SCALE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLEARTRANSF,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SETFONT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TEXTHEIGHT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TEXTOUT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(INITRENDER,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DORENDER,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PANVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ROTVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SCLVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VIEWPORT,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VIEWALL,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(BEGINPLOT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDITPLOT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDPLOT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STROKECOL,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STROKETYPE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILLCOL,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILLTYPE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILL,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STROKE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILLSTROKE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MOVETO,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LINETO,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CIRCLE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RECTANG,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CTLNODE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CURVE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BGROUP,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EGROUP,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOGROUP,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BASEPT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TRANSLATE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ROTATE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SCALE,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLEARTRANSF,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETFONT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TEXTHEIGHT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TEXTOUT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(INITRENDER,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DORENDER,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PANVIEW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ROTVIEW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SCLVIEW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VIEWPORT,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VIEWALL,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE PLOT COMMANDS HERE
 
@@ -103,7 +103,7 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib88_menu);
 
 ROMOBJECT cplot_ident[] = {
-    MKPROLOG(DOIDENT, 1),
+    MK_PROLOG(DOIDENT, 1),
     TEXT2WORD('C', 'P', 'l', 't')
 };
 
@@ -204,7 +204,7 @@ void rplCPlotNumber(int64_t num)
     }
 
     // UPDATE THE PROLOG
-    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
+    *obj = MK_PROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
 
 }
 
@@ -233,7 +233,7 @@ void rplCPlotCmd(int32_t cmd)
     *ptr++ = (BYTE) (cmd & 0xff);
 
     // UPDATE THE PROLOG
-    *obj = MKPROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
+    *obj = MK_PROLOG(DOPLOT + ((end - ptr) & 3), ((word_p) end) - (obj + 1));
 
     return;
 }
@@ -433,7 +433,7 @@ void rplRenderViewport(word_p rstatus, int64_t x, int64_t y, int64_t x2,
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // JUST PUSH THE OBJECT ON THE STACK
         rplPushData(IPtr);
         return;
@@ -473,7 +473,7 @@ void LIB_HANDLER()
         word_p newobj = rplAllocTempOb(0);
         if(!newobj)
             return;
-        newobj[0] = MKPROLOG(DOPLOT, 0);
+        newobj[0] = MK_PROLOG(DOPLOT, 0);
 
         rplOverwriteData(2, (word_p) newobj);
         rplOverwriteData(1, (word_p) cplot_ident);
@@ -1084,7 +1084,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            CurOpcode = MKOPCODE(libnum, CMD_PLTRESET);
+            CurOpcode = MK_OPCODE(libnum, CMD_PLTRESET);
 
             (*renderer) ();
 
@@ -1147,13 +1147,13 @@ void LIB_HANDLER()
         word_p rstatus = rplAllocTempOb(RSTATUS_SIZE * 3 + 2 + 1);     // 14 int64_t + 1 WORDS FOR THE STRING + 1 WORD FOR PERSIST_OBJECT (ANOTHER EMPTY STRING) + 1 FOR ENDLIST
         if(!rstatus)
             return;
-        rstatus[0] = MKPROLOG(DOLIST, RSTATUS_SIZE * 3 + 2 + 1);
+        rstatus[0] = MK_PROLOG(DOLIST, RSTATUS_SIZE * 3 + 2 + 1);
 
         // CREATE THE int64_t'S
 
         int k;
         for(k = 0; k < RSTATUS_SIZE; ++k) {
-            rstatus[k * 3 + 1] = MKPROLOG(DECBINT, 2);
+            rstatus[k * 3 + 1] = MK_PROLOG(DECBINT, 2);
             rstatus[k * 3 + 2] = 0;
             rstatus[k * 3 + 3] = 0;
         }
@@ -1184,7 +1184,7 @@ void LIB_HANDLER()
             return;
         }
 
-        CurOpcode = MKOPCODE(libnum, CMD_PLTRENDERSIZE);
+        CurOpcode = MK_OPCODE(libnum, CMD_PLTRENDERSIZE);
 
         (*renderer) ();
 
@@ -1320,7 +1320,7 @@ void LIB_HANDLER()
 
                 }
 
-                CurOpcode = MKOPCODE(*RLIBPTR(rstatus), CMD_PLTBASE + *ptr);
+                CurOpcode = MK_OPCODE(*RLIBPTR(rstatus), CMD_PLTBASE + *ptr);
 
                 int32_t ptroff = ptr - (byte_p) plotobj;
 
@@ -1472,7 +1472,7 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
@@ -1504,7 +1504,7 @@ void LIB_HANDLER()
                         "PLOTDATA", 8))) {
 
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -1550,7 +1550,7 @@ void LIB_HANDLER()
                         if(count)
                             rplCompileAppend(temp.word);
                         *ScratchPointer4 =
-                                MKPROLOG(DOPLOT + 4 + ((4 - count) & 3),
+                                MK_PROLOG(DOPLOT + 4 + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
                         RetNum = OK_NEEDMORE;
 
@@ -1650,7 +1650,7 @@ void LIB_HANDLER()
                 rplCompileAppend(temp.word);
 
                 *ScratchPointer4 =
-                        MKPROLOG(DOPLOT + ((4 - count) & 3),
+                        MK_PROLOG(DOPLOT + ((4 - count) & 3),
                         (WORD) (CompileEnd - ScratchPointer4) - 1);
                 RetNum = OK_CONTINUE;
                 return;
@@ -1730,7 +1730,7 @@ void LIB_HANDLER()
                     if(count)
                         rplCompileAppend(temp.word);
                     *ScratchPointer4 =
-                            MKPROLOG(DOPLOT + ((4 - count) & 3),
+                            MK_PROLOG(DOPLOT + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
                     RetNum = OK_NEEDMORE;
                     return;
@@ -1820,7 +1820,7 @@ void LIB_HANDLER()
                                     if(count)
                                         rplCompileAppend(temp.word);
                                     *ScratchPointer4 =
-                                            MKPROLOG(DOPLOT + 4 + ((4 -
+                                            MK_PROLOG(DOPLOT + 4 + ((4 -
                                                     count) & 3),
                                             (WORD) (CompileEnd -
                                                 ScratchPointer4) - 1);
@@ -2010,7 +2010,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             // DECOMPILE PLOT OBJECT
 
             rplDecompAppendString("PLOTDATA ");
@@ -2116,7 +2116,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -2128,7 +2128,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -2137,10 +2137,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -2173,7 +2173,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }
@@ -2191,12 +2191,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

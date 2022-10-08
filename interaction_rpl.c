@@ -143,7 +143,7 @@ int usbsendtoremote(uint32_t * data, int nwords)
 int usbremotearchivestart()
 {
     WORD program[] = {
-        MKPROLOG(SECO, 2),
+        MK_PROLOG(SECO, 2),
         CMD_USBARCHIVE,
         CMD_QSEMI,
     };
@@ -154,7 +154,7 @@ int usbremotearchivestart()
 int usbremoterestorestart()
 {
     WORD program[] = {
-        MKPROLOG(SECO, 3),
+        MK_PROLOG(SECO, 3),
         MAKESINT(3),
         CMD_USBRESTORE,
         CMD_QSEMI,
@@ -167,7 +167,7 @@ int usbremotefwupdatestart()
 {
 
     WORD program[] = {
-        MKPROLOG(SECO, 2),
+        MK_PROLOG(SECO, 2),
         CMD_USBFWUPDATE,
         CMD_QSEMI,
     };
@@ -302,10 +302,10 @@ void palette2list(uint32_t *list,int *size)
         return;
     }
 
-    list[0]=MKPROLOG(DOLIST, PALETTE_SIZE * 3 + 1);
+    list[0]=MK_PROLOG(DOLIST, PALETTE_SIZE * 3 + 1);
     for(k=0;k<PALETTE_SIZE;++k)
     {
-        list[1 + 3 * k] = MKPROLOG(HEXBINT, 2);
+        list[1 + 3 * k] = MK_PROLOG(HEXBINT, 2);
         list[2 + 3 * k] = (uint32_t) ggl_palette[k].bits;
         list[3 + 3 * k] = (uint32_t) (ggl_palette[k].bits >> 32);
     }

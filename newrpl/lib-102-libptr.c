@@ -31,16 +31,16 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(CRLIB,MKTOKENINFO(5,TITYPE_NOTALLOWED,0,2)), \
-    CMD(ATTACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DETACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(LIBMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(LIBDEFRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBCLEAR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(CRLIB,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,0,2)), \
+    CMD(ATTACH,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DETACH,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LIBMENU,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBMENUOTHR,MK_TOKEN_INFO(11,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBMENULST,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBSTO,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBRCL,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LIBDEFRCL,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBCLEAR,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -64,54 +64,54 @@
 
 // OTHER ROMOBJECTS
 ROMOBJECT library_dirname[] = {
-    MKPROLOG(DOIDENT, 1),
+    MK_PROLOG(DOIDENT, 1),
     TEXT2WORD('L', 'I', 'B', 0)
 };
 
 ROMOBJECT libdata_dirname[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('L', 'I', 'B', 'D'),
     TEXT2WORD('A', 'T', 'A', 0)
 };
 
 ROMOBJECT libid_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'L', 'I', 'B'),
     TEXT2WORD('I', 'D', 0, 0)
 };
 
 ROMOBJECT title_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'T', 'I', 'T'),
     TEXT2WORD('L', 'E', 0, 0)
 };
 
 ROMOBJECT libmenu_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'M', 'E', 'N'),
     TEXT2WORD('U', 0, 0, 0)
 };
 
 ROMOBJECT visible_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'V', 'I', 'S'),
     TEXT2WORD('I', 'B', 'L', 'E')
 };
 
 ROMOBJECT ignore_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'I', 'G', 'N'),
     TEXT2WORD('O', 'R', 'E', 0)
 };
 
 ROMOBJECT handler_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('$', 'H', 'A', 'N'),
     TEXT2WORD('D', 'L', 'E', 'R')
 };
 
 ROMOBJECT defhandler_seco[] = {
-    MKPROLOG(SECO, 1),
+    MK_PROLOG(SECO, 1),
     CMD_QSEMI
 };
 
@@ -490,7 +490,7 @@ word_p *rplFindAttachedLibrary(word_p ident)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         if(ISLIBPTR(CurOpcode)) {
             word_p libobject = rplGetLibPtr(IPtr);
             if(!libobject) {
@@ -728,9 +728,9 @@ void LIB_HANDLER()
                 return;
             }
 
-            defmenu[0] = MKPROLOG(DOLIST, listsize);
+            defmenu[0] = MK_PROLOG(DOLIST, listsize);
             for(k = 0; k < nvisible; ++k) {
-                defmenu[1 + 3 * k] = MKPROLOG(DOLIBPTR, 2);
+                defmenu[1 + 3 * k] = MK_PROLOG(DOLIBPTR, 2);
                 defmenu[2 + 3 * k] = libid;
                 defmenu[3 + 3 * k] = k + 4;
             }
@@ -847,8 +847,8 @@ void LIB_HANDLER()
         }
 
         // WRITE THE LIBRARY OBJECT:
-        newobj[0] = MKPROLOG(DOLIBRARY, totalsize);
-        newobj[1] = MKPROLOG(DOIDENT, 1);
+        newobj[0] = MK_PROLOG(DOLIBRARY, totalsize);
+        newobj[1] = MK_PROLOG(DOIDENT, 1);
         newobj[2] = libid;
         newobj[3] = MAKESINT(nvisible + nhidden);
 
@@ -949,7 +949,7 @@ void LIB_HANDLER()
                     }
                     if(stkscan < DSTop) {
                         // VARIABLE WAS FOUND, REPLACE WITH LIBPTR
-                        newobj[offset++] = MKPROLOG(DOLIBPTR, 2);
+                        newobj[offset++] = MK_PROLOG(DOLIBPTR, 2);
                         newobj[offset++] = newobj[2];
                         newobj[offset++] = (stkscan - stksave) / 2;
 
@@ -1126,7 +1126,7 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
@@ -1177,8 +1177,8 @@ void LIB_HANDLER()
             return;
         }
 
-        mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
-                MENUNUMBER(mcode), MENUPAGE(mcode));
+        mcode = (((int64_t) libid) << 32) | MK_MENU_CODE(0, DOLIBPTR,
+                MENU_NUMBER(mcode), MENU_PAGE(mcode));
         word_p newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
             return;
@@ -1221,8 +1221,8 @@ void LIB_HANDLER()
             return;
         }
 
-        mcode = (((int64_t) libid) << 32) | MKMENUCODE(0, DOLIBPTR,
-                MENUNUMBER(mcode), MENUPAGE(mcode));
+        mcode = (((int64_t) libid) << 32) | MK_MENU_CODE(0, DOLIBPTR,
+                MENU_NUMBER(mcode), MENU_PAGE(mcode));
         word_p newmenu = rplNewBINT(mcode, HEXBINT);
         if(!newmenu)
             return;
@@ -1504,7 +1504,7 @@ void LIB_HANDLER()
                         "LIBRARY", 7))) {
 
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(0, 0));
+            rplCompileAppend(MK_PROLOG(0, 0));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -1515,7 +1515,7 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "LIBPTR",
                         6))) {
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(DOLIBPTR, 2));
+            rplCompileAppend(MK_PROLOG(DOLIBPTR, 2));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -1527,7 +1527,7 @@ void LIB_HANDLER()
 
         if(libidx >= 0) {
             // FOUND A MATCH
-            rplCompileAppend(MKPROLOG(DOLIBPTR, 2));
+            rplCompileAppend(MK_PROLOG(DOLIBPTR, 2));
             rplCompileAppend((WORD) libidx);
             rplCompileAppend((WORD) (libidx >> 32));
             RetNum = OK_CONTINUE;
@@ -1628,7 +1628,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            *ScratchPointer4 = MKPROLOG(0, value);
+            *ScratchPointer4 = MK_PROLOG(0, value);
             RetNum = OK_NEEDMORE;
             return;
 
@@ -1710,7 +1710,7 @@ void LIB_HANDLER()
             }
             else
                 *ScratchPointer4 =
-                        MKPROLOG(DOLIBRARY, OBJSIZE(*ScratchPointer4));
+                        MK_PROLOG(DOLIBRARY, OBJSIZE(*ScratchPointer4));
 
         }
 
@@ -1726,7 +1726,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             if(ISLIBPTR(*DecompileObject)) {
                 // DECOMPILE A LIBPTR
 
@@ -1886,7 +1886,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
 
@@ -1907,10 +1907,10 @@ void LIB_HANDLER()
             nargs >>= 8;
 
             if(allow)
-                RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_IDENT, nargs,
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_IDENT, nargs,
                         2);
             else
-                RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_NOTALLOWED,
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_NOTALLOWED,
                         nargs, 1);
             return;
         }
@@ -1924,7 +1924,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1933,7 +1933,7 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBNUM(*ObjectPTR) * 100;
             DecompHints = 0;
 
@@ -1956,17 +1956,17 @@ void LIB_HANDLER()
                     nargs >>= 8;
 
                     if(allow)
-                        RetNum = OK_TOKENINFO | MKTOKENINFO(len, TITYPE_IDENT,
+                        RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len, TITYPE_IDENT,
                                 nargs, 2);
                     else
-                        RetNum = OK_TOKENINFO | MKTOKENINFO(len,
+                        RetNum = OK_TOKENINFO | MK_TOKEN_INFO(len,
                                 TITYPE_NOTALLOWED, nargs, 1);
                     return;
                 }
 
             }
 
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -2010,7 +2010,7 @@ void LIB_HANDLER()
         // TokenStart = token string
         // TokenLen = token length
         // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR THE PROLOG OF THE OBJECT IF SUGGESTION IS AN OBJECT
-        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF ISPROLOG(SuggestedOpcode)==True)
+        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF IS_PROLOG(SuggestedOpcode)==True)
 
         // AUTOMCOMPLETE FIRST COMMANDS OF INSTALLED LIBRARIES
 
@@ -2020,7 +2020,7 @@ void LIB_HANDLER()
 
             WORD prevlibid = 0;
             int32_t previdx = 0;
-            if(ISPROLOG(SuggestedOpcode) && SuggestedObject) {
+            if(IS_PROLOG(SuggestedOpcode) && SuggestedObject) {
                 if(ISLIBPTR(SuggestedOpcode)) {
                     prevlibid = SuggestedObject[1];
                     previdx = SuggestedObject[2];
@@ -2073,7 +2073,7 @@ void LIB_HANDLER()
                                         return;
                                     }
 
-                                    newobj[0] = MKPROLOG(DOLIBPTR, 2);
+                                    newobj[0] = MK_PROLOG(DOLIBPTR, 2);
                                     newobj[1] = direntry[0][1];
                                     newobj[2] = previdx;
 
@@ -2108,7 +2108,7 @@ void LIB_HANDLER()
                                             return;
                                         }
 
-                                        newobj[0] = MKPROLOG(DOLIBPTR, 2);
+                                        newobj[0] = MK_PROLOG(DOLIBPTR, 2);
                                         newobj[1] = direntry[0][1];
                                         newobj[2] = previdx;
 

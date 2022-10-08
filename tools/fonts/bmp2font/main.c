@@ -28,7 +28,7 @@ typedef struct
 #define SING_LEN(val)                    (((val) >> 12) & 0xfffff)
 #define MK_SINGRANGE(start, end, offset) ((((end) - (start) + 1) << 12) | ((offset) &0xfff))
 #define MK_SINGGAP(start, end)           MK_SINGRANGE(start, end, 0xfff)
-#define MKPROLOG(lib, size)              ((((lib) &0xFFF) << 20) | ((size) &0x3FFFF) | 0x80000)
+#define MK_PROLOG(lib, size)              ((((lib) &0xFFF) << 20) | ((size) &0x3FFFF) | 0x80000)
 
 // GET FONT INFORMATION
 int          width[MAX_GLYPHS];
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
 
         int          totalsize = 2 + used_ranges + used_data + ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
-        unsigned int prolog    = MKPROLOG(LIB_FONTS, totalsize);
+        unsigned int prolog    = MK_PROLOG(LIB_FONTS, totalsize);
 
         fwrite(&prolog, 4, 1, han);
 
@@ -577,7 +577,7 @@ int main(int argc, char *argv[])
 
         int          totalsize = 2 + used_ranges + used_data + ((rowlen * (hdr.Height - 1) + 3) >> 2);
 
-        unsigned int prolog    = MKPROLOG(LIB_FONTS, totalsize);
+        unsigned int prolog    = MK_PROLOG(LIB_FONTS, totalsize);
 
         // fwrite(&prolog,4,1,han);
         fprintf(han,

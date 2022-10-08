@@ -31,8 +31,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 //#define COMMAND_LIST
-//    CMD(STRIPCOMMENTS,MKTOKENINFO(13,TITYPE_NOTALLOWED,1,2))
-//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+//    CMD(STRIPCOMMENTS,MK_TOKEN_INFO(13,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -185,7 +185,7 @@ word_p rplNewSINT(int num, int base)
     obj = rplAllocTempOb(0);
     if(!obj)
         return NULL;
-    *obj = MKOPCODE(base, num & 0x3ffff);
+    *obj = MK_OPCODE(base, num & 0x3ffff);
     return obj;
 }
 
@@ -195,7 +195,7 @@ void rplNewSINTPush(int num, int base)
     obj = rplAllocTempOb(0);
     if(!obj)
         return;
-    *obj = MKOPCODE(base, num & 0x3ffff);
+    *obj = MK_OPCODE(base, num & 0x3ffff);
     rplPushData(obj);
 
 }
@@ -208,14 +208,14 @@ word_p rplNewBINT(int64_t num, int base)
         obj = rplAllocTempOb(0);
         if(!obj)
             return NULL;
-        *obj = MKOPCODE(base, num & 0x3ffff);
+        *obj = MK_OPCODE(base, num & 0x3ffff);
     }
     else {
         obj = rplAllocTempOb(2);
         if(!obj)
             return NULL;
 
-        obj[0] = (MKPROLOG(base, 2));
+        obj[0] = (MK_PROLOG(base, 2));
         obj[1] = ((WORD) (num & 0xffffffff));   // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
         obj[2] = ((WORD) ((num >> 32) & 0xffffffff));
     }
@@ -228,11 +228,11 @@ word_p rplWriteint32_t(int64_t num, int base, word_p dest)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
-        *dest = MKOPCODE(base, num & 0x3ffff);
+        *dest = MK_OPCODE(base, num & 0x3ffff);
         return ++dest;
     }
     else {
-        dest[0] = (MKPROLOG(base, 2));
+        dest[0] = (MK_PROLOG(base, 2));
         dest[1] = ((WORD) (num & 0xffffffff));  // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
         dest[2] = ((WORD) ((num >> 32) & 0xffffffff));
         return dest + 3;
@@ -245,10 +245,10 @@ void rplCompileint32_t(int64_t num, int base)
 {
 
     if((num >= MIN_SINT) && (num <= MAX_SINT)) {
-        rplCompileAppend(MKOPCODE(base, num & 0x3ffff));
+        rplCompileAppend(MK_OPCODE(base, num & 0x3ffff));
     }
     else {
-        rplCompileAppend(MKPROLOG(base, 2));
+        rplCompileAppend(MK_PROLOG(base, 2));
         rplCompileAppend((WORD) (num & 0xffffffff));    // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
         rplCompileAppend((WORD) ((num >> 32) & 0xffffffff));
     }
@@ -262,14 +262,14 @@ void rplNewBINTPush(int64_t num, int base)
         obj = rplAllocTempOb(0);
         if(!obj)
             return;
-        *obj = MKOPCODE(base, num & 0x3ffff);
+        *obj = MK_OPCODE(base, num & 0x3ffff);
     }
     else {
         obj = rplAllocTempOb(2);
         if(!obj)
             return;
 
-        obj[0] = (MKPROLOG(base, 2));
+        obj[0] = (MK_PROLOG(base, 2));
         obj[1] = ((WORD) (num & 0xffffffff));   // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
         obj[2] = ((WORD) ((num >> 32) & 0xffffffff));
     }
@@ -280,7 +280,7 @@ void rplNewBINTPush(int64_t num, int base)
 int64_t rplReadint32_t(word_p ptr)
 {
     int64_t result;
-    if(ISPROLOG(*ptr))
+    if(IS_PROLOG(*ptr))
         // THERE'S A PAYLOAD, READ THE NUMBER
         result = *((int64_t *) (ptr + 1));
     else {
@@ -591,7 +591,7 @@ int32_t rplIntToString(int64_t number,
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // NORMAL BEHAVIOR FOR A int32_t IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
@@ -1689,11 +1689,11 @@ void LIB_HANDLER()
                 result = -result;
 
             if((result >= MIN_SINT) && (result <= MAX_SINT)) {
-                rplCompileAppend(MKOPCODE(libbase, result & 0x3ffff));
+                rplCompileAppend(MK_OPCODE(libbase, result & 0x3ffff));
                 RetNum = OK_CONTINUE;
                 return;
             }
-            rplCompileAppend(MKPROLOG(libbase, 2));
+            rplCompileAppend(MK_PROLOG(libbase, 2));
             rplCompileAppend((WORD) (result & 0xffffffff));     // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
             rplCompileAppend((WORD) ((result >> 32) & 0xffffffff));
             RetNum = OK_CONTINUE;
@@ -1706,7 +1706,7 @@ void LIB_HANDLER()
             // DecompileObject = Ptr to WORD of object to decompile
             // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
 
-            if(ISPROLOG(*DecompileObject)) {
+            if(IS_PROLOG(*DecompileObject)) {
                 // THERE'S A PAYLOAD, READ THE NUMBER
                 result = *((int64_t *) (DecompileObject + 1));
             }
@@ -1855,7 +1855,7 @@ void LIB_HANDLER()
             // ArgNum2 = blanks length
 
             // COMPILE RETURNS:
-            // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
+            // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
 
         {
 
@@ -1982,21 +1982,21 @@ void LIB_HANDLER()
                         if(digit == ('.' + 100))
                             ++count;
                         // REPORT AS MANY VALID DIGITS AS POSSIBLE
-                        RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + count) -
+                        RetNum = OK_TOKENINFO | MK_TOKEN_INFO((strptr + count) -
                                 (utf8_p) TokenStart, TITYPE_INTEGER, 0, 1);
                         return;
                     }
                 }
             }
             // ALL DIGITS WERE CORRECT
-            RetNum = OK_TOKENINFO | MKTOKENINFO((strptr + argnum1) -
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO((strptr + argnum1) -
                     (utf8_p) TokenStart, TITYPE_INTEGER, 0, 1);
             return;
         }
         case OPCODE_GETINFO:
             // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
             // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-            // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+            // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
             // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
             // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
             //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -2010,7 +2010,7 @@ void LIB_HANDLER()
                         LIBRARY_NUMBER) & 1) + ((LIBNUM(*ObjectPTR) -
                         LIBRARY_NUMBER) >> 1) * 10;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_INTEGER, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_INTEGER, 0, 1);
             return;
         }
         case OPCODE_GETROMID:
@@ -2036,7 +2036,7 @@ void LIB_HANDLER()
             // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
             // ObjectPTR = POINTER TO THE OBJECT TO CHECK
             // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-            if(ISPROLOG(*ObjectPTR)) {
+            if(IS_PROLOG(*ObjectPTR)) {
                 if(OBJSIZE(*ObjectPTR) != 2) {
                     RetNum = ERR_INVALID;
                     return;

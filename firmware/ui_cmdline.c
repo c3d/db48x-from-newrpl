@@ -370,7 +370,7 @@ int32_t uiInsertCharactersN(utf8_p string, utf8_p endstring)
         }
 
         CmdLineCurrentLine = newobj;
-        *CmdLineCurrentLine = MKPROLOG(DOSTRING, 0);    // MAKE AN EMPTY STRING
+        *CmdLineCurrentLine = MK_PROLOG(DOSTRING, 0);    // MAKE AN EMPTY STRING
     }
     else {
         int32_t totallen = rplStrSize(CmdLineCurrentLine) + length;
@@ -1622,7 +1622,7 @@ void uiAutocompInsert()
         utf8_p tokend = uiAutocompStringEnd();
 
         word_p cmdname =
-                rplDecompile(((ISPROLOG(halScreen.
+                rplDecompile(((IS_PROLOG(halScreen.
                             ACSuggestion)) ? SuggestedObject : (&halScreen.
                         ACSuggestion)), DECOMP_NOHINTS);
         utf8_p namest = (utf8_p) (cmdname + 1);

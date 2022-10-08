@@ -470,7 +470,7 @@ int32_t rplAsmDecodeToken(byte_p start, byte_p end, int32_t * opcode_arg)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
@@ -2589,7 +2589,7 @@ void LIB_HANDLER()
 
             // LOOP INSTRUCTION NEEDS A NOOP BEFORE
             if(operator== ASM_LOOP)
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER + ASMSTO_NOOP,
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER + ASMSTO_NOOP,
                             0x3000 | (ASM_NOOP << 14)));
 
             WORD final_opcode =
@@ -2597,7 +2597,7 @@ void LIB_HANDLER()
                         0x10) << 9) | ((d & 0xf) << 8) | ((operator& 0x1f) <<
                     14);
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER + storemode,
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER + storemode,
                         final_opcode));
 
             RetNum = OK_CONTINUE;
@@ -2991,7 +2991,7 @@ void LIB_HANDLER()
             // CurrentConstruct = Opcode of current construct/WORD of current composite
 
             // COMPILE RETURNS:
-            // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+            // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
             // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
             RetNum = ERR_NOTMINE;
@@ -3002,7 +3002,7 @@ void LIB_HANDLER()
         case OPCODE_GETINFO:
             // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
             // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-            // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+            // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
             // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
             // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
             //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3013,7 +3013,7 @@ void LIB_HANDLER()
 
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
 
             return;
 
@@ -3039,7 +3039,7 @@ void LIB_HANDLER()
             // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
             // ObjectPTR = POINTER TO THE OBJECT TO CHECK
             // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-            if(ISPROLOG(*ObjectPTR)) {
+            if(IS_PROLOG(*ObjectPTR)) {
                 RetNum = ERR_INVALID;
                 return;
             }

@@ -31,15 +31,15 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(MKBINDATA,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINPUTB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINGETB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINPUTW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINGETW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINPUTOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINGETOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINMOVB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINMOVW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(MKBINDATA,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTB,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETB,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTOBJ,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETOBJ,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINMOVB,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINMOVW,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -77,7 +77,7 @@ const word_p const ROMPTR_TABLE[] = {
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // JUST PUSH THE OBJECT ON THE STACK
         rplPushData(IPtr);
         return;
@@ -110,7 +110,7 @@ void LIB_HANDLER()
         if(!newobj)
             return;
 
-        newobj[0] = MKPROLOG(LIBRARY_NUMBER, sizebytes);
+        newobj[0] = MK_PROLOG(LIBRARY_NUMBER, sizebytes);
 
         // FOR SPEED, DON'T CLEAR THE DATA, USER IS RESPONSIBLE FOR DATA INITIALIZATION
 
@@ -227,7 +227,7 @@ void LIB_HANDLER()
             newobj[k] = MAKESINTH(*ptr);
         }
         newobj[k] = CMD_ENDLIST;
-        newobj[0] = MKPROLOG(DOLIST, nbytes + 1);
+        newobj[0] = MK_PROLOG(DOLIST, nbytes + 1);
 
         rplOverwriteData(3, newobj);
         rplDropData(2);
@@ -696,12 +696,12 @@ void LIB_HANDLER()
         ptr += srcoffset;
 
         for(k = 0; k < nwords; ++k, ++ptr) {
-            newobj[3 * k + 1] = MKPROLOG(HEXBINT, 2);
+            newobj[3 * k + 1] = MK_PROLOG(HEXBINT, 2);
             newobj[3 * k + 2] = *ptr;
             newobj[3 * k + 3] = 0;
         }
         newobj[3 * k + 1] = CMD_ENDLIST;
-        newobj[0] = MKPROLOG(DOLIST, 3 * nwords + 1);
+        newobj[0] = MK_PROLOG(DOLIST, 3 * nwords + 1);
 
         rplOverwriteData(3, newobj);
         rplDropData(2);
@@ -786,7 +786,7 @@ void LIB_HANDLER()
 
         WORD prolog = ptr[0] | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24);
 
-        int32_t nwords = (ISPROLOG(prolog) ? OBJSIZE(prolog) : 0);
+        int32_t nwords = (IS_PROLOG(prolog) ? OBJSIZE(prolog) : 0);
 
         if(((1 + nwords) * sizeof(WORD) + srcoffset) >
                 sizeof(WORD) * rplObjSize(rplPeekData(2))) {
@@ -841,7 +841,7 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
@@ -873,7 +873,7 @@ void LIB_HANDLER()
                         "BINDATA", 7))) {
 
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -921,7 +921,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            *ScratchPointer4 = MKPROLOG(LIBRARY_NUMBER & ~1, value);
+            *ScratchPointer4 = MK_PROLOG(LIBRARY_NUMBER & ~1, value);
             RetNum = OK_NEEDMORE;
             return;
 
@@ -1005,7 +1005,7 @@ void LIB_HANDLER()
 
         }
 
-        *ScratchPointer4 = MKPROLOG(LIBRARY_NUMBER, OBJSIZE(*ScratchPointer4)); // MAKE SURE THE PROLOG IS CORRECT WHEN THIS ENDS
+        *ScratchPointer4 = MK_PROLOG(LIBRARY_NUMBER, OBJSIZE(*ScratchPointer4)); // MAKE SURE THE PROLOG IS CORRECT WHEN THIS ENDS
         RetNum = OK_CONTINUE;
         return;
     }
@@ -1018,7 +1018,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
             rplDecompAppendString("BINDATA ");
@@ -1134,7 +1134,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1146,7 +1146,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1155,10 +1155,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1191,7 +1191,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        //if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        //if(IS_PROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
 
         RetNum = OK_CONTINUE;
         return;
@@ -1206,12 +1206,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

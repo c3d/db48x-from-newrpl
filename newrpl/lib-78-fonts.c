@@ -32,27 +32,27 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(FNTSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTPG,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTSTK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNT1STK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTCMDL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTSTAT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTPLOT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTFORM,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTSTK,"→FNTSTK",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNT1STK,"→FNT1STK",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTMENU,"→FNTMENU",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTCMDL,"→FNTCMDL",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTSTAT,"→FNTSTAT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTPLOT,"→FNTPLOT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTFORM,"→FNTFORM",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTHELP,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FNTHLPT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTHELP,"→FNTHELP",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOFNTHLPT,"→FNTHLPT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(FNTSTO,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTRCL,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTPG,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTSTK,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNT1STK,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTMENU,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTCMDL,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTSTAT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTPLOT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTFORM,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTSTK,"→FNTSTK",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNT1STK,"→FNT1STK",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTMENU,"→FNTMENU",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTCMDL,"→FNTCMDL",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTSTAT,"→FNTSTAT",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTPLOT,"→FNTPLOT",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTFORM,"→FNTFORM",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTHELP,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTHLPT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTHELP,"→FNTHELP",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTHLPT,"→FNTHLPT",MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -79,187 +79,187 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib78_menu);
 
 ROMOBJECT fnt5a_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('5', 'A', 0, 0)
 };
 
 ROMOBJECT fnt5b_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('5', 'B', 0, 0)
 };
 
 ROMOBJECT fnt5c_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('5', 'C', 0, 0)
 };
 
 ROMOBJECT fnt6a_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('6', 'A', 0, 0)
 };
 
 ROMOBJECT fnt6b_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('6', 'B', 0, 0)
 };
 
 ROMOBJECT fnt7a_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('7', 'A', 0, 0)
 };
 
 ROMOBJECT fnt8a_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('8', 'A', 0, 0)
 };
 
 ROMOBJECT fnt8b_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('8', 'B', 0, 0)
 };
 
 ROMOBJECT fnt8c_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('8', 'C', 0, 0)
 };
 
 ROMOBJECT fnt8d_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('8', 'D', 0, 0)
 };
 
 ROMOBJECT fnt10a_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('1', '0', 'A', 0)
 };
 
 ROMOBJECT sysfonts_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 'y', 's', 'F'),
     TEXT2WORD('o', 'n', 't', 's')
 };
 
 ROMOBJECT fontstack1_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 't', 'k', '1'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontstack_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 't', 'k', '2'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontstackidx_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 't', 'k', 'I'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontmenu_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontform_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'r', 'm'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonterror_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('E', 'r', 'r', 's'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonthelptitle_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'l', 'p', 'T'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonthelpbold_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'l', 'p', 'B'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonthelpitalic_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'l', 'p', 'I'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonthelpcode_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'l', 'p', 'C'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontbattery_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('B', 'a', 't', 't'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fonthelp_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'e', 'l', 'p'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontcmdline_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('C', 'm', 'd', 'l'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontcursor_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('C', 'u', 'r', 's'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontstarea_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('S', 't', 'a', 't'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fontplot_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('P', 'l', 'o', 't'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
 ROMOBJECT fnt18_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('1', '8', 0, 0)
 };
 
 ROMOBJECT fnt24_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('2', '4', 0, 0)
 };
 
 ROMOBJECT fnt32_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('F', 'o', 'n', 't'),
     TEXT2WORD('3', '2', 0, 0)
 };
@@ -558,7 +558,7 @@ void rplAddSystemFont(word_p ident, word_p font)
     }
 
     // CLOSE THE LIST
-    newlist[0] = MKPROLOG(DOLIST, newsize);
+    newlist[0] = MK_PROLOG(DOLIST, newsize);
     newlist[newsize] = CMD_ENDLIST;
 
     rplFontsNewList(fontlist, newlist);
@@ -638,7 +638,7 @@ void rplPurgeSystemFont(word_p ident)
             rplSkipOb(fontlist) - endold);
 
     // CLOSE THE LIST
-    newlist[0] = MKPROLOG(DOLIST, newsize);
+    newlist[0] = MK_PROLOG(DOLIST, newsize);
     newlist[newsize] = CMD_ENDLIST;
 
     rplStoreSettings((word_p) sysfonts_ident, newlist);
@@ -703,7 +703,7 @@ word_p rplGetCurrentFont(int32_t area)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // JUST PUSH THE OBJECT ON THE STACK
         rplPushData(IPtr);
         return;
@@ -720,7 +720,7 @@ void LIB_HANDLER()
             case OVR_EVAL:
             case OVR_XEQ:
                 // JUST KEEP THE OBJECT ON THE STACK, UNEVALUATED
-                if(!ISPROLOG(*rplPeekData(1))) {
+                if(!IS_PROLOG(*rplPeekData(1))) {
                     WORD saveOpcode = CurOpcode;
                     CurOpcode = *rplPopData();
                     // RECURSIVE CALL
@@ -1116,7 +1116,7 @@ void LIB_HANDLER()
                         "FONTDATA", 8))) {
 
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -1164,7 +1164,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            *ScratchPointer4 = MKPROLOG(LIBRARY_NUMBER, value);
+            *ScratchPointer4 = MK_PROLOG(LIBRARY_NUMBER, value);
             RetNum = OK_NEEDMORE;
             return;
 
@@ -1245,7 +1245,7 @@ void LIB_HANDLER()
                 return;
             }
             else
-                *ScratchPointer4 = MKPROLOG(DOFONT, OBJSIZE(*ScratchPointer4));
+                *ScratchPointer4 = MK_PROLOG(DOFONT, OBJSIZE(*ScratchPointer4));
 
         }
 
@@ -1261,7 +1261,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
             rplDecompAppendString("FONTDATA ");
@@ -1377,7 +1377,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1389,7 +1389,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1398,10 +1398,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1434,7 +1434,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        //if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        //if(IS_PROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
 
         RetNum = OK_CONTINUE;
         return;
@@ -1449,7 +1449,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

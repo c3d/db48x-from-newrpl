@@ -31,15 +31,15 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(UDEFINE,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(UPURGE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UVAL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(UBASE,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    CMD(CONVERT,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
-    CMD(UFACT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    ECMD(TOUNIT,"→UNIT",MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    ECMD(SYMBTOUNIT,"_[",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,3)), \
-    CMD(ULIST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(UDEFINE,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(UPURGE,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UVAL,MK_TOKEN_INFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(UBASE,MK_TOKEN_INFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(CONVERT,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,2,2)), \
+    CMD(UFACT,MK_TOKEN_INFO(5,TITYPE_FUNCTION,1,2)), \
+    ECMD(TOUNIT,"→UNIT",MK_TOKEN_INFO(5,TITYPE_FUNCTION,2,2)), \
+    ECMD(SYMBTOUNIT,"_[",MK_TOKEN_INFO(2,TITYPE_BINARYOP_LEFT,2,3)), \
+    CMD(ULIST,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -66,7 +66,7 @@
 // ************************************
 
 ROMOBJECT unitdir_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('U', 'N', 'I', 'T'),
     TEXT2WORD('S', 0, 0, 0)
 };
@@ -141,13 +141,13 @@ byte_p rplNextUnitToken(byte_p start, byte_p end)
 
 //   THIS IS TEMPORARY AND WILL NEVER BE SEEN BY THE USER OR STORED ANYWHERE
 const WORD const temp_ident[] = {
-    MKPROLOG(DOIDENT, 1),
+    MK_PROLOG(DOIDENT, 1),
     TEXT2WORD('?', 0, 0, 0)
 };
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
         rplPushData(IPtr);
         return;
@@ -164,7 +164,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if((nargs == 1) && !ISPROLOG(*rplPeekData(1))) {
+        if((nargs == 1) && !IS_PROLOG(*rplPeekData(1))) {
             // COMMAND AS ARGUMENT
             if((OPCODE(CurOpcode) == OVR_EVAL) ||
                     (OPCODE(CurOpcode) == OVR_EVAL1) ||
@@ -1544,7 +1544,7 @@ void LIB_HANDLER()
         case OVR_SAME:
         {
             // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-            if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
+            if(!IS_PROLOG(*rplPeekData(2)) || !IS_PROLOG(*rplPeekData(1))) {
                 if(*rplPeekData(2) == *rplPeekData(1)) {
                     rplDropData(2);
                     rplPushTrue();
@@ -2174,7 +2174,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCallOperator(MKOPCODE(LIBRARY_NUMBER, UBASE));
+        rplCallOperator(MK_OPCODE(LIBRARY_NUMBER, UBASE));
         if(Exceptions) {
             DSTop = savestk;
             return;
@@ -2219,7 +2219,7 @@ void LIB_HANDLER()
 
         if(ISSYMBOLIC(*val)) {
             val = rplSymbUnwrap(val);
-            if(ISint32_t(val[1]) || ISPROLOG(val[1])) {
+            if(ISint32_t(val[1]) || IS_PROLOG(val[1])) {
                 // THIS IS AN ATOMIC EXPRESSION, OPERATE DIRECTLY ON THE OBJECT
                 ++val;
             }   // OTHERWISE IT CONTAINS OPERATORS, SO KEEP IT SYMBOLIC
@@ -2370,10 +2370,10 @@ void LIB_HANDLER()
         if(*ptr == '_') {
             // STARTS WITH THE UNIT, CHECK IF WE ARE IN A UNIT CONSTRUCT
 
-            if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0)) {
+            if(CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 0)) {
                 // IF  WE ARE NOT IN A UNIT CONSTRUCT,  ADD A NUMBER ONE AND START THE OBJECT
                 ScratchPointer2 = CompileEnd;   // rplCompileIDENT uses ScratchPointer1
-                rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+                rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
                 rplCompileAppend(MAKESINT(1));
             }
             // THE NUMBER WAS COMPILED PROPERLY, NOW ADD THE UNIT ITSELF
@@ -3107,7 +3107,7 @@ void LIB_HANDLER()
 
             endptr = ((byte_p) TokenStart) + tokstart + toklen;
 
-            if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0)) {
+            if(CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 0)) {
                 // THERE'S NO CONSTRUCT, WE MUST COMPILE AN ATOMIC OBJECT
                 if((endptr == (byte_p) BlankStart) && (tokstart > 1)) {
                     // THIS IMMEDIATE MODE REQUIRES THE CLOSING BRACKET
@@ -3117,10 +3117,10 @@ void LIB_HANDLER()
                 }
                 // FIX THE SIZE OF THE OBJECT
                 int32_t sizewords = CompileEnd - ScratchPointer2;
-                *ScratchPointer2 = MKPROLOG(LIBRARY_NUMBER, sizewords - 1);
+                *ScratchPointer2 = MK_PROLOG(LIBRARY_NUMBER, sizewords - 1);
                 // AND ADD THE UNIT APPLY OPERATOR
 
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, SYMBTOUNIT));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, SYMBTOUNIT));
 
                 RetNum = OK_CONTINUE;
                 return;
@@ -3176,7 +3176,7 @@ void LIB_HANDLER()
 
         }
 
-        rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+        rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
 
         BlankStart = NextTokenStart =
                 (word_p) utf8nskip((char *)TokenStart, (char *)BlankStart, f);
@@ -3209,7 +3209,7 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
 
             // THIS IS CHEATING, BUT LOOK AT THE TEXT STRING
             // TO SEE IF THE SYMBOLIC UNIT OPERATOR WAS ALREADY INCLUDED
@@ -3224,7 +3224,7 @@ void LIB_HANDLER()
                 if(!(DecompMode & 0xffff)) {
                     word_p nextobj = rplSkipOb(DecompileObject);
                     if(nextobj < EndOfObject) {
-                        if(*nextobj == MKOPCODE(LIBRARY_NUMBER, SYMBTOUNIT)) {
+                        if(*nextobj == MK_OPCODE(LIBRARY_NUMBER, SYMBTOUNIT)) {
                             // SPECIAL CASE, DON'T ADD THE NUMERIC PART OF THE UNIT AND DON'T
                             addnumber = 0;
                         }
@@ -3400,7 +3400,7 @@ void LIB_HANDLER()
 
         // MANUALLY DECOMPILE THE OPERATOR _ WHEN NOT IN SYMBOLIC MODE
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, SYMBTOUNIT)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, SYMBTOUNIT)) {
             if(!(DecompMode & 0xffff)) {
                 // THE UNIT ITSELF ELIMINATED THE NUMBER, SO DON'T INCLUDE ANY OUTPUT
                 //rplDecompAppendString("→UNIT");
@@ -3445,7 +3445,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
 
     {
@@ -3467,7 +3467,7 @@ void LIB_HANDLER()
             if(endptr < (byte_p) BlankStart)
                 ++count;        // INCLUDE THE CLOSING BRACKET
 
-            RetNum = OK_TOKENINFO | MKTOKENINFO(count, TITYPE_POSTFIXOP, 2, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(count, TITYPE_POSTFIXOP, 2, 1);
             return;
         }
 
@@ -3480,7 +3480,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3489,10 +3489,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_UNIT, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_UNIT, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -3525,7 +3525,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             // BASIC CHECKS
             word_p ptr, objend;
 
@@ -3587,12 +3587,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 20) {
+        if(MENU_NUMBER(MenuCodeArg) > 20) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 3];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 3];
         RetNum = OK_CONTINUE;
         return;
     }

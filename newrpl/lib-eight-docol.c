@@ -31,29 +31,29 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(EXITRPL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(AUTOBKPOINT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(XEQSECO,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ERROR_REENTER,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RESUME,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DOERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ENDOFCODE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CONT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SST,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SSTIN,"SST↓",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SETBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BLAMEERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(RETRYSEMI,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EXIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(EXITRPL,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(AUTOBKPOINT,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(XEQSECO,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SEMI,";",MK_TOKEN_INFO(1,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EVAL1NEXT,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ERROR_REENTER,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RESUME,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOERR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERRN,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERRM,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERR0,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HALT,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ENDOFCODE,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CONT,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SST,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SSTIN,"SST↓",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(KILL,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETBKPOINT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLRBKPOINT,MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DBUG,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BLAMEERR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(RETRYSEMI,"",MK_TOKEN_INFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EXIT,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -71,7 +71,7 @@
 // ************************************
 
 ROMOBJECT errormsg_ident[] = {
-    MKPROLOG(DOIDENT, 2),
+    MK_PROLOG(DOIDENT, 2),
     TEXT2WORD('E', 'r', 'r', 'o'),
     TEXT2WORD('r', 'M', 's', 'g')
 };
@@ -87,7 +87,7 @@ ROMOBJECT nullptr_catastrophic_seco[] = {
 };
 
 ROMOBJECT bkpoint_seco[] = {
-    MKPROLOG(DOCOL, 12),
+    MK_PROLOG(DOCOL, 12),
     CMD_IFERR,
     CMD_OVR_XEQ,
     CMD_OVR_NOT,
@@ -121,12 +121,12 @@ const word_p const ROMPTR_TABLE[] = {
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
 
         rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS. AT THIS POINT, IPtr IS POINTING TO THIS SECONDARY WORD
         // BUT THE MAIN LOOP WILL ALWAYS SKIP TO THE NEXT OBJECT AFTER A SEMI.
-        CurOpcode = MKPROLOG(LIBRARY_NUMBER, 0);        // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
+        CurOpcode = MK_PROLOG(LIBRARY_NUMBER, 0);        // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
 
         // CLEAR TEMPORARY SYSTEM FLAG ON EVERY SEPARATE EXECUTION
         rplClrSystemFlag(FL_FORCED_RAD);
@@ -348,8 +348,8 @@ void LIB_HANDLER()
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
         ++IPtr;
-        if(ISPROLOG(*IPtr) && (LIBNUM(*IPtr) == SECO)) {
-            CurOpcode = MKPROLOG(SECO, 0);      // MAKE IT SKIP INSIDE THE SECONDARY
+        if(IS_PROLOG(*IPtr) && (LIBNUM(*IPtr) == SECO)) {
+            CurOpcode = MK_PROLOG(SECO, 0);      // MAKE IT SKIP INSIDE THE SECONDARY
             rplPushRet(IPtr);
             return;
         }
@@ -375,7 +375,7 @@ void LIB_HANDLER()
         //@SHORT_DESC=Perform EVAL1 on the next object in a secondary and skips it
         //@NEW
         // DO EVAL1 ON THE NEXT OBJECT IN THE SECONDARY, THEN SKIP IT
-        if(ISPROLOG(*(IPtr + 1)))       // ONLY SKIP OBJECTS, NOT COMMANDS TO GUARANTEE IT CAN'T BREAK OUT OF LOOPS OR SECONDARIES
+        if(IS_PROLOG(*(IPtr + 1)))       // ONLY SKIP OBJECTS, NOT COMMANDS TO GUARANTEE IT CAN'T BREAK OUT OF LOOPS OR SECONDARIES
         {
             ++IPtr;
             rplPushData(IPtr);
@@ -476,7 +476,7 @@ void LIB_HANDLER()
             int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
-            CurOpcode = MKOPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
+            CurOpcode = MK_OPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
             LibError = MAKESINT(errorcode);
             RetNum = -1;
             (*han) ();
@@ -570,7 +570,7 @@ void LIB_HANDLER()
             int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
-            CurOpcode = MKOPCODE(LIBFROMMSG(msgcode), OPCODE_LIBMSG);
+            CurOpcode = MK_OPCODE(LIBFROMMSG(msgcode), OPCODE_LIBMSG);
             LibError = msgcode;
             RetNum = -1;
             (*han) ();
@@ -740,7 +740,7 @@ void LIB_HANDLER()
             int32_t SavedErrorCode = ErrorCode;
 
             Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
-            CurOpcode = MKOPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
+            CurOpcode = MK_OPCODE(LIBFROMMSG(errorcode), OPCODE_LIBMSG);
             LibError = MAKESINT(errorcode);
             RetNum = -1;
             (*han) ();
@@ -889,7 +889,7 @@ void LIB_HANDLER()
         // EXECUTE THE OBJECT
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             switch (*rplPeekData(1)) {
             case CMD_EXITRPL:
             case CMD_AUTOBKPOINT:
@@ -921,7 +921,7 @@ void LIB_HANDLER()
         }
         rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS.
         IPtr = rplPopData();    // SET NEW IPTR TO THE PROGRAM, TO BE EXECUTED
-        CurOpcode = MKPROLOG(LIBRARY_NUMBER, 0);        // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
+        CurOpcode = MK_PROLOG(LIBRARY_NUMBER, 0);        // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
         return;
 
         // STANDARIZED OPCODES:
@@ -944,7 +944,7 @@ void LIB_HANDLER()
         if((TokenLen == 2)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "::",
                         2))) {
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -953,12 +953,12 @@ void LIB_HANDLER()
         if(((TokenLen == 1)
                     && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, ";",
                             1)))) {
-            if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0)) {
+            if(CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 0)) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, SEMI));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, SEMI));
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -981,7 +981,7 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             rplDecompAppendString("::");
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -989,8 +989,8 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS SEMI
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, SEMI)) {
-            if(!(ISPROLOG(CurrentConstruct)
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, SEMI)) {
+            if(!(IS_PROLOG(CurrentConstruct)
                         && (LIBNUM(CurrentConstruct) == LIBRARY_NUMBER))) {
                 RetNum = ERR_SYNTAX;
                 return;
@@ -1001,7 +1001,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, XEQSECO)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, XEQSECO)) {
             rplDecompAppendString("→");
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1037,7 +1037,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1050,7 +1050,7 @@ void LIB_HANDLER()
 
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1059,10 +1059,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1096,7 +1096,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             // BASIC CHECKS
             word_p ptr, objend;
 
@@ -1130,11 +1130,11 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 1) {
+        if(MENU_NUMBER(MenuCodeArg) > 1) {
             RetNum = ERR_NOTMINE;
             return;
         }
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 1];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 1];
         RetNum = OK_CONTINUE;
         return;
     }

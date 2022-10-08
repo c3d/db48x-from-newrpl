@@ -72,7 +72,7 @@ int32_t rplListLengthFlat(word_p composite)
         }
         else {
             ptr = rplSkipOb(ptr);
-            if(*ptr == MKOPCODE(DOLIST, ENDLIST)) {
+            if(*ptr == MK_OPCODE(DOLIST, ENDLIST)) {
                 ++ptr;
                 --depth;
             }
@@ -98,7 +98,7 @@ word_p rplGetListElementFlat(word_p composite, int32_t pos)
             if(count == pos)
                 break;
             ptr = rplSkipOb(ptr);
-            if(*ptr == MKOPCODE(DOLIST, ENDLIST)) {
+            if(*ptr == MK_OPCODE(DOLIST, ENDLIST)) {
                 ++ptr;
             }
             ++count;
@@ -135,7 +135,7 @@ word_p rplGetNextListElementFlat(word_p composite, word_p elem)
         ptr = rplSkipOb(ptr);
         if(ISLIST(*ptr))
             ++ptr;
-        if(*ptr != MKOPCODE(DOLIST, ENDLIST))
+        if(*ptr != MK_OPCODE(DOLIST, ENDLIST))
             break;
     }
     if(ptr == end)
@@ -159,7 +159,7 @@ int32_t rplIsLastElementFlat(word_p composite, int32_t pos)
         }
         else {
             ptr = rplSkipOb(ptr);
-            if(*ptr == MKOPCODE(DOLIST, ENDLIST)) {
+            if(*ptr == MK_OPCODE(DOLIST, ENDLIST)) {
                 --depth;
                 ++ptr;
             }
@@ -169,7 +169,7 @@ int32_t rplIsLastElementFlat(word_p composite, int32_t pos)
 
     if(ptr < end) {
         ptr = rplSkipOb(ptr);
-        if(*ptr == MKOPCODE(DOLIST, ENDLIST))
+        if(*ptr == MK_OPCODE(DOLIST, ENDLIST))
             return startpos;
     }
     return 0;
@@ -199,12 +199,12 @@ void rplCreateList()
 
     // CONSTRUCT THE OBJECT
     word_p objptr = list + 1;
-    *list = MKPROLOG(DOLIST, size);
+    *list = MK_PROLOG(DOLIST, size);
     for(count = num; count > 0; --count) {
         rplCopyObject(objptr, rplPeekData(count + 1));
         objptr += rplObjSize(objptr);
     }
-    *objptr = MKOPCODE(DOLIST, ENDLIST);
+    *objptr = MK_OPCODE(DOLIST, ENDLIST);
 
     rplDropData(num);
     rplOverwriteData(1, list);
@@ -228,12 +228,12 @@ word_p rplCreateListN(int32_t num, int32_t level, int32_t remove)
 
     // CONSTRUCT THE OBJECT
     word_p objptr = list + 1;
-    *list = MKPROLOG(DOLIST, size);
+    *list = MK_PROLOG(DOLIST, size);
     for(count = num; count > 0; --count) {
         rplCopyObject(objptr, rplPeekData(level + count - 1));
         objptr += rplObjSize(objptr);
     }
-    *objptr = MKOPCODE(DOLIST, ENDLIST);
+    *objptr = MK_OPCODE(DOLIST, ENDLIST);
 
     if(remove)
         rplRemoveAtData(level, num);
@@ -246,7 +246,7 @@ void rplListAutoExpand(word_p list)
 {
     if(!ISLIST(*list))
         return;
-    *list |= MKPROLOG(1, 0);
+    *list |= MK_PROLOG(1, 0);
 }
 
 // List handling for funtions with 2 argument
@@ -263,7 +263,7 @@ void rplListBinaryDoCmd()
         if(!newobj)
             return;
         // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 2);
+        newobj[0] = MK_PROLOG(DOCOL, 2);
         newobj[1] = CurOpcode;
         newobj[2] = CMD_SEMI;
 
@@ -293,7 +293,7 @@ void rplListBinaryDoCmd()
             return;
 
         // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 2 + size1);
+        newobj[0] = MK_PROLOG(DOCOL, 2 + size1);
         rplCopyObject(newobj + 1, rplPeekData(1));
         newobj[size1 + 1] = CurOpcode;
         newobj[size1 + 2] = CMD_SEMI;
@@ -325,7 +325,7 @@ void rplListBinaryDoCmd()
             return;
 
         // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 3 + size1);
+        newobj[0] = MK_PROLOG(DOCOL, 3 + size1);
         rplCopyObject(newobj + 1, rplPeekData(2));
         newobj[size1 + 1] = CMD_SWAP;
         newobj[size1 + 2] = CurOpcode;
@@ -364,7 +364,7 @@ void rplListBinaryNoResultDoCmd()
         if(!newobj)
             return;
         // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 5);
+        newobj[0] = MK_PROLOG(DOCOL, 5);
         newobj[1] = CurOpcode;
         newobj[2] = CMD_SEMI;
         newobj[3] = CMD_CMDDOLIST;
@@ -394,7 +394,7 @@ void rplListBinaryNoResultDoCmd()
             return;
 
         // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 2 + size1);
+        newobj[0] = MK_PROLOG(DOCOL, 2 + size1);
         rplCopyObject(newobj + 1, rplPeekData(1));
         newobj[size1 + 1] = CurOpcode;
         newobj[size1 + 2] = CMD_SEMI;
@@ -426,7 +426,7 @@ void rplListBinaryNoResultDoCmd()
             return;
 
         // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0] = MKPROLOG(DOCOL, 3 + size1);
+        newobj[0] = MK_PROLOG(DOCOL, 3 + size1);
         rplCopyObject(newobj + 1, rplPeekData(2));
         newobj[size1 + 1] = CMD_SWAP;
         newobj[size1 + 2] = CurOpcode;
@@ -461,7 +461,7 @@ void rplListUnaryDoCmd()
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
-    newobj[0] = MKPROLOG(DOCOL, 2);
+    newobj[0] = MK_PROLOG(DOCOL, 2);
     newobj[1] = CurOpcode;
     newobj[2] = CMD_SEMI;
 
@@ -490,7 +490,7 @@ void rplListUnaryNonRecursiveDoCmd()
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
-    newobj[0] = MKPROLOG(DOCOL, 2);
+    newobj[0] = MK_PROLOG(DOCOL, 2);
     newobj[1] = CurOpcode;
     newobj[2] = CMD_SEMI;
 
@@ -519,7 +519,7 @@ void rplListUnaryNoResultDoCmd()
     if(!newobj)
         return;
     // CREATE A PROGRAM AND RUN THE MAP COMMAND
-    newobj[0] = MKPROLOG(DOCOL, 2);
+    newobj[0] = MK_PROLOG(DOCOL, 2);
     newobj[1] = CurOpcode;
     newobj[2] = CMD_SEMI;
 
@@ -587,7 +587,7 @@ word_p rplListReplace(word_p list, int32_t position, word_p object)
     word_p newlist = rplAllocTempOb(newsize);
     if(!newlist)
         return 0;
-    *newlist = MKPROLOG(DOLIST, newsize);
+    *newlist = MK_PROLOG(DOLIST, newsize);
     memmovew(newlist + 1, ScratchPointer1 + 1, oldobjoffset - 1);
     memmovew(newlist + oldobjoffset, ScratchPointer2, newobjsize);
     memmovew(newlist + oldobjoffset + newobjsize,
@@ -633,7 +633,7 @@ word_p rplListReplaceMulti(word_p list, int32_t position, word_p object)
     word_p newlist = rplAllocTempOb(OBJSIZE(*list) + newobjsize - oldobjsize);
     if(!newlist)
         return 0;
-    *newlist = MKPROLOG(DOLIST, OBJSIZE(*list) + newobjsize - oldobjsize);
+    *newlist = MK_PROLOG(DOLIST, OBJSIZE(*list) + newobjsize - oldobjsize);
     memmovew(newlist + 1, ScratchPointer1 + 1, oldobjoffset - 1);
     memmovew(newlist + oldobjoffset, ScratchPointer2, newobjsize);
     memmovew(newlist + oldobjoffset + newobjsize,
@@ -668,7 +668,7 @@ void rplListMultiArgDoCmd(int32_t nargs)
                 return;
 
             // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0] = MKPROLOG(DOCOL, 6 + size1);
+            newobj[0] = MK_PROLOG(DOCOL, 6 + size1);
 
             // COPY ALL OTHER ARGUMENTS
             int32_t offset = 1;
@@ -699,7 +699,7 @@ void rplListMultiArgDoCmd(int32_t nargs)
 
             newcmd = newobj + offset;
             // ANOTHER SECONDARY THAT DOES MAP THEN CLEANS UP THE STACK
-            newobj[offset] = MKPROLOG(SECO, 6);
+            newobj[offset] = MK_PROLOG(SECO, 6);
             ++offset;
             newobj[offset] = CMD_MAP;
             ++offset;
@@ -819,7 +819,7 @@ void rplListExpandCases()
 
     // COPY THE FIRST EXPANDED LIST
     // EACH ELEMENT REPEATED nelem2 TIMES
-    newlist1[0] = MKPROLOG(DOCASELIST, size1 * nelem2);
+    newlist1[0] = MK_PROLOG(DOCASELIST, size1 * nelem2);
     newlist1[size1 * nelem2 + 1] = CMD_ENDLIST;
 
     word_p src, srcptr, dest, srcend;
@@ -842,7 +842,7 @@ void rplListExpandCases()
 
     // COPY THE SECOND EXPANDED LIST
     // THE ENTIRE LIST REPEATED nelem1 TIMES
-    newlist2[0] = MKPROLOG(DOCASELIST, size2 * nelem1);
+    newlist2[0] = MK_PROLOG(DOCASELIST, size2 * nelem1);
     newlist2[size2 * nelem1 + 1] = CMD_ENDLIST;
 
     src = list2;

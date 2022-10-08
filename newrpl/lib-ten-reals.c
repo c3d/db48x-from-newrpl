@@ -54,11 +54,11 @@
 // ************************************
 
 ROMOBJECT one_real[] = {
-    (WORD) MKPROLOG(DOREAL, 2), MAKEREALFLAGS(0, 1, 0), 1
+    (WORD) MK_PROLOG(DOREAL, 2), MAKEREALFLAGS(0, 1, 0), 1
 };
 
 ROMOBJECT one_half_real[] = {
-    (WORD) MKPROLOG(DOREAL, 2), MAKEREALFLAGS(-1, 1, 0), 5
+    (WORD) MK_PROLOG(DOREAL, 2), MAKEREALFLAGS(-1, 1, 0), 5
 };
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
@@ -150,7 +150,7 @@ int32_t rplIsNumberZero(word_p obj)
         obj = rplConstant2Number(obj);
 
     if(ISint32_t(*obj)) {
-        if(ISPROLOG(*obj)) {
+        if(IS_PROLOG(*obj)) {
             int64_t *ptr = (int64_t *) (obj + 1);
             return (*ptr == 0) ? 1 : 0;
         }
@@ -212,7 +212,7 @@ word_p rplNewRealInPlace(REAL * num, word_p newreal)
 
     // WRITE THE PROLOG
     *newreal =
-            MKPROLOG((num->
+            MK_PROLOG((num->
                 flags & F_APPROX) ? APPROX_BIT | LIBRARY_NUMBER :
             LIBRARY_NUMBER, 1 + num->len - correction);
     // PACK THE INFORMATION
@@ -278,7 +278,7 @@ void rplCompileReal(REAL * num)
     }
 
     // WRITE THE PROLOG
-    rplCompileAppend(MKPROLOG((num->
+    rplCompileAppend(MK_PROLOG((num->
                     flags & F_APPROX) ? APPROX_BIT | LIBRARY_NUMBER :
                 LIBRARY_NUMBER, 1 + num->len - correction));
     // PACK THE INFORMATION
@@ -332,7 +332,7 @@ void rplCheckResultAndError(REAL * real)
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // NORMAL BEHAVIOR FOR A REAL IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
@@ -851,7 +851,7 @@ void LIB_HANDLER()
         if(RReg[0].flags & F_APPROX)
             isapprox = APPROX_BIT;
         // WRITE THE PROLOG
-        rplCompileAppend(MKPROLOG(LIBRARY_NUMBER | isapprox, 1 + RReg[0].len));
+        rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER | isapprox, 1 + RReg[0].len));
         // PACK THE INFORMATION
         REAL_HEADER real;
         real.flags = RReg[0].flags & 0xf;
@@ -968,7 +968,7 @@ void LIB_HANDLER()
         // ArgNum2 = blanks length
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
     {
 
         if(LIBNUM(CurOpcode) & APPROX_BIT) {
@@ -992,7 +992,7 @@ void LIB_HANDLER()
 
             if(*ptr == 0) {
                 // THERE WAS AN UNDEFINED INFINITY SIGN THERE
-                RetNum = OK_TOKENINFO | MKTOKENINFO(utf8len((char *)
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(utf8len((char *)
                             undinfinitystring), TITYPE_REAL, 0, 1);
                 return;
             }
@@ -1006,7 +1006,7 @@ void LIB_HANDLER()
             }
             if(*ptr == 0) {
                 // THERE WAS AN INFINITY SIGN THERE
-                RetNum = OK_TOKENINFO | MKTOKENINFO(utf8len((char *)
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(utf8len((char *)
                             infinitystring), TITYPE_REAL, 0, 1);
                 return;
             }
@@ -1104,9 +1104,9 @@ void LIB_HANDLER()
 
         else {
             if(num == '.')
-                RetNum = OK_TOKENINFO | MKTOKENINFO(f + 1, TITYPE_REAL, 0, 1);
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(f + 1, TITYPE_REAL, 0, 1);
             else
-                RetNum = OK_TOKENINFO | MKTOKENINFO(f, TITYPE_REAL, 0, 1);
+                RetNum = OK_TOKENINFO | MK_TOKEN_INFO(f, TITYPE_REAL, 0, 1);
         }
 
         return;
@@ -1115,7 +1115,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1129,7 +1129,7 @@ void LIB_HANDLER()
                     LIBRARY_NUMBER) & 1) + ((LIBNUM(*DecompileObject) -
                     LIBRARY_NUMBER) >> 1) * 10;
         DecompHints = 0;
-        RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_REAL, 0, 1);
+        RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_REAL, 0, 1);
         return;
     }
 
@@ -1157,7 +1157,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             if(OBJSIZE(*ObjectPTR) < 2) {
                 RetNum = ERR_INVALID;
                 return;

@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     if(outputtype == OUTPUT_BINARY) {
         // WRITE THE BINARY FILE MARKER
         WORD marker[3] = {
-            MKPROLOG(HEXBINT, 2),       // PROLOG OF A 64-BIT int32_t
+            MK_PROLOG(HEXBINT, 2),       // PROLOG OF A 64-BIT int32_t
             0x4c50526e, // STRING "nRPL"
             1   // VERSION OF THE newRPL BINARY FORMAT
         };
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
                             // THIS IS A PSEUDO-OBJECT, NEEDS TO BE REPLACED WITH TEXT
                             int textoffset;
                             int givenwords, storedwords;
-                            if(ISPROLOG(*p)) {
+                            if(IS_PROLOG(*p)) {
                                 textoffset = p[1];
                                 storedwords = OBJSIZE(*p) + 1;
                             }

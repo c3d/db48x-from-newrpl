@@ -448,7 +448,7 @@ void PrintSeco(word_p obj)
 
     word_p endobj = rplSkipOb(obj);
 
-    if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL) || (LIBNUM(*obj) == SECO))) {
+    if(IS_PROLOG(*obj) && ((LIBNUM(*obj) == DOCOL) || (LIBNUM(*obj) == SECO))) {
 
         printf("%08lX: ", obj - TempOb);
         printf(" %s\n", (LIBNUM(*obj) == DOCOL) ? "::" : "<<");
@@ -457,7 +457,7 @@ void PrintSeco(word_p obj)
 
         while(obj < endobj) {
 
-            if(ISPROLOG(*obj) && ((LIBNUM(*obj) == DOCOL)
+            if(IS_PROLOG(*obj) && ((LIBNUM(*obj) == DOCOL)
                         || (LIBNUM(*obj) == SECO))) {
                 PrintSeco(obj);
                 obj = rplSkipOb(obj);

@@ -107,7 +107,7 @@ word_p uiAllocNewBitmap(int32_t width, int32_t height)
     word_p newobj = rplAllocTempOb(bits + 2);
     if(!newobj)
         return 0;
-    newobj[0] = MKPROLOG(DOBITMAP + DEFAULT_BITMAP_MODE, bits + 2);
+    newobj[0] = MK_PROLOG(DOBITMAP + DEFAULT_BITMAP_MODE, bits + 2);
     newobj[1] = width;
     newobj[2] = height;
 

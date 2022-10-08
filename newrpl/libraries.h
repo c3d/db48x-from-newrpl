@@ -59,10 +59,10 @@ extern const LIBHANDLER ROMLibs[];
 
 // USEFUL MACROS
 
-#define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
-//#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
+#define MK_OPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
+//#define MK_PROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
 // PROPOSED "LARGE" IMPLEMENTATION - TAKES A SMALL SPEED PENALTY
-#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|0x80000 | ( (size>0x3ffff)? (0x40000|((((size)-0x40000)>>10)&0x3ffff)): ((size)&0x3FFFF)) )
+#define MK_PROLOG(lib,size) ((((lib)&0xFFF)<<20)|0x80000 | ( (size>0x3ffff)? (0x40000|((((size)-0x40000)>>10)&0x3ffff)): ((size)&0x3FFFF)) )
 
 #define OPCODE(p) ( (p)&0x7FFFF)
 //#define OBJSIZE(p) ((p)&0x3FFFF)
@@ -70,10 +70,10 @@ extern const LIBHANDLER ROMLibs[];
 #define OBJSIZE(p) ( ((p)&0x40000)? (0x40000+(((p)&0x3ffff)<<10)) : ((p)&0x3ffff))
 
 #define LIBNUM(p) ((((WORD)(p))>>20)&0xFFF)
-#define SETLIBNUMBIT(p,bitmask) (((WORD)(p))|(((WORD)(bitmask))<<20))
-#define CLRLIBNUMBIT(p,bitmask) (((WORD)(p))&(~(((WORD)(bitmask))<<20)))
+#define SET_LIBNUM_BIT(p,bitmask) (((WORD)(p))|(((WORD)(bitmask))<<20))
+#define CLR_LIBNUM_BIT(p,bitmask) (((WORD)(p))&(~(((WORD)(bitmask))<<20)))
 
-#define ISPROLOG(p) ((((WORD)(p))>>19)&1)
+#define IS_PROLOG(p) ((((WORD)(p))>>19)&1)
 
 #define TEXT2WORD(a,b,c,d) (WORD)( (WORD)(a) | ((WORD)(b)<<8) | ((WORD)(c)<<16) | ((WORD)(d)<<24))
 
@@ -82,7 +82,7 @@ extern const LIBHANDLER ROMLibs[];
 #define TI_NARGS(tokeninfo) (((tokeninfo)&0xf00000)>>20)
 #define TI_PRECEDENCE(tokeninfo) (((tokeninfo)&0x3f000000)>>24)
 
-#define MKTOKENINFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
+#define MK_TOKEN_INFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
 
 // MENU CODE OS 0XLLLMmPPP
 // WHERE LLL = LIBRARY NUMBER IN HEX
@@ -90,12 +90,12 @@ extern const LIBHANDLER ROMLibs[];
 //              mm mmmm = MENU NUMBER WITHIN THE LIBRARY (0-63).
 //       PPP = NUMBER OF THE FIRST ITEM TO DISPLAY IN THE CURRENT PAGE
 
-#define MENULIBRARY(menucode) (((menucode)>>20)&0xfff)
-#define MENUNUMBER(menucode) (((menucode)>>12)&0x3f)
-#define MENUPAGE(menucode) ((menucode)&0xfff)
-#define MENUSPECIAL(menucode) (((menucode)>>18)&0x3)
-#define MKMENUCODE(special,lib,num,page) ( (((special)&0x3)<<18) | (((lib)&0xfff)<<20) | (((num)&0x3f)<<12) | ((page)&0xfff) )
-#define SETMENUPAGE(menucode,newpage) ((((int64_t)(menucode))&~0xfffLL) | ((newpage)&0xfff))
+#define MENU_LIBRARY(menucode) (((menucode)>>20)&0xfff)
+#define MENU_NUMBER(menucode) (((menucode)>>12)&0x3f)
+#define MENU_PAGE(menucode) ((menucode)&0xfff)
+#define MENU_SPECIAL(menucode) (((menucode)>>18)&0x3)
+#define MK_MENU_CODE(special,lib,num,page) ( (((special)&0x3)<<18) | (((lib)&0xfff)<<20) | (((num)&0x3f)<<12) | ((page)&0xfff) )
+#define SET_MENU_PAGE(menucode,newpage) ((((int64_t)(menucode))&~0xfffLL) | ((newpage)&0xfff))
 
 #define MENU_VARS       1
 #define MENU_USERLIB    2
@@ -299,54 +299,54 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
-#define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENT)&&(LIBNUM(prolog)<=DOMAXIDENT)) )
+#define ISIDENT(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENT)&&(LIBNUM(prolog)<=DOMAXIDENT)) )
 #define IDENTHASATTR(prolog) (ISIDENT(prolog) && (LIBNUM(prolog)&HASATTR_BIT))
 #define ISQUOTEDIDENT(prolog) ( ISIDENT(prolog) && !(LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISUNQUOTEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISHIDDENIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&HIDDEN_BIT) )
 #define ISLOCKEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&READONLY_BIT) )
 #define ISREALIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&REALASSUME_BIT))
-#define ISint32_t(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
-#define ISLIST(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~1)==DOLIST))
-#define ISAUTOEXPLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST+1))
-#define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
-#define ISCOMPLEX(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
-#define ISCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)))
-#define ISREALCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (((prolog)&1)))
-#define ISCPLXCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
-#define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
-#define ISSECO(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==SECO))
+#define ISint32_t(prolog) ( ((OPCODE(prolog)<0x400000) || IS_PROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
+#define ISLIST(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)&~1)==DOLIST))
+#define ISAUTOEXPLIST(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DOLIST+1))
+#define ISREAL(prolog) ( IS_PROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
+#define ISCOMPLEX(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
+#define ISCONSTANT(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)))
+#define ISREALCONSTANT(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (((prolog)&1)))
+#define ISCPLXCONSTANT(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
+#define ISPROGRAM(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
+#define ISSECO(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==SECO))
 #define ISNUMBER(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
 #define ISNUMBERORANGLE(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISANGLE(prolog)||ISREALCONSTANT(prolog))
 #define ISNUMBERCPLX(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog)||ISCONSTANT(prolog))
-#define ISSTRING(prolog) (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
+#define ISSTRING(prolog) (IS_PROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
 
-#define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
+#define ISUNIT(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
 #define ISNUMBERORUNIT(prolog) (ISint32_t(prolog)||ISREAL(prolog)||ISUNIT(prolog)||ISANGLE(prolog))
 
-#define ISANGLE(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOANGLE))
+#define ISANGLE(prolog)   (IS_PROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOANGLE))
 
-#define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
-#define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
-#define ISDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DODIR))
-#define ISPACKEDDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOPACKDIR))
+#define ISSYMBOLIC(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
+#define ISMATRIX(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
+#define ISDIR(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DODIR))
+#define ISPACKEDDIR(prolog) ( IS_PROLOG(prolog) && (LIBNUM(prolog)==DOPACKDIR))
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 
-#define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
+#define ISCOMMENT(prolog) ( IS_PROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
-#define ISBITMAP(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOBITMAP))
+#define ISBITMAP(prolog)   (IS_PROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOBITMAP))
 
-#define ISPLOT(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOPLOT))
+#define ISPLOT(prolog)   (IS_PROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOPLOT))
 
-#define ISFONT(prolog)   (ISPROLOG(prolog) && (LIBNUM(prolog)==DOFONT))
+#define ISFONT(prolog)   (IS_PROLOG(prolog) && (LIBNUM(prolog)==DOFONT))
 
-#define ISBINDATA(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOBINDATA))
+#define ISBINDATA(prolog) (IS_PROLOG(prolog) && (LIBNUM(prolog)==DOBINDATA))
 
-#define ISLIBRARY(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY))
-#define ISLIBPTR(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY+1))
+#define ISLIBRARY(prolog) (IS_PROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY))
+#define ISLIBPTR(prolog) (IS_PROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY+1))
 
-#define ISTAG(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOTAG))
+#define ISTAG(prolog) (IS_PROLOG(prolog) && (LIBNUM(prolog)==DOTAG))
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (int32_t)(LIBNUM(prolog)&3):(int32_t)ANGLENONE) )
 
@@ -354,17 +354,17 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 #define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
-#define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
-#define MAKESINTH(a) MKOPCODE(HEXBINT,(a)&0x3ffff)
-#define MAKESINT64(a) MKPROLOG(DECBINT,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
+#define MAKESINT(a) MK_OPCODE(DECBINT,(a)&0x3ffff)
+#define MAKESINTH(a) MK_OPCODE(HEXBINT,(a)&0x3ffff)
+#define MAKESINT64(a) MK_PROLOG(DECBINT,2),(WORD)(((int64_t)a)&0xffffffff),((WORD)(((int64_t)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
-#define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
+#define MAKEMSG(lib,num) MK_OPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 #define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
-#define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
+#define MAKESTRING(length) MK_PROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
 #define MATMKSIZE(rows,cols) ( (((rows)&0xffff)<<16)|((cols)&0xffff) )
@@ -395,7 +395,7 @@ WORD libComputeHash2(word_p start, int32_t nwords);
 // SPECIAL TYPE DEFINITION FOR RPL OBJECTS STORED IN ROM
 #define ROMOBJECT const WORD const ROMOBJECTS
 
-#define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)&0x3f)<<5)|(((off)&0x1f))) )
+#define MKROMPTRID(lib,idx,off) MK_OPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)&0x3f)<<5)|(((off)&0x1f))) )
 #define ROMPTRID_IDX(id) ((int32_t)((id)>>5)&0x3f)
 #define ROMPTRID_OFF(id) ((id)&0x1f)
 #define ROMPTRID_LIB(id) ((((id)>>12)&0xf00)|(((id)>>11)&0xff))
@@ -557,9 +557,9 @@ extern const WORD lib70_basecycle[];
 #define GETLAMN        0x20000  // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
 #define PUTLAMN        0x10000  // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
-#define CMD_GETLAMN(n) MKOPCODE(DOIDENT,GETLAMN|((n)&0xffff))
-#define CMD_PUTLAMN(n) MKOPCODE(DOIDENT,PUTLAMN|((n)&0xffff))
-#define CMD_GETLAMNEVAL(n) MKOPCODE(DOIDENT,GETLAMNEVAL|((n)&0xffff))
+#define CMD_GETLAMN(n) MK_OPCODE(DOIDENT,GETLAMN|((n)&0xffff))
+#define CMD_PUTLAMN(n) MK_OPCODE(DOIDENT,PUTLAMN|((n)&0xffff))
+#define CMD_GETLAMNEVAL(n) MK_OPCODE(DOIDENT,GETLAMNEVAL|((n)&0xffff))
 
 // *************************************************************************************************************
 // RENDERER CORE FUNCTIONS HERE

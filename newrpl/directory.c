@@ -80,7 +80,7 @@ word_p rplMakeIdentQuoted(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] &= ~MKOPCODE(UNQUOTED_BIT, 0);
+        ident[0] &= ~MK_OPCODE(UNQUOTED_BIT, 0);
 
     return ident;
 
@@ -98,7 +98,7 @@ word_p rplMakeIdentUnquoted(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] |= MKOPCODE(UNQUOTED_BIT, 0);
+        ident[0] |= MK_OPCODE(UNQUOTED_BIT, 0);
 
     return ident;
 
@@ -114,7 +114,7 @@ word_p rplMakeIdentHidden(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] |= MKOPCODE(HIDDEN_BIT, 0);
+        ident[0] |= MK_OPCODE(HIDDEN_BIT, 0);
 
     return ident;
 
@@ -132,7 +132,7 @@ word_p rplMakeIdentVisible(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] &= ~MKOPCODE(HIDDEN_BIT, 0);
+        ident[0] &= ~MK_OPCODE(HIDDEN_BIT, 0);
 
     return ident;
 }
@@ -146,7 +146,7 @@ word_p rplMakeIdentReadOnly(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] |= MKOPCODE(READONLY_BIT, 0);
+        ident[0] |= MK_OPCODE(READONLY_BIT, 0);
 
     return ident;
 
@@ -164,7 +164,7 @@ word_p rplMakeIdentWriteable(word_p ident)
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
     if(ident)
-        ident[0] &= ~MKOPCODE(READONLY_BIT, 0);
+        ident[0] &= ~MK_OPCODE(READONLY_BIT, 0);
 
     return ident;
 }
@@ -312,7 +312,7 @@ word_p *rplMakeNewDir()
         return 0;
 
     // EMPTY DIRECTORY OBJECT
-    dirobj[0] = MKPROLOG(DODIR, 1);
+    dirobj[0] = MK_PROLOG(DODIR, 1);
     dirobj[1] = 0;
 
     // NOW CREATE THE NEW DIR
@@ -519,7 +519,7 @@ word_p *rplGetDirfromGlobal(word_p * var)
 // LOW LEVEL VERSION OF PURGE
 void rplPurgeForced(word_p * var)
 {
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         // TRYING TO PURGE AN ENTIRE DIRECTORY
 
         WORD dirsize = *(*(var + 1) + 1);
@@ -574,7 +574,7 @@ void rplPurgeGlobal(word_p nameobj)
         return;
     }
 
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         // TRYING TO PURGE AN ENTIRE DIRECTORY
 
         WORD dirsize = *(*(var + 1) + 1);
@@ -758,7 +758,7 @@ void rplWipeDir(word_p * directory)
 
         while(**direntry != DIR_END_MARKER) {
 
-            if(ISPROLOG(**(direntry + 1))
+            if(IS_PROLOG(**(direntry + 1))
                     && (LIBNUM(**(direntry + 1)) == DODIR)) {
                 // TRYING TO PURGE AN ENTIRE DIRECTORY
 
@@ -832,7 +832,7 @@ void rplPurgeDir(word_p nameobj)
         return;
     }
 
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         // TRYING TO PURGE AN ENTIRE DIRECTORY
         word_p *dir = rplFindDirbyHandle(*(var + 1));
 
@@ -980,7 +980,7 @@ void rplPurgeSettings(word_p nameobj)
         return;
     }
 
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         // TRYING TO PURGE AN ENTIRE DIRECTORY
 
         WORD dirsize = *(*(var + 1) + 1);
@@ -1015,7 +1015,7 @@ int32_t rplIsVarReadOnly(word_p * var)
 // RETURN TRUE IF A VARIABLE IS IS A DIRECTORY
 int32_t rplIsVarDirectory(word_p * var)
 {
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR))
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR))
         return 1;
     return 0;
 }
@@ -1023,7 +1023,7 @@ int32_t rplIsVarDirectory(word_p * var)
 // RETURN TRUE IF A VARIABLE IS IS AN EMPTY DIRECTORY
 int32_t rplIsVarEmptyDir(word_p * var)
 {
-    if(ISPROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
+    if(IS_PROLOG(**(var + 1)) && (LIBNUM(**(var + 1)) == DODIR)) {
         WORD dirsize = *(*(var + 1) + 1);
         word_p *emptydir = rplFindDirbyHandle(*(var + 1));
 
@@ -1164,7 +1164,7 @@ void rplCreateGlobalPropInDir(word_p nameobj, WORD propname, word_p value,
     value = ScratchPointer1;
     if(!newname)
         return;
-    newname[0] = MKPROLOG(DOIDENTHIDDEN, (len + 10) >> 2);
+    newname[0] = MK_PROLOG(DOIDENTHIDDEN, (len + 10) >> 2);
     newname[(len + 10) >> 2] = 0;       // FILL LAST WORD WITH ZEROS
     memmovew(newname + 1, nameobj + 1, OBJSIZE(*nameobj));
     byte_p string = (byte_p) (newname + 1);
@@ -1413,7 +1413,7 @@ word_p rplMakeIdentNoProps(word_p ident)
 
     word_p newident = rplAllocTempOb((ptr - start + 3) >> 2);
     if(newident) {
-        newident[0] = MKPROLOG(DOIDENT, (ptr - start + 3) >> 2);
+        newident[0] = MK_PROLOG(DOIDENT, (ptr - start + 3) >> 2);
         int32_t nchars = ptr - start;
         int k;
         ptr = (byte_p) (newident + 1);
@@ -1434,7 +1434,7 @@ static void ClrLAMonStack(word_p * bottom, word_p cmdlist)
     word_p *stkptr = DSTop - 1;
     word_p find;
     while(stkptr >= bottom) {
-        if(!ISPROLOG(**stkptr)) {
+        if(!IS_PROLOG(**stkptr)) {
             find = cmdlist;
             while(*find) {
                 if(**stkptr == *find)
@@ -1494,7 +1494,7 @@ int32_t rplGetDependency(word_p program)
             continue;
         }
 
-        if(((*ptr) & ~0xffff) == MKOPCODE(DOIDENT, NEWNLOCALS)) {
+        if(((*ptr) & ~0xffff) == MK_OPCODE(DOIDENT, NEWNLOCALS)) {
             // NEW LOCAL VAR DEFINITIONS ARE NOT REALLY DEPENDENCIES, MARK AS NOT-DEPENDENCY
             int32_t nlocals = *ptr & 0xffff;
             ScratchPointer2 = ptr;
@@ -1515,7 +1515,7 @@ int32_t rplGetDependency(word_p program)
 
         }
 
-        if(!ISPROLOG(*ptr)) {
+        if(!IS_PROLOG(*ptr)) {
             switch (*ptr) {
             case CMD_FOR:
             {
@@ -1695,7 +1695,7 @@ void rplUpdateDependencyTree(word_p varname, word_p * dir, word_p olddefn,
                     }
                     varname = ScratchPointer1;
 
-                    newlist[0] = MKPROLOG(DOLIST, totalsize + 1);
+                    newlist[0] = MK_PROLOG(DOLIST, totalsize + 1);
                     ptr = var[1];
                     end = rplSkipOb(ptr);
                     ++ptr;
@@ -1758,9 +1758,9 @@ void rplUpdateDependencyTree(word_p varname, word_p * dir, word_p olddefn,
                 }
                 varname = ScratchPointer1;
 
-                newlist[0] = MKPROLOG(DOLIST, rplObjSize(varname) + 1);
+                newlist[0] = MK_PROLOG(DOLIST, rplObjSize(varname) + 1);
                 rplCopyObject(newlist + 1, varname);
-                newlist[1] = MKPROLOG(LIBNUM(newlist[1]) & ~(UNQUOTED_BIT), OBJSIZE(newlist[1]));       // MAKE SURE THE IDENT IS QUOTED
+                newlist[1] = MK_PROLOG(LIBNUM(newlist[1]) & ~(UNQUOTED_BIT), OBJSIZE(newlist[1]));       // MAKE SURE THE IDENT IS QUOTED
                 newlist[rplObjSize(varname) + 1] = CMD_ENDLIST;
                 ScratchPointer3 = varname;
                 rplCreateGlobalPropInDir(stkbase[k], IDPROP_DEPN, newlist, dir);
@@ -1824,7 +1824,7 @@ void rplUpdateDependencyTree(word_p varname, word_p * dir, word_p olddefn,
                 }
                 varname = ScratchPointer1;
 
-                newlist[0] = MKPROLOG(DOLIST, totalsize + 1);
+                newlist[0] = MK_PROLOG(DOLIST, totalsize + 1);
                 ptr = var[1] + 1;
                 end = rplSkipOb(ptr);
                 newlptr = newlist + 1;
@@ -1857,9 +1857,9 @@ void rplUpdateDependencyTree(word_p varname, word_p * dir, word_p olddefn,
         }
         varname = ScratchPointer1;
 
-        newlist[0] = MKPROLOG(DOLIST, rplObjSize(varname) + 1);
+        newlist[0] = MK_PROLOG(DOLIST, rplObjSize(varname) + 1);
         rplCopyObject(newlist + 1, varname);
-        newlist[1] &= ~MKOPCODE(UNQUOTED_BIT, 0);       // MAKE SURE THE IDENT IS QUOTED
+        newlist[1] &= ~MK_OPCODE(UNQUOTED_BIT, 0);       // MAKE SURE THE IDENT IS QUOTED
         newlist[rplObjSize(varname) + 1] = CMD_ENDLIST;
         ScratchPointer3 = varname;
 
@@ -1941,6 +1941,6 @@ void rplPackDirinPlace(word_p * directory, word_p where)
         }
         entry = rplFindNext(entry);
     }
-    *where = MKPROLOG(DOPACKDIR, (ptr - where) - 1);
+    *where = MK_PROLOG(DOPACKDIR, (ptr - where) - 1);
 
 }

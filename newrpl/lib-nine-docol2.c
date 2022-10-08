@@ -31,31 +31,31 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(IF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
-    CMD(THEN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ELSE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDIF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),   \
-    CMD(CASE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(THENCASE,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDTHEN,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDCASE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FOR,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(START,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NEXT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STEP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DO,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNTIL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDDO,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(WHILE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(REPEAT,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDWHILE,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(IFERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(THENERR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ELSEERR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDERR,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(QSEMI,"»",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FORUP,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FORDN,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(IF,MK_TOKEN_INFO(2,TITYPE_NOTALLOWED,1,2)), \
+    CMD(THEN,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ELSE,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDIF,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)),   \
+    CMD(CASE,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(THENCASE,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDTHEN,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDCASE,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FOR,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(START,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NEXT,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STEP,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DO,MK_TOKEN_INFO(2,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNTIL,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDDO,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(WHILE,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(REPEAT,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDWHILE,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(IFERR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(THENERR,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ELSEERR,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDERR,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(QSEMI,"»",MK_TOKEN_INFO(1,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FORUP,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FORDN,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -98,7 +98,7 @@ const word_p const ROMPTR_TABLE[] = {
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // NORMAL BEHAVIOR IS TO PUSH THE OBJECT ON THE STACK:
 
@@ -152,11 +152,11 @@ void LIB_HANDLER()
     case OVR_XEQ:
     case OVR_NUM:
         // EXECUTE THE SECONDARY THAT'S ON THE STACK
-        if(ISPROLOG(*rplPeekData(1))) {
+        if(IS_PROLOG(*rplPeekData(1))) {
             rplPushRet(IPtr);   // PUSH CURRENT POINTER AS THE RETURN ADDRESS. AT THIS POINT, IPtr IS POINTING TO THIS SECONDARY WORD
             // BUT THE MAIN LOOP WILL ALWAYS SKIP TO THE NEXT OBJECT AFTER A SEMI.
             IPtr = rplPopData();
-            CurOpcode = MKPROLOG(LIBRARY_NUMBER, 0);    // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
+            CurOpcode = MK_PROLOG(LIBRARY_NUMBER, 0);    // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
             // CLEAR TEMPORARY SYSTEM FLAG ON EVERY SEPARATE EXECUTION
             rplClrSystemFlag(FL_FORCED_RAD);
             return;
@@ -201,13 +201,13 @@ void LIB_HANDLER()
         if(rplIsFalse(ScratchPointer1)) {
             // SKIP ALL OBJECTS UNTIL NEXT ELSE OR END
             int count = 0;
-            while((count != 0) || ((*IPtr != MKOPCODE(LIBRARY_NUMBER, ELSE))
-                        && (*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDIF)))) {
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, IF))
+            while((count != 0) || ((*IPtr != MK_OPCODE(LIBRARY_NUMBER, ELSE))
+                        && (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDIF)))) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, IF))
                     ++count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDIF))
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDIF))
                     --count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                     --IPtr;     // MALFORMED, JUST EXIT AT THE SEMI
                     return;
                 }
@@ -225,12 +225,12 @@ void LIB_HANDLER()
         // SKIP ALL OBJECTS UNTIL NEXT END
     {
         int count = 0;
-        while(count || (*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDIF))) {
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, IF))
+        while(count || (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDIF))) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, IF))
                 ++count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDIF))
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDIF))
                 --count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 --IPtr; // MALFORMED, JUST EXIT AT THE SEMI
                 return;
             }
@@ -280,12 +280,12 @@ void LIB_HANDLER()
 
         if(rplIsFalse(ScratchPointer1)) {
             int count = 0;
-            while(count || (*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDTHEN))) {
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, CASE))
+            while(count || (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDTHEN))) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, CASE))
                     ++count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDCASE))
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDCASE))
                     --count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                     --IPtr;     // MALFORMED, JUST EXIT AT THE SEMI
                     return;
                 }
@@ -306,12 +306,12 @@ void LIB_HANDLER()
 
         // IF THIS GETS EXECUTED, IT'S BECAUSE THE THEN CLAUSE WAS TRUE, SO SKIP UNTIL ENDCASE
         int count = 0;
-        while(count || (*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDCASE))) {
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, CASE))
+        while(count || (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDCASE))) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, CASE))
                 ++count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDCASE))
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDCASE))
                 --count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 --IPtr; // MALFORMED, JUST EXIT AT THE SEMI
                 return;
             }
@@ -365,18 +365,18 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED FOR LOOPS
-        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
-                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+        while(depth || ((*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FOR))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, START))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, NEXT))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, STEP))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
                 IPtr = ScratchPointer3 - 1;
                 return;
@@ -441,18 +441,18 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED FOR LOOPS
-        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
-                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+        while(depth || ((*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FOR))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, START))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, NEXT))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, STEP))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
                 IPtr = ScratchPointer3 - 1;
                 return;
@@ -622,13 +622,13 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED LOOPS
-        while(depth || (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, ENDDO))) {
+        while(depth || (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, ENDDO))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, DO))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, DO))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, ENDDO))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, ENDDO))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 IPtr = ScratchPointer3 - 1;     // MALFORMED, JUST EXIT AT THE SEMI
                 return;
             }
@@ -709,13 +709,13 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED LOOPS
-        while(depth || (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, ENDWHILE))) {
+        while(depth || (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, ENDWHILE))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, WHILE))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, WHILE))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, ENDWHILE))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, ENDWHILE))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 IPtr = ScratchPointer3 - 1;     // MALFORMED, JUST EXIT AT THE SEMI
                 return;
             }
@@ -804,12 +804,12 @@ void LIB_HANDLER()
         // SKIP TO THE NEXT THENERR OPCODE, BUT TAKING INTO ACCOUNT POSSIBLY NESTED IFERR STATEMENTS
         {
             int count = 0;
-            while(count || (*errhandler != MKOPCODE(LIBRARY_NUMBER, THENERR))) {
-                if(*errhandler == MKOPCODE(LIBRARY_NUMBER, IFERR))
+            while(count || (*errhandler != MK_OPCODE(LIBRARY_NUMBER, THENERR))) {
+                if(*errhandler == MK_OPCODE(LIBRARY_NUMBER, IFERR))
                     ++count;
-                if(*errhandler == MKOPCODE(LIBRARY_NUMBER, ENDERR))
+                if(*errhandler == MK_OPCODE(LIBRARY_NUMBER, ENDERR))
                     --count;
-                if(*errhandler == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                if(*errhandler == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                     IPtr = errhandler - 1;      // MALFORMED, JUST EXIT AT THE SEMI
                     return;
                 }
@@ -837,13 +837,13 @@ void LIB_HANDLER()
 
         {
             int count = 0;
-            while(count || ((*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDERR))
-                        && (*IPtr != MKOPCODE(LIBRARY_NUMBER, ELSEERR)))) {
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, IFERR))
+            while(count || ((*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDERR))
+                        && (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ELSEERR)))) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, IFERR))
                     ++count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDERR))
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDERR))
                     --count;
-                if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+                if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                     --IPtr;     // MALFORMED, JUST EXIT AT THE SEMI
                     return;
                 }
@@ -873,12 +873,12 @@ void LIB_HANDLER()
 
         // SKIP TO THE ENDERR MARKER
         int count = 0;
-        while(count || (*IPtr != MKOPCODE(LIBRARY_NUMBER, ENDERR))) {
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, IFERR))
+        while(count || (*IPtr != MK_OPCODE(LIBRARY_NUMBER, ENDERR))) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, IFERR))
                 ++count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, ENDERR))
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, ENDERR))
                 --count;
-            if(*IPtr == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*IPtr == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 --IPtr; // MALFORMED, JUST EXIT AT THE SEMI
                 return;
             }
@@ -949,22 +949,22 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED FOR LOOPS
-        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
-                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+        while(depth || ((*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FOR))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORUP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FORUP))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORDN))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FORDN))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, START))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, NEXT))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, STEP))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
                 IPtr = ScratchPointer3 - 1;
                 return;
@@ -1046,22 +1046,22 @@ void LIB_HANDLER()
 
         ScratchPointer3 = IPtr; // THIS IS POINTING AT THE FOR STATEMENT
         int32_t depth = 1; // TRACK NESTED FOR LOOPS
-        while(depth || ((*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, NEXT))
-                    && (*ScratchPointer3 != MKOPCODE(LIBRARY_NUMBER, STEP)))) {
+        while(depth || ((*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, NEXT))
+                    && (*ScratchPointer3 != MK_OPCODE(LIBRARY_NUMBER, STEP)))) {
             ScratchPointer3 = rplSkipOb(ScratchPointer3);
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FOR))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FOR))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORUP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FORUP))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, FORDN))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, FORDN))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, START))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, START))
                 ++depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, NEXT))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, NEXT))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, STEP))
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, STEP))
                 --depth;
-            if(*ScratchPointer3 == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(*ScratchPointer3 == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
                 rplDropData(1); // MALFORMED, JUST EXIT AT THE SEMI
                 IPtr = ScratchPointer3 - 1;
                 return;
@@ -1124,7 +1124,7 @@ void LIB_HANDLER()
         if((TokenLen == 1)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "«",
                         1))) {
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1134,12 +1134,12 @@ void LIB_HANDLER()
         if((TokenLen == 1)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "»",
                         1))) {
-            if(CurrentConstruct != MKPROLOG(LIBRARY_NUMBER, 0)) {
+            if(CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER, 0)) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
             rplCleanupLAMs(*(ValidateTop - 1));
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, QSEMI));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, QSEMI));
             RetNum = OK_ENDCONSTRUCT;
             return;
         }
@@ -1153,7 +1153,7 @@ void LIB_HANDLER()
         if((TokenLen == 2)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "IF",
                         2))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, IF));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, IF));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1161,7 +1161,7 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "IFERR",
                         2))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, IFERR));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, IFERR));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1169,7 +1169,7 @@ void LIB_HANDLER()
         if((TokenLen == 4)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "CASE",
                         4))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, CASE));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, CASE));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1177,22 +1177,22 @@ void LIB_HANDLER()
         if((TokenLen == 4)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "THEN",
                         4))) {
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, IF)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, IF)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, THEN));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, THEN));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, IFERR)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, IFERR)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, THENERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, THENERR));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, CASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, CASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, THENCASE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, THENCASE));
                 RetNum = OK_STARTCONSTRUCT;
                 return;
             }
@@ -1204,9 +1204,9 @@ void LIB_HANDLER()
         if((TokenLen == 7)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         "THENERR", 7))) {
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, IFERR)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, IFERR)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, THENERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, THENERR));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
@@ -1218,9 +1218,9 @@ void LIB_HANDLER()
         if((TokenLen == 8)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         "THENCASE", 8))) {
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, CASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, CASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, THENCASE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, THENCASE));
                 RetNum = OK_STARTCONSTRUCT;
                 return;
             }
@@ -1232,15 +1232,15 @@ void LIB_HANDLER()
         if((TokenLen == 4)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "ELSE",
                         4))) {
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THEN)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THEN)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ELSE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ELSE));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENERR)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENERR)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ELSEERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ELSEERR));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
@@ -1253,9 +1253,9 @@ void LIB_HANDLER()
         if((TokenLen == 7)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         "ELSEERR", 7))) {
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENERR)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENERR)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ELSEERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ELSEERR));
                 RetNum = OK_CHANGECONSTRUCT;
                 return;
             }
@@ -1269,54 +1269,54 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "END",
                         3))) {
             // ENDIF OPCODE
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THEN))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, ELSE))) {
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THEN))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, ELSE))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDIF));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDIF));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
             // ENDERR
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENERR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER,
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENERR))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER,
                             ELSEERR))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDERR));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
 
             // ENDTHEN
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENCASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENCASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDTHEN));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDTHEN));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
             // ENDCASE
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, CASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, CASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDCASE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDCASE));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
 
             // ENDDO
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, UNTIL)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, UNTIL)) {
                 --ValidateTop;  // DISCARD THE UNTIL CONSTRUCT
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDDO));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDDO));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
 
             // ENDWHILE
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, REPEAT)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, REPEAT)) {
                 --ValidateTop;  // DISCARD THE REPEAT CONSTRUCT
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDWHILE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDWHILE));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1333,10 +1333,10 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "ENDIF",
                         5))) {
             // ENDIF OPCODE
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THEN))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, ELSE))) {
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THEN))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, ELSE))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDIF));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDIF));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1350,11 +1350,11 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "ENDERR",
                         6))) {
             // ENDERR
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENERR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER,
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENERR))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER,
                             ELSEERR))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDERR));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDERR));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1370,9 +1370,9 @@ void LIB_HANDLER()
                         "ENDTHEN", 7))) {
 
             // ENDTHEN
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, THENCASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, THENCASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDTHEN));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDTHEN));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1387,9 +1387,9 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         "ENDCASE", 7))) {
             // ENDCASE
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, CASE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, CASE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDCASE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDCASE));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1405,10 +1405,10 @@ void LIB_HANDLER()
                         5))) {
             // ENDDO
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, UNTIL)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, UNTIL)) {
                 --ValidateTop;  // DISCARD THE UNTIL CONSTRUCT
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDDO));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDDO));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1424,10 +1424,10 @@ void LIB_HANDLER()
                         "ENDWHILE", 8))) {
             // ENDWHILE
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, REPEAT)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, REPEAT)) {
                 --ValidateTop;  // DISCARD THE REPEAT CONSTRUCT
                 rplCleanupLAMs(*(ValidateTop - 1));
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, ENDWHILE));
+                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, ENDWHILE));
                 RetNum = OK_ENDCONSTRUCT;
                 return;
             }
@@ -1444,7 +1444,7 @@ void LIB_HANDLER()
         if((TokenLen == 3)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "FOR",
                         3))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, FOR));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, FOR));
             RetNum = OK_NEEDMORESTARTCONST;
             return;
         }
@@ -1452,7 +1452,7 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "FORUP",
                         5))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, FORUP));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, FORUP));
             RetNum = OK_NEEDMORESTARTCONST;
             return;
         }
@@ -1460,7 +1460,7 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "FORDN",
                         5))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, FORDN));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, FORDN));
             RetNum = OK_NEEDMORESTARTCONST;
             return;
         }
@@ -1469,7 +1469,7 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "START",
                         5))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, START));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, START));
             rplCreateLAMEnvironment(CompileEnd - 1);
             rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
             rplCreateLAM((word_p) nulllam_ident, (word_p) nulllam_ident);     // NULLLAM FOR THE COMPILER
@@ -1482,16 +1482,16 @@ void LIB_HANDLER()
         if((TokenLen == 4)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "NEXT",
                         4))) {
-            if((CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FOR))
-                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORUP))
-                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORDN))
-                    && (CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, START))) {
+            if((CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FOR))
+                    &&(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FORUP))
+                    &&(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FORDN))
+                    && (CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, START))) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
             // DO A COUPLE OF CHECKS
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, NEXT));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, NEXT));
             rplCleanupLAMs(*(ValidateTop - 1));
             RetNum = OK_ENDCONSTRUCT;
             return;
@@ -1500,16 +1500,16 @@ void LIB_HANDLER()
         if((TokenLen == 4)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "STEP",
                         4))) {
-            if((CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FOR))
-                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORUP))
-                    &&(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, FORDN))
-                    && (CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, START))) {
+            if((CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FOR))
+                    &&(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FORUP))
+                    &&(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, FORDN))
+                    && (CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, START))) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
             // DO A COUPLE OF CHECKS
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STEP));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STEP));
             rplCleanupLAMs(*(ValidateTop - 1));
             RetNum = OK_ENDCONSTRUCT;
             return;
@@ -1520,7 +1520,7 @@ void LIB_HANDLER()
         if((TokenLen == 2)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "DO",
                         2))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, DO));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, DO));
 
             rplCreateLAMEnvironment(CompileEnd - 1);
 
@@ -1531,11 +1531,11 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "UNTIL",
                         5))) {
-            if(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, DO)) {
+            if(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, DO)) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, UNTIL));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, UNTIL));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1545,7 +1545,7 @@ void LIB_HANDLER()
         if((TokenLen == 5)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "WHILE",
                         5))) {
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, WHILE));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, WHILE));
             rplCreateLAMEnvironment(CompileEnd - 1);
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -1554,11 +1554,11 @@ void LIB_HANDLER()
         if((TokenLen == 6)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "REPEAT",
                         6))) {
-            if(CurrentConstruct != MKOPCODE(LIBRARY_NUMBER, WHILE)) {
+            if(CurrentConstruct != MK_OPCODE(LIBRARY_NUMBER, WHILE)) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, REPEAT));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, REPEAT));
             RetNum = OK_STARTCONSTRUCT;
             return;
         }
@@ -1578,7 +1578,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             if(CurrentConstruct != CMD_XEQSECO)
                 rplDecompAppendString("«");
             RetNum = OK_STARTCONSTRUCT;
@@ -1587,8 +1587,8 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS SEMI
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, QSEMI)) {
-            if(!(ISPROLOG(CurrentConstruct)
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, QSEMI)) {
+            if(!(IS_PROLOG(CurrentConstruct)
                         && (LIBNUM(CurrentConstruct) == LIBRARY_NUMBER))) {
                 rplDecompAppendString("»");
                 RetNum = OK_CONTINUE;
@@ -1603,7 +1603,7 @@ void LIB_HANDLER()
         // FOR... NEXT AND FOR... STEP
         // START... NEXT AND START... STEP
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FOR)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, FOR)) {
 
             rplDecompAppendString("FOR");
 
@@ -1618,7 +1618,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORUP)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, FORUP)) {
 
             rplDecompAppendString("FORUP");
 
@@ -1633,7 +1633,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, FORDN)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, FORDN)) {
 
             rplDecompAppendString("FORDN");
 
@@ -1648,7 +1648,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, START)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, START)) {
 
             rplDecompAppendString("START");
 
@@ -1663,12 +1663,12 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, NEXT)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, NEXT)) {
             // NEXT
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FOR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FOR))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, START))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FORUP))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString("NEXT");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1680,12 +1680,12 @@ void LIB_HANDLER()
 
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, STEP)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, STEP)) {
             // STEP
-            if((CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FOR))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, START))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORUP))
-                    || (CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, FORDN))) {
+            if((CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FOR))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, START))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FORUP))
+                    || (CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, FORDN))) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString("STEP");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1699,7 +1699,7 @@ void LIB_HANDLER()
 
         // DO ... UNTIL ... END
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, DO)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, DO)) {
 
             rplDecompAppendString("DO");
 
@@ -1710,9 +1710,9 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDDO)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDDO)) {
             // ENDDO
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, DO)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, DO)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString("END");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1726,7 +1726,7 @@ void LIB_HANDLER()
 
         // WHILE ... REPEAT ... END
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, WHILE)) {
 
             rplDecompAppendString("WHILE");
 
@@ -1737,10 +1737,10 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDWHILE)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDWHILE)) {
             // ENDWHILE
 
-            if(CurrentConstruct == MKOPCODE(LIBRARY_NUMBER, WHILE)) {
+            if(CurrentConstruct == MK_OPCODE(LIBRARY_NUMBER, WHILE)) {
                 rplCleanupLAMs(*(ValidateTop - 1));
                 rplDecompAppendString("END");
                 RetNum = OK_ENDCONSTRUCT;
@@ -1754,37 +1754,37 @@ void LIB_HANDLER()
 
         // TODO: ADD A FLAG TO CONTROL IF USER WANTS ENDIF INSTEAD OF END, ETC.
 
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENERR)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, THENERR)) {
             rplDecompAppendString("THEN");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, THENCASE)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, THENCASE)) {
             rplDecompAppendString("THEN");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDIF)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDIF)) {
             rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDERR)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDERR)) {
             rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDTHEN)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDTHEN)) {
             rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ENDCASE)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ENDCASE)) {
             rplDecompAppendString("END");
             RetNum = OK_CONTINUE;
             return;
         }
-        if(*DecompileObject == MKOPCODE(LIBRARY_NUMBER, ELSEERR)) {
+        if(*DecompileObject == MK_OPCODE(LIBRARY_NUMBER, ELSEERR)) {
             rplDecompAppendString("ELSE");
             RetNum = OK_CONTINUE;
             return;
@@ -1861,7 +1861,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1873,7 +1873,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1882,10 +1882,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = HINT_NLAFTER | HINT_ADDINDENTAFTER;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1964,14 +1964,14 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             // BASIC CHECKS
             word_p ptr, objend;
 
             objend = rplSkipOb(ObjectPTR);
             ptr = ObjectPTR + 1;
 
-            while((*ptr != MKOPCODE(LIBRARY_NUMBER, QSEMI)) && (ptr < objend)) {
+            while((*ptr != MK_OPCODE(LIBRARY_NUMBER, QSEMI)) && (ptr < objend)) {
 
                 // TODO: RECURSIVELY CHECK OBJECT VALIDITY IN HERE
 
@@ -2024,7 +2024,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

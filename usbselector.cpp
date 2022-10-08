@@ -397,7 +397,7 @@ void USBSelector::RefreshList()
 
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
                             uint32_t getversion[6] = {
-                                MKPROLOG(SECO, 5),      // ACTUAL DATA
+                                MK_PROLOG(SECO, 5),      // ACTUAL DATA
                                 CMD_VERSION,
                                 CMD_DROP,
                                 CMD_USBSEND,
@@ -525,7 +525,7 @@ void USBSelector::on_syncTime_clicked()
 
     // PROGRAM TO SET THE CURRENT DATE
     uint32_t setdate[22] = {
-        MKPROLOG(SECO, 21),      // ACTUAL DATA
+        MK_PROLOG(SECO, 21),      // ACTUAL DATA
         0,0,0,                  // PLACEHOLDERS FOR YEAR MONTH DAY
         MAKESINT(FL_DATEFORMAT),
         CMD_IF,
@@ -549,7 +549,7 @@ void USBSelector::on_syncTime_clicked()
 
     // PROGRAM TO SET THE CURRENT DATE
     uint32_t settime[12] = {
-        MKPROLOG(SECO, 11),      // ACTUAL DATA
+        MK_PROLOG(SECO, 11),      // ACTUAL DATA
         0,0,0,                  // PLACEHOLDERS FOR HOUR, MINUTES, SECONDS
         MAKESINT(100),
         CMD_OVR_DIV,

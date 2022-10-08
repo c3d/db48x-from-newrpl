@@ -241,7 +241,7 @@ word_p rplMatrixComposeN(int32_t level, int32_t rows, int32_t cols)
 
     rplTruncateLastObject(newobj);
 
-    matrix[0] = MKPROLOG(DOMATRIX, newobj - matrix - 1);
+    matrix[0] = MK_PROLOG(DOMATRIX, newobj - matrix - 1);
     matrix[1] = MATMKSIZE(rows, cols);
 
     return matrix;
@@ -913,7 +913,7 @@ void rplMatrixReduce()
        return;
        }
 
-       IdxList[0]=MKPROLOG(DOBINDATA,rowsa);
+       IdxList[0]=MK_PROLOG(DOBINDATA,rowsa);
        rplPushDataNoGrow(IdxList);
        rplPushDataNoGrow(*a);
        idx=a+1;
@@ -1050,7 +1050,7 @@ void rplMatrixInvert()
        return;
        }
 
-       IdxList[0]=MKPROLOG(DOBINDATA,rowsa);
+       IdxList[0]=MK_PROLOG(DOBINDATA,rowsa);
        rplPushDataNoGrow(IdxList);
        rplPushDataNoGrow(*a);
        idx=a+1;
@@ -1971,7 +1971,7 @@ word_p rplMatrixFlexComposeN(int32_t level, int32_t totalelements)
 
     rplTruncateLastObject(newobj);
 
-    matrix[0] = MKPROLOG(DOMATRIX, newobj - matrix - 1);
+    matrix[0] = MK_PROLOG(DOMATRIX, newobj - matrix - 1);
     matrix[1] = MATMKSIZE(rows, cols);
 
     return matrix;
@@ -2159,7 +2159,7 @@ word_p rplMatrixFill(int32_t rows, int32_t cols, word_p obj)
 
     rplTruncateLastObject(newobj);
 
-    matrix[0] = MKPROLOG(DOMATRIX, newobj - matrix - 1);
+    matrix[0] = MK_PROLOG(DOMATRIX, newobj - matrix - 1);
     matrix[1] = MATMKSIZE(rows, cols);
 
     return matrix;
@@ -2179,7 +2179,7 @@ word_p rplMatrixInitIdx(int32_t nrows)
         return 0;
     }
 
-    IdxList[0] = MKPROLOG(DOBINDATA, nrows);
+    IdxList[0] = MK_PROLOG(DOBINDATA, nrows);
 
     int32_t k;
     for(k = 1; k <= nrows; ++k)
@@ -2215,7 +2215,7 @@ word_p rplMatrixIdent(int32_t rows)
     for(k = 0; k < rows * rows; k += rows + 1)
         matrix[2 + k]++;
 
-    matrix[0] = MKPROLOG(DOMATRIX, newobj - matrix + 1);
+    matrix[0] = MK_PROLOG(DOMATRIX, newobj - matrix + 1);
     matrix[1] = MATMKSIZE(rows, rows);
 
     return matrix;
@@ -2241,7 +2241,7 @@ word_p rplMatrixZero(int32_t rows, int32_t cols)
     if(!matrix)
         return 0;
 
-    matrix[0] = MKPROLOG(DOMATRIX, 1 + rows * cols + 1);
+    matrix[0] = MK_PROLOG(DOMATRIX, 1 + rows * cols + 1);
     matrix[1] = MATMKSIZE(rows - isvector, cols);
     newobj[0] = MAKESINT(0);
 

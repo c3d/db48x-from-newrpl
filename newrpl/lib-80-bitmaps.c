@@ -33,7 +33,7 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(TOSYSBITMAP,"→SYSBITMAP",MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    ECMD(TOSYSBITMAP,"→SYSBITMAP",MK_TOKEN_INFO(10,TITYPE_NOTALLOWED,1,2))
 
 #define ERROR_LIST \
     ERR(BITMAPEXPECTED,0), \
@@ -504,7 +504,7 @@ word_p rplBmpCreate(int32_t type, int32_t width, int32_t height, int32_t clear)
     if(!newbmp)
         return 0;
 
-    newbmp[0] = MKPROLOG(DOBITMAP + type, totalsize + 2);
+    newbmp[0] = MK_PROLOG(DOBITMAP + type, totalsize + 2);
     newbmp[1] = width;
     newbmp[2] = height;
     if(clear)
@@ -561,13 +561,13 @@ void rplBMPRenderAllocPoint(word_p * rstatusptr,
 
     // STRETCH THE BINDATA OBJECT
     word_p libdata = PERSISTPTR(newobj);
-    *libdata = MKPROLOG(DOBINDATA, RENDERSTATE_SIZE(need * 8));
+    *libdata = MK_PROLOG(DOBINDATA, RENDERSTATE_SIZE(need * 8));
     renderst = (BMP_RENDERSTATE *) (libdata + 1);
     libdata = rplSkipOb(libdata);
     *libdata = CMD_ENDLIST;
 
     // STRETCH THE CONTAINER LIST OBJECT
-    *newobj = MKPROLOG(DOLIST, libdata - newobj);
+    *newobj = MK_PROLOG(DOLIST, libdata - newobj);
 
     // UPDATE ALLOCATION COUNT
     renderst->ptalloc = need * 8;
@@ -585,7 +585,7 @@ void rplBMPRenderAllocPoint(word_p * rstatusptr,
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // JUST PUSH THE OBJECT ON THE STACK
         rplPushData(IPtr);
         return;
@@ -659,12 +659,12 @@ void LIB_HANDLER()
 
             memmovew(newrst, rstatus, ROBJPTR(rstatus) - rstatus);
             ptr = ROBJPTR(newrst);
-            ptr[0] = MKPROLOG(DOBITMAP + bitmaptype, totalsize + 2);
+            ptr[0] = MK_PROLOG(DOBITMAP + bitmaptype, totalsize + 2);
             ptr[1] = w;
             ptr[2] = h;
             memsetw(ptr + 3, 0, totalsize);     // CLEAR NEW BITMAP BACKGROUND
             ptr = PERSISTPTR(newrst);
-            ptr[0] = MKPROLOG(DOBINDATA, RENDERSTATE_SIZE(1));
+            ptr[0] = MK_PROLOG(DOBINDATA, RENDERSTATE_SIZE(1));
 
             // INITIALIZE THE RENDERING STRUCTURE
             BMP_RENDERSTATE *renderst = (BMP_RENDERSTATE *) (ptr + 1);
@@ -685,7 +685,7 @@ void LIB_HANDLER()
             ptr = rplSkipOb(ptr);
             ptr[0] = CMD_ENDLIST;       // CLOSE THE LIST
 
-            newrst[0] = MKPROLOG(DOLIST, wordsneeded);
+            newrst[0] = MK_PROLOG(DOLIST, wordsneeded);
 
             rplOverwriteData(1, newrst);
 
@@ -777,7 +777,7 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        if(ISPROLOG(*rplPeekData(1))) {
+        if(IS_PROLOG(*rplPeekData(1))) {
             word_p dataptr=rplPeekData(1);
             int32_t size=OBJSIZE(*dataptr)-2;
             dataptr+=2;
@@ -795,7 +795,7 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
@@ -827,7 +827,7 @@ void LIB_HANDLER()
                         "BITMAPDATA", 10))) {
 
             ScratchPointer4 = CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER, 0));
+            rplCompileAppend(MK_PROLOG(LIBRARY_NUMBER, 0));
             RetNum = OK_NEEDMORE;
             return;
         }
@@ -1024,7 +1024,7 @@ void LIB_HANDLER()
             if((CompileEnd - ScratchPointer4 - 3) == totalsize) {
                 //   DONE!  FIX THE PROLOG WITH THE RIGHT LIBRARY NUMBER AND SIZE
                 *ScratchPointer4 =
-                        MKPROLOG(DOBITMAP + (*ScratchPointer4 & 0xff),
+                        MK_PROLOG(DOBITMAP + (*ScratchPointer4 & 0xff),
                         totalsize + 2);
                 RetNum = OK_CONTINUE;
                 return;
@@ -1047,7 +1047,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             // DECOMPILE BITMAP
 
             rplDecompAppendString("BITMAPDATA ");
@@ -1174,7 +1174,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1186,7 +1186,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1195,10 +1195,10 @@ void LIB_HANDLER()
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1231,7 +1231,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             RetNum = ERR_INVALID;
             return;
         }
@@ -1249,12 +1249,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR = ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
+        ObjectPTR = ROMPTR_TABLE[MENU_NUMBER(MenuCodeArg) + 2];
         RetNum = OK_CONTINUE;
         return;
     }

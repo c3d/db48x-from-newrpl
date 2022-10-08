@@ -28,7 +28,7 @@ int32_t rplVerifyObject(word_p obj)
     // EXECUTE THE LIBRARY DIRECTLY
     int32_t SavedOpcode = CurOpcode;
 
-    CurOpcode = MKOPCODE(libnum, OPCODE_CHECKOBJ);
+    CurOpcode = MK_OPCODE(libnum, OPCODE_CHECKOBJ);
 
     RetNum = ERR_INVALID;
     ObjectPTR = obj;
@@ -69,7 +69,7 @@ int32_t rplVerifyObjPointer(word_p ptr)
     LIBHANDLER han;
 
     SavedOpcode = CurOpcode;
-    CurOpcode = MKOPCODE(libnum, OPCODE_GETROMID);
+    CurOpcode = MK_OPCODE(libnum, OPCODE_GETROMID);
 
     while(libnum >= 0) {
         han = rplGetLibHandler(libnum);
@@ -235,7 +235,7 @@ word_p rplCreateHashIdent(int32_t number)
     word_p obj = rplAllocTempOb(2);
     if(!obj)
         return 0;
-    obj[0] = MKPROLOG(DOIDENT, 2);
+    obj[0] = MK_PROLOG(DOIDENT, 2);
     obj[1] = (WORD) bignumber;
     obj[2] = (WORD) (bignumber >> 32);
 
@@ -368,7 +368,7 @@ int32_t rplVerifyDirectories(int32_t fix)
             handle = rplAllocTempOb(1);
             if(!handle)
                 return 0;       // PANIC, CAN'T FIX IT!
-            handle[0] = MKPROLOG(DODIR, 1);
+            handle[0] = MK_PROLOG(DODIR, 1);
             handle[1] = nitems;
         }
 

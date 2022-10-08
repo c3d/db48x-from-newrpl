@@ -31,42 +31,42 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(STO,MKTOKENINFO(3,TITYPE_NOTALLOWED,2,2)), \
-    CMD(RCL,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(STOADD,"STO+",MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(STOSUB,"STO-",MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(STOMUL,"STO*",MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(STODIV,"STO/",MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
-    CMD(SINV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SNEG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SCONJ,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(INCR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DECR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PURGE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CRDIR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PGDIR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UPDIR,MKTOKENINFO(5,TITYPE_NOTALLOWED,0,2)), \
-    CMD(HOME,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2)), \
-    CMD(PATH,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2)), \
-    CMD(VARS,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2)), \
-    CMD(ALLVARS,MKTOKENINFO(7,TITYPE_NOTALLOWED,0,2)), \
-    CMD(ORDER,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(QUOTEID,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNQUOTEID,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(HIDEVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNHIDEVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLVAR,MKTOKENINFO(5,TITYPE_NOTALLOWED,0,2)), \
-    CMD(LOCKVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNLOCKVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RENAME,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(TVARS,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TVARSE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SADD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SPROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,2,2)), \
-    CMD(RPROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,2,2)), \
-    CMD(PACKDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2))
+    CMD(STO,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,2,2)), \
+    CMD(RCL,MK_TOKEN_INFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOADD,"STO+",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(STOSUB,"STO-",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(STOMUL,"STO*",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(STODIV,"STO/",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,2,2)), \
+    CMD(SINV,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SNEG,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SCONJ,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(INCR,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DECR,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PURGE,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CRDIR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PGDIR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UPDIR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,0,2)), \
+    CMD(HOME,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,0,2)), \
+    CMD(PATH,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,0,2)), \
+    CMD(VARS,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,0,2)), \
+    CMD(ALLVARS,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,0,2)), \
+    CMD(ORDER,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(QUOTEID,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNQUOTEID,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HIDEVAR,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNHIDEVAR,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLVAR,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,0,2)), \
+    CMD(LOCKVAR,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNLOCKVAR,MK_TOKEN_INFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RENAME,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(TVARS,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TVARSE,MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SADD,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SPROP,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,2,2)), \
+    CMD(RPROP,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,2,2)), \
+    CMD(PACKDIR,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,2,2))
 
-//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 #define ERROR_LIST \
@@ -115,12 +115,12 @@ ROMOBJECT dir_parent_bint[] = {
 };
 
 ROMOBJECT root_dir_handle[] = {
-    (WORD) MKPROLOG(DODIR, 1),
+    (WORD) MK_PROLOG(DODIR, 1),
     (WORD) 0
 };
 
 ROMOBJECT home_opcode[] = {
-    (WORD) MKOPCODE(LIBRARY_NUMBER, HOME)
+    (WORD) MK_OPCODE(LIBRARY_NUMBER, HOME)
 };
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
@@ -143,7 +143,7 @@ const word_p const ROMPTR_TABLE[] = {
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // THIS SHOULD NEVER HAPPEN, AS DIRECTORY OBJECTS ARE SPECIAL HANDLES
         // THEY ARE NEVER USED IN THE MIDDLE OF THE CODE
@@ -2064,7 +2064,7 @@ void LIB_HANDLER()
             if(han) {
                 WORD savecurOpcode = CurOpcode;
                 ObjectPTR = var[1];
-                CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+                CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
                 (*han) ();
 
                 CurOpcode = savecurOpcode;
@@ -2147,7 +2147,7 @@ void LIB_HANDLER()
             if(han) {
                 WORD savecurOpcode = CurOpcode;
                 ObjectPTR = var[1];
-                CurOpcode = MKOPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
+                CurOpcode = MK_OPCODE(LIBNUM(*ObjectPTR), OPCODE_GETINFO);
                 (*han) ();
 
                 CurOpcode = savecurOpcode;
@@ -2545,7 +2545,7 @@ void LIB_HANDLER()
     case OVR_XEQ:
         // EVALUATING THE OBJECT HAS TO CHANGE THE CURRENT DIRECTORY INTO THIS ONE
     {
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
             // RECURSIVE CALL
@@ -2574,7 +2574,7 @@ void LIB_HANDLER()
     case OVR_SAME:
 
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-        if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(2)) || !IS_PROLOG(*rplPeekData(1))) {
             if(*rplPeekData(2) == *rplPeekData(1)) {
                 rplDropData(2);
                 rplPushTrue();
@@ -2640,7 +2640,7 @@ void LIB_HANDLER()
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart,
                         "DIRECTORY", 9))) {
             // START A CONSTRUCT AND PUT ALL OBJECTS INSIDE
-            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER + 1, 0));
+            rplCompileAppend((WORD) MK_PROLOG(LIBRARY_NUMBER + 1, 0));
             // FROM NOW ON IT'S ALL LOOSE OBJECTS NAME/OBJECT UNTIL FINAL OFFSET TABLES
             RetNum = OK_STARTCONSTRUCT;
             return;
@@ -2649,7 +2649,7 @@ void LIB_HANDLER()
         if((TokenLen == 6)
                 && (!utf8ncmp2((char *)TokenStart, (char *)BlankStart, "ENDDIR",
                         6))) {
-            if((CurrentConstruct != MKPROLOG(LIBRARY_NUMBER + 1, 0))) {
+            if((CurrentConstruct != MK_PROLOG(LIBRARY_NUMBER + 1, 0))) {
                 RetNum = ERR_SYNTAX;
                 return;
             }
@@ -2731,7 +2731,7 @@ void LIB_HANDLER()
                     if(LAMptr < LAMTopSaved) {
                         // THIS IS NOT A VALID LAM, LEAVE AS IDENT
 
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STO));
+                        rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STO));
 
                         RetNum = OK_CONTINUE;
                         return;
@@ -2747,9 +2747,9 @@ void LIB_HANDLER()
                             if(LAMptr > env)
                                 break;
                             prolog = **(env + 1);       // GET THE PROLOG OF THE SECONDARY
-                            if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
+                            if(IS_PROLOG(prolog) && LIBNUM(prolog) == SECO) {
                                 // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STO));
+                                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STO));
 
                                 RetNum = OK_CONTINUE;
                                 return;
@@ -2775,11 +2775,11 @@ void LIB_HANDLER()
                     while(scanenv >= ValidateBottom) {
                         if(((LIBNUM(**scanenv) == DOCOL)
                                     || (LIBNUM(**scanenv) == SECO))
-                                && (ISPROLOG(**scanenv))) {
+                                && (IS_PROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv > *(nLAMBase + 1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STO));
+                                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STO));
 
                                 RetNum = OK_CONTINUE;
                                 return;
@@ -2796,11 +2796,11 @@ void LIB_HANDLER()
                     // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
                     if(Offset <= 32767 && Offset >= -32768) {
                         CompileEnd = prevobject;
-                        rplCompileAppend(MKOPCODE(DOIDENT,
+                        rplCompileAppend(MK_OPCODE(DOIDENT,
                                     PUTLAMN + (Offset & 0xffff)));
                     }
                     else {
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STO));
+                        rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STO));
                     }
 
                     RetNum = OK_CONTINUE;
@@ -2809,7 +2809,7 @@ void LIB_HANDLER()
 
             }
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, STO));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, STO));
             RetNum = OK_CONTINUE;
             return;
         }
@@ -2850,7 +2850,7 @@ void LIB_HANDLER()
                     if(LAMptr < LAMTopSaved) {
                         // THIS IS NOT A VALID LAM, LEAVE AS IDENT
 
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, RCL));
+                        rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, RCL));
                         RetNum = OK_CONTINUE;
                         return;
                     }
@@ -2865,9 +2865,9 @@ void LIB_HANDLER()
                             if(LAMptr > env)
                                 break;
                             prolog = **(env + 1);       // GET THE PROLOG OF THE SECONDARY
-                            if(ISPROLOG(prolog) && LIBNUM(prolog) == SECO) {
+                            if(IS_PROLOG(prolog) && LIBNUM(prolog) == SECO) {
                                 // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, RCL));
+                                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, RCL));
 
                                 RetNum = OK_CONTINUE;
                                 return;
@@ -2891,11 +2891,11 @@ void LIB_HANDLER()
                     word_p *scanenv = ValidateTop - 1;
 
                     while(scanenv >= ValidateBottom) {
-                        if((LIBNUM(**scanenv) == SECO) && (ISPROLOG(**scanenv))) {
+                        if((LIBNUM(**scanenv) == SECO) && (IS_PROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv > *(nLAMBase + 1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, RCL));
+                                rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, RCL));
                                 RetNum = OK_CONTINUE;
                                 return;
                             }
@@ -2910,11 +2910,11 @@ void LIB_HANDLER()
 
                     if(Offset <= 32767 && Offset >= -32768) {
                         CompileEnd = prevobject;
-                        rplCompileAppend(MKOPCODE(DOIDENT,
+                        rplCompileAppend(MK_OPCODE(DOIDENT,
                                     GETLAMN + (Offset & 0xffff)));
                     }
                     else {
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, RCL));
+                        rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, RCL));
                     }
                     RetNum = OK_CONTINUE;
                     return;
@@ -2922,7 +2922,7 @@ void LIB_HANDLER()
 
             }
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER, RCL));
+            rplCompileAppend(MK_OPCODE(LIBRARY_NUMBER, RCL));
             RetNum = OK_CONTINUE;
             return;
         }
@@ -2944,7 +2944,7 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
 
             if(LIBNUM(*DecompileObject) == LIBRARY_NUMBER) {
                 // IT'S A DIRECTORY OBJECT
@@ -3106,7 +3106,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -3118,7 +3118,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -3126,10 +3126,10 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -3163,7 +3163,7 @@ void LIB_HANDLER()
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             if(!ISPACKEDDIR(*ObjectPTR)) {
                 // DIRECTORY OBJECTS CAN ONLY HAVE 1 WORD
                 if(OBJSIZE(*ObjectPTR) != 1) {
@@ -3187,7 +3187,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

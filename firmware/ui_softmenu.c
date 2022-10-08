@@ -17,11 +17,11 @@
 
 int32_t uiCountMenuItems(WORD MenuCode, word_p menu)
 {
-    if(MENUSPECIAL(MenuCode) == MENU_VARS) {
+    if(MENU_SPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS
         return rplGetVisibleVarCount();
     }
-    if(MENUSPECIAL(MenuCode) == MENU_USERLIB) {
+    if(MENU_SPECIAL(MenuCode) == MENU_USERLIB) {
         // MENU IS LIBS
         word_p libdir = rplGetSettings((word_p) library_dirname);
 
@@ -53,7 +53,7 @@ word_p uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
     int32_t SavedErrorCode = ErrorCode;
 
     Exceptions = 0;     // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
-    CurOpcode = MKOPCODE(libnum, Opcode);
+    CurOpcode = MK_OPCODE(libnum, Opcode);
     ArgNum2 = arg2;
     ArgNum3 = arg3;
     RetNum = -1;
@@ -74,29 +74,29 @@ word_p uiGetLibObject(int32_t libnum, WORD arg2, WORD arg3, WORD Opcode)
 
 word_p uiGetLibMenu(int64_t MenuCode)
 {
-    if(MENUSPECIAL(MenuCode) == MENU_VARS) {
+    if(MENU_SPECIAL(MenuCode) == MENU_VARS) {
         // MENU IS VARS, NO NEED FOR MENU OBJECT
         return 0;
     }
-    if(MENUSPECIAL(MenuCode) == MENU_USERLIB) {
+    if(MENU_SPECIAL(MenuCode) == MENU_USERLIB) {
         // MENU IS LIBS, NO NEED FOR MENU OBJECT
         return 0;
     }
-    return uiGetLibObject(MENULIBRARY(MenuCode), (MenuCode >> 32), MenuCode,
+    return uiGetLibObject(MENU_LIBRARY(MenuCode), (MenuCode >> 32), MenuCode,
             OPCODE_LIBMENU);
 
 }
 
 word_p uiGetLibHelp(word_p Object)
 {
-    WORD hash = (ISPROLOG(*Object)) ? libComputeHash(Object) : *Object;
+    WORD hash = (IS_PROLOG(*Object)) ? libComputeHash(Object) : *Object;
     return uiGetLibObject(LIBNUM(*Object), 0, hash, OPCODE_LIBHELP);
 }
 
 word_p uiGetLibPtrHelp(word_p LibCommand)
 {
 
-    return uiGetLibObject(LIBNUM(*LibCommand), LibCommand[1], MKOPCODE(DOLIBPTR,
+    return uiGetLibObject(LIBNUM(*LibCommand), LibCommand[1], MK_OPCODE(DOLIBPTR,
                 LibCommand[2]), OPCODE_LIBHELP);
 }
 
@@ -110,7 +110,7 @@ word_p uiGetLibMsg(WORD MsgCode)
 
 word_p uiGetMenuItem(int64_t MenuCode, word_p menu, int32_t item)
 {
-    if(MENUSPECIAL(MenuCode) == MENU_VARS) {
+    if(MENU_SPECIAL(MenuCode) == MENU_VARS) {
 // MENU IS VARS
 // RETURN A POINTER TO THE VARIABLE NAME
 
@@ -119,7 +119,7 @@ word_p uiGetMenuItem(int64_t MenuCode, word_p menu, int32_t item)
             return 0;
         return var[0];
     }
-    if(MENUSPECIAL(MenuCode) == MENU_USERLIB) {
+    if(MENU_SPECIAL(MenuCode) == MENU_USERLIB) {
 // MENU IS LIBS
 // RETURN A POINTER TO THE VARIABLE NAME
         word_p libdir = rplGetSettings((word_p) library_dirname);

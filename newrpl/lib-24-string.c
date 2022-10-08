@@ -32,22 +32,22 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(TOUTF,"→UTF8",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FROMUTF,"UTF8→",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOSTR,"→STR",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FROMSTR,"STR→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NTOKENS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NTHTOKEN,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NTHTOKENPOS,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TRIM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(SSTRLEN,"STRLEN",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TONFC,"→NFC",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SREPL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TODISPSTR,"→STRD",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOEDITSTR,"→STRE",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    ECMD(TOUTF,"→UTF8",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FROMUTF,"UTF8→",MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOSTR,"→STR",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FROMSTR,"STR→",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SREV,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTOKENS,MK_TOKEN_INFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTHTOKEN,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTHTOKENPOS,MK_TOKEN_INFO(11,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TRIM,MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RTRIM,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SSTRLEN,"STRLEN",MK_TOKEN_INFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STRLENCP,MK_TOKEN_INFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TONFC,"→NFC",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SREPL,MK_TOKEN_INFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TODISPSTR,"→STRD",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOEDITSTR,"→STRE",MK_TOKEN_INFO(4,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -72,7 +72,7 @@
 #define STRLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
 
 ROMOBJECT empty_string[] = {
-    MKPROLOG(DOSTRING, 0)
+    MK_PROLOG(DOSTRING, 0)
 };
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
@@ -154,7 +154,7 @@ void rplSetStringLength(word_p string, int32_t length)
 {
     int32_t padding = (4 - ((length) & 3)) & 3;
 
-    *string = MKPROLOG(DOSTRING + padding, (length + 3) >> 2);
+    *string = MK_PROLOG(DOSTRING + padding, (length + 3) >> 2);
 }
 
 // ADDITIONAL API TO WORK WITH STRINGS FROM OTHER LIBRARIES
@@ -361,7 +361,7 @@ int32_t rplCountTokens(utf8_p start, utf8_p end, utf8_p sepstart,
 
 void LIB_HANDLER()
 {
-    if(ISPROLOG(CurOpcode)) {
+    if(IS_PROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // NORMAL BEHAVIOR IS TO PUSH THE OBJECT ON THE STACK:
 
@@ -1192,7 +1192,7 @@ void LIB_HANDLER()
 
         int32_t padding = (4 - ((len1 + len2) & 3)) & 3;
 
-        *newobject = MKPROLOG(DOSTRING + padding, (len1 + len2 + 3) >> 2);
+        *newobject = MK_PROLOG(DOSTRING + padding, (len1 + len2 + 3) >> 2);
 
         rplOverwriteData(2, newobject);
         rplDropData(1);
@@ -1205,7 +1205,7 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
         // JUST LEAVE THE OBJECT ON THE STACK WHERE IT IS, UNLESS IT'S A COMMAND DEFINED BY THIS LIBRARY
-        if(!ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(1))) {
             WORD saveOpcode = CurOpcode;
             CurOpcode = *rplPopData();
             // RECURSIVE CALL
@@ -1222,7 +1222,7 @@ void LIB_HANDLER()
             return;
         }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
-        if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
+        if(!IS_PROLOG(*rplPeekData(2)) || !IS_PROLOG(*rplPeekData(1))) {
             if(*rplPeekData(2) == *rplPeekData(1)) {
                 rplDropData(2);
                 rplPushTrue();
@@ -1306,7 +1306,7 @@ void LIB_HANDLER()
 
             ScratchPointer4 = CompileEnd;       // SAVE CURRENT COMPILER POINTER TO FIX THE OBJECT AT THE END
 
-            rplCompileAppend(MKPROLOG(DOSTRING, 0));
+            rplCompileAppend(MK_PROLOG(DOSTRING, 0));
 
             union
             {
@@ -1346,7 +1346,7 @@ void LIB_HANDLER()
                         if(count)
                             rplCompileAppend(temp.word);
                         *ScratchPointer4 =
-                                MKPROLOG(DOSTRING + ((4 - count) & 3),
+                                MK_PROLOG(DOSTRING + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
                         RetNum = OK_NEEDMORE;
                         return;
@@ -1390,7 +1390,7 @@ void LIB_HANDLER()
                             rplCompileAppend(temp.word);
                         }
                         *ScratchPointer4 =
-                                MKPROLOG(DOSTRING + ((4 - count) & 3),
+                                MK_PROLOG(DOSTRING + ((4 - count) & 3),
                                 (WORD) (CompileEnd - ScratchPointer4) - 1);
                         RetNum = OK_CONTINUE;
                         return;
@@ -1558,7 +1558,7 @@ void LIB_HANDLER()
                     if(count)
                         rplCompileAppend(temp.word);
                     *ScratchPointer4 =
-                            MKPROLOG(DOSTRING + ((4 - count) & 3),
+                            MK_PROLOG(DOSTRING + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
                     RetNum = OK_NEEDMORE;
                     return;
@@ -1601,7 +1601,7 @@ void LIB_HANDLER()
                     if(count)
                         rplCompileAppend(temp.word);
                     *ScratchPointer4 =
-                            MKPROLOG(DOSTRING + ((4 - count) & 3),
+                            MK_PROLOG(DOSTRING + ((4 - count) & 3),
                             (WORD) (CompileEnd - ScratchPointer4) - 1);
                     RetNum = OK_CONTINUE;
                     return;
@@ -1720,7 +1720,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             rplDecompAppendChar('\"');
             utf8_p start = (utf8_p) (DecompileObject + 1);
             utf8_p end =
@@ -1769,7 +1769,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-        if(ISPROLOG(*DecompileObject)) {
+        if(IS_PROLOG(*DecompileObject)) {
             rplDecompAppendChar('\"');
             rplDecompAppendString2((utf8_p) (DecompileObject + 1),
                     (OBJSIZE(*DecompileObject) << 2) -
@@ -1812,7 +1812,7 @@ void LIB_HANDLER()
         // CurrentConstruct = Opcode of current construct/WORD of current composite
 
         // COMPILE RETURNS:
-        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // RetNum =  OK_TOKENINFO | MK_TOKEN_INFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
     {
         libProbeCmds((char **)LIB_NAMES, (int32_t *) LIB_TOKENINFO,
@@ -1824,7 +1824,7 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
         // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
-        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN RetNum: RETURN THE MK_TOKEN_INFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
         // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
         // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
         //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
@@ -1832,10 +1832,10 @@ void LIB_HANDLER()
         //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
         // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL int32_t, .42 = HEX INTEGER
-        if(ISPROLOG(*ObjectPTR)) {
+        if(IS_PROLOG(*ObjectPTR)) {
             TypeInfo = LIBRARY_NUMBER * 100;
             DecompHints = 0;
-            RetNum = OK_TOKENINFO | MKTOKENINFO(0, TITYPE_NOTALLOWED, 0, 1);
+            RetNum = OK_TOKENINFO | MK_TOKEN_INFO(0, TITYPE_NOTALLOWED, 0, 1);
         }
         else {
             TypeInfo = 0;       // ALL COMMANDS ARE TYPE 0
@@ -1885,7 +1885,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg) > 0) {
+        if(MENU_NUMBER(MenuCodeArg) > 0) {
             RetNum = ERR_NOTMINE;
             return;
         }

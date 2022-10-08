@@ -398,7 +398,7 @@ void processFont(cstring fontName,
             "{\n",
             fontName);
 
-#define MKPROLOG(lib, size)                                                \
+#define MK_PROLOG(lib, size)                                                \
     ((((lib) &0xFFF) << 20) | 0x80000 |                                    \
      ((size > 0x3ffff) ? (0x40000 | ((((size) -0x40000) >> 10) & 0x3ffff)) \
                        : ((size) &0x3FFFF)))
@@ -407,7 +407,7 @@ void processFont(cstring fontName,
     unsigned usedRanges = range - ranges;
     unsigned usedData   = offset - offsets;
     unsigned totalSize  = 2 + usedRanges + usedData + bitmapSize / 4;
-    uint32_t prolog     = MKPROLOG(LIB_FONTS, totalSize);
+    uint32_t prolog     = MK_PROLOG(LIB_FONTS, totalSize);
 
     fprintf(output,
             "    .Prolog       = 0x%X,\n"
