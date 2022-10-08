@@ -1544,17 +1544,14 @@ static void user_flags_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     coord          y       = rect->top;
 
     // First 6 user flags
-    uint64_t *flags_p = rplGetUserFlagsLow();
-    if (flags_p)
+    uint64_t      *flags_p = rplGetUserFlagsLow();
+    uint64_t       flags   = flags_p ? *flags_p : 0;
+    for (int i = 0; i < 6; i++)
     {
-        uint64_t flags = *flags_p;
-        for (int i = 0; i < 6; i++)
-        {
-            pattern_t color = ((flags >> i) & 1) ? on : off;
-            char buffer[2] = { 0 };
-            buffer[0] = '0' + i;
-            x = DrawTextN(scr, x, y, buffer, buffer + 1, font, color);
-        }
+        pattern_t color = ((flags >> i) & 1) ? on : off;
+        char buffer[2] = { 0 };
+        buffer[0] = '0' + i;
+        x = DrawTextN(scr, x, y, buffer, buffer + 1, font, color);
     }
 }
 
