@@ -502,14 +502,14 @@ static void uiDrawMenuItemInternal(gglsurface  *scr,
     if (directory)
     {
         size marker = height / 2;
-        coord x = scr->left;
+        coord x = scr->right;
         coord top = scr->top;
         pattern_t earmark = PAL_MENU_DIR_MARK;
         for (unsigned row = 0; row < marker; row++)
         {
             coord y = top + row;
             size  w = marker - row;
-            ggl_cliprect(scr, x, y, x+w-1, y, earmark);
+            ggl_cliprect(scr, x-w+1, y, x, y, earmark);
         }
     }
 
