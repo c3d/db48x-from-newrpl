@@ -44,37 +44,42 @@ static const layout_t layouts[] =
     {  menu1_6_layout,          BOTTOM_RIGHT_OF,        menu1_5_layout, M, 0, },
 
     // Status area
-    {  status_area_layout,      TOP_RIGHT_OF,           menu2_3_layout, 1, 0, },
+    {  status_layout,           TOP_RIGHT_OF,           menu2_3_layout, 1, 0, },
+    {  annunciators_layout,     BOTTOM_RIGHT_OF,        menu2_6_layout, 1, 0, },
 
     // Command line
     {  cmdline_layout,          ABOVE_LEFT,             menu1_1_layout, 0, 1, },
     {  stack_layout,            ABOVE_LEFT,             cmdline_layout, 0, 1, },
 
-    // Annunciators
-    { angle_mode_layout,        TOP_LEFT_IN,        status_area_layout, 4, 0, },
-    { complex_flag_layout,      TOP_RIGHT_OF,        angle_mode_layout, 1, 0, },
-    { busy_flag_layout,         TOP_RIGHT_OF,      complex_flag_layout, 1, 0, },
-    { halted_flag_layout,       TOP_RIGHT_OF,         busy_flag_layout, 1, 0, },
-    { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 1, 0, },
-    { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 1, 0, },
-    { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 1, 0, },
-    { lshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
-    { rshift_layout,            BOTTOM_LEFT_IN,     status_area_layout, 4, 0, },
-    { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 3, 0, },
-    { message_layout,           CENTER_IN,          status_area_layout, 0, 0, },
-    { autocomplete_layout,      BOTTOM_CENTER_IN,   status_area_layout, 0, 0, },
-    { path_layout,              CENTER_IN,          status_area_layout, 0, 0, },
-    { battery_layout,           BOTTOM_RIGHT_IN,    status_area_layout, 0, 0, },
+    // Flags (top of status area)
+    { angle_mode_layout,        TOP_LEFT_IN,             status_layout, 2, 0, },
+    { complex_flag_layout,      TOP_RIGHT_OF,        angle_mode_layout, 0, 0, },
+    { busy_flag_layout,         TOP_RIGHT_OF,      complex_flag_layout, 0, 0, },
+    { halted_flag_layout,       TOP_RIGHT_OF,         busy_flag_layout, 0, 0, },
+    { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 0, 0, },
+    { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 0, 0, },
+    { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 0, 0, },
+
+    // Annunciators (bottom of status area)
+    { lshift_layout,            BOTTOM_LEFT_IN,    annunciators_layout, 2, 0, },
+    { rshift_layout,            BOTTOM_LEFT_IN,    annunciators_layout, 2, 0, },
+    { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 2, 0, },
+    { battery_layout,           BOTTOM_RIGHT_IN,   annunciators_layout, 0, 0, },
     { user_flags_layout,        BOTTOM_LEFT_OF,         battery_layout, 0, 0, },
 
+    // Messages (center of status area)
+    { message_layout,           BELOW_CENTER_OF,         status_layout, 0, 0, },
+    { autocomplete_layout,      BELOW_CENTER_OF,         status_layout, 0, 0, },
+    { path_layout,              BOTTOM_CENTER_IN,  annunciators_layout, 0, 0, },
+
     // Display form
-    {  form_layout,             ABOVE_LEFT,             cmdline_layout, 0, 0, },
+    {  form_layout,             ABOVE_CENTER_OF,        cmdline_layout, 0, 0, },
 
     // Help covers the whole screen_layout_layout, erasses the stack
     { help_layout,              CENTER_IN,              screen_layout,  0, 0, },
 
     // Errors displayed on top of everything else
-    { errors_layout,            CENTER_IN,              screen_layout,  15, 0, },
+    { errors_layout,            CENTER_IN,             screen_layout,  15, 0, },
 };
 
 #undef M

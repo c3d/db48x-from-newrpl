@@ -205,7 +205,8 @@ static void spacer_layout       (gglsurface *, layout_p , rect_t *);
 static void filler_layout       (gglsurface *, layout_p , rect_t *);
 static void stack_layout        (gglsurface *, layout_p , rect_t *);
 static void cmdline_layout      (gglsurface *, layout_p , rect_t *);
-static void status_area_layout  (gglsurface *, layout_p , rect_t *);
+static void status_layout       (gglsurface *, layout_p , rect_t *);
+static void annunciators_layout (gglsurface *, layout_p , rect_t *);
 static void angle_mode_layout   (gglsurface *, layout_p , rect_t *);
 static void complex_flag_layout (gglsurface *, layout_p , rect_t *);
 static void halted_flag_layout  (gglsurface *, layout_p , rect_t *);
@@ -1219,15 +1220,38 @@ static inline void text_layout(gglsurface    *scr,
 }
 
 
-static void status_area_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+static void status_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 //  Clear status area
 // ----------------------------------------------------------------------------
+//  Each status area is one line high for FONT_STATUS
 {
     // Compute the size for the layout
     const UNIFONT *font   = FONT_STATUS;
     coord          width  = LCD_W;
-    coord          height = 3 * font->BitmapHeight;
+    coord          height = font->BitmapHeight;
+    layout_clip(scr, layout, rect, width, height);
+
+    // Draw the background
+    pattern_t background = PAL_STA_BG;
+    coord     left       = rect->left;
+    coord     top        = rect->top;
+    coord     right      = rect->right;
+    coord     bottom     = rect->bottom;
+    ggl_cliprect(scr, left, top, right, bottom, background);
+}
+
+
+static void annunciators_layout(gglsurface *scr, layout_p layout, rect_t *rect)
+// ----------------------------------------------------------------------------
+//  Clear annunciators area
+// ----------------------------------------------------------------------------
+//  Each annunciators area is one line high for FONT_Notification
+{
+    // Compute the size for the layout
+    const UNIFONT *font   = Font_Notifications;
+    coord          width  = LCD_W;
+    coord          height = font->BitmapHeight;
     layout_clip(scr, layout, rect, width, height);
 
     // Draw the background

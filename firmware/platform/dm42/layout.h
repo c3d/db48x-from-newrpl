@@ -44,24 +44,29 @@ static const layout_t layouts[] =
     {  stack_layout,            ABOVE_LEFT,             cmdline_layout, 0, 0, },
 
     // Status area
-    {  status_area_layout,      TOP_RIGHT_OF,            screen_layout, 0, 0, },
+    {  status_layout,           TOP_RIGHT_IN,            screen_layout, 0, 0, },
+    {  annunciators_layout,     TOP_LEFT_IN,             screen_layout, 0, 0, },
 
-    // Annunciators
-    { angle_mode_layout,        TOP_LEFT_IN,        status_area_layout, 4, 0, },
+    // Flags on the left at top
+    { angle_mode_layout,        TOP_LEFT_IN,             status_layout, 4, 0, },
     { complex_flag_layout,      TOP_RIGHT_OF,        angle_mode_layout, 3, 0, },
     { busy_flag_layout,         TOP_RIGHT_OF,      complex_flag_layout, 3, 0, },
     { halted_flag_layout,       TOP_RIGHT_OF,         busy_flag_layout, 3, 0, },
     { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 3, 0, },
     { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 3, 0, },
     { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 3, 0, },
-    { battery_layout,           TOP_RIGHT_IN,       status_area_layout, 0, 0, },
+    { user_flags_layout,        TOP_RIGHT_OF,            sdcard_layout, 0, 0, },
+
+    // Battery and annunciators on the right at top
+    { battery_layout,           TOP_RIGHT_IN,      annunciators_layout, 0, 0, },
     { lshift_layout,            TOP_LEFT_OF,            battery_layout, 4, 0, },
     { rshift_layout,            TOP_LEFT_OF,            battery_layout, 4, 0, },
     { alpha_layout,             TOP_LEFT_OF,             lshift_layout, 3, 0, },
-    { message_layout,           CENTER_IN,          status_area_layout, 0, 0, },
-    { autocomplete_layout,      BOTTOM_CENTER_IN,   status_area_layout, 0, 0, },
-    { path_layout,              CENTER_IN,          status_area_layout, 0, 0, },
-    { user_flags_layout,        BOTTOM_LEFT_IN,     status_area_layout, 0, 0, },
+
+    // Center messages
+    { autocomplete_layout,      TOP_CENTER_IN,           status_layout, 0, 0, },
+    { message_layout,           BELOW_CENTER_OF,   autocomplete_layout, 0, 1, },
+    { path_layout,              BELOW_BOTTOM_LEFT,       status_layout, 0, 0, },
 
     // Display form
     {  form_layout,             ABOVE_LEFT,             cmdline_layout, 0, 0, },
