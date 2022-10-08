@@ -55,7 +55,7 @@ static const layout_t layouts[] =
     { alarm_flag_layout,        TOP_RIGHT_OF,       halted_flag_layout, 3, 0, },
     { receive_flag_layout,      TOP_RIGHT_OF,        alarm_flag_layout, 3, 0, },
     { sdcard_layout,            TOP_RIGHT_OF,      receive_flag_layout, 3, 0, },
-    { user_flags_layout,        TOP_RIGHT_OF,            sdcard_layout, 0, 0, },
+    { user_flags_layout,        TOP_RIGHT_OF,            sdcard_layout, 8, 0, },
 
     // Battery and annunciators on the right at top
     { battery_layout,           TOP_RIGHT_IN,      annunciators_layout, 0, 0, },

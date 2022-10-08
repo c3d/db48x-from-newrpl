@@ -1871,45 +1871,49 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 //   Draw the battery indicator
 // ----------------------------------------------------------------------------
 {
-    const UNIFONT *iconFont   = Font_Notifications;
-    const UNIFONT *labelFont  = FONT(BATTERY);
-    coord          width  = StringWidth("100%", labelFont) + 3;
-    coord          height = labelFont->BitmapHeight + iconFont->BitmapHeight;
-    layout_clip(scr, layout, rect, width, height);
+    coord          batH      = 10;
+    coord          batW      = 5;
+    const UNIFONT *iconFont  = Font_Notifications;
+    const UNIFONT *labelFont = FONT(BATTERY);
+    coord          width     = StringWidth("100%", labelFont);
+    coord          height    = iconFont->BitmapHeight;
+    coord          lheight   = labelFont->BitmapHeight;
+    if (height < lheight)
+        height = lheight;
+    layout_clip(scr, layout, rect, width + batW + 1, height);
 
     // Extract draw coordinates
-    coord x = (rect->left + rect->right) / 2;
+    coord x = rect->right;
     coord y = rect->top;
+    pattern_t color = PAL_STA_BAT;
+    if (battery_low())
+        color = PAL_ERROR;
 
     if (battery_charging())
     {
         // Battery is charging - display charging icon
-        DrawTextBk(scr, x, y, "C", iconFont, PAL_STA_BAT, PAL_STA_BG);
+        batW = StringWidth("C", iconFont);
+        DrawTextBk(scr, x - batW, y, "C", iconFont, color, PAL_STA_BG);
     }
     else
     {
         int battery = battery_level();
 
-        // Draw the battery icon
-        pattern_t color = PAL_STA_BAT;
-        if (battery_low())
-            color = PAL_ERROR;
-
-        coord batH = 10;
-        coord batW =  2;
+        // Draw the dynamic battery icon
         coord batC = battery * batH / 100;
-        ggl_cliprect(scr, x-batW, y+batH-batC, x+batW, y+batH, PAL_STA_BAT);
-        ggl_cliprect(scr, x, y, x, y, PAL_STA_BAT);
-        ggl_cliprect(scr, x-batW, y+1, x-batW, y+batH, PAL_STA_BAT);
-        ggl_cliprect(scr, x+batW, y+1, x+batW, y+batH, PAL_STA_BAT);
-        ggl_cliprect(scr, x-batW, y+1, x+batW, y+1,    PAL_STA_BAT);
-        ggl_cliprect(scr, x-batW, y+batH, x+batW, y+batH, PAL_STA_BAT);
+        ggl_cliprect(scr, x-batW, y+batH-batC, x, y+batH, color);
+        ggl_cliprect(scr, x-batW/2, y, x-batW/2, y, color);
+        ggl_cliprect(scr, x-batW, y+1, x-batW, y+batH, color);
+        ggl_cliprect(scr, x, y+1, x, y+batH, color);
+        ggl_cliprect(scr, x-batW, y+1, x, y+1,    color);
+        ggl_cliprect(scr, x-batW, y+batH, x, y+batH, color);
 
         // Display Battery percentage below battery icon
         char buf[8];
         snprintf(buf, sizeof(buf), "%3d%%", battery);
         coord labelWidth = StringWidth(buf, labelFont);
-        DrawText(scr, x - labelWidth / 2, y + batH + 2, buf, labelFont, color);
+        y += (height - lheight) / 2;
+        DrawText(scr, x - batW - labelWidth - 1, y, buf, labelFont, color);
     }
 }
 

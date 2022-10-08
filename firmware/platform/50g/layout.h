@@ -64,8 +64,8 @@ static const layout_t layouts[] =
     { lshift_layout,            BOTTOM_LEFT_IN,    annunciators_layout, 2, 0, },
     { rshift_layout,            BOTTOM_LEFT_IN,    annunciators_layout, 2, 0, },
     { alpha_layout,             TOP_RIGHT_OF,            lshift_layout, 2, 0, },
-    { battery_layout,           BOTTOM_RIGHT_IN,   annunciators_layout, 0, 0, },
-    { user_flags_layout,        BOTTOM_LEFT_OF,         battery_layout, 0, 0, },
+    { battery_layout,           BOTTOM_RIGHT_IN,   annunciators_layout, 0, 3, },
+    { user_flags_layout,        BOTTOM_RIGHT_IN,   annunciators_layout, 8, 0, },
 
     // Messages (center of status area)
     { message_layout,           BELOW_CENTER_OF,         status_layout, 0, 0, },
