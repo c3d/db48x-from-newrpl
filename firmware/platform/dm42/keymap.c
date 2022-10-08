@@ -29,7 +29,7 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_ON] = KH(cancel),
     [KB_ENT] = KH(enter),
     [KB_BKS] = KH(backsp),
-    [KB_SPC] = KH(spc),
+    [KB_RUNSTOP] = KH(eval),
 
     // Cursor keys (only two of them, darn!)
     [KB_UP] = KH(upOrLeft),
@@ -50,12 +50,12 @@ static const  key_handler_fn keymap_unshifted[64] =
     [KB_F6] = KH(softmenu6_1),
 
     // Normal keys
-    [KB_A] = KH(MathMenu),
-    [KB_B] = KH(inv),
-    [KB_C] = KH(sqrt),
-    [KB_D] = KH(log),
-    [KB_E] = KH(ln),
-    [KB_F] = KH(eval),
+    [KB_A] = KH(softmenu1_2),
+    [KB_B] = KH(softmenu2_2),
+    [KB_C] = KH(softmenu3_2),
+    [KB_D] = KH(softmenu4_2),
+    [KB_E] = KH(softmenu5_2),
+    [KB_F] = KH(softmenu6_2),
     [KB_G] = KH(sto),
     [KB_H] = KH(VariablesMenu),
     [KB_I] = KH(StackMenu),
@@ -111,12 +111,12 @@ static const  key_handler_fn keymap_left_shift[64] =
     [KB_F6] = KH(softmenu6_2),
 
     // Normal keys
-    [KB_A] = KH(ArithmeticMenu),
-    [KB_B] = KH(pow),
-    [KB_C] = KH(sq),
-    [KB_D] = KH(alog),
-    [KB_E] = KH(exp),
-    [KB_F] = KH(TestsMenu),
+    [KB_A] = KH(softmenu1_2),
+    [KB_B] = KH(softmenu2_2),
+    [KB_C] = KH(softmenu3_2),
+    [KB_D] = KH(softmenu4_2),
+    [KB_E] = KH(softmenu5_2),
+    [KB_F] = KH(softmenu6_2),
     [KB_G] = KH(ComplexMenu),
     [KB_H] = KH(tofrac),
     [KB_I] = KH(ConstantsMenu),
@@ -157,7 +157,59 @@ static const  key_handler_fn keymap_right_shift[64] =
 //   Key handlers with right shift
 // ----------------------------------------------------------------------------
 {
-    NULL
+    // Numbers
+    [KB_0] = KH(SystemMenu),
+    [KB_1] = KH(HOME),
+    [KB_2] = KH(LibrariesMenu),
+    [KB_3] = KH(ProgramMenu),
+    [KB_4] = KH(BasesMenu),
+    [KB_5] = KH(UnitsMenu),
+    [KB_6] = KH(SettingsMenu),
+    [KB_7] = KH(SolverMenu),
+    [KB_8] = KH(EquationsMenu),
+    [KB_9] = KH(MatrixMenu),
+    [KB_DOT] = KH(InfoMenu),
+
+    // ON, BSP, ENTER, SPC
+    [KB_ON]  = KH(SystemMenu),
+    [KB_ENT] = KH(CharsMenu),
+    [KB_BKS] = KH(del),
+    [KB_SPC] = KH(secoBracket),
+
+    // Cursor keys (only two of them, darn!)
+    [KB_UP] = KH(startSelection),
+    [KB_DN] = KH(endSelection),
+
+    // Operators
+    [KB_ADD] = KH(MainMenu),
+    [KB_SUB] = KH(DevicesMenu),
+    [KB_MUL] = KH(ProbaMenu),
+    [KB_DIV] = KH(StatisticsMenu),
+
+     // Soft menu keys
+    [KB_F1] = KH(softmenu1_2),
+    [KB_F2] = KH(softmenu2_2),
+    [KB_F3] = KH(softmenu3_2),
+    [KB_F4] = KH(softmenu4_2),
+    [KB_F5] = KH(softmenu5_2),
+    [KB_F6] = KH(softmenu6_2),
+
+    // Normal keys
+    [KB_A] = KH(softmenu1_2),
+    [KB_B] = KH(softmenu2_2),
+    [KB_C] = KH(softmenu3_2),
+    [KB_D] = KH(softmenu4_2),
+    [KB_E] = KH(softmenu5_2),
+    [KB_F] = KH(softmenu6_2),
+    [KB_G] = KH(ComplexMenu),
+    [KB_H] = KH(tofrac),
+    [KB_I] = KH(ConstantsMenu),
+    [KB_J] = KH(asin),
+    [KB_K] = KH(acos),
+    [KB_L] = KH(atan),
+    [KB_M] = KH(curlyBracket),
+    [KB_N] = KH(squareBracket),
+    [KB_O] = KH(textBracket),
 };
 
 
