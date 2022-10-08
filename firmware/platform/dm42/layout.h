@@ -44,8 +44,8 @@ static const layout_t layouts[] =
     {  stack_layout,            ABOVE_LEFT,             cmdline_layout, 0, 0, },
 
     // Status area
-    {  status_layout,           TOP_RIGHT_IN,            screen_layout, 0, 0, },
-    {  annunciators_layout,     TOP_LEFT_IN,             screen_layout, 0, 0, },
+    {  status_layout,           TOP_LEFT_IN,              screen_layout, 0, 0, },
+    {  annunciators_layout,     TOP_RIGHT_IN,             screen_layout, 0, 0, },
 
     // Flags on the left at top
     { angle_mode_layout,        TOP_LEFT_IN,             status_layout, 4, 0, },
@@ -64,14 +64,14 @@ static const layout_t layouts[] =
     { alpha_layout,             TOP_LEFT_OF,             lshift_layout, 3, 0, },
 
     // Center messages
-    { autocomplete_layout,      TOP_CENTER_IN,           status_layout, 0, 0, },
-    { message_layout,           BELOW_CENTER_OF,   autocomplete_layout, 0, 1, },
-    { path_layout,              BELOW_BOTTOM_LEFT,       status_layout, 0, 0, },
+    { autocomplete_layout,      ABOVE_LEFT,             cmdline_layout, 0, 1, },
+    { message_layout,           BELOW_CENTER_OF,         status_layout, 0, 1, },
+    { path_layout,              BELOW_LEFT,              status_layout, 0, 1, },
 
     // Display form
     {  form_layout,             ABOVE_LEFT,             cmdline_layout, 0, 0, },
 
-    // Help covers the whole screen_layout_layout, erasses the stack
+    // Help covers the whole screen_layout_layout, erases the stack
     { help_layout,              CENTER_IN,              screen_layout,  0, 0, },
 
     // Errors displayed on top of everything else

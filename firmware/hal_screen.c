@@ -55,7 +55,7 @@ typedef enum anchor
 {
     TOP_LEFT_IN,                                        // a
     TOP_RIGHT_OF,                                       // b
-    BELOW_BOTTOM_LEFT,                                  // c
+    BELOW_LEFT,                                         // c
     BELOW_RIGHT_OF,                                     // d
     TOP_LEFT_OF,                                        // e
     TOP_RIGHT_IN,                                       // f
@@ -1335,7 +1335,21 @@ static void autocomplete_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
     const UNIFONT *font  = FONT_HELP_CODE;
     pattern_t      color = PAL_STA_TEXT;
-    text_layout(scr, layout, rect, info, len, font, color);
+    size height = info ? font->BitmapHeight                   : 0;
+    size width  = info ? StringWidthN(info, info + len, font) : 0;
+    layout_clip(scr, layout, rect, width + 4, height + 2);
+    if (info)
+    {
+        // Draw the given message
+        coord left   = rect->left;
+        coord top    = rect->top;
+        coord right  = rect->right;
+        coord bottom = rect->bottom;
+        coord x      = (left + right - width) / 2 + 2;
+        coord y      = top + 1;
+        ggl_cliprect(scr, left, top, right, bottom, PAL_HELP_BG);
+        DrawTextN(scr, x, y, info, info + len, font, color);
+    }
     halRepainted(STATUS_DIRTY);
 }
 

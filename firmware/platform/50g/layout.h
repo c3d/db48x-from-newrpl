@@ -69,13 +69,13 @@ static const layout_t layouts[] =
 
     // Messages (center of status area)
     { message_layout,           BELOW_CENTER_OF,         status_layout, 0, 0, },
-    { autocomplete_layout,      BELOW_CENTER_OF,         status_layout, 0, 0, },
+    { autocomplete_layout,      ABOVE_LEFT,             cmdline_layout, 0, 1, },
     { path_layout,              BOTTOM_CENTER_IN,  annunciators_layout, 0, 0, },
 
     // Display form
     {  form_layout,             ABOVE_CENTER_OF,        cmdline_layout, 0, 0, },
 
-    // Help covers the whole screen_layout_layout, erasses the stack
+    // Help covers the whole screen_layout_layout, erases the stack
     { help_layout,              CENTER_IN,              screen_layout,  0, 0, },
 
     // Errors displayed on top of everything else
