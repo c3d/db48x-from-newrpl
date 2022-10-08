@@ -779,82 +779,6 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
 #define MABS(a) (((a) < 0) ? -(a) : (a))
 
-void halUpdateFontArray(const UNIFONT *fontarray[])
-// ----------------------------------------------------------------------------
-//   Update an array with all the fonts pointers
-// ----------------------------------------------------------------------------
-{
-    // Set all pointers to 0
-    for (int i = 0; i < FONTS_NUM; ++i)
-        fontarray[i] = NULL;
-
-    // Set configured fonts
-    if (!ISDIR(*SettingsDir))
-        return;
-
-    const word_p *romtable = rplGetFontRomPtrTableAddress();
-    word_p       *var      = rplFindFirstByHandle(SettingsDir);
-    while (var)
-    {
-        unsigned index;
-        for (index = 0; index < FONTS_NUM; index++)
-        {
-            if (rplCompareIDENT(var[0], romtable[FONT_IDENTS_ROMPTR_INDEX + index]))
-            {
-                const UNIFONT *font = (const UNIFONT *) var[1];
-                if (ISFONT(font->Prolog))
-                    fontarray[index] = font;
-            }
-        }
-        var = rplFindNext(var);
-    }
-
-    // Unconfigured fonts get defaults
-    static const UNIFONT *defaultFont[FONTS_NUM] = {
-#if LCD_W <= 131
-        // HP50-G and the like
-        Font_7A,                // Stack
-        Font_8A,                // Stack level 1
-        Font_10A,               // Command line
-        Font_10A,               // Cursor
-        Font_6A,                // Menu
-        Font_7A,                // Status
-        Font_6A,                // Plot
-        Font_6A,                // Forms
-        Font_8B,                // Errors
-        Font_6m,                // Help text
-        Font_8B,                // Help title
-        Font_6A,                // Help bold
-        Font_6A,                // Help italic
-        Font_6m,                // Help code
-        Font_5A,                // Battery level
-#else
-        // Prime and DM42
-        Font_18,                // Stack
-        Font_24,                // Stack level 1
-        Font_32,                // Command line
-        Font_32,                // Cursor
-        Font_Menus,             // Menus
-        Font_10A,               // Status
-        Font_14,                // Plot
-        Font_14,                // Forms
-        Font_Help,              // Errors
-        Font_Help,              // Help
-        Font_HelpTitle,         // Help title
-        Font_HelpBold,          // Bold text in help
-        Font_HelpItalic,        // Italic text in help
-        Font_HelpCode,          // Code in help
-        Font_8A,                // Battery indicator
-#endif
-    };
-
-    for (int index = 0; index < FONTS_NUM; index++)
-        if (fontarray[index] == 0)
-            fontarray[index] = defaultFont[index];
-
-    return;
-}
-
 
 // ============================================================================
 //
@@ -990,6 +914,43 @@ void halSetupTheme(color16_t *palette)
     uiClearRenderCache();
 }
 
+
+void halUpdateFontArray(const UNIFONT *fontarray[])
+// ----------------------------------------------------------------------------
+//   Update an array with all the fonts pointers
+// ----------------------------------------------------------------------------
+{
+    // Set all pointers to 0
+    for (int i = 0; i < FONTS_NUM; ++i)
+        fontarray[i] = NULL;
+
+    // Set configured fonts
+    if (!ISDIR(*SettingsDir))
+        return;
+
+    const word_p *romtable = rplGetFontRomPtrTableAddress();
+    word_p       *var      = rplFindFirstByHandle(SettingsDir);
+    while (var)
+    {
+        unsigned index;
+        for (index = 0; index < FONTS_NUM; index++)
+        {
+            if (rplCompareIDENT(var[0], romtable[FONT_IDENTS_ROMPTR_INDEX + index]))
+            {
+                const UNIFONT *font = (const UNIFONT *) var[1];
+                if (ISFONT(font->Prolog))
+                    fontarray[index] = font;
+            }
+        }
+        var = rplFindNext(var);
+    }
+
+    for (int index = 0; index < FONTS_NUM; index++)
+        if (fontarray[index] == 0)
+            fontarray[index] = defaultFont[index];
+
+    return;
+}
 
 void halInitScreen()
 // ----------------------------------------------------------------------------

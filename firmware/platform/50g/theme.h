@@ -72,4 +72,27 @@
 #define THEME_ERROR_BG            THEME_GRAY2
 #define THEME_ERROR_LINE          THEME_GRAY8
 
+
+static const UNIFONT *defaultFont[FONTS_NUM] =
+// ----------------------------------------------------------------------------
+//   Table of default fonts for the HP 50G
+// ----------------------------------------------------------------------------
+{
+    [FONT_INDEX_STACK]          = Font_7A,
+    [FONT_INDEX_STACKLVL1]      = Font_8A,
+    [FONT_INDEX_CMDLINE]        = Font_10A,
+    [FONT_INDEX_CURSOR]         = Font_7A,
+    [FONT_INDEX_MENU]           = Font_6A,
+    [FONT_INDEX_STATUS]         = Font_7A,
+    [FONT_INDEX_PLOT]           = Font_6A,
+    [FONT_INDEX_FORMS]          = Font_6A,
+    [FONT_INDEX_ERRORS]         = Font_8B,
+    [FONT_INDEX_HELP_TEXT]      = Font_6m,
+    [FONT_INDEX_HELP_TITLE]     = Font_8B,
+    [FONT_INDEX_HELP_BOLD]      = Font_6A,
+    [FONT_INDEX_HELP_ITALIC]    = Font_6A,
+    [FONT_INDEX_HELP_CODE]      = Font_6m,
+    [FONT_INDEX_BATTERY]        = Font_5A,
+};
+
 #endif // THEME_H

@@ -71,4 +71,26 @@
 #define THEME_ERROR_BG            THEME_GRAY2
 #define THEME_ERROR_LINE          THEME_GRAY8
 
+static const UNIFONT *defaultFont[FONTS_NUM] =
+// ----------------------------------------------------------------------------
+//   Table of default fonts for the DM42
+// ----------------------------------------------------------------------------
+{
+    [FONT_INDEX_STACK]          = Font_18,
+    [FONT_INDEX_STACKLVL1]      = Font_24,
+    [FONT_INDEX_CMDLINE]        = Font_32,
+    [FONT_INDEX_CURSOR]         = Font_10A,
+    [FONT_INDEX_MENU]           = Font_Menus,
+    [FONT_INDEX_STATUS]         = Font_10A,
+    [FONT_INDEX_PLOT]           = Font_14,
+    [FONT_INDEX_FORMS]          = Font_14,
+    [FONT_INDEX_ERRORS]         = Font_Help,
+    [FONT_INDEX_HELP_TEXT]      = Font_Help,
+    [FONT_INDEX_HELP_TITLE]     = Font_HelpTitle,
+    [FONT_INDEX_HELP_BOLD]      = Font_HelpBold,
+    [FONT_INDEX_HELP_ITALIC]    = Font_HelpItalic,
+    [FONT_INDEX_HELP_CODE]      = Font_HelpCode,
+    [FONT_INDEX_BATTERY]        = Font_8A,
+};
+
 #endif // THEME_H
