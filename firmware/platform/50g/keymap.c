@@ -191,7 +191,7 @@ static const  key_handler_fn keymap_right_shift[64] =
     [KB_L] = KH(softmenu6_2),
 
     // Regular keys
-    [KB_M] = KH(VariablesMenu),
+    [KB_M] = KH(backmenu1),
     [KB_N] = KH(ArithmeticMenu),
     [KB_O] = KH(ProgramMenu),
     [KB_Q] = KH(ln),
@@ -214,6 +214,8 @@ static const  key_handler_fn keymap_right_hold[64] =
     [KB_RT] = KH(pageDown),
     [KB_UP] = KH(pageRight),
     [KB_DN] = KH(pageLeft),
+
+    [KB_M] = KH(backmenu2),
 };
 
 
