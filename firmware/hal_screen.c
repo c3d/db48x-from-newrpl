@@ -1252,16 +1252,23 @@ static void message_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     // Compute the size for the layout
     size height = msg ? font->BitmapHeight                 : 0;
     size width  = msg ? StringWidthN(msg, msg + len, font) : 0;
-    layout_clip(scr, layout, rect, width, height);
+    layout_clip(scr, layout, rect, width + 4, height + 2);
     if (msg)
     {
         pattern_t      color = PAL_HELP_BG;
         pattern_t      bg    = PAL_HELP_TEXT;
 
         // Redraw the given message
-        coord x = (rect->left + rect->right - width) / 2;
-        coord y = rect->top;
-        DrawTextBkN(scr, x, y, msg, msg + len, font, color, bg);
+        coord          left   = rect->left;
+        coord          top    = rect->top;
+        coord          right  = rect->right;
+        coord          bottom = rect->bottom;
+        coord          tx     = (left + right - width) / 2 + 2;
+        coord          ty     = rect->top + 1;
+        ggl_cliprect(scr, left+1, top, right-1, top, bg);
+        ggl_cliprect(scr, left+1, bottom, right-1, bottom, bg);
+        ggl_cliprect(scr, left, top+1, right, bottom-1, bg);
+        DrawTextBkN(scr, tx, ty, msg, msg + len, font, color, bg);
     }
 }
 
