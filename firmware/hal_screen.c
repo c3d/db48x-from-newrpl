@@ -599,10 +599,9 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
     ggl_cliprect(scr, left, top, right, bottom, PAL_STK_BG);
 
-
-    // Estimate number width at 75% of the font height
-    size stknum_w = (FONT_HEIGHT(FONT_STACK) * 192) / 256;
-    size xright   = stknum_w;
+    const UNIFONT *hdrfnt = FONT(STACK_INDEX);
+    size  stknum_w = StringWidth("0", hdrfnt);
+    coord xright   = stknum_w;
     if (halContext(CONTEXT_INTERACTIVE_STACK))
     {
         // Ensure the stack pointer is completely inside the screen
@@ -615,7 +614,7 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
             if (k > depth)
                 k = depth;
 
-            const UNIFONT *levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
+            const UNIFONT *levelfnt = k == 1 ? FONT_STACK_LEVEL1 : FONT_STACK;
             word_p         object   = uiRenderObject(rplPeekData(k), levelfnt);
 
             // Get the size of the object
@@ -628,7 +627,7 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
             for (; k > 0; --k)
             {
-                levelfnt = k == 1 ? FONT_STACKLVL1 : FONT_STACK;
+                levelfnt = k == 1 ? FONT_STACK_LEVEL1 : FONT_STACK;
                 object   = uiRenderObject(rplPeekData(k), levelfnt);
 
                 // Get the size of the object
@@ -656,14 +655,17 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     for (int mul = 10; depth >= mul; mul *= 10)
         xright += stknum_w;
 
-    // Clear the stack index area, the stack display area, and draw
+    // Clear the stack index area, the stack display area, and draw a sep line
     ggl_cliprect(scr, 0, top, xright - 1, bottom - 1, PAL_STK_IDX_BG);
     ggl_cliprect(scr, xright + 1, top, LCD_W - 1, bottom - 1, PAL_STK_BG);
     ggl_clipvline(scr, xright, top, bottom - 1, PAL_STK_VLINE);
 
+    pattern_t      selbg  = PAL_STK_SEL_BG;
+    pattern_t      cursor = PAL_STK_CURSOR;
+
     while (y > top)
     {
-        const UNIFONT *levelfnt  = level == 1 ? FONT_STACKLVL1 : FONT_STACK;
+        const UNIFONT *levelfnt  = level == 1 ? FONT_STACK_LEVEL1 : FONT_STACK;
         size           objheight = 0;
         word_p         object    = NULL;
 
@@ -701,10 +703,17 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
             width     = 0;
         }
 
-        coord ytop = y - objheight;
+        size  hdrh  = hdrfnt->BitmapHeight;
+        size  stkh  = levelfnt->BitmapHeight;
+        coord ytop  = y - objheight;
+        coord yhtop = ytop + (hdrh < stkh ? (stkh - hdrh) / 2 : 0);
 
         if (halContext(CONTEXT_INTERACTIVE_STACK))
         {
+            int selStart   = halScreen.StkSelStart;
+            int selEnd     = halScreen.StkSelEnd;
+            int stkPointer = halScreen.StkPointer;
+
             // Highlight selected items
             switch (halScreen.StkSelStatus)
             {
@@ -713,41 +722,41 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
                 // Nothing selected yet
                 break;
             case 1:
-                // Start was selected, paint all levels between start and current position
-                if (halScreen.StkSelStart > halScreen.StkPointer)
+                // Start was selected:
+                // Paint all levels between start and current position
+                if (selStart > stkPointer)
                 {
-                    if (level >= halScreen.StkPointer && level <= halScreen.StkSelStart)
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
-                    if (level == halScreen.StkSelStart)
-                        DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
+                    if (level >= stkPointer && level <= selStart)
+                        ggl_cliprect(scr, left, ytop, xright - 1, y - 1, selbg);
+                    if (level == selStart)
+                        DrawText(scr, left + 2, yhtop, "▶", hdrfnt, cursor);
                 }
                 else
                 {
-                    if (level >= halScreen.StkSelStart && level <= halScreen.StkPointer)
-                        ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
-                    if (level == halScreen.StkSelStart)
-                        DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
+                    if (level >= selStart && level <= stkPointer)
+                        ggl_cliprect(scr, left, ytop, xright - 1, y - 1, selbg);
+                    if (level == selStart)
+                        DrawText(scr, left + 2, yhtop, "▶", hdrfnt, cursor);
                 }
                 break;
             case 2:
                 // Both start and end selected
-                if (level >= halScreen.StkSelStart && level <= halScreen.StkSelEnd)
-                    ggl_cliprect(scr, 0, ytop, xright - 1, y - 1, PAL_STK_SEL_BG);
-                if (level == halScreen.StkSelStart)
-                    DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
-                if (level == halScreen.StkSelEnd)
-                    DrawText(scr, 2, ytop, "▶", Font_8A, PAL_STK_CURSOR);
+                if (level >= selStart && level <= selEnd)
+                    ggl_cliprect(scr, left, ytop, xright - 1, y - 1, selbg);
+                if (level == selStart)
+                    DrawText(scr, left + 2, yhtop, "▶", hdrfnt, cursor);
+                if (level == selEnd)
+                    DrawText(scr, left + 2, yhtop, "▶", hdrfnt, cursor);
                 break;
             }
 
             // Draw the pointer
-            coord fnth = levelfnt->BitmapHeight / 2;
-            if (level <= depth && level == halScreen.StkPointer)
-                DrawText(scr, 0, ytop, "▶", Font_8A, PAL_STK_CURSOR);
-            else if (level == 1 && halScreen.StkPointer == 0)
-                DrawText(scr, 0, ytop + fnth, "▶", Font_8A, PAL_STK_CURSOR);
-            else if (level == depth && halScreen.StkPointer > depth)
-                DrawText(scr, 0, ytop - fnth + 1, "▶", FONT_STACK, PAL_STK_CURSOR);
+            if (level <= depth && level == stkPointer)
+                DrawText(scr, left, yhtop, "▶", hdrfnt, cursor);
+            else if (level == 1 && stkPointer == 0)
+                DrawText(scr, left, yhtop + stkh/2, "▶", hdrfnt, cursor);
+            else if (level == depth && stkPointer > depth)
+                DrawText(scr, left, yhtop - stkh/2 + 1, "▶", hdrfnt, cursor);
         }
 
         if (level <= depth)
@@ -755,13 +764,13 @@ static void stack_layout(gglsurface *scr, layout_p layout, rect_t *rect)
             // Draw the stack level number
             char  num[16];
             snprintf(num, sizeof(num), "%d", level);
-            size numwidth = StringWidth(num, FONT_STACK);
-            DrawText(scr, right - numwidth, ytop, num, Font_8A, PAL_STK_INDEX);
+            size numwidth = StringWidth(num, hdrfnt);
+            DrawText(scr, xright - numwidth, yhtop, num, hdrfnt, PAL_STK_INDEX);
 
             // Do proper layout: right justify unless it does not fit
-            coord x = LCD_W - width;
-            if (x < right + 1)
-                x = right + 1;
+            coord x = right - width;
+            if (x < xright + 1)
+                x = xright + 1;
 
             // Display the item
             coord oldLeft = scr->left;
@@ -1898,7 +1907,7 @@ void halUpdateFonts()
             switch (f)
             {
             case FONT_INDEX_STACK:
-            case FONT_INDEX_STACKLVL1:
+            case FONT_INDEX_STACK_LEVEL1:
                 uiClearRenderCache();
                 halRefresh(STACK_DIRTY);
                 break;

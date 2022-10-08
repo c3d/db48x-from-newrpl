@@ -79,7 +79,8 @@ static const UNIFONT *defaultFont[FONTS_NUM] =
 // ----------------------------------------------------------------------------
 {
     [FONT_INDEX_STACK]          = Font_7A,
-    [FONT_INDEX_STACKLVL1]      = Font_8A,
+    [FONT_INDEX_STACK_LEVEL1]   = Font_8A,
+    [FONT_INDEX_STACK_INDEX]    = Font_8A,
     [FONT_INDEX_CMDLINE]        = Font_10A,
     [FONT_INDEX_CURSOR]         = Font_7A,
     [FONT_INDEX_MENU]           = Font_6A,

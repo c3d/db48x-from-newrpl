@@ -93,7 +93,8 @@ enum halNotification
 enum halFonts
 {
     FONT_INDEX_STACK = 0,
-    FONT_INDEX_STACKLVL1,
+    FONT_INDEX_STACK_LEVEL1,
+    FONT_INDEX_STACK_INDEX,
     FONT_INDEX_CMDLINE,
     FONT_INDEX_CURSOR,
     FONT_INDEX_MENU,
@@ -112,7 +113,7 @@ enum halFonts
 
 #define FONT(F)                 (halScreen.FontArray[FONT_INDEX_##F])
 #define FONT_STACK              FONT(STACK)
-#define FONT_STACKLVL1          FONT(STACKLVL1)
+#define FONT_STACK_LEVEL1       FONT(STACK_LEVEL1)
 #define FONT_CMDLINE            FONT(CMDLINE)
 #define FONT_CURSOR             FONT(CURSOR)
 #define FONT_MENU               FONT(MENU)
