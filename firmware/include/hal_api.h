@@ -657,7 +657,6 @@ void          halShowMsg(utf8_p Text);
 void          halShowMsgN(utf8_p Text, utf8_p End);
 void          halSetCmdLineHeight(int h);
 void          halStatusAreaPopup();
-void          halCancelPopup();
 void          halUpdateFonts();
 void          halRedrawAll(gglsurface *scr);
 void          halRedrawCmdLine(gglsurface *scr);

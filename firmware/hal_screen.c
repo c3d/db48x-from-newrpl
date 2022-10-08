@@ -13,7 +13,7 @@
 
 RECORDER(annunciators, 16, "Annunciators");
 RECORDER(layout, 16, "Layout and redrawing");
-
+RECORDER(errors, 16, "Error processing");
 
 
 // ============================================================================
@@ -2090,6 +2090,9 @@ const WORD const text_editor_string[] = {
 };
 
 word_p halGetCommandName(word_p NameObject)
+// ----------------------------------------------------------------------------
+//   Get the command name for a given object
+// ----------------------------------------------------------------------------
 {
     WORD Opcode = NameObject ? *NameObject : 0;
 
@@ -2117,11 +2120,13 @@ word_p halGetCommandName(word_p NameObject)
     int32_t SavedException = Exceptions;
     int32_t SavedErrorCode = ErrorCode;
 
-    Exceptions          = 0; // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    word_p opname      = rplDecompile(NameObject, DECOMP_NOHINTS);
-    Exceptions          = SavedException;
-    ErrorCode           = SavedErrorCode;
+    // Erase any previous error to allow the decompiler to run
+    Exceptions             = 0;
+
+    // Do not save IPtr because it can move
+    word_p opname          = rplDecompile(NameObject, DECOMP_NOHINTS);
+    Exceptions             = SavedException;
+    ErrorCode              = SavedErrorCode;
 
     return opname;
 }
@@ -2133,13 +2138,21 @@ static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 // ----------------------------------------------------------------------------
 {
     // Check if there is an error
-    WORD     error   = Exceptions;
-    utf8_p   message = halScreen.ErrorMessage;
-    unsigned length  = halScreen.ErrorMessageLength;
-    size     width   = error ? LCD_W : 0;
-    size     height  = error ? LCD_H : 0;
-    layout_clip(scr, layout, rect, width, height);
-    if (!error)
+    coord          insetOut    = 3;
+    coord          insetIn     = 1 + (LCD_W > 131);
+    coord          inset       = insetOut + insetIn;
+    WORD           error       = Exceptions;
+    utf8_p         message     = halScreen.ErrorMessage;
+    unsigned       length      = halScreen.ErrorMessageLength;
+    int            hasError    = error || message;
+    const UNIFONT *fontError   = FONT_ERRORS;
+    size           errorHeight = fontError->BitmapHeight;
+    size           width       = hasError ? LCD_W : 0;
+    size           height      = hasError ? 3 * errorHeight : 0;
+    record(errors, "Rendering %08X - '%s' length %u", error, message, length);
+    halRepainted(ERROR_DIRTY);
+    layout_clip(scr, layout, rect, width + 2 * inset, height + 2 * inset);
+    if (!hasError)
         return;
 
     // Color schemes
@@ -2154,39 +2167,36 @@ static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
     coord     bottom     = rect->bottom;
     ggl_cliprect(scr, left, top, right, bottom, line);
 
-    coord inset = 3;
-    left   += inset;
-    right  -= inset;
-    top    += inset;
-    bottom -= inset;
+    left   += insetOut;
+    right  -= insetOut;
+    top    += insetOut;
+    bottom -= insetOut;
     ggl_cliprect(scr, left, top, right, bottom, bg);
-
-    // Buffers to keep copy of error in case of GC
-    static char error_cmd[64];
-    static char error_message[256];
 
     // Update message from exceptions if needed
     if (error)
     {
+        // Buffer to keep copy of error in case of GC
+        static char error_message[128];
+        utf8_p      errorCmd     = "";
+        int         errorCmdSize = 0;
+
+        record(errors, "Exceptions %08X ExceptionPointer %p",
+               Exceptions, ExceptionPointer);
+
         // Clear Exceptions, we generate / display the message
         Exceptions = 0;
-
-        // Clear short help message
-        halScreen.ShortHelpMessage = NULL;
 
         // Check if there is a command to blame
         if (ExceptionPointer != 0)
         {
             word_p cmdname = halGetCommandName(ExceptionPointer);
+            record(errors, "cmdname for %p is %p", ExceptionPointer, cmdname);
             if (cmdname)
             {
-                // Save a copy of the command name in case of GC
-                utf8_p start = (utf8_p) (cmdname + 1);
-                int    size  = rplStrSize(cmdname);
-
-                snprintf(error_cmd, sizeof(error_cmd),
-                         "%.*s", size, start);
-                halScreen.ShortHelpMessage = error_cmd;
+                errorCmd     = (utf8_p) (cmdname + 1);
+                errorCmdSize = rplStrSize(cmdname);
+                record(errors, "Setting cmdname to %s", errorCmd);
             }
         }
 
@@ -2203,20 +2213,27 @@ static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
                     word_p emsg = uiGetLibMsg(ecode);
                     if (!emsg)
                         emsg = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
+                    record(errors, "Exception ecode=%08X emsg=%p", ecode, emsg);
                     if (emsg)
                     {
                         utf8_p etext = (utf8_p) (emsg + 1);
                         int msglen = rplStrSize(emsg);
 
                         snprintf(error_message, sizeof(error_message),
-                                 "Exception: %.*s", msglen, etext);
+                                 "%.*s%s:\n%.*s",
+                                 errorCmdSize, errorCmd,
+                                 errorCmdSize ? " exception" : "Exception",
+                                 msglen, etext);
+
+                        record(errors, "Exception message %s length %d",
+                               error_message, msglen);
 
                         // Update for later display
                         message = error_message;
-                        length = msglen;
+                        length = strlen(error_message);
                     }
+                    break;
                 }
-                break;
             }
         }
         else
@@ -2225,39 +2242,48 @@ static void errors_layout(gglsurface *scr, layout_p layout, rect_t *rect)
             word_p emsg = uiGetLibMsg(ErrorCode);
             if (!emsg)
                 emsg = uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
+            record(errors, "Error ecode=%08X emsg=%p", ErrorCode, emsg);
             if (emsg)
             {
-                utf8_p etext = (utf8_p) (emsg + 1);
-                int msglen   = rplStrSize(emsg);
+                utf8_p etext  = (utf8_p) (emsg + 1);
+                int    msglen = rplStrSize(emsg);
 
                 snprintf(error_message, sizeof(error_message),
-                         "Error: %.*s", msglen, etext);
+                         "%.*s%s:\n%.*s",
+                         errorCmdSize, errorCmd,
+                         errorCmdSize ? " error" : "Error",
+                         msglen, etext);
 
                 // Update for later display
                 message = error_message;
-                length = msglen;
+                length = strlen(error_message);
             }
         }
 
         // Update the persistent message
         halScreen.ErrorMessage = message;
         halScreen.ErrorMessageLength = length;
+        record(errors, "New error message: %s length %d\n", message, length);
     }
 
-    // Draw the command if we have it
-    utf8_p cmd = halScreen.ShortHelpMessage;
-    if (cmd)
-    {
-        const UNIFONT *font = FONT_HELP_CODE;
-        DrawText(scr, left, top, cmd, font, color);
-        top += FONT_HEIGHT(font);
-    }
 
-    // Draw the command if we have it
+    // Draw a help message as necessary
     if (message)
     {
-        const UNIFONT *font = FONT_ERRORS;
-        DrawTextN(scr, left, top, message, message + length, font, color);
+        left   += insetIn;
+        right  -= insetIn;
+        top    += insetIn;
+        bottom -= insetIn;
+
+        scr->left   = left;     // Clip to make sure text does not exceed box
+        scr->right  = right;
+        scr->top    = top;
+        scr->bottom = bottom;
+
+        record(errors, "Show error message: %s length %d\n", message, length);
+        record(errors, "Clip (%d %d %d %d)\n",
+               scr->left, scr->top, scr->right, scr->bottom);
+        DrawTextN(scr, left, top, message, message + length, fontError, color);
     }
 }
 
@@ -2269,6 +2295,7 @@ void halShowMsgN(utf8_p Text, utf8_p End)
 {
     halScreen.ErrorMessage = Text;
     halScreen.ErrorMessageLength = End - Text;
+    halRefresh(ERROR_DIRTY);
 }
 
 
@@ -2277,18 +2304,9 @@ void halShowMsg(utf8_p Text)
 //   Show a static message
 // ----------------------------------------------------------------------------
 {
+    record(errors, "HalShowMsg '%s'", Text);
     utf8_p End = StringEnd(Text);
     halShowMsgN(Text, End);
-}
-
-
-void halCancelPopup()
-// ----------------------------------------------------------------------------
-//   Cancel error messages
-// ----------------------------------------------------------------------------
-{
-    halScreen.ErrorMessage = NULL;
-    halScreen.ErrorMessageLength = 0;
 }
 
 

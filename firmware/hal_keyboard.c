@@ -174,7 +174,6 @@ static inline utf8_p halHelpMessage(utf8_p topic)
             else                                                        \
                 halScreen.ShortHelpMessage = NULL;                      \
             halScreen.HelpMessage = NULL;                               \
-            halCancelPopup();                                           \
             halRefresh(HELP_DIRTY);                                     \
             return;                                                     \
         }                                                               \
@@ -6772,15 +6771,25 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
         ((flags & OL_NOCUSTOMKEYS ) == 0 && halDoCustomKey(keymsg))      ||
         ((flags & OL_NODEFAULTKEYS) == 0 && halDoDefaultKey(keymsg));
 
-    if (Exceptions)
-        halRefresh(ERROR_DIRTY);
+    if (processed)
+    {
+        if (Exceptions)
+        {
+            halRefresh(ERROR_DIRTY);
+        }
+        else if (halScreen.ErrorMessage && KM_MESSAGE(keymsg) == KM_PRESS)
+        {
+            halScreen.ErrorMessage = NULL;
+            halRefresh(ERROR_DIRTY);
+        }
+    }
 
     if (RECORDER_TWEAK(keys_debug))
     {
         // *************** DEBUG ONLY ************
         if (!processed && ((KM_MESSAGE(keymsg) == KM_PRESS) ||
-                              (KM_MESSAGE(keymsg) == KM_LONG_PRESS) ||
-                              (KM_MESSAGE(keymsg) == KM_REPEAT)))
+                           (KM_MESSAGE(keymsg) == KM_LONG_PRESS) ||
+                           (KM_MESSAGE(keymsg) == KM_REPEAT)))
         {
             // All other keys, just display the key name on screen
             gglsurface scr;

@@ -75,5 +75,5 @@ static const layout_t layouts[] =
     { help_layout,              CENTER_IN,              screen_layout,  0, 0, },
 
     // Errors displayed on top of everything else
-    { errors_layout,            CENTER_IN,              screen_layout,  5, 0, },
+    { errors_layout,            BELOW_LEFT,             status_layout,  0,15, },
 };
