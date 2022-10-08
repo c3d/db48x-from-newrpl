@@ -162,6 +162,12 @@ ROMOBJECT fontstack_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fontstackidx_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('S', 't', 'k', 'I'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
 ROMOBJECT fontmenu_ident[] = {
     MKPROLOG(DOIDENT, 2),
     TEXT2WORD('M', 'e', 'n', 'u'),
@@ -174,9 +180,39 @@ ROMOBJECT fontform_ident[] = {
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
+ROMOBJECT fonterror_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('E', 'r', 'r', 's'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
 ROMOBJECT fonthelptitle_ident[] = {
     MKPROLOG(DOIDENT, 2),
     TEXT2WORD('H', 'l', 'p', 'T'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
+ROMOBJECT fonthelpbold_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('H', 'l', 'p', 'B'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
+ROMOBJECT fonthelpitalic_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('H', 'l', 'p', 'I'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
+ROMOBJECT fonthelpcode_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('H', 'l', 'p', 'C'),
+    TEXT2WORD('F', 'o', 'n', 't')
+};
+
+ROMOBJECT fontbattery_ident[] = {
+    MKPROLOG(DOIDENT, 2),
+    TEXT2WORD('B', 'a', 't', 't'),
     TEXT2WORD('F', 'o', 'n', 't')
 };
 
@@ -234,7 +270,7 @@ ROMOBJECT fnt32_ident[] = {
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
-const word_p const ROMPTR_TABLE[] = {
+const const word_p ROMPTR_TABLE[] = {
     (word_p) LIB_MSGTABLE,
     (word_p) LIB_HELPTABLE,
 
@@ -245,16 +281,16 @@ const word_p const ROMPTR_TABLE[] = {
 
     (word_p) fontstack_ident,
     (word_p) fontstack1_ident,
+    (word_p) fontstackidx_ident,
     (word_p) fontcmdline_ident,
     (word_p) fontcursor_ident,
     (word_p) fontmenu_ident,
     (word_p) fontstarea_ident,
     (word_p) fontplot_ident,
     (word_p) fontform_ident,
+    (word_p) fonterror_ident,
     (word_p) fonthelp_ident,
     (word_p) fonthelptitle_ident,
-    (word_p) zero_bint,
-    (word_p) zero_bint,
 
     // START OF ROM FONT NAME/OBJECT PAIRS INDEX 16-63
 
@@ -291,7 +327,7 @@ const word_p const ROMPTR_TABLE[] = {
     0
 };
 
-const word_p const *rplGetFontRomPtrTableAddress(void)
+const const word_p *rplGetFontRomPtrTableAddress(void)
 {
     return ROMPTR_TABLE;
 }
@@ -609,6 +645,31 @@ void rplPurgeSystemFont(word_p ident)
 
 }
 
+static word_p fontID(int32_t area)
+{
+    word_p fntid = NULL;
+    switch (area)
+    {
+    case FONT_INDEX_STACK:        fntid = (word_p) fontstack_ident; break;
+    case FONT_INDEX_STACK_LEVEL1: fntid = (word_p) fontstack1_ident; break;
+    case FONT_INDEX_STACK_INDEX:  fntid = (word_p) fontstackidx_ident; break;
+    case FONT_INDEX_CMDLINE:      fntid = (word_p) fontcmdline_ident; break;
+    case FONT_INDEX_CURSOR:       fntid = (word_p) fontcursor_ident; break;
+    case FONT_INDEX_MENU:         fntid = (word_p) fontmenu_ident; break;
+    case FONT_INDEX_STATUS:       fntid = (word_p) fontstarea_ident; break;
+    case FONT_INDEX_PLOT:         fntid = (word_p) fontplot_ident; break;
+    case FONT_INDEX_FORMS:        fntid = (word_p) fontform_ident; break;
+    case FONT_INDEX_ERRORS:       fntid = (word_p) fonterror_ident; break;
+    case FONT_INDEX_HELP_TEXT:    fntid = (word_p) fonthelp_ident; break;
+    case FONT_INDEX_HELP_TITLE:   fntid = (word_p) fonthelptitle_ident; break;
+    case FONT_INDEX_HELP_BOLD:    fntid = (word_p) fonthelpbold_ident; break;
+    case FONT_INDEX_HELP_ITALIC:  fntid = (word_p) fonthelpitalic_ident; break;
+    case FONT_INDEX_HELP_CODE:    fntid = (word_p) fonthelpcode_ident; break;
+    case FONT_INDEX_BATTERY:      fntid = (word_p) fontbattery_ident; break;
+    }
+    return fntid;
+}
+
 // CHANGE THE CURRENT FONT
 void rplSetCurrentFont(int32_t area, word_p ident)
 {
@@ -617,112 +678,26 @@ void rplSetCurrentFont(int32_t area, word_p ident)
         rplError(ERR_FONTNOTINSTALLED);
         return;
     }
-    word_p fntid;
-    switch (area) {
-    case FONT_INDEX_STACK:
-        fntid = (word_p) fontstack_ident;
-        break;
-    case FONT_INDEX_STACKLVL1:
-        fntid = (word_p) fontstack1_ident;
-        break;
-    case FONT_INDEX_CMDLINE:
-        fntid = (word_p) fontcmdline_ident;
-        break;
-    case FONT_INDEX_CURSOR:
-        fntid = (word_p) fontcursor_ident;
-        break;
-    case FONT_INDEX_MENU:
-        fntid = (word_p) fontmenu_ident;
-        break;
-    case FONT_INDEX_STATUS:
-        fntid = (word_p) fontstarea_ident;
-        break;
-    case FONT_INDEX_PLOT:
-        fntid = (word_p) fontplot_ident;
-        break;
-    case FONT_INDEX_FORMS:
-        fntid = (word_p) fontform_ident;
-        break;
-    case FONT_INDEX_HELP_TEXT:
-        fntid = (word_p) fonthelp_ident;
-        break;
-    case FONT_INDEX_HELP_TITLE:
-        fntid = (word_p) fonthelptitle_ident;
-        break;
-
-    default:
-        return;
-    }
-
-    rplStoreSettings((word_p) fntid, font);
-
+    word_p fntid = fontID(area);
+    if (fntid)
+        rplStoreSettings((word_p) fntid, font);
 }
 
 word_p rplGetCurrentFont(int32_t area)
 {
-    word_p fntid;
-    switch (area) {
-    case FONT_INDEX_STACK:
-        fntid = (word_p) fontstack_ident;
-        break;
-    case FONT_INDEX_STACKLVL1:
-        fntid = (word_p) fontstack1_ident;
-        break;
-    case FONT_INDEX_CMDLINE:
-        fntid = (word_p) fontcmdline_ident;
-        break;
-    case FONT_INDEX_CURSOR:
-        fntid = (word_p) fontcursor_ident;
-        break;
-    case FONT_INDEX_MENU:
-        fntid = (word_p) fontmenu_ident;
-        break;
-    case FONT_INDEX_STATUS:
-        fntid = (word_p) fontstarea_ident;
-        break;
-    case FONT_INDEX_PLOT:
-        fntid = (word_p) fontplot_ident;
-        break;
-    case FONT_INDEX_FORMS:
-        fntid = (word_p) fontform_ident;
-        break;
-    case FONT_INDEX_HELP_TEXT:
-        fntid = (word_p) fonthelp_ident;
-        break;
-    case FONT_INDEX_HELP_TITLE:
-        fntid = (word_p) fonthelptitle_ident;
-        break;
-    default:
-        return 0;
-    }
-
+    word_p fntid = fontID(area);
     fntid = rplGetSettings(fntid);
-
     if(!fntid) {
-        // RETURN A DEFAULT SYSTEM FONT
-        switch (area) {
-        case FONT_INDEX_STACK:
-            return (word_p) fnt8c_ident;
-        case FONT_INDEX_STACKLVL1:
-            return (word_p) fnt8c_ident;
-        case FONT_INDEX_CMDLINE:
-            return (word_p) fnt8c_ident;
-        case FONT_INDEX_CURSOR:
-            return (word_p) fnt6a_ident;
-        case FONT_INDEX_MENU:
-            return (word_p) fnt6a_ident;
-        case FONT_INDEX_STATUS:
-            return (word_p) fnt6a_ident;
-        case FONT_INDEX_PLOT:
-            return (word_p) fnt6a_ident;
-        case FONT_INDEX_FORMS:
-            return (word_p) fnt8c_ident;
-        default:
-            return 0;
+        // Return a default system font
+        switch (area)
+        {
+        case FONT_INDEX_CURSOR:         return (word_p) fnt6a_ident;
+        case FONT_INDEX_MENU:           return (word_p) fnt6a_ident;
+        case FONT_INDEX_STATUS:         return (word_p) fnt6a_ident;
+        case FONT_INDEX_PLOT:           return (word_p) fnt6a_ident;
+        default:                        return (word_p) fnt8c_ident;
         }
-
     }
-
     return rplGetSystemFontName(fntid);
 }
 
@@ -873,7 +848,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall name of current font for stack level 1
         //@NEW
-        word_p fntid = rplGetCurrentFont(FONT_INDEX_STACKLVL1);
+        word_p fntid = rplGetCurrentFont(FONT_INDEX_STACK_LEVEL1);
         if(fntid)
             rplPushData(fntid);
         return;
@@ -957,7 +932,7 @@ void LIB_HANDLER()
             rplError(ERR_IDENTEXPECTED);
             return;
         }
-        rplSetCurrentFont(FONT_INDEX_STACKLVL1, rplPeekData(1));
+        rplSetCurrentFont(FONT_INDEX_STACK_LEVEL1, rplPeekData(1));
         rplDropData(1);
         return;
     }
