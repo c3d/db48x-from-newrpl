@@ -4174,7 +4174,7 @@ void bracketKeyHandler(keyb_msg_t keymsg, utf8_p string)
        || ((halScreen.CursorState & 0xff) == 'P'))
         uiSeparateToken();
 
-    utf8_p end = string + stringlen(string);
+    utf8_p end = string + strlen(string);
     uiInsertCharactersN(string, end);
     uiCursorLeft(utf8nlenst(string, end) >> 1);
     uiAutocompleteUpdate();

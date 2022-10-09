@@ -38,7 +38,7 @@ int FSFindEntry(char *name, int caseflags, FS_FILE * entry, FS_FILE * dir)
         return FS_ERROR;
 
 // DETERMINE LENGTH OF STRING
-    namelen = (int)stringlen((char *)name);
+    namelen = (int)strlen((char *)name);
 //printf("Search... %s\n",name);
 //printf("dir size=%d\n",dir->FileSize);
 //keyb_get_keyM(1);

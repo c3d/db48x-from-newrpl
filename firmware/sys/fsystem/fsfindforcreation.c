@@ -66,7 +66,7 @@ int FSFindForCreation(char *name, FS_FILECREATE * cr, FS_FILE * dir)
         cr->DirMaxEntries = 65536;
 
 // DETERMINE LENGTH OF STRING
-    namelen = (int)stringlen((char *)name);
+    namelen = (int)strlen((char *)name);
 
 // SAFE OBTAIN NAME OF NEW FILE
     if(namelen > 255) {
@@ -81,7 +81,7 @@ int FSFindForCreation(char *name, FS_FILECREATE * cr, FS_FILE * dir)
             || (FSystem.CaseMode == FSCASE_SENSHPTRUE))
         FSStripSemi((char *)newname);
 
-    namelen = stringlen((char *)newname);
+    namelen = strlen((char *)newname);
 
 // EXTRACT ROOT NAME TO CHECK FOR CONFLICTS
 
@@ -269,7 +269,7 @@ int FSFindForCreation(char *name, FS_FILECREATE * cr, FS_FILE * dir)
                     }
 
                     cr->Entry->Name =
-                            (char *)simpmallocb(stringlen((char *)entryname) +
+                            (char *)simpmallocb(strlen((char *)entryname) +
                             1);
 
                     if(!cr->Entry->Name) {
@@ -388,7 +388,7 @@ int FSFindForCreation(char *name, FS_FILECREATE * cr, FS_FILE * dir)
                     }
 
                     cr->Entry->Name =
-                            (char *)simpmallocb(stringlen((char *)shname) + 1);
+                            (char *)simpmallocb(strlen((char *)shname) + 1);
 
                     if(!cr->Entry->Name) {
                         simpfree(newname);
@@ -521,7 +521,7 @@ int FSFindForCreation(char *name, FS_FILECREATE * cr, FS_FILE * dir)
     }
 
     cr->Entry->Name =
-            (char *)simpmallocb(stringlen((char *)newname) + 1 + cr->NeedSemi);
+            (char *)simpmallocb(strlen((char *)newname) + 1 + cr->NeedSemi);
 
     if(!cr->Entry->Name) {
         simpfree(newname);

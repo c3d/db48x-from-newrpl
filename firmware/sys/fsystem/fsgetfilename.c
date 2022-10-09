@@ -27,7 +27,7 @@ char *FSGetFileName(FS_FILE * file, int flags)
 // COMPUTE STRING LENGTH
 
     if(!(flags & FSNAME_EMPTY) && (file->Name != NULL))
-        length += (int)stringlen(file->Name);
+        length += (int)strlen(file->Name);
 
     if(flags & FSNAME_HASPATH) {
         if(!(flags & FSNAME_ABSPATH))
@@ -35,7 +35,7 @@ char *FSGetFileName(FS_FILE * file, int flags)
         dir = file->Dir;
         while(dir && (dir != enddir)) {
             if(dir->Name != NULL)
-                length += (int)stringlen(dir->Name) + 1;
+                length += (int)strlen(dir->Name) + 1;
             dir = dir->Dir;
         }
         if(dir == NULL)
@@ -85,8 +85,8 @@ char *FSGetFileName(FS_FILE * file, int flags)
         while(dir && (dir != enddir)) {
             if(dir->Name != NULL) {
 // MAKE ROOM
-                memmoveb(partial + stringlen(dir->Name) + 1, partial,
-                        stringlen(partial) + 1);
+                memmoveb(partial + strlen(dir->Name) + 1, partial,
+                        strlen(partial) + 1);
                 stringcpy(partial, dir->Name);
                 tmp = partial;
                 while(*tmp != 0)

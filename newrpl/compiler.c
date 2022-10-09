@@ -1022,7 +1022,7 @@ void rplDecompAppendUTF8(WORD utf8bytes)
 
 void rplDecompAppendString(utf8_p str)
 {
-    int32_t len = stringlen((char *)str);
+    int32_t len = strlen((char *)str);
 
     if(((word_p) ((((intptr_t) DecompStringEnd) + len +
                         3) & ~((intptr_t) 3))) + TEMPOBSLACK >= TempObSize) {

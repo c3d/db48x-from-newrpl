@@ -43,11 +43,6 @@ static inline void memmovew(void *dst, const void *src, size_t nwords)
     memmove(dst, src, nwords * sizeof(WORD));
 }
 
-static inline size_t stringlen(const char *s)
-{
-    return strlen(s);
-}
-
 static inline char *stringcpy(char *dst, const char *src)
 {
     return strcpy(dst, src);

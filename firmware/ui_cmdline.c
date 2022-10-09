@@ -320,7 +320,7 @@ void uiSetCurrentLine(int32_t line)
 // RETURNS THE NUMBER OF LINES ADDED TO THE TEXT (IF ANY)
 int32_t uiInsertCharacters(utf8_p string)
 {
-    utf8_p end = string + stringlen(string);
+    utf8_p end = string + strlen(string);
     return uiInsertCharactersN(string, end);
 }
 

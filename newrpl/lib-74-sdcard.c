@@ -1600,7 +1600,7 @@ void LIB_HANDLER()
 
         word_p *dsave = DSTop;
         utf8_p name = (utf8_p) entry.Name;
-        word_p  newobj = rplCreateString(name, name + stringlen(name));
+        word_p  newobj = rplCreateString(name, name + strlen(name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1715,7 +1715,7 @@ void LIB_HANDLER()
 
         word_p *dsave = DSTop;
         utf8_p name = (utf8_p) entry.Name;
-        word_p  newobj = rplCreateString(name, name + stringlen(name));
+        word_p  newobj = rplCreateString(name, name + strlen(name));
         if(!newobj) {
             DSTop = dsave;
             FSReleaseEntry(&entry);
@@ -1850,7 +1850,7 @@ void LIB_HANDLER()
         // Put the data on a list
         word_p *dsave  = DSTop;
         utf8_p  name   = (utf8_p) entry.Name;
-        word_p  newobj = rplCreateString(name, name + stringlen(name));
+        word_p  newobj = rplCreateString(name, name + strlen(name));
         if (!newobj)
         {
             DSTop = dsave;
