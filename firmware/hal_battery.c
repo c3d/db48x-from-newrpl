@@ -82,7 +82,7 @@ void halInitBusyHandler()
     halFlags = (halFlags & ~HAL_AUTOOFFTIME) |
                SET_AUTOOFFTIME(DEFAULT_AUTOOFFTIME);
     halBusyEvent =
-            tmr_eventcreate(&busy_handler,
+            tmr_event_create(&busy_handler,
             (halFlags & HAL_QUICKRESPONSE) ? 30 : 500, 0);
 }
 
@@ -93,7 +93,7 @@ void halSetBusyHandler()
         // Start the event again
         if (halBusyEvent <= 0)
             halBusyEvent =
-                tmr_eventcreate(&busy_handler,
+                tmr_event_create(&busy_handler,
                                 (halFlags & HAL_QUICKRESPONSE) ? 30 : 500,
                                 0);
     }

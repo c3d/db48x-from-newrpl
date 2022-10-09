@@ -408,8 +408,8 @@ void               tmr_waituntil(tmr_t time);
     Create a new timed event, specifying a callback function that will be called after
     the given time has passed. The autorepeat feature allows the event to be automatically
     rescheduled for another interval of time. Autorepeated events need to be manually removed
-    by tmr_eventkill. One-shot events will remove themselves after completion (no need to explicitly
-    call tmr_eventkill).
+    by tmr_event_kill. One-shot events will remove themselves after completion (no need to explicitly
+    call tmr_event_kill).
 
     \param handler  The function that will be called back on every interval
     \param ms       Time interval in milliseconds after which the handler will be called
@@ -421,21 +421,21 @@ void               tmr_waituntil(tmr_t time);
 
     \note A maximum of NUM_EVENTS (typically 5) can be created simultaneously.
 
- \sa tmr_eventkill
+ \sa tmr_event_kill
 */
 
-HEVENT      tmr_eventcreate(tmr_event_fn handler, unsigned int ms, int autorepeat);
+HEVENT      tmr_event_create(tmr_event_fn handler, unsigned int ms, int autorepeat);
 
 /*!
     \brief Kill a timed event.
     Stops an autoreloading event.
 
-    \param event The event handler obtained from tmr_eventcreate
+    \param event The event handler obtained from tmr_event_create
 
- \sa tmr_eventcreate
+ \sa tmr_event_create
 */
 
-void         tmr_eventkill(HEVENT event);
+void         tmr_event_kill(HEVENT event);
 
 // Battery level measurement API
 void         battery_setup();

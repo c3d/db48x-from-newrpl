@@ -230,7 +230,7 @@ void uiOpenCmdLine(int32_t mode)
     }
 
     halScreen.XVisible = 0;
-    halScreen.CursorTimer = tmr_eventcreate(&uicursorupdate, 700, 1);
+    halScreen.CursorTimer = tmr_event_create(&uicursorupdate, 700, 1);
     halRefresh(CMDLINE_ALL_DIRTY);
 
 }
@@ -239,7 +239,7 @@ void uiOpenCmdLine(int32_t mode)
 void uiCloseCmdLine()
 {
     if(halScreen.CursorTimer >= 0) {
-        tmr_eventkill(halScreen.CursorTimer);
+        tmr_event_kill(halScreen.CursorTimer);
         halScreen.CursorTimer = -1;
     }
 
@@ -2131,7 +2131,7 @@ int32_t halRestoreCmdLine(word_p data)
     halScreen.LineIsModified = -1;      // LINE IS EXISTING BUT NEEDS TO BE EXTRACTED
 
     // START THE TIMER
-    halScreen.CursorTimer = tmr_eventcreate(&uicursorupdate, 700, 1);
+    halScreen.CursorTimer = tmr_event_create(&uicursorupdate, 700, 1);
 
     // UNLOCK CURSOR
     halScreen.CursorState &= ~0xc000;

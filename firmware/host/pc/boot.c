@@ -35,7 +35,7 @@ void main_virtual()
         battery_setup();
 
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
-        HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
+        HEVENT event = tmr_event_create(battery_handler, 500, 1);
 
         ggl_init_screen(&scr);
 
@@ -104,11 +104,11 @@ void main_virtual()
 
         // RETURNED MEANS WE MUST SHUT DOWN
 
-        tmr_eventkill(event);
+        tmr_event_kill(event);
         // KILL ALL OTHER PENDING EVENTS TOO
         int k;
         for(k = 0; k < 5; ++k)
-            tmr_eventkill(k);
+            tmr_event_kill(k);
 
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, LCD_W, LCD_H - 1, PAL_GRAY4);

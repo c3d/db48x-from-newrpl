@@ -241,7 +241,7 @@ keyb_msg_t halWaitForKeyTimeout(int32_t timeoutms)
 
     if (!(halFlags & HAL_FASTMODE) && (halBusyEvent >= 0))
     {
-        tmr_eventkill(halBusyEvent);
+        tmr_event_kill(halBusyEvent);
         halBusyEvent = -1;
     }
 
@@ -249,7 +249,7 @@ keyb_msg_t halWaitForKeyTimeout(int32_t timeoutms)
     if (timeoutms > 0)
     {
         halFlags &= ~HAL_TIMEOUT;
-        halTimeoutEvent = tmr_eventcreate(&keybTimeoutHandler, timeoutms, 0);
+        halTimeoutEvent = tmr_event_create(&keybTimeoutHandler, timeoutms, 0);
     }
 
     for(;;)
@@ -6968,7 +6968,7 @@ void halOuterLoop(int32_t timeoutms,
         {
             // TIMED OUT!
             if (halTimeoutEvent >= 0)
-                tmr_eventkill(halTimeoutEvent);
+                tmr_event_kill(halTimeoutEvent);
             halTimeoutEvent = -1;
             halFlags &= ~HAL_TIMEOUT;
             break; // JUST EXIT THE POL
@@ -7076,7 +7076,7 @@ void halOuterLoop(int32_t timeoutms,
     // MAKE SURE WE CLEANUP THE EVENT TIMER BEFORE WE EXIT SO IT DOESN'T TRIGGER
     // INSIDE A PARENT POL
     if (halTimeoutEvent >= 0)
-        tmr_eventkill(halTimeoutEvent);
+        tmr_event_kill(halTimeoutEvent);
     halTimeoutEvent = -1;
     halFlags &= ~HAL_TIMEOUT;
 }

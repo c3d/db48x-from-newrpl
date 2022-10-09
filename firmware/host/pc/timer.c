@@ -202,7 +202,7 @@ void tmr_waituntil(tmr_t time)
 }
 
 // RETURN AN EVENT HANDLER
-HEVENT tmr_eventcreate(tmr_event_fn handler, unsigned int ms, int autorepeat)
+HEVENT tmr_event_create(tmr_event_fn handler, unsigned int ms, int autorepeat)
 {
     int f;
 
@@ -303,7 +303,7 @@ void tmr_event_reschedule()
 
 }
 
-void tmr_eventpause(HEVENT event)
+void tmr_event_pause(HEVENT event)
 {
     if(event < 0 || event >= NUM_EVENTS)
         return;
@@ -312,7 +312,7 @@ void tmr_eventpause(HEVENT event)
 
 }
 
-void tmr_eventresume(HEVENT event)
+void tmr_event_resume(HEVENT event)
 {
     if(event < 0 || event >= NUM_EVENTS)
         return;
@@ -322,7 +322,7 @@ void tmr_eventresume(HEVENT event)
     tmr_event_reschedule();
 }
 
-void tmr_eventkill(HEVENT event)
+void tmr_event_kill(HEVENT event)
 {
     if(event < 0 || event >= NUM_EVENTS)
         return;

@@ -245,7 +245,7 @@ void main_virtual(unsigned int mode)
         battery_setup();
 
         // MONITOR BATTERY VOLTAGE TWICE PER SECOND
-        HEVENT event = tmr_eventcreate(battery_handler, 500, 1);
+        HEVENT event = tmr_event_create(battery_handler, 500, 1);
 
         ggl_init_screen(&scr);
 
@@ -315,7 +315,7 @@ void main_virtual(unsigned int mode)
 
         halOuterLoop(0, 0, 0, 0);
 
-        tmr_eventkill(event);
+        tmr_event_kill(event);
         //   CLEAR SCREEN
         ggl_rect(&scr, 0, 0, LCD_W - 1, LCD_H - 1,  PAL_GRAY4);
 
