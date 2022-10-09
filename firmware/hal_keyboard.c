@@ -2364,7 +2364,7 @@ void symbolKeyHandler(keyb_msg_t keymsg, utf8_p symbol, int32_t separate)
 //   Insert a symbol
 // ----------------------------------------------------------------------------
 {
-    halKeyHelp(keymsg, *symbol == ' ' ? "Space" : symbol);
+    halKeyHelp(keymsg, symbol);
     halKeyOpensEditor(keymsg);
 
     if(separate && ((halScreen.CursorState & 0xff) == 'P'))
@@ -5710,6 +5710,9 @@ void KH(spc)(keyb_msg_t keymsg)
 
     }
 
+    // We marked the key as repeating above
+    // This means space acts on key down, not key press
+    keymsg &= ~(KFLAG_CHANGED | KFLAG_LONG_PRESS | KFLAG_REPEAT);
     symbolKeyHandler(keymsg, " ", 0);
 
 }
