@@ -156,33 +156,33 @@ static inline utf8_p halHelpMessage(utf8_p topic)
     } while (0)
 
 
-#define halKeyHelp(keymsg, command)                                     \
-/* ----------------------------------------------------------------- */ \
-/*  Specify the help message for a key                               */ \
-/* ----------------------------------------------------------------- */ \
-/*  Key down   : Show the short help (name of the command)           */ \
-/*  Key up     : Clear the help and cancel execution                 */ \
-/*  Long Press : Show the extended help message (and cancel)         */ \
-    do                                                                  \
-    {                                                                   \
-        keyb_msg_t msg = KM_MESSAGE(keymsg);                            \
-                                                                        \
-        if (msg & KFLAG_CHANGED)                                        \
-        {                                                               \
-            if (msg & KFLAG_PRESSED)                                    \
-                halScreen.ShortHelpMessage = (command);                 \
-            else                                                        \
-                halScreen.ShortHelpMessage = NULL;                      \
-            halScreen.HelpMessage = NULL;                               \
-            halRefresh(HELP_DIRTY);                                     \
-            return;                                                     \
-        }                                                               \
-        if (msg & KFLAG_LONG_PRESS)                                     \
-        {                                                               \
-            halScreen.HelpMessage = halHelpMessage(command);            \
-            halRefresh(HELP_DIRTY);                                     \
-            return;                                                     \
-        }                                                               \
+#define halKeyHelp(keymsg, command)                                         \
+    /* ----------------------------------------------------------------- */ \
+    /*  Specify the help message for a key                               */ \
+    /* ----------------------------------------------------------------- */ \
+    /*  Key down   : Show the short help (name of the command)           */ \
+    /*  Key up     : Clear the help and cancel execution                 */ \
+    /*  Long Press : Show the extended help message (and cancel)         */ \
+    do                                                                      \
+    {                                                                       \
+        keyb_msg_t msg = KM_MESSAGE(keymsg);                                \
+                                                                            \
+        if (msg & KFLAG_CHANGED)                                            \
+        {                                                                   \
+            if (msg & KFLAG_PRESSED)                                        \
+                halScreen.ShortHelpMessage = (command);                     \
+            else                                                            \
+                halScreen.ShortHelpMessage = NULL;                          \
+            halRefresh(HELP_DIRTY);                                         \
+            return;                                                         \
+        }                                                                   \
+        if (msg & KFLAG_LONG_PRESS)                                         \
+        {                                                                   \
+            halScreen.HelpMessage = halHelpMessage(command);                \
+            halScreen.HelpLine    = 0;                                      \
+            halRefresh(HELP_DIRTY);                                         \
+            return;                                                         \
+        }                                                                   \
     } while (0)
 
 
@@ -6705,6 +6705,28 @@ int halDoDefaultKey(keyb_msg_t keymsg)
 }
 
 
+void halNavigateHelp(keyb_msg_t keymsg)
+// ----------------------------------------------------------------------------
+//   When help is active, navigate with arrows, exit with ON/EXIT/ENTER/SPC
+// ----------------------------------------------------------------------------
+{
+    // Displaying the on-line help clears the last error message
+    halScreen.ErrorMessage = NULL;
+
+    if (KM_MESSAGE(keymsg) == KM_PRESS)
+    {
+        keyb_msg_t key = KM_KEY(keymsg);
+        if (key == KB_ON || key == KB_ESC || key == KB_ENT || key == KB_SPC)
+            halScreen.HelpMessage = NULL;
+        else if (key == KB_UP && halScreen.HelpLine > 0)
+            halScreen.HelpLine--;
+        else if (key == KB_DN && halScreen.HelpLine < halScreen.HelpMaxLine)
+            halScreen.HelpLine++;
+        halRefresh(ERROR_DIRTY);
+    }
+}
+
+
 int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
 // ----------------------------------------------------------------------------
 //   Process key messages and call appropriate handlers for keycode
@@ -6768,6 +6790,13 @@ int halProcessKey(keyb_msg_t keymsg, int (*dokey)(WORD), int32_t flags)
         // Mark that we got the shift change
         keyb_flags &= ~KFLAG_SHIFTS_CHANGED;
 
+        return 0;
+    }
+
+    // If we are displaying help, wait until we exit
+    if (halScreen.HelpMessage)
+    {
+        halNavigateHelp(keymsg);
         return 0;
     }
 

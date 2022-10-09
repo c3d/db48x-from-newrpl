@@ -160,6 +160,8 @@ typedef struct
     int            Menu1;
     int            Menu2;
     utf8_p         HelpMessage;
+    unsigned       HelpLine;
+    unsigned       HelpMaxLine;
     utf8_p         ShortHelpMessage;
     utf8_p         ErrorMessage;
     unsigned       ErrorMessageLength;

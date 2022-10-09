@@ -988,6 +988,8 @@ void halInitScreen()
     halProcesses[1]              = 0;
     halProcesses[2]              = 0;
     halScreen.HelpMessage        = NULL;
+    halScreen.HelpLine           = 0;
+    halScreen.HelpMaxLine        = 0;
     halScreen.ShortHelpMessage   = NULL;
     halScreen.ErrorMessage       = NULL;
     halScreen.ErrorMessageLength = 0;
@@ -1023,8 +1025,8 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 {
     // Compute the size for the layout
     utf8_p text   = halScreen.HelpMessage;
-    size   width  = text ? LCD_W : 0;
-    size   height = text ? LCD_H : 0;
+    coord  width  = text ? LCD_W : 0;
+    coord  height = text ? LCD_H : 0;
     layout_clip(scr, layout, rect, width, height);
     if (!text)
         return;
@@ -1050,23 +1052,35 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         pattern_t      color;
         pattern_t      background;
     } styles[NUM_STYLES] = {
-        { FONT_HELP_TITLE,  PAL_HELP_TITLE,      PAL_HELP_BG},
-        {  FONT_HELP_TEXT,   PAL_HELP_TEXT,      PAL_HELP_BG},
-        {  FONT_HELP_BOLD,   PAL_HELP_BOLD, PAL_HELP_CODE_BG},
-        {  FONT_HELP_BOLD,   PAL_HELP_BOLD,      PAL_HELP_BG},
-        {FONT_HELP_ITALIC, PAL_HELP_ITALIC,      PAL_HELP_BG},
-        {  FONT_HELP_CODE,   PAL_HELP_CODE, PAL_HELP_CODE_BG},
+        {  FONT_HELP_TITLE,  PAL_HELP_TITLE,      PAL_HELP_BG},
+        {   FONT_HELP_TEXT,   PAL_HELP_TEXT,      PAL_HELP_BG},
+        {   FONT_HELP_BOLD,   PAL_HELP_BOLD, PAL_HELP_CODE_BG},
+        {   FONT_HELP_BOLD,   PAL_HELP_BOLD,      PAL_HELP_BG},
+        { FONT_HELP_ITALIC, PAL_HELP_ITALIC,      PAL_HELP_BG},
+        {   FONT_HELP_CODE,   PAL_HELP_CODE, PAL_HELP_CODE_BG},
     };
 
     // Clear help area and add some decorative elements
     ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HELP_LINES);
-    xleft += 1;
+    xleft  += 1;
     xright -= 1;
-    ytop += 1;
-    ybot -= 1;
+    ytop   += 1;
+    ybot   -= 1;
     ggl_cliprect(scr, xleft, ytop, xright, ybot, PAL_HELP_BG);
 
+    // Clip in case there is text that does not wrap correctly
+    scr->left = xleft;
+    scr->top = ytop;
+    scr->right = xright;
+    scr->bottom = ybot;
+
+    // Scroll text up for multiline text
+    ytop -= halScreen.HelpLine * FONT_HELP_TEXT->BitmapHeight;
+
+    // Select initial type
     const UNIFONT *font  = styles[style].font;
+    height = font->BitmapHeight;
+
     // Center the header
     utf8_p hend = text;
     while (*hend && *hend != '\n')
@@ -1138,11 +1152,11 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         // Select font and color based on style
         pattern_t      color = styles[style].color;
         pattern_t      bg    = styles[style].background;
-        const UNIFONT *font  = styles[style].font;
+        font                 = styles[style].font;
+        height               = font->BitmapHeight;
 
         // Check if word fits. If not, skip to new line
         coord right = x + StringWidthN(first, last+1, font);
-        size  height = font->BitmapHeight;
         if (right >= xright - 1)
         {
             x = xleft + 2;
@@ -1191,6 +1205,11 @@ static void help_layout(gglsurface *scr, layout_p layout, rect_t *rect)
         if (reset)
             style = reset < 0 ? BULLETS : NORMAL;
     }
+
+    // If we fit in the screen, we can go back with the help line
+    if (y >= ybot)
+        halScreen.HelpMaxLine = halScreen.HelpLine + 1;
+
     halRepainted(HELP_DIRTY);
 }
 
