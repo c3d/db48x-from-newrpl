@@ -450,8 +450,8 @@ void rtc_poweroff()
 /*
 void rtc_setup()
 {
-    irq_add_hook(INT_RTC, (__interrupt__)&rtc_alrmirq);
-    irq_add_hook(INT_TICK, (__interrupt__)&rtc_tickirq);
+    irq_add_hook(INT_RTC, (tmr_event_fn)&rtc_alrmirq);
+    irq_add_hook(INT_TICK, (tmr_event_fn)&rtc_tickirq);
 
     irq_unmask(INT_RTC);
     irq_unmask(INT_TICK);

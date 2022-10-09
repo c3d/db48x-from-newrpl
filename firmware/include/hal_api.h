@@ -224,7 +224,7 @@ typedef enum keyboard_context
 
 // Type definition for interrupt handler functions
 
-typedef void (*__interrupt__)(void);
+typedef void (*tmr_event_fn)(void);
 
 enum
 {
@@ -326,7 +326,7 @@ void throw_dbgexception(cstring message, unsigned int options);
  \sa irq_releasehook
 */
 
-void irq_add_hook(int service_number, __interrupt__ serv_routine);
+void irq_add_hook(int service_number, tmr_event_fn serv_routine);
 
 /*!
     \brief Uninstall an IRQ handler
@@ -360,7 +360,7 @@ void usb_mutex_unlock(void);
 // INTERNAL USE ONLY
 typedef struct
 {
-    __interrupt__ eventhandler;
+    tmr_event_fn eventhandler;
     long long     ticks;
     unsigned int  delay;
     unsigned int  status; // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
@@ -424,7 +424,7 @@ void               tmr_waituntil(tmr_t time);
  \sa tmr_eventkill
 */
 
-HEVENT      tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepeat);
+HEVENT      tmr_eventcreate(tmr_event_fn handler, unsigned int ms, int autorepeat);
 
 /*!
     \brief Kill a timed event.

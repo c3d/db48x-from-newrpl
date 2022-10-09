@@ -29,11 +29,11 @@ ARM_MODE void irq_service()
         *SRCPND1=*INTPND1; // CLEAR SRCPENDING EARLY TO AVOID MISSING ANY OTHER INTERRUPTS
         *SRCPND2=*INTPND2;
         if(*INTPND1) {
-            (*( (__interrupt__) (irq_table[*INTOFFSET1]))) ();
+            (*( (tmr_event_fn) (irq_table[*INTOFFSET1]))) ();
             *INTPND1=*INTPND1;
         }
         else if(*INTPND2) {
-            (*( (__interrupt__) (irq_table[32+ *INTOFFSET2]))) ();
+            (*( (tmr_event_fn) (irq_table[32+ *INTOFFSET2]))) ();
             *INTPND2=*INTPND2;
         }
 
@@ -75,7 +75,7 @@ for(f=0;f<40;++f)
 
 }
 
-void irq_add_hook(int service_number,__interrupt__ serv_routine)
+void irq_add_hook(int service_number,tmr_event_fn serv_routine)
 {
     if(service_number<0 || service_number>39) return;
     irq_table[service_number]=(unsigned int)serv_routine;

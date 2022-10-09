@@ -111,8 +111,8 @@ void tmr_setup()
 
     evtmr = 0;
 
-//irq_add_hook(10,(__interrupt__) &tmr_irqservice);
-//irq_add_hook(11,(__interrupt__) &tmr_newirqeventsvc);
+//irq_add_hook(10,(tmr_event_fn) &tmr_irqservice);
+//irq_add_hook(11,(tmr_event_fn) &tmr_newirqeventsvc);
 
 // UNMASK INTERRUPTS FOR TIMERS 0 AND 1
 
@@ -202,7 +202,7 @@ void tmr_waituntil(tmr_t time)
 }
 
 // RETURN AN EVENT HANDLER
-HEVENT tmr_eventcreate(__interrupt__ handler, unsigned int ms, int autorepeat)
+HEVENT tmr_eventcreate(tmr_event_fn handler, unsigned int ms, int autorepeat)
 {
     int f;
 
