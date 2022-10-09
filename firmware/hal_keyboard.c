@@ -2364,7 +2364,7 @@ void symbolKeyHandler(keyb_msg_t keymsg, utf8_p symbol, int32_t separate)
 //   Insert a symbol
 // ----------------------------------------------------------------------------
 {
-    halKeyHelp(keymsg, symbol);
+    halKeyHelp(keymsg, *symbol == ' ' ? "Space" : symbol);
     halKeyOpensEditor(keymsg);
 
     if(separate && ((halScreen.CursorState & 0xff) == 'P'))
