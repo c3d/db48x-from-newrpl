@@ -232,6 +232,9 @@ int tmr_timedout(unsigned int start,unsigned int end);
 // Flight recorders must be tiny on DM42 (not much RAM)
 #define FLIGHT_RECORDER(name, descr)    RECORDER(name, 2, descr)
 
+// Display of battery level is in volts on the DM42
+#define BATTERY_FORMAT  "%d.%02dV", battery/1000, battery/10 % 100
+
 #include <host.h>
 
 #endif // TARGET_DM42_H

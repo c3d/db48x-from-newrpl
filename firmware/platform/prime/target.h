@@ -1022,6 +1022,8 @@ void debug_print_hex(const char *key, uint32_t value);
 // Flight recorders can be relatively large on Prime
 #define FLIGHT_RECORDER(name, descr)    RECORDER(name, 16, descr)
 
+// Display of battery level is in percentage
+#define BATTERY_FORMAT  "%d%%", battery
 
 #include <host.h>
 

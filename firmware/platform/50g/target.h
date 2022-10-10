@@ -458,6 +458,9 @@ Bit set means key is pressed.
 // Flight recorders can be relatively large on HP50G
 #define FLIGHT_RECORDER(name, descr)    RECORDER(name, 16, descr)
 
+// Display of battery level is in percentage
+#define BATTERY_FORMAT  "%d%%", battery
+
 #include <host.h>
 
 #endif // TARGET_50G_H

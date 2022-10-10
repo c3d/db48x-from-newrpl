@@ -1944,7 +1944,7 @@ static void battery_layout(gglsurface *scr, layout_p layout, rect_t *rect)
 
         // Display Battery percentage below battery icon
         char buf[8];
-        snprintf(buf, sizeof(buf), "%3d%%", battery);
+        snprintf(buf, sizeof(buf), BATTERY_FORMAT);
         coord labelWidth = StringWidth(buf, labelFont);
         y += (height - lheight) / 2;
         DrawText(scr, x - batW - labelWidth - 1, y, buf, labelFont, color);
