@@ -10,6 +10,7 @@
 #include <libraries.h>
 #include <newrpl.h>
 #include <ui.h>
+#include <stdio.h>
 
 RECORDER(annunciators, 16, "Annunciators");
 RECORDER(layout, 16, "Layout and redrawing");

@@ -9,7 +9,7 @@
 
 #include <keyboard.h>
 #include <recorder.h>
-#include <stdio.h>\
+#include <stdio.h>
 
 RECORDER(shift, 8, "Shift logic");
 

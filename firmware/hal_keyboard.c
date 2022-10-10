@@ -14,6 +14,7 @@
 #include <newrpl.h>
 #include <sysvars.h>
 #include <ui.h>
+#include <stdio.h>
 
 
 RECORDER(keys, 16, "Keyboard handling");

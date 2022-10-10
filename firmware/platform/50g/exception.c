@@ -8,6 +8,7 @@
 #include <newrpl.h>
 #include <ui.h>
 #include "recorder.h"
+#include <stdio.h>
 
 
 RECORDER(exceptions, 16, "System exceptions");

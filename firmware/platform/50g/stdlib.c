@@ -7,6 +7,7 @@
 
 #include <host/pc/stdlib.c>
 #include <recorder.h>
+#include <stdio.h>
 
 RECORDER(stdlib_error, 4, "Erroneous calls to stdlib stubs, set to 2 to abort");
 #define ABORT() do  { if (RECORDER_TWEAK(stdlib_error) == 2) abort(); } while(0)
