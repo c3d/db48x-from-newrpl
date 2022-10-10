@@ -12,9 +12,9 @@
 #include <ui.h>
 #include <stdio.h>
 
-RECORDER(annunciators, 16, "Annunciators");
-RECORDER(layout, 16, "Layout and redrawing");
-RECORDER(errors, 16, "Error processing");
+FLIGHT_RECORDER(annunciators, "Annunciators");
+FLIGHT_RECORDER(layout, "Layout and redrawing");
+FLIGHT_RECORDER(errors, "Error processing");
 
 
 // ============================================================================

@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 
-RECORDER(exceptions, 16, "System exceptions");
+FLIGHT_RECORDER(exceptions, "System exceptions");
 
 extern unsigned int RPLLastOpcode;
 

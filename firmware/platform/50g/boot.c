@@ -10,7 +10,7 @@
 #include "sys/fsystem/fsyspriv.h"
 
 
-RECORDER(boot, 16, "Information about system boot, reset and shutdown");
+FLIGHT_RECORDER(boot, "Information about system boot, reset and shutdown");
 
 #define enter_mode(mode) call_swi(mode)
 

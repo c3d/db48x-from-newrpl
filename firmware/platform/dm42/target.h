@@ -229,6 +229,9 @@ int tmr_timedout(unsigned int start,unsigned int end);
 // Magic word "NRPL"
 #define NEWRPL_MAGIC   0x4C50524E
 
+// Flight recorders must be tiny on DM42 (not much RAM)
+#define FLIGHT_RECORDER(name, descr)    RECORDER(name, 2, descr)
+
 #include <host.h>
 
 #endif // TARGET_DM42_H

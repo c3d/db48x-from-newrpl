@@ -31,7 +31,7 @@ int             keyb_irq_repeat_time                    SYSTEM_GLOBAL;
 int             keyb_irq_long_press_time                SYSTEM_GLOBAL;
 int             keyb_irq_debounce                       SYSTEM_GLOBAL;
 
-RECORDER(keys_irq, 32, "Low level key handling");
+FLIGHT_RECORDER(keys_irq, "Low level key handling");
 
 
 // ============================================================================

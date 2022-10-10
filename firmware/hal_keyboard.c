@@ -17,8 +17,8 @@
 #include <stdio.h>
 
 
-RECORDER(keys, 16, "Keyboard handling");
-RECORDER(keys_debug, 16, "Detailed debugging");
+FLIGHT_RECORDER(keys, "Keyboard handling");
+FLIGHT_RECORDER(keys_debug, "Detailed debugging");
 
 // For use in the debugger, which does not know about macros
 const keyb_msg_t     km_press          = KM_PRESS;

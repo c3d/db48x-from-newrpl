@@ -114,7 +114,7 @@ static int pthread_barrier_wait(pthread_barrier_t *barrier)
 
 #endif
 
-RECORDER(usb_hid, 16, "USB Human Interface Devices");
+FLIGHT_RECORDER(usb_hid, "USB Human Interface Devices");
 
 #ifdef __cplusplus
 extern "C" {

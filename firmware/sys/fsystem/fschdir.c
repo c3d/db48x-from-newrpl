@@ -12,7 +12,7 @@
 
 // CHANGE CURRENT DIRECTORY
 
-RECORDER(fs_chdir, 4, "FSChdir function");
+FLIGHT_RECORDER(fs_chdir, "FSChdir function");
 
 int FSChdir(char *name)
 {

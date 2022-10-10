@@ -1019,6 +1019,10 @@ void uart_init(void);
 void debug_print(const char *string);
 void debug_print_hex(const char *key, uint32_t value);
 
+// Flight recorders can be relatively large on Prime
+#define FLIGHT_RECORDER(name, descr)    RECORDER(name, 16, descr)
+
+
 #include <host.h>
 
 #endif // TARGET_PRIME_H

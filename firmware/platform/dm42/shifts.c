@@ -11,7 +11,7 @@
 #include <recorder.h>
 #include <stdio.h>
 
-RECORDER(shift, 8, "Shift logic");
+FLIGHT_RECORDER(shift, "Shift logic");
 
 void keyb_irq_shift_logic(keyb_msg_t key, keymatrix hwkeys, keymatrix changes)
 // ----------------------------------------------------------------------------

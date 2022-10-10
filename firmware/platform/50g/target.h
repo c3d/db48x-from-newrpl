@@ -455,6 +455,9 @@ Bit set means key is pressed.
 #define KB_NUM      9 //! NUM key (prime only)
 #define KB_MENU     9 //! MENU key (prime only)
 
+// Flight recorders can be relatively large on HP50G
+#define FLIGHT_RECORDER(name, descr)    RECORDER(name, 16, descr)
+
 #include <host.h>
 
 #endif // TARGET_50G_H
