@@ -79,6 +79,7 @@ extern keyb_index_t       keyb_current                  SYSTEM_GLOBAL;
 extern keymatrix          keyb_matrix                   SYSTEM_GLOBAL;
 extern unsigned           keyb_plane                    SYSTEM_GLOBAL;
 extern int                keyb_last_code                SYSTEM_GLOBAL;
+extern int                keyb_prev_code                SYSTEM_GLOBAL;
 extern int                keyb_duration                 SYSTEM_GLOBAL;
 extern int                keyb_irq_repeat_time;
 extern int                keyb_irq_long_press_time      SYSTEM_GLOBAL;

@@ -36,7 +36,10 @@ void keyb_irq_shift_logic(keyb_msg_t key, keymatrix hwkeys, keymatrix changes)
             }
             else if (keyb_plane & KSHIFT_ALPHA)
             {
-                keyb_plane &= ~(KSHIFT_ANY | KHOLD_ANY);
+                if (keyb_prev_code == KB_SHIFT || keyb_prev_code == 0)
+                    keyb_plane &= ~(KSHIFT_ANY | KHOLD_ANY);
+                else
+                    keyb_plane ^= KFLAG_ALPHA_LOWER;
             }
             else if (longpress)
             {

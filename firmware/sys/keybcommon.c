@@ -25,10 +25,13 @@ keyb_index_t    keyb_current                            SYSTEM_GLOBAL;
 keymatrix       keyb_matrix                             SYSTEM_GLOBAL;
 unsigned        keyb_plane                              SYSTEM_GLOBAL;
 int             keyb_last_code                          SYSTEM_GLOBAL;
+int             keyb_prev_code                          SYSTEM_GLOBAL;
 int             keyb_duration                           SYSTEM_GLOBAL;
 int             keyb_irq_repeat_time                    SYSTEM_GLOBAL;
 int             keyb_irq_long_press_time                SYSTEM_GLOBAL;
 int             keyb_irq_debounce                       SYSTEM_GLOBAL;
+
+RECORDER(keys_irq, 32, "Low level key handling");
 
 
 // ============================================================================
@@ -236,9 +239,12 @@ static inline void keyb_irq_shifts(keymatrix hwkeys, keymatrix changes)
         int        key    = ffsll(relevant) - 1;
         keymatrix  change = KM_MASK(key);
         keyb_msg_t msg    = key;
+        int        down   = (hwkeys & change) != 0;
         keyb_flags |= KFLAG_SHIFTS_CHANGED;
         keyb_irq_shift_logic(key, hwkeys, changes);
         keyb_irq_post_message(msg); // Will pass shifts flags from keyb_flags
+        if (!down)
+            keyb_prev_code = keyb_last_code;
         keyb_last_code = key;
         relevant ^= change;
     }
@@ -265,6 +271,7 @@ static inline void keyb_irq_normal_keys(keymatrix hwkeys, keymatrix changes)
             else
                 keyb_flags &= ~(KFLAG_LONG_PRESS | KFLAG_REPEAT);
             unshift = 1;
+            keyb_prev_code = keyb_last_code;
         }
 
         // Will pass required flags from keyb_flags
@@ -400,6 +407,13 @@ retry:
     // Signal the key udpate and release the interrupt lock
     keyb_flags |= KFLAG_UPDATED;
     keyb_irq_lock = 0;
+
+    record(keys_irq,
+           "changes=%16lX keyb_flags=%08X last=%d prev=%d",
+           changes,
+           keyb_flags,
+           keyb_last_code,
+           keyb_prev_code);
 }
 
 

@@ -79,6 +79,7 @@ void keyb_irq_init()
     keyb_used                  = 0;
     keyb_current               = 0;
     keyb_last_code             = 0;
+    keyb_prev_code             = 0;
     keyb_matrix                = 0LL;
     keyb_irq_repeat_time       = 100 / KEYB_SCAN_SPEED;
     keyb_irq_long_press_time   = 1000 / KEYB_SCAN_SPEED;
