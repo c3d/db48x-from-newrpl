@@ -2386,10 +2386,13 @@ void alphasymbolKeyHandler(keyb_msg_t keymsg, utf8_p Lsymbol, utf8_p Csymbol)
     halKeyHelp(keymsg, Csymbol);
     halKeyOpensEditor(keymsg);
 
-    if(halGetCmdLineMode() == 'L')
-        uiInsertCharacters(Lsymbol);
-    if(halGetCmdLineMode() == 'C')
-        uiInsertCharacters(Csymbol);
+    if (keymsg & KSHIFT_ALPHA)
+    {
+        if(keymsg & KFLAG_ALPHA_LOWER)
+            uiInsertCharacters(Lsymbol);
+        else
+            uiInsertCharacters(Csymbol);
+    }
     uiAutocompleteUpdate();
 
 }
