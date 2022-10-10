@@ -2252,7 +2252,7 @@ void LIB_HANDLER()
     case USBFWUPDATE:
     {
 
-        ram_startfwupdate();
+        ram_start_firmware_update();
 
         return;
     }

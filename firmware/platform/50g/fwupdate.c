@@ -1907,7 +1907,7 @@ ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 // USE SCRATCH AREA TO EXECUTE TEMPORARY CODE FROM RAM
 WORD scratch_buffer[2500] SCRATCH_MEMORY;
 
-ARM_MODE void ram_startfwupdate()
+ARM_MODE void ram_start_firmware_update()
 {
 
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED
@@ -1938,7 +1938,7 @@ ARM_MODE void ram_startfwupdate()
     // NOW COPY THE CODE TO RAM
 
     int needwords =
-            (word_p) & ram_startfwupdate - (word_p) & ramusb_crc32roll;
+            (word_p) & ram_start_firmware_update - (word_p) & ramusb_crc32roll;
 
     word_p codeblock = (word_p) scratch_buffer;     // STORE CODE ON TOP OF THE STACK
 

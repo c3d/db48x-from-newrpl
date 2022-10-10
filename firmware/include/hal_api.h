@@ -576,7 +576,7 @@ void        keyb_irq_wait_release();
 void        flash_CFIRead(unsigned short *ptr);
 void        flash_prepareforwriting();
 void        flash_donewriting();
-void        ram_startfwupdate();
+void        ram_start_firmware_update();
 
 // LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM
 void        init_simpalloc();

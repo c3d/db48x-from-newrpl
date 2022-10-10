@@ -179,7 +179,7 @@ void ram_receiveandflashfw(int32_t flashsize)
 }
 
 
-ARM_MODE void ram_startfwupdate()
+ARM_MODE void ram_start_firmware_update()
 {
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED
     // THIS ROUTINE WILL UPDATE THE FIRMWARE
