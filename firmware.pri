@@ -23,7 +23,7 @@ isEmpty(HOST):HOST = hardware
 
 newrpl_color:NEWRPL_CONFIG += newrpl_color
 
-# Strip the configuratoin to the strictest minimim
+# Strip the configuration to the strictest minimim
 CONFIG(debug, debug|release) {
     CONFIG = debug static ordered depend_includepath
 } else {
@@ -59,6 +59,12 @@ QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
 QMAKE_CFLAGS =--specs=nosys.specs
+
+# Disable fPIC since we link at a fixed address
+# This makes it possible to put function pointers in read-only sections
+QMAKE_CFLAGS_PIC =
+QMAKE_CFLAGS_STATIC_LIB =
+QMAKE_CFLAGS_APP =
 
 QMAKE_CFLAGS_COMMON = \
 	$${DEVEL_OPTIONS} \
