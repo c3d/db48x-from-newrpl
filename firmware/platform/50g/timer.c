@@ -75,7 +75,7 @@ void tmr_restore(unsigned int *tmrbuffer)
 }
 
 // THIS EVENT IS CALLED TO CHECK IF WE HAVE AN EVENT
-void tmr_newirqeventsvc()
+void tmr_event_service()
 {
     if(cpu_get_lock(2, &tmr_lock))
         return; // GET A LOCK ON THE TIMERS, ABORT IF SOMEBODY ELSE HAS IT
@@ -116,7 +116,7 @@ void tmr_irqservice()
 
     if(evtmr && (evtmr - systmr < 0x10000)
             && !(*HWREG(TMR_REGS, 0x8) & 0x100))
-        tmr_newirqeventsvc();
+        tmr_event_service();
 
 }
 
@@ -261,7 +261,7 @@ void tmr_setup()
     evtmr = 0;
 
     irq_add_hook(10, (tmr_event_fn) & tmr_irqservice);
-    irq_add_hook(11, (tmr_event_fn) & tmr_newirqeventsvc);
+    irq_add_hook(11, (tmr_event_fn) & tmr_event_service);
 
 // UNMASK INTERRUPTS FOR TIMERS 0 AND 1
     *HWREG(INT_REGS, 0x8) &= ~0xc00;

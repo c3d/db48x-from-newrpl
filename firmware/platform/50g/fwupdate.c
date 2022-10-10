@@ -144,7 +144,7 @@ ARM_MODE void rammemmoveb(void *_dest, const void *_source, int nbytes)
 }
 
 // PUT THE CPU IN "DOZE" MODE
-ARM_MODE void ramcpu_waitforinterrupt()
+ARM_MODE void ramcpu_wait_for_interrupt()
 {
     register unsigned int var = 0;
     asm volatile ("mcr p15,0,%0,c7,c0,4"::"r" (var));
@@ -1453,7 +1453,7 @@ ARM_MODE int ramusb_waitfordata(int nbytes)
                     USB_STATUS_CONNECTED))
             return 0;
 
-        //ramcpu_waitforinterrupt();
+        //ramcpu_wait_for_interrupt();
 
         hasbytes = ramusb_hasdata();
 
@@ -1467,7 +1467,7 @@ ARM_MODE int ramusb_waitfordata(int nbytes)
             break;
         }
 
-        ramcpu_waitforinterrupt();
+        ramcpu_wait_for_interrupt();
 
     }
 
@@ -1591,7 +1591,7 @@ ARM_MODE int ramusb_rxfileclose(int fileid)
                         USB_STATUS_CONNECTED))
                 return 0;
 
-            ramcpu_waitforinterrupt();
+            ramcpu_wait_for_interrupt();
         }
 
     }
@@ -1795,7 +1795,7 @@ ARM_MODE void ram_receiveandflashfw(int32_t flashsize)
 
         // SLEEP UNTIL WE GET SOMETHING
         while(!ramusb_hasdata())
-            ramcpu_waitforinterrupt();
+            ramcpu_wait_for_interrupt();
 
         result = fileid = ramusb_rxfileopen();
         if((!result) || usb_filetype(fileid) != 'W') {

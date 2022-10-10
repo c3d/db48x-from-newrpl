@@ -292,7 +292,7 @@ keyb_msg_t halWaitForKeyTimeout(int32_t timeoutms)
         }
 
         // Wait for an interrupt to wake us up
-        cpu_waitforinterrupt();
+        cpu_wait_for_interrupt();
         wokeup = 1;
     }
 

@@ -506,7 +506,7 @@ utf8_p      StringCoordToPointer(utf8_p         Text,
 
 int         cpu_get_lock(int lockvar, volatile int *lock_ptr);
 int         cpu_setspeed(int);
-void        cpu_waitforinterrupt();
+void        cpu_wait_for_interrupt();
 void        cpu_off();
 void        cpu_intoff();
 void        cpu_inton();

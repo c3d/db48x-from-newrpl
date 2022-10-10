@@ -196,7 +196,7 @@ extern volatile long long pcsystmr;
 int tmr_singleshot_running = 0;
 volatile unsigned long long tmr1_msec;
 
-extern "C" void tmr_newirqeventsvc();
+extern "C" void tmr_event_service();
 
 extern "C" void stop_singleshot()
 {
@@ -1772,7 +1772,7 @@ void USBThread::run()
                 tmr1_msec--;
             if(!tmr1_msec) {
                 tmr_singleshot_running = 0;
-                tmr_newirqeventsvc();
+                tmr_event_service();
 
             }
         }

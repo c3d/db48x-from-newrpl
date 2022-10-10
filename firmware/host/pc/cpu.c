@@ -63,7 +63,7 @@ int cpu_setspeed(int mhz)
 void thread_yield();
 
 // PUT THE CPU IN "DOZE" MODE
-void cpu_waitforinterrupt()
+void cpu_wait_for_interrupt()
 {
 // TODO: IMPLEMENT THIS ONE IN QT
 // BLOCK THREAD UNTIL AN INTERRUPT HAS OCCURRED

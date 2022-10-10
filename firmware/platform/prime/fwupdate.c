@@ -51,7 +51,7 @@ void ram_receiveandflashfw(int32_t flashsize)
 
         // SLEEP UNTIL WE GET SOMETHING
         while(!usb_hasdata())
-            cpu_waitforinterrupt();
+            cpu_wait_for_interrupt();
 
         fileid = usb_rxfileopen();
         if (!fileid) {

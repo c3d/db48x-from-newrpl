@@ -265,7 +265,7 @@ ARM_MODE void cpu_flushTLB(void)
 
 
 // PUT THE CPU IN "DOZE" MODE
-ARM_MODE void cpu_waitforinterrupt()
+ARM_MODE void cpu_wait_for_interrupt()
 {
     register unsigned int var = 0;
     asm volatile ("mcr p15,0,%0,c7,c0,4"::"r" (var));

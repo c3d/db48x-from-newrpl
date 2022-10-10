@@ -467,7 +467,7 @@ int usb_waitfordata(int nbytes)
             break;
         }
 
-        cpu_waitforinterrupt();
+        cpu_wait_for_interrupt();
 
     }
 
@@ -731,7 +731,7 @@ int usb_txfileclose(int fileid)
             break;
         }       // FAIL IF TIMEOUT
 
-        cpu_waitforinterrupt();
+        cpu_wait_for_interrupt();
 
     }
     while(1);
@@ -866,7 +866,7 @@ int usb_rxfileclose(int fileid)
                     USB_STATUS_CONNECTED))
             return 0;
 
-        cpu_waitforinterrupt();
+        cpu_wait_for_interrupt();
         end = tmr_ticks();
         if(tmr_ticks2ms(start, end) > USB_TIMEOUT_MS) {
             break;
