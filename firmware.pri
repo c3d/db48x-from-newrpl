@@ -92,5 +92,6 @@ QMAKE_LFLAGS = \
 	-nostdlib \
 	-nodefaultlibs \
 	-Wl,--gc-sections \
+	-Wl,-Map,build/$(TARGET).map
 
 QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
