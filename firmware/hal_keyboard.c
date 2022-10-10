@@ -4322,7 +4322,7 @@ void KH(increaseContrast)(keyb_msg_t keymsg)
     if(lcd_contrast > 0xf)
         lcd_contrast = 0xf;
 
-    lcd_setcontrast(lcd_contrast);
+    lcd_set_contrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
     word_p contrast = rplNewSINT(lcd_contrast, DECBINT);
@@ -4344,7 +4344,7 @@ void KH(decreaseContrast)(keyb_msg_t keymsg)
     lcd_contrast--;
     if(lcd_contrast < 0)
         lcd_contrast = 0;
-    lcd_setcontrast(lcd_contrast);
+    lcd_set_contrast(lcd_contrast);
     WORD savedex = Exceptions;
     Exceptions = 0;
     word_p contrast = rplNewSINT(lcd_contrast, DECBINT);

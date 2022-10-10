@@ -60,7 +60,7 @@ void lcd_restore(unsigned int *buf)
     lcd_mode = *buf;
 }
 
-void lcd_setcontrast(int level)
+void lcd_set_contrast(int level)
 {
 //    int value;
     if(level > 15 || level < 0)
@@ -86,7 +86,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     else pagewidth = LCD_SCANLINE * 2;
 
     lcd_buffer = physbuf;
-    lcd_setcontrast(lcd_contrast);
+    lcd_set_contrast(lcd_contrast);
     lcd_mode = mode;
     lcd_activebuffer = 0;
 

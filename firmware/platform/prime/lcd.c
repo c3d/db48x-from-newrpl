@@ -65,7 +65,7 @@ void lcd_restore(unsigned int *buf)
     *WINCON0=buf[0];        // RESTORE WINDOW 0
 }
 
-void lcd_setcontrast(int level)
+void lcd_set_contrast(int level)
 {
 }
 #define BKGND_RED 172

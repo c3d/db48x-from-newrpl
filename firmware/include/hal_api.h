@@ -519,7 +519,7 @@ void        lcd_fix();
 void        lcd_off();
 void        lcd_on();
 void        lcd_poweron();
-void        lcd_setcontrast(int level);
+void        lcd_set_contrast(int level);
 int         lcd_setmode(int mode, unsigned int *physbuf);
 void        lcd_save(unsigned int *buf);
 void        lcd_restore(unsigned int *buf);

@@ -974,7 +974,7 @@ void halInitScreen()
     {
         // JUST THE CONTRAST SETTINGS FOR NOW
         if (ISint32_t(*saved))
-            lcd_setcontrast(rplReadint32_t(saved));
+            lcd_set_contrast(rplReadint32_t(saved));
     }
 
     halSetupTheme(NULL); // SETUP DEFAULT THEME

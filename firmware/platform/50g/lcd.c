@@ -190,7 +190,7 @@ void lcd_txbyte(int byte)
     return;
 }
 
-void lcd_setcontrast(int level)
+void lcd_set_contrast(int level)
 {
     int value;
     if(level > 15 || level < 0)
@@ -262,7 +262,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
     // and turn on
     lcd_fix();
 
-    lcd_setcontrast(lcd_contrast);
+    lcd_set_contrast(lcd_contrast);
 
     return pagewidth;
 }
@@ -278,7 +278,7 @@ void lcd_poweron()
     lcd_txbyte(0x27);
     lcd_txbyte(0x65);
 
-    lcd_setcontrast(lcd_contrast);
+    lcd_set_contrast(lcd_contrast);
 
     lcd_fix();        // fix frequency and enable video
 
