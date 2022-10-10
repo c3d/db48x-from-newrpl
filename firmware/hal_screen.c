@@ -2056,7 +2056,7 @@ void halSwapBuffer(gglsurface *scr)
     halScreen.DirtyFlag |= BUFFER_LOCK;
 
     pixword *base = (pixword *) MEM_PHYS_SCREEN;
-    lcd_setactivebuffer(scr->pixels != base);
+    lcd_setactive_buffer(scr->pixels != base);
     halScreen.DirtyFlag &= ~BUFFER_ALT;
 
     // Remove the lock

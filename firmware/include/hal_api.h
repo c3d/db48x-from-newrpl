@@ -524,8 +524,8 @@ int         lcd_setmode(int mode, unsigned int *physbuf);
 void        lcd_save(unsigned int *buf);
 void        lcd_restore(unsigned int *buf);
 int         lcd_scanline();
-void        lcd_setactivebuffer(int buffer);
-int         lcd_getactivebuffer();
+void        lcd_setactive_buffer(int buffer);
+int         lcd_get_active_buffer();
 
 // BASIC LOW-LEVEL INTERRUPT HANDLERS
 void        exception_install();

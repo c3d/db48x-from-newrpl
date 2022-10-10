@@ -10,7 +10,7 @@
 void ggl_init_screen(gglsurface *srf)
 {
 #if SCREEN_BUFFERS > 1
-    int active = lcd_getactivebuffer();
+    int active = lcd_get_active_buffer();
     size_t offset = LCD_W * LCD_H / PIXELS_PER_WORD * active;
     srf->pixels = (pixword *) MEM_PHYS_SCREEN + offset;
 #else

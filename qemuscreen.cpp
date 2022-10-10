@@ -14,7 +14,7 @@
 
 extern int           lcd_mode;
 extern int           lcd_needsupdate;
-extern int           lcd_activebuffer;
+extern int           lcd_active_buffer;
 extern unsigned int *lcd_buffer;
 
 #define min(a, b) (((a) > (b)) ? (b) : (a))
@@ -203,7 +203,7 @@ void QEmuScreen::update()
         unsigned int *ptr, *buffer;
         int           mask;
         buffer = lcd_buffer +
-                 (lcd_activebuffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
+                 (lcd_active_buffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
         for (i = 0; i < screen_height; ++i)
         {
             mask = 1;
@@ -257,7 +257,7 @@ void QEmuScreen::update()
         // 16-GRAYS SCREEN
         unsigned int *ptr, *buffer;
         buffer = lcd_buffer +
-                 (lcd_activebuffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
+                 (lcd_active_buffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
         int mask;
         scr.setBackgroundBrush(QBrush(BkgndColor));
         QPainter pt(&mainPixmap);
@@ -318,7 +318,7 @@ void QEmuScreen::update()
         QPainter      pt(&mainPixmap);
         unsigned int *buffer =
             lcd_buffer +
-            (lcd_activebuffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
+            (lcd_active_buffer ? (LCD_W * LCD_H / PIXELS_PER_WORD) : 0);
 
         QImage lcdimage((const unsigned char *) buffer,
                         screen_width,

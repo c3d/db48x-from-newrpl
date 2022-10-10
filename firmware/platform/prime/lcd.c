@@ -479,13 +479,13 @@ if(state&0x6000 == 0x4000) return (state>>16)&0x3ff;
 else return LCD_H+1;
 }
 
-void lcd_setactivebuffer(int buffer)
+void lcd_setactive_buffer(int buffer)
 {
 if(buffer) *WINCON0|=0x00800000;
 else *WINCON0&=~0x00800000;
 }
 
-int lcd_getactivebuffer()
+int lcd_get_active_buffer()
 {
 if(*WINCON0&0x00800000) return 1;
 return 0;
