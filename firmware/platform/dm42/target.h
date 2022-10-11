@@ -25,9 +25,9 @@
 #include <stdint.h>
 
 // Screen size
-#define LCD_W 320
+#define LCD_W 400
 #define LCD_H 240
-#define LCD_SCANLINE 320
+#define LCD_SCANLINE 416
 #define LCD_H 240
 #define SCREEN_BUFFERS 2
 

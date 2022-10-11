@@ -130,10 +130,16 @@ QMainWindow(parent), rpl(this), usbdriver(this), themeEdit(this), ui(new Ui::Mai
         screentmr->start(20);
     }
 
-#if TARGET_PRIME || TARGET_DM42
+#if TARGET_PRIME
     // Select default sizes that match the screen size
     qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
     resize(256 * dpratio, 490 * dpratio);
+#elif TARGET_DM42
+    qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
+    resize(210 * dpratio, 390 * dpratio);
+#else
+    qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
+    resize(210 * dpratio, 390 * dpratio);
 #endif // LARGE_SCREEN
 }
 
